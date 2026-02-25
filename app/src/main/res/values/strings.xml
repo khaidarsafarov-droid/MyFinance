@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Logistics Tracker</string>
+    <string name="goal_channel_name">Goals</string>
+    <string name="goal_channel_desc">Notifications when you achieve a net profit goal</string>
+    <string name="goal_achieved_title">Goal achieved!</string>
+    <string name="goal_achieved_text">You reached your net profit goal of $%s!</string>
+</resources>
