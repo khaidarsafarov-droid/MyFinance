@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#FF0A0A0A</color>
+    <color name="widget_glass_fill">#E6121212</color>
+    <color name="widget_bg_stroke">#00000000</color>
+    <color name="widget_loading_bg">#FF0A0A0A</color>
+    <color name="widget_loading_text">#FFF5F5F5</color>
+    <color name="widget_loading_text_secondary">#FF9CA3AF</color>
+    <color name="widget_text_primary">#FFF5F5F5</color>
+    <color name="widget_text_secondary">#FF9CA3AF</color>
+    <color name="widget_accent">#FFC9A84C</color>
+    <color name="widget_primary">#FFC9A84C</color>
+    <color name="widget_secondary">#FFF5D76E</color>
+    <color name="widget_green">#FF34D399</color>
+    <color name="widget_value_emerald">#FF34D399</color>
+    <color name="widget_value_gold">#FFF5D76E</color>
+    <color name="widget_metric_cell_bg">#33C9A84C</color>
+    <color name="widget_divider">#33C9A84C</color>
+    <color name="widget_progress_track">#FF1F1F1F</color>
+    <color name="widget_progress_fill">#FFC9A84C</color>
+    <color name="widget_success">#FF34D399</color>
+    <color name="widget_rpm_good">#FF34D399</color>
+    <color name="widget_remaining_warning">#FFFFB020</color>
+    <color name="widget_day_past">#FFC9A84C</color>
+    <color name="widget_day_today">#FFF5D76E</color>
+    <color name="widget_day_future">#FF1A1A1A</color>
+    <color name="widget_text_hint">#FF6B7280</color>
+    <color name="widget_surface">#FF121212</color>
+    <color name="widget_cyan">#FFF5D76E</color>
+    <color name="widget_outline_variant">#33C9A84C</color>
+</resources>

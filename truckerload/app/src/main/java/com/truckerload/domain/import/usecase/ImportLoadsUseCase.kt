@@ -1,0 +1,195 @@
+package com.truckerload.domain.import.usecase
+
+import com.truckerload.domain.import.LoadValidator
+import com.truckerload.domain.import.model.ImportException
+import com.truckerload.domain.import.model.ImportReport
+import com.truckerload.domain.import.model.ImportResult
+import com.truckerload.domain.import.model.ParsedLoad
+import com.truckerload.domain.import.model.SkipReason
+import com.truckerload.domain.import.parser.HtmlLoadParser
+import com.truckerload.domain.import.parser.MessageTypeDetector
+import com.truckerload.domain.import.parser.ParserFactory
+import com.truckerload.domain.import.parser.TelegramHtmlExportParser
+import com.truckerload.domain.import.parser.TelegramJsonExportParser
+import com.truckerload.domain.import.repository.LoadImportRepository
+import com.truckerload.domain.model.Load
+import com.truckerload.utils.FeedbackManager
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+
+class ImportLoadsUseCase(
+    private val parserFactory: ParserFactory = ParserFactory(),
+    private val loadRepository: LoadImportRepository,
+    private val validator: LoadValidator = LoadValidator(),
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+) {
+    companion object {
+        const val MAX_LOADS_PER_IMPORT = 100
+        const val MAX_LOADS_PER_JSON_IMPORT = 500
+        const val IMPORT_TIMEOUT_MS = 30_000L
+        const val JSON_IMPORT_TIMEOUT_MS = 120_000L
+    }
+
+    suspend operator fun invoke(
+        rawInput: String,
+        onProgress: suspend (current: Int, total: Int) -> Unit = { _, _ -> },
+    ): Result<ImportReport> = withContext(dispatcher) {
+        val startTime = System.currentTimeMillis()
+        try {
+            withTimeout(IMPORT_TIMEOUT_MS) {
+                val messageType = MessageTypeDetector.detect(rawInput)
+                val parser = parserFactory.getParser(messageType)
+                val parsedLoads = parser.parse(rawInput).distinctBy { it.tripId.uppercase() }
+                processParsedLoads(parsedLoads, startTime, onProgress)
+            }
+        } catch (_: TimeoutCancellationException) {
+            Result.failure(ImportException.Timeout(IMPORT_TIMEOUT_MS))
+        }
+    }
+
+    suspend fun importHtml(
+        htmlContent: String,
+        fileName: String?,
+        onProgress: suspend (current: Int, total: Int) -> Unit = { _, _ -> },
+    ): Result<ImportReport> = withContext(dispatcher) {
+        val startTime = System.currentTimeMillis()
+        try {
+            withTimeout(IMPORT_TIMEOUT_MS) {
+                val parser = if (TelegramHtmlExportParser.isTelegramExport(htmlContent)) {
+                    TelegramHtmlExportParser()
+                } else {
+                    HtmlLoadParser()
+                }
+                val parsedLoads = parser.parse(htmlContent).distinctBy { it.tripId.uppercase() }
+                processParsedLoads(
+                    parsedLoads = parsedLoads,
+                    startTime = startTime,
+                    onProgress = onProgress,
+                    filesProcessed = 1,
+                    fileName = fileName,
+                )
+            }
+        } catch (_: TimeoutCancellationException) {
+            Result.failure(ImportException.Timeout(IMPORT_TIMEOUT_MS))
+        }
+    }
+
+    suspend fun importJson(
+        jsonContent: String,
+        fileName: String?,
+        onProgress: suspend (current: Int, total: Int) -> Unit = { _, _ -> },
+    ): Result<ImportReport> = withContext(dispatcher) {
+        val startTime = System.currentTimeMillis()
+        try {
+            withTimeout(JSON_IMPORT_TIMEOUT_MS) {
+                if (!TelegramJsonExportParser.isTelegramJsonExport(jsonContent)) {
+                    return@withTimeout Result.failure(
+                        IllegalArgumentException("Not a Telegram JSON export"),
+                    )
+                }
+                val parsedLoads = TelegramJsonExportParser()
+                    .parse(jsonContent)
+                    .distinctBy { it.tripId.uppercase() }
+                processParsedLoads(
+                    parsedLoads = parsedLoads,
+                    startTime = startTime,
+                    onProgress = onProgress,
+                    filesProcessed = 1,
+                    fileName = fileName,
+                    maxLoads = MAX_LOADS_PER_JSON_IMPORT,
+                )
+            }
+        } catch (_: TimeoutCancellationException) {
+            Result.failure(ImportException.Timeout(JSON_IMPORT_TIMEOUT_MS))
+        }
+    }
+
+    private suspend fun processParsedLoads(
+        parsedLoads: List<Load>,
+        startTime: Long,
+        onProgress: suspend (current: Int, total: Int) -> Unit,
+        filesProcessed: Int = 0,
+        fileName: String? = null,
+        maxLoads: Int = MAX_LOADS_PER_IMPORT,
+    ): Result<ImportReport> {
+        if (parsedLoads.isEmpty()) {
+            return Result.failure(IllegalArgumentException("No loads found in message"))
+        }
+
+        if (parsedLoads.size > maxLoads) {
+            return Result.failure(
+                ImportException.TooManyLoads(parsedLoads.size, maxLoads),
+            )
+        }
+
+        val results = mutableListOf<ImportResult>()
+        val total = parsedLoads.size
+
+        parsedLoads.forEachIndexed { index, load ->
+            onProgress(index + 1, total)
+
+            val validation = validator.validate(load)
+            if (!validation.isValid) {
+                results.add(
+                    ImportResult.Failed(
+                        tripId = load.tripId,
+                        rawBlock = load.rawMessage.take(200),
+                        error = validation.errors.joinToString("; "),
+                    )
+                )
+                return@forEachIndexed
+            }
+
+            val result = when {
+                loadRepository.exists(load.tripId) -> {
+                    ImportResult.Skipped(load.tripId, SkipReason.DUPLICATE)
+                }
+                else -> {
+                    loadRepository.insertLoad(load, playFeedback = false)
+                    ImportResult.Added(ParsedLoad.from(load))
+                }
+            }
+            results.add(result)
+        }
+
+        if (results.any { it is ImportResult.Added }) {
+            FeedbackManager.onLoadAdded()
+        }
+
+        return Result.success(
+            buildReport(
+                results = results,
+                durationMs = System.currentTimeMillis() - startTime,
+                filesProcessed = filesProcessed,
+                fileName = fileName,
+            )
+        )
+    }
+
+    private fun buildReport(
+        results: List<ImportResult>,
+        durationMs: Long,
+        filesProcessed: Int = 0,
+        fileName: String? = null,
+    ): ImportReport {
+        val added = results.filterIsInstance<ImportResult.Added>()
+        val skipped = results.filterIsInstance<ImportResult.Skipped>()
+        val failed = results.filterIsInstance<ImportResult.Failed>()
+
+        return ImportReport(
+            totalFound = results.size,
+            added = added.size,
+            skipped = skipped.size,
+            failed = failed.size,
+            addedLoads = added.map { it.load },
+            skippedLoads = skipped.map { it.tripId to it.reason },
+            failedBlocks = failed.map { (it.tripId ?: "unknown") to it.error },
+            durationMs = durationMs,
+            filesProcessed = filesProcessed,
+            fileName = fileName,
+        )
+    }
+}

@@ -1,0 +1,116 @@
+package com.truckerload.presentation.components
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.truckerload.R
+import com.truckerload.presentation.navigation.Routes
+import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.FinanceCockpitColors
+import com.truckerload.presentation.theme.LocalTruckColors
+
+private data class RailDestination(
+    val route: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val labelRes: Int,
+)
+
+private val tabletDestinations = listOf(
+    RailDestination(Routes.HOME, Icons.Outlined.Home, R.string.nav_logbook),
+    RailDestination(Routes.STATS, Icons.Outlined.Flag, R.string.nav_weekly_goal),
+    RailDestination(Routes.ANALYTICS, Icons.Outlined.BarChart, R.string.nav_analytics),
+    RailDestination(Routes.SETTINGS, Icons.Outlined.Settings, R.string.nav_settings),
+)
+
+@Composable
+fun TruckLogNavigationRail(
+    currentRoute: String?,
+    onNavigate: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tc = LocalTruckColors.current
+
+    NavigationRail(
+        modifier = modifier.fillMaxHeight(),
+        containerColor = BentoGlassTheme.CardFill,
+        contentColor = tc.TextPrimary,
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(R.string.home_brand_title),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = tc.AccentPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = BentoGlassTheme.CardBorderMuted, thickness = 0.5.dp)
+            Spacer(Modifier.height(8.dp))
+        }
+
+        tabletDestinations.forEach { dest ->
+            val selected = isRailDestinationSelected(currentRoute, dest.route)
+            NavigationRailItem(
+                selected = selected,
+                onClick = { onNavigate(dest.route) },
+                icon = {
+                    Icon(
+                        dest.icon,
+                        contentDescription = stringResource(dest.labelRes),
+                        modifier = Modifier.size(24.dp),
+                    )
+                },
+                label = { Text(stringResource(dest.labelRes)) },
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = tc.AccentPrimary,
+                    selectedTextColor = tc.AccentPrimary,
+                    indicatorColor = tc.AccentPrimary.copy(alpha = 0.12f),
+                    unselectedIconColor = tc.TextSecondary,
+                    unselectedTextColor = tc.TextSecondary,
+                ),
+            )
+        }
+    }
+}
+
+private fun isRailDestinationSelected(currentRoute: String?, targetRoute: String): Boolean {
+    if (currentRoute == null) return false
+    return when (targetRoute) {
+        Routes.HOME -> currentRoute == Routes.HOME ||
+            currentRoute.startsWith("load_detail") ||
+            currentRoute.startsWith("edit_load") ||
+            currentRoute == Routes.ADD_LOAD
+        Routes.STATS -> currentRoute == Routes.STATS
+        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS
+        Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
+            currentRoute == Routes.TAX_TRACKER ||
+            currentRoute == Routes.ADVANCED_STATS ||
+            currentRoute == Routes.MAP ||
+            currentRoute == Routes.FINANCIAL_ADVISOR
+        else -> currentRoute == targetRoute
+    }
+}

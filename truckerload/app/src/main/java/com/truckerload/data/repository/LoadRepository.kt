@@ -1,0 +1,295 @@
+package com.truckerload.data.repository
+
+import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.toDomain
+import com.truckerload.data.local.toEntity
+import com.truckerload.data.local.entities.LoadEntity
+import com.truckerload.data.local.entities.StopEntity
+import com.truckerload.data.local.entities.WeekYieldAgg
+import com.truckerload.domain.goal.WeekYieldSnapshot
+import com.truckerload.domain.model.Load
+import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getFirstPickUpMillis
+import com.truckerload.utils.getLastDeliveryMillis
+import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.utils.withReportingWeek
+import com.truckerload.utils.BackupService
+import com.truckerload.utils.FeedbackManager
+import com.truckerload.utils.formatDateFromUnixSeconds
+import com.truckerload.widget.WidgetDataUpdater
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+
+/** Результат CDC-синхронизации грузов. */
+data class SyncLoadsResult(
+    val addedCount: Int,
+    val lastAddedText: String,
+    val status: SyncStatus
+)
+
+enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class LoadRepository(private val db: AppDatabase) {
+
+    private val loadDao = db.loadDao()
+    private val stopDao = db.stopDao()
+    private val penaltyDao = db.penaltyDao()
+
+    /** Single Source of Truth: реактивный поток. Room эмитит при любом изменении таблицы loads. */
+    fun getAllLoads(): Flow<List<Load>> =
+        loadDao.getAllLoads().mapLatest { hydrateLoads(it) }
+
+    /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
+    fun watchLoads(): Flow<List<Load>> = getAllLoads()
+
+    /** SQL «двигатель эффективности» — реактивно при каждом insert/update loads. */
+    fun watchCurrentWeekYieldSnapshot(): Flow<WeekYieldSnapshot> {
+        val (weekNumber, year) = getCurrentWeekNumberAndYear()
+        return loadDao.watchWeekYieldAgg(weekNumber, year).map { it.toSnapshot() }
+    }
+
+    fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =
+        loadDao.watchActualDailyYield(weekNumber, year)
+
+    fun getLoadsByMonth(monthPrefix: String): Flow<List<Load>> =
+        loadDao.getLoadsByMonth(monthPrefix).mapLatest { hydrateLoads(it) }
+
+    fun searchLoads(query: String): Flow<List<Load>> =
+        loadDao.searchLoads(query).mapLatest { hydrateLoads(it) }
+
+    fun getLoadsByWeek(weekNumber: Int, year: Int): Flow<List<Load>> =
+        loadDao.getLoadsByWeek(weekNumber, year).mapLatest { hydrateLoads(it) }
+
+    /** Точная дата (load_date). */
+    fun getLoadsByDate(loadDate: String): Flow<List<Load>> =
+        loadDao.getLoadsByDate(loadDate).mapLatest { hydrateLoads(it) }
+
+    /** Диапазон дат (включительно). */
+    fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<Load>> =
+        loadDao.getLoadsByDateRange(startDate, endDate).mapLatest { hydrateLoads(it) }
+
+    suspend fun getLoadsByYear(year: Int): List<Load> =
+        getLoadsByDateRange("$year-01-01", "$year-12-31").first()
+
+    suspend fun getLoadsByDateRangeOnce(startDate: String, endDate: String): List<Load> =
+        getLoadsByDateRange(startDate, endDate).first()
+
+    suspend fun getAllLoadsOnce(): List<Load> = hydrateLoads(loadDao.getAllLoadsOnce())
+
+    /** Все грузы (разовый запрос). */
+    suspend fun getAll(): List<Load> = getAllLoadsOnce()
+
+    suspend fun importLoadsIfNotDuplicate(
+        loads: List<Load>,
+        parsedCount: Int
+    ): com.truckerload.utils.LoadImporter.ImportResult {
+        val existingTripIds = getAll()
+            .map { it.tripId.uppercase() }
+            .toMutableSet()
+        var imported = 0
+        var skipped = 0
+        for (load in loads) {
+            val tripId = load.tripId.uppercase()
+            if (tripId in existingTripIds) {
+                skipped++
+                continue
+            }
+            insertLoad(load, playFeedback = false)
+            existingTripIds.add(tripId)
+            imported++
+        }
+        if (imported > 0) {
+            FeedbackManager.onLoadAdded()
+        }
+        return com.truckerload.utils.LoadImporter.ImportResult(
+            imported = imported,
+            skipped = skipped,
+            parsed = parsedCount
+        )
+    }
+
+    suspend fun getLoadById(loadId: String): Load? {
+        val entity = loadDao.getLoadById(loadId) ?: return null
+        return entity.toDomain(stopsFor(loadId), penaltiesFor(loadId))
+    }
+
+    private suspend fun stopsFor(loadId: String) = stopDao.getStopsByLoadId(loadId)
+    private suspend fun penaltiesFor(loadId: String) = penaltyDao.getPenaltiesByLoadId(loadId)
+
+    suspend fun insertLoad(load: Load, playFeedback: Boolean = true) {
+        val normalized = load.withReportingWeek().withRouteMetrics()
+        loadDao.insert(normalized.toEntity())
+        stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
+        penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
+        notifyWidgetDataChanged()
+        scheduleAutoBackup()
+        if (playFeedback) {
+            FeedbackManager.onLoadAdded()
+        }
+    }
+
+    suspend fun updateLoad(load: Load) {
+        val normalized = load.withReportingWeek().withRouteMetrics()
+        loadDao.update(
+            loadId = normalized.id,
+            loadDate = normalized.date,
+            totalRate = normalized.totalRate,
+            totalMiles = normalized.totalMiles,
+            pointA = normalized.pointA,
+            pointB = normalized.pointB,
+            weekNumber = normalized.weekNumber,
+            year = normalized.year,
+            updatedAt = System.currentTimeMillis(),
+            firstPuMillis = getFirstPickUpMillis(normalized),
+            lastDelMillis = getLastDeliveryMillis(normalized),
+            route = normalized.route,
+            firstPuCityState = normalized.firstPuCityState,
+            lastDelCityState = normalized.lastDelCityState,
+            durationDays = normalized.durationDays,
+            pace = normalized.pace,
+            stopCount = normalized.stopCount,
+        )
+        stopDao.deleteByLoadId(normalized.id)
+        penaltyDao.deleteByLoadId(normalized.id)
+        if (normalized.stops.isNotEmpty()) stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
+        if (normalized.penalties.isNotEmpty()) penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
+        notifyWidgetDataChanged()
+        scheduleAutoBackup()
+    }
+
+    suspend fun deleteLoad(loadId: String) {
+        loadDao.deleteById(loadId)
+        notifyWidgetDataChanged()
+        scheduleAutoBackup()
+    }
+
+    suspend fun deleteAllLoads() {
+        loadDao.deleteAll()
+    }
+
+    suspend fun refreshReportingWeeks() {
+        for (load in getAllLoadsOnce()) {
+            val normalized = load.withReportingWeek()
+            if (normalized.weekNumber != load.weekNumber ||
+                normalized.year != load.year ||
+                normalized.date != load.date
+            ) {
+                updateLoad(normalized)
+            }
+        }
+    }
+
+    /** Пересчитывает маршрут, durationDays и pace из стопов. */
+    suspend fun backfillRouteMetricsFromStops() {
+        for (entity in loadDao.getAllLoads().first()) {
+            val stops = stopDao.getStopsByLoadId(entity.id)
+            val load = entity.toDomain(stops).withReportingWeek().withRouteMetrics()
+            val updated = load.toEntity()
+            if (updated.durationDays != entity.durationDays ||
+                updated.route != entity.route ||
+                updated.pace != entity.pace ||
+                updated.firstPuMillis != entity.firstPuMillis ||
+                updated.lastDelMillis != entity.lastDelMillis
+            ) {
+                loadDao.insert(updated)
+            }
+        }
+        notifyWidgetDataChanged()
+    }
+
+    /** Заполняет firstPuMillis / lastDelMillis из стопов (после миграции БД). */
+    suspend fun backfillPuDelMillisFromStops() {
+        for (entity in loadDao.getAllLoads().first()) {
+            if (entity.firstPuMillis != null && entity.lastDelMillis != null) continue
+            val stops = stopDao.getStopsByLoadId(entity.id)
+            if (stops.isEmpty()) continue
+            val load = entity.toDomain(stops).withReportingWeek()
+            loadDao.insert(load.toEntity())
+        }
+    }
+
+    /**
+     * CDC: синхронизация грузов. Вся логика в памяти — один запрос на проверку Trip ID, batch insert.
+     * Не создаёт пустые записи и дубликаты.
+     */
+    suspend fun syncLoadsCdc(
+        incomingLoads: List<Load>,
+        messageDateSeconds: Long?,
+        playFeedback: Boolean = true,
+    ): SyncLoadsResult {
+        val validLoads = incomingLoads.filter { load ->
+            load.tripId.isNotBlank() && load.tripId != "T-UNKNOWN" &&
+                (load.pointA.isNotBlank() || load.pointB.isNotBlank()) && load.totalRate > 0
+        }
+        if (validLoads.isEmpty()) {
+            return SyncLoadsResult(0, "", SyncStatus.EMPTY)
+        }
+
+        val tripIds = validLoads.map { it.tripId }
+        val existingIds = loadDao.getExistingTripIds(tripIds).toSet()
+
+        val toInsert = validLoads.filter { it.tripId !in existingIds }
+        if (toInsert.isEmpty()) {
+            return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
+        }
+
+        val now = System.currentTimeMillis()
+        val parsedAt = messageDateSeconds?.times(1000) ?: now
+        val loadEntities = mutableListOf<LoadEntity>()
+        val stopEntities = mutableListOf<StopEntity>()
+
+        for (load in toInsert) {
+            val dated = if (messageDateSeconds != null && load.date.isBlank()) {
+                load.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
+            } else {
+                load
+            }
+            val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
+                parsedAt = parsedAt,
+                updatedAt = now,
+            )
+            loadEntities.add(loadWithWeek.toEntity())
+            stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
+        }
+
+        loadDao.insertAll(loadEntities)
+        if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
+
+        val lastAdded = toInsert.last()
+        val lastAddedText = "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"
+        notifyWidgetDataChanged()
+        scheduleAutoBackup()
+        if (playFeedback && toInsert.isNotEmpty()) {
+            FeedbackManager.onLoadAdded()
+        }
+        return SyncLoadsResult(toInsert.size, lastAddedText, SyncStatus.SUCCESS)
+    }
+
+    private fun notifyWidgetDataChanged() {
+        AppDatabase.applicationContext()?.let { WidgetDataUpdater.updateWidgetData(it) }
+    }
+
+    private fun scheduleAutoBackup() {
+        AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
+    }
+
+    private suspend fun hydrateLoads(entities: List<LoadEntity>): List<Load> {
+        if (entities.isEmpty()) return emptyList()
+        val loadIds = entities.map { it.id }
+        val stopsByLoadId = stopDao.getStopsByLoadIds(loadIds).groupBy { it.loadId }
+        val penaltiesByLoadId = penaltyDao.getPenaltiesByLoadIds(loadIds).groupBy { it.loadId }
+        return entities.map { entity ->
+            entity.toDomain(
+                stops = stopsByLoadId[entity.id].orEmpty(),
+                penalties = penaltiesByLoadId[entity.id].orEmpty(),
+            )
+        }
+    }
+
+    private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot =
+        WeekYieldSnapshot(totalGross = totalGross, totalActiveDays = totalActiveDays)
+}

@@ -1,0 +1,88 @@
+package com.truckerload.data.preferences
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+
+private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "truckerload_settings"
+)
+
+class SettingsDataStore(context: Context) {
+
+    private val appContext = context.applicationContext
+
+    val isFirstRun: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_FIRST_RUN] ?: true
+    }
+
+    val telegramChatId: Flow<Long?> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_TELEGRAM_CHAT_ID]
+    }
+
+    val themeMode: Flow<AppThemeMode> = appContext.settingsDataStore.data.map { prefs ->
+        AppThemeMode.fromOrdinal(prefs[KEY_THEME_MODE] ?: AppThemeMode.SYSTEM.ordinal)
+    }
+
+    val language: Flow<AppLanguage> = appContext.settingsDataStore.data.map { prefs ->
+        AppLanguage.fromOrdinal(prefs[KEY_LANGUAGE] ?: AppLanguage.RU.ordinal)
+    }
+
+    suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
+
+    suspend fun getTelegramChatIdOnce(): Long? = telegramChatId.first()
+
+    suspend fun markFirstRunComplete() {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_FIRST_RUN] = false
+        }
+    }
+
+    suspend fun saveTelegramChatId(chatId: Long) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_TELEGRAM_CHAT_ID] = chatId
+        }
+    }
+
+    /** Next offset for getUpdates (last processed update_id + 1). */
+    suspend fun getLastUpdateOffset(): Long =
+        appContext.settingsDataStore.data.first()[KEY_TELEGRAM_UPDATE_OFFSET] ?: 0L
+
+    suspend fun saveLastUpdateOffset(offset: Long) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_TELEGRAM_UPDATE_OFFSET] = offset.coerceAtLeast(0L)
+        }
+    }
+
+    suspend fun getThemeModeOnce(): AppThemeMode = themeMode.first()
+
+    suspend fun getLanguageOnce(): AppLanguage = language.first()
+
+    suspend fun saveLanguage(language: AppLanguage) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_LANGUAGE] = language.ordinal
+        }
+    }
+
+    suspend fun saveThemeMode(mode: AppThemeMode) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_THEME_MODE] = mode.ordinal
+        }
+    }
+
+    companion object {
+        private val KEY_FIRST_RUN = booleanPreferencesKey("is_first_run")
+        private val KEY_TELEGRAM_CHAT_ID = longPreferencesKey("telegram_chat_id")
+        private val KEY_TELEGRAM_UPDATE_OFFSET = longPreferencesKey("telegram_last_update_offset")
+        private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
+        private val KEY_LANGUAGE = intPreferencesKey("app_language")
+    }
+}
