@@ -12,6 +12,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.truckerload.BuildConfig
 import com.truckerload.data.preferences.TelegramTokenStore
+import com.google.android.material.color.DynamicColors
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.presentation.theme.ThemeManager
@@ -37,6 +38,7 @@ class TruckerLoadApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
         runBlocking(Dispatchers.IO) {
             runCatching { ThemeManager.apply(SettingsDataStore(this@TruckerLoadApp).getThemeModeOnce()) }

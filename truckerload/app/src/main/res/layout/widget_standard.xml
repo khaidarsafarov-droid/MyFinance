@@ -3,6 +3,7 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@style/Theme.TruckerLoad.Widget"
     android:background="@drawable/widget_glass_outer"
     android:gravity="center_horizontal"
     android:orientation="vertical"
@@ -119,15 +120,15 @@
                         android:maxLines="1"
                         android:text="@string/widget_goal_out_of_placeholder"
                         android:textColor="@color/widget_text_secondary"
-                        android:textSize="9sp" />
+                        android:textSize="10sp" />
 
                     <TextView
                         android:id="@+id/widget_ring_percent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:textColor="@color/widget_text_hint"
-                        android:textSize="10sp" />
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/widget_text_secondary"
+                        android:textSize="11sp" />
                 </LinearLayout>
             </FrameLayout>
 

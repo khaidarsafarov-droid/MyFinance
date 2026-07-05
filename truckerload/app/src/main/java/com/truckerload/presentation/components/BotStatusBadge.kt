@@ -22,7 +22,7 @@ fun BotStatusBadge(
             .clip(CircleShape)
             .background(
                 if (active) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
             ),
         contentAlignment = Alignment.Center
     ) {}

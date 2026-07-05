@@ -85,7 +85,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
@@ -114,6 +117,7 @@ fun StatsScreen(
     onFinancialAdvisor: () -> Unit = {},
     onDieselDetail: () -> Unit = {},
     onNetProfitDetail: () -> Unit = {},
+    onPaycheckDetail: () -> Unit = {},
     onOpenMap: () -> Unit = {}
 ) {
     val aiRepository = LocalAiRepository.current
@@ -129,6 +133,7 @@ fun StatsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resetFiltersDoneText = stringResource(R.string.stats_filters_reset_done)
+    val actionUnavailableText = stringResource(R.string.stats_action_unavailable)
     val aiKeywordDiesel = stringResource(R.string.stats_ai_keyword_diesel)
     val aiKeywordProfit = stringResource(R.string.stats_ai_keyword_profit)
     val defaultInsightActions = listOf(
@@ -193,23 +198,22 @@ fun StatsScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(text = stringResource(R.string.stats_title), color = tc.TextPrimary)
+                        DarkGlassScreenTitle(stringResource(R.string.stats_title))
                         Text(
                             text = stringResource(R.string.stats_subtitle_rpm, uiState.avgRpm),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = tc.TextSecondary
+                            style = AppTypography.Subtitle,
                         )
                     }
                 },
                 navigationIcon = {
                     if (showBack) {
-                        IconButton(onClick = onBack, modifier = Modifier.size(44.dp)) {
+                        IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                         }
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showAiOverlay = true }, modifier = Modifier.size(44.dp)) {
+                    IconButton(onClick = { showAiOverlay = true }, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                         Icon(Icons.Default.SmartToy, contentDescription = stringResource(R.string.stats_cd_advisor))
                     }
                 },
@@ -292,7 +296,8 @@ fun StatsScreen(
             HeroNetProfitCard(
                 netProfit = uiState.netProfit,
                 change = percentChange(uiState.netProfit, uiState.prevNetProfit),
-                sparkline = chartPoints.map { it.revenue - it.expense }
+                sparkline = chartPoints.map { it.revenue - it.expense },
+                onClick = onNetProfitDetail,
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -310,7 +315,8 @@ fun StatsScreen(
                     value = "$${formatMoney(uiState.totalPaycheck)}",
                     change = percentChange(uiState.totalPaycheck, uiState.prevPaycheck),
                     goodWhenUp = true,
-                    sparkline = chartPoints.map { it.revenue * 0.7f }
+                    sparkline = chartPoints.map { it.revenue * 0.7f },
+                    onClick = onPaycheckDetail,
                 )
             }
 
@@ -362,6 +368,10 @@ fun StatsScreen(
                 insight = insightText,
                 actions = insightActions,
                 onDismiss = { showAiOverlay = false },
+                onOpenAdvisor = {
+                    showAiOverlay = false
+                    onFinancialAdvisor()
+                },
                 onAction = { action ->
                     when {
                         "KY" in action -> { viewModel.setSelectedState("KY"); onOpenMap(); showAiOverlay = false }
@@ -369,7 +379,9 @@ fun StatsScreen(
                         "FL" in action -> { viewModel.setSelectedState("FL"); onOpenMap(); showAiOverlay = false }
                         aiKeywordDiesel in action.lowercase() -> { onDieselDetail(); showAiOverlay = false }
                         aiKeywordProfit in action.lowercase() -> { onNetProfitDetail(); showAiOverlay = false }
-                        else -> {}
+                        else -> {
+                            scope.launch { snackbarHostState.showSnackbar(actionUnavailableText) }
+                        }
                     }
                 }
             )
@@ -384,6 +396,7 @@ private fun StatsAiOverlay(
     insight: String,
     actions: List<String>,
     onDismiss: () -> Unit,
+    onOpenAdvisor: () -> Unit,
     onAction: (String) -> Unit
 ) {
     val tc = LocalTruckColors.current
@@ -442,6 +455,9 @@ private fun StatsAiOverlay(
                             )
                         )
                     }
+                }
+                TextButton(onClick = onOpenAdvisor) {
+                    Text(stringResource(R.string.stats_open_advisor))
                 }
                 TextButton(onClick = onDismiss) {
                     Text(stringResource(R.string.common_close))
@@ -608,10 +624,10 @@ private fun RevenueChartCard(points: List<LinePoint>) {
 }
 
 @Composable
-private fun HeroNetProfitCard(netProfit: Double, change: Double?, sparkline: List<Float>) {
+private fun HeroNetProfitCard(netProfit: Double, change: Double?, sparkline: List<Float>, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { },
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

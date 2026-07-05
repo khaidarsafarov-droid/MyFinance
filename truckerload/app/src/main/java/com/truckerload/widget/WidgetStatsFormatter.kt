@@ -24,6 +24,10 @@ object WidgetStatsFormatter {
     fun formatProgressPercent(progress: Float): String =
         String.format(Locale.US, "%.1f%%", progress.coerceIn(0f, 100f))
 
+    fun formatRpmPerMile(context: android.content.Context, rpm: Double): String =
+        context.getString(com.truckerload.R.string.rpm_per_mile_format, rpm)
+
+    @Deprecated("Use formatRpmPerMile(context, rpm) for localized unit")
     fun formatRpmPerMile(rpm: Double): String =
         String.format(Locale.US, "$%.2f/mi", rpm)
 

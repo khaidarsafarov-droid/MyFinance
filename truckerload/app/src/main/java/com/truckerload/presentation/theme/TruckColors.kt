@@ -1,12 +1,15 @@
 package com.truckerload.presentation.theme
 
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-/** Black & Gold premium palette. */
 data class TruckColorPalette(
     val Background: Color,
+    val BackgroundBottom: Color,
     val CardBackground: Color,
     val SurfaceSecondary: Color,
     val Divider: Color,
@@ -19,53 +22,45 @@ data class TruckColorPalette(
     val TextPrimary: Color,
     val TextSecondary: Color,
     val TextLabel: Color,
+    val TextNumbers: Color,
     val TextGold: Color,
     val OnAccent: Color,
     val GlassBorder: Color,
     val ProgressTrack: Color,
+    val HeroBackground: Color,
+    val CreamBackground: Color,
 )
 
-val TruckLightColors = TruckColorPalette(
-    Background = Color(0xFFF7F7F7),
-    CardBackground = Color(0xFFFFFFFF),
-    SurfaceSecondary = Color(0xFFF0F0F0),
-    Divider = Color(0x33C9A84C),
-    AccentPrimary = Color(0xFFC9A84C),
-    AccentSecondary = Color(0xFFF5D76E),
-    AccentExpense = Color(0xFFEF4444),
-    AccentInfo = Color(0xFF6B7280),
-    AccentWarning = Color(0xFFFF9500),
-    AccentProfit = Color(0xFF34C759),
-    TextPrimary = Color(0xFF0A0A0A),
-    TextSecondary = Color(0xFF6B6B6B),
-    TextLabel = Color(0xFF9CA3AF),
-    TextGold = Color(0xFFC9A84C),
-    OnAccent = Color(0xFF0A0A0A),
-    GlassBorder = Color(0x26C9A84C),
-    ProgressTrack = Color(0xFFE8E8E8),
+/** Maps [ColorScheme] to the app's semantic palette (RPM, hero, cards, etc.). */
+fun truckPaletteFrom(colorScheme: ColorScheme): TruckColorPalette = TruckColorPalette(
+    Background = colorScheme.background,
+    BackgroundBottom = colorScheme.background,
+    CardBackground = colorScheme.surface,
+    SurfaceSecondary = colorScheme.surfaceVariant,
+    Divider = colorScheme.outline,
+    AccentPrimary = colorScheme.primary,
+    AccentSecondary = colorScheme.tertiary,
+    AccentExpense = colorScheme.error,
+    AccentInfo = colorScheme.onSurfaceVariant,
+    AccentWarning = colorScheme.secondary,
+    AccentProfit = colorScheme.tertiary,
+    TextPrimary = colorScheme.onBackground,
+    TextSecondary = colorScheme.onSurfaceVariant,
+    TextLabel = colorScheme.outlineVariant,
+    TextNumbers = colorScheme.onSurface,
+    TextGold = colorScheme.primary,
+    OnAccent = colorScheme.onPrimary,
+    GlassBorder = colorScheme.outline,
+    ProgressTrack = colorScheme.surfaceVariant.copy(alpha = 0.65f),
+    HeroBackground = colorScheme.primary,
+    CreamBackground = colorScheme.secondaryContainer,
 )
 
-val TruckDarkColors = TruckColorPalette(
-    Background = Color(0xFF0A0A0A),
-    CardBackground = Color(0xFF121212),
-    SurfaceSecondary = Color(0xFF1A1A1A),
-    Divider = Color(0x33C9A84C),
-    AccentPrimary = Color(0xFFC9A84C),
-    AccentSecondary = Color(0xFFF5D76E),
-    AccentExpense = Color(0xFFF87171),
-    AccentInfo = Color(0xFF9CA3AF),
-    AccentWarning = Color(0xFFFFB020),
-    AccentProfit = Color(0xFF34D399),
-    TextPrimary = Color(0xFFF5F5F5),
-    TextSecondary = Color(0xFF9CA3AF),
-    TextLabel = Color(0xFF6B7280),
-    TextGold = Color(0xFFF5D76E),
-    OnAccent = Color(0xFF0A0A0A),
-    GlassBorder = Color(0x33C9A84C),
-    ProgressTrack = Color(0xFF1F1F1F),
+private val DefaultTruckPalette = truckPaletteFrom(
+    androidx.compose.material3.lightColorScheme()
 )
 
-val LocalTruckColors = compositionLocalOf { TruckLightColors }
+val LocalTruckColors = compositionLocalOf { DefaultTruckPalette }
 
 object FinanceCockpitColors {
     val Background: Color @Composable get() = LocalTruckColors.current.Background
@@ -74,6 +69,7 @@ object FinanceCockpitColors {
     val TextPrimary: Color @Composable get() = LocalTruckColors.current.TextPrimary
     val TextSecondary: Color @Composable get() = LocalTruckColors.current.TextSecondary
     val TextMuted: Color @Composable get() = LocalTruckColors.current.TextLabel
+    val TextNumbers: Color @Composable get() = LocalTruckColors.current.TextNumbers
     val TextGold: Color @Composable get() = LocalTruckColors.current.TextGold
     val NetProfitStart: Color @Composable get() = LocalTruckColors.current.AccentProfit
     val NetProfitEnd: Color @Composable get() = LocalTruckColors.current.AccentProfit
@@ -82,63 +78,81 @@ object FinanceCockpitColors {
     val ActiveDateBackground: Color @Composable get() = LocalTruckColors.current.AccentPrimary
     val ActiveHighlight: Color @Composable get() = LocalTruckColors.current.OnAccent
     val InactiveDate: Color @Composable get() = LocalTruckColors.current.TextLabel
-    val GlowAccent: Color @Composable get() = LocalTruckColors.current.AccentPrimary.copy(alpha = 0.35f)
-    val GlowEmerald: Color @Composable get() = LocalTruckColors.current.AccentProfit.copy(alpha = 0.28f)
+    val GlowAccent: Color @Composable get() = LocalTruckColors.current.AccentPrimary.copy(alpha = 0.40f)
+    val GlowEmerald: Color @Composable get() = LocalTruckColors.current.AccentProfit.copy(alpha = 0.32f)
     @Deprecated("Use GlowAccent", ReplaceWith("GlowAccent"))
     val GlowGold: Color @Composable get() = GlowAccent
     @Deprecated("Use GlowAccent", ReplaceWith("GlowAccent"))
     val GlowIndigo: Color @Composable get() = GlowAccent
 }
 
+object DarkGlassGradients {
+    val screen: Brush
+        @Composable get() {
+            val cs = MaterialTheme.colorScheme
+            return Brush.verticalGradient(listOf(cs.background, cs.background))
+        }
+
+    val screenDark: Brush @Composable get() = screen
+
+    val cta: Brush
+        @Composable get() {
+            val p = MaterialTheme.colorScheme.primary
+            val c = MaterialTheme.colorScheme.primaryContainer
+            return Brush.horizontalGradient(listOf(p, c))
+        }
+
+    val button: Brush @Composable get() = cta
+    val ctaGold: Brush @Composable get() = cta
+    val horizontal: Brush @Composable get() = cta
+    val vertical: Brush
+        @Composable get() {
+            val p = MaterialTheme.colorScheme.primary
+            val c = MaterialTheme.colorScheme.primaryContainer
+            return Brush.verticalGradient(listOf(p, c))
+        }
+
+    val cardShine: Brush
+        @Composable get() {
+            val p = MaterialTheme.colorScheme.primary
+            return Brush.verticalGradient(listOf(p, p))
+        }
+
+    val chartFill: Brush
+        @Composable get() = Brush.verticalGradient(
+            listOf(
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                Color.Transparent,
+            ),
+        )
+
+    val progressRing: Brush
+        @Composable get() {
+            val p = MaterialTheme.colorScheme.primary
+            val c = MaterialTheme.colorScheme.primaryContainer
+            return Brush.sweepGradient(listOf(p, c, p))
+        }
+}
+
 object GoldGradients {
-    val screen: androidx.compose.ui.graphics.Brush
-        @Composable get() = androidx.compose.ui.graphics.Brush.verticalGradient(
-            listOf(Color(0xFF0A0A0A), Color(0xFF121212)),
-        )
-
-    val screenDark: androidx.compose.ui.graphics.Brush
-        @Composable get() {
-            val tc = LocalTruckColors.current
-            return androidx.compose.ui.graphics.Brush.verticalGradient(
-                listOf(tc.Background, tc.SurfaceSecondary),
-            )
-        }
-
-    val horizontal: androidx.compose.ui.graphics.Brush
-        @Composable get() {
-            val tc = LocalTruckColors.current
-            return androidx.compose.ui.graphics.Brush.horizontalGradient(
-                listOf(tc.AccentPrimary, tc.AccentSecondary),
-            )
-        }
-
-    val vertical: androidx.compose.ui.graphics.Brush
-        @Composable get() {
-            val tc = LocalTruckColors.current
-            return androidx.compose.ui.graphics.Brush.verticalGradient(
-                listOf(tc.AccentPrimary, tc.AccentSecondary),
-            )
-        }
-
-    val cardShine: androidx.compose.ui.graphics.Brush
-        @Composable get() = androidx.compose.ui.graphics.Brush.verticalGradient(
-            listOf(Color(0xFF1A1A1A), Color(0xFF121212)),
-        )
+    val screen: Brush @Composable get() = DarkGlassGradients.screen
+    val screenDark: Brush @Composable get() = DarkGlassGradients.screenDark
+    val horizontal: Brush @Composable get() = DarkGlassGradients.horizontal
+    val vertical: Brush @Composable get() = DarkGlassGradients.vertical
+    val cardShine: Brush @Composable get() = DarkGlassGradients.cardShine
 }
 
-/** @deprecated Use [GoldGradients] */
 object SoftGradients {
-    val screen: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.screen
-    val screenDark: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.screenDark
-    val horizontal: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.horizontal
-    val vertical: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.vertical
-    val cardShine: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.cardShine
+    val screen: Brush @Composable get() = DarkGlassGradients.screen
+    val screenDark: Brush @Composable get() = DarkGlassGradients.screenDark
+    val horizontal: Brush @Composable get() = DarkGlassGradients.horizontal
+    val vertical: Brush @Composable get() = DarkGlassGradients.vertical
+    val cardShine: Brush @Composable get() = DarkGlassGradients.cardShine
 }
 
-/** @deprecated Use [GoldGradients] */
 object BronzeGradients {
-    val horizontal: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.horizontal
-    val vertical: androidx.compose.ui.graphics.Brush @Composable get() = GoldGradients.vertical
+    val horizontal: Brush @Composable get() = DarkGlassGradients.horizontal
+    val vertical: Brush @Composable get() = DarkGlassGradients.vertical
 }
 
 val StatsCockpitPalette: TruckColorPalette

@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
@@ -27,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 
 private data class RailDestination(
     val route: String,
@@ -39,7 +41,7 @@ private data class RailDestination(
 private val tabletDestinations = listOf(
     RailDestination(Routes.HOME, Icons.Outlined.Home, R.string.nav_logbook),
     RailDestination(Routes.STATS, Icons.Outlined.Flag, R.string.nav_weekly_goal),
-    RailDestination(Routes.ANALYTICS, Icons.Outlined.BarChart, R.string.nav_analytics),
+    RailDestination(Routes.COMMUNITY, Icons.Outlined.Groups, R.string.nav_community),
     RailDestination(Routes.SETTINGS, Icons.Outlined.Settings, R.string.nav_settings),
 )
 
@@ -47,6 +49,8 @@ private val tabletDestinations = listOf(
 fun TruckLogNavigationRail(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
+    onCameraClick: () -> Unit,
+    onScannerClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
@@ -81,7 +85,7 @@ fun TruckLogNavigationRail(
                     Icon(
                         dest.icon,
                         contentDescription = stringResource(dest.labelRes),
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(UiDimens.IconNav),
                     )
                 },
                 label = { Text(stringResource(dest.labelRes)) },
@@ -94,6 +98,44 @@ fun TruckLogNavigationRail(
                 ),
             )
         }
+        NavigationRailItem(
+            selected = currentRoute == Routes.CAMERA,
+            onClick = onCameraClick,
+            icon = {
+                Icon(
+                    Icons.Outlined.CameraAlt,
+                    contentDescription = stringResource(R.string.camera),
+                    modifier = Modifier.size(UiDimens.IconNav),
+                )
+            },
+            label = { Text(stringResource(R.string.camera)) },
+            colors = NavigationRailItemDefaults.colors(
+                selectedIconColor = tc.AccentPrimary,
+                selectedTextColor = tc.AccentPrimary,
+                indicatorColor = tc.AccentPrimary.copy(alpha = 0.12f),
+                unselectedIconColor = tc.TextSecondary,
+                unselectedTextColor = tc.TextSecondary,
+            ),
+        )
+        NavigationRailItem(
+            selected = currentRoute == Routes.SCANNER || currentRoute == Routes.SCAN_GALLERY,
+            onClick = onScannerClick,
+            icon = {
+                Icon(
+                    Icons.Outlined.DocumentScanner,
+                    contentDescription = stringResource(R.string.scanner),
+                    modifier = Modifier.size(UiDimens.IconNav),
+                )
+            },
+            label = { Text(stringResource(R.string.scanner)) },
+            colors = NavigationRailItemDefaults.colors(
+                selectedIconColor = tc.AccentPrimary,
+                selectedTextColor = tc.AccentPrimary,
+                indicatorColor = tc.AccentPrimary.copy(alpha = 0.12f),
+                unselectedIconColor = tc.TextSecondary,
+                unselectedTextColor = tc.TextSecondary,
+            ),
+        )
     }
 }
 
@@ -105,6 +147,13 @@ private fun isRailDestinationSelected(currentRoute: String?, targetRoute: String
             currentRoute.startsWith("edit_load") ||
             currentRoute == Routes.ADD_LOAD
         Routes.STATS -> currentRoute == Routes.STATS
+        Routes.COMMUNITY -> currentRoute == Routes.COMMUNITY ||
+            currentRoute?.startsWith("social_chat") == true ||
+            currentRoute?.startsWith("voice_room") == true ||
+            currentRoute == Routes.VOICE_ROOMS ||
+            currentRoute?.startsWith("call") == true ||
+            currentRoute == Routes.PROFILE ||
+            currentRoute == Routes.PROFILE_EDIT
         Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS
         Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
             currentRoute == Routes.TAX_TRACKER ||

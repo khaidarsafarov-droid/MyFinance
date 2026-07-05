@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.domain.goal.PaceStatus
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 
 @Composable
 fun GoalProgressRing(
@@ -33,11 +34,13 @@ fun GoalProgressRing(
     centerLabel: String,
     centerSubLabel: String,
     modifier: Modifier = Modifier,
-    size: Dp = 220.dp,
+    size: Dp = UiDimens.GoalProgressRingSize,
     strokeWidth: Dp = 12.dp,
-    animate: Boolean = true
+    animate: Boolean = true,
+    onDarkBackground: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
+    val cs = MaterialTheme.colorScheme
     val animatedProgress by animateFloatAsState(
         targetValue = if (animate) progressPercent.coerceIn(0f, 100f) else progressPercent,
         animationSpec = tween(durationMillis = 900),
@@ -49,7 +52,7 @@ fun GoalProgressRing(
         label = "expectedProgress"
     )
 
-    val trackColor = tc.ProgressTrack
+    val trackColor = if (onDarkBackground) cs.onPrimary.copy(alpha = 0.2f) else tc.ProgressTrack
     val gradientStart = tc.AccentPrimary
     val gradientEnd = tc.AccentProfit
     val paceMarkerColor = when (paceStatus) {
@@ -112,14 +115,14 @@ fun GoalProgressRing(
                 text = centerLabel,
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 36.sp
+                    fontSize = 36.sp,
                 ),
-                color = tc.TextPrimary
+                color = if (onDarkBackground) cs.onPrimary else tc.TextPrimary,
             )
             Text(
                 text = centerSubLabel,
                 style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextSecondary
+                color = if (onDarkBackground) cs.onPrimary.copy(alpha = 0.75f) else tc.TextSecondary,
             )
         }
     }

@@ -13,6 +13,9 @@ import com.truckerload.domain.import.parser.TelegramHtmlExportParser
 import com.truckerload.domain.import.parser.TelegramJsonExportParser
 import com.truckerload.domain.import.repository.LoadImportRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadProcessor
+import com.truckerload.domain.parser.ParserConfig
+import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +26,8 @@ import kotlinx.coroutines.withTimeout
 class ImportLoadsUseCase(
     private val parserFactory: ParserFactory = ParserFactory(),
     private val loadRepository: LoadImportRepository,
+    private val loadProcessor: LoadProcessor? = null,
+    private val parserConfig: ParserConfig = ParserConfig(),
     private val validator: LoadValidator = LoadValidator(),
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
@@ -143,19 +148,20 @@ class ImportLoadsUseCase(
                 return@forEachIndexed
             }
 
-            val result = when {
-                loadRepository.exists(load.tripId) -> {
-                    ImportResult.Skipped(load.tripId, SkipReason.DUPLICATE)
-                }
-                else -> {
-                    loadRepository.insertLoad(load, playFeedback = false)
-                    ImportResult.Added(ParsedLoad.from(load))
-                }
+            val result = if (loadProcessor != null) {
+                processWithProcessor(load)
+            } else {
+                processLegacy(load)
             }
             results.add(result)
         }
 
-        if (results.any { it is ImportResult.Added }) {
+        if (results.any {
+                it is ImportResult.Added ||
+                    it is ImportResult.Updated ||
+                    it is ImportResult.Replaced
+            }
+        ) {
             FeedbackManager.onLoadAdded()
         }
 
@@ -169,6 +175,39 @@ class ImportLoadsUseCase(
         )
     }
 
+    private suspend fun processWithProcessor(load: Load): ImportResult {
+        return when (
+            val processing = loadProcessor!!.processLoad(
+                parsedLoad = load,
+                config = parserConfig,
+                playFeedback = false,
+            )
+        ) {
+            ProcessingResult.Added -> ImportResult.Added(ParsedLoad.from(load))
+            is ProcessingResult.Updated -> ImportResult.Updated(load.tripId, processing.changes)
+            is ProcessingResult.Replaced -> ImportResult.Replaced(load.tripId)
+            is ProcessingResult.Skipped -> ImportResult.Skipped(load.tripId, mapSkipReason(processing.reason))
+        }
+    }
+
+    private suspend fun processLegacy(load: Load): ImportResult =
+        when {
+            loadRepository.exists(load.tripId) -> {
+                ImportResult.Skipped(load.tripId, SkipReason.DUPLICATE)
+            }
+            else -> {
+                loadRepository.insertLoad(load, playFeedback = false)
+                ImportResult.Added(ParsedLoad.from(load))
+            }
+        }
+
+    private fun mapSkipReason(reason: String): SkipReason = when {
+        reason.contains("Авто-обновление", ignoreCase = true) -> SkipReason.AUTO_UPDATE_DISABLED
+        reason.contains("Изменений нет", ignoreCase = true) -> SkipReason.NO_CHANGES
+        reason.contains("Дубликат", ignoreCase = true) -> SkipReason.SUSPICIOUS_DUPLICATE
+        else -> SkipReason.DUPLICATE
+    }
+
     private fun buildReport(
         results: List<ImportResult>,
         durationMs: Long,
@@ -176,12 +215,16 @@ class ImportLoadsUseCase(
         fileName: String? = null,
     ): ImportReport {
         val added = results.filterIsInstance<ImportResult.Added>()
+        val updated = results.filterIsInstance<ImportResult.Updated>()
+        val replaced = results.filterIsInstance<ImportResult.Replaced>()
         val skipped = results.filterIsInstance<ImportResult.Skipped>()
         val failed = results.filterIsInstance<ImportResult.Failed>()
 
         return ImportReport(
             totalFound = results.size,
             added = added.size,
+            updated = updated.size,
+            replaced = replaced.size,
             skipped = skipped.size,
             failed = failed.size,
             addedLoads = added.map { it.load },

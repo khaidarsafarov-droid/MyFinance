@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.goal
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,9 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -36,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -47,20 +50,23 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.goal.PaceStatus
-import com.truckerload.presentation.components.AnimatedCircularProgress
+import com.truckerload.presentation.components.GoalProgressRing
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
+import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.FinanceCockpitColors
+import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
-import com.truckerload.presentation.utils.isTablet
+import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.GoalCelebrationStore
-import java.util.Locale
+import com.truckerload.presentation.utils.MoneyFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,17 +111,9 @@ fun WeeklyGoalScreen() {
             TopAppBar(
                 title = {
                     Column {
-                        Text(
-                            stringResource(R.string.goal_screen_title),
-                            color = tc.TextPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
+                        DarkGlassScreenTitle(stringResource(R.string.goal_screen_title))
                         progress?.let {
-                            Text(
-                                it.weekLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = tc.TextSecondary
-                            )
+                            Text(it.weekLabel, style = AppTypography.Subtitle)
                         }
                     }
                 },
@@ -171,42 +169,7 @@ fun WeeklyGoalScreen() {
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.goal_metric_remaining),
-                    value = formatMoney(progress.remainingAmount),
-                    accent = FinanceCockpitColors.DieselAccent
-                )
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.goal_metric_days_left),
-                    value = progress.daysRemainingInWeek.toString(),
-                    accent = FinanceCockpitColors.SalaryAccent
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.goal_metric_actual_pace),
-                    value = formatMoney(progress.actualDailyYield),
-                    accent = BentoGlassTheme.GoalGradientEnd,
-                    highlight = true
-                )
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.goal_metric_daily_needed),
-                    value = formatMoney(progress.dailyTargetNeeded),
-                    accent = tc.AccentProfit
-                )
-            }
+            GoalPaceMetrics(progress = progress)
 
             Spacer(Modifier.height(24.dp))
         }
@@ -226,8 +189,11 @@ private fun GoalHeroCard(
     onSaveGoal: () -> Unit,
     onCancelEdit: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     BentoGlassCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = UiDimens.GoalHeroMinHeight),
         useHeroGradient = true,
         content = {
         Column(
@@ -244,36 +210,46 @@ private fun GoalHeroCard(
                     Icons.Default.Flag,
                     contentDescription = null,
                     tint = FinanceCockpitColors.SalaryAccent,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(UiDimens.IconList)
                 )
                 Text(
                     text = stringResource(R.string.goal_weekly_target),
                     modifier = Modifier.padding(start = 8.dp),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = FinanceCockpitColors.TextPrimary
+                    color = cs.onPrimary,
                 )
             }
             if (!isEditingGoal) {
                 IconButton(onClick = onStartEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.goal_edit_target))
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.goal_edit_target),
+                        tint = cs.onPrimary.copy(alpha = 0.7f),
+                    )
                 }
             }
         }
 
         if (isEditingGoal) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(cs.surface)
+                    .padding(16.dp),
+            ) {
             OutlinedTextField(
                 value = goalInput,
                 onValueChange = onGoalInputChange,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.goal_target_amount)) },
                 prefix = { Text("$") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 isError = goalError != null,
                 supportingText = goalError?.let { { Text(it) } },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = FinanceCockpitColors.SalaryAccent
-                ),
+                colors = AppTextFieldDefaults.outlined(),
                 singleLine = true
             )
             Row(
@@ -296,7 +272,7 @@ private fun GoalHeroCard(
                 ) {
                     if (isSavingGoal) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(UiDimens.IconInline),
                             strokeWidth = 2.dp,
                             color = Color.White
                         )
@@ -305,28 +281,117 @@ private fun GoalHeroCard(
                     }
                 }
             }
+            }
         } else {
             Spacer(Modifier.height(16.dp))
 
-            AnimatedCircularProgress(
+            val expectedPercent = if (progress.targetAmount > 0) {
+                (progress.expectedGrossByNow / progress.targetAmount * 100).toFloat().coerceIn(0f, 100f)
+            } else {
+                0f
+            }
+            GoalProgressRing(
                 progressPercent = progress.progressPercent,
-                gross = progress.currentGross,
-                goal = progress.targetAmount,
                 paceStatus = progress.paceStatus,
-                size = if (isTablet()) 260.dp else 220.dp,
+                expectedProgressPercent = expectedPercent,
+                centerLabel = "${progress.progressPercent.toInt()}%",
+                centerSubLabel = MoneyFormat.formatCurrency(progress.currentGross),
+                onDarkBackground = true,
+                modifier = Modifier.padding(vertical = 8.dp),
             )
-
-            Spacer(Modifier.height(8.dp))
-
             Text(
-                text = stringResource(R.string.goal_completed),
-                style = MaterialTheme.typography.bodySmall,
-                color = FinanceCockpitColors.TextMuted,
-                textAlign = TextAlign.Center
+                text = stringResource(
+                    R.string.goal_linear_progress_summary,
+                    MoneyFormat.formatCurrency(progress.currentGross),
+                    MoneyFormat.formatCurrency(progress.targetAmount),
+                ),
+                style = AppTypography.Subtitle.copy(color = cs.onPrimary.copy(alpha = 0.85f)),
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                text = stringResource(
+                    R.string.goal_linear_percent_remaining,
+                    progress.progressPercent.toInt(),
+                    MoneyFormat.formatCurrency(progress.remainingAmount.coerceAtLeast(0.0)),
+                ),
+                style = AppTypography.CardTitle.copy(
+                    color = cs.onPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
         }
     })
+}
+
+@Composable
+private fun GoalPaceMetrics(progress: com.truckerload.domain.goal.WeeklyGoalProgress) {
+    val tc = LocalTruckColors.current
+    val daysAccent = when (progress.paceStatus) {
+        PaceStatus.BEHIND -> tc.AccentExpense
+        else -> tc.TextSecondary
+    }
+    val paceMatched = kotlin.math.abs(progress.actualDailyYield - progress.dailyTargetNeeded) < 1.0
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        BentoGlassMetricCell(
+            modifier = Modifier.weight(1f),
+            label = stringResource(R.string.goal_metric_remaining),
+            value = MoneyFormat.formatCurrency(progress.remainingAmount),
+            accent = FinanceCockpitColors.DieselAccent,
+        )
+        BentoGlassMetricCell(
+            modifier = Modifier.weight(1f),
+            label = stringResource(R.string.goal_metric_days_left),
+            value = progress.daysRemainingInWeek.toString(),
+            accent = daysAccent,
+        )
+    }
+
+    if (paceMatched) {
+        BentoGlassCard(modifier = Modifier.fillMaxWidth(), useCream = true) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.goal_metric_pace_matched),
+                    style = AppTypography.CardTitle,
+                )
+                Text(
+                    text = stringResource(
+                        R.string.goal_metric_pace_matched_hint,
+                    ) + " · " + MoneyFormat.formatCurrency(progress.actualDailyYield) + "/день",
+                    style = AppTypography.Subtitle,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            BentoGlassMetricCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.goal_metric_actual_pace),
+                value = MoneyFormat.formatCurrency(progress.actualDailyYield),
+                accent = if (progress.actualDailyYield >= progress.dailyTargetNeeded) {
+                    tc.AccentProfit
+                } else {
+                    tc.AccentExpense
+                },
+                highlight = true,
+            )
+            BentoGlassMetricCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.goal_metric_daily_needed),
+                value = MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
+                accent = tc.AccentInfo,
+            )
+        }
+    }
 }
 
 @Composable
@@ -335,55 +400,51 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
     val (title, body, accent) = when (progress.paceStatus) {
         PaceStatus.GOAL_MET -> Triple(
             stringResource(R.string.goal_pace_met_title),
-            stringResource(R.string.goal_pace_met_body, formatMoney(progress.currentGross)),
-            FinanceCockpitColors.NetProfitStart
+            stringResource(R.string.goal_pace_met_short, MoneyFormat.formatCurrency(progress.currentGross)),
+            FinanceCockpitColors.NetProfitStart,
         )
         PaceStatus.AHEAD -> Triple(
             stringResource(R.string.goal_pace_ahead_title),
             stringResource(
-                R.string.goal_pace_ahead_body,
-                formatMoney(progress.actualDailyYield),
-                formatMoney(progress.dailyTargetNeeded)
+                R.string.goal_pace_ahead_short,
+                MoneyFormat.formatCurrency(progress.actualDailyYield),
+                MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
             ),
-            FinanceCockpitColors.NetProfitStart
+            FinanceCockpitColors.NetProfitStart,
         )
         PaceStatus.ON_TRACK -> Triple(
             stringResource(R.string.goal_pace_on_track_title),
             stringResource(
-                R.string.goal_pace_on_track_body,
-                formatMoney(progress.actualDailyYield),
-                formatMoney(progress.dailyTargetNeeded),
-                progress.daysRemainingInWeek
+                R.string.goal_pace_on_track_short,
+                MoneyFormat.formatCurrency(progress.actualDailyYield),
+                progress.daysRemainingInWeek,
             ),
-            FinanceCockpitColors.SalaryAccent
+            FinanceCockpitColors.SalaryAccent,
         )
         PaceStatus.BEHIND -> Triple(
             stringResource(R.string.goal_pace_behind_title),
             stringResource(
-                R.string.goal_pace_behind_body,
-                formatMoney(progress.dailyTargetNeeded),
-                formatMoney(progress.remainingAmount)
+                R.string.goal_pace_behind_short,
+                MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
+                MoneyFormat.formatCurrency(progress.remainingAmount),
             ),
-            tc.AccentWarning
+            tc.AccentWarning,
         )
     }
 
     BentoGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        borderColor = accent.copy(alpha = 0.35f),
+        useCream = true,
         content = {
             Column(modifier = Modifier.padding(18.dp)) {
-                Text(title, fontWeight = FontWeight.Bold, color = accent, fontSize = 16.sp)
+                Text(title, style = AppTypography.CardTitle.copy(color = accent))
                 Spacer(Modifier.height(6.dp))
-                Text(body, color = FinanceCockpitColors.TextSecondary, lineHeight = 22.sp)
+                Text(body, style = AppTypography.Body)
             }
         }
     )
 }
 
-
-private fun formatMoney(value: Double): String =
-    String.format(Locale.US, "$%,.0f", value)
 
 private fun formatActiveDays(days: Double): String =
     days.toLong().coerceAtLeast(1L).toString()

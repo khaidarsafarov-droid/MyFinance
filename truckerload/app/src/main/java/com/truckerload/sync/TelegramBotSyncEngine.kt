@@ -17,11 +17,13 @@ import com.truckerload.sync.import.ImportMessageHandler
 import com.truckerload.sync.import.ImportReportFormatter
 import com.truckerload.sync.import.ImportSessionManager
 import com.truckerload.data.repository.PaycheckRepository
-import com.truckerload.data.repository.SyncStatus
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.domain.parser.LoadProcessor
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.ParserConfig
+import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.LoadImporter
@@ -47,6 +49,7 @@ class TelegramBotSyncEngine(private val context: Context) {
 
     private val messageParseService = MessageParseService()
     private val messageArchive = TelegramMessageArchive(context)
+    private val settingsDataStore = SettingsDataStore(context)
 
     suspend fun runOnce(token: String): SyncRunResult {
         if (token.isBlank()) {
@@ -139,13 +142,19 @@ class TelegramBotSyncEngine(private val context: Context) {
         settingsDataStore.saveLastUpdateOffset(offset)
     }
 
-    private fun importMessageHandler(
+    private suspend fun importMessageHandler(
         loadRepository: LoadRepository,
         prefs: SharedPreferences,
     ): ImportMessageHandler {
         val db = AppDatabase.getInstance(context)
         val importRepo = LoadImportRepositoryImpl(loadRepository, db.loadDao())
-        val useCase = ImportLoadsUseCase(loadRepository = importRepo)
+        val settingsDataStore = SettingsDataStore(context)
+        val config = parserConfig(settingsDataStore)
+        val useCase = ImportLoadsUseCase(
+            loadRepository = importRepo,
+            loadProcessor = LoadProcessor(loadRepository),
+            parserConfig = config,
+        )
         val sessionManager = ImportSessionManager(prefs)
         return ImportMessageHandler(
             context = context,
@@ -155,13 +164,19 @@ class TelegramBotSyncEngine(private val context: Context) {
         )
     }
 
-    private fun importDocumentHandler(
+    private suspend fun importDocumentHandler(
         loadRepository: LoadRepository,
         prefs: SharedPreferences,
     ): ImportDocumentHandler {
         val db = AppDatabase.getInstance(context)
         val importRepo = LoadImportRepositoryImpl(loadRepository, db.loadDao())
-        val useCase = ImportLoadsUseCase(loadRepository = importRepo)
+        val settingsDataStore = SettingsDataStore(context)
+        val config = parserConfig(settingsDataStore)
+        val useCase = ImportLoadsUseCase(
+            loadRepository = importRepo,
+            loadProcessor = LoadProcessor(loadRepository),
+            parserConfig = config,
+        )
         return ImportDocumentHandler(
             context = context,
             importUseCase = useCase,
@@ -169,6 +184,12 @@ class TelegramBotSyncEngine(private val context: Context) {
             reportFormatter = ImportReportFormatter(context),
         )
     }
+
+    private suspend fun parserConfig(settingsDataStore: SettingsDataStore): ParserConfig =
+        ParserConfig(
+            autoUpdate = settingsDataStore.getParserAutoUpdateOnce(),
+            priceThresholdPercent = settingsDataStore.getParserPriceThresholdOnce(),
+        )
 
     private suspend fun handleUpdate(
         update: com.truckerload.data.remote.TelegramUpdate,
@@ -517,6 +538,14 @@ class TelegramBotSyncEngine(private val context: Context) {
         return next
     }
 
+    private fun telegramLoadHandler(loadRepository: LoadRepository): TelegramLoadHandler =
+        TelegramLoadHandler(
+            context = context,
+            loadRepository = loadRepository,
+            messageParseService = messageParseService,
+            settingsDataStore = settingsDataStore,
+        )
+
     private suspend fun processManualRestoreMessage(
         text: String,
         messageDateSeconds: Long?,
@@ -533,11 +562,19 @@ class TelegramBotSyncEngine(private val context: Context) {
             return context.getString(R.string.sync_restore_manual_not_load)
         }
 
+        val handler = telegramLoadHandler(loadRepository)
+        val results = handler.processLoadsStructured(
+            loads = parsed,
+            rawMessage = text,
+            messageDateSeconds = messageDateSeconds,
+            playFeedback = false,
+        )
+
         val replies = mutableListOf<String>()
         var addedCount = 0
-        for (load in parsed) {
-            when (loadRepository.syncLoadsCdc(listOf(load), messageDateSeconds, playFeedback = false).status) {
-                SyncStatus.SUCCESS -> {
+        parsed.zip(results).forEach { (load, result) ->
+            when (result) {
+                is ProcessingResult.Added -> {
                     addedCount++
                     incrementManualRestoreCount(prefs, chatId)
                     replies.add(
@@ -545,14 +582,19 @@ class TelegramBotSyncEngine(private val context: Context) {
                             R.string.sync_restore_manual_added,
                             load.tripId,
                             load.totalMiles,
-                            String.format(Locale.US, "%,.2f", load.totalRate)
+                            String.format(Locale.US, "%,.2f", load.totalRate),
                         )
                     )
-                    WidgetDataUpdater.updateWidgetData(context)
-                    WidgetUpdateWorker.refreshNow(context)
                 }
-                SyncStatus.DUPLICATE -> replies.add(context.getString(R.string.sync_duplicate_loads))
-                SyncStatus.EMPTY -> Unit
+                is ProcessingResult.Updated,
+                is ProcessingResult.Replaced -> {
+                    addedCount++
+                    incrementManualRestoreCount(prefs, chatId)
+                    replies.add(handler.formatProcessingResult(result, load.tripId))
+                }
+                is ProcessingResult.Skipped -> {
+                    replies.add(context.getString(R.string.sync_duplicate_loads))
+                }
             }
         }
 
@@ -618,16 +660,11 @@ class TelegramBotSyncEngine(private val context: Context) {
         messageParseService.parseLoadsFromMessage(text)
             .onSuccess { incomingLoads ->
                 if (incomingLoads.isNotEmpty()) {
-                    val result = loadRepository.syncLoadsCdc(incomingLoads, messageDateSeconds)
-                    return when (result.status) {
-                        SyncStatus.SUCCESS -> context.getString(
-                            R.string.sync_added_loads,
-                            result.addedCount,
-                            result.lastAddedText
-                        )
-                        SyncStatus.DUPLICATE -> context.getString(R.string.sync_duplicate_loads)
-                        SyncStatus.EMPTY -> context.getString(R.string.sync_no_new_data)
-                    }
+                    return telegramLoadHandler(loadRepository).handleLoads(
+                        loads = incomingLoads,
+                        rawMessage = text,
+                        messageDateSeconds = messageDateSeconds,
+                    )
                 }
             }
 
@@ -718,7 +755,8 @@ class TelegramBotSyncEngine(private val context: Context) {
             return context.getString(R.string.restore_error, e.message.orEmpty())
         }
         val text = bytes.toString(Charsets.UTF_8)
-        val result = LoadImporter.importFromText(loadRepository, text)
+        val config = parserConfig(SettingsDataStore(context))
+        val result = LoadImporter.importFromText(loadRepository, text, config)
         if (result.parsed == 0) {
             return context.getString(R.string.sync_restore_manual_not_load)
         }

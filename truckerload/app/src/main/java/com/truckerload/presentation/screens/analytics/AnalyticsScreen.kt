@@ -3,21 +3,26 @@ package com.truckerload.presentation.screens.analytics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,16 +53,23 @@ import com.truckerload.presentation.di.LocalAnalyticsRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
+import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AnalyticsScreen(
+    onBack: () -> Unit = {},
+    onLoadClick: (String) -> Unit = {},
     onAdvancedStats: () -> Unit = {},
+    embedded: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
@@ -81,162 +93,199 @@ fun AnalyticsScreen(
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            stringResource(R.string.analytics_title),
-                            color = tc.TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            stringResource(R.string.analytics_subtitle),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = tc.TextSecondary,
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = viewModel::exportAnalytics) {
-                        Icon(
-                            Icons.Default.FileDownload,
-                            contentDescription = stringResource(R.string.analytics_export_cd),
-                            tint = tc.AccentPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
-            )
+            if (!embedded) {
+                TopAppBar(
+                    title = {
+                        Column {
+                            DarkGlassScreenTitle(stringResource(R.string.analytics_title))
+                            Text(
+                                stringResource(R.string.analytics_subtitle),
+                                style = AppTypography.Subtitle,
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back),
+                                tint = tc.TextPrimary,
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = viewModel::exportAnalytics) {
+                            Icon(
+                                Icons.Default.FileDownload,
+                                contentDescription = stringResource(R.string.analytics_export_cd),
+                                tint = tc.AccentPrimary,
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = BentoGlassTheme.ScreenBackground,
+                        titleContentColor = tc.TextPrimary,
+                    ),
+                )
+            }
         },
     ) { padding ->
-        BentoGlassScreenBackground {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = tc.AccentPrimary,
+        AnalyticsScreenBody(
+            padding = if (embedded) PaddingValues(0.dp) else padding,
+            uiState = uiState,
+            viewModel = viewModel,
+            onLoadClick = onLoadClick,
+            onAdvancedStats = onAdvancedStats,
+        )
+    }
+}
+
+@Composable
+private fun AnalyticsScreenBody(
+    padding: PaddingValues,
+    uiState: AnalyticsUiState,
+    viewModel: AnalyticsViewModel,
+    onLoadClick: (String) -> Unit,
+    onAdvancedStats: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    BentoGlassScreenBackground {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = tc.AccentPrimary,
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
+                        .navigationBarsPadding(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    PeriodFilterRow(
+                        selected = uiState.period,
+                        onSelect = viewModel::setPeriod,
                     )
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+
+                    Button(
+                        onClick = onAdvancedStats,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        PeriodFilterRow(
-                            selected = uiState.period,
-                            onSelect = viewModel::setPeriod,
+                        Icon(
+                            Icons.Default.Insights,
+                            contentDescription = stringResource(R.string.analytics_advanced_stats_cd),
+                            modifier = Modifier.padding(end = 8.dp),
                         )
+                        Text(stringResource(R.string.analytics_advanced_stats))
+                    }
 
-                        uiState.summary?.let { summary ->
-                            SummaryMetricsGrid(summary = summary)
-                            RpmColorLegend(
-                                compact = true,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                        }
+                    uiState.summary?.let { summary ->
+                        SummaryMetricsGrid(summary = summary)
+                        RpmColorLegend(
+                            compact = true,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
 
-                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    stringResource(R.string.analytics_weekly_revenue),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                WeeklyRevenueLineChart(
-                                    weeks = uiState.weeks,
-                                    selectedIndex = uiState.selectedWeekIndex,
-                                    onWeekSelected = viewModel::selectWeek,
-                                    modifier = Modifier.padding(top = 12.dp),
-                                )
-                                if (uiState.weeks.isNotEmpty()) {
-                                    LazyRow(
-                                        modifier = Modifier.padding(top = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    ) {
-                                        itemsIndexed(uiState.weeks) { index, week ->
-                                            FilterChip(
-                                                selected = uiState.selectedWeekIndex == index,
-                                                onClick = { viewModel.selectWeek(index) },
-                                                label = { Text(week.label) },
-                                                colors = FilterChipDefaults.filterChipColors(
-                                                    selectedContainerColor = tc.AccentPrimary.copy(alpha = 0.2f),
-                                                    selectedLabelColor = tc.AccentPrimary,
-                                                ),
-                                            )
-                                        }
-                                    }
-                                }
-                                val selectedWeek = uiState.selectedWeekIndex?.let { uiState.weeks.getOrNull(it) }
-                                if (selectedWeek != null && uiState.selectedWeekLoads.isNotEmpty()) {
-                                    Text(
-                                        text = stringResource(
-                                            R.string.analytics_week_loads_title,
-                                            selectedWeek.label,
-                                        ),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = tc.TextPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.padding(top = 12.dp),
-                                    )
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        uiState.selectedWeekLoads.forEach { load ->
-                                            LoadCard(
-                                                load = load,
-                                                onClick = {},
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    stringResource(R.string.analytics_top_routes),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                TopRoutesBarChart(
-                                    routes = uiState.routes,
-                                    modifier = Modifier.padding(top = 12.dp),
-                                )
-                            }
-                        }
-
-                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    stringResource(R.string.analytics_daily_distribution),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                DailyDistributionChart(
-                                    dailyData = uiState.daily,
-                                    modifier = Modifier.padding(top = 12.dp),
-                                )
-                            }
-                        }
-
-                        uiState.error?.let { err ->
+                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = err,
-                                color = tc.AccentExpense,
-                                style = MaterialTheme.typography.bodySmall,
+                                stringResource(R.string.analytics_weekly_revenue),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = tc.TextPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            WeeklyRevenueLineChart(
+                                weeks = uiState.weeks,
+                                selectedIndex = uiState.selectedWeekIndex,
+                                onWeekSelected = viewModel::selectWeek,
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                            if (uiState.weeks.isNotEmpty()) {
+                                LazyRow(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    itemsIndexed(uiState.weeks) { index, week ->
+                                        FilterChip(
+                                            selected = uiState.selectedWeekIndex == index,
+                                            onClick = { viewModel.selectWeek(index) },
+                                            label = { Text(week.label) },
+                                            colors = AppFilterChipDefaults.colors(),
+                                        )
+                                    }
+                                }
+                            }
+                            val selectedWeek = uiState.selectedWeekIndex?.let { uiState.weeks.getOrNull(it) }
+                            if (selectedWeek != null && uiState.selectedWeekLoads.isNotEmpty()) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.analytics_week_loads_title,
+                                        selectedWeek.label,
+                                    ),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = tc.TextPrimary,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(top = 12.dp),
+                                )
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    uiState.selectedWeekLoads.forEach { load ->
+                                        LoadCard(
+                                            load = load,
+                                            onClick = { onLoadClick(load.id) },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                stringResource(R.string.analytics_top_routes),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = tc.TextPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            TopRoutesBarChart(
+                                routes = uiState.routes,
+                                modifier = Modifier.padding(top = 12.dp),
                             )
                         }
+                    }
+
+                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                stringResource(R.string.analytics_daily_distribution),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = tc.TextPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            DailyDistributionChart(
+                                dailyData = uiState.daily,
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                        }
+                    }
+
+                    uiState.error?.let { err ->
+                        Text(
+                            text = err,
+                            color = tc.AccentExpense,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                     }
                 }
             }
@@ -250,7 +299,6 @@ private fun PeriodFilterRow(
     selected: AnalyticsPeriod,
     onSelect: (AnalyticsPeriod) -> Unit,
 ) {
-    val tc = LocalTruckColors.current
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         AnalyticsPeriod.entries.forEach { period ->
             FilterChip(
@@ -265,12 +313,7 @@ private fun PeriodFilterRow(
                         }
                     )
                 },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = tc.AccentPrimary.copy(alpha = 0.22f),
-                    selectedLabelColor = tc.AccentPrimary,
-                    containerColor = tc.CardBackground,
-                    labelColor = tc.TextSecondary,
-                ),
+                colors = AppFilterChipDefaults.colors(),
             )
         }
     }

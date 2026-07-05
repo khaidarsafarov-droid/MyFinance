@@ -49,11 +49,17 @@ android {
         compose = true
         buildConfig = true
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("androidx.lifecycle:lifecycle-process:2.7.0")
     implementation(libs.androidx.activity.compose)
@@ -98,8 +104,37 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:4.3.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.maps.android:android-maps-utils:3.8.2")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.google.android.gms:play-services-base:18.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
-    // Vico charts
+    // CameraX (1.4.2+ required for 16 KB page-size aligned native libs)
+    val cameraXVersion = "1.4.2"
+    implementation("androidx.camera:camera-camera2:$cameraXVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraXVersion")
+    implementation("androidx.camera:camera-view:$cameraXVersion")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+
+    // ML Kit Document Scanner + OCR
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
+    // PDF generation (fallback when scanner returns JPEG pages only)
+    implementation("com.itextpdf:kernel:8.0.5")
+    implementation("com.itextpdf:io:8.0.5")
+    implementation("com.itextpdf:layout:8.0.5")
+
+    // Tesseract OCR (Russian + English, offline) — 4.8+ ships 16 KB-aligned arm64 libs
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
+
+    implementation("androidx.compose.foundation:foundation")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // WebRTC audio — 1.3.10+ ships 16 KB-aligned libjingle_peerconnection_so.so (arm64)
+    implementation("io.getstream:stream-webrtc-android:1.3.10")
+
+    // Media session for call notifications
+    implementation("androidx.media:media:1.7.0")
     implementation("com.patrykandpatrick.vico:compose:1.15.0")
     implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
 

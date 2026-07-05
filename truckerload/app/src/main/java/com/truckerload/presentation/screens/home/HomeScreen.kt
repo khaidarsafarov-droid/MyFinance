@@ -15,13 +15,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.theme.UiDimens
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
@@ -62,11 +64,18 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.R
+import com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL
 import com.truckerload.presentation.components.BotStatusBadge
+import com.truckerload.presentation.components.HomeWeekHeroCard
+import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.presentation.theme.StaggeredAnimatedItem
-import com.truckerload.presentation.components.BentoSectionTitle
+import androidx.compose.ui.unit.dp
+import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.DarkGlassGradients
+import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.DarkGlassSectionTitle
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
@@ -74,6 +83,8 @@ import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.sync.TelegramSyncWorker
+import com.truckerload.presentation.utils.MoneyFormat
+import androidx.compose.foundation.layout.navigationBarsPadding
 import com.truckerload.widget.WidgetDeepLink
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.material.ExperimentalMaterialApi::class)
@@ -116,22 +127,13 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(
-                            stringResource(R.string.home_brand_title),
-                            color = tc.AccentPrimary,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+                        DarkGlassScreenTitle(stringResource(R.string.home_brand_title))
                         Text(
                             stringResource(R.string.app_tagline),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = tc.TextSecondary
+                            style = AppTypography.Subtitle,
                         )
-                        weekLabel.takeIf { it.isNotBlank() }?.let { week ->
-                            Text(
-                                week,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = tc.TextSecondary
-                            )
+                        weekLabel.takeIf { it.isNotBlank() && uiState.filter != LoadFilter.THIS_WEEK }?.let { week ->
+                            Text(week, style = AppTypography.Subtitle)
                         }
                     }
                 },
@@ -147,19 +149,16 @@ fun HomeScreen(
                                 val work = OneTimeWorkRequestBuilder<TelegramSyncWorker>().build()
                                 WorkManager.getInstance(context.applicationContext).enqueue(work)
                             },
-                            modifier = Modifier.size(44.dp)
+                            modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                         ) {
-                        Icon(Icons.Default.Sync, contentDescription = stringResource(R.string.home_cd_sync_telegram))
+                            Icon(Icons.Default.Sync, contentDescription = stringResource(R.string.home_cd_sync_telegram))
                         }
                     }
-                    IconButton(onClick = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) }, modifier = Modifier.size(44.dp)) {
+                    IconButton(
+                        onClick = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
+                        modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
+                    ) {
                         Icon(Icons.Default.Search, contentDescription = stringResource(R.string.home_cd_search))
-                    }
-                    IconButton(onClick = onSettings, modifier = Modifier.size(44.dp)) {
-                        Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.home_cd_settings))
-                    }
-                    IconButton(onClick = onStats, modifier = Modifier.size(44.dp)) {
-                        Icon(Icons.Outlined.BarChart, contentDescription = stringResource(R.string.home_cd_statistics))
                     }
                     BotStatusBadge(active = uiState.botStatusActive)
                 }
@@ -177,12 +176,13 @@ fun HomeScreen(
                     filteredLoads = filteredLoads,
                     onLoadClick = onLoadClick,
                     onAddLoad = onAddLoad,
-                    context = context
+                    onWeeklyGoal = onWeeklyGoal,
+                    context = context,
                 )
                 if (isInitialLoading) {
                     Box(
                         modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.7f)),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator(color = tc.AccentPrimary)
                     }
@@ -204,6 +204,7 @@ private fun HomeScreenContent(
     filteredLoads: List<com.truckerload.domain.model.Load>,
     onLoadClick: (String) -> Unit,
     onAddLoad: () -> Unit,
+    onWeeklyGoal: () -> Unit,
     context: Context
 ) {
     val tc = LocalTruckColors.current
@@ -284,132 +285,172 @@ private fun HomeScreenContent(
     }
 
     val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = { onRefresh() })
+    val hideRevenueDuplicates = uiState.filter == LoadFilter.THIS_WEEK
     BentoGlassScreenBackground {
     Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .navigationBarsPadding(),
+            contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             if (uiState.isSearchExpanded) {
-                BentoGlassSearchField(
-                    value = uiState.searchQuery,
-                    onValueChange = { viewModel.setSearchQuery(it) },
-                    placeholder = stringResource(R.string.home_search_hint),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                item(key = "search") {
+                    BentoGlassSearchField(
+                        value = uiState.searchQuery,
+                        onValueChange = { viewModel.setSearchQuery(it) },
+                        placeholder = stringResource(R.string.home_search_hint),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+            }
+
+            if (uiState.filter == LoadFilter.THIS_WEEK) {
+                item(key = "hero") {
+                    val goalStore = LocalWeeklyProfitGoalStore.current
+                    val weeklyGoal by goalStore.goalAmount.collectAsState(initial = DEFAULT_WEEKLY_GROSS_GOAL)
+                    val progress = if (weeklyGoal > 0) {
+                        ((totals.totalRate / weeklyGoal) * 100).toFloat().coerceIn(0f, 100f)
+                    } else {
+                        0f
+                    }
+                    val rpm = if (totals.totalMiles > 0) totals.totalRate / totals.totalMiles else null
+                    HomeWeekHeroCard(
+                        gross = totals.totalRate,
+                        goal = weeklyGoal,
+                        progressPercent = progress,
+                        rpm = rpm,
+                        onClick = onWeeklyGoal,
+                    )
+                }
+            }
+
+            item(key = "dashboard") {
+                HomeBentoDashboard(
+                    totals = totals,
+                    hideRevenueDuplicates = hideRevenueDuplicates,
                 )
             }
 
-            HomeBentoDashboard(
-                totals = totals,
-            )
+            item(key = "period_filter") {
+                HomePeriodFilterDropdown(
+                    currentFilter = uiState.filter,
+                    selectedYear = uiState.selectedYear,
+                    selectedDateLabel = uiState.selectedDateLabel,
+                    selectedWeekLabel = uiState.selectedWeekLabel,
+                    onFilterSelected = viewModel::setFilter,
+                    onOpenCalendar = { showCalendar = true },
+                    onOpenArchive = {
+                        viewModel.setFilter(LoadFilter.ALL)
+                        showYearSelector = true
+                    },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
 
-            HomePeriodFilterDropdown(
-                currentFilter = uiState.filter,
-                selectedYear = uiState.selectedYear,
-                selectedDateLabel = uiState.selectedDateLabel,
-                selectedWeekLabel = uiState.selectedWeekLabel,
-                onFilterSelected = viewModel::setFilter,
-                onOpenCalendar = { showCalendar = true },
-                onOpenArchive = {
-                    viewModel.setFilter(LoadFilter.ALL)
-                    showYearSelector = true
-                },
-            )
+            if (listItems.isNotEmpty()) {
+                item(key = "recent_header") {
+                    StaggeredAnimatedItem(index = 0) {
+                        DarkGlassSectionTitle(
+                            text = stringResource(R.string.home_recent_loads),
+                            emoji = "📋",
+                            modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
+                        )
+                    }
+                }
+            }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp, 0.dp, 16.dp, 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                if (listItems.isNotEmpty()) {
-                    item(key = "recent_header") {
-                        StaggeredAnimatedItem(index = 0) {
-                            BentoSectionTitle(
-                                title = stringResource(R.string.home_recent_loads),
-                                emoji = "📋"
+            if (listItems.isEmpty()) {
+                item(key = "empty") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 240.dp)
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                when (uiState.filter) {
+                                    LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
+                                    LoadFilter.CALENDAR_WEEK -> stringResource(R.string.home_empty_calendar_week)
+                                    LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_empty_calendar_date)
+                                    LoadFilter.YESTERDAY -> stringResource(R.string.home_empty_yesterday)
+                                    LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
+                                    LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
+                                    LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
+                                },
+                                style = MaterialTheme.typography.titleMedium,
+                                color = tc.TextPrimary,
+                            )
+                            Text(
+                                if (uiState.filter == LoadFilter.ALL) {
+                                    stringResource(R.string.home_empty_all_body)
+                                } else {
+                                    stringResource(R.string.home_empty_filtered_body)
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(top = 8.dp),
                             )
                         }
                     }
                 }
-                if (listItems.isEmpty()) {
-                    item(key = "empty") {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 400.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    when (uiState.filter) {
-                                        LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
-                                        LoadFilter.CALENDAR_WEEK -> stringResource(R.string.home_empty_calendar_week)
-                                        LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_empty_calendar_date)
-                                        LoadFilter.YESTERDAY -> stringResource(R.string.home_empty_yesterday)
-                                        LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
-                                        LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
-                                        LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
-                                    },
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary
-                                )
-                                Text(
-                                    if (uiState.filter == LoadFilter.ALL)
-                                        stringResource(R.string.home_empty_all_body)
-                                    else stringResource(R.string.home_empty_filtered_body),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = tc.TextSecondary,
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-                            }
+            } else {
+                itemsIndexed(
+                    items = listItems,
+                    key = { _, item ->
+                        when (item) {
+                            is HomeListItem.YearHeader -> "year_${item.section.year}"
+                            is HomeListItem.MonthHeader -> "month_${item.section.year}_${item.section.month}"
+                            is HomeListItem.FilteredSectionHeader -> "filtered_${item.label}"
+                            is HomeListItem.LoadItem -> "load_${item.load.id}"
                         }
-                    }
-                } else {
-                    itemsIndexed(
-                        items = listItems,
-                        key = { index, item ->
-                            when (item) {
-                                is HomeListItem.YearHeader -> "year_${item.section.year}"
-                                is HomeListItem.MonthHeader -> "month_${item.section.year}_${item.section.month}"
-                                is HomeListItem.FilteredSectionHeader -> "filtered_${item.label}"
-                                is HomeListItem.LoadItem -> "load_${item.load.id}"
-                            }
-                        }
-                    ) { index, item ->
-                        StaggeredAnimatedItem(index = index + 1) {
-                            when (item) {
-                                is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
-                                is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
-                                is HomeListItem.FilteredSectionHeader -> FilteredSectionHeader(header = item)
-                                is HomeListItem.LoadItem -> SwipeableLoadCard(
-                                    load = item.load,
-                                    onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
-                                    onDelete = {
-                                        if (item.load.id.isNotBlank()) {
-                                            viewModel.deleteLoad(item.load.id)
-                                        }
-                                    },
-                                )
-                            }
+                    },
+                ) { index, item ->
+                    StaggeredAnimatedItem(index = index + 1) {
+                        when (item) {
+                            is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
+                            is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
+                            is HomeListItem.FilteredSectionHeader -> FilteredSectionHeader(header = item)
+                            is HomeListItem.LoadItem -> SwipeableLoadCard(
+                                load = item.load,
+                                onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
+                                onDelete = {
+                                    if (item.load.id.isNotBlank()) {
+                                        viewModel.deleteLoad(item.load.id)
+                                    }
+                                },
+                                modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
+                            )
                         }
                     }
                 }
-                item(key = "add_load_button") {
-                    Button(
-                        onClick = onAddLoad,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = tc.AccentPrimary,
-                            contentColor = tc.Background
-                        )
-                    ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.home_add_load_button),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
+            }
+
+            item(key = "add_load_button") {
+                Button(
+                    onClick = onAddLoad,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(DarkGlassGradients.button, RoundedCornerShape(16.dp)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.home_add_load_button),
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.home_add_load_button),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
                 }
             }
         }
@@ -421,53 +462,68 @@ private fun HomeScreenContent(
 @Composable
 private fun HomeBentoDashboard(
     totals: LoadFilterUseCase.Totals,
+    hideRevenueDuplicates: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
-    StatsHeader(totals = totals, tc = tc)
+    StatsHeader(totals = totals, tc = tc, hideRevenueDuplicates = hideRevenueDuplicates)
 }
 
 @Composable
-private fun StatsHeader(totals: LoadFilterUseCase.Totals, tc: com.truckerload.presentation.theme.TruckColorPalette) {
+private fun StatsHeader(
+    totals: LoadFilterUseCase.Totals,
+    tc: com.truckerload.presentation.theme.TruckColorPalette,
+    hideRevenueDuplicates: Boolean = false,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             BentoGlassMetricCell(
                 modifier = Modifier.weight(1f),
                 label = stringResource(R.string.metric_loads),
                 value = totals.loadCount.toString(),
-                accent = FinanceCockpitColors.SalaryAccent
+                accent = FinanceCockpitColors.SalaryAccent,
             )
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.metric_gross),
-                value = String.format("$%,.0f", totals.totalRate),
-                accent = BentoGlassTheme.GoalGradientEnd,
-                highlight = true
-            )
+            if (!hideRevenueDuplicates) {
+                BentoGlassMetricCell(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.metric_gross),
+                    value = MoneyFormat.formatCurrency(totals.totalRate),
+                    accent = FinanceCockpitColors.TextPrimary,
+                )
+            } else {
+                BentoGlassMetricCell(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.widget_metric_miles),
+                    value = MoneyFormat.formatNumber(totals.totalMiles),
+                    accent = FinanceCockpitColors.TextPrimary,
+                )
+            }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.widget_metric_miles),
-                value = String.format("%,.0f", totals.totalMiles),
-                accent = FinanceCockpitColors.TextPrimary
-            )
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.widget_metric_cpm),
-                value = totals.avgRpmFormatted.substringBefore(" /").ifBlank { "—" },
-                accent = tc.AccentInfo
-            )
+        if (!hideRevenueDuplicates) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                BentoGlassMetricCell(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.widget_metric_miles),
+                    value = MoneyFormat.formatNumber(totals.totalMiles),
+                    accent = FinanceCockpitColors.TextPrimary,
+                )
+                BentoGlassMetricCell(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.widget_metric_cpm),
+                    value = totals.avgRpmFormatted.substringBefore(" /").ifBlank { "—" },
+                    accent = tc.AccentInfo,
+                )
+            }
         }
         RpmColorLegend(
             compact = true,
@@ -482,12 +538,11 @@ private fun FilteredSectionHeader(header: HomeListItem.FilteredSectionHeader) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = 4.dp)
+            .padding(vertical = 12.dp, horizontal = adaptiveHorizontalPadding()),
     ) {
         Text(
-            text = header.label,
-            style = MaterialTheme.typography.titleMedium,
-            color = tc.TextPrimary
+            text = header.label.uppercase(),
+            style = AppTypography.SectionTitle,
         )
         Text(
             text = stringResource(
@@ -496,8 +551,7 @@ private fun FilteredSectionHeader(header: HomeListItem.FilteredSectionHeader) {
                 header.totals.totalMiles,
                 header.totals.avgRpmFormatted
             ),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
+            style = AppTypography.CaptionMuted,
             modifier = Modifier.padding(top = 4.dp)
         )
     }
@@ -506,7 +560,7 @@ private fun FilteredSectionHeader(header: HomeListItem.FilteredSectionHeader) {
 @Composable
 private fun YearSectionHeader(section: YearSection) {
     val tc = LocalTruckColors.current
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 4.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = adaptiveHorizontalPadding())) {
         Text(text = stringResource(R.string.home_year_section, section.year), style = MaterialTheme.typography.titleLarge, color = tc.AccentPrimary)
         Text(
             text = stringResource(
@@ -529,6 +583,6 @@ private fun MonthSectionHeader(section: MonthSection) {
         text = stringResource(R.string.home_month_section, section.monthName, section.loads.size),
         style = MaterialTheme.typography.titleSmall,
         color = tc.TextPrimary,
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp, start = 8.dp)
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp, start = adaptiveHorizontalPadding())
     )
 }

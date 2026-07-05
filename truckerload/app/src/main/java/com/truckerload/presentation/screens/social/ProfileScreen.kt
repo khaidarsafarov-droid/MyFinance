@@ -1,0 +1,379 @@
+package com.truckerload.presentation.screens.social
+
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.truckerload.R
+import com.truckerload.domain.social.EnhancedDriverProfile
+import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.BentoGlassCard
+import com.truckerload.presentation.theme.BentoGlassMetricCell
+import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.utils.MoneyFormat
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileScreen(
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModel.Factory(LocalSocialRepository.current),
+    ),
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val profile = uiState.profile
+    val tc = LocalTruckColors.current
+
+    Scaffold(
+        modifier = modifier,
+        containerColor = BentoGlassTheme.ScreenBackground,
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.profile)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_profile))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = BentoGlassTheme.ScreenBackground,
+                    titleContentColor = tc.TextPrimary,
+                ),
+            )
+        },
+    ) { padding ->
+        if (profile == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(stringResource(R.string.social_loading), color = tc.TextSecondary)
+            }
+            return@Scaffold
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item { PremiumProfileHeader(profile) }
+            item { PremiumStatsRow(profile) }
+            if (profile.badges.isNotEmpty()) {
+                item { ProfileBadgesSection(profile) }
+            }
+            if (profile.about.isNotBlank()) {
+                item { ProfileAboutSection(profile.about) }
+            }
+            if (profile.preferredRoutes.isNotEmpty() || profile.homeState.isNotBlank()) {
+                item { ProfileTerritorySection(profile) }
+            }
+            item { ProfileSocialSection(profile) }
+            if (profile.phoneNumber != null || profile.telegramUsername != null) {
+                item { ProfileContactsSection(profile) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumProfileHeader(profile: EnhancedDriverProfile) {
+    val tc = LocalTruckColors.current
+  Column(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(tc.AccentPrimary.copy(alpha = 0.55f), tc.SurfaceSecondary),
+                    ),
+                ),
+        )
+        BentoGlassCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .offset(y = (-36).dp),
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(UiDimens.AvatarProfile)
+                            .clip(CircleShape)
+                            .background(tc.AccentPrimary.copy(alpha = 0.25f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("👤", style = MaterialTheme.typography.headlineMedium)
+                    }
+                    Column {
+                        Text(profile.displayName, style = AppTypography.CardTitle, color = tc.TextPrimary)
+                        Text(
+                            "${profile.truckType.emoji} ${profile.truckType.label} · ${profile.experienceYears} ${stringResource(R.string.experience_years)}",
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                        Text(
+                            "📍 ${profile.homeState.ifBlank { "—" }} · ${profile.status.label}",
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                }
+                Text(
+                    text = "⭐ ${"%.1f".format(profile.rating)} ★ (${profile.ratingCount}) · 🏅 ${profile.reputation} rep",
+                    style = AppTypography.Subtitle,
+                    color = tc.AccentPrimary,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                profile.currentRoute?.let { route ->
+                    Text("🛣️ $route", style = AppTypography.Subtitle, color = tc.TextSecondary, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumStatsRow(profile: EnhancedDriverProfile) {
+    val tc = LocalTruckColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            BentoGlassMetricCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.social_stat_loads),
+                value = profile.totalLoads.toString(),
+                accent = tc.AccentPrimary,
+            )
+            BentoGlassMetricCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.social_stat_miles),
+                value = "%,d".format(profile.totalMiles),
+                accent = tc.AccentProfit,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            BentoGlassMetricCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.social_stat_revenue),
+                value = MoneyFormat.formatCurrency(profile.totalRevenue),
+                accent = tc.AccentPrimary,
+            )
+            BentoGlassMetricCell(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.social_stat_rpm),
+                value = MoneyFormat.formatCurrency(profile.averageRpm),
+                accent = tc.AccentProfit,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileBadgesSection(profile: EnhancedDriverProfile) {
+    val tc = LocalTruckColors.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                "${stringResource(R.string.badges)} (${profile.badges.size})",
+                style = AppTypography.CardTitle,
+                color = tc.TextPrimary,
+            )
+            Text(
+                text = profile.badges.joinToString(" ") { it.icon },
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            profile.badges.take(6).forEach { badge ->
+                Text(
+                    text = "${badge.icon} ${badge.name}",
+                    style = AppTypography.Subtitle,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileAboutSection(about: String) {
+    val tc = LocalTruckColors.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.about_me), style = AppTypography.CardTitle, color = tc.TextPrimary)
+            Text(about, style = AppTypography.Subtitle, color = tc.TextSecondary, modifier = Modifier.padding(top = 8.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProfileTerritorySection(profile: EnhancedDriverProfile) {
+    val tc = LocalTruckColors.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.social_territory), style = AppTypography.CardTitle, color = tc.TextPrimary)
+            Text(
+                "${stringResource(R.string.home_state)}: ${profile.homeState}",
+                style = AppTypography.Subtitle,
+                color = tc.TextSecondary,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            if (profile.preferredRoutes.isNotEmpty()) {
+                Text(
+                    "${stringResource(R.string.social_favorite_routes)}: ${profile.preferredRoutes.joinToString(", ")}",
+                    style = AppTypography.Subtitle,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            Text(
+                "${stringResource(R.string.social_max_radius)}: ${profile.maxRadius} mi",
+                style = AppTypography.Subtitle,
+                color = tc.TextSecondary,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileSocialSection(profile: EnhancedDriverProfile) {
+    val tc = LocalTruckColors.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("${profile.followers}", style = AppTypography.CardTitle, color = tc.TextPrimary)
+                Text(stringResource(R.string.social_followers), style = AppTypography.Subtitle, color = tc.TextSecondary)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("${profile.following}", style = AppTypography.CardTitle, color = tc.TextPrimary)
+                Text(stringResource(R.string.social_following), style = AppTypography.Subtitle, color = tc.TextSecondary)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("${"%.0f".format(profile.onTimePercentage)}%", style = AppTypography.CardTitle, color = tc.AccentPrimary)
+                Text(stringResource(R.string.social_on_time), style = AppTypography.Subtitle, color = tc.TextSecondary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
+    val tc = LocalTruckColors.current
+    val context = LocalContext.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.social_contacts), style = AppTypography.CardTitle, color = tc.TextPrimary)
+            profile.phoneNumber?.let { phone ->
+                ContactRow(
+                    label = "📞 $phone",
+                    onClick = {
+                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                    },
+                )
+            }
+            profile.telegramUsername?.let { username ->
+                val handle = username.removePrefix("@")
+                ContactRow(
+                    label = "💬 @$handle",
+                    onClick = {
+                        val telegramUri = Uri.parse("https://t.me/$handle")
+                        context.startActivity(Intent(Intent.ACTION_VIEW, telegramUri))
+                    },
+                )
+            }
+            profile.whatsappNumber?.let { whatsapp ->
+                ContactRow(
+                    label = "📱 $whatsapp",
+                    onClick = {
+                        val waUri = Uri.parse("https://wa.me/${whatsapp.filter { it.isDigit() }}")
+                        context.startActivity(Intent(Intent.ACTION_VIEW, waUri))
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContactRow(
+    label: String,
+    onClick: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    Text(
+        text = label,
+        style = AppTypography.Subtitle,
+        color = tc.AccentPrimary,
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .clickable(onClick = onClick),
+    )
+}

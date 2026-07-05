@@ -26,12 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.goal.PaceStatus
+import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.DarkGlassGradients
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 import java.util.Locale
 
-/**
- * Full 360° goal ring — Airy Soft UI blue–purple gradient with smooth animation.
- */
 @Composable
 fun AnimatedCircularProgress(
     progressPercent: Float,
@@ -39,32 +39,25 @@ fun AnimatedCircularProgress(
     goal: Double,
     paceStatus: PaceStatus = PaceStatus.ON_TRACK,
     modifier: Modifier = Modifier,
-    size: Dp = 200.dp,
+    size: Dp = UiDimens.HomeProgressRingSize,
     strokeWidth: Dp = 12.dp,
     showPercent: Boolean = true,
+    onDarkBackground: Boolean = true,
 ) {
     val tc = LocalTruckColors.current
-    val goalMet = goal > 0 && gross >= goal
-    val arcEndColor = when {
-        goalMet -> tc.AccentProfit
-        paceStatus == PaceStatus.BEHIND -> tc.AccentWarning
-        else -> tc.AccentWarning
-    }
-    val percentColor = when {
-        goalMet -> tc.AccentProfit
-        paceStatus == PaceStatus.BEHIND -> tc.AccentExpense
-        else -> tc.AccentPrimary
-    }
+    val cs = MaterialTheme.colorScheme
     val animatedProgress by animateFloatAsState(
         targetValue = progressPercent.coerceIn(0f, 100f),
         animationSpec = tween(1000, easing = EaseOutCubic),
-        label = "ringProgress"
+        label = "ringProgress",
     )
     val animatedGross by animateFloatAsState(
         targetValue = gross.toFloat(),
         animationSpec = tween(800, easing = EaseOutCubic),
-        label = "ringGross"
+        label = "ringGross",
     )
+
+    val ringBrush = DarkGlassGradients.progressRing
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
@@ -74,56 +67,61 @@ fun AnimatedCircularProgress(
             val arcSize = Size(diameter, diameter)
 
             drawArc(
-                color = tc.Divider.copy(alpha = 0.55f),
+                color = if (onDarkBackground) {
+                    cs.onPrimary.copy(alpha = 0.2f)
+                } else {
+                    tc.ProgressTrack
+                },
                 startAngle = -90f,
                 sweepAngle = 360f,
                 useCenter = false,
                 topLeft = topLeft,
                 size = arcSize,
-                style = Stroke(width = stroke, cap = StrokeCap.Round)
+                style = Stroke(width = stroke, cap = StrokeCap.Round),
             )
 
             val sweep = 360f * (animatedProgress / 100f)
             if (sweep > 0f) {
                 drawArc(
-                    brush = Brush.sweepGradient(
-                        0f to tc.AccentPrimary,
-                        0.55f to arcEndColor,
-                        1f to arcEndColor
-                    ),
+                    brush = ringBrush,
                     startAngle = -90f,
                     sweepAngle = sweep,
                     useCenter = false,
                     topLeft = topLeft,
                     size = arcSize,
-                    style = Stroke(width = stroke, cap = StrokeCap.Round)
+                    style = Stroke(width = stroke, cap = StrokeCap.Round),
                 )
             }
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            NeonText(
+            Text(
                 text = formatUsd(animatedGross.toDouble()),
-                fontSize = 28.sp,
-                color = tc.TextPrimary,
-                glowColor = tc.AccentPrimary.copy(alpha = 0.25f)
+                style = if (onDarkBackground) AppTypography.NumbersOnDark else AppTypography.NumbersLarge,
             )
             if (goal > 0) {
                 Text(
                     text = stringResource(R.string.widget_goal_out_of, formatUsd(goal)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tc.TextSecondary
+                    style = if (onDarkBackground) {
+                        AppTypography.Subtitle.copy(color = cs.onPrimary.copy(alpha = 0.7f))
+                    } else {
+                        AppTypography.Subtitle
+                    },
                 )
             }
             if (showPercent) {
                 Text(
                     text = "${animatedProgress.toInt()}%",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp
-                    ),
-                    color = percentColor,
-                    modifier = Modifier.padding(top = 2.dp)
+                    style = if (onDarkBackground) {
+                        AppTypography.CardTitle.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = cs.onPrimary,
+                        )
+                    } else {
+                        AppTypography.AccentNumber.copy(fontSize = 18.sp)
+                    },
+                    modifier = Modifier.padding(top = 2.dp),
                 )
             }
         }

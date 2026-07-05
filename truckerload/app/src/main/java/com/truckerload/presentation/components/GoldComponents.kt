@@ -4,6 +4,7 @@ import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -33,9 +34,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.DarkGlassGradients
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.NeoGlassPalette
-import com.truckerload.presentation.theme.SoftGradients
 import java.util.Locale
 
 @Composable
@@ -48,9 +49,10 @@ fun GoldCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(8.dp, shape, ambientColor = NeoGlassPalette.ShadowSoft, spotColor = NeoGlassPalette.ShadowSoft)
+            .shadow(12.dp, shape, ambientColor = NeoGlassPalette.ShadowSoft, spotColor = tc.AccentPrimary.copy(0.25f))
             .clip(shape)
-            .background(tc.CardBackground)
+            .background(DarkGlassGradients.cardShine)
+            .border(BentoGlassTheme.BorderWidth, tc.GlassBorder, shape)
             .padding(24.dp),
         content = content,
     )
@@ -71,7 +73,7 @@ fun GoldButton(
             .shadow(if (enabled) 6.dp else 0.dp, shape, ambientColor = tc.AccentPrimary.copy(0.2f))
             .clip(shape)
             .background(
-                if (enabled) SoftGradients.horizontal
+                if (enabled) DarkGlassGradients.cta
                 else Brush.linearGradient(listOf(tc.ProgressTrack, tc.ProgressTrack))
             )
             .clickable(

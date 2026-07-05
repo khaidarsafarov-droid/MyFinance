@@ -2,6 +2,7 @@ package com.truckerload.presentation.navigation
 
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -46,12 +47,34 @@ import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsScreen
 import com.truckerload.presentation.screens.stats.StatsScreen
+import com.truckerload.presentation.screens.camera.CameraFlowScreen
+import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
+import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
+import com.truckerload.presentation.screens.gallery.PhotoDetailScreen
+import com.truckerload.presentation.screens.gallery.PhotoGalleryScreen
+import com.truckerload.presentation.screens.social.CommunityScreen
+import com.truckerload.presentation.screens.social.ProfileEditScreen
+import com.truckerload.presentation.screens.social.ProfileScreen
+import com.truckerload.presentation.screens.social.GroupDetailScreen
+import com.truckerload.presentation.screens.social.GroupsScreen
+import com.truckerload.presentation.screens.social.PeerProfileScreen
+import com.truckerload.presentation.screens.social.SocialChatScreen
+import com.truckerload.presentation.screens.social.StatusScreen
+import com.truckerload.presentation.screens.voice.CallScreen
+import com.truckerload.presentation.screens.voice.IncomingCallOverlay
+import com.truckerload.presentation.screens.voice.VoiceRoomScreen
+import com.truckerload.presentation.screens.voice.VoiceRoomsScreen
 import com.truckerload.widget.WidgetDeepLink
 
 object Routes {
     const val HOME = "home"
     const val STATS = "stats"
     const val ANALYTICS = "analytics"
+    const val COMMUNITY = "community"
+    const val PROFILE = "profile"
+    const val PROFILE_EDIT = "profile_edit"
+    const val PROFILE_PEER = "profile_peer/{peerId}"
+    const val SOCIAL_CHAT = "social_chat/{chatId}"
     const val ADVANCED_STATS = "advanced_stats"
     const val MAP = "map"
     const val LOAD_DETAIL = "load_detail/{loadId}"
@@ -62,9 +85,28 @@ object Routes {
     const val TAX_TRACKER = "tax_tracker"
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
+    const val CAMERA = "camera"
+    const val SCANNER = "scanner"
+    const val SCAN_GALLERY = "scan_gallery"
+    const val PHOTO_GALLERY = "photo_gallery"
+    const val PHOTO_DETAIL = "photo_detail/{photoId}"
 
     fun loadDetail(loadId: String) = "load_detail/$loadId"
     fun editLoad(loadId: String) = "edit_load/$loadId"
+    fun photoDetail(photoId: String) = "photo_detail/$photoId"
+    fun socialChat(chatId: String) = "social_chat/$chatId"
+    const val VOICE_ROOMS = "voice_rooms"
+    const val VOICE_ROOM = "voice_room/{roomId}"
+    const val CALL = "call/{callId}"
+    const val STATUS = "status"
+    const val GROUPS = "groups"
+    const val GROUP_DETAIL = "group_detail/{chatId}"
+
+    fun groupDetail(chatId: String) = "group_detail/$chatId"
+    fun peerProfile(peerId: String) = "profile_peer/$peerId"
+
+    fun voiceRoom(roomId: String) = "voice_room/$roomId"
+    fun call(callId: String) = "call/$callId"
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -141,9 +183,15 @@ fun NavGraph(
     }
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.ANALYTICS, Routes.SETTINGS)
+    val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.SETTINGS)
     val showMainNavigation = if (tablet) {
-        currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL
+        currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
+            currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
+            currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
+            !currentRoute.orEmpty().startsWith("photo_detail") &&
+            currentRoute != Routes.PROFILE && currentRoute != Routes.PROFILE_EDIT &&
+            !currentRoute.orEmpty().startsWith("profile_peer") &&
+            !currentRoute.orEmpty().startsWith("social_chat")
     } else {
         currentRoute in phoneMainRoutes
     }
@@ -152,7 +200,18 @@ fun NavGraph(
         showMainNavigation = showMainNavigation,
         currentRoute = currentRoute,
         onNavigate = { route -> navigateToMainRoute(route, navController) },
+        onCameraClick = {
+            navController.navigate(Routes.CAMERA) {
+                launchSingleTop = true
+            }
+        },
+        onScannerClick = {
+            navController.navigate(Routes.SCANNER) {
+                launchSingleTop = true
+            }
+        },
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
         AdaptiveScreenContainer(modifier = Modifier.padding(padding)) {
         NavHost(
             navController = navController,
@@ -169,9 +228,105 @@ fun NavGraph(
                 HomeScreen(
                     onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
                     onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
-                    onStats = { navController.navigate(Routes.ADVANCED_STATS) },
+                    onStats = { navController.navigate(Routes.ANALYTICS) },
                     onWeeklyGoal = { navController.navigate(Routes.STATS) },
                     onSettings = { navController.navigate(Routes.SETTINGS) }
+                )
+            }
+            composable(
+                route = Routes.COMMUNITY,
+                enterTransition = { tabEnterTransition() },
+                exitTransition = { tabExitTransition() },
+                popEnterTransition = { tabEnterTransition() },
+                popExitTransition = { tabExitTransition() },
+            ) {
+                CommunityScreen(
+                    onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
+                    onOpenProfile = { navController.navigate(Routes.PROFILE) },
+                    onOpenVoiceRooms = { navController.navigate(Routes.VOICE_ROOMS) },
+                    onOpenStatus = { navController.navigate(Routes.STATUS) },
+                    onOpenGroups = { navController.navigate(Routes.GROUPS) },
+                    onOpenGroupDetail = { chatId -> navController.navigate(Routes.groupDetail(chatId)) },
+                    onOpenPeerProfile = { peerId -> navController.navigate(Routes.peerProfile(peerId)) },
+                )
+            }
+            composable(Routes.STATUS) {
+                StatusScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.GROUPS) {
+                GroupsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenGroup = { chatId -> navController.navigate(Routes.groupDetail(chatId)) },
+                    onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
+                )
+            }
+            composable(
+                route = Routes.GROUP_DETAIL,
+                arguments = listOf(navArgument("chatId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val chatId = backStackEntry.arguments?.getString("chatId").orEmpty()
+                GroupDetailScreen(
+                    chatId = chatId,
+                    onBack = { navController.popBackStack() },
+                    onOpenChat = { navController.navigate(Routes.socialChat(it)) },
+                )
+            }
+            composable(
+                route = Routes.PROFILE_PEER,
+                arguments = listOf(navArgument("peerId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val peerId = backStackEntry.arguments?.getString("peerId").orEmpty()
+                PeerProfileScreen(
+                    peerId = peerId,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(Routes.PROFILE) {
+                ProfileScreen(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(Routes.PROFILE_EDIT) },
+                )
+            }
+            composable(Routes.PROFILE_EDIT) {
+                ProfileEditScreen(
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.SOCIAL_CHAT,
+                arguments = listOf(navArgument("chatId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val chatId = backStackEntry.arguments?.getString("chatId").orEmpty()
+                SocialChatScreen(
+                    chatId = chatId,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(Routes.VOICE_ROOMS) {
+                VoiceRoomsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenRoom = { roomId -> navController.navigate(Routes.voiceRoom(roomId)) },
+                )
+            }
+            composable(
+                route = Routes.VOICE_ROOM,
+                arguments = listOf(navArgument("roomId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val roomId = backStackEntry.arguments?.getString("roomId").orEmpty()
+                VoiceRoomScreen(
+                    roomId = roomId,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.CALL,
+                arguments = listOf(navArgument("callId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val callId = backStackEntry.arguments?.getString("callId").orEmpty()
+                CallScreen(
+                    callId = callId,
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(
@@ -182,6 +337,8 @@ fun NavGraph(
                 popExitTransition = { tabExitTransition() },
             ) {
                 AnalyticsScreen(
+                    onBack = { navController.popBackStack() },
+                    onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
                     onAdvancedStats = { navController.navigate(Routes.ADVANCED_STATS) },
                 )
             }
@@ -190,7 +347,10 @@ fun NavGraph(
                     onBack = { navController.popBackStack() },
                     showBack = !tablet,
                     onOpenMap = { navController.navigate(Routes.MAP) },
-                    onFinancialAdvisor = { navController.navigate(Routes.FINANCIAL_ADVISOR) }
+                    onFinancialAdvisor = { navController.navigate(Routes.FINANCIAL_ADVISOR) },
+                    onDieselDetail = { navController.navigate(Routes.ADD_DIESEL) },
+                    onNetProfitDetail = { navController.navigate(Routes.FINANCIAL_ADVISOR) },
+                    onPaycheckDetail = { navController.navigate(Routes.ADD_PAYCHECK) },
                 )
             }
             composable(
@@ -221,6 +381,8 @@ fun NavGraph(
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     onTaxTracker = { navController.navigate(Routes.TAX_TRACKER) },
+                    onAddPaycheck = { navController.navigate(Routes.ADD_PAYCHECK) },
+                    onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) },
                     showBack = !tablet
                 )
             }
@@ -233,7 +395,8 @@ fun NavGraph(
                     loadId = loadId,
                     onBack = { navController.popBackStack() },
                     onEdit = { navController.navigate(Routes.editLoad(loadId)) },
-                    onDelete = { navController.popBackStack() }
+                    onDelete = { navController.popBackStack() },
+                    onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
                 )
             }
             composable(Routes.ADD_LOAD) {
@@ -275,7 +438,48 @@ fun NavGraph(
             composable(Routes.ADD_DIESEL) {
                 AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
             }
+            composable(Routes.CAMERA) {
+                CameraFlowScreen(
+                    onFinished = { navController.popBackStack() },
+                    onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
+                )
+            }
+            composable(Routes.SCANNER) {
+                ScannerFlowScreen(
+                    onFinished = { navController.popBackStack() },
+                    onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
+                    onCameraFallback = {
+                        navController.popBackStack()
+                        navController.navigate(Routes.CAMERA) { launchSingleTop = true }
+                    },
+                )
+            }
+            composable(Routes.SCAN_GALLERY) {
+                ScanGalleryScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.PHOTO_GALLERY) {
+                PhotoGalleryScreen(
+                    onBack = { navController.popBackStack() },
+                    onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                )
+            }
+            composable(
+                route = Routes.PHOTO_DETAIL,
+                arguments = listOf(navArgument("photoId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val photoId = backStackEntry.arguments?.getString("photoId").orEmpty()
+                PhotoDetailScreen(
+                    photoId = photoId,
+                    onBack = { navController.popBackStack() },
+                )
+            }
         }
+        }
+            IncomingCallOverlay(
+                onAccept = { callId ->
+                    navController.navigate(Routes.call(callId)) { launchSingleTop = true }
+                },
+            )
         }
     }
 }

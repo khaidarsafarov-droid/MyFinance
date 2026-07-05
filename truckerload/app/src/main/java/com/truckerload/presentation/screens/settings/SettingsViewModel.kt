@@ -14,6 +14,7 @@ import com.truckerload.utils.CsvExporter
 import com.truckerload.utils.LoadExporter
 import com.truckerload.utils.SoundManager
 import com.truckerload.utils.VibrationManager
+import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.utils.LoadImporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -123,7 +124,11 @@ class SettingsViewModel(
                         stream.bufferedReader(Charsets.UTF_8).readText()
                     } ?: throw IllegalStateException("read_failed")
                 }
-                val result = LoadImporter.importFromText(loadRepository, text)
+                val config = ParserConfig(
+                    autoUpdate = settingsDataStore.getParserAutoUpdateOnce(),
+                    priceThresholdPercent = settingsDataStore.getParserPriceThresholdOnce(),
+                )
+                val result = LoadImporter.importFromText(loadRepository, text, config)
                 if (result.parsed == 0) {
                     _restoreState.value = RestoreState.Error(ERROR_NO_PARSED_LOADS)
                     return@launch

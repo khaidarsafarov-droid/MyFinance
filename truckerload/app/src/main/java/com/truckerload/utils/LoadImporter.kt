@@ -2,6 +2,9 @@ package com.truckerload.utils
 
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadImportHelper
+import com.truckerload.domain.parser.LoadProcessor
+import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +21,9 @@ object LoadImporter {
     data class ImportResult(
         val imported: Int,
         val skipped: Int,
-        val parsed: Int
+        val parsed: Int,
+        val updated: Int = 0,
+        val replaced: Int = 0,
     )
 
     data class ParsedLoadRow(
@@ -98,13 +103,29 @@ object LoadImporter {
 
     fun duplicateKey(load: Load): String = load.tripId.uppercase(Locale.US)
 
-    suspend fun importFromText(loadRepository: LoadRepository, text: String): ImportResult =
-        withContext(Dispatchers.IO) {
-            val rows = parseExportText(text)
-            if (rows.isEmpty()) return@withContext ImportResult(0, 0, 0)
-            val loads = toLoads(rows, text.take(500))
-            loadRepository.importLoadsIfNotDuplicate(loads, rows.size)
-        }
+    suspend fun importFromText(
+        loadRepository: LoadRepository,
+        text: String,
+        config: ParserConfig = ParserConfig(),
+    ): ImportResult = withContext(Dispatchers.IO) {
+        val rows = parseExportText(text)
+        if (rows.isEmpty()) return@withContext ImportResult(0, 0, 0)
+        val loads = toLoads(rows, text.take(500))
+        val processor = LoadProcessor(loadRepository)
+        val stats = LoadImportHelper.processAll(
+            processor = processor,
+            loads = loads,
+            config = config,
+            playFeedback = true,
+        )
+        ImportResult(
+            imported = stats.changed,
+            skipped = stats.skipped,
+            parsed = rows.size,
+            updated = stats.updated,
+            replaced = stats.replaced,
+        )
+    }
 
     private fun parseLine(line: String): ParsedLoadRow? {
         if (line.startsWith("=") || line.startsWith("🚛") || line.startsWith("📦") ||

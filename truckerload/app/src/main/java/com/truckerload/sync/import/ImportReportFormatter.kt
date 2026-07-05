@@ -14,6 +14,12 @@ class ImportReportFormatter(private val context: Context) {
         appendLine(context.getString(R.string.sync_import_result_header))
         appendLine(context.getString(R.string.sync_import_found, report.totalFound))
         appendLine(context.getString(R.string.sync_import_added, report.added))
+        if (report.updated > 0) {
+            appendLine(context.getString(R.string.sync_import_updated, report.updated))
+        }
+        if (report.replaced > 0) {
+            appendLine(context.getString(R.string.sync_import_replaced, report.replaced))
+        }
         appendLine(context.getString(R.string.sync_import_skipped, report.skipped))
         if (report.failed > 0) {
             appendLine(context.getString(R.string.sync_import_failed, report.failed))
@@ -72,5 +78,8 @@ class ImportReportFormatter(private val context: Context) {
         SkipReason.DUPLICATE -> context.getString(R.string.sync_import_reason_duplicate)
         SkipReason.INVALID_DATA -> context.getString(R.string.sync_import_reason_invalid)
         SkipReason.ALREADY_BOOKED -> context.getString(R.string.sync_import_reason_booked)
+        SkipReason.NO_CHANGES -> context.getString(R.string.sync_import_reason_no_changes)
+        SkipReason.AUTO_UPDATE_DISABLED -> context.getString(R.string.sync_import_reason_auto_update_off)
+        SkipReason.SUSPICIOUS_DUPLICATE -> context.getString(R.string.sync_import_reason_suspicious)
     }
 }

@@ -18,6 +18,27 @@ interface LoadDao {
     @Query("SELECT tripId FROM loads WHERE tripId IN (:tripIds)")
     suspend fun getExistingTripIds(tripIds: List<String>): List<String>
 
+    @Query("SELECT * FROM loads WHERE tripId = :tripId LIMIT 1")
+    suspend fun getByTripId(tripId: String): LoadEntity?
+
+    @Query(
+        """
+        SELECT * FROM loads
+        WHERE firstPuCityState = :origin
+          AND lastDelCityState = :destination
+          AND date = :date
+        LIMIT 1
+        """
+    )
+    suspend fun getByRouteAndDate(
+        origin: String,
+        destination: String,
+        date: String,
+    ): LoadEntity?
+
+    @Query("SELECT * FROM loads WHERE date = :loadDate")
+    suspend fun getLoadsByDateOnce(loadDate: String): List<LoadEntity>
+
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     suspend fun getAllLoadsOnce(): List<LoadEntity>
 

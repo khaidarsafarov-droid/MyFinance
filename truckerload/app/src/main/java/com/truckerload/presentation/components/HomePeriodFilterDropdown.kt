@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.screens.home.LoadFilter
-import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +36,6 @@ fun HomePeriodFilterDropdown(
     onOpenArchive: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tc = LocalTruckColors.current
     var expanded by remember { mutableStateOf(false) }
 
     val displayLabel = when {
@@ -52,7 +51,7 @@ fun HomePeriodFilterDropdown(
         onExpandedChange = { expanded = it },
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         OutlinedTextField(
             value = displayLabel,
@@ -66,11 +65,7 @@ fun HomePeriodFilterDropdown(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                focusedBorderColor = tc.AccentPrimary,
-                focusedLabelColor = tc.AccentPrimary,
-                cursorColor = tc.AccentPrimary,
-            ),
+            colors = AppTextFieldDefaults.outlined(),
         )
         ExposedDropdownMenu(
             expanded = expanded,

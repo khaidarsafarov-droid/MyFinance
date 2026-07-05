@@ -32,3 +32,15 @@ val LocalSettingsDataStore = compositionLocalOf<com.truckerload.data.preferences
 val LocalAnalyticsRepository = compositionLocalOf<com.truckerload.data.repository.AnalyticsRepository> {
     error("No AnalyticsRepository provided")
 }
+val LocalPhotoRepository = compositionLocalOf<com.truckerload.data.repository.PhotoRepository> {
+    error("No PhotoRepository provided")
+}
+val LocalScanRepository = compositionLocalOf<com.truckerload.data.repository.ScanRepository> {
+    error("No ScanRepository provided")
+}
+val LocalSocialRepository = compositionLocalOf<com.truckerload.data.repository.SocialRepository> {
+    error("No SocialRepository provided")
+}
+val LocalVoiceRepository = compositionLocalOf<com.truckerload.data.repository.VoiceRepository> {
+    error("No VoiceRepository provided")
+}

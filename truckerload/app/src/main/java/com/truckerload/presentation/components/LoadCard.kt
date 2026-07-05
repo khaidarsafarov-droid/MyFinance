@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -23,14 +22,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
-import com.truckerload.presentation.theme.FinanceCockpitColors
+import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 
@@ -38,7 +39,8 @@ import java.util.Locale
 fun LoadCard(
     load: Load,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    solidBackground: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
     val rpmStore = LocalRpmThresholdsStore.current
@@ -48,7 +50,10 @@ fun LoadCard(
 
     BentoGlassClickableCard(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = UiDimens.LoadCardMinHeight),
+        solidBackground = solidBackground,
     ) {
         val rpm = computeRpm(load.totalRate, load.totalMiles)
         val rpmColor = rpm?.let {
@@ -59,7 +64,7 @@ fun LoadCard(
                 Box(
                     modifier = Modifier
                         .width(4.dp)
-                        .heightIn(min = 72.dp)
+                        .heightIn(min = UiDimens.LoadCardMinHeight)
                         .background(rpmColor, RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp))
                 )
             }
@@ -75,19 +80,17 @@ fun LoadCard(
         ) {
             Text(
                 text = load.tripId,
-                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
-                color = tc.AccentInfo
+                style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
             )
             Text(
                 text = load.date,
-                style = MaterialTheme.typography.bodySmall,
-                color = FinanceCockpitColors.TextMuted
+                style = AppTypography.CaptionMuted,
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
         Text(
             text = route,
-            style = MaterialTheme.typography.titleSmall,
-            color = FinanceCockpitColors.TextPrimary,
+            style = AppTypography.CardRoute,
             modifier = Modifier.padding(top = 12.dp)
         )
         Text(
@@ -97,8 +100,7 @@ fun LoadCard(
                 String.format(Locale.US, "%,.0f", load.totalMiles),
                 String.format(Locale.US, "$%,.2f", load.totalRate),
             ),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
+            style = AppTypography.Caption,
             modifier = Modifier.padding(top = 6.dp),
         )
         if (load.durationDays > 0.0) {
@@ -108,8 +110,7 @@ fun LoadCard(
                     formatDurationDays(load.durationDays),
                     formatPacePerDay(load.pace),
                 ),
-                style = MaterialTheme.typography.labelMedium,
-                color = tc.AccentPrimary,
+                style = AppTypography.Subtitle,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -126,9 +127,8 @@ fun LoadCard(
                         .background(rpmColor!!)
                 )
                 Text(
-                    text = formatRpm(load.totalRate, load.totalMiles),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = rpmColor
+                    text = formatRpm(load.totalRate, load.totalMiles, stringResource(R.string.rpm_per_mile_format)),
+                    style = AppTypography.NumbersSmall,
                 )
             }
         }
@@ -141,10 +141,10 @@ fun LoadCard(
 fun computeRpm(totalRate: Double, totalMiles: Double): Double? =
     if (totalMiles > 0) totalRate / totalMiles else null
 
-/** RPM = Total Amount / Total Miles. Returns "$2.51 / mi" or "—" when miles are zero. */
-fun formatRpm(totalRate: Double, totalMiles: Double): String {
+/** RPM = Total Amount / Total Miles. */
+fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String {
     return if (totalMiles > 0) {
-        "$${String.format("%.2f", totalRate / totalMiles)} / mi"
+        String.format(Locale.US, unitFormat, totalRate / totalMiles)
     } else {
         "—"
     }

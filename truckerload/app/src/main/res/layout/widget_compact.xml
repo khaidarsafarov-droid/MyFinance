@@ -3,6 +3,7 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@style/Theme.TruckerLoad.Widget"
     android:background="@drawable/widget_glass_outer"
     android:gravity="center_vertical"
     android:orientation="horizontal"

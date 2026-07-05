@@ -4,10 +4,13 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.local.entities.LoadEntity
+import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.Stop
+import com.truckerload.domain.parser.StopsHasher
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
@@ -36,6 +39,7 @@ enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
 class LoadRepository(private val db: AppDatabase) {
 
     private val loadDao = db.loadDao()
+    private val loadHistoryDao = db.loadHistoryDao()
     private val stopDao = db.stopDao()
     private val penaltyDao = db.penaltyDao()
 
@@ -80,6 +84,11 @@ class LoadRepository(private val db: AppDatabase) {
 
     suspend fun getAllLoadsOnce(): List<Load> = hydrateLoads(loadDao.getAllLoadsOnce())
 
+    suspend fun getLoadsForLinking(limit: Int = 50): List<Load> =
+        getAllLoadsOnce()
+            .sortedByDescending { getFirstPickUpMillis(it) ?: it.updatedAt }
+            .take(limit)
+
     /** Все грузы (разовый запрос). */
     suspend fun getAll(): List<Load> = getAllLoadsOnce()
 
@@ -116,6 +125,39 @@ class LoadRepository(private val db: AppDatabase) {
         val entity = loadDao.getLoadById(loadId) ?: return null
         return entity.toDomain(stopsFor(loadId), penaltiesFor(loadId))
     }
+
+    suspend fun getByTripId(tripId: String): Load? {
+        val entity = loadDao.getByTripId(tripId.trim()) ?: return null
+        return entity.toDomain(stopsFor(entity.id), penaltiesFor(entity.id))
+    }
+
+    suspend fun getByRouteAndDate(origin: String, destination: String, date: String): Load? {
+        if (origin.isBlank() || destination.isBlank() || date.isBlank()) return null
+        val entity = loadDao.getByRouteAndDate(origin, destination, date) ?: return null
+        return entity.toDomain(stopsFor(entity.id), penaltiesFor(entity.id))
+    }
+
+    suspend fun getByStops(stops: List<Stop>, date: String): Load? {
+        if (stops.isEmpty() || date.isBlank()) return null
+        val targetHash = StopsHasher.calculateStopsHash(stops)
+        for (entity in loadDao.getLoadsByDateOnce(date)) {
+            val existingStops = stopDao.getStopsByLoadId(entity.id)
+            val existingLoad = entity.toDomain(existingStops)
+            if (StopsHasher.calculateStopsHash(existingLoad.stops) == targetHash) {
+                return existingLoad
+            }
+        }
+        return null
+    }
+
+    suspend fun update(load: Load) = updateLoad(load)
+
+    suspend fun addChangeHistory(history: LoadHistory) {
+        loadHistoryDao.insert(history)
+    }
+
+    suspend fun getChangeHistory(loadId: String): List<LoadHistory> =
+        loadHistoryDao.getHistory(loadId)
 
     private suspend fun stopsFor(loadId: String) = stopDao.getStopsByLoadId(loadId)
     private suspend fun penaltiesFor(loadId: String) = penaltyDao.getPenaltiesByLoadId(loadId)

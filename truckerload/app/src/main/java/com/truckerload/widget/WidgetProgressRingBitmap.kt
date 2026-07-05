@@ -6,10 +6,9 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.SweepGradient
-import androidx.core.content.ContextCompat
 import com.truckerload.R
 
-/** Draws a soft UI circular goal-progress ring for App Widget [RemoteViews]. */
+/** Draws a Material You circular goal-progress ring for App Widget [RemoteViews]. */
 object WidgetProgressRingBitmap {
 
     fun create(
@@ -21,9 +20,9 @@ object WidgetProgressRingBitmap {
         val safeSize = sizePx.coerceAtLeast(48)
         val bitmap = Bitmap.createBitmap(safeSize, safeSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        val trackColor = ContextCompat.getColor(context, R.color.widget_progress_track)
-        val blue = ContextCompat.getColor(context, R.color.widget_primary)
-        val purple = ContextCompat.getColor(context, R.color.widget_secondary)
+        val trackColor = WidgetThemeColors.surfaceVariant(context)
+        val primary = WidgetThemeColors.primary(context)
+        val primaryContainer = WidgetThemeColors.primaryContainer(context)
         val stroke = (safeSize * 0.06f).coerceIn(4f, 14f)
         val inset = stroke / 2f + 2f
         val arcBounds = RectF(inset, inset, safeSize - inset, safeSize - inset)
@@ -34,7 +33,7 @@ object WidgetProgressRingBitmap {
             style = Paint.Style.STROKE
             this.strokeWidth = stroke
             color = trackColor
-            strokeCap = Paint.Cap.ROUND
+            strokeCap = Paint.Cap.BUTT
         }
         canvas.drawArc(arcBounds, 0f, 360f, false, trackPaint)
 
@@ -47,11 +46,11 @@ object WidgetProgressRingBitmap {
                 shader = SweepGradient(
                     cx,
                     cy,
-                    intArrayOf(blue, purple, blue),
-                    floatArrayOf(0f, 0.5f, 1f),
+                    intArrayOf(primary, primaryContainer, primary),
+                    floatArrayOf(0f, 0.45f, 1f),
                 )
             }
-            val sweep = 360f * (progress / 100f)
+            val sweep = (360f * (progress / 100f)).coerceAtMost(359.6f)
             canvas.drawArc(arcBounds, -90f, sweep, false, progressPaint)
         }
 
@@ -59,20 +58,20 @@ object WidgetProgressRingBitmap {
     }
 
     fun ringSizePx(context: Context, compact: Boolean, expanded: Boolean, splitLayout: Boolean = false): Int {
+        val res = context.resources
         val dp = when {
-            expanded -> 160
-            compact -> 64
-            splitLayout -> 88
-            else -> 120
+            expanded -> res.getDimension(R.dimen.widget_circle_expanded) / res.displayMetrics.density
+            compact -> res.getDimension(R.dimen.widget_circle_compact) / res.displayMetrics.density
+            splitLayout -> res.getDimension(R.dimen.widget_circle_standard_split) / res.displayMetrics.density
+            else -> res.getDimension(R.dimen.widget_circle_standard) / res.displayMetrics.density
         }
-        val density = context.resources.displayMetrics.density
-        return (dp * density).toInt().coerceAtLeast(48)
+        return (dp * res.displayMetrics.density).toInt().coerceAtLeast(48)
     }
 
     fun progressColorForStatus(context: Context, paceStatus: String, goalMet: Boolean): Int =
         when {
-            goalMet -> ContextCompat.getColor(context, R.color.widget_green)
-            paceStatus == "BEHIND" -> ContextCompat.getColor(context, R.color.widget_secondary)
-            else -> ContextCompat.getColor(context, R.color.widget_progress_fill)
+            goalMet -> WidgetThemeColors.tertiary(context)
+            paceStatus == "BEHIND" -> WidgetThemeColors.error(context)
+            else -> WidgetThemeColors.primary(context)
         }
 }

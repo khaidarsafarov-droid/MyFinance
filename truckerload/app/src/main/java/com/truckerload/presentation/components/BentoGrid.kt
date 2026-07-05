@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.presentation.theme.BentoGlassMetricCell
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 
 data class BentoItem(
@@ -66,14 +67,10 @@ fun BentoSectionTitle(
     modifier: Modifier = Modifier,
     emoji: String? = null,
 ) {
-    val tc = LocalTruckColors.current
+    val label = if (emoji != null) "$emoji ${title.uppercase()}" else title.uppercase()
     Text(
-        text = if (emoji != null) "$emoji $title" else title,
+        text = label,
         modifier = modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.titleSmall.copy(
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
-        ),
-        color = tc.AccentPrimary
+        style = AppTypography.SectionTitle,
     )
 }

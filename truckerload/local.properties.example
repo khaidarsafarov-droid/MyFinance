@@ -1,5 +1,21 @@
 # Copy to local.properties and fill in your keys
 # sdk.dir is auto-added by Android Studio
+#
+# true = skip login (Room + Telegram long-poll + Cerebras only; no Supabase screen).
+# false = email/Google login via Supabase.
+LOCAL_ONLY_MODE=true
+
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 CEREBRAS_API_KEY=
 TELEGRAM_BOT_TOKEN=
+
+# Google OAuth — Web для Supabase signInWithIdToken, Android для OAuth Client в Console
+GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
+GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.googleusercontent.com
+
+# Supabase — нужны только если LOCAL_ONLY_MODE=false
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Не запускайте другой long-poll/webhook с тем же TELEGRAM_BOT_TOKEN —
+# Telegram отдаёт апдейты только одному клиенту.

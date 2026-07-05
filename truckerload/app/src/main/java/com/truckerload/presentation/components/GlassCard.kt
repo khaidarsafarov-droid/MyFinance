@@ -4,42 +4,43 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.truckerload.presentation.theme.BentoGlassCard
-import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 
-/** Neo-Glass card — thin facade over Bento-Glass primitives. */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     cornerRadius: Dp = BentoGlassTheme.CardRadius,
-    borderColor: Color? = null,
-    useHeroGradient: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit
+    borderColor: Color = MaterialTheme.colorScheme.outline,
+    solidBackground: Boolean = false,
+    useCream: Boolean = false,
+    useHero: Boolean = false,
+    contentPadding: Dp = 16.dp,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    if (onClick != null) {
-        BentoGlassCard(
-            modifier = modifier.clickable(onClick = onClick),
-            cornerRadius = cornerRadius,
-            borderColor = borderColor,
-            useHeroGradient = useHeroGradient,
-            content = {
-                Column(modifier = Modifier.padding(16.dp), content = content)
-            }
-        )
-    } else {
-        BentoGlassCard(
-            modifier = modifier,
-            cornerRadius = cornerRadius,
-            borderColor = borderColor,
-            useHeroGradient = useHeroGradient,
-            content = content
-        )
+    val shape: Shape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
+    val cs = MaterialTheme.colorScheme
+    val containerColor = when {
+        useHero -> cs.primary
+        useCream -> cs.secondaryContainer
+        else -> cs.surface
+    }
+    Surface(
+        modifier = modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = shape,
+        color = containerColor,
+        tonalElevation = if (useHero) 0.dp else 1.dp,
+    ) {
+        Column(modifier = Modifier.padding(contentPadding), content = content)
     }
 }

@@ -28,6 +28,10 @@ import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.AnalyticsRepository
+import com.truckerload.data.repository.PhotoRepository
+import com.truckerload.data.repository.ScanRepository
+import com.truckerload.data.repository.SocialRepository
+import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -42,6 +46,10 @@ import com.truckerload.presentation.di.LocalWeekRepository
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.presentation.di.LocalAnalyticsRepository
+import com.truckerload.presentation.di.LocalPhotoRepository
+import com.truckerload.presentation.di.LocalScanRepository
+import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.components.AutoRestoreDialog
 import com.truckerload.presentation.navigation.NavGraph
@@ -99,6 +107,10 @@ class MainActivity : ComponentActivity() {
         val statsSelectionStore = StatsSelectionStore(applicationContext)
         val weeklyProfitGoalStore = WeeklyProfitGoalStore(applicationContext)
         val analyticsRepository = AnalyticsRepository(db)
+        val photoRepository = PhotoRepository(db)
+        val scanRepository = ScanRepository(db)
+        val socialRepository = SocialRepository(db, loadRepository, userProfileStore, applicationContext)
+        val voiceRepository = VoiceRepository(db, applicationContext)
         val aiRepository = AiRepository()
         val settingsDataStore = SettingsDataStore(applicationContext)
         setContent {
@@ -127,7 +139,11 @@ class MainActivity : ComponentActivity() {
                         LocalSelectedStateStore provides selectedStateStore,
                         LocalStatsSelectionStore provides statsSelectionStore,
                         LocalWeeklyProfitGoalStore provides weeklyProfitGoalStore,
-                        LocalAnalyticsRepository provides analyticsRepository
+                        LocalAnalyticsRepository provides analyticsRepository,
+                        LocalPhotoRepository provides photoRepository,
+                        LocalScanRepository provides scanRepository,
+                        LocalSocialRepository provides socialRepository,
+                        LocalVoiceRepository provides voiceRepository,
                     ) {
                         NavGraph(
                             deepLinkRoute = deepLinkRoute,

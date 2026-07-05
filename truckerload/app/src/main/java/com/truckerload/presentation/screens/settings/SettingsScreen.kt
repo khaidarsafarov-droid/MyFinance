@@ -46,7 +46,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalAuthStore
@@ -57,6 +61,9 @@ import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -77,6 +84,8 @@ import kotlinx.coroutines.withContext
 fun SettingsScreen(
     onBack: () -> Unit,
     onTaxTracker: () -> Unit = {},
+    onAddPaycheck: () -> Unit = {},
+    onAddDiesel: () -> Unit = {},
     showBack: Boolean = false
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
@@ -206,7 +215,7 @@ fun SettingsScreen(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title), color = tc.TextPrimary) },
+                title = { DarkGlassScreenTitle(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     if (showBack) {
                         IconButton(onClick = onBack) {
@@ -230,6 +239,7 @@ fun SettingsScreen(
         ) {
             ThemeSettingsSection(selected = themeMode)
             LanguageSettingsSection(selected = appLanguage)
+            ParserSettings()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
             var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
@@ -268,28 +278,15 @@ fun SettingsScreen(
             }
 
             BentoGlassSection(title = stringResource(R.string.settings_rpm_thresholds_title)) {
-                Text(
-                    text = stringResource(R.string.settings_rpm_thresholds_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
+                        Text(
+                            text = stringResource(R.string.settings_rpm_thresholds_desc),
+                            style = AppTypography.Caption,
+                            modifier = Modifier.padding(bottom = 12.dp),
+                        )
                 RpmColorLegend(
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
-                val fieldColors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = tc.AccentPrimary,
-                    unfocusedBorderColor = tc.Divider,
-                    focusedLabelColor = tc.AccentPrimary,
-                    unfocusedLabelColor = tc.TextSecondary,
-                    focusedTextColor = tc.TextPrimary,
-                    unfocusedTextColor = tc.TextPrimary,
-                    focusedContainerColor = BentoGlassTheme.CardFill,
-                    unfocusedContainerColor = BentoGlassTheme.CardFill,
-                    focusedSupportingTextColor = tc.TextSecondary,
-                    unfocusedSupportingTextColor = tc.TextSecondary,
-                    cursorColor = tc.AccentPrimary
-                )
+                val fieldColors = AppTextFieldDefaults.outlined()
                 OutlinedTextField(
                     value = minInput,
                     onValueChange = { minInput = it; error = null },
@@ -328,14 +325,14 @@ fun SettingsScreen(
                             else -> store.save(min, target)
                                 .onSuccess {
                                     error = null
-                                    android.widget.Toast.makeText(context, context.getString(R.string.settings_saved), android.widget.Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, context.getString(R.string.settings_saved_toast), android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 .onFailure { error = it.message }
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
-                    Text(stringResource(R.string.common_save))
+                    Text(stringResource(R.string.settings_rpm_save))
                 }
             }
 
@@ -349,6 +346,20 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.tax_title))
                     }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onAddPaycheck,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) {
+                    Text(stringResource(R.string.add_paycheck_title))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onAddDiesel,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) {
+                    Text(stringResource(R.string.add_diesel_title))
                 }
             }
 
@@ -374,17 +385,7 @@ fun SettingsScreen(
                 title = stringResource(R.string.export_loads),
                 subtitle = stringResource(R.string.export_loads_description)
             ) {
-                val fieldColors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = tc.AccentPrimary,
-                    unfocusedBorderColor = tc.Divider,
-                    focusedLabelColor = tc.AccentPrimary,
-                    unfocusedLabelColor = tc.TextSecondary,
-                    focusedTextColor = tc.TextPrimary,
-                    unfocusedTextColor = tc.TextPrimary,
-                    focusedContainerColor = BentoGlassTheme.CardFill,
-                    unfocusedContainerColor = BentoGlassTheme.CardFill,
-                    cursorColor = tc.AccentPrimary
-                )
+                val fieldColors = AppTextFieldDefaults.outlined()
                 OutlinedTextField(
                     value = telegramIdInput,
                     onValueChange = { telegramIdInput = it },
@@ -654,7 +655,9 @@ private fun TelegramBotSettingsContent(
     tc: TruckColorPalette
 ) {
     val tokenStore = remember { TelegramTokenStore(context) }
-    var tokenInput by remember { mutableStateOf(tokenStore.getToken()) }
+    val storedToken = remember { tokenStore.getToken() }
+    var tokenInput by remember { mutableStateOf(storedToken) }
+    var tokenVisible by remember { mutableStateOf(false) }
     var statusText by remember { mutableStateOf<String?>(null) }
     var isChecking by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -666,16 +669,18 @@ private fun TelegramBotSettingsContent(
         placeholder = { Text(stringResource(R.string.settings_telegram_token_placeholder)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = tc.AccentPrimary,
-            unfocusedBorderColor = tc.Divider,
-            focusedLabelColor = tc.AccentPrimary,
-            unfocusedLabelColor = tc.TextSecondary,
-            focusedTextColor = tc.TextPrimary,
-            unfocusedTextColor = tc.TextPrimary,
-            focusedContainerColor = BentoGlassTheme.CardFill,
-            unfocusedContainerColor = BentoGlassTheme.CardFill
-        )
+        visualTransformation = if (tokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { tokenVisible = !tokenVisible }) {
+                Icon(
+                    imageVector = if (tokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = stringResource(
+                        if (tokenVisible) R.string.settings_telegram_hide_token else R.string.settings_telegram_show_token,
+                    ),
+                )
+            }
+        },
+        colors = AppTextFieldDefaults.outlined(),
     )
     statusText?.let {
         Text(
@@ -724,7 +729,7 @@ private fun TelegramBotSettingsContent(
             modifier = Modifier.weight(1f).height(48.dp),
             enabled = tokenInput.isNotBlank() && !isChecking
         ) {
-            Text(if (isChecking) "…" else stringResource(R.string.settings_telegram_test))
+            Text(if (isChecking) stringResource(R.string.settings_telegram_checking) else stringResource(R.string.settings_telegram_test))
         }
     }
 }

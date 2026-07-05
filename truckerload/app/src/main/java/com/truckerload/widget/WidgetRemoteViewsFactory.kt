@@ -142,7 +142,10 @@ object WidgetRemoteViewsFactory {
     stats: WidgetStats,
     tier: LayoutTier,
   ) {
-    views.setTextViewText(R.id.widget_header_title, context.getString(R.string.widget_brand_title_plain))
+    views.setTextViewText(
+      R.id.widget_header_title,
+      context.getString(R.string.widget_brand_title_plain).uppercase(),
+    )
 
     when (tier) {
       LayoutTier.COMPACT -> {
@@ -379,7 +382,7 @@ object WidgetRemoteViewsFactory {
     val rpm = WidgetDataProvider.weeklyRpm(stats)
     views.setTextViewText(
       R.id.widget_rpm_value,
-      WidgetStatsFormatter.formatRpmPerMile(rpm),
+      WidgetStatsFormatter.formatRpmPerMile(context, rpm),
     )
 
     val rpmColor = if (stats.totalMiles > 0 && rpm >= stats.cpmTarget) {

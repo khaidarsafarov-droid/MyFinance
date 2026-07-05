@@ -70,6 +70,7 @@ import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.screens.chat.ChatMessage
 import com.truckerload.presentation.screens.chat.ChatViewModel
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -151,7 +152,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(stringResource(R.string.advisor_title), color = tc.TextPrimary) },
                 navigationIcon = {
-                    IconButton(onClick = onBack, modifier = Modifier.size(44.dp)) {
+                    IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
                     }
                 },
@@ -293,7 +294,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                 IconButton(
                     onClick = { viewModel.sendMessage() },
                     enabled = uiState.inputText.isNotBlank() && !uiState.isLoading,
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier.size(UiDimens.ToolbarTouchTarget)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.advisor_cd_send), tint = if (uiState.inputText.isNotBlank() && !uiState.isLoading) tc.AccentPrimary else tc.TextSecondary)
                 }

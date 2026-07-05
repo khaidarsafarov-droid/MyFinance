@@ -2,33 +2,50 @@ package com.truckerload.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
-/** Airy Soft UI semantic colors. */
+/** Layout tokens — aliases for light Soft UI. */
+object DarkGlassTokens {
+    val BackgroundTop = AppColors.White
+    val BackgroundBottom = AppColors.White
+    val Surface = AppColors.White
+    val SurfaceMetric = AppColors.White
+    val SurfaceList = AppColors.White
+    val Border = AppColors.BorderGray
+    val AccentBlue = AppColors.DarkTeal
+    val AccentPurple = AppColors.Orange
+    val TextPrimary = AppColors.TextPrimary
+    val TextSecondary = AppColors.TextSecondary
+    val TextMuted = AppColors.TextMuted
+    val TextNumbers = AppColors.TextPrimary
+    val Success = AppColors.RpmGreen
+    val Warning = AppColors.RpmYellow
+    val Error = AppColors.RpmRed
+    val ShadowGlow = AppColors.DarkTeal08
+    val CornerRadius = 24.dp
+    val CellRadius = 16.dp
+    val BorderWidth = 1.dp
+    val CardElevation = AppElevation.Card
+    val BlurRadius = 0.dp
+    val SurfaceSolidTop = AppColors.White
+    val SurfaceSolidBottom = AppColors.White
+}
+
 typealias NeoGlassColors = TruckColorPalette
-
 val LocalColors = LocalTruckColors
 
 object NeoGlassPalette {
-    val GlowAlpha = 0.28f
-
-    val SkyTop = Color(0xFFE0E7FF)
-    val SkyBottom = Color(0xFFF5F3FF)
-
-    val LightBackground = Color(0xFFF5F3FF)
-    val LightSurface = Color(0xFFFFFFFF)
-    val LightCard = Color(0xFFFFFFFF)
-
-    val DarkBackground = Color(0xFF1E1B4B)
-    val DarkSurface = Color(0xFF2D2A5E)
-    val DarkCard = Color(0xFF2D2A5E)
-
-    val Primary = Color(0xFF3B82F6)
-    val Secondary = Color(0xFF8B5CF6)
-    val Tertiary = Color(0xFF6366F1)
-    val Success = Color(0xFF10B981)
-    val Warning = Color(0xFFF59E0B)
-    val Error = Color(0xFFEF4444)
-    val ShadowSoft = Color(0x1A64748B)
+    val GlowAlpha = 0.15f
+    val SkyTop = AppColors.White
+    val SkyBottom = AppColors.White
+    val Primary = AppColors.DarkTeal
+    val Secondary = AppColors.Orange
+    val Success = AppColors.RpmGreen
+    val Warning = AppColors.RpmYellow
+    val Error = AppColors.RpmRed
+    val ShadowSoft = AppColors.DarkTeal08
+    val GlassStroke = AppColors.BorderGray
+    val Surface = AppColors.White
 }
 
 @Composable

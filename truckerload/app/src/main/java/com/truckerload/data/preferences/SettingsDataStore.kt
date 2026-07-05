@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -15,6 +16,14 @@ import kotlinx.coroutines.flow.map
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "truckerload_settings"
 )
+
+private val KEY_FIRST_RUN = booleanPreferencesKey("is_first_run")
+private val KEY_TELEGRAM_CHAT_ID = longPreferencesKey("telegram_chat_id")
+private val KEY_TELEGRAM_UPDATE_OFFSET = longPreferencesKey("telegram_last_update_offset")
+private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
+private val KEY_LANGUAGE = intPreferencesKey("app_language")
+private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
+private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
 
 class SettingsDataStore(context: Context) {
 
@@ -34,6 +43,14 @@ class SettingsDataStore(context: Context) {
 
     val language: Flow<AppLanguage> = appContext.settingsDataStore.data.map { prefs ->
         AppLanguage.fromOrdinal(prefs[KEY_LANGUAGE] ?: AppLanguage.RU.ordinal)
+    }
+
+    val parserAutoUpdate: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_PARSER_AUTO_UPDATE] ?: true
+    }
+
+    val parserPriceThreshold: Flow<Double> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_PARSER_PRICE_THRESHOLD]?.toDouble() ?: 1.0
     }
 
     suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
@@ -78,11 +95,19 @@ class SettingsDataStore(context: Context) {
         }
     }
 
-    companion object {
-        private val KEY_FIRST_RUN = booleanPreferencesKey("is_first_run")
-        private val KEY_TELEGRAM_CHAT_ID = longPreferencesKey("telegram_chat_id")
-        private val KEY_TELEGRAM_UPDATE_OFFSET = longPreferencesKey("telegram_last_update_offset")
-        private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
-        private val KEY_LANGUAGE = intPreferencesKey("app_language")
+    suspend fun getParserAutoUpdateOnce(): Boolean = parserAutoUpdate.first()
+
+    suspend fun getParserPriceThresholdOnce(): Double = parserPriceThreshold.first()
+
+    suspend fun saveParserAutoUpdate(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_PARSER_AUTO_UPDATE] = enabled
+        }
+    }
+
+    suspend fun saveParserPriceThreshold(percent: Double) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_PARSER_PRICE_THRESHOLD] = percent.toFloat()
+        }
     }
 }

@@ -26,15 +26,26 @@ data class ParsedLoad(
 
 sealed class ImportResult {
     data class Added(val load: ParsedLoad) : ImportResult()
+    data class Updated(val tripId: String, val changes: List<String>) : ImportResult()
+    data class Replaced(val tripId: String) : ImportResult()
     data class Skipped(val tripId: String, val reason: SkipReason) : ImportResult()
     data class Failed(val tripId: String?, val rawBlock: String, val error: String) : ImportResult()
 }
 
-enum class SkipReason { DUPLICATE, INVALID_DATA, ALREADY_BOOKED }
+enum class SkipReason {
+    DUPLICATE,
+    INVALID_DATA,
+    ALREADY_BOOKED,
+    NO_CHANGES,
+    AUTO_UPDATE_DISABLED,
+    SUSPICIOUS_DUPLICATE,
+}
 
 data class ImportReport(
     val totalFound: Int,
     val added: Int,
+    val updated: Int = 0,
+    val replaced: Int = 0,
     val skipped: Int,
     val failed: Int,
     val addedLoads: List<ParsedLoad>,

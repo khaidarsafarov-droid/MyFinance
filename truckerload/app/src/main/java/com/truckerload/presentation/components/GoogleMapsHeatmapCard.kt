@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +47,8 @@ import com.google.maps.android.data.geojson.GeoJsonPolygonStyle
 import com.truckerload.R
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.getStateDisplayName
+import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppTypography
 import org.json.JSONObject
 import java.util.Locale
 
@@ -213,7 +214,7 @@ fun GoogleMapsHeatmapCard(
                         Text(
                             "Нейтрально",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF713F12)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Box(
@@ -225,7 +226,7 @@ fun GoogleMapsHeatmapCard(
                         Text(
                             "Нет данных",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF64748B)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -238,24 +239,14 @@ fun GoogleMapsHeatmapCard(
                     selected = selectedCode.isBlank(),
                     onClick = { onStateSelected("") },
                     label = { Text(stringResource(R.string.stats_reset_filters)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFF475569),
-                        selectedLabelColor = Color.White,
-                        containerColor = Color(0xFFF1F5F9),
-                        labelColor = Color(0xFF475569)
-                    )
+                    colors = AppFilterChipDefaults.colors(),
                 )
                 metrics.sortedByDescending { it.revenue }.take(6).map { it.code }.forEach { code ->
                     FilterChip(
                         selected = code == selectedCode,
                         onClick = { onStateSelected(code) },
                         label = { Text(code) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF7EC994),
-                            selectedLabelColor = Color.White,
-                            containerColor = Color(0xFFF0F9F4),
-                            labelColor = Color(0xFF2D5A3D)
-                        )
+                        colors = AppFilterChipDefaults.stateColors(),
                     )
                 }
             }
@@ -277,32 +268,32 @@ fun GoogleMapsHeatmapCard(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFBFC)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "${getStateDisplayName(state.code)} (${state.code}) • ${state.trips} рейс(ов)",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = Color(0xFF334155)
+                                style = AppTypography.CardTitle,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "$$rpmStr / милю",
                                 modifier = Modifier.padding(top = 4.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF475569)
+                                style = AppTypography.Body,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "Гросс: $$grossStr",
                                 modifier = Modifier.padding(top = 2.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF475569)
+                                style = AppTypography.Body,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "Рейтинг: $ratingLabel",
                                 modifier = Modifier.padding(top = 6.dp),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = Color(0xFF64748B)
+                                color = MaterialTheme.colorScheme.outline
                             )
                         }
                     }
