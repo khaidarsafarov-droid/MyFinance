@@ -21,8 +21,10 @@ android {
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream: java.io.InputStream ->
             localProps.load(stream)
         }
-        buildConfigField("String", "GEMINI_API_KEY", "\"${localProps.getProperty("GEMINI_API_KEY", "")}\"")
+        buildConfigField("String", "CEREBRAS_API_KEY", "\"${localProps.getProperty("CEREBRAS_API_KEY", "")}\"")
+        buildConfigField("String", "CEREBRAS_MODEL", "\"${localProps.getProperty("CEREBRAS_MODEL", "llama3.1-8b")}\"")
         buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"${localProps.getProperty("TELEGRAM_BOT_TOKEN", "")}\"")
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
     }
 
     buildTypes {
@@ -54,6 +56,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -76,6 +79,11 @@ dependencies {
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Google Maps
+    implementation("com.google.maps.android:maps-compose:4.3.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

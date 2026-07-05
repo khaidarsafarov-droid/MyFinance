@@ -1,5 +1,6 @@
 package com.truckerload.data.repository
 
+import com.truckerload.domain.model.PeriodSummary
 import com.truckerload.domain.model.WeekSummary
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getWeeksInMonth
@@ -21,7 +22,7 @@ class WeekRepository(
         return combine(loads, paychecks, diesel) { loadList, paycheckList, dieselList ->
             val totalLoadRate = loadList.sumOf { it.totalRate }
             val totalMiles = loadList.sumOf { it.totalMiles }
-            // Зарплата — только из Paycheck.netAmount (поле "Зарплата")
+            // Paycheck amount comes only from Paycheck.netAmount.
             val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
             val hasPaycheck = paycheckList.isNotEmpty()
             val dieselAmount = dieselList.sumOf { it.totalAmount }
@@ -51,7 +52,7 @@ class WeekRepository(
         val dieselList = dieselRepository.getDieselForWeek(weekNumber, year).first()
         val totalLoadRate = loadList.sumOf { it.totalRate }
         val totalMiles = loadList.sumOf { it.totalMiles }
-        // Зарплата — только из Paycheck.netAmount (поле "Зарплата")
+        // Paycheck amount comes only from Paycheck.netAmount.
         val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
         val dieselAmount = dieselList.sumOf { it.totalAmount }
         return WeekSummary(
@@ -71,9 +72,37 @@ class WeekRepository(
         )
     }
 
-    /** Сводки по всем неделям месяца для календаря. */
+    /** Summaries for all weeks in the selected month. */
     suspend fun getWeeksInMonthSummaries(month: Int, year: Int): List<WeekSummary> {
         val weeks = getWeeksInMonth(year, month)
         return weeks.map { (wn, wy) -> getWeekSummaryOnce(wn, wy) }
+    }
+
+    /** Summary for an arbitrary date range (month/year view). */
+    suspend fun getPeriodSummaryOnce(
+        startDate: String,
+        endDate: String,
+        periodLabel: String
+    ): PeriodSummary {
+        val loadList = loadRepository.getLoadsByDateRangeOnce(startDate, endDate)
+        val allPaychecks = paycheckRepository.getAllPaychecksOnce()
+        val allDiesel = dieselRepository.getAllDieselOnce()
+        val paychecksInRange = allPaychecks.filter { it.weekEndDate >= startDate && it.weekStartDate <= endDate }
+        val dieselInRange = allDiesel.filter { it.weekEndDate >= startDate && it.weekStartDate <= endDate }
+        val totalLoadRate = loadList.sumOf { it.totalRate }
+        val totalMiles = loadList.sumOf { it.totalMiles }
+        val paycheckAmount = paychecksInRange.sumOf { it.netAmount }
+        val dieselAmount = dieselInRange.sumOf { it.totalAmount }
+        return PeriodSummary(
+            periodLabel = periodLabel,
+            startDate = startDate,
+            endDate = endDate,
+            loadsCount = loadList.size,
+            totalLoadRate = totalLoadRate,
+            totalMiles = totalMiles,
+            paycheckAmount = paycheckAmount,
+            dieselAmount = dieselAmount,
+            netProfit = paycheckAmount - dieselAmount
+        )
     }
 }

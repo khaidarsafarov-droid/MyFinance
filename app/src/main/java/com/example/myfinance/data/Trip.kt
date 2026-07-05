@@ -14,7 +14,8 @@ data class Trip(
     val endTime: String,
     val orderNumber: String,
     val date: String, // for grouping by week/month (YYYY-MM-DD or week key)
-    val companyId: String? = null
+    val companyId: String? = null,
+    val calendarEventId: String? = null
 ) {
     val costPerMile: Double get() = if (miles > 0) cost / miles else 0.0
 }

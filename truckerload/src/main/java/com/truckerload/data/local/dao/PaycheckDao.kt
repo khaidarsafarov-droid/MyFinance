@@ -22,6 +22,12 @@ interface PaycheckDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(paycheck: PaycheckEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(paychecks: List<PaycheckEntity>)
+
     @Query("DELETE FROM paychecks WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("DELETE FROM paychecks")
+    suspend fun deleteAll()
 }

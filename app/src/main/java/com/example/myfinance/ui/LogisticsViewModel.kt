@@ -1,6 +1,7 @@
 package com.example.myfinance.ui
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myfinance.data.AppData
@@ -8,6 +9,7 @@ import com.example.myfinance.data.Company
 import com.example.myfinance.data.Goal
 import com.example.myfinance.data.Trip
 import com.example.myfinance.data.WeeklyTotal
+import com.example.myfinance.calendar.CalendarHelper
 import com.example.myfinance.data.AppRepository
 import com.example.myfinance.gemini.ParsedTrip
 import com.example.myfinance.gemini.ParsedWeeklyTotal
@@ -138,7 +140,11 @@ class LogisticsViewModel(application: Application) : AndroidViewModel(applicatio
             companyId = companyId
         )
         viewModelScope.launch {
-            repo.addTrip(trip)
+            repo.addTrip(trip) {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    Toast.makeText(getApplication(), "Календарь: доступ запрещён", Toast.LENGTH_SHORT).show()
+                }
+            }
             onAdded?.let { withContext(Dispatchers.Main) { it() } }
         }
     }
@@ -197,6 +203,39 @@ class LogisticsViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun deleteTrip(id: String) {
         viewModelScope.launch { repo.deleteTrip(id) }
+    }
+
+    /** Manually add trip to calendar. Shows Toast on success/failure. */
+    fun addTripToCalendar(trip: com.example.myfinance.data.Trip) {
+        viewModelScope.launch {
+            val ok = repo.addTripToCalendar(trip)
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                Toast.makeText(
+                    getApplication(),
+                    if (ok) "Добавлено в календарь" else "Календарь: доступ запрещён",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    /** Sync all trips to device calendar. Returns count added. */
+    fun syncAllTripsToCalendar(onResult: (Int) -> Unit) {
+        viewModelScope.launch {
+            val count = repo.syncAllTripsToCalendar()
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                Toast.makeText(
+                    getApplication(),
+                    when {
+                        count > 0 -> "Добавлено в календарь: $count шт."
+                        CalendarHelper.hasPermission(getApplication()) -> "Все рейсы уже в календаре"
+                        else -> "Календарь: доступ запрещён"
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+                onResult(count)
+            }
+        }
     }
 
     fun setGoal(targetAmount: Double, periodStart: String, periodEnd: String) {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.LocalShipping
@@ -123,6 +124,11 @@ fun MainNav(
                     TopAppBar(
                         title = { Text("Loads") },
                         actions = {
+                            IconButton(onClick = {
+                                viewModel.syncAllTripsToCalendar { }
+                            }) {
+                                Icon(Icons.Default.CalendarMonth, contentDescription = "Sync all to calendar")
+                            }
                             IconButton(onClick = { navController.navigate(Nav.ADD_TRIP) }) {
                                 Icon(Icons.Default.Add, contentDescription = "Add load")
                             }

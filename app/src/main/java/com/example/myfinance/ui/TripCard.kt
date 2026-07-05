@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalShipping
@@ -29,6 +30,7 @@ fun TripCard(
     trip: Trip,
     onDelete: () -> Unit,
     onEdit: (() -> Unit)? = null,
+    onAddToCalendar: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -66,6 +68,11 @@ fun TripCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
+                    }
+                }
+                if (onAddToCalendar != null) {
+                    IconButton(onClick = onAddToCalendar, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Add to calendar", modifier = Modifier.size(16.dp), tint = if (trip.calendarEventId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     }
                 }
                 if (onEdit != null) {

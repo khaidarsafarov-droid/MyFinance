@@ -1,0 +1,10 @@
+## Copy to local.properties and fill in your values.
+## local.properties is gitignored - never commit real keys.
+
+# Android SDK (Android Studio sets this automatically)
+sdk.dir=C\:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk
+
+# API keys (keep secret - do not commit if repo is public)
+GEMINI_API_KEY=your_gemini_key
+CEREBRAS_API_KEY=your_cerebras_key
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token

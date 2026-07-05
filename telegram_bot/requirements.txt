@@ -1,0 +1,20 @@
+# Telegram Bot API
+python-telegram-bot>=21.0
+
+# PDF
+PyMuPDF
+pdfplumber
+
+# DOCX
+python-docx
+
+# XLSX / CSV
+openpyxl
+pandas
+
+# OCR (images + scanned PDF)
+pytesseract
+Pillow
+
+# AI: Cerebras + Gemini
+requests

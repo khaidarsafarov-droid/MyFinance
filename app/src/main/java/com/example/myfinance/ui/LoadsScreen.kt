@@ -82,6 +82,7 @@ fun LoadsScreen(
                         trip = trip,
                         onDelete = { viewModel.deleteTrip(trip.id) },
                         onEdit = { onEditTrip(trip.id) },
+                        onAddToCalendar = { viewModel.addTripToCalendar(trip) },
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }

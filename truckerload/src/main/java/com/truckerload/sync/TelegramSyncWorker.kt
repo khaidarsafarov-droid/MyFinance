@@ -5,11 +5,12 @@ import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
 import com.truckerload.BuildConfig
+import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.remote.GeminiService
+import com.truckerload.data.remote.AiService
 import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.GeminiRepository
+import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Diesel
@@ -28,7 +29,7 @@ import android.util.Log
 import java.util.concurrent.TimeUnit
 
 /**
- * Fetches new Telegram messages (private chats and groups), parses with Gemini (load / paycheck / diesel), inserts into DB, replies in Telegram.
+ * Fetches new Telegram messages (private chats and groups), parses with AI (load / paycheck / diesel), inserts into DB, replies in Telegram.
  * Uses last processed update_id from SharedPreferences so each message is processed once.
  * Loads are saved by message date: when the bot is in a group, each message's date is used as the load date so loads appear under the correct day.
  * To receive all group messages: add the bot to the group, then in BotFather run /setprivacy and choose "Disable" so the bot gets every message.
@@ -49,9 +50,9 @@ class TelegramSyncWorker(
 
     override suspend fun doWork(): Result {
         val token = BuildConfig.TELEGRAM_BOT_TOKEN
-        val geminiKey = BuildConfig.GEMINI_API_KEY
-        if (token.isBlank() || geminiKey.isBlank()) {
-            Log.w("TelegramSync", "Skipping: token or geminiKey blank")
+        val cerebrasKey = BuildConfig.CEREBRAS_API_KEY
+        if (token.isBlank() || cerebrasKey.isBlank()) {
+            Log.w("TelegramSync", "Skipping: token or cerebrasKey blank")
             return Result.success()
         }
 
@@ -63,8 +64,9 @@ class TelegramSyncWorker(
         telegramApi.deleteWebhook().onFailure { e ->
             Log.w("TelegramSync", "deleteWebhook failed (webhook may not be set): ${e.message}")
         }
-        val geminiService = GeminiService(geminiKey)
-        val geminiRepository = GeminiRepository(geminiService)
+        val cerebrasModel = BuildConfig.CEREBRAS_MODEL
+        val aiService = AiService(cerebrasKey, cerebrasModel, applicationContext)
+        val aiRepository = AiRepository(aiService)
         val db = AppDatabase.getInstance(applicationContext)
         val loadRepository = LoadRepository(db)
         val paycheckRepository = PaycheckRepository(db)
@@ -79,8 +81,11 @@ class TelegramSyncWorker(
         Log.d("TelegramSync", "getUpdates OK, updates=${result.updates.size}, nextOffset=$nextOffset")
 
         for (update in result.updates) {
-            // Мгновенный ответ — парсинг (Gemini) может занять несколько секунд
-            telegramApi.sendMessage(update.chatId, "⏳ Обрабатываю...").onFailure { e ->
+            // Мгновенный ответ — AI-парсинг может занять несколько секунд
+            telegramApi.sendMessage(
+                update.chatId,
+                applicationContext.getString(R.string.sync_processing)
+            ).onFailure { e ->
                 Log.e("TelegramSync", "sendMessage (ack) failed: ${e.message}", e)
             }
 
@@ -88,21 +93,15 @@ class TelegramSyncWorker(
             if (textToProcess.isBlank()) {
                 val fileText = when {
                     update.photoFileId != null -> {
-                        telegramApi.downloadFile(update.photoFileId).getOrNull()?.let { bytes ->
-                            if (bytes.size <= MAX_FILE_SIZE_BYTES)
-                                geminiRepository.extractTextFromImage(bytes, "image/jpeg").getOrNull()
-                            else null
-                        }
+                        telegramApi.sendMessage(update.chatId, applicationContext.getString(R.string.sync_ocr_disabled))
+                        null
                     }
                     update.documentFileId != null && update.documentMimeType != null && IMAGE_MIMES.contains(update.documentMimeType) -> {
-                        telegramApi.downloadFile(update.documentFileId).getOrNull()?.let { bytes ->
-                            if (bytes.size <= MAX_FILE_SIZE_BYTES)
-                                geminiRepository.extractTextFromImage(bytes, update.documentMimeType!!).getOrNull()
-                            else null
-                        }
+                        telegramApi.sendMessage(update.chatId, applicationContext.getString(R.string.sync_ocr_disabled))
+                        null
                     }
                     update.documentFileId != null -> {
-                        telegramApi.sendMessage(update.chatId, "📎 Отправьте фото документа или вставьте текст. PDF/DOCX пока обрабатываются только как изображение (сфотографируйте страницу).")
+                        telegramApi.sendMessage(update.chatId, applicationContext.getString(R.string.sync_doc_not_supported))
                         null
                     }
                     else -> null
@@ -114,7 +113,7 @@ class TelegramSyncWorker(
             val reply = processMessage(
                 text = textToProcess,
                 messageDateSeconds = update.messageDateSeconds,
-                geminiRepository = geminiRepository,
+                aiRepository = aiRepository,
                 loadRepository = loadRepository,
                 paycheckRepository = paycheckRepository,
                 dieselRepository = dieselRepository,
@@ -141,7 +140,7 @@ class TelegramSyncWorker(
     private suspend fun processMessage(
         text: String,
         messageDateSeconds: Long?,
-        geminiRepository: GeminiRepository,
+        aiRepository: AiRepository,
         loadRepository: LoadRepository,
         paycheckRepository: PaycheckRepository,
         dieselRepository: DieselRepository,
@@ -149,11 +148,11 @@ class TelegramSyncWorker(
     ): String {
         // Сценарий В: Пустое сообщение
         if (text.isBlank()) {
-            return "🔄 Связь установлена, но новых данных для синхронизации не обнаружено."
+            return applicationContext.getString(R.string.sync_no_new_data)
         }
 
         // Try loads first (relay/trip messages) — CDC: один запрос на проверку Trip ID, batch insert
-        geminiRepository.parseLoadsFromMessage(text)
+        aiRepository.parseLoadsFromMessage(text)
             .onSuccess { incomingLoads ->
                 if (incomingLoads.isNotEmpty()) {
                     val result = loadRepository.syncLoadsCdc(incomingLoads, messageDateSeconds)
@@ -161,25 +160,29 @@ class TelegramSyncWorker(
                         Log.d("TelegramSync", "CDC: inserted ${result.addedCount} loads, last=${result.lastAddedText}")
                     }
                     return when (result.status) {
-                        SyncStatus.SUCCESS -> "✅ Синхронизация завершена. Добавлено ${result.addedCount} новых грузов. Последний добавленный: ${result.lastAddedText}"
-                        SyncStatus.DUPLICATE -> "🆗 Все данные из этого сообщения уже заполнены. Отправьте новые данные, чтобы их добавить."
-                        SyncStatus.EMPTY -> "🔄 Связь установлена, но новых данных для синхронизации не обнаружено."
+                        SyncStatus.SUCCESS -> applicationContext.getString(
+                            R.string.sync_added_loads,
+                            result.addedCount,
+                            result.lastAddedText
+                        )
+                        SyncStatus.DUPLICATE -> applicationContext.getString(R.string.sync_duplicate_loads)
+                        SyncStatus.EMPTY -> applicationContext.getString(R.string.sync_no_new_data)
                     }
                 }
             }
 
         // Try paycheck.
-        geminiRepository.parsePaycheckFromText(text)
+        aiRepository.parsePaycheckFromText(text)
             .onSuccess { r ->
                 val (weekNumber, year) = if (messageDateSeconds != null && r.weekStartDate.isNullOrBlank())
                     getWeekNumberAndYearFromDate(formatDateFromUnixSeconds(messageDateSeconds))
                 else
                     getWeekNumberAndYearFromDate(r.weekStartDate)
                 if (r.netAmount <= 0) {
-                    return "🔄 Синхронизация прошла успешно. Новых данных о зарплате не обнаружено (сумма пуста)."
+                    return applicationContext.getString(R.string.sync_paycheck_not_found)
                 }
                 if (paycheckRepository.getPaycheckForWeek(weekNumber, year) != null) {
-                    return "✅ Все данные уже заполнены. Зарплата за неделю $weekNumber уже в базе. Отправьте новые данные, чтобы их добавить."
+                    return applicationContext.getString(R.string.sync_paycheck_exists, weekNumber)
                 }
                 val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
                 val paycheck = Paycheck(
@@ -197,11 +200,15 @@ class TelegramSyncWorker(
                     addedAt = System.currentTimeMillis()
                 )
                 paycheckRepository.insertPaycheck(paycheck)
-                return "📥 Синхронизация завершена!\nПоследнее добавленное: зарплата $${String.format("%,.2f", r.netAmount)} (неделя $weekNumber)"
+                return applicationContext.getString(
+                    R.string.sync_last_paycheck,
+                    String.format("%,.2f", r.netAmount),
+                    weekNumber
+                )
             }
 
         // Try diesel.
-        geminiRepository.parseDieselFromText(text)
+        aiRepository.parseDieselFromText(text)
             .onSuccess { r ->
                 val dateForWeek = when {
                     messageDateSeconds != null && r.date.isNullOrBlank() -> formatDateFromUnixSeconds(messageDateSeconds)
@@ -209,12 +216,12 @@ class TelegramSyncWorker(
                 }
                 val (weekNumber, year) = getWeekNumberAndYearFromDate(dateForWeek)
                 if (r.totalAmount <= 0) {
-                    return "🔄 Синхронизация прошла успешно. Новых данных о дизеле не обнаружено (сумма пуста)."
+                    return applicationContext.getString(R.string.sync_diesel_not_found)
                 }
                 val textHash = text.contentHash()
                 val lastDieselHash = prefs.getInt("last_diesel_text_hash", 0)
                 if (lastDieselHash != 0 && lastDieselHash == textHash) {
-                    return "✅ Все данные уже заполнены. Отправьте новые данные, чтобы их добавить."
+                    return applicationContext.getString(R.string.sync_duplicate_diesel)
                 }
                 val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
                 val diesel = Diesel(
@@ -234,9 +241,13 @@ class TelegramSyncWorker(
                 )
                 dieselRepository.insertDiesel(diesel)
                 prefs.edit().putInt("last_diesel_text_hash", textHash).apply()
-                return "📥 Синхронизация завершена!\nПоследнее добавленное: дизель $${String.format("%,.2f", r.totalAmount)} (неделя $weekNumber)"
+                return applicationContext.getString(
+                    R.string.sync_last_diesel,
+                    String.format("%,.2f", r.totalAmount),
+                    weekNumber
+                )
             }
 
-        return "❓ Не удалось распознать как лоуд, зарплату или дизель. Отправьте сообщение боту в Telegram или текст платёжки/чека."
+        return applicationContext.getString(R.string.sync_parse_failed)
     }
 }

@@ -1,7 +1,6 @@
 package com.truckerload.presentation.theme
 
 import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -57,9 +56,9 @@ private val DarkColorScheme = darkColorScheme(
 fun TruckerLoadTheme(
     content: @Composable () -> Unit
 ) {
-    val darkTheme = isSystemInDarkTheme()
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val truckColors = if (darkTheme) TruckDarkColors else TruckLightColors
+    val darkTheme = false
+    val colorScheme = LightColorScheme
+    val truckColors = TruckLightColors
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -67,7 +66,8 @@ fun TruckerLoadTheme(
             val window = (view.context as Activity).window
             window.statusBarColor = truckColors.Background.toArgb()
             window.navigationBarColor = truckColors.Background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = true
         }
     }
 

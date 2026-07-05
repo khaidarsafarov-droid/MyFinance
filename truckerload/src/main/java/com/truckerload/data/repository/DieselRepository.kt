@@ -5,6 +5,7 @@ import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Diesel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class DieselRepository(private val db: AppDatabase) {
@@ -24,4 +25,9 @@ class DieselRepository(private val db: AppDatabase) {
     suspend fun deleteDiesel(id: Int) {
         dao.deleteById(id)
     }
+
+    suspend fun getDieselForYear(year: Int): List<Diesel> =
+        getAllDiesel().first().filter { it.year == year }
+
+    suspend fun getAllDieselOnce(): List<Diesel> = getAllDiesel().first()
 }

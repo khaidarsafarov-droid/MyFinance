@@ -1,6 +1,7 @@
 package com.example.myfinance.data
 
 import android.content.Context
+import com.example.myfinance.calendar.CalendarHelper
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -122,16 +123,34 @@ class AppRepository(private val context: Context) {
         }
     }
 
-    suspend fun addTrip(trip: Trip) {
+    suspend fun addTrip(trip: Trip, onCalendarDenied: (() -> Unit)? = null) {
         val withId = trip.copy(id = generateId())
         context.dataStore.edit { prefs ->
             val current = loadAppData(prefs)
             saveAppData(prefs, current.copy(trips = listOf(withId) + current.trips))
         }
+        // Calendar sync after save
+        if (CalendarHelper.hasPermission(context)) {
+            val eventId = CalendarHelper.createEvent(context, withId)
+            if (eventId != null) {
+                context.dataStore.edit { prefs ->
+                    val current = loadAppData(prefs)
+                    val updated = current.trips.map { if (it.id == withId.id) it.copy(calendarEventId = eventId) else it }
+                    saveAppData(prefs, current.copy(trips = updated))
+                }
+            }
+        } else {
+            onCalendarDenied?.invoke()
+        }
     }
 
     suspend fun updateTrip(trip: Trip) {
         if (trip.id.isBlank()) return
+        trip.calendarEventId?.let { eventId ->
+            if (CalendarHelper.hasPermission(context)) {
+                CalendarHelper.updateEvent(context, eventId, trip)
+            }
+        }
         context.dataStore.edit { prefs ->
             val current = loadAppData(prefs)
             val updated = current.trips.map { if (it.id == trip.id) trip else it }
@@ -139,7 +158,59 @@ class AppRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Sync all trips without calendarEventId to device calendar.
+     * Returns count of trips added.
+     */
+    suspend fun syncAllTripsToCalendar(): Int {
+        if (!CalendarHelper.hasPermission(context)) return 0
+        val current = appData.first()
+        var added = 0
+        val updates = current.trips.map { trip ->
+            if (trip.calendarEventId != null) trip
+            else {
+                val eventId = CalendarHelper.createEvent(context, trip)
+                if (eventId != null) {
+                    added++
+                    trip.copy(calendarEventId = eventId)
+                } else trip
+            }
+        }
+        if (added > 0) {
+            context.dataStore.edit { prefs ->
+                saveAppData(prefs, current.copy(trips = updates))
+            }
+        }
+        return added
+    }
+
+    /**
+     * Manually add trip to calendar. Creates event and saves calendarEventId to trip.
+     */
+    suspend fun addTripToCalendar(trip: Trip): Boolean {
+        if (!CalendarHelper.hasPermission(context)) return false
+        if (trip.calendarEventId != null) {
+            // Already in calendar, update it
+            CalendarHelper.updateEvent(context, trip.calendarEventId!!, trip)
+            return true
+        }
+        val eventId = CalendarHelper.createEvent(context, trip)
+        if (eventId == null) return false
+        context.dataStore.edit { prefs ->
+            val current = loadAppData(prefs)
+            val updated = current.trips.map { if (it.id == trip.id) it.copy(calendarEventId = eventId) else it }
+            saveAppData(prefs, current.copy(trips = updated))
+        }
+        return true
+    }
+
     suspend fun deleteTrip(id: String) {
+        val trip = appData.first().trips.find { it.id == id }
+        trip?.calendarEventId?.let { eventId ->
+            if (CalendarHelper.hasPermission(context)) {
+                CalendarHelper.deleteEvent(context, eventId)
+            }
+        }
         context.dataStore.edit { prefs ->
             val current = loadAppData(prefs)
             saveAppData(prefs, current.copy(trips = current.trips.filter { it.id != id }))

@@ -1,0 +1,111 @@
+// TruckerLoad Backend — PostgreSQL + Prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Load {
+  id             String    @id
+  tripId         String    @unique
+  date           DateTime
+  totalRate      Float
+  totalMiles     Float
+  pointA         String
+  pointB         String
+  puCount        Int
+  delCount       Int
+  weekNumber     Int
+  year           Int
+  rawMessage     String    @db.Text
+  telegramMsgId  Int?
+  telegramChatId String?
+  parsedAt       DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  stops          Stop[]
+  penalties      Penalty[]
+}
+
+model Stop {
+  id            Int      @id @default(autoincrement())
+  loadId        String
+  load          Load     @relation(fields: [loadId], references: [id], onDelete: Cascade)
+  stopNumber    Int
+  type          String
+  puNumber      String?
+  note          String?
+  scheduledTime DateTime
+  timezone      String
+  facilityCode  String?
+  fullAddress   String
+  city          String
+  state         String
+  zip           String
+}
+
+model Penalty {
+  id          Int    @id @default(autoincrement())
+  loadId      String
+  load        Load   @relation(fields: [loadId], references: [id], onDelete: Cascade)
+  description String
+  amount      Float
+}
+
+model Paycheck {
+  id              Int       @id @default(autoincrement())
+  weekNumber      Int
+  year            Int
+  weekLabel       String
+  weekStartDate   DateTime
+  weekEndDate     DateTime
+  driverName      String?
+  grossAmount     Float?
+  netAmount       Float
+  rawText         String    @db.Text
+  fileName        String?
+  telegramMsgId   Int?
+  telegramChatId  String?
+  parsedAt        DateTime  @default(now())
+
+  @@unique([weekNumber, year])
+}
+
+model Diesel {
+  id              Int       @id @default(autoincrement())
+  weekNumber      Int
+  year            Int
+  weekLabel       String
+  weekStartDate   DateTime
+  weekEndDate     DateTime
+  totalAmount     Float
+  gallons         Float?
+  pricePerGallon  Float?
+  location        String?
+  vendor          String?
+  rawText         String    @db.Text
+  fileName        String?
+  telegramMsgId   Int?
+  telegramChatId  String?
+  parsedAt        DateTime  @default(now())
+}
+
+model AnalysisJob {
+  id         String    @id @default(uuid())
+  chatId     String
+  status     String    @default("pending")
+  totalMsgs  Int       @default(0)
+  processed  Int       @default(0)
+  found      Int       @default(0)
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+}
+
+model Device {
+  id        String   @id @default(uuid())
+  fcmToken  String   @unique
+  createdAt DateTime @default(now())
+}

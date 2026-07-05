@@ -1,6 +1,6 @@
 # Снимок состояния приложения TruckerLoad
 
-**Дата:** 18 февраля 2026
+**Дата:** 18 февраля 2026 (обновлено с TruckerLoad_Analytics_Prompts)
 
 Этот документ фиксирует полную функциональность приложения на текущий момент. При запросе «верни приложение к этой функциональности» — восстанови всё, что описано ниже.
 
@@ -42,10 +42,16 @@
 - **WeekCalendarPicker** — выбор месяца/года, недели с мини-сводкой (грузов • гросс)
 - Клик по неделе → пересчёт зарплаты, дизеля, чистой прибыли
 - Режимы: Неделя, Месяц, Год
+- **ForecastCard** — прогноз недели на основе последних 8 недель (ABOVE/ON_TRACK/BELOW)
+- **FuelAnalyticsCard** — MPG, $/гал, потрачено, на 100 миль
 
 ### 5. Статистика
 - Календарь с неделями
 - Показатели за выбранную неделю: зарплата, мили, рейсы, дизель, гросс, чистая прибыль
+- **ComparisonIndicator** — сравнение с предыдущей неделей (↑/↓, %)
+- **RouteStats** — анализ маршрутов (pointA → pointB), сортировка по $/mi, всего $, рейсов
+- **ActivityHeatmapCard** — тепловая карта активности по дням года
+- Кнопки: Экспорт (CSV), Финансовый советник, Налоги
 
 ### 6. Тема
 - TruckLightColors, TruckDarkColors
@@ -71,8 +77,43 @@ truckerload/
 ├── presentation/screens/finance/FinanceScreen.kt  # WeekCalendarPicker
 ├── presentation/screens/stats/StatsScreen.kt  # Календарь + статистика по неделе
 ├── presentation/components/WeekCalendarPicker.kt
+├── presentation/components/ComparisonIndicator.kt
+├── presentation/components/ForecastCard.kt
+├── presentation/components/RouteStatsCard.kt
+├── presentation/components/ActivityHeatmapCard.kt
+├── domain/usecase/ForecastService.kt
+├── domain/model/RouteStats.kt
+├── domain/usecase/FuelAnalyticsService.kt
+├── presentation/screens/tax/TaxTrackerScreen.kt
+├── presentation/screens/tax/TaxTrackerViewModel.kt
+├── presentation/screens/advisor/FinancialAdvisorScreen.kt
+├── presentation/components/ExportBottomSheet.kt
+├── presentation/components/FuelAnalyticsCard.kt
+├── utils/ExportService.kt
+├── sync/SmartNotificationWorker.kt
 └── utils/WeekUtils.kt              # getWeeksInMonth, getWeekLabelShort, parseDateFromQuery
 ```
+
+---
+
+### 8. Налоги (TaxTrackerScreen)
+- Доход, вычеты (дизель, per diem), налогооблагаемый доход
+- SE Tax, Federal Tax, итого к уплате
+- Навигация из StatsScreen (иконка AccountBalance)
+
+### 9. Финансовый советник (FinancialAdvisorScreen)
+- Чат с Gemini с контекстом приложения
+- Подсказки: «Как улучшить доход?», «Какие маршруты выгодные?» и др.
+- Навигация из StatsScreen (иконка Psychology)
+
+### 10. Экспорт
+- **ExportService** — экспорт в CSV по году
+- **ExportBottomSheet** — выбор года, кнопка экспорта
+- Кнопка Share в StatsScreen
+
+### 11. Умные уведомления (SmartNotificationWorker)
+- WorkManager, раз в 24 часа
+- Проверка: нет зарплаты за прошлую неделю, нет дизеля за прошлую неделю
 
 ---
 
@@ -87,7 +128,9 @@ truckerload/
 
 ## Конфигурация
 
-- `local.properties`: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY
+- `local.properties`: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, CEREBRAS_API_KEY (optional)
+- `local.properties.example` — шаблон для настройки
+- **Чат:** Cerebras (llama3.1-8b) первым, при 429 rate limit — fallback на Gemini. История сохраняется.
 - AppDatabase version: 5
 - LoadEntity: indices на tripId (unique), date
 

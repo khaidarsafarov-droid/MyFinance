@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -21,13 +23,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,10 +41,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.truckerload.R
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.presentation.di.LocalPaycheckRepository
+import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
@@ -54,6 +63,8 @@ fun AddPaycheckScreen(
     onSaved: () -> Unit,
     onBack: () -> Unit
 ) {
+    val tc = LocalTruckColors.current
+    val context = LocalContext.current
     val paycheckRepository = LocalPaycheckRepository.current
     val scope = rememberCoroutineScope()
     val (initialWeek, initialYear) = com.truckerload.utils.getCurrentWeekNumberAndYear()
@@ -76,6 +87,9 @@ fun AddPaycheckScreen(
         )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
+            colors = androidx.compose.material3.DatePickerDefaults.colors(
+                containerColor = tc.CardBackground
+            ),
             confirmButton = {
                 TextButton(onClick = {
                     dateState.selectedDateMillis?.let { ms ->
@@ -88,7 +102,7 @@ fun AddPaycheckScreen(
                     }
                     showDatePicker = false
                     showTimePicker = true
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.common_ok)) }
             }
         ) { DatePicker(state = dateState) }
     }
@@ -101,6 +115,9 @@ fun AddPaycheckScreen(
         )
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
+            containerColor = tc.CardBackground,
+            titleContentColor = tc.TextPrimary,
+            textContentColor = tc.TextPrimary,
             confirmButton = {
                 TextButton(onClick = {
                     val c = Calendar.getInstance().apply { timeInMillis = recordedAtMillis }
@@ -108,7 +125,7 @@ fun AddPaycheckScreen(
                     c.set(Calendar.MINUTE, timeState.minute)
                     recordedAtMillis = c.timeInMillis
                     showTimePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.common_ok)) }
             },
             text = { TimePicker(state = timeState) }
         )
@@ -116,10 +133,13 @@ fun AddPaycheckScreen(
     if (showSaveDialog) {
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
-            title = { Text("Сохранить запись") },
+            containerColor = tc.CardBackground,
+            titleContentColor = tc.TextPrimary,
+            textContentColor = tc.TextPrimary,
+                title = { Text(stringResource(R.string.common_save)) },
             text = {
                 Column {
-                    Text("Дата и время записи:", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.common_date_time), style = MaterialTheme.typography.labelMedium)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -128,10 +148,10 @@ fun AddPaycheckScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(formatDateTimeForDisplay(recordedAtMillis), style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = { showDatePicker = true }) { Icon(Icons.Default.Edit, contentDescription = "Изменить") }
+                        IconButton(onClick = { showDatePicker = true }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit)) }
                     }
                     if (error != null) {
-                        Text(error!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                        Text(error!!, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
                     }
                 }
             },
@@ -150,45 +170,79 @@ fun AddPaycheckScreen(
                             showSaveDialog = false
                             onSaved()
                         } catch (e: Exception) {
-                            error = e.message ?: "Ошибка сохранения"
+                            error = e.message ?: context.getString(R.string.common_save_failed)
                         }
                     }
-                }) { Text("Сохранить") }
+                }, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.common_save)) }
             },
-            dismissButton = { TextButton(onClick = { showSaveDialog = false }) { Text("Отмена") } }
+            dismissButton = { TextButton(onClick = { showSaveDialog = false }) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 
     Scaffold(
+        containerColor = tc.Background,
         topBar = {
             TopAppBar(
-                title = { Text("Добавить зарплату") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") } }
+                title = { Text(stringResource(R.string.add_paycheck_title), color = tc.TextPrimary) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = tc.Background,
+                    titleContentColor = tc.TextPrimary
+                )
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            Text("📅 Выберите неделю", style = MaterialTheme.typography.titleSmall)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                IconButton(onClick = { if (weekNumber > 1) weekNumber-- else { weekNumber = 52; year-- } }) { Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null) }
-                Text("Week $weekNumber • $weekLabel", style = MaterialTheme.typography.bodyMedium)
-                IconButton(onClick = { if (weekNumber < 52) weekNumber++ else { weekNumber = 1; year++ } }) { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) }
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = tc.CardBackground,
+                border = androidx.compose.foundation.BorderStroke(1.dp, tc.Divider)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(stringResource(R.string.add_select_week), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                        IconButton(onClick = { if (weekNumber > 1) weekNumber-- else { weekNumber = 52; year-- } }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = tc.TextPrimary) }
+                        Text(stringResource(R.string.add_or_edit_week_format, weekNumber, weekLabel), style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                        IconButton(onClick = { if (weekNumber < 52) weekNumber++ else { weekNumber = 1; year++ } }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = tc.TextPrimary) }
+                    }
+                    OutlinedTextField(
+                        value = netAmount,
+                        onValueChange = { netAmount = it },
+                        label = { Text(stringResource(R.string.common_enter_amount)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = tc.AccentPrimary,
+                            unfocusedBorderColor = tc.Divider,
+                            focusedLabelColor = tc.AccentPrimary,
+                            unfocusedLabelColor = tc.TextSecondary,
+                            focusedTextColor = tc.TextPrimary,
+                            unfocusedTextColor = tc.TextPrimary,
+                            focusedContainerColor = tc.CardBackground,
+                            unfocusedContainerColor = tc.CardBackground,
+                            cursorColor = tc.AccentPrimary
+                        )
+                    )
+                }
             }
-            OutlinedTextField(
-                value = netAmount,
-                onValueChange = { netAmount = it },
-                label = { Text("Введите сумму") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-            )
             Button(onClick = {
                 val amount = netAmount.toDoubleOrNull() ?: 0.0
                 if (amount <= 0) return@Button
                 error = null
                 recordedAtMillis = System.currentTimeMillis()
                 showSaveDialog = true
-            }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) { Text("Сохранить") }
-            error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp)) }
+            }, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.common_save)) }
+            error?.let { Text(it, color = tc.AccentExpense, modifier = Modifier.padding(top = 8.dp)) }
         }
     }
 }

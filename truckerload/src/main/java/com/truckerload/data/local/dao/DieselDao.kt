@@ -19,6 +19,12 @@ interface DieselDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(diesel: DieselEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(dieselList: List<DieselEntity>)
+
     @Query("DELETE FROM diesel WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("DELETE FROM diesel")
+    suspend fun deleteAll()
 }

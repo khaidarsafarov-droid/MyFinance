@@ -9,14 +9,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.remote.GeminiService
+import com.truckerload.data.preferences.RpmThresholdsStore
+import com.truckerload.data.preferences.SelectedStateStore
+import com.truckerload.data.preferences.StatsSelectionStore
+import com.truckerload.data.remote.AiService
 import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.GeminiRepository
+import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.presentation.di.LocalDieselRepository
-import com.truckerload.presentation.di.LocalGeminiRepository
+import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.di.LocalSelectedStateStore
+import com.truckerload.presentation.di.LocalStatsSelectionStore
+import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.di.LocalWeekRepository
@@ -34,9 +40,13 @@ class MainActivity : ComponentActivity() {
         val paycheckRepository = PaycheckRepository(db)
         val dieselRepository = DieselRepository(db)
         val weekRepository = WeekRepository(loadRepository, paycheckRepository, dieselRepository)
-        val geminiApiKey = com.truckerload.BuildConfig.GEMINI_API_KEY
-        val geminiRepository = if (geminiApiKey.isNotEmpty()) {
-            GeminiRepository(GeminiService(geminiApiKey))
+        val rpmThresholdsStore = RpmThresholdsStore(applicationContext)
+        val selectedStateStore = SelectedStateStore(applicationContext)
+        val statsSelectionStore = StatsSelectionStore(applicationContext)
+        val cerebrasApiKey = com.truckerload.BuildConfig.CEREBRAS_API_KEY
+        val cerebrasModel = com.truckerload.BuildConfig.CEREBRAS_MODEL
+        val aiRepository = if (cerebrasApiKey.isNotEmpty()) {
+            AiRepository(AiService(cerebrasApiKey, cerebrasModel, applicationContext))
         } else {
             null
         }
@@ -48,7 +58,10 @@ class MainActivity : ComponentActivity() {
                         LocalPaycheckRepository provides paycheckRepository,
                         LocalDieselRepository provides dieselRepository,
                         LocalWeekRepository provides weekRepository,
-                        LocalGeminiRepository provides geminiRepository
+                        LocalAiRepository provides aiRepository,
+                        LocalRpmThresholdsStore provides rpmThresholdsStore,
+                        LocalSelectedStateStore provides selectedStateStore,
+                        LocalStatsSelectionStore provides statsSelectionStore
                     ) {
                         NavGraph()
                     }

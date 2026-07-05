@@ -72,11 +72,10 @@ class TelegramViewModel(application: Application) : AndroidViewModel(application
         onAddWeeklyTotal: (ParsedWeeklyTotal) -> Boolean,
         onAddTrip: (ParsedTrip) -> Boolean
     ) {
-        if (repo.getChatId() == null) return
         realtimeSyncJob?.cancel()
         realtimeSyncJob = viewModelScope.launch {
-            var lastId = repo.getLastProcessedUpdateId()
             val cid = repo.getChatId() ?: return@launch
+            var lastId = repo.getLastProcessedUpdateId()
             while (isActive) {
                 val r = api.getUpdates(offset = if (lastId > 0) lastId + 1 else null, timeoutSeconds = 25)
                 if (!r.isSuccess) {

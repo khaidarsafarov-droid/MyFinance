@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ExpandLess
@@ -27,17 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.truckerload.R
 import com.truckerload.domain.model.WeekSummary
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.getWeekLabelShort
-import com.truckerload.utils.getWeeksInMonth
+import java.text.DateFormatSymbols
 import java.util.Calendar
-
-private val MONTH_NAMES = listOf(
-    "", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-    "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
-)
+import java.util.Locale
 
 @Composable
 fun WeekCalendarPicker(
@@ -52,6 +52,7 @@ fun WeekCalendarPicker(
 ) {
     val tc = LocalTruckColors.current
     var showMonthYearMenu by remember { mutableStateOf(false) }
+    val currentYear = remember { Calendar.getInstance().get(Calendar.YEAR) }
 
     Column(modifier = modifier) {
         Row(
@@ -65,7 +66,11 @@ fun WeekCalendarPicker(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = tc.AccentPrimary)
                 Text(
-                    text = "${MONTH_NAMES.getOrElse(selectedMonth) { "" }} $selectedYear",
+                    text = stringResource(
+                        R.string.finance_month_year_format,
+                        monthLongLabel(selectedMonth),
+                        selectedYear
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = tc.TextPrimary,
                     modifier = Modifier.padding(start = 8.dp)
@@ -82,19 +87,31 @@ fun WeekCalendarPicker(
             expanded = showMonthYearMenu,
             onDismissRequest = { showMonthYearMenu = false }
         ) {
-            val cal = Calendar.getInstance()
-            var y = cal.get(Calendar.YEAR)
-            var m = cal.get(Calendar.MONTH) + 1
-            repeat(24) {
+            (1..12).forEach { monthVal ->
+                val isSelected = selectedYear == currentYear && selectedMonth == monthVal
                 DropdownMenuItem(
-                    text = { Text("${MONTH_NAMES[m]} $y") },
+                    modifier = Modifier
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                        .background(
+                            if (isSelected) tc.AccentPrimary.copy(alpha = 0.22f) else Color.Transparent,
+                            shape = RoundedCornerShape(10.dp)
+                        ),
+                    text = {
+                        Text(
+                            text = stringResource(
+                                R.string.finance_month_year_format,
+                                monthLongLabel(monthVal),
+                                currentYear
+                            ),
+                            color = if (isSelected) tc.AccentPrimary else tc.TextPrimary,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    },
                     onClick = {
-                        onMonthYearChange(m, y)
+                        onMonthYearChange(monthVal, currentYear)
                         showMonthYearMenu = false
                     }
                 )
-                m--
-                if (m < 1) { m = 12; y-- }
             }
         }
 
@@ -126,7 +143,11 @@ fun WeekCalendarPicker(
                             color = if (isSelected) tc.AccentPrimary else tc.TextPrimary
                         )
                         Text(
-                            text = "${summary.loadsCount} грузов • $${String.format("%,.0f", summary.totalLoadRate)}",
+                            text = stringResource(
+                                R.string.finance_week_summary_short,
+                                summary.loadsCount,
+                                String.format(Locale.getDefault(), "%,.0f", summary.totalLoadRate)
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = tc.TextSecondary
                         )
@@ -135,4 +156,12 @@ fun WeekCalendarPicker(
             }
         }
     }
+}
+
+private fun monthLongLabel(month: Int): String {
+    val long = DateFormatSymbols(Locale.getDefault())
+        .months
+        .getOrNull((month - 1).coerceIn(0, 11))
+        .orEmpty()
+    return long.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 }

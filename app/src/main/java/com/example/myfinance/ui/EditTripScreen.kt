@@ -1,13 +1,19 @@
 package com.example.myfinance.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,28 +123,57 @@ fun EditTripScreen(
             shape = RoundedCornerShape(12.dp)
         )
         Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = {
-                val m = miles.toDoubleOrNull() ?: 0.0
-                val c = cost.toDoubleOrNull() ?: 0.0
-                viewModel.updateTrip(
-                    id = trip.id,
-                    pointA = pointA,
-                    pointB = pointB,
-                    miles = m,
-                    cost = c,
-                    startTime = startTime.ifBlank { "—" },
-                    endTime = endTime.ifBlank { "—" },
-                    orderNumber = orderNumber.ifBlank { "—" },
-                    date = date,
-                    companyId = trip.companyId
-                )
-                onSaved()
-            },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Save changes")
+            OutlinedButton(
+                onClick = {
+                    val m = miles.toDoubleOrNull() ?: 0.0
+                    val c = cost.toDoubleOrNull() ?: 0.0
+                    val updated = trip.copy(
+                        pointA = pointA,
+                        pointB = pointB,
+                        miles = m,
+                        cost = c,
+                        startTime = startTime.ifBlank { "—" },
+                        endTime = endTime.ifBlank { "—" },
+                        orderNumber = orderNumber.ifBlank { "—" },
+                        date = date,
+                        companyId = trip.companyId
+                    )
+                    viewModel.addTripToCalendar(updated)
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                androidx.compose.material3.Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(8.dp))
+                Text(if (trip.calendarEventId != null) "Обновить в календаре" else "Добавить в календарь")
+            }
+            Button(
+                onClick = {
+                    val m = miles.toDoubleOrNull() ?: 0.0
+                    val c = cost.toDoubleOrNull() ?: 0.0
+                    viewModel.updateTrip(
+                        id = trip.id,
+                        pointA = pointA,
+                        pointB = pointB,
+                        miles = m,
+                        cost = c,
+                        startTime = startTime.ifBlank { "—" },
+                        endTime = endTime.ifBlank { "—" },
+                        orderNumber = orderNumber.ifBlank { "—" },
+                        date = date,
+                        companyId = trip.companyId
+                )
+                    onSaved()
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Save changes")
+            }
         }
     }
 }
