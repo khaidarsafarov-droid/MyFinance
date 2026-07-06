@@ -782,6 +782,8 @@
     <string name="profile_photo_from_gallery">Choose from gallery</string>
     <string name="profile_photo_take_selfie">Take a selfie</string>
     <string name="profile_photo_remove">Remove photo</string>
+    <string name="profile_crop_photo">Crop photo</string>
+    <string name="profile_crop_hint">Pinch to zoom and drag to position your photo</string>
     <string name="social_reputation_short">rep</string>
     <string name="driver_status">Driver status</string>
     <string name="experience_years">years of experience</string>

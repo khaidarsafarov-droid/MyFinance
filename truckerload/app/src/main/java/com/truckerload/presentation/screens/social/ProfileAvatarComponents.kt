@@ -124,6 +124,21 @@ fun ProfileAvatarPickerSheet(
     onBitmapSelected: (Bitmap) -> Unit,
     onRemove: () -> Unit,
 ) {
+    var cropSource by remember { mutableStateOf<Bitmap?>(null) }
+
+    cropSource?.let { bitmap ->
+        AvatarCropScreen(
+            source = bitmap,
+            onConfirm = { cropped ->
+                cropSource = null
+                onBitmapSelected(cropped)
+                onDismiss()
+            },
+            onCancel = { cropSource = null },
+        )
+        return
+    }
+
     if (!visible) return
 
     val context = LocalContext.current
@@ -133,14 +148,14 @@ fun ProfileAvatarPickerSheet(
         uri ?: return@rememberLauncherForActivityResult
         context.contentResolver.openInputStream(uri)?.use { stream ->
             val bitmap = BitmapFactory.decodeStream(stream) ?: return@rememberLauncherForActivityResult
-            onBitmapSelected(bitmap)
+            cropSource = bitmap
             onDismiss()
         }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
         bitmap?.let {
-            onBitmapSelected(it)
+            cropSource = it
             onDismiss()
         }
     }
