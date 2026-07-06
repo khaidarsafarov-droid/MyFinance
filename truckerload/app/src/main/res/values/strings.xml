@@ -777,6 +777,12 @@
     <!-- Сообщество -->
     <string name="profile">Профиль</string>
     <string name="edit_profile">Редактировать профиль</string>
+    <string name="profile_photo">Фото профиля</string>
+    <string name="profile_change_photo">Изменить фото</string>
+    <string name="profile_photo_from_gallery">Выбрать из галереи</string>
+    <string name="profile_photo_take_selfie">Сделать селфи</string>
+    <string name="profile_photo_remove">Удалить фото</string>
+    <string name="social_reputation_short">реп</string>
     <string name="driver_status">Статус водителя</string>
     <string name="experience_years">лет опыта</string>
     <string name="home_state">Домашний штат</string>

@@ -777,6 +777,12 @@
     <!-- Community -->
     <string name="profile">Profile</string>
     <string name="edit_profile">Edit profile</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="profile_change_photo">Change photo</string>
+    <string name="profile_photo_from_gallery">Choose from gallery</string>
+    <string name="profile_photo_take_selfie">Take a selfie</string>
+    <string name="profile_photo_remove">Remove photo</string>
+    <string name="social_reputation_short">rep</string>
     <string name="driver_status">Driver status</string>
     <string name="experience_years">years of experience</string>
     <string name="home_state">Home state</string>

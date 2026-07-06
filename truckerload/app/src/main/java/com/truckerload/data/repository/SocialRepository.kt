@@ -159,6 +159,13 @@ class SocialRepository(
         SocialResult.Success(path)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
 
+    suspend fun removeAvatar(): SocialResult<Unit> = runCatching {
+        val existing = profileDao.getProfile() ?: DriverProfileEntity()
+        avatarStorage.deleteAvatar(existing.avatarUrl)
+        profileDao.upsert(existing.copy(avatarUrl = null))
+        SocialResult.Success(Unit)
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
+
     fun watchChats(): Flow<List<SocialChat>> =
         chatDao.watchChats().map { list ->
             list.map { chat ->
