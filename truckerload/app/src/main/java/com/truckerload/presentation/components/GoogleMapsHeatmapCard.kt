@@ -163,7 +163,9 @@ fun GoogleMapsHeatmapCard(
                                             val code = STATE_NAME_TO_ABBR[name] ?: name
                                             onStateSelected(code)
                                         }
-                                    } catch (_: Exception) {}
+                                    } catch (e: Exception) {
+                                        android.util.Log.w("GoogleMapsHeatmap", "GeoJSON layer failed", e)
+                                    }
                                 }
                             }
                         }

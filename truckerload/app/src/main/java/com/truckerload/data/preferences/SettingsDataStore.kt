@@ -29,6 +29,26 @@ class SettingsDataStore(context: Context) {
 
     private val appContext = context.applicationContext
 
+    companion object {
+        private const val SYNC_PREFS_NAME = "truckerload_settings_sync"
+        private const val KEY_LANGUAGE_TAG = "app_language_tag"
+
+        fun mirrorLanguageTag(context: Context, tag: String) {
+            context.applicationContext
+                .getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_LANGUAGE_TAG, tag)
+                .apply()
+        }
+
+        fun readStoredLanguage(context: Context): AppLanguage {
+            val tag = context.applicationContext
+                .getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_LANGUAGE_TAG, null)
+            return AppLanguage.entries.firstOrNull { it.tag == tag } ?: AppLanguage.RU
+        }
+    }
+
     val isFirstRun: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_FIRST_RUN] ?: true
     }
@@ -87,6 +107,7 @@ class SettingsDataStore(context: Context) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_LANGUAGE] = language.ordinal
         }
+        mirrorLanguageTag(appContext, language.tag)
     }
 
     suspend fun saveThemeMode(mode: AppThemeMode) {

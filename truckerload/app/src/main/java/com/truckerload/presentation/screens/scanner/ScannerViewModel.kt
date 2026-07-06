@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.scanner
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
@@ -34,12 +35,12 @@ data class ScannerUiState(
 )
 
 class ScannerViewModel(
-    private val context: Context,
+    private val app: Application,
     private val scanRepository: ScanRepository,
 ) : ViewModel() {
 
-    private val pdfGenerator = PDFGenerator(context)
-    private val ocrService = OCRService(context)
+    private val pdfGenerator = PDFGenerator(app)
+    private val ocrService = OCRService(app)
 
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
@@ -55,7 +56,7 @@ class ScannerViewModel(
             try {
                 val timestamp = System.currentTimeMillis()
                 val saved = pdfGenerator.saveScanFromResult(result, timestamp)
-                val ocrResult = ocrService.recognizeScanResult(context, result)
+                val ocrResult = ocrService.recognizeScanResult(app, result)
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
@@ -122,7 +123,7 @@ class ScannerViewModel(
         val pending = _uiState.value.pendingScan ?: return
         viewModelScope.launch {
             try {
-                val storageHelper = StorageHelper(context)
+                val storageHelper = StorageHelper(app)
                 val result = storageHelper.saveToPublicDownloads(
                     fileName = pending.file.name,
                     mimeType = "application/pdf",
@@ -148,7 +149,7 @@ class ScannerViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ScannerViewModel(context.applicationContext, scanRepository) as T
+            return ScannerViewModel(context.applicationContext as Application, scanRepository) as T
         }
     }
 }

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.domain.model.analytics.DailyData
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 
@@ -100,8 +101,8 @@ fun DailyDistributionChart(
                     modifier = Modifier
                         .weight(1f)
                         .height(20.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(BentoGlassTheme.CardBorderMuted),
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SoftUiColors.SurfaceMuted),
                 ) {
                     if (day.gross > 0) {
                         Box(
@@ -110,7 +111,7 @@ fun DailyDistributionChart(
                                 .fillMaxWidth((day.gross / maxGross).toFloat().coerceIn(0.04f, 1f))
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(tc.AccentPrimary, tc.AccentSecondary),
+                                        listOf(SoftUiColors.PurpleStart, SoftUiColors.SkyBlueEnd),
                                     ),
                                 ),
                         )

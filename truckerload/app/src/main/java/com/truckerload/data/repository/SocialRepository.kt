@@ -2,6 +2,8 @@ package com.truckerload.data.repository
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.annotation.StringRes
+import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.BlockedUserEntity
 import com.truckerload.data.local.entities.ChallengeParticipationEntity
@@ -71,6 +73,9 @@ class SocialRepository(
     private val recommendations = RecommendationService()
     private val appContext = context.applicationContext
 
+    private fun socialError(@StringRes fallbackRes: Int, throwable: Throwable): String =
+        throwable.message?.takeIf { it.isNotBlank() } ?: appContext.getString(fallbackRes)
+
     suspend fun ensureInitialized() {
         val displayName = userProfileStore.profile.value?.displayName.orEmpty()
         SocialSeedData.seedIfEmpty(chatDao, messageDao, profileDao, displayName)
@@ -137,13 +142,13 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось сохранить профиль", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_save_profile, it), it) }
 
     suspend fun updateStatus(status: DriverStatus): SocialResult<Unit> = runCatching {
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
         profileDao.upsert(existing.copy(status = status.name))
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось обновить статус", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_update_status, it), it) }
 
     suspend fun uploadAvatar(bitmap: Bitmap): SocialResult<String> = runCatching {
         val compressed = SocialMediaOptimizer.compressImage(bitmap)
@@ -152,7 +157,7 @@ class SocialRepository(
         avatarStorage.deleteAvatar(existing.avatarUrl)
         profileDao.upsert(existing.copy(avatarUrl = path))
         SocialResult.Success(path)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось загрузить аватар", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
 
     fun watchChats(): Flow<List<SocialChat>> =
         chatDao.watchChats().map { list ->
@@ -201,7 +206,7 @@ class SocialRepository(
         val older = messageDao.getMessagesBefore(chatId, beforeSentAt, limit)
             .map { it.toDomain(isMine = it.senderId == LOCAL_SENDER_ID) }
         SocialResult.Success(older)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось загрузить сообщения", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_load_messages, it), it) }
 
     suspend fun getChat(chatId: String): SocialChat? =
         chatDao.getChat(chatId)?.toDomain()
@@ -255,7 +260,7 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось отправить", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_send_message, it), it) }
 
     suspend fun addReaction(messageId: String, reaction: String): SocialResult<Unit> = runCatching {
         reactionDao.upsert(
@@ -267,7 +272,7 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось добавить реакцию", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_add_reaction, it), it) }
 
     fun recommendGroups(): Flow<List<SocialChat>> =
         watchChats().map { recommendations.recommendGroups(it) }
@@ -293,7 +298,7 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(chatId)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось создать чат", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_chat, it), it) }
 
     suspend fun createGroupChat(name: String, category: String = ""): SocialResult<String> = runCatching {
         val chatId = "group_${UUID.randomUUID()}"
@@ -326,12 +331,12 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(chatId)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось создать группу", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_group, it), it) }
 
     suspend fun leaveGroup(chatId: String): SocialResult<Unit> = runCatching {
         chatDao.archiveChat(chatId)
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось выйти из группы", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_leave_group, it), it) }
 
     suspend fun blockUser(blockedId: String): SocialResult<Unit> = runCatching {
         blockedUserDao.block(
@@ -342,12 +347,12 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось заблокировать", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_block_user, it), it) }
 
     suspend fun unblockUser(blockedId: String): SocialResult<Unit> = runCatching {
         blockedUserDao.unblock(DriverProfileEntity.LOCAL_USER_ID, blockedId)
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось разблокировать", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_unblock_user, it), it) }
 
     suspend fun isBlocked(targetId: String): Boolean =
         blockedUserDao.isBlocked(DriverProfileEntity.LOCAL_USER_ID, targetId)
@@ -372,12 +377,12 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось создать статус", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_status, it), it) }
 
     suspend fun markStatusViewed(statusId: String): SocialResult<Unit> = runCatching {
         driverStatusDao.markViewed(statusId)
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось отметить просмотр", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_mark_viewed, it), it) }
 
     suspend fun sendImageMessage(
         chatId: String,
@@ -416,7 +421,7 @@ class SocialRepository(
                 ),
             )
             SocialResult.Success(Unit)
-        }.getOrElse { SocialResult.Error(it.message ?: "Не удалось создать статус", it) }
+        }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_status, it), it) }
 
     suspend fun createVoiceStatus(audioFile: File, durationMs: Long, displayName: String): SocialResult<Unit> =
         runCatching {
@@ -436,7 +441,7 @@ class SocialRepository(
                 ),
             )
             SocialResult.Success(Unit)
-        }.getOrElse { SocialResult.Error(it.message ?: "Не удалось создать статус", it) }
+        }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_status, it), it) }
 
     fun watchGroupMembers(chatId: String): Flow<List<ChatMember>> =
         chatMemberDao.watchMembers(chatId).map { members ->
@@ -469,7 +474,7 @@ class SocialRepository(
         val chat = chatDao.getChat(chatId) ?: return SocialResult.Error("Группа не найдена")
         chatDao.upsert(chat.copy(participantCount = chatMemberDao.countMembers(chatId).coerceAtLeast(1)))
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось вступить", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_join_challenge, it), it) }
 
     suspend fun joinGroupByInviteCode(code: String, displayName: String): SocialResult<String> {
         val chat = chatDao.getChatByInviteCode(code.trim())
@@ -491,13 +496,13 @@ class SocialRepository(
         )
         updateFollowCounts()
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось подписаться", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_follow, it), it) }
 
     suspend fun unfollowDriver(targetId: String): SocialResult<Unit> = runCatching {
         followDao.unfollow(DriverProfileEntity.LOCAL_USER_ID, targetId)
         updateFollowCounts()
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось отписаться", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_unfollow, it), it) }
 
     fun watchIsFollowing(targetId: String): Flow<Boolean> =
         followDao.watchIsFollowing(DriverProfileEntity.LOCAL_USER_ID, targetId)
@@ -539,7 +544,7 @@ class SocialRepository(
             ),
         )
         SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(it.message ?: "Не удалось присоединиться", it) }
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_join_chat, it), it) }
 
     suspend fun weeklyChallenge(): Challenge {
         val (week, year) = getCurrentWeekNumberAndYear()

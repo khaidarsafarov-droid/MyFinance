@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.chat
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -35,7 +36,7 @@ class ChatViewModel(
     private val loadRepository: LoadRepository,
     private val paycheckRepository: PaycheckRepository,
     private val dieselRepository: DieselRepository,
-    private val context: Context
+    private val app: Application
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -94,7 +95,7 @@ class ChatViewModel(
                 } else streamedText
 
                 if (resolvedText.isBlank()) {
-                    throw IllegalStateException(context.getString(R.string.advisor_error_no_response))
+                    throw IllegalStateException(app.getString(R.string.advisor_error_no_response))
                 }
 
                 _uiState.update {
@@ -167,15 +168,15 @@ class ChatViewModel(
             buildString {
                 append("LOADS (last ${loads.size}):\n")
                 loads.forEach { l ->
-                    append("- ${l.tripId} | ${l.date} | ${l.pointA} → ${l.pointB} | $${String.format("%,.2f", l.totalRate)} | ${String.format("%,.0f", l.totalMiles)} mi\n")
+                    append("- ${l.tripId} | ${l.date} | ${l.pointA} → ${l.pointB} | $${String.format(Locale.US, "%,.2f", l.totalRate)} | ${String.format(Locale.US, "%,.0f", l.totalMiles)} mi\n")
                 }
                 append("PAYCHECKS (last ${paychecks.size}):\n")
                 paychecks.forEach { p ->
-                    append("- Week ${p.weekNumber} ${p.year} | $${String.format("%,.2f", p.netAmount)}\n")
+                    append("- Week ${p.weekNumber} ${p.year} | $${String.format(Locale.US, "%,.2f", p.netAmount)}\n")
                 }
                 append("DIESEL (last ${diesels.size}):\n")
                 diesels.forEach { d ->
-                    append("- Week ${d.weekNumber} ${d.year} | $${String.format("%,.2f", d.totalAmount)}\n")
+                    append("- Week ${d.weekNumber} ${d.year} | $${String.format(Locale.US, "%,.2f", d.totalAmount)}\n")
                 }
             }
         } catch (e: Exception) {
@@ -186,22 +187,22 @@ class ChatViewModel(
 
     private fun toUserFriendlyError(error: Throwable): String {
         val message = (error.message ?: "").lowercase(Locale.ROOT)
-        val noResponseKeyword = context.getString(R.string.advisor_error_keyword_no_response)
+        val noResponseKeyword = app.getString(R.string.advisor_error_keyword_no_response)
         return when {
             "401" in message || "403" in message || "api key" in message ->
-                context.getString(R.string.advisor_error_api_key)
+                app.getString(R.string.advisor_error_api_key)
             "429" in message || "rate" in message || "quota" in message || "limit" in message ->
-                context.getString(R.string.advisor_error_rate_limit)
+                app.getString(R.string.advisor_error_rate_limit)
             "500" in message || "502" in message || "503" in message || "504" in message ->
-                context.getString(R.string.advisor_error_unavailable)
+                app.getString(R.string.advisor_error_unavailable)
             "timeout" in message || "timed out" in message ->
-                context.getString(R.string.advisor_error_timeout)
+                app.getString(R.string.advisor_error_timeout)
             "unable to resolve host" in message || "network" in message || "failed to connect" in message ->
-                context.getString(R.string.advisor_error_network)
+                app.getString(R.string.advisor_error_network)
             "empty" in message || noResponseKeyword in message ->
-                context.getString(R.string.advisor_error_empty)
+                app.getString(R.string.advisor_error_empty)
             else ->
-                context.getString(R.string.advisor_error_generic)
+                app.getString(R.string.advisor_error_generic)
         }
     }
 
@@ -224,6 +225,6 @@ class ChatViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            ChatViewModel(aiRepository, loadRepository, paycheckRepository, dieselRepository, context) as T
+            ChatViewModel(aiRepository, loadRepository, paycheckRepository, dieselRepository, context.applicationContext as Application) as T
     }
 }

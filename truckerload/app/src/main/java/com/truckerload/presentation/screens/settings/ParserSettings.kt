@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -65,6 +66,7 @@ fun ParserSettings(
                     onCheckedChange = { enabled ->
                         scope.launch { settingsDataStore.saveParserAutoUpdate(enabled) }
                     },
+                    colors = AppSwitchDefaults.colors(),
                 )
             }
 

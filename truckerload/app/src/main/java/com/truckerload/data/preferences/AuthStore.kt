@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,12 +19,12 @@ class AuthStore(context: Context) {
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
     fun setLoggedIn(value: Boolean) {
-        prefs.edit().putBoolean(KEY_LOGGED_IN, value).apply()
+        prefs.edit {putBoolean(KEY_LOGGED_IN, value)}
         _isLoggedIn.value = value
     }
 
     fun logout() {
-        prefs.edit().remove(KEY_LOGGED_IN).apply()
+        prefs.edit {remove(KEY_LOGGED_IN)}
         _isLoggedIn.value = false
     }
 
@@ -31,7 +32,7 @@ class AuthStore(context: Context) {
     fun login(rememberMe: Boolean = true) {
         _isLoggedIn.value = true
         if (rememberMe) {
-            prefs.edit().putBoolean(KEY_LOGGED_IN, true).apply()
+            prefs.edit {putBoolean(KEY_LOGGED_IN, true)}
         }
     }
 }

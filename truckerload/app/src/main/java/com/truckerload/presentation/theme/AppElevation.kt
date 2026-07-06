@@ -9,23 +9,23 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object AppElevation {
-    val Card = 8.dp
-    val Button = 12.dp
-    val Fab = 16.dp
-    val Nav = 20.dp
-    val Hero = 16.dp
-    val Input = 4.dp
+    val Card = SoftUiElevation.Card
+    val Button = SoftUiElevation.Button
+    val Fab = SoftUiElevation.Fab
+    val Nav = SoftUiElevation.NavBar
+    val Hero = SoftUiElevation.Card
+    val Input = 2.dp
     val Chip = 2.dp
 
-    val ShadowTealAmbient = Color(0x1A1B3A4B)
-    val ShadowTealSpot = Color(0x0D1B3A4B)
-    val ShadowOrangeAmbient = Color(0x26F5A623)
-    val ShadowOrangeSpot = Color(0x1AF5A623)
+    val ShadowTealAmbient = SoftUiColors.ShadowTint
+    val ShadowTealSpot = SoftUiColors.ShadowNeutral
+    val ShadowOrangeAmbient = SoftUiColors.ShadowTint
+    val ShadowOrangeSpot = SoftUiColors.ShadowNeutral
 
     fun cardShadow(
         modifier: Modifier = Modifier,
         elevation: Dp = Card,
-        shape: Shape = AppShapes.Large,
+        shape: Shape = SoftUiShapes.Card,
     ): Modifier = modifier.shadow(
         elevation = elevation,
         shape = shape,
@@ -35,12 +35,12 @@ object AppElevation {
 
     fun heroShadow(
         modifier: Modifier = Modifier,
-        shape: Shape = AppShapes.XLarge,
+        shape: Shape = SoftUiShapes.CardLarge,
     ): Modifier = cardShadow(modifier, Hero, shape)
 
     fun buttonShadow(
         modifier: Modifier = Modifier,
-        shape: Shape = AppShapes.Medium,
+        shape: Shape = SoftUiShapes.Button,
     ): Modifier = modifier.shadow(
         elevation = Button,
         shape = shape,
@@ -50,20 +50,20 @@ object AppElevation {
 
     fun inputShadow(
         modifier: Modifier = Modifier,
-        shape: Shape = AppShapes.Small,
+        shape: Shape = SoftUiShapes.Chip,
     ): Modifier = modifier.shadow(
         elevation = Input,
         shape = shape,
         ambientColor = ShadowTealSpot,
-        spotColor = Color(0x061B3A4B),
+        spotColor = Color(0x06000000),
     )
 
     fun navShadow(
         modifier: Modifier = Modifier,
     ): Modifier = modifier.shadow(
         elevation = Nav,
-        shape = AppShapes.NavTop,
-        ambientColor = Color(0x141B3A4B),
-        spotColor = Color(0x0A1B3A4B),
+        shape = SoftUiShapes.NavBar,
+        ambientColor = ShadowTealAmbient,
+        spotColor = ShadowTealSpot,
     )
 }

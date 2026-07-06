@@ -109,10 +109,16 @@ class SettingsViewModel(
 
     fun setSoundEnabled(enabled: Boolean) {
         SoundManager.setEnabled(appContext, enabled)
+        if (enabled) {
+            SoundManager.preview(appContext)
+        }
     }
 
     fun setVibrationEnabled(enabled: Boolean) {
         VibrationManager.setEnabled(appContext, enabled)
+        if (enabled) {
+            VibrationManager.preview(appContext)
+        }
     }
 
     fun restoreLoadsFromUri(uri: Uri) {

@@ -1,7 +1,10 @@
 package com.truckerload.utils
 
+import androidx.core.content.edit
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -11,6 +14,8 @@ object VibrationManager {
   private const val PREFS = "truckerload_settings"
   private const val KEY_VIBRATION_ENABLED = "feedback_vibration_enabled"
 
+  private val mainHandler = Handler(Looper.getMainLooper())
+
   fun isEnabled(context: Context): Boolean =
     context.applicationContext
       .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -19,36 +24,51 @@ object VibrationManager {
   fun setEnabled(context: Context, enabled: Boolean) {
     context.applicationContext
       .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-      .edit()
-      .putBoolean(KEY_VIBRATION_ENABLED, enabled)
-      .apply()
+      .edit {
+          putBoolean(KEY_VIBRATION_ENABLED, enabled)
+      }
   }
 
   fun vibrateGoalReached(context: Context) {
     if (!isEnabled(context)) return
-    val vibrator = vibrator(context) ?: return
-    runCatching {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        vibrator.vibrate(
-          VibrationEffect.createWaveform(longArrayOf(0, 120, 80, 160), -1),
-        )
-      } else {
-        @Suppress("DEPRECATION")
-        vibrator.vibrate(longArrayOf(0, 120, 80, 160), -1)
-      }
-    }
+    vibrateOnMain(context, pattern = longArrayOf(0, 120, 80, 160))
   }
 
-  fun vibrateLight(context: Context) {
+  /** Short tap — used for settings preview only. */
+  fun preview(context: Context) {
     if (!isEnabled(context)) return
-    val vibrator = vibrator(context) ?: return
-    runCatching {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        vibrator.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
-      } else {
-        @Suppress("DEPRECATION")
-        vibrator.vibrate(40)
+    vibrateOnMain(context, oneShotMs = 60)
+  }
+
+  private fun vibrateOnMain(context: Context, pattern: LongArray? = null, oneShotMs: Long? = null) {
+    val app = context.applicationContext
+    val action: () -> Unit = {
+      val vibrator = vibrator(app)
+      if (vibrator != null && vibrator.hasVibrator()) {
+        runCatching {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            when {
+              pattern != null -> vibrator.vibrate(
+                VibrationEffect.createWaveform(pattern, -1),
+              )
+              oneShotMs != null -> vibrator.vibrate(
+                VibrationEffect.createOneShot(oneShotMs, VibrationEffect.DEFAULT_AMPLITUDE),
+              )
+            }
+          } else {
+            @Suppress("DEPRECATION")
+            when {
+              pattern != null -> vibrator.vibrate(pattern, -1)
+              oneShotMs != null -> vibrator.vibrate(oneShotMs)
+            }
+          }
+        }
       }
+    }
+    if (Looper.myLooper() == Looper.getMainLooper()) {
+      action()
+    } else {
+      mainHandler.post(action)
     }
   }
 

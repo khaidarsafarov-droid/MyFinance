@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import com.truckerload.R
@@ -22,8 +23,21 @@ class WeeklyProfitGoalStore(context: Context) {
     val isConfigured: Boolean get() = prefs.contains(KEY_WEEKLY_PROFIT_GOAL)
 
     private fun loadFromPrefs(): Double {
-        if (!prefs.contains(KEY_WEEKLY_PROFIT_GOAL)) return DEFAULT_WEEKLY_GROSS_GOAL
-        return prefs.getFloat(KEY_WEEKLY_PROFIT_GOAL, 0f).toDouble()
+        val raw = prefs.all[KEY_WEEKLY_PROFIT_GOAL] ?: return DEFAULT_WEEKLY_GROSS_GOAL
+        val value = when (raw) {
+            is String -> raw.toDoubleOrNull()
+            is Float -> raw.toDouble()
+            is Double -> raw
+            is Int -> raw.toDouble()
+            is Long -> raw.toDouble()
+            else -> null
+        } ?: return DEFAULT_WEEKLY_GROSS_GOAL
+        if (raw !is String) {
+            prefs.edit(commit = true) {
+                putString(KEY_WEEKLY_PROFIT_GOAL, value.toString())
+            }
+        }
+        return value
     }
 
     fun getGoal(): Double = _goalAmount.value
@@ -32,9 +46,9 @@ class WeeklyProfitGoalStore(context: Context) {
         if (goal <= 0) {
             return Result.failure(IllegalArgumentException(appContext.getString(R.string.goal_error_positive)))
         }
-        prefs.edit()
-            .putFloat(KEY_WEEKLY_PROFIT_GOAL, goal.toFloat())
-            .commit()
+        prefs.edit(commit = true) {
+            putString(KEY_WEEKLY_PROFIT_GOAL, goal.toString())
+        }
         _goalAmount.value = goal
         return Result.success(Unit)
     }

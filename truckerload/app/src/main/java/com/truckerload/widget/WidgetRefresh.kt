@@ -24,7 +24,10 @@ object WidgetRefresh {
             fresh
         } else {
             Log.w(TAG, "Refresh failed — showing last cached widget data")
-            cached
+            cached.takeIf { it.updatedAtMillis > 0L } ?: WidgetStats(
+                weeklyProfitGoal = com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL,
+                updatedAtMillis = System.currentTimeMillis(),
+            )
         }
 
         val manager = AppWidgetManager.getInstance(appContext)

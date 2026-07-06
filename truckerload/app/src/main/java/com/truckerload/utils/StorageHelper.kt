@@ -60,9 +60,7 @@ class StorageHelper(private val context: Context) {
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
             val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/$subDir"
             put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Downloads.IS_PENDING, 1)
-            }
+            put(MediaStore.Downloads.IS_PENDING, 1)
         }
         val resolver = context.contentResolver
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues) ?: return null
@@ -70,10 +68,8 @@ class StorageHelper(private val context: Context) {
             resolver.openOutputStream(uri)?.use { writeBlock(it) }
         } finally {
             contentValues.clear()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
-                resolver.update(uri, contentValues, null, null)
-            }
+            contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
+            resolver.update(uri, contentValues, null, null)
         }
         val displayPath = "Downloads/$subDir/$fileName"
         return SaveResult(uri, displayPath)

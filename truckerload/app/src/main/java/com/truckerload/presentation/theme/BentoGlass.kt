@@ -1,5 +1,6 @@
 package com.truckerload.presentation.theme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -16,14 +17,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object BentoGlassTheme {
-    val CardRadius = 28.dp
-    val CellRadius = 16.dp
+    val CardRadius = SoftUiDimens.CardLargeRadius
+    val CellRadius = SoftUiDimens.ChipRadius
     val BorderWidth = 1.dp
 
     val ScreenBackground: Color
@@ -66,6 +68,7 @@ fun BentoGlassCard(
     borderColor: Color? = null,
     useHeroGradient: Boolean = false,
     useCream: Boolean = false,
+    useHighlight: Boolean = false,
     solidBackground: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -73,17 +76,35 @@ fun BentoGlassCard(
     val cs = MaterialTheme.colorScheme
     val containerColor = when {
         solidBackground -> cs.surface
-        useHeroGradient -> cs.primary
+        useHeroGradient -> Color.Transparent
+        useHighlight -> SoftUiColors.PurpleLight
         useCream -> cs.secondaryContainer
         else -> cs.surface
     }
-    val elevation = if (useHeroGradient) 0.dp else 1.dp
+    val heroBrush = if (useHeroGradient) BentoGlassTheme.HeroGradient else null
     Surface(
-        modifier = modifier,
+        modifier = modifier.then(
+            if (!useHeroGradient) {
+                Modifier.shadow(
+                    elevation = SoftUiElevation.Card,
+                    shape = shape,
+                    ambientColor = SoftUiColors.ShadowTint,
+                    spotColor = SoftUiColors.ShadowNeutral,
+                )
+            } else {
+                Modifier
+            },
+        ).then(
+            if (heroBrush != null) {
+                Modifier.background(heroBrush, shape)
+            } else {
+                Modifier
+            },
+        ),
         shape = shape,
         color = containerColor,
-        tonalElevation = elevation,
-        shadowElevation = elevation,
+        tonalElevation = if (useHeroGradient) 0.dp else 1.dp,
+        shadowElevation = 0.dp,
         content = { Column(content = content) },
     )
 }
@@ -94,12 +115,14 @@ fun BentoGlassClickableCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = BentoGlassTheme.CardRadius,
     solidBackground: Boolean = false,
+    highlight: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     BentoGlassCard(
         modifier = modifier.clickable(onClick = onClick),
         cornerRadius = cornerRadius,
         solidBackground = solidBackground,
+        useHighlight = highlight,
         content = content,
     )
 }
@@ -174,12 +197,20 @@ fun BentoGlassMetricCell(
     highlight: Boolean = false,
 ) {
     val cs = MaterialTheme.colorScheme
-    val shape = remember { AppShapes.Medium }
+    val shape = remember { SoftUiShapes.Chip }
     Surface(
-        modifier = modifier.heightIn(min = 72.dp),
+        modifier = modifier
+            .heightIn(min = 72.dp)
+            .shadow(
+                elevation = if (highlight) 4.dp else SoftUiElevation.Card,
+                shape = shape,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            ),
         shape = shape,
-        color = if (highlight) cs.secondaryContainer else cs.surface,
-        tonalElevation = 1.dp,
+        color = if (highlight) SoftUiColors.PurpleLight else cs.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier

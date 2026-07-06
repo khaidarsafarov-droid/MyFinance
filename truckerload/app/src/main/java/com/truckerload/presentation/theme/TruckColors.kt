@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.truckerload.presentation.theme.SoftUiColors
 
 data class TruckColorPalette(
     val Background: Color,
@@ -96,42 +97,35 @@ object DarkGlassGradients {
     val screenDark: Brush @Composable get() = screen
 
     val cta: Brush
-        @Composable get() {
-            val p = MaterialTheme.colorScheme.primary
-            val c = MaterialTheme.colorScheme.primaryContainer
-            return Brush.horizontalGradient(listOf(p, c))
-        }
+        @Composable get() = Brush.horizontalGradient(
+            listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+        )
 
     val button: Brush @Composable get() = cta
     val ctaGold: Brush @Composable get() = cta
     val horizontal: Brush @Composable get() = cta
     val vertical: Brush
-        @Composable get() {
-            val p = MaterialTheme.colorScheme.primary
-            val c = MaterialTheme.colorScheme.primaryContainer
-            return Brush.verticalGradient(listOf(p, c))
-        }
+        @Composable get() = Brush.verticalGradient(
+            listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+        )
 
     val cardShine: Brush
-        @Composable get() {
-            val p = MaterialTheme.colorScheme.primary
-            return Brush.verticalGradient(listOf(p, p))
-        }
+        @Composable get() = Brush.linearGradient(
+            listOf(SoftUiColors.PurpleStart, SoftUiColors.SkyBlueEnd),
+        )
 
     val chartFill: Brush
         @Composable get() = Brush.verticalGradient(
             listOf(
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                SoftUiColors.PurpleStart.copy(alpha = 0.15f),
                 Color.Transparent,
             ),
         )
 
     val progressRing: Brush
-        @Composable get() {
-            val p = MaterialTheme.colorScheme.primary
-            val c = MaterialTheme.colorScheme.primaryContainer
-            return Brush.sweepGradient(listOf(p, c, p))
-        }
+        @Composable get() = Brush.sweepGradient(
+            listOf(SoftUiColors.PurpleStart, SoftUiColors.SkyBlueEnd, SoftUiColors.PurpleStart),
+        )
 }
 
 object GoldGradients {

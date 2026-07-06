@@ -1,5 +1,6 @@
 package com.truckerload.utils
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -256,9 +257,9 @@ object BackupService {
         val companion = File(dir, BackupNoteFormatter.companionFileName(txtFileName))
         companion.writeText(json, Charsets.UTF_8)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putString(txtFileName, companion.absolutePath)
-            .apply()
+            .edit {
+                putString(txtFileName, companion.absolutePath)
+            }
     }
 
     private fun readCompanionJson(context: Context, txtFileName: String?): String? {

@@ -19,14 +19,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Menu
+import com.truckerload.presentation.components.LocalOpenDrawer
+import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -75,6 +77,7 @@ fun WeeklyGoalScreen() {
     val loadRepository = LocalLoadRepository.current
     val goalStore = LocalWeeklyProfitGoalStore.current
     val context = LocalContext.current
+    val openDrawer = LocalOpenDrawer.current
     val viewModel: GoalViewModel = viewModel(
         factory = GoalViewModel.Factory(loadRepository, goalStore, context)
     )
@@ -115,6 +118,11 @@ fun WeeklyGoalScreen() {
                         progress?.let {
                             Text(it.weekLabel, style = AppTypography.Subtitle)
                         }
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = openDrawer) {
+                        Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -266,9 +274,6 @@ private fun GoalHeroCard(
                     onClick = onSaveGoal,
                     modifier = Modifier.weight(1f),
                     enabled = !isSavingGoal,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = FinanceCockpitColors.SalaryAccent
-                    )
                 ) {
                     if (isSavingGoal) {
                         CircularProgressIndicator(

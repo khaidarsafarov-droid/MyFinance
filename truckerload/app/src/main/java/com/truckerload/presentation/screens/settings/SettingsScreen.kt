@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,16 +17,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material3.Button
+import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedButton
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -61,6 +64,7 @@ import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.DarkGlassScreenTitle
@@ -252,13 +256,25 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                 ) {
-                    Text(stringResource(R.string.settings_sound_title), color = tc.TextPrimary)
+                    Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.VolumeUp,
+                            contentDescription = null,
+                            tint = tc.AccentPrimary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Text(stringResource(R.string.settings_sound_title), color = tc.TextPrimary)
+                    }
                     Switch(
                         checked = soundEnabled,
                         onCheckedChange = {
                             soundEnabled = it
                             settingsViewModel.setSoundEnabled(it)
                         },
+                        colors = AppSwitchDefaults.colors(),
                     )
                 }
                 Row(
@@ -266,13 +282,25 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                 ) {
-                    Text(stringResource(R.string.settings_vibration_title), color = tc.TextPrimary)
+                    Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.Vibration,
+                            contentDescription = null,
+                            tint = tc.AccentPrimary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Text(stringResource(R.string.settings_vibration_title), color = tc.TextPrimary)
+                    }
                     Switch(
                         checked = vibrationEnabled,
                         onCheckedChange = {
                             vibrationEnabled = it
                             settingsViewModel.setVibrationEnabled(it)
                         },
+                        colors = AppSwitchDefaults.colors(),
                     )
                 }
             }

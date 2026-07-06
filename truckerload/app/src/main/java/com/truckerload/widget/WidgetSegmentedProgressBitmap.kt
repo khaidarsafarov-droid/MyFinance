@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import com.truckerload.R
 
 /** Segmented and continuous progress bars for App Widget [RemoteViews]. */
@@ -22,7 +23,7 @@ object WidgetSegmentedProgressBitmap {
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val safeHeight = heightPx.coerceAtLeast(6)
-        val bitmap = Bitmap.createBitmap(safeWidth, safeHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(safeWidth, safeHeight)
         val canvas = Canvas(bitmap)
         val trackColor = ContextCompat.getColor(context, R.color.widget_progress_track)
         val accentStart = ContextCompat.getColor(context, R.color.widget_primary)
@@ -68,7 +69,7 @@ object WidgetSegmentedProgressBitmap {
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val safeHeight = heightPx.coerceAtLeast(6)
-        val bitmap = Bitmap.createBitmap(safeWidth, safeHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(safeWidth, safeHeight)
         val canvas = Canvas(bitmap)
         val trackColor = ContextCompat.getColor(context, R.color.widget_progress_track)
         val accentStart = ContextCompat.getColor(context, R.color.widget_primary)

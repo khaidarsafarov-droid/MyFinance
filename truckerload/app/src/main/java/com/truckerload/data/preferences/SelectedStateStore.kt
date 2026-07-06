@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,7 @@ class SelectedStateStore(context: Context) {
     fun current(): String = _selectedState.value
 
     fun save(code: String) {
-        prefs.edit().putString(KEY_SELECTED_STATE, code).apply()
+        prefs.edit {putString(KEY_SELECTED_STATE, code)}
         _selectedState.value = code
     }
 

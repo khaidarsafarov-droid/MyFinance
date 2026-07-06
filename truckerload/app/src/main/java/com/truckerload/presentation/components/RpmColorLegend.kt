@@ -37,7 +37,7 @@ fun RpmColorLegend(
     val items = listOf(
         tc.AccentExpense to stringResource(R.string.rpm_legend_red, min),
         tc.AccentWarning to stringResource(R.string.rpm_legend_yellow, min, target),
-        tc.AccentProfit to stringResource(R.string.rpm_legend_green, min, target),
+        tc.AccentProfit to stringResource(R.string.rpm_legend_green, target),
     )
 
     if (compact) {

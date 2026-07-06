@@ -1,6 +1,7 @@
 package com.truckerload.data.social
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.max
@@ -18,7 +19,7 @@ object SocialMediaOptimizer {
         val scale = MAX_IMAGE_DIMENSION.toFloat() / largest
         val targetW = max(1, (width * scale).toInt())
         val targetH = max(1, (height * scale).toInt())
-        return Bitmap.createScaledBitmap(source, targetW, targetH, true)
+        return source.scale(targetW, targetH)
     }
 
     fun jpegQuality(): Int = JPEG_QUALITY

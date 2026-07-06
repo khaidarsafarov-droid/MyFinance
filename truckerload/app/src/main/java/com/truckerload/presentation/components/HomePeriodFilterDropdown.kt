@@ -3,13 +3,14 @@ package com.truckerload.presentation.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,7 +61,15 @@ fun HomePeriodFilterDropdown(
             label = { Text(stringResource(R.string.home_period_filter_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             leadingIcon = {
-                Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                IconButton(
+                    onClick = onOpenCalendar,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        Icons.Default.CalendarMonth,
+                        contentDescription = stringResource(R.string.home_filter_calendar),
+                    )
+                }
             },
             modifier = Modifier
                 .menuAnchor()

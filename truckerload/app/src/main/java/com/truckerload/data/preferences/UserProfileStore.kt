@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,22 +30,22 @@ class UserProfileStore(context: Context) {
     val profile: StateFlow<UserProfile?> = _profile.asStateFlow()
 
     fun saveProfile(profile: UserProfile) {
-        prefs.edit()
-            .putString(KEY_EMAIL, profile.email)
-            .putString(KEY_GIVEN_NAME, profile.givenName)
-            .putString(KEY_FAMILY_NAME, profile.familyName)
-            .putString(KEY_PHOTO_URL, profile.photoUrl)
-            .apply()
+        prefs.edit {
+            putString(KEY_EMAIL, profile.email)
+            putString(KEY_GIVEN_NAME, profile.givenName)
+            putString(KEY_FAMILY_NAME, profile.familyName)
+            putString(KEY_PHOTO_URL, profile.photoUrl)
+        }
         _profile.value = profile
     }
 
     fun clearProfile() {
-        prefs.edit()
-            .remove(KEY_EMAIL)
-            .remove(KEY_GIVEN_NAME)
-            .remove(KEY_FAMILY_NAME)
-            .remove(KEY_PHOTO_URL)
-            .apply()
+        prefs.edit {
+            remove(KEY_EMAIL)
+            remove(KEY_GIVEN_NAME)
+            remove(KEY_FAMILY_NAME)
+            remove(KEY_PHOTO_URL)
+        }
         _profile.value = null
     }
 

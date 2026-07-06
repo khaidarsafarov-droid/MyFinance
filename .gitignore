@@ -1,0 +1,23 @@
+# IDE / OS
+.idea/
+.cursor/
+*.iml
+.DS_Store
+
+# Android / Gradle
+.gradle/
+**/build/
+**/local.properties
+.externalNativeBuild
+.cxx
+/captures
+
+# Secrets
+.env
+.env.*
+*.keystore
+**/google-services.json
+
+# Logs / temp
+*.log
+.tmp_frames/

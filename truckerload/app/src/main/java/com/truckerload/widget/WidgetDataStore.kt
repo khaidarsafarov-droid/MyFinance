@@ -1,6 +1,7 @@
 package com.truckerload.widget
 
 import android.content.Context
+import androidx.core.content.edit
 import com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL
 
 object WidgetDataStore {
@@ -24,24 +25,24 @@ object WidgetDataStore {
 
     fun save(context: Context, stats: WidgetStats) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putInt(KEY_LOADS, stats.loadsCount)
-            .putFloat(KEY_CPM, stats.avgCpm.toFloat())
-            .putFloat(KEY_MILES, stats.totalMiles.toFloat())
-            .putFloat(KEY_TOTAL, stats.totalLoadRate.toFloat())
-            .putFloat(KEY_NET, stats.netProfit.toFloat())
-            .putString(KEY_WEEK, stats.weekLabel)
-            .putString(KEY_STATS_LINE, stats.statsLine)
-            .putFloat(KEY_CPM_TARGET, stats.cpmTarget.toFloat())
-            .putFloat(KEY_PROFIT_GOAL, stats.weeklyProfitGoal.toFloat())
-            .putFloat(KEY_GOAL_PROGRESS, stats.goalProgressPercent)
-            .putFloat(KEY_GOAL_REMAINING, stats.goalRemainingAmount.toFloat())
-            .putFloat(KEY_GOAL_DAILY, stats.goalDailyNeeded.toFloat())
-            .putFloat(KEY_GOAL_ACTUAL, stats.goalActualDailyYield.toFloat())
-            .putInt(KEY_GOAL_DAYS, stats.goalDaysRemaining)
-            .putString(KEY_GOAL_PACE, stats.goalPaceStatus)
-            .putLong(KEY_UPDATED, stats.updatedAtMillis)
-            .commit()
+            .edit(commit = true) {
+                putInt(KEY_LOADS, stats.loadsCount)
+                putFloat(KEY_CPM, stats.avgCpm.toFloat())
+                putFloat(KEY_MILES, stats.totalMiles.toFloat())
+                putFloat(KEY_TOTAL, stats.totalLoadRate.toFloat())
+                putFloat(KEY_NET, stats.netProfit.toFloat())
+                putString(KEY_WEEK, stats.weekLabel)
+                putString(KEY_STATS_LINE, stats.statsLine)
+                putFloat(KEY_CPM_TARGET, stats.cpmTarget.toFloat())
+                putFloat(KEY_PROFIT_GOAL, stats.weeklyProfitGoal.toFloat())
+                putFloat(KEY_GOAL_PROGRESS, stats.goalProgressPercent)
+                putFloat(KEY_GOAL_REMAINING, stats.goalRemainingAmount.toFloat())
+                putFloat(KEY_GOAL_DAILY, stats.goalDailyNeeded.toFloat())
+                putFloat(KEY_GOAL_ACTUAL, stats.goalActualDailyYield.toFloat())
+                putInt(KEY_GOAL_DAYS, stats.goalDaysRemaining)
+                putString(KEY_GOAL_PACE, stats.goalPaceStatus)
+                putLong(KEY_UPDATED, stats.updatedAtMillis)
+            }
     }
 
     fun load(context: Context): WidgetStats {

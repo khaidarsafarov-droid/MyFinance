@@ -21,14 +21,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.domain.model.Load
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.SoftUiColors
+import com.truckerload.presentation.theme.SoftUiElevation
 
-private val DeleteSwipeColor = Color(0xFFB3261E)
+private val DeleteSwipeColor = Color(0xFFE57373)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +41,7 @@ fun SwipeableLoadCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CellRadius) }
+    val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -80,19 +83,28 @@ fun SwipeableLoadCard(
                 }
             }
         },
-        modifier = modifier.clip(cardShape),
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .clip(cardShape),
     ) {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .shadow(
+                    elevation = SoftUiElevation.Card,
+                    shape = cardShape,
+                    ambientColor = SoftUiColors.ShadowTint,
+                    spotColor = SoftUiColors.ShadowNeutral,
+                ),
             shape = cardShape,
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 1.dp,
+            tonalElevation = 0.dp,
             shadowElevation = 0.dp,
         ) {
             LoadCard(
                 load = load,
                 onClick = onClick,
-                solidBackground = true,
+                wrapInCard = false,
             )
         }
     }

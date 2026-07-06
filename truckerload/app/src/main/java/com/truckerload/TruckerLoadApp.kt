@@ -1,13 +1,14 @@
 package com.truckerload
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.truckerload.BuildConfig
@@ -25,24 +26,37 @@ import com.truckerload.utils.BackupService
 import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetRefresh
 import com.truckerload.widget.WidgetUpdateWorker
+import com.truckerload.utils.AppLocale
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import android.widget.Toast
 
 class TruckerLoadApp : Application() {
 
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(AppLocale.wrap(base))
+    }
+
     override fun onCreate() {
         super.onCreate()
+        appScope.launch(Dispatchers.IO) {
+            val settings = SettingsDataStore(this@TruckerLoadApp)
+            val language = settings.getLanguageOnce()
+            SettingsDataStore.mirrorLanguageTag(this@TruckerLoadApp, language.tag)
+            val themeMode = runCatching { settings.getThemeModeOnce() }.getOrDefault(AppThemeMode.SYSTEM)
+            withContext(Dispatchers.Main) {
+                AppLocale.apply(this@TruckerLoadApp, language)
+                ThemeManager.apply(themeMode)
+            }
+        }
         DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
-        runBlocking(Dispatchers.IO) {
-            runCatching { ThemeManager.apply(SettingsDataStore(this@TruckerLoadApp).getThemeModeOnce()) }
-        }
         AppDatabase.getInstance(this)
         TelegramTokenStore(this).syncFromBuildConfig()
         scheduleTelegramSync()
@@ -62,21 +76,17 @@ class TruckerLoadApp : Application() {
             }
 
             override fun onStop(owner: LifecycleOwner) {
-                // Flush widget cache to disk before process may be killed.
-                runBlocking(Dispatchers.IO) {
-                    runCatching { WidgetStatsLoader.refresh(this@TruckerLoadApp) }
-                }
                 WidgetRefresh.paintCached(this@TruckerLoadApp)
+                appScope.launch(Dispatchers.IO) {
+                    runCatching { WidgetStatsLoader.refresh(this@TruckerLoadApp) }
+                        .onFailure { e -> Log.e(TAG, "Widget stats flush failed", e) }
+                }
             }
         })
     }
 
     private fun scheduleTelegramSync() {
-        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        val request = OneTimeWorkRequestBuilder<TelegramSyncWorker>()
-            .setConstraints(constraints)
-            .build()
-        WorkManager.getInstance(this).enqueue(request)
+        TelegramSyncWorker.enqueueEnsureService(this)
     }
 
     private fun scheduleTelegramWatchdog() {
@@ -85,9 +95,9 @@ class TruckerLoadApp : Application() {
             .setConstraints(constraints)
             .build()
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "telegram_bot_watchdog",
+            TelegramSyncWorker.UNIQUE_WATCHDOG_WORK,
             ExistingPeriodicWorkPolicy.KEEP,
-            request
+            request,
         )
     }
 
@@ -113,8 +123,14 @@ class TruckerLoadApp : Application() {
                     WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
                 }
             runCatching { repo.backfillPuDelMillisFromStops() }
+                .onFailure { e -> Log.e(TAG, "PU/DEL backfill failed", e) }
             runCatching { repo.refreshReportingWeeks() }
+                .onFailure { e -> Log.e(TAG, "Reporting weeks refresh failed", e) }
                 .onSuccess { WidgetUpdateWorker.refreshNow(this@TruckerLoadApp) }
         }
+    }
+
+    companion object {
+        private const val TAG = "TruckerLoadApp"
     }
 }

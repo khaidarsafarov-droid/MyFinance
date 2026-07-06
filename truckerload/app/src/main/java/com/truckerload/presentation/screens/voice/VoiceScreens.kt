@@ -42,7 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -73,6 +73,7 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.UiDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -216,7 +217,7 @@ fun VoiceRoomScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0A)),
+            .background(Color(0xFF1A1B2E)),
     ) {
             if (!micGranted) {
                 MicPermissionPrompt()
@@ -323,7 +324,7 @@ private fun VoiceParticipantItem(participant: VoiceParticipant) {
                 modifier = Modifier
                     .size(UiDimens.AvatarVoiceGrid)
                     .clip(CircleShape)
-                    .background(Color(0xFF1C1C1E)),
+                    .background(SoftUiColors.SurfaceDark),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

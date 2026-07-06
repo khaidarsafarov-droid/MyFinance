@@ -1,6 +1,8 @@
 package com.truckerload.data.remote
 
+import android.content.Context
 import com.truckerload.BuildConfig
+import com.truckerload.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -14,7 +16,7 @@ import java.util.concurrent.TimeUnit
  * Supabase Auth: обмен Google ID token на сессию.
  * При первом входе Supabase создаёт запись в auth.users.
  */
-class SupabaseAuthService {
+class SupabaseAuthService(private val appContext: Context) {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -31,13 +33,13 @@ class SupabaseAuthService {
         val lower = raw.lowercase()
         return when {
             lower.contains("already registered") || lower.contains("duplicate") || lower.contains("already exists") ->
-                "Пользователь с такими данными уже существует"
+                appContext.getString(R.string.auth_error_user_exists)
             lower.contains("password") && (lower.contains("6") || lower.contains("least")) ->
-                "Пароль должен быть не менее 6 символов"
+                appContext.getString(R.string.auth_error_password_short)
             lower.contains("connection") || lower.contains("network") || lower.contains("timeout") || lower.contains("unable to resolve") ->
-                "Нет подключения к интернету. Проверьте сеть."
+                appContext.getString(R.string.auth_error_network)
             lower.contains("email") && lower.contains("invalid") ->
-                "Некорректный адрес email"
+                appContext.getString(R.string.auth_error_email_invalid)
             else -> raw
         }
     }
@@ -63,7 +65,7 @@ class SupabaseAuthService {
 
     suspend fun signInWithIdToken(idToken: String): Result<SignInResult> = withContext(Dispatchers.IO) {
         if (!isConfigured()) {
-            return@withContext Result.failure(Exception("Supabase не настроен. Добавьте SUPABASE_URL и SUPABASE_ANON_KEY в local.properties"))
+            return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured_props)))
         }
         val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/auth/v1/token?grant_type=id_token"
         val body = JSONObject().apply {
@@ -85,7 +87,7 @@ class SupabaseAuthService {
                 } catch (_: Exception) {
                     responseBody
                 }
-                return@withContext Result.failure(Exception("Ошибка Supabase: $err"))
+                return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_error, err)))
             }
             val json = JSONObject(responseBody)
             val userJson = json.getJSONObject("user")
@@ -120,7 +122,7 @@ class SupabaseAuthService {
 
     /** Проверка: занят ли email или телефон. */
     suspend fun checkRegistration(email: String, phoneNumber: String): Result<Pair<Boolean, Boolean>> = withContext(Dispatchers.IO) {
-        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase не настроен"))
+        if (!isConfigured()) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
         val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/rpc/check_registration"
         val body = JSONObject().apply {
             put("p_email", email.trim())
@@ -135,7 +137,7 @@ class SupabaseAuthService {
         try {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string() ?: ""
-            if (!response.isSuccessful) return@withContext Result.failure(Exception("Ошибка проверки: $responseBody"))
+            if (!response.isSuccessful) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_check_error, responseBody)))
             val json = JSONObject(responseBody)
             Result.success(
                 json.optBoolean("email_taken", false) to json.optBoolean("phone_taken", false)
@@ -153,7 +155,7 @@ class SupabaseAuthService {
         phoneNumber: String,
         email: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase не настроен"))
+        if (!isConfigured()) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
         val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/profiles"
         val body = JSONObject().apply {
             put("id", userId)
@@ -173,7 +175,7 @@ class SupabaseAuthService {
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
                 val bodyStr = response.body?.string() ?: ""
-                return@withContext Result.failure(Exception("Не удалось сохранить профиль: $bodyStr"))
+                return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_profile_save_error, bodyStr)))
             }
             Result.success(Unit)
         } catch (e: Exception) {
@@ -184,7 +186,7 @@ class SupabaseAuthService {
     /** Регистрация по email/паролю. Данные full_name и phone_number сохраняются в user_metadata и profiles. */
     suspend fun signUp(email: String, password: String, fullName: String, phoneNumber: String): Result<SignInResult> = withContext(Dispatchers.IO) {
         if (!isConfigured()) {
-            return@withContext Result.failure(Exception("Supabase не настроен"))
+            return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
         }
         val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/auth/v1/signup"
         val body = JSONObject().apply {
@@ -215,7 +217,7 @@ class SupabaseAuthService {
             val userJson = json.optJSONObject("user")
                 ?: json.optJSONObject("data")?.optJSONObject("user")
                 ?: if (json.has("id") && json.has("email")) json else null
-                ?: return@withContext Result.failure(Exception("Нет user в ответе. Supabase: Auth → Email → отключите Confirm email для теста."))
+                ?: return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_signup_no_user)))
             val userMeta = userJson.optJSONObject("user_metadata") ?: JSONObject()
             val user = SupabaseUser(
                 id = userJson.getString("id"),
@@ -235,7 +237,7 @@ class SupabaseAuthService {
 
     /** Получить профиль из таблицы profiles по user.id */
     suspend fun getProfile(accessToken: String, userId: String): Result<ProfileData> = withContext(Dispatchers.IO) {
-        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase не настроен"))
+        if (!isConfigured()) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
         val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/profiles?id=eq.$userId&select=full_name,phone_number,email"
         val request = Request.Builder()
             .url(url)
@@ -246,7 +248,7 @@ class SupabaseAuthService {
         try {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string() ?: ""
-            if (!response.isSuccessful) return@withContext Result.failure(Exception("Ошибка загрузки профиля"))
+            if (!response.isSuccessful) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_profile_load_error)))
             val arr = org.json.JSONArray(responseBody)
             if (arr.length() == 0) return@withContext Result.success(ProfileData(null, null, null))
             val row = arr.getJSONObject(0)
@@ -264,9 +266,9 @@ class SupabaseAuthService {
         val lower = raw.lowercase()
         return when {
             lower.contains("invalid") || lower.contains("credentials") || lower.contains("email") && lower.contains("password") ->
-                "Ошибка входа. Проверьте почту или пароль"
+                appContext.getString(R.string.auth_error_login_invalid)
             lower.contains("connection") || lower.contains("network") || lower.contains("timeout") || lower.contains("unable to resolve") ->
-                "Нет соединения с сетью"
+                appContext.getString(R.string.auth_error_no_network)
             else -> raw
         }
     }
@@ -274,7 +276,7 @@ class SupabaseAuthService {
     /** Вход по email и паролю. */
     suspend fun signInWithPassword(email: String, password: String): Result<SignInResult> = withContext(Dispatchers.IO) {
         if (!isConfigured()) {
-            return@withContext Result.failure(Exception("Supabase не настроен"))
+            return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
         }
         val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/auth/v1/token?grant_type=password"
         val body = JSONObject().apply {
@@ -297,7 +299,7 @@ class SupabaseAuthService {
                 return@withContext Result.failure(Exception(mapSignInError(err)))
             }
             val json = JSONObject(responseBody)
-            val userJson = json.optJSONObject("user") ?: return@withContext Result.failure(Exception("Ошибка входа. Проверьте почту или пароль"))
+            val userJson = json.optJSONObject("user") ?: return@withContext Result.failure(Exception(appContext.getString(R.string.auth_error_login_invalid)))
             val userMeta = userJson.optJSONObject("user_metadata") ?: JSONObject()
             val user = SupabaseUser(
                 id = userJson.getString("id"),
@@ -313,7 +315,7 @@ class SupabaseAuthService {
             )
             val accessToken = json.optString("access_token")
             val refreshToken = json.optString("refresh_token")
-            if (accessToken.isBlank() || refreshToken.isBlank()) return@withContext Result.failure(Exception("Нет токенов в ответе"))
+            if (accessToken.isBlank() || refreshToken.isBlank()) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_no_tokens)))
             Result.success(SignInResult(
                 user = user,
                 accessToken = accessToken,

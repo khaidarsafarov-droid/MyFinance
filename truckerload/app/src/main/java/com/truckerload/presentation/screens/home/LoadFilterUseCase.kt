@@ -31,7 +31,7 @@ class LoadFilterUseCase {
             val q = searchQuery.trim()
             val parsedDate = parseDateFromQuery(q)
             list = if (parsedDate != null) {
-                list.filter { it.date == parsedDate }
+                list.filter { parsedDate in getLoadDateRange(it) }
             } else {
                 val qLower = q.lowercase()
                 list.filter {
@@ -49,7 +49,7 @@ class LoadFilterUseCase {
                     list.filter { it.date.length >= 4 && it.date.substring(0, 4).toIntOrNull() == selectedYear }
                 } else list
             }
-            LoadFilter.YESTERDAY -> list.filter { it.date == getYesterdayDate() }
+            LoadFilter.YESTERDAY -> list.filter { getYesterdayDate() in getLoadDateRange(it) }
             LoadFilter.THIS_WEEK -> {
                 val (week, year) = getCurrentWeekNumberAndYear()
                 list.filter { isLoadInWeek(it, week, year) }
@@ -61,7 +61,7 @@ class LoadFilterUseCase {
             LoadFilter.THIS_MONTH -> {
                 val cal = Calendar.getInstance()
                 val prefix = "%04d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
-                list.filter { it.date.startsWith(prefix) }
+                list.filter { load -> getLoadDateRange(load).any { it.startsWith(prefix) } }
             }
             LoadFilter.CALENDAR_WEEK -> {
                 if (selectedWeekStart != null) {
@@ -70,11 +70,11 @@ class LoadFilterUseCase {
                 } else list
             }
             LoadFilter.CALENDAR_DATE -> {
-                if (selectedDate != null && dateIndex != null) {
-                    dateIndex[selectedDate] ?: emptyList()
-                } else if (selectedDate != null) {
+                if (selectedDate != null) {
                     list.filter { load -> selectedDate in getLoadDateRange(load) }
-                } else list
+                } else {
+                    list
+                }
             }
         }
 

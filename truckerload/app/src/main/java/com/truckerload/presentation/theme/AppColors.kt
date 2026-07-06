@@ -2,30 +2,30 @@ package com.truckerload.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** Light Soft UI palette — teal + orange accents. */
+/** App-wide semantic colors — aligned with SoftUiTheme purple palette. */
 object AppColors {
     val White = Color(0xFFFFFFFF)
-    val LightGray = Color(0xFFF5F5F5)
-    val WarmCream = Color(0xFFFFF3E0)
-    val DarkTeal = Color(0xFF1B3A4B)
-    val Orange = Color(0xFFF5A623)
-    val OrangeLight = Color(0xFFFFB74D)
-    val BorderGray = Color(0xFFE0E0E0)
+    val LightGray = SoftUiColors.BackgroundLight
+    val WarmCream = SoftUiColors.PurpleLight
+    val DarkTeal = SoftUiColors.PurpleEnd
+    val Orange = SoftUiColors.PurpleStart
+    val OrangeLight = SoftUiColors.PurpleMuted
+    val BorderGray = Color(0xFFE5E7EB)
 
-    val TextPrimary = DarkTeal
-    val TextSecondary = Color(0xFF5A6B7A)
-    val TextMuted = Color(0xFF9AA5B1)
-    val TextOnDark = White
-    val TextOnOrange = White
-    val TextAccent = Orange
+    val TextPrimary = SoftUiColors.TextPrimaryLight
+    val TextSecondary = SoftUiColors.TextSecondaryLight
+    val TextMuted = Color(0xFF9CA3AF)
+    val TextOnDark = SoftUiColors.TextPrimaryDark
+    val TextOnOrange = Color.White
+    val TextAccent = SoftUiColors.PurpleStart
 
-    val RpmGreen = Color(0xFF4CAF50)
-    val RpmYellow = Color(0xFFFFC107)
-    val RpmRed = Color(0xFFEF5350)
+    val RpmGreen = Color(0xFF34D399)
+    val RpmYellow = Color(0xFFFFD54F)
+    val RpmRed = Color(0xFFFF8A80)
     val Danger = RpmRed
 
-    val DarkTeal15 = DarkTeal.copy(alpha = 0.15f)
-    val DarkTeal08 = DarkTeal.copy(alpha = 0.08f)
-    val Orange15 = Orange.copy(alpha = 0.15f)
+    val DarkTeal15 = SoftUiColors.PurpleStart.copy(alpha = 0.15f)
+    val DarkTeal08 = SoftUiColors.ShadowTint
+    val Orange15 = SoftUiColors.PurpleLight.copy(alpha = 0.65f)
     val White70 = White.copy(alpha = 0.70f)
 }

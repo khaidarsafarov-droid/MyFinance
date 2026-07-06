@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.camera
 
+import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -35,12 +36,12 @@ data class CameraUiState(
 )
 
 class CameraViewModel(
-    private val context: Context,
+    private val app: Application,
     private val photoRepository: PhotoRepository,
 ) : ViewModel() {
 
-    private val locationHelper = LocationHelper(context)
-    private val photoManager = PhotoManager(context)
+    private val locationHelper = LocationHelper(app)
+    private val photoManager = PhotoManager(app)
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -164,7 +165,7 @@ class CameraViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CameraViewModel(context.applicationContext, photoRepository) as T
+            return CameraViewModel(context.applicationContext as Application, photoRepository) as T
         }
     }
 }

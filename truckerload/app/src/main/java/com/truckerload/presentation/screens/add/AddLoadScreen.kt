@@ -12,7 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +39,6 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -118,21 +117,13 @@ fun AddLoadScreen(
                     scope.launch {
                         aiRepository.parseLoadFromMessage(rawText)
                             .onSuccess { load ->
-                                onOptimisticInsert?.invoke(load)
-                                onSaved()
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    try {
-                                        withContext(Dispatchers.IO) { loadRepository.insertLoad(load) }
-                                    } catch (e: Exception) {
-                                        withContext(Dispatchers.Main) {
-                                            onRevertOptimistic?.invoke(load.id)
-                                            android.widget.Toast.makeText(
-                                                context,
-                                                context.getString(R.string.common_save_error, e.message.orEmpty()),
-                                                android.widget.Toast.LENGTH_LONG
-                                            ).show()
-                                        }
-                                    }
+                                try {
+                                    withContext(Dispatchers.IO) { loadRepository.insertLoad(load) }
+                                    onOptimisticInsert?.invoke(load)
+                                    onSaved()
+                                } catch (e: Exception) {
+                                    error = context.getString(R.string.common_save_error, e.message.orEmpty())
+                                    isSaving = false
                                 }
                             }
                             .onFailure {

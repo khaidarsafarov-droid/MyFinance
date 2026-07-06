@@ -13,7 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +44,6 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.formatDateTimeForDisplay
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,6 +60,9 @@ fun EditLoadScreen(
     val tc = LocalTruckColors.current
     val loadRepository = LocalLoadRepository.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
+    var saveError by remember { mutableStateOf<String?>(null) }
     var load by remember(loadId) { mutableStateOf<Load?>(null) }
     var loadError by remember(loadId) { mutableStateOf<String?>(null) }
     var tripId by remember { mutableStateOf("") }
@@ -178,24 +181,31 @@ fun EditLoadScreen(
                         pointB = pointB,
                         updatedAt = System.currentTimeMillis()
                     )
-                    onOptimisticUpdate?.invoke(updated)
-                    onSaved()
-                    CoroutineScope(Dispatchers.Default).launch {
+                    isSaving = true
+                    saveError = null
+                    scope.launch {
                         try {
                             withContext(Dispatchers.IO) {
                                 loadRepository.updateLoad(updated)
                             }
+                            onOptimisticUpdate?.invoke(updated)
+                            onSaved()
                         } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                onRevertOptimistic?.invoke(updated.id)
-                                android.widget.Toast.makeText(context, context.getString(R.string.common_save_error, e.message.orEmpty()), android.widget.Toast.LENGTH_LONG).show()
-                            }
+                            saveError = context.getString(R.string.common_save_error, e.message.orEmpty())
+                            isSaving = false
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                enabled = !isSaving,
             ) {
-                Text(stringResource(R.string.edit_load_save_changes))
+                Text(
+                    if (isSaving) stringResource(R.string.add_load_saving)
+                    else stringResource(R.string.edit_load_save_changes)
+                )
+            }
+            saveError?.let { err ->
+                Text(err, color = tc.AccentExpense, modifier = Modifier.padding(top = 8.dp))
             }
         }
     }

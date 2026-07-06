@@ -13,6 +13,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
 
 class SmartNotificationWorker(
@@ -27,16 +28,14 @@ class SmartNotificationWorker(
 
     override suspend fun doWork(): Result {
         val db = AppDatabase.getInstance(applicationContext)
-        val loadRepo = LoadRepository(db)
         val paycheckRepo = PaycheckRepository(db)
         val dieselRepo = DieselRepository(db)
 
         createChannels()
         val (currentWeek, year) = getCurrentWeekNumberAndYear()
-        val lastWeek = if (currentWeek <= 1) 52 else currentWeek - 1
-        val lastYear = if (currentWeek <= 1) year - 1 else year
+        val (lastWeek, lastYear) = shiftWeekNumberAndYear(currentWeek, year, -1)
 
-        try {
+        return try {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
             if (paycheck == null) {
                 notify(
@@ -58,10 +57,11 @@ class SmartNotificationWorker(
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
                 )
             }
+            Result.success()
         } catch (e: Exception) {
             android.util.Log.w("SmartNotification", "check failed", e)
+            Result.retry()
         }
-        return Result.success()
     }
 
     private fun createChannels() {

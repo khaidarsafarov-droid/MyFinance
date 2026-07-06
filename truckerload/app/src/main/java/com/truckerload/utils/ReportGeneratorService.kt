@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
+import androidx.core.graphics.toColorInt
 import android.net.Uri
 import com.truckerload.domain.model.Load
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +54,7 @@ class ReportGeneratorService(private val context: Context) {
     }
 
     private val zebraPaint = Paint().apply {
-        color = Color.parseColor("#F5F5F5")
+        color = "#F5F5F5".toColorInt()
         style = Paint.Style.FILL
     }
 
@@ -196,7 +197,7 @@ class ReportGeneratorService(private val context: Context) {
         val headerHeight = 24f
         val bottomY = topY + headerHeight
         canvas.drawRect(margin.toFloat(), topY, (margin + contentWidth).toFloat(), bottomY, Paint().apply {
-            color = Color.parseColor("#E0E0E0")
+            color = "#E0E0E0".toColorInt()
             style = Paint.Style.FILL
         })
         canvas.drawLine(margin.toFloat(), topY, (margin + contentWidth).toFloat(), topY, linePaint)

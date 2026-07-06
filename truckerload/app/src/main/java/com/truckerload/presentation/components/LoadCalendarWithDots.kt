@@ -137,6 +137,7 @@ fun LoadCalendarWithDots(
                             .background(
                                 when {
                                     isSelected -> tc.AccentPrimary.copy(alpha = 0.3f)
+                                    hasLoad && isCurrentMonth -> tc.AccentProfit.copy(alpha = 0.15f)
                                     else -> Color.Transparent
                                 }
                             )
@@ -159,8 +160,8 @@ fun LoadCalendarWithDots(
                             if (hasLoad) {
                                 Box(
                                     modifier = Modifier
-                                        .size(4.dp)
-                                        .padding(top = 4.dp)
+                                        .padding(top = 2.dp)
+                                        .size(6.dp)
                                         .clip(CircleShape)
                                         .background(tc.AccentProfit)
                                 )

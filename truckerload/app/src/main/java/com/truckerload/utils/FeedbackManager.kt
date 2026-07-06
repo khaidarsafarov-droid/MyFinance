@@ -1,6 +1,8 @@
 package com.truckerload.utils
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 
 /** Haptic and audio feedback for load/goal events. */
 object FeedbackManager {
@@ -8,19 +10,24 @@ object FeedbackManager {
   @Volatile
   private var appContext: Context? = null
 
+  private val mainHandler = Handler(Looper.getMainLooper())
+
   fun init(context: Context) {
     appContext = context.applicationContext
   }
 
   fun onLoadAdded() {
     val ctx = appContext ?: return
-    SoundManager.playLoadAdded(ctx)
-    VibrationManager.vibrateLight(ctx)
+    mainHandler.post {
+      SoundManager.playLoadAdded(ctx)
+    }
   }
 
   fun onGoalReached() {
     val ctx = appContext ?: return
-    SoundManager.playGoalReached(ctx)
-    VibrationManager.vibrateGoalReached(ctx)
+    mainHandler.post {
+      SoundManager.playGoalReached(ctx)
+      VibrationManager.vibrateGoalReached(ctx)
+    }
   }
 }

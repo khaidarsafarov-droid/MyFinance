@@ -15,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.theme.DarkGlassGradients
+import com.truckerload.presentation.theme.SoftUiColors
+import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.UiDimens
 
 @Composable
@@ -31,11 +33,22 @@ fun ScannerButton(
     size: Dp = UiDimens.FabSize,
     iconSize: Dp = UiDimens.IconFab,
 ) {
-    val gradient = DarkGlassGradients.cta
+    val gradient = Brush.horizontalGradient(
+        listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+    )
     Box(
         modifier = modifier
             .then(
-                if (elevated) Modifier.shadow(8.dp, CircleShape, clip = false) else Modifier,
+                if (elevated) {
+                    Modifier.shadow(
+                        SoftUiElevation.Fab,
+                        CircleShape,
+                        ambientColor = SoftUiColors.ShadowTint,
+                        spotColor = SoftUiColors.ShadowNeutral,
+                    )
+                } else {
+                    Modifier
+                },
             )
             .size(size)
             .clip(CircleShape)

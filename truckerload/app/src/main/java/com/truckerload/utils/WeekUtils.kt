@@ -65,6 +65,16 @@ fun getCurrentWeekNumberAndYear(): Pair<Int, Int> {
     return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
 }
 
+/** Shift trucking week by [deltaWeeks] (negative = previous). */
+fun shiftWeekNumberAndYear(weekNumber: Int, year: Int, deltaWeeks: Int): Pair<Int, Int> {
+    val cal = truckingWeekCalendar()
+    cal.clear()
+    cal.set(Calendar.YEAR, year)
+    cal.set(Calendar.WEEK_OF_YEAR, weekNumber)
+    cal.add(Calendar.WEEK_OF_YEAR, deltaWeeks)
+    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
+}
+
 fun getPreviousWeekNumberAndYear(): Pair<Int, Int> {
     val cal = truckingWeekCalendar()
     cal.add(Calendar.WEEK_OF_YEAR, -1)
@@ -199,6 +209,16 @@ fun Load.withReportingWeek(): Load {
     )
 }
 
+/** Normalize user-facing date text to YYYY-MM-DD when possible. */
+fun canonicalDateString(raw: String?): String? {
+    if (raw.isNullOrBlank()) return null
+    val trimmed = raw.trim()
+    if (trimmed.length >= 10 && trimmed[4] == '-' && trimmed[7] == '-') {
+        return trimmed.take(10)
+    }
+    return parseDateFromQuery(trimmed)
+}
+
 /** Парсит дату из scheduledTime (YYYY-MM-DD HH:mm, DD.MM.YYYY, etc). Возвращает YYYY-MM-DD или null. */
 fun parseDateFromScheduledTime(s: String): String? {
     if (s.isBlank()) return null
@@ -299,7 +319,7 @@ fun getLastDeliveryMillis(load: Load): Long? {
 /** Для груза возвращает множество дат (YYYY-MM-DD), когда груз активен: от первой до последней остановки включительно. */
 fun getLoadDateRange(load: Load): Set<String> {
     val dates = mutableSetOf<String>()
-    if (load.date.length >= 10) dates.add(load.date)
+    canonicalDateString(load.date)?.let { dates.add(it) }
     val stopDates = load.stops.mapNotNull { parseDateFromScheduledTime(it.scheduledTime) }
     if (stopDates.isNotEmpty()) {
         val sorted = stopDates.sorted()

@@ -1,56 +1,46 @@
 package com.truckerload.widget
 
 import android.content.Context
-import android.os.Build
 import androidx.annotation.ColorInt
-import com.google.android.material.color.MaterialColors
+import androidx.core.content.ContextCompat
+import com.truckerload.R
 
-/** Resolves Material You / system theme colors for App Widgets. */
+/** Widget bitmap/ring colors — uses widget_colors.xml (works outside Activity theme). */
 object WidgetThemeColors {
-
-    fun themedContext(context: Context): Context = context.applicationContext
 
     @ColorInt
     fun primary(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorPrimary)
+        ContextCompat.getColor(context, R.color.widget_primary)
 
     @ColorInt
     fun onPrimary(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorOnPrimary)
+        ContextCompat.getColor(context, R.color.widget_text_primary)
 
     @ColorInt
     fun primaryContainer(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorPrimaryContainer)
+        ContextCompat.getColor(context, R.color.widget_secondary)
 
     @ColorInt
     fun surface(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorSurface)
+        ContextCompat.getColor(context, R.color.widget_bg)
 
     @ColorInt
     fun onSurface(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorOnSurface)
+        ContextCompat.getColor(context, R.color.widget_text_primary)
 
     @ColorInt
     fun onSurfaceVariant(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorOnSurfaceVariant)
+        ContextCompat.getColor(context, R.color.widget_text_secondary)
 
     @ColorInt
     fun surfaceVariant(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorSurfaceVariant)
+        ContextCompat.getColor(context, R.color.widget_progress_track)
 
     @ColorInt
     fun tertiary(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorTertiary)
+        ContextCompat.getColor(context, R.color.widget_green)
 
     @ColorInt
     fun error(context: Context): Int =
-        resolve(context, com.google.android.material.R.attr.colorError)
-
-    fun supportsDynamicColor(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
-    @ColorInt
-    private fun resolve(context: Context, attr: Int): Int {
-        val themed = themedContext(context)
-        return MaterialColors.getColor(themed, attr, "WidgetThemeColors")
-    }
+        ContextCompat.getColor(context, R.color.widget_remaining_warning)
 }

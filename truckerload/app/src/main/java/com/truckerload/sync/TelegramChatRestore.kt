@@ -1,5 +1,6 @@
 package com.truckerload.sync
 
+import androidx.core.content.edit
 import android.content.SharedPreferences
 import android.util.Log
 import com.truckerload.data.local.dao.TelegramInboxDao
@@ -67,7 +68,7 @@ class TelegramChatRestore(
                 messageArchive.append(text, update.messageDateSeconds, update.updateId)
                 if (update.chatId == chatId) saved++
             }
-            prefs.edit().putLong(TelegramSyncWorker.KEY_LAST_OFFSET, result.nextOffset).commit()
+            prefs.edit(commit = true) {putLong(TelegramSyncWorker.KEY_LAST_OFFSET, result.nextOffset)}
             offset = result.nextOffset
         }
         Log.i(TAG, "drainPendingUpdates saved=$saved chatId=$chatId offset=$offset")

@@ -4,7 +4,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.SystemClock
 import com.truckerload.data.preferences.TelegramTokenStore
 
@@ -24,12 +23,7 @@ object TelegramServiceRestarter {
         val pending = PendingIntent.getBroadcast(context, REQUEST_CODE, intent, flags)
         val triggerAt = SystemClock.elapsedRealtime() + delayMs.coerceAtLeast(1_000L)
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pending)
-            } else {
-                @Suppress("DEPRECATION")
-                alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pending)
-            }
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pending)
         } catch (_: SecurityException) {
             alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pending)
         }

@@ -4,7 +4,11 @@ import android.content.Context
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL
+import com.truckerload.data.preferences.WeeklyProfitGoalStore
+import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.repository.WeekRepository
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
@@ -15,25 +19,23 @@ import kotlinx.coroutines.withContext
 
 object WidgetStatsLoader {
 
-    private const val PREFS_GOAL = "truckerload_widget_goals"
-    private const val KEY_WEEKLY_PROFIT_GOAL = "weekly_profit_goal"
-
     suspend fun refresh(context: Context): WidgetStats = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
         val db = AppDatabase.getInstance(appContext)
         val loadRepository = LoadRepository(db)
+        val weekRepository = WeekRepository(
+            loadRepository,
+            PaycheckRepository(db),
+            DieselRepository(db),
+        )
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
         val (_, _, weekLabel) = getWeekRange(weekNumber, year)
         val allLoads = loadRepository.getAllLoadsOnce()
+        val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
         val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)
-        val profitGoal = appContext.getSharedPreferences(PREFS_GOAL, Context.MODE_PRIVATE).let { prefs ->
-            if (prefs.contains(KEY_WEEKLY_PROFIT_GOAL)) {
-                prefs.getFloat(KEY_WEEKLY_PROFIT_GOAL, 0f).toDouble()
-            } else {
-                DEFAULT_WEEKLY_GROSS_GOAL
-            }
-        }
+        val profitGoal = WeeklyProfitGoalStore(appContext).getGoal().takeIf { it > 0 }
+            ?: DEFAULT_WEEKLY_GROSS_GOAL
         val goalProgress = WeeklyGoalCalculator.calculateCurrentWeek(profitGoal, allLoads, sqlYield)
         val rpmTarget = appContext.getSharedPreferences("truckerload_settings", Context.MODE_PRIVATE)
             .getFloat("target_profit_threshold", 2.5f)
@@ -54,7 +56,7 @@ object WidgetStatsLoader {
             avgCpm = if (goalProgress.totalMiles > 0) goalProgress.currentGross / goalProgress.totalMiles else 0.0,
             totalMiles = goalProgress.totalMiles,
             totalLoadRate = goalProgress.currentGross,
-            netProfit = 0.0,
+            netProfit = weekSummary.netProfit,
             weekLabel = weekLabel,
             statsLine = statsLine,
             cpmTarget = rpmTarget,

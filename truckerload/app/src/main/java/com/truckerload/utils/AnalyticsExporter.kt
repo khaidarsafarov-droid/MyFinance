@@ -11,7 +11,7 @@ import java.util.Locale
 
 object AnalyticsExporter {
 
-    fun exportToCsv(context: Context, dashboard: AnalyticsDashboard, period: AnalyticsPeriod): File? {
+    fun exportToCsv(context: Context, dashboard: AnalyticsDashboard, period: AnalyticsPeriod): Result<File> {
         return try {
             val dir = File(
                 android.os.Environment.getExternalStoragePublicDirectory(
@@ -19,7 +19,9 @@ object AnalyticsExporter {
                 ),
                 DOWNLOADS_FOLDER
             )
-            if (!dir.exists()) dir.mkdirs()
+            if (!dir.exists() && !dir.mkdirs()) {
+                return Result.failure(IllegalStateException("Cannot create export directory"))
+            }
             val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
             val file = File(dir, "analytics_${period.name.lowercase(Locale.US)}_$stamp.csv")
             file.bufferedWriter().use { out ->
@@ -54,9 +56,9 @@ object AnalyticsExporter {
                     out.appendLine("${d.dayLabel},${d.gross},${d.loadCount}")
                 }
             }
-            file
-        } catch (_: Exception) {
-            null
+            Result.success(file)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

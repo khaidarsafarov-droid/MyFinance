@@ -44,10 +44,10 @@ object WidgetRemoteViewsFactory {
     applyTheme(themed, views)
     bindHeader(appContext, views, stats, tier)
     bindRingHero(appContext, views, stats, prefs, tier, themed)
-    bindMetricsRow(appContext, views, stats, prefs, tier, themed)
     bindWeekDays(appContext, views, appWidgetId, tier, themed)
     bindRpmBlock(appContext, views, stats, tier, themed)
     bindEmptyState(appContext, views, stats, prefs, tier)
+    bindQuickActions(appContext, views, tier)
     bindClickTargets(appContext, views, appWidgetId, tier)
     return views
   }
@@ -115,7 +115,7 @@ object WidgetRemoteViewsFactory {
   }
 
   private fun applyTheme(context: Context, views: RemoteViews) {
-    views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_glass_outer)
+    views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_soft_gradient)
 
     val primary = ContextCompat.getColor(context, R.color.widget_text_primary)
     val secondary = ContextCompat.getColor(context, R.color.widget_text_secondary)
@@ -128,12 +128,12 @@ object WidgetRemoteViewsFactory {
     views.setTextColor(R.id.widget_gross_hero, primary)
     views.setTextColor(R.id.widget_goal_subtitle, secondary)
     views.setTextColor(R.id.widget_ring_percent, hint)
-    views.setTextColor(R.id.widget_need_per_day, secondary)
-    views.setTextColor(R.id.widget_to_go, secondary)
     views.setTextColor(R.id.widget_rpm_label, secondary)
     views.setTextColor(R.id.widget_rpm_value, primary)
     views.setTextColor(R.id.widget_empty_message, secondary)
     views.setTextColor(R.id.widget_empty_add_btn, accent)
+    views.setTextColor(R.id.widget_btn_camera_label, secondary)
+    views.setTextColor(R.id.widget_btn_scanner_label, secondary)
   }
 
   private fun bindHeader(
@@ -153,8 +153,8 @@ object WidgetRemoteViewsFactory {
         views.setViewVisibility(R.id.widget_week, View.GONE)
       }
       LayoutTier.STANDARD -> {
-        views.setViewVisibility(R.id.widget_subtitle, View.VISIBLE)
-        views.setTextViewText(R.id.widget_subtitle, context.getString(R.string.widget_weekly_summary))
+        views.setViewVisibility(R.id.widget_subtitle, View.GONE)
+        views.setViewVisibility(R.id.widget_truck_icon, View.GONE)
         if (stats.weekLabel.isNotBlank()) {
           views.setViewVisibility(R.id.widget_week, View.VISIBLE)
           views.setTextViewText(R.id.widget_week, stats.weekLabel)
@@ -164,6 +164,7 @@ object WidgetRemoteViewsFactory {
       }
       LayoutTier.EXPANDED -> {
         views.setViewVisibility(R.id.widget_subtitle, View.GONE)
+        views.setViewVisibility(R.id.widget_truck_icon, View.GONE)
         if (stats.weekLabel.isNotBlank()) {
           views.setViewVisibility(R.id.widget_week, View.VISIBLE)
           views.setTextViewText(R.id.widget_week, stats.weekLabel)
@@ -197,13 +198,22 @@ object WidgetRemoteViewsFactory {
       stats.goalPaceStatus,
       goalMet,
     )
-    val ringBitmap = WidgetProgressRingBitmap.create(
-      themed,
-      if (goalSet) progress else 0f,
-      ringSizePx,
-      progressColor,
-    )
-    views.setImageViewBitmap(R.id.widget_progress_ring, ringBitmap)
+    val ringBitmap = runCatching {
+      WidgetProgressRingBitmap.create(
+        themed,
+        if (goalSet) progress else 0f,
+        ringSizePx,
+        progressColor,
+      )
+    }.getOrElse { error ->
+      Log.e(TAG, "Progress ring bitmap failed", error)
+      null
+    }
+    if (ringBitmap != null) {
+      views.setImageViewBitmap(R.id.widget_progress_ring, ringBitmap)
+    } else {
+      views.setViewVisibility(R.id.widget_progress_ring, View.GONE)
+    }
 
     if (tier == LayoutTier.COMPACT) {
       views.setTextViewText(
@@ -236,77 +246,6 @@ object WidgetRemoteViewsFactory {
         WidgetStatsFormatter.formatProgressPercent(0f)
       },
     )
-  }
-
-  private fun bindMetricsRow(
-    context: Context,
-    views: RemoteViews,
-    stats: WidgetStats,
-    prefs: WidgetPrefs,
-    tier: LayoutTier,
-    themed: Context,
-  ) {
-    if (tier == LayoutTier.COMPACT) {
-      views.setViewVisibility(R.id.widget_details_row, View.GONE)
-      return
-    }
-
-    val goalSet = stats.weeklyProfitGoal > 0
-    val goalMet = goalSet && stats.totalLoadRate >= stats.weeklyProfitGoal
-
-    if (!prefs.showGoal || !goalSet) {
-      views.setViewVisibility(R.id.widget_details_row, View.GONE)
-      return
-    }
-
-    views.setViewVisibility(R.id.widget_details_row, View.VISIBLE)
-
-    val needLine = if (goalMet) {
-      context.getString(R.string.widget_goal_met_need)
-    } else {
-      context.getString(
-        R.string.widget_need_per_day,
-        WidgetStatsFormatter.formatGrossUsd(stats.goalDailyNeeded),
-      )
-    }
-    views.setTextViewText(R.id.widget_need_per_day, needLine)
-    views.setTextColor(
-      R.id.widget_need_per_day,
-      if (goalMet) {
-        ContextCompat.getColor(themed, R.color.widget_success)
-      } else {
-        ContextCompat.getColor(themed, R.color.widget_text_secondary)
-      },
-    )
-
-    val remaining = stats.goalRemainingAmount.coerceAtLeast(0.0)
-    val remainingText = if (tier == LayoutTier.EXPANDED) {
-      WidgetStatsFormatter.formatGrossUsd(remaining)
-    } else {
-      context.getString(
-        R.string.widget_to_go,
-        WidgetStatsFormatter.formatGrossUsd(remaining),
-      )
-    }
-    views.setTextViewText(R.id.widget_to_go, remainingText)
-    views.setTextColor(
-      R.id.widget_to_go,
-      remainingColor(themed, stats, goalMet, remaining),
-    )
-  }
-
-  private fun remainingColor(
-    themed: Context,
-    stats: WidgetStats,
-    goalMet: Boolean,
-    remaining: Double,
-  ): Int = when {
-    goalMet || remaining <= 0.0 ->
-      ContextCompat.getColor(themed, R.color.widget_success)
-    stats.goalPaceStatus == "BEHIND" ->
-      ContextCompat.getColor(themed, R.color.widget_remaining_warning)
-    else ->
-      ContextCompat.getColor(themed, R.color.widget_text_primary)
   }
 
   private fun bindWeekDays(
@@ -352,14 +291,23 @@ object WidgetRemoteViewsFactory {
           LayoutTier.EXPANDED -> WidgetWeekDaysBitmap.rowHeightPx(context, compact = false)
           else -> WidgetWeekDaysBitmap.rowHeightPx(context, compact = true)
         }
-        val bitmap = WidgetWeekDaysBitmap.create(
-          themed,
-          statuses,
-          WidgetWeekDayHelper.dayLabels,
-          width,
-          height,
-        )
-        views.setImageViewBitmap(R.id.widget_week_days, bitmap)
+        val bitmap = runCatching {
+          WidgetWeekDaysBitmap.create(
+            themed,
+            statuses,
+            WidgetWeekDayHelper.dayLabels,
+            width,
+            height,
+          )
+        }.getOrElse { error ->
+          Log.e(TAG, "Week days bitmap failed", error)
+          null
+        }
+        if (bitmap != null) {
+          views.setImageViewBitmap(R.id.widget_week_days, bitmap)
+        } else {
+          views.setViewVisibility(R.id.widget_week_days, View.GONE)
+        }
       }
     }
   }
@@ -373,7 +321,7 @@ object WidgetRemoteViewsFactory {
   ) {
     if (tier == LayoutTier.COMPACT) return
 
-    views.setViewVisibility(R.id.widget_rpm_divider, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
     views.setViewVisibility(R.id.widget_rpm_label, View.VISIBLE)
     views.setViewVisibility(R.id.widget_rpm_value, View.VISIBLE)
 
@@ -412,14 +360,12 @@ object WidgetRemoteViewsFactory {
       if (tier == LayoutTier.COMPACT) {
         views.setViewVisibility(R.id.widget_day_dots_row, View.VISIBLE)
       }
-      if (tier != LayoutTier.COMPACT && prefs.showGoal && stats.weeklyProfitGoal > 0) {
-        views.setViewVisibility(R.id.widget_details_row, View.VISIBLE)
-      }
       if (tier != LayoutTier.COMPACT) {
         views.setViewVisibility(R.id.widget_right_column, View.VISIBLE)
-        views.setViewVisibility(R.id.widget_rpm_divider, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
         views.setViewVisibility(R.id.widget_rpm_label, View.VISIBLE)
         views.setViewVisibility(R.id.widget_rpm_value, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_quick_actions, View.VISIBLE)
       }
       return
     }
@@ -431,6 +377,7 @@ object WidgetRemoteViewsFactory {
       views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
       views.setViewVisibility(R.id.widget_rpm_label, View.GONE)
       views.setViewVisibility(R.id.widget_rpm_value, View.GONE)
+      views.setViewVisibility(R.id.widget_quick_actions, View.GONE)
     }
     if (tier == LayoutTier.COMPACT) {
       views.setViewVisibility(R.id.widget_day_dots_row, View.GONE)
@@ -438,6 +385,24 @@ object WidgetRemoteViewsFactory {
     }
     views.setTextViewText(R.id.widget_empty_message, context.getString(R.string.widget_empty_no_loads))
     views.setTextViewText(R.id.widget_empty_add_btn, context.getString(R.string.widget_empty_add_short))
+  }
+
+  private fun bindQuickActions(
+    context: Context,
+    views: RemoteViews,
+    tier: LayoutTier,
+  ) {
+    if (tier == LayoutTier.COMPACT) {
+      views.setViewVisibility(R.id.widget_quick_actions, View.VISIBLE)
+      views.setViewVisibility(R.id.widget_btn_camera_label, View.GONE)
+      views.setViewVisibility(R.id.widget_btn_scanner_label, View.GONE)
+      return
+    }
+    views.setViewVisibility(R.id.widget_quick_actions, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_btn_camera_label, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_btn_scanner_label, View.VISIBLE)
+    views.setTextViewText(R.id.widget_btn_camera_label, context.getString(R.string.widget_camera_short))
+    views.setTextViewText(R.id.widget_btn_scanner_label, context.getString(R.string.widget_scanner_short))
   }
 
   private fun bindClickTargets(
@@ -466,14 +431,6 @@ object WidgetRemoteViewsFactory {
       R.id.widget_gross_hero,
       activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_WEEKLY_GOAL, 15),
     )
-    views.setOnClickPendingIntent(
-      R.id.widget_need_per_day,
-      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_WEEKLY_GOAL, 16),
-    )
-    views.setOnClickPendingIntent(
-      R.id.widget_to_go,
-      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_WEEKLY_GOAL, 18),
-    )
     if (tier != LayoutTier.COMPACT) {
       views.setOnClickPendingIntent(
         R.id.widget_week_days,
@@ -487,6 +444,14 @@ object WidgetRemoteViewsFactory {
     views.setOnClickPendingIntent(
       R.id.widget_empty_add_btn,
       activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_ADD_LOAD, 17),
+    )
+    views.setOnClickPendingIntent(
+      R.id.widget_btn_camera,
+      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_CAMERA, 22),
+    )
+    views.setOnClickPendingIntent(
+      R.id.widget_btn_scanner,
+      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_SCANNER, 23),
     )
   }
 

@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.settings
 
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -19,6 +18,8 @@ import com.truckerload.data.preferences.AppLanguage
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.utils.AppLocale
+import com.truckerload.widget.WidgetUpdateWorker
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -48,7 +49,8 @@ fun LanguageSettingsSection(
                         if (language == selected) return@FilterChip
                         scope.launch {
                             settingsDataStore.saveLanguage(language)
-                            (context as? ComponentActivity)?.recreate()
+                            AppLocale.applyAndRecreate(context, language)
+                            WidgetUpdateWorker.refreshNow(context.applicationContext)
                         }
                     },
                     label = {

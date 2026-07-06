@@ -1,15 +1,15 @@
 package com.truckerload.sync
 
 import android.content.Context
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.truckerload.data.preferences.TelegramTokenStore
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.WorkManager
 import android.util.Log
-import java.util.concurrent.TimeUnit
 
 /**
  * Ensures [TelegramBotForegroundService] is running. Polling only happens in the service (single client).
@@ -20,6 +20,8 @@ class TelegramSyncWorker(
 ) : CoroutineWorker(context, params) {
 
     companion object {
+        const val UNIQUE_ENSURE_SERVICE_WORK = "telegram_sync_ensure_service"
+        const val UNIQUE_WATCHDOG_WORK = "telegram_bot_watchdog"
         const val PREFS_NAME = "telegram_sync"
         const val KEY_LAST_OFFSET = "last_update_offset"
         const val KEY_MANUAL_RESTORE_PREFIX = "manual_restore_mode_"
@@ -30,28 +32,31 @@ class TelegramSyncWorker(
         const val KEY_IMPORT_FILES_PREFIX = "import_files_"
         const val MANUAL_RESTORE_TIMEOUT_MS = 5 * 60 * 1000L
         const val MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
+
+        fun enqueueEnsureService(context: Context, replace: Boolean = false) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val request = OneTimeWorkRequestBuilder<TelegramSyncWorker>()
+                .setConstraints(constraints)
+                .build()
+            WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
+                UNIQUE_ENSURE_SERVICE_WORK,
+                if (replace) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP,
+                request,
+            )
+        }
     }
 
     override suspend fun doWork(): Result {
         val token = TelegramTokenStore(applicationContext).getToken()
         if (token.isBlank()) {
             Log.w("TelegramSync", "No bot token — set TELEGRAM_BOT_TOKEN in local.properties or Settings")
-            scheduleNext(120)
             return Result.success()
         }
         if (!TelegramPollCoordinator.isForegroundPolling()) {
             TelegramBotForegroundService.start(applicationContext)
         }
-        scheduleNext(300)
         return Result.success()
-    }
-
-    private fun scheduleNext(delaySeconds: Long) {
-        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        val nextWork = OneTimeWorkRequestBuilder<TelegramSyncWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(delaySeconds.coerceAtLeast(60), TimeUnit.SECONDS)
-            .build()
-        WorkManager.getInstance(applicationContext).enqueue(nextWork)
     }
 }

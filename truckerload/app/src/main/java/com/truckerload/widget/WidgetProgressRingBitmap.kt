@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.SweepGradient
+import androidx.core.graphics.createBitmap
 import com.truckerload.R
 
 /** Draws a Material You circular goal-progress ring for App Widget [RemoteViews]. */
@@ -18,7 +19,7 @@ object WidgetProgressRingBitmap {
         @Suppress("UNUSED_PARAMETER") progressColor: Int,
     ): Bitmap {
         val safeSize = sizePx.coerceAtLeast(48)
-        val bitmap = Bitmap.createBitmap(safeSize, safeSize, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(safeSize, safeSize)
         val canvas = Canvas(bitmap)
         val trackColor = WidgetThemeColors.surfaceVariant(context)
         val primary = WidgetThemeColors.primary(context)

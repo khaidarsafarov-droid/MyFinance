@@ -6,5 +6,5 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
-    <style name="Theme.TruckerLoad.Widget" parent="android:Theme.DeviceDefault" />
+    <style name="Theme.TruckerLoad.Widget" parent="Theme.Material3.DayNight" />
 </resources>

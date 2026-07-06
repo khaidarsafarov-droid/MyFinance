@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import com.truckerload.presentation.screens.stats.StatsPeriod
@@ -43,12 +44,12 @@ class StatsSelectionStore(context: Context) {
     }
 
     fun save(snapshot: StatsSelectionSnapshot) {
-        prefs.edit()
-            .putString(KEY_STATS_PERIOD, snapshot.period.name)
-            .putInt(KEY_STATS_WEEK, snapshot.weekNumber.coerceIn(1, 53))
-            .putInt(KEY_STATS_WEEK_YEAR, snapshot.weekYear)
-            .putInt(KEY_STATS_CALENDAR_MONTH, snapshot.calendarMonth.coerceIn(1, 12))
-            .putInt(KEY_STATS_CALENDAR_YEAR, snapshot.calendarYear)
-            .apply()
+        prefs.edit {
+            putString(KEY_STATS_PERIOD, snapshot.period.name)
+            putInt(KEY_STATS_WEEK, snapshot.weekNumber.coerceIn(1, 53))
+            putInt(KEY_STATS_WEEK_YEAR, snapshot.weekYear)
+            putInt(KEY_STATS_CALENDAR_MONTH, snapshot.calendarMonth.coerceIn(1, 12))
+            putInt(KEY_STATS_CALENDAR_YEAR, snapshot.calendarYear)
+        }
     }
 }

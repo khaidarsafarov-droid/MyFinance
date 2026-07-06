@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.RectF
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import com.truckerload.R
 
 /** Renders Sun–Sat floating soft chips for App Widget [RemoteViews]. */
@@ -23,7 +24,7 @@ object WidgetWeekDaysBitmap {
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(168)
         val safeHeight = heightPx.coerceAtLeast(24)
-        val bitmap = Bitmap.createBitmap(safeWidth, safeHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(safeWidth, safeHeight)
         val canvas = Canvas(bitmap)
 
         val count = 7

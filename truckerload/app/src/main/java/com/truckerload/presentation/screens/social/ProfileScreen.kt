@@ -2,6 +2,7 @@ package com.truckerload.presentation.screens.social
 
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
+import com.truckerload.presentation.components.LocalOpenDrawer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +59,7 @@ fun ProfileScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
+    showBack: Boolean = true,
     viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.Factory(LocalSocialRepository.current),
     ),
@@ -63,6 +67,7 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val profile = uiState.profile
     val tc = LocalTruckColors.current
+    val openDrawer = LocalOpenDrawer.current
 
     Scaffold(
         modifier = modifier,
@@ -71,8 +76,14 @@ fun ProfileScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.profile)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    if (showBack) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        }
+                    } else {
+                        IconButton(onClick = openDrawer) {
+                            Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
+                        }
                     }
                 },
                 actions = {
@@ -335,7 +346,7 @@ private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
                 ContactRow(
                     label = "📞 $phone",
                     onClick = {
-                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                        context.startActivity(Intent(Intent.ACTION_DIAL, "tel:$phone".toUri()))
                     },
                 )
             }
@@ -344,7 +355,7 @@ private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
                 ContactRow(
                     label = "💬 @$handle",
                     onClick = {
-                        val telegramUri = Uri.parse("https://t.me/$handle")
+                        val telegramUri = "https://t.me/$handle".toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, telegramUri))
                     },
                 )
@@ -353,7 +364,7 @@ private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
                 ContactRow(
                     label = "📱 $whatsapp",
                     onClick = {
-                        val waUri = Uri.parse("https://wa.me/${whatsapp.filter { it.isDigit() }}")
+                        val waUri = "https://wa.me/${whatsapp.filter { it.isDigit() }}".toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, waUri))
                     },
                 )

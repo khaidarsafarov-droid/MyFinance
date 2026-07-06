@@ -10,16 +10,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.SoftUiColors
+import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.UiDimens
@@ -38,12 +43,17 @@ fun HomeWeekHeroCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val cs = MaterialTheme.colorScheme
     val (_, _, weekLabel) = rememberWeekLabel()
     BentoGlassCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
+            .shadow(
+                elevation = SoftUiElevation.Card,
+                shape = RoundedCornerShape(BentoGlassTheme.CardRadius),
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            )
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         cornerRadius = BentoGlassTheme.CardRadius,
         useHeroGradient = true,
@@ -59,7 +69,7 @@ fun HomeWeekHeroCard(
             ) {
                 Text(
                     text = weekLabel,
-                    style = AppTypography.Subtitle.copy(color = cs.onPrimary.copy(alpha = 0.7f)),
+                    style = AppTypography.Subtitle.copy(color = Color.White.copy(alpha = 0.75f)),
                 )
             }
             AnimatedCircularProgress(
@@ -73,12 +83,12 @@ fun HomeWeekHeroCard(
             WeekDayDotsRow(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
             Text(
                 text = stringResource(R.string.widget_metric_cpm),
-                style = AppTypography.Caption.copy(color = cs.onPrimary.copy(alpha = 0.7f)),
+                style = AppTypography.Caption.copy(color = Color.White.copy(alpha = 0.75f)),
             )
             if (rpm != null && rpm > 0) {
                 Text(
                     text = String.format(Locale.US, "$%.2f/mi", rpm),
-                    style = AppTypography.AccentNumber.copy(color = cs.primaryContainer),
+                    style = AppTypography.AccentNumber.copy(color = Color.White),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -88,7 +98,6 @@ fun HomeWeekHeroCard(
 
 @Composable
 private fun WeekDayDotsRow(modifier: Modifier = Modifier) {
-    val cs = MaterialTheme.colorScheme
     val cal = Calendar.getInstance()
     val today = cal.get(Calendar.DAY_OF_WEEK) // Sun=1
     val labels = listOf("S", "M", "T", "W", "T", "F", "S")
@@ -102,11 +111,11 @@ private fun WeekDayDotsRow(modifier: Modifier = Modifier) {
             val isPast = dayIndex < today
             val isToday = dayIndex == today
             val bg = when {
-                isToday -> cs.primaryContainer
-                isPast -> cs.primaryContainer.copy(alpha = 0.85f)
-                else -> cs.onPrimary.copy(alpha = 0.15f)
+                isToday -> Color.White
+                isPast -> Color.White.copy(alpha = 0.85f)
+                else -> Color.White.copy(alpha = 0.2f)
             }
-            val labelColor = if (isToday) cs.onPrimaryContainer else cs.onPrimary.copy(alpha = 0.7f)
+            val labelColor = if (isToday) SoftUiColors.PurpleEnd else Color.White.copy(alpha = 0.75f)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = label, style = AppTypography.CaptionMuted.copy(color = labelColor))
                 Box(

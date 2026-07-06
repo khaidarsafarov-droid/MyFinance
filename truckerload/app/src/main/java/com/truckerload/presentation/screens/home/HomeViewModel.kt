@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.home
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -70,7 +71,7 @@ sealed class HomeListItem {
 class HomeViewModel(
     private val loadRepository: LoadRepository,
     private val isBotConfigured: Boolean = false,
-    private val context: Context
+    private val app: Application
 ) : ViewModel() {
 
     private val filterUseCase = LoadFilterUseCase()
@@ -133,16 +134,16 @@ class HomeViewModel(
                     val ids = list.map { it.id }.toSet()
                     current.filterKeys { it !in ids }
                 }
-                WidgetDataUpdater.updateWidgetData(context.applicationContext)
+                WidgetDataUpdater.updateWidgetData(app)
             }
         }
         if (isBotConfigured) {
             viewModelScope.launch {
-                val token = TelegramTokenStore(context).getToken()
+                val token = TelegramTokenStore(app).getToken()
                 val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
                 _uiState.update { it.copy(botStatusActive = health.ok) }
                 if (health.ok) {
-                    TelegramBotForegroundService.start(context.applicationContext)
+                    TelegramBotForegroundService.start(app)
                 }
             }
         }
@@ -161,7 +162,7 @@ class HomeViewModel(
     fun deleteLoad(loadId: String) {
         viewModelScope.launch {
             loadRepository.deleteLoad(loadId)
-            WidgetDataUpdater.updateWidgetData(context.applicationContext)
+            WidgetDataUpdater.updateWidgetData(app.applicationContext)
         }
     }
 
@@ -187,7 +188,7 @@ class HomeViewModel(
         val (ws, we, wl) = getWeekRange(wn, wy)
         _uiState.update {
             it.copy(
-                filter = LoadFilter.CALENDAR_DATE,
+                filter = LoadFilter.CALENDAR_WEEK,
                 selectedDate = date,
                 selectedDateLabel = label,
                 selectedWeekStart = ws,
@@ -239,10 +240,10 @@ class HomeViewModel(
                 LoadFilter.CALENDAR_WEEK -> if (state.selectedWeekLabel.isNotBlank())
                     formatFilterLabel(state.selectedWeekLabel, totals.loadCount)
                 else null
-                LoadFilter.YESTERDAY -> formatFilterLabel(context.getString(R.string.home_filter_yesterday), totals.loadCount)
-                LoadFilter.THIS_WEEK -> formatFilterLabel(context.getString(R.string.home_filter_this_week), totals.loadCount)
-                LoadFilter.LAST_WEEK -> formatFilterLabel(context.getString(R.string.home_filter_last_week), totals.loadCount)
-                LoadFilter.THIS_MONTH -> formatFilterLabel(context.getString(R.string.home_filter_this_month), totals.loadCount)
+                LoadFilter.YESTERDAY -> formatFilterLabel(app.getString(R.string.home_filter_yesterday), totals.loadCount)
+                LoadFilter.THIS_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_this_week), totals.loadCount)
+                LoadFilter.LAST_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_last_week), totals.loadCount)
+                LoadFilter.THIS_MONTH -> formatFilterLabel(app.getString(R.string.home_filter_this_month), totals.loadCount)
                 LoadFilter.ALL -> null
             }
             val items = mutableListOf<HomeListItem>()
@@ -257,7 +258,7 @@ class HomeViewModel(
             val result = mutableListOf<HomeListItem>()
             result.add(
                 HomeListItem.FilteredSectionHeader(
-                    context.getString(
+                    app.getString(
                         R.string.home_year_selected_header,
                         state.selectedYear ?: Calendar.getInstance().get(Calendar.YEAR),
                         totals.loadCount,
@@ -289,13 +290,13 @@ class HomeViewModel(
     }
 
     private fun loadWord(n: Int): String = when {
-        n % 10 == 1 && n % 100 != 11 -> context.getString(R.string.home_load_word_one)
-        n % 10 in 2..4 && (n % 100 < 10 || n % 100 >= 20) -> context.getString(R.string.home_load_word_few)
-        else -> context.getString(R.string.home_load_word_many)
+        n % 10 == 1 && n % 100 != 11 -> app.getString(R.string.home_load_word_one)
+        n % 10 in 2..4 && (n % 100 < 10 || n % 100 >= 20) -> app.getString(R.string.home_load_word_few)
+        else -> app.getString(R.string.home_load_word_many)
     }
 
     private fun formatFilterLabel(baseLabel: String, count: Int): String =
-        context.getString(R.string.home_filter_label_with_count, baseLabel, count, loadWord(count))
+        app.getString(R.string.home_filter_label_with_count, baseLabel, count, loadWord(count))
 
     private fun monthName(month: Int): String {
         val long = DateFormatSymbols(Locale.getDefault())
@@ -338,6 +339,6 @@ class HomeViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            HomeViewModel(loadRepository, isBotConfigured, context) as T
+            HomeViewModel(loadRepository, isBotConfigured, context.applicationContext as Application) as T
     }
 }

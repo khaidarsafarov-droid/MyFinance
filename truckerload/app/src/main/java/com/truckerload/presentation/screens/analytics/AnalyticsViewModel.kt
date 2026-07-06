@@ -1,9 +1,11 @@
 package com.truckerload.presentation.screens.analytics
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.truckerload.R
 import com.truckerload.data.repository.AnalyticsDashboard
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.domain.model.Load
@@ -34,7 +36,7 @@ data class AnalyticsUiState(
 
 class AnalyticsViewModel(
     private val repository: AnalyticsRepository,
-    private val context: Context,
+    private val app: Application,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AnalyticsUiState())
@@ -86,7 +88,7 @@ class AnalyticsViewModel(
                 defaultIndex?.let { selectWeek(it) }
             }.onFailure { e ->
                 _uiState.update {
-                    it.copy(isLoading = false, error = e.message ?: "Ошибка загрузки")
+                    it.copy(isLoading = false, error = e.message ?: app.getString(R.string.analytics_error_loading))
                 }
             }
         }
@@ -95,8 +97,18 @@ class AnalyticsViewModel(
     fun exportAnalytics() {
         val dashboard = lastDashboard ?: return
         viewModelScope.launch {
-            val file = AnalyticsExporter.exportToCsv(context, dashboard, _uiState.value.period)
-            _uiState.update { it.copy(exportPath = file?.absolutePath) }
+            AnalyticsExporter.exportToCsv(app, dashboard, _uiState.value.period)
+                .onSuccess { file ->
+                    _uiState.update { it.copy(exportPath = file.absolutePath, error = null) }
+                }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            exportPath = null,
+                            error = app.getString(R.string.export_csv_error),
+                        )
+                    }
+                }
         }
     }
 
@@ -110,7 +122,7 @@ class AnalyticsViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return AnalyticsViewModel(repository, context) as T
+            return AnalyticsViewModel(repository, context.applicationContext as Application) as T
         }
     }
 }

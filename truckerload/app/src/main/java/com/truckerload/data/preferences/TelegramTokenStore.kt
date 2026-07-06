@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import com.truckerload.BuildConfig
 
@@ -13,7 +14,7 @@ class TelegramTokenStore(context: Context) {
     }
 
     fun setToken(token: String) {
-        prefs.edit().putString(KEY_TOKEN, token.trim()).apply()
+        prefs.edit {putString(KEY_TOKEN, token.trim())}
     }
 
     fun hasToken(): Boolean = getToken().isNotBlank()
@@ -24,7 +25,7 @@ class TelegramTokenStore(context: Context) {
         if (fromBuild.isBlank()) return
         val saved = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
         if (saved != fromBuild) {
-            prefs.edit().putString(KEY_TOKEN, fromBuild).apply()
+            prefs.edit {putString(KEY_TOKEN, fromBuild)}
         }
     }
 

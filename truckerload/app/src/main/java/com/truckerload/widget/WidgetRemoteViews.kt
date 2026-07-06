@@ -20,5 +20,16 @@ object WidgetRemoteViews {
         build(context, android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID, stats)
 
     private fun loadingFallback(context: Context): RemoteViews =
-        RemoteViews(context.applicationContext.packageName, R.layout.widget_loading)
+        runCatching {
+            WidgetRemoteViewsFactory.build(
+                context.applicationContext,
+                android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID,
+                WidgetStats(
+                    weeklyProfitGoal = com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL,
+                    updatedAtMillis = System.currentTimeMillis(),
+                ),
+            )
+        }.getOrElse {
+            RemoteViews(context.applicationContext.packageName, R.layout.widget_loading)
+        }
 }

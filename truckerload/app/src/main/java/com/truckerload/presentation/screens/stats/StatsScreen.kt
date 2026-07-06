@@ -37,13 +37,12 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.SmartToy
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import com.truckerload.presentation.components.SoftCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.TextButton
+import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -85,6 +84,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.SoftUiDimens
 import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -406,15 +406,13 @@ private fun StatsAiOverlay(
             .background(Color.Black.copy(alpha = 0.4f))
             .clickable(onClick = onDismiss)
     ) {
-        Card(
+        SoftCard(
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(24.dp)
-                .fillMaxWidth(0.92f)
-                .clickable { },
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .fillMaxWidth(0.92f),
+            onClick = {},
+            contentPadding = 20.dp,
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -470,11 +468,7 @@ private fun StatsAiOverlay(
 @Composable
 private fun ContextCard(month: Int, year: Int) {
     val tc = LocalTruckColors.current
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard {
         Row(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -496,11 +490,7 @@ private fun RevenueChartCard(points: List<LinePoint>) {
     var selectedIndex by remember { mutableIntStateOf(3) }
     val yMax = max(points.maxOf { it.revenue }, 12000f)
     val breakEven = points.map { it.expense }.average().toFloat()
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
                 stringResource(R.string.stats_chart_title),
@@ -584,12 +574,11 @@ private fun RevenueChartCard(points: List<LinePoint>) {
                     }
                 }
                 val tip = points[selectedIndex]
-                Card(
+                SoftCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .offset { IntOffset(8, 6) },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = tc.SurfaceSecondary)
+                    contentPadding = 8.dp,
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         Text(
@@ -626,12 +615,7 @@ private fun RevenueChartCard(points: List<LinePoint>) {
 @Composable
 private fun HeroNetProfitCard(netProfit: Double, change: Double?, sparkline: List<Float>, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 stringResource(R.string.stats_label_net_profit),
@@ -656,12 +640,7 @@ private fun MetricCard(
     onClick: (() -> Unit)? = null
 ) {
     val tc = LocalTruckColors.current
-    Card(
-        modifier = modifier.then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard(modifier = modifier, onClick = onClick) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -697,12 +676,7 @@ private fun MetricCard(
 private fun RpmCard(modifier: Modifier = Modifier, rpm: Double, target: Double) {
     val tc = LocalTruckColors.current
     val progress = (rpm / target).toFloat().coerceIn(0f, 1f)
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard(modifier = modifier) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.stats_label_avg_rpm), color = tc.TextSecondary)
             Text("$${"%.2f".format(rpm)}/mi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -798,11 +772,7 @@ private fun SmartHeader(period: StatsPeriod) {
         StatsPeriod.MONTH -> stringResource(R.string.common_month)
         StatsPeriod.YEAR -> stringResource(R.string.common_year)
     }
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 stringResource(R.string.stats_header_greeting),
@@ -831,11 +801,8 @@ private fun CerebrasInsightCard(
         visible = visible,
         enter = fadeIn(animationSpec = tween(durationMillis = 320))
     ) {
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = tc.CardBackground.copy(alpha = 0.92f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-            modifier = Modifier.border(1.dp, tc.GlassBorder, RoundedCornerShape(24.dp))
+        SoftCard(
+            modifier = Modifier.border(1.dp, tc.GlassBorder, RoundedCornerShape(SoftUiDimens.CardRadius)),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -876,11 +843,7 @@ private fun CerebrasInsightCard(
 @Composable
 private fun EmptyMagicBlock() {
     val tc = LocalTruckColors.current
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -924,14 +887,7 @@ private fun buildIllustrativeChart(ui: StatsUiState): List<LinePoint> {
 @Composable
 private fun MapPreviewCard(onOpenMap: () -> Unit) {
     val tc = LocalTruckColors.current
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpenMap),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = tc.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    SoftCard(modifier = Modifier.fillMaxWidth(), onClick = onOpenMap) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

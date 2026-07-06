@@ -17,7 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
+import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,6 +50,8 @@ import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalTruckColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -66,7 +68,7 @@ fun SignUpScreen(
     val context = LocalContext.current
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
-    val supabaseAuth = remember { SupabaseAuthService() }
+    val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val scope = rememberCoroutineScope()
 
     var fullName by remember { mutableStateOf("") }
@@ -93,7 +95,7 @@ fun SignUpScreen(
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
-                android.widget.Toast.makeText(context, "Supabase не настроен.", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured), android.widget.Toast.LENGTH_LONG).show()
                 userProfileStore.saveProfile(UserProfile(email = emailTrimmed, givenName = nameTrimmed, familyName = "", photoUrl = null))
                 completeSignUp()
             }
@@ -131,18 +133,18 @@ fun SignUpScreen(
                                                                             userProfileStore.saveProfile(UserProfile(email = r.user.email ?: emailTrimmed, givenName = parts.firstOrNull() ?: "", familyName = parts.getOrNull(1) ?: "", photoUrl = null))
                                                                             completeSignUp()
                                                                         },
-                                                                        onFailure = { error = it.message ?: "Не удалось сохранить профиль" }
+                                                                        onFailure = { error = it.message ?: context.getString(R.string.signup_error_profile_save) }
                                                                     )
                                                                 }
                                                             }
                                                         } else {
                                                             isLoading = false
-                                                            android.widget.Toast.makeText(context, "Регистрация успешна. Подтвердите email по ссылке в письме, затем войдите.", android.widget.Toast.LENGTH_LONG).show()
+                                                            android.widget.Toast.makeText(context, context.getString(R.string.signup_success_confirm_email), android.widget.Toast.LENGTH_LONG).show()
                                                         }
                                                     },
                                                     onFailure = {
                                                         isLoading = false
-                                                        error = it.message ?: "Ошибка регистрации"
+                                                        error = it.message ?: context.getString(R.string.signup_error_register)
                                                     }
                                                 )
                                             }
@@ -165,6 +167,7 @@ fun SignUpScreen(
             )
         }
     ) { padding ->
+        BentoGlassScreenBackground {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
@@ -179,11 +182,7 @@ fun SignUpScreen(
                     color = tc.TextSecondary,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
-                val tfColors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = tc.AccentPrimary, unfocusedBorderColor = tc.Divider,
-                    focusedLabelColor = tc.AccentPrimary, unfocusedLabelColor = tc.TextSecondary,
-                    focusedTextColor = tc.TextPrimary, unfocusedTextColor = tc.TextPrimary, cursorColor = tc.AccentPrimary
-                )
+                val tfColors = AppTextFieldDefaults.outlined()
                 OutlinedTextField(
                     value = fullName,
                     onValueChange = { fullName = it; error = null },
@@ -248,7 +247,6 @@ fun SignUpScreen(
                     onClick = { if (!isLoading) performSignUp() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = tc.AccentPrimary)
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = tc.Background)
@@ -257,6 +255,7 @@ fun SignUpScreen(
                     Text(if (isLoading) stringResource(R.string.signup_loading) else stringResource(R.string.signup_button))
                 }
             }
+        }
         }
     }
 }

@@ -29,7 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
+import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -39,7 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.OutlinedButton
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,6 +78,8 @@ import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalTruckColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -124,7 +126,7 @@ fun LoginScreen(
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
     val scope = rememberCoroutineScope()
-    val supabaseAuth = remember { SupabaseAuthService() }
+    val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     var isLoading by remember { mutableStateOf(false) }
     var showEmailFields by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
@@ -138,7 +140,7 @@ fun LoginScreen(
     ) { result ->
         if (result.resultCode != Activity.RESULT_OK) { isLoading = false; return@rememberLauncherForActivityResult }
         val data = result.data ?: run {
-            android.widget.Toast.makeText(context, context.getString(R.string.login_google_error, "Нет данных"), android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(context, context.getString(R.string.login_google_error, context.getString(R.string.login_google_no_data)), android.widget.Toast.LENGTH_SHORT).show()
             isLoading = false
             return@rememberLauncherForActivityResult
         }
@@ -253,7 +255,7 @@ fun LoginScreen(
             password.isBlank() -> error = context.getString(R.string.auth_error_password_required)
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
-                android.widget.Toast.makeText(context, "Supabase не настроен. Вход выполнен локально.", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured_local), android.widget.Toast.LENGTH_LONG).show()
                 userProfileStore.saveProfile(UserProfile(email = emailTrimmed, givenName = "", familyName = "", photoUrl = null))
                 scheduleLoginAfterTransition(context, authStore, rememberMe)
             }
@@ -300,6 +302,7 @@ fun LoginScreen(
         }
     }
 
+    BentoGlassScreenBackground {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -318,7 +321,6 @@ fun LoginScreen(
                         onClick = { showEmailFields = true },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         enabled = !isLoading,
-                        colors = ButtonDefaults.buttonColors(containerColor = tc.AccentPrimary)
                     ) { Text(stringResource(R.string.login_button)) }
                 } else {
                     AnimatedVisibility(visible = showEmailFields, enter = expandVertically(), exit = shrinkVertically()) {
@@ -331,11 +333,7 @@ fun LoginScreen(
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth().focusRequester(emailFocus),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = tc.AccentPrimary, unfocusedBorderColor = tc.Divider,
-                                    focusedLabelColor = tc.AccentPrimary, unfocusedLabelColor = tc.TextSecondary,
-                                    focusedTextColor = tc.TextPrimary, unfocusedTextColor = tc.TextPrimary, cursorColor = tc.AccentPrimary
-                                )
+                                colors = AppTextFieldDefaults.outlined()
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedTextField(
@@ -346,11 +344,7 @@ fun LoginScreen(
                                 visualTransformation = PasswordVisualTransformation(),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = tc.AccentPrimary, unfocusedBorderColor = tc.Divider,
-                                    focusedLabelColor = tc.AccentPrimary, unfocusedLabelColor = tc.TextSecondary,
-                                    focusedTextColor = tc.TextPrimary, unfocusedTextColor = tc.TextPrimary, cursorColor = tc.AccentPrimary
-                                )
+                                colors = AppTextFieldDefaults.outlined()
                             )
                             error?.let { Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
                             Row(
@@ -369,7 +363,6 @@ fun LoginScreen(
                                 onClick = { if (!isLoading) performEmailLogin() },
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
                                 enabled = !isLoading,
-                                colors = ButtonDefaults.buttonColors(containerColor = tc.AccentPrimary)
                             ) {
                                 if (isLoading) {
                                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = tc.Background)
@@ -409,5 +402,6 @@ fun LoginScreen(
                 }
             }
         }
+    }
     }
 }

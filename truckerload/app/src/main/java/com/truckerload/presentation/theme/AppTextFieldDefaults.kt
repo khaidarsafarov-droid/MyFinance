@@ -1,9 +1,13 @@
 package com.truckerload.presentation.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 object AppTextFieldDefaults {
     @Composable
@@ -26,22 +30,49 @@ object AppTextFieldDefaults {
 }
 
 object AppFilterChipDefaults {
+    private val chipShape = RoundedCornerShape(SoftUiDimens.ChipRadius)
+
+    @Composable
+    fun shape() = chipShape
+
     @Composable
     fun colors() = FilterChipDefaults.filterChipColors(
-        selectedContainerColor = MaterialTheme.colorScheme.primary,
-        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+        selectedContainerColor = SoftUiColors.PurpleLight,
+        selectedLabelColor = SoftUiColors.PurpleEnd,
         containerColor = MaterialTheme.colorScheme.surface,
         labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary,
+        selectedLeadingIconColor = SoftUiColors.PurpleEnd,
+        selectedTrailingIconColor = SoftUiColors.PurpleEnd,
     )
 
     @Composable
     fun stateColors() = FilterChipDefaults.filterChipColors(
-        selectedContainerColor = MaterialTheme.colorScheme.tertiary,
-        selectedLabelColor = MaterialTheme.colorScheme.onTertiary,
+        selectedContainerColor = SoftUiColors.PurpleLight,
+        selectedLabelColor = SoftUiColors.PurpleEnd,
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        labelColor = SoftUiColors.TextSecondaryLight,
+    )
+}
+
+object AppSwitchDefaults {
+    @Composable
+    fun colors() = SwitchDefaults.colors(
+        checkedThumbColor = Color.White,
+        checkedTrackColor = SoftUiColors.PurpleStart,
+        uncheckedThumbColor = Color.White,
+        uncheckedTrackColor = SoftUiColors.SurfaceMuted,
+        uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+    )
+}
+
+object AppSliderDefaults {
+    @Composable
+    fun colors() = SliderDefaults.colors(
+        thumbColor = Color.White,
+        activeTrackColor = SoftUiColors.PurpleStart,
+        inactiveTrackColor = SoftUiColors.SurfaceMuted,
+        activeTickColor = Color.Transparent,
+        inactiveTickColor = Color.Transparent,
     )
 }

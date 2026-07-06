@@ -4,31 +4,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/** Layout tokens — aliases for light Soft UI. */
+/** Layout tokens — soft UI aliases. */
 object DarkGlassTokens {
-    val BackgroundTop = AppColors.White
-    val BackgroundBottom = AppColors.White
-    val Surface = AppColors.White
-    val SurfaceMetric = AppColors.White
-    val SurfaceList = AppColors.White
-    val Border = AppColors.BorderGray
-    val AccentBlue = AppColors.DarkTeal
-    val AccentPurple = AppColors.Orange
-    val TextPrimary = AppColors.TextPrimary
-    val TextSecondary = AppColors.TextSecondary
-    val TextMuted = AppColors.TextMuted
-    val TextNumbers = AppColors.TextPrimary
+    val BackgroundTop = SoftUiColors.BackgroundLight
+    val BackgroundBottom = SoftUiColors.BackgroundLight
+    val Surface = SoftUiColors.SurfaceLight
+    val SurfaceMetric = SoftUiColors.SurfaceLight
+    val SurfaceList = SoftUiColors.SurfaceLight
+    val Border = Color(0xFFE5E7EB)
+    val AccentBlue = SoftUiColors.PurpleEnd
+    val AccentPurple = SoftUiColors.PurpleStart
+    val TextPrimary = SoftUiColors.TextPrimaryLight
+    val TextSecondary = SoftUiColors.TextSecondaryLight
+    val TextMuted = Color(0xFF9CA3AF)
+    val TextNumbers = SoftUiColors.TextPrimaryLight
     val Success = AppColors.RpmGreen
     val Warning = AppColors.RpmYellow
     val Error = AppColors.RpmRed
-    val ShadowGlow = AppColors.DarkTeal08
-    val CornerRadius = 24.dp
-    val CellRadius = 16.dp
+    val ShadowGlow = SoftUiColors.ShadowTint
+    val CornerRadius = SoftUiDimens.CardRadius
+    val CellRadius = SoftUiDimens.ChipRadius
     val BorderWidth = 1.dp
     val CardElevation = AppElevation.Card
     val BlurRadius = 0.dp
-    val SurfaceSolidTop = AppColors.White
-    val SurfaceSolidBottom = AppColors.White
+    val SurfaceSolidTop = SoftUiColors.SurfaceLight
+    val SurfaceSolidBottom = SoftUiColors.SurfaceLight
 }
 
 typealias NeoGlassColors = TruckColorPalette
@@ -36,16 +36,16 @@ val LocalColors = LocalTruckColors
 
 object NeoGlassPalette {
     val GlowAlpha = 0.15f
-    val SkyTop = AppColors.White
-    val SkyBottom = AppColors.White
-    val Primary = AppColors.DarkTeal
-    val Secondary = AppColors.Orange
+    val SkyTop = SoftUiColors.BackgroundLight
+    val SkyBottom = SoftUiColors.BackgroundLight
+    val Primary = SoftUiColors.PurpleStart
+    val Secondary = SoftUiColors.SkyBlueEnd
     val Success = AppColors.RpmGreen
     val Warning = AppColors.RpmYellow
     val Error = AppColors.RpmRed
-    val ShadowSoft = AppColors.DarkTeal08
-    val GlassStroke = AppColors.BorderGray
-    val Surface = AppColors.White
+    val ShadowSoft = SoftUiColors.ShadowTint
+    val GlassStroke = Color(0xFFE5E7EB)
+    val Surface = SoftUiColors.SurfaceLight
 }
 
 @Composable

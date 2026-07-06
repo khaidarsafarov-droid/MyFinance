@@ -34,9 +34,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.theme.DarkGlassGradients
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.NeoGlassPalette
+import com.truckerload.presentation.theme.SoftUiElevation
 import java.util.Locale
 
 @Composable
@@ -49,7 +51,12 @@ fun GoldCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(12.dp, shape, ambientColor = NeoGlassPalette.ShadowSoft, spotColor = tc.AccentPrimary.copy(0.25f))
+            .shadow(
+                elevation = SoftUiElevation.Card,
+                shape = shape,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            )
             .clip(shape)
             .background(DarkGlassGradients.cardShine)
             .border(BentoGlassTheme.BorderWidth, tc.GlassBorder, shape)
@@ -65,29 +72,9 @@ fun GoldButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    val tc = LocalTruckColors.current
-    val shape = remember { RoundedCornerShape(20.dp) }
-    Box(
-        modifier = modifier
-            .defaultMinSize(minHeight = 56.dp)
-            .shadow(if (enabled) 6.dp else 0.dp, shape, ambientColor = tc.AccentPrimary.copy(0.2f))
-            .clip(shape)
-            .background(
-                if (enabled) DarkGlassGradients.cta
-                else Brush.linearGradient(listOf(tc.ProgressTrack, tc.ProgressTrack))
-            )
-            .clickable(
-                enabled = enabled,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick,
-            )
-            .padding(horizontal = 28.dp, vertical = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
+    TlButton(onClick = onClick, modifier = modifier, enabled = enabled) {
         Text(
             text = text,
-            color = if (enabled) tc.OnAccent else tc.TextSecondary,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
         )
@@ -126,7 +113,7 @@ fun GoldIcon(
         imageVector = imageVector,
         contentDescription = null,
         modifier = modifier.size(size),
-        tint = tc.AccentPrimary,
+        tint = SoftUiColors.PurpleStart,
     )
 }
 

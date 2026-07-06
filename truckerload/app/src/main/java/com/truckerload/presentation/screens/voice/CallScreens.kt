@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.truckerload.presentation.theme.SoftUiColors
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,7 +79,7 @@ fun IncomingCallScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0A0A0A)),
+                .background(Color(0xFF1A1B2E)),
         ) {
             Column(
                 modifier = Modifier
@@ -91,12 +92,12 @@ fun IncomingCallScreen(
                     modifier = Modifier
                         .size(UiDimens.AvatarCallLarge)
                         .clip(CircleShape)
-                        .background(Color(0xFF1C1C1E)),
+                        .background(SoftUiColors.SurfaceDark),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = callState.callerName.take(1).uppercase(),
-                        color = Color(0xFFC9A84C),
+                        color = SoftUiColors.PurpleStart,
                         fontSize = 48.sp,
                     )
                 }
@@ -109,7 +110,7 @@ fun IncomingCallScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.incoming_call),
-                    color = Color(0xFF8E8E93),
+                    color = SoftUiColors.TextSecondaryDark,
                 )
                 Spacer(modifier = Modifier.height(48.dp))
                 Row(
@@ -150,7 +151,7 @@ fun CallScreen(
     val micGranted = rememberMicPermission()
 
     Scaffold(
-            containerColor = Color(0xFF0A0A0A),
+            containerColor = Color(0xFF1A1B2E),
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.audio_call), color = tc.TextPrimary) },
@@ -179,7 +180,7 @@ fun CallScreen(
                     modifier = Modifier
                         .size(UiDimens.AvatarCallActive)
                         .clip(CircleShape)
-                        .background(Color(0xFF1C1C1E)),
+                        .background(SoftUiColors.SurfaceDark),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(peerName.take(1).uppercase(), color = tc.AccentPrimary, fontSize = 40.sp)
@@ -203,7 +204,7 @@ fun CallScreen(
                     CallActionButton(
                         icon = if (state.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                         label = if (state.isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute),
-                        background = if (state.isMuted) Color(0xFFFF3B30) else Color(0xFF3A3A3C),
+                        background = if (state.isMuted) Color(0xFFFF3B30) else Color(0xFF2E3048),
                         onClick = { viewModel.toggleMute() },
                     )
                     CallActionButton(
@@ -235,6 +236,6 @@ private fun CallActionButton(
             Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(UiDimens.CallActionIcon))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(label, color = Color(0xFF8E8E93), fontSize = 11.sp, textAlign = TextAlign.Center)
+        Text(label, color = SoftUiColors.TextSecondaryDark, fontSize = 11.sp, textAlign = TextAlign.Center)
     }
 }

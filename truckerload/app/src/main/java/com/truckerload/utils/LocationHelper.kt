@@ -1,6 +1,7 @@
 package com.truckerload.utils
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
@@ -29,6 +30,7 @@ class LocationHelper(private val context: Context) {
         return fine || coarse
     }
 
+    @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): LocationData? = withContext(Dispatchers.IO) {
         if (!hasLocationPermission()) return@withContext null
         try {

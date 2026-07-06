@@ -3,6 +3,7 @@ package com.truckerload.utils
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanner
@@ -41,7 +42,7 @@ class DocumentScannerService(private val context: Context) {
 
         fun openPlayServicesUpdate(context: Context) {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("market://details?id=com.google.android.gms")
+                data = "market://details?id=com.google.android.gms".toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             runCatching { context.startActivity(intent) }

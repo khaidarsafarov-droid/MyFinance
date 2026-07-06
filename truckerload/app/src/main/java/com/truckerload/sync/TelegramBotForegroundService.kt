@@ -1,5 +1,6 @@
 package com.truckerload.sync
 
+import androidx.core.content.edit
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -80,7 +81,7 @@ class TelegramBotForegroundService : Service() {
             val api = TelegramApi(token)
             api.deleteWebhook().onFailure { e -> Log.w(TAG, "deleteWebhook: ${e.message}") }
             api.setMyCommands().onSuccess {
-                prefs.edit().putBoolean(KEY_BOT_FEATURES_SETUP, true).apply()
+                prefs.edit {putBoolean(KEY_BOT_FEATURES_SETUP, true)}
             }.onFailure { e -> Log.w(TAG, "setMyCommands: ${e.message}") }
             api.setChatMenuButton().onFailure { e -> Log.w(TAG, "setChatMenuButton: ${e.message}") }
         }
@@ -89,12 +90,17 @@ class TelegramBotForegroundService : Service() {
     private suspend fun pollLoop(token: String) {
         val engine = TelegramBotSyncEngine(applicationContext)
         while (scope.isActive) {
-            val result = engine.runOnce(token)
-            val delaySec = when {
-                result.processedUpdates > 0 -> result.nextDelaySeconds.coerceIn(1, 60)
-                else -> result.nextDelaySeconds.coerceIn(2, 60)
+            try {
+                val result = engine.runOnce(token)
+                val delaySec = when {
+                    result.processedUpdates > 0 -> result.nextDelaySeconds.coerceIn(1, 60)
+                    else -> result.nextDelaySeconds.coerceIn(2, 60)
+                }
+                delay(delaySec * 1000)
+            } catch (e: Exception) {
+                Log.e(TAG, "pollLoop error — retrying", e)
+                delay(5_000)
             }
-            delay(delaySec * 1000)
         }
     }
 

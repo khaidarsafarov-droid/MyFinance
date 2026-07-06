@@ -3,6 +3,7 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:baselineAligned="false"
     android:theme="@style/Theme.TruckerLoad.Widget"
     android:background="@drawable/widget_glass_outer"
     android:orientation="vertical"
@@ -54,7 +55,8 @@
             android:id="@+id/widget_main_row"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
+            android:baselineAligned="false"
+            android:gravity="top"
             android:orientation="horizontal">
 
             <FrameLayout
@@ -109,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/widget_spacing_expanded"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
+                android:gravity="top|center_horizontal"
                 android:orientation="vertical">
 
                 <ImageView
@@ -121,18 +123,16 @@
 
                 <ImageView
                     android:id="@+id/widget_rpm_divider"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
                     android:contentDescription="@null"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/widget_rpm_divider_line" />
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/widget_rpm_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="@string/widget_rpm_label"
                     android:textColor="@color/widget_text_secondary"
                     android:textSize="@dimen/widget_rpm_label_text" />
@@ -141,64 +141,14 @@
                     android:id="@+id/widget_rpm_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="1dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/widget_text_primary"
                     android:textSize="@dimen/widget_rpm_value_text_expanded"
                     android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/widget_details_row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/widget_spacing_expanded"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/widget_expanded_need_label"
-                    android:textColor="@color/widget_text_secondary"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/widget_need_per_day"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/widget_success"
-                    android:textSize="@dimen/widget_footer_text_expanded"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/widget_expanded_remaining_label"
-                    android:textColor="@color/widget_text_secondary"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/widget_to_go"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/widget_text_primary"
-                    android:textSize="@dimen/widget_footer_text_expanded"
-                    android:textStyle="bold" />
+                <include layout="@layout/widget_quick_actions" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

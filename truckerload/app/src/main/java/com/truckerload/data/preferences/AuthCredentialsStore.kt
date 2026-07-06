@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 
@@ -12,10 +13,10 @@ class AuthCredentialsStore(context: Context) {
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun saveCredentials(email: String, password: String) {
-        prefs.edit()
-            .putString(KEY_EMAIL, email)
-            .putString(KEY_PASSWORD, password)
-            .apply()
+        prefs.edit {
+            putString(KEY_EMAIL, email)
+            putString(KEY_PASSWORD, password)
+        }
     }
 
     fun getEmail(): String = prefs.getString(KEY_EMAIL, "") ?: ""

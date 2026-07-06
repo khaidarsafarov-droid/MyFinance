@@ -17,6 +17,7 @@ import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getMonthRange
 import com.truckerload.utils.getPreviousMonth
 import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -271,16 +272,12 @@ class StatsViewModel(
     }
 
     fun previousWeek() {
-        var w = _uiState.value.weekNumber - 1
-        var y = _uiState.value.year
-        if (w < 1) { w = 52; y-- }
+        val (w, y) = shiftWeekNumberAndYear(_uiState.value.weekNumber, _uiState.value.year, -1)
         selectWeek(w, y)
     }
 
     fun nextWeek() {
-        var w = _uiState.value.weekNumber + 1
-        var y = _uiState.value.year
-        if (w > 52) { w = 1; y++ }
+        val (w, y) = shiftWeekNumberAndYear(_uiState.value.weekNumber, _uiState.value.year, 1)
         selectWeek(w, y)
     }
 
@@ -517,11 +514,12 @@ class StatsViewModel(
     }
 
     private suspend fun getPreviousWeekSummary(weekNumber: Int, year: Int): com.truckerload.domain.model.WeekSummary? {
-        val prevWeek = if (weekNumber <= 1) 52 else weekNumber - 1
-        val prevYear = if (weekNumber <= 1) year - 1 else year
-        return try {
+        val (prevWeek, prevYear) = shiftWeekNumberAndYear(weekNumber, year, -1)
+        return runCatching {
             weekRepository.getWeekSummaryOnce(prevWeek, prevYear)
-        } catch (_: Exception) { null }
+        }.onFailure { e ->
+            android.util.Log.w("StatsViewModel", "Previous week summary failed", e)
+        }.getOrNull()
     }
 
     private fun loadWeeksInMonth(month: Int, year: Int) {

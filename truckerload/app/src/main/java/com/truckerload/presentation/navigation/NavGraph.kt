@@ -30,6 +30,7 @@ import androidx.navigation.navArgument
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 import com.truckerload.presentation.components.AdaptiveScaffold
+import com.truckerload.presentation.components.DrawerDestination
 import com.truckerload.presentation.components.navigateToMainRoute
 import com.truckerload.presentation.utils.AdaptiveScreenContainer
 import com.truckerload.presentation.utils.isTablet
@@ -171,6 +172,18 @@ fun NavGraph(
                 }
                 onDeepLinkHandled()
             }
+            WidgetDeepLink.ROUTE_CAMERA, Routes.CAMERA -> {
+                navController.navigate(Routes.CAMERA) {
+                    launchSingleTop = true
+                }
+                onDeepLinkHandled()
+            }
+            WidgetDeepLink.ROUTE_SCANNER, Routes.SCANNER -> {
+                navController.navigate(Routes.SCANNER) {
+                    launchSingleTop = true
+                }
+                onDeepLinkHandled()
+            }
         }
     }
 
@@ -183,13 +196,12 @@ fun NavGraph(
     }
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.SETTINGS)
+    val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.PROFILE)
     val showMainNavigation = if (tablet) {
         currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
             !currentRoute.orEmpty().startsWith("photo_detail") &&
-            currentRoute != Routes.PROFILE && currentRoute != Routes.PROFILE_EDIT &&
             !currentRoute.orEmpty().startsWith("profile_peer") &&
             !currentRoute.orEmpty().startsWith("social_chat")
     } else {
@@ -200,14 +212,14 @@ fun NavGraph(
         showMainNavigation = showMainNavigation,
         currentRoute = currentRoute,
         onNavigate = { route -> navigateToMainRoute(route, navController) },
-        onCameraClick = {
-            navController.navigate(Routes.CAMERA) {
-                launchSingleTop = true
-            }
-        },
-        onScannerClick = {
-            navController.navigate(Routes.SCANNER) {
-                launchSingleTop = true
+        onDrawerNavigate = { destination ->
+            when (destination) {
+                DrawerDestination.PROFILE -> navigateToMainRoute(Routes.PROFILE, navController)
+                DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
+                DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
+                DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
+                DrawerDestination.SUPPORT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
+                DrawerDestination.ABOUT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
             }
         },
     ) { padding ->
@@ -281,10 +293,17 @@ fun NavGraph(
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable(Routes.PROFILE) {
+            composable(
+                route = Routes.PROFILE,
+                enterTransition = { tabEnterTransition() },
+                exitTransition = { tabExitTransition() },
+                popEnterTransition = { tabEnterTransition() },
+                popExitTransition = { tabExitTransition() },
+            ) {
                 ProfileScreen(
-                    onBack = { navController.popBackStack() },
+                    onBack = { navigateToMainRoute(Routes.HOME, navController) },
                     onEdit = { navController.navigate(Routes.PROFILE_EDIT) },
+                    showBack = false,
                 )
             }
             composable(Routes.PROFILE_EDIT) {
@@ -399,10 +418,12 @@ fun NavGraph(
                     onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
                 )
             }
-            composable(Routes.ADD_LOAD) {
+            composable(Routes.ADD_LOAD) { addLoadEntry ->
                 val loadRepository = LocalLoadRepository.current
                 val isBotConfigured = TelegramTokenStore(context).hasToken()
-                val homeEntry = try { navController.getBackStackEntry(Routes.HOME) } catch (_: Exception) { null }
+                val homeEntry = remember(addLoadEntry) {
+                    runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
+                }
                 val homeViewModel: HomeViewModel? = homeEntry?.let {
                     viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
                 }
@@ -420,7 +441,9 @@ fun NavGraph(
                 val loadId = editBackStackEntry.arguments?.getString("loadId").orEmpty()
                 val loadRepository = LocalLoadRepository.current
                 val isBotConfigured = TelegramTokenStore(context).hasToken()
-                val homeEntry = try { navController.getBackStackEntry(Routes.HOME) } catch (_: Exception) { null }
+                val homeEntry = remember(editBackStackEntry) {
+                    runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
+                }
                 val homeViewModel: HomeViewModel? = homeEntry?.let {
                     viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
                 }

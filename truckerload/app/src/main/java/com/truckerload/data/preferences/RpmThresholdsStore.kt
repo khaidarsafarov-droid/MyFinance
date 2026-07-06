@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import com.truckerload.R
@@ -39,10 +40,10 @@ class RpmThresholdsStore(context: Context) {
             else -> null
         }
         validationError?.let { return Result.failure(IllegalArgumentException(it)) }
-        prefs.edit()
-            .putFloat(KEY_MIN_PROFIT, minProfit.toFloat())
-            .putFloat(KEY_TARGET_PROFIT, targetProfit.toFloat())
-            .apply()
+        prefs.edit {
+            putFloat(KEY_MIN_PROFIT, minProfit.toFloat())
+            putFloat(KEY_TARGET_PROFIT, targetProfit.toFloat())
+        }
         _thresholds.value = t
         return Result.success(Unit)
     }

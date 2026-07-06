@@ -41,4 +41,9 @@ object UiDimens {
     // Toolbar / top bar
     val ToolbarTouchTarget = 44.dp
     val ToolbarIconSize = 24.dp
+
+    // Bottom navigation bar
+    val NavBarHeight = 64.dp
+    val NavBarActionSize = 36.dp
+    val NavBarActionIcon = 18.dp
 }

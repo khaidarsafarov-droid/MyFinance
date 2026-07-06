@@ -23,12 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +81,7 @@ fun LoadDetailScreen(
     val photoRepository = LocalPhotoRepository.current
     val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var load by remember(loadId) { mutableStateOf<Load?>(null) }
     var loadError by remember(loadId) { mutableStateOf<String?>(null) }
     var isLoading by remember(loadId) { mutableStateOf(true) }
@@ -104,6 +106,7 @@ fun LoadDetailScreen(
     }
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(load?.tripId ?: stringResource(R.string.load_detail_title), color = tc.TextPrimary) },
@@ -121,7 +124,11 @@ fun LoadDetailScreen(
                             try {
                                 loadRepository.deleteLoad(loadId)
                                 onDelete()
-                            } catch (_: Exception) { }
+                            } catch (e: Exception) {
+                                snackbarHostState.showSnackbar(
+                                    e.message ?: context.getString(R.string.load_delete_failed)
+                                )
+                            }
                         }
                     }, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                         Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.load_detail_cd_delete), tint = tc.AccentExpense)

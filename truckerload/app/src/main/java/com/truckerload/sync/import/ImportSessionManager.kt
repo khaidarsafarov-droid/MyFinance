@@ -1,5 +1,6 @@
 package com.truckerload.sync.import
 
+import androidx.core.content.edit
 import android.content.SharedPreferences
 import com.truckerload.sync.TelegramSyncWorker
 
@@ -12,11 +13,11 @@ class ImportSessionManager(private val prefs: SharedPreferences) {
 
     fun startSession(chatId: String) {
         val now = System.currentTimeMillis()
-        prefs.edit()
-            .putBoolean(importModeKey(chatId), true)
-            .putLong(importLastActivityKey(chatId), now)
-            .putInt(importFilesKey(chatId), 0)
-            .apply()
+        prefs.edit {
+            putBoolean(importModeKey(chatId), true)
+            putLong(importLastActivityKey(chatId), now)
+            putInt(importFilesKey(chatId), 0)
+        }
     }
 
     fun isActive(chatId: String): Boolean {
@@ -32,20 +33,20 @@ class ImportSessionManager(private val prefs: SharedPreferences) {
     }
 
     fun touchActivity(chatId: String) {
-        prefs.edit().putLong(importLastActivityKey(chatId), System.currentTimeMillis()).apply()
+        prefs.edit {putLong(importLastActivityKey(chatId), System.currentTimeMillis())}
     }
 
     fun endSession(chatId: String) {
-        prefs.edit()
-            .remove(importModeKey(chatId))
-            .remove(importLastActivityKey(chatId))
-            .remove(importFilesKey(chatId))
-            .apply()
+        prefs.edit {
+            remove(importModeKey(chatId))
+            remove(importLastActivityKey(chatId))
+            remove(importFilesKey(chatId))
+        }
     }
 
     fun incrementFilesProcessed(chatId: String): Int {
         val next = getFilesProcessed(chatId) + 1
-        prefs.edit().putInt(importFilesKey(chatId), next).apply()
+        prefs.edit {putInt(importFilesKey(chatId), next)}
         return next
     }
 

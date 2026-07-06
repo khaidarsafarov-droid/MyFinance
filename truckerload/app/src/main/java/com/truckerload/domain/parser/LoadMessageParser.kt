@@ -13,9 +13,9 @@ import java.util.Locale
 object LoadMessageParser {
 
     private val tripIdPatterns = listOf(
+        Regex("""Trip\s*ID\s*[:\|]?\s*(T-[A-Z0-9]+)""", RegexOption.IGNORE_CASE),
         Regex("""Trip\s*ID\s*[:\|]?\s*([A-Z0-9\-]+)""", RegexOption.IGNORE_CASE),
-        Regex("""Trip\s+([A-Z0-9\-]{6,})""", RegexOption.IGNORE_CASE),
-        Regex("""PU#\s*([A-Z0-9]+)""", RegexOption.IGNORE_CASE)
+        Regex("""\b(T-[A-Z0-9]{6,})\b""", RegexOption.IGNORE_CASE),
     )
     private val totalRatePattern = Regex("""Total\s*Rate\s*[:\s]*\$?\s*([\d.,]+)""", RegexOption.IGNORE_CASE)
     private val totalMilesPattern = Regex("""Total\s*Loaded\s*Miles\s*[:\s]*([\d.,]+)""", RegexOption.IGNORE_CASE)
@@ -31,34 +31,36 @@ object LoadMessageParser {
         RegexOption.IGNORE_CASE
     )
 
-    private val puHeaderPattern = Regex("""^PU#\s*(\S+)""", RegexOption.MULTILINE)
+    private val puHeaderPattern = Regex("""PU#\s*(\S+)""", RegexOption.IGNORE_CASE)
     private val sectionStopPattern = Regex(
         """^(Pu|Del)-(address|time)\s*[:\s]*(.*)$""",
         RegexOption.IGNORE_CASE
     )
 
     fun parseAll(rawMessage: String): List<Load> {
-        if (!MessageClassifier.isLoadLike(rawMessage)) return emptyList()
-        return splitBlocks(rawMessage).mapNotNull { parseBlock(it, rawMessage) }
+        val normalized = TelegramStyledTextNormalizer.normalize(
+            rawMessage.replace("\r\n", "\n").trim(),
+        )
+        if (!MessageClassifier.isLoadLike(normalized)) return emptyList()
+        return splitBlocks(normalized).mapNotNull { parseBlock(it, rawMessage) }
     }
 
     fun parseOne(rawMessage: String): Load? = parseAll(rawMessage).firstOrNull()
 
+    private val tripBlockSplitPattern = Regex(
+        """(?m)(?=^Trip\s*ID)""",
+        RegexOption.IGNORE_CASE,
+    )
+
     private fun splitBlocks(text: String): List<String> {
-        val normalized = text.replace("\r\n", "\n").trim()
-        val byTrip = Regex("""(?=^Trip\s*ID)""", RegexOption.MULTILINE)
-            .split(normalized)
+        val byTrip = tripBlockSplitPattern
+            .split(text)
             .map { it.trim() }
             .filter { it.isNotBlank() && MessageClassifier.isLoadLike(it) }
         if (byTrip.isNotEmpty()) return byTrip
 
-        val byPu = Regex("""(?=^PU#\s)""", RegexOption.MULTILINE)
-            .split(normalized)
-            .map { it.trim() }
-            .filter { it.isNotBlank() && MessageClassifier.isLoadLike(it) }
-        if (byPu.size > 1) return byPu
-
-        return listOf(normalized)
+        // One trip may contain multiple PU# legs — never split on PU#.
+        return listOf(text)
     }
 
     private fun parseBlock(block: String, rawMessage: String): Load? {
@@ -216,12 +218,13 @@ object LoadMessageParser {
         val stops = mutableListOf<Stop>()
         sections["pu-address"]?.let { lines ->
             val addr = ParseUtils.parseMultiLineAddress(lines)
+            val firstPuNumber = puHeaderPattern.find(block)?.groupValues?.get(1)?.trim()
             stops.add(
                 buildStop(
                     tripId = tripId,
                     stopNumber = stops.size + 1,
                     type = StopType.PU,
-                    puNumber = tripId.takeIf { block.contains("PU#", ignoreCase = true) },
+                    puNumber = firstPuNumber,
                     note = sections["note"]?.firstOrNull(),
                     scheduledTime = sections["pu-time"]?.firstOrNull().orEmpty(),
                     addr = addr,

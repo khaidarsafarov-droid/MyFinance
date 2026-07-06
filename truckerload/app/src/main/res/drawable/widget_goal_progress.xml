@@ -2,18 +2,18 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
         <shape android:shape="rectangle">
-            <corners android:radius="8dp" />
+            <corners android:radius="10dp" />
             <solid android:color="@color/widget_progress_track" />
         </shape>
     </item>
     <item android:id="@android:id/progress">
         <clip>
             <shape android:shape="rectangle">
-                <corners android:radius="8dp" />
+                <corners android:radius="10dp" />
                 <gradient
                     android:angle="0"
-                    android:endColor="#FF10B981"
-                    android:startColor="#FF1D4ED8" />
+                    android:endColor="#FF5B9FFF"
+                    android:startColor="#FF8E78FF" />
             </shape>
         </clip>
     </item>

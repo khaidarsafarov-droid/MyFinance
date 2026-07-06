@@ -1,5 +1,6 @@
 package com.truckerload.sync
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
@@ -97,15 +98,19 @@ class TelegramBotSyncEngine(private val context: Context) {
             }
             processed++
             Log.d(TAG, "📥 Обработка updateId=${update.updateId}")
-            handleUpdate(
-                update = update,
-                telegramApi = telegramApi,
-                loadRepository = loadRepository,
-                paycheckRepository = paycheckRepository,
-                dieselRepository = dieselRepository,
-                chatRestore = chatRestore,
-                prefs = prefs
-            )
+            try {
+                handleUpdate(
+                    update = update,
+                    telegramApi = telegramApi,
+                    loadRepository = loadRepository,
+                    paycheckRepository = paycheckRepository,
+                    dieselRepository = dieselRepository,
+                    chatRestore = chatRestore,
+                    prefs = prefs
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "handleUpdate failed for updateId=${update.updateId}", e)
+            }
             nextRequestOffset = update.updateId + 1
             persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
         }
@@ -138,7 +143,7 @@ class TelegramBotSyncEngine(private val context: Context) {
         settingsDataStore: SettingsDataStore,
         offset: Long
     ) {
-        prefs.edit().putLong(TelegramSyncWorker.KEY_LAST_OFFSET, offset).commit()
+        prefs.edit(commit = true) {putLong(TelegramSyncWorker.KEY_LAST_OFFSET, offset)}
         settingsDataStore.saveLastUpdateOffset(offset)
     }
 
@@ -499,16 +504,16 @@ class TelegramBotSyncEngine(private val context: Context) {
 
     private fun startManualRestoreMode(prefs: SharedPreferences, chatId: String) {
         val now = System.currentTimeMillis()
-        prefs.edit()
-            .putBoolean(manualRestoreModeKey(chatId), true)
-            .putInt(manualRestoreCountKey(chatId), 0)
-            .putLong(manualRestoreLastActivityKey(chatId), now)
-            .apply()
+        prefs.edit {
+            putBoolean(manualRestoreModeKey(chatId), true)
+            putInt(manualRestoreCountKey(chatId), 0)
+            putLong(manualRestoreLastActivityKey(chatId), now)
+        }
         Log.d("BackupRestore", "Manual restore mode ON for chat $chatId")
     }
 
     private fun touchManualRestoreActivity(prefs: SharedPreferences, chatId: String) {
-        prefs.edit().putLong(manualRestoreLastActivityKey(chatId), System.currentTimeMillis()).apply()
+        prefs.edit {putLong(manualRestoreLastActivityKey(chatId), System.currentTimeMillis())}
     }
 
     private fun isManualRestoreMode(prefs: SharedPreferences, chatId: String): Boolean {
@@ -524,17 +529,17 @@ class TelegramBotSyncEngine(private val context: Context) {
     }
 
     private fun clearManualRestoreMode(prefs: SharedPreferences, chatId: String) {
-        prefs.edit()
-            .remove(manualRestoreModeKey(chatId))
-            .remove(manualRestoreCountKey(chatId))
-            .remove(manualRestoreLastActivityKey(chatId))
-            .apply()
+        prefs.edit {
+            remove(manualRestoreModeKey(chatId))
+            remove(manualRestoreCountKey(chatId))
+            remove(manualRestoreLastActivityKey(chatId))
+        }
         Log.d("BackupRestore", "Manual restore mode OFF for chat $chatId")
     }
 
     private fun incrementManualRestoreCount(prefs: SharedPreferences, chatId: String): Int {
         val next = prefs.getInt(manualRestoreCountKey(chatId), 0) + 1
-        prefs.edit().putInt(manualRestoreCountKey(chatId), next).apply()
+        prefs.edit {putInt(manualRestoreCountKey(chatId), next)}
         return next
     }
 
@@ -593,7 +598,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                     replies.add(handler.formatProcessingResult(result, load.tripId))
                 }
                 is ProcessingResult.Skipped -> {
-                    replies.add(context.getString(R.string.sync_duplicate_loads))
+                    replies.add(handler.formatProcessingResult(result, load.tripId))
                 }
             }
         }
@@ -733,7 +738,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                         addedAt = System.currentTimeMillis()
                     )
                 )
-                prefs.edit().putInt("last_diesel_text_hash", textHash).apply()
+                prefs.edit {putInt("last_diesel_text_hash", textHash)}
                 return context.getString(
                     R.string.sync_last_diesel,
                     String.format("%,.2f", r.totalAmount),

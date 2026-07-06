@@ -1,5 +1,6 @@
 package com.truckerload.utils
 
+import androidx.core.content.edit
 import android.content.Context
 
 /** Prevents goal fanfare from firing repeatedly for the same week/goal. */
@@ -18,9 +19,9 @@ object GoalCelebrationStore {
         val key = celebrationKey(weekNumber, year, goalAmount)
         context.applicationContext
             .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(key, true)
-            .apply()
+            .edit {
+                putBoolean(key, true)
+            }
     }
 
     private fun celebrationKey(weekNumber: Int, year: Int, goalAmount: Double): String =

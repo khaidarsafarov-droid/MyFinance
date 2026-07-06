@@ -1,5 +1,6 @@
 package com.truckerload.widget
 
+import androidx.core.content.edit
 import android.content.Context
 
 enum class WidgetSizeMode {
@@ -39,23 +40,23 @@ object WidgetPrefsStore {
 
     fun save(context: Context, appWidgetId: Int, prefs: WidgetPrefs) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putInt("w$appWidgetId.size", prefs.sizeMode.ordinal)
-            .putBoolean("w$appWidgetId.gross", prefs.showGross)
-            .putBoolean("w$appWidgetId.pace", prefs.showPace)
-            .putBoolean("w$appWidgetId.goal", prefs.showGoal)
-            .putInt("w$appWidgetId.theme", prefs.themeMode.ordinal)
-            .apply()
+            .edit {
+                putInt("w$appWidgetId.size", prefs.sizeMode.ordinal)
+                putBoolean("w$appWidgetId.gross", prefs.showGross)
+                putBoolean("w$appWidgetId.pace", prefs.showPace)
+                putBoolean("w$appWidgetId.goal", prefs.showGoal)
+                putInt("w$appWidgetId.theme", prefs.themeMode.ordinal)
+            }
     }
 
     fun delete(context: Context, appWidgetId: Int) {
         val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.remove("w$appWidgetId.size")
-        editor.remove("w$appWidgetId.gross")
-        editor.remove("w$appWidgetId.pace")
-        editor.remove("w$appWidgetId.goal")
-        editor.remove("w$appWidgetId.theme")
-        editor.apply()
+        prefs.edit {
+            remove("w$appWidgetId.size")
+            remove("w$appWidgetId.gross")
+            remove("w$appWidgetId.pace")
+            remove("w$appWidgetId.goal")
+            remove("w$appWidgetId.theme")
+        }
     }
 }

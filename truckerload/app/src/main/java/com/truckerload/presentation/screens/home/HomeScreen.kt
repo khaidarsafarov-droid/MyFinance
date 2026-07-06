@@ -20,27 +20,33 @@ import androidx.compose.ui.graphics.Color
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.FinanceCockpitColors
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.UiDimens
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import com.truckerload.presentation.components.HomeGoalSection
+import com.truckerload.presentation.components.LocalOpenDrawer
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import com.truckerload.presentation.components.TlButton
+import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Surface
+import androidx.compose.ui.window.Dialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -60,15 +66,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.R
-import com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL
 import com.truckerload.presentation.components.BotStatusBadge
-import com.truckerload.presentation.components.HomeWeekHeroCard
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
-import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.presentation.theme.StaggeredAnimatedItem
 import androidx.compose.ui.unit.dp
@@ -79,7 +80,6 @@ import com.truckerload.presentation.theme.DarkGlassSectionTitle
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
-import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.sync.TelegramSyncWorker
@@ -99,6 +99,7 @@ fun HomeScreen(
     val tc = LocalTruckColors.current
     val loadRepository = LocalLoadRepository.current
     val context = LocalContext.current
+    val openDrawer = LocalOpenDrawer.current
     val isBotConfigured = remember(context) { TelegramTokenStore(context).hasToken() }
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
     val uiState by viewModel.uiState.collectAsState()
@@ -107,12 +108,66 @@ fun HomeScreen(
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val datesWithLoads = filteredResult.datesWithLoads
-    val weekLabel = remember {
-        val (week, year) = getCurrentWeekNumberAndYear()
-        getWeekRange(week, year).third
+    val weekLabel = remember(uiState.filter, uiState.selectedWeekLabel) {
+        when (uiState.filter) {
+            LoadFilter.CALENDAR_WEEK, LoadFilter.CALENDAR_DATE -> uiState.selectedWeekLabel
+            LoadFilter.LAST_WEEK -> {
+                val (week, year) = getPreviousWeekNumberAndYear()
+                getWeekRange(week, year).third
+            }
+            else -> ""
+        }
     }
     val listItems = remember(uiState, filteredLoads, totals) {
         viewModel.flattenedListItems(filteredLoads, totals)
+    }
+    var showCalendar by remember { mutableStateOf(false) }
+    val cal = remember { java.util.Calendar.getInstance() }
+    var calendarYear by remember { mutableStateOf(cal.get(java.util.Calendar.YEAR)) }
+    var calendarMonth by remember { mutableStateOf(cal.get(java.util.Calendar.MONTH) + 1) }
+
+    if (showCalendar) {
+        Dialog(onDismissRequest = { showCalendar = false }) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = tc.CardBackground,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    Text(
+                        stringResource(R.string.home_calendar_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    LoadCalendarWithDots(
+                        year = calendarYear,
+                        month = calendarMonth,
+                        datesWithLoads = datesWithLoads,
+                        selectedDate = uiState.selectedDate,
+                        onDateSelect = { date ->
+                            viewModel.selectDate(date)
+                            showCalendar = false
+                        },
+                        onMonthChange = { y, m ->
+                            calendarYear = y
+                            calendarMonth = m
+                        },
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(onClick = { showCalendar = false }) {
+                            Text(stringResource(R.string.common_close), color = tc.AccentPrimary)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -137,6 +192,11 @@ fun HomeScreen(
                         }
                     }
                 },
+                navigationIcon = {
+                    IconButton(onClick = openDrawer) {
+                        Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BentoGlassTheme.ScreenBackground,
                     titleContentColor = tc.TextPrimary,
@@ -146,8 +206,7 @@ fun HomeScreen(
                     if (isBotConfigured) {
                         IconButton(
                             onClick = {
-                                val work = OneTimeWorkRequestBuilder<TelegramSyncWorker>().build()
-                                WorkManager.getInstance(context.applicationContext).enqueue(work)
+                                TelegramSyncWorker.enqueueEnsureService(context.applicationContext, replace = true)
                             },
                             modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                         ) {
@@ -178,6 +237,7 @@ fun HomeScreen(
                     onAddLoad = onAddLoad,
                     onWeeklyGoal = onWeeklyGoal,
                     context = context,
+                    onOpenCalendar = { showCalendar = true },
                 )
                 if (isInitialLoading) {
                     Box(
@@ -205,54 +265,24 @@ private fun HomeScreenContent(
     onLoadClick: (String) -> Unit,
     onAddLoad: () -> Unit,
     onWeeklyGoal: () -> Unit,
-    context: Context
+    context: Context,
+    onOpenCalendar: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    var showCalendar by remember { mutableStateOf(false) }
     var showYearSelector by remember { mutableStateOf(false) }
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun onRefresh() {
         refreshing = true
-        val work = OneTimeWorkRequestBuilder<TelegramSyncWorker>().build()
-        WorkManager.getInstance(context.applicationContext).enqueue(work)
+        TelegramSyncWorker.enqueueEnsureService(context.applicationContext, replace = true)
         scope.launch {
             delay(2500)
             refreshing = false
         }
     }
 
-    val cal = remember { java.util.Calendar.getInstance() }
-    var calendarYear by remember { mutableStateOf(cal.get(java.util.Calendar.YEAR)) }
-    var calendarMonth by remember { mutableStateOf(cal.get(java.util.Calendar.MONTH) + 1) }
-
-    if (showCalendar) {
-        AlertDialog(
-            onDismissRequest = { showCalendar = false },
-            containerColor = tc.CardBackground,
-            titleContentColor = tc.TextPrimary,
-            textContentColor = tc.TextPrimary,
-            title = { Text(stringResource(R.string.home_calendar_title), color = tc.TextPrimary) },
-            text = {
-                LoadCalendarWithDots(
-                    year = calendarYear,
-                    month = calendarMonth,
-                    datesWithLoads = datesWithLoads,
-                    selectedDate = uiState.selectedDate,
-                    onDateSelect = { date ->
-                        viewModel.selectDate(date)
-                        showCalendar = false
-                    },
-                    onMonthChange = { y, m ->
-                        calendarYear = y
-                        calendarMonth = m
-                    }
-                )
-            },
-            confirmButton = { TextButton(onClick = { showCalendar = false }) { Text(stringResource(R.string.common_close), color = tc.AccentPrimary) } }
-        )
-    }
+    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = { onRefresh() })
 
     if (showYearSelector) {
         AlertDialog(
@@ -284,8 +314,6 @@ private fun HomeScreenContent(
         )
     }
 
-    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = { onRefresh() })
-    val hideRevenueDuplicates = uiState.filter == LoadFilter.THIS_WEEK
     BentoGlassScreenBackground {
     Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
         LazyColumn(
@@ -296,42 +324,17 @@ private fun HomeScreenContent(
             contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            if (uiState.isSearchExpanded) {
-                item(key = "search") {
-                    BentoGlassSearchField(
-                        value = uiState.searchQuery,
-                        onValueChange = { viewModel.setSearchQuery(it) },
-                        placeholder = stringResource(R.string.home_search_hint),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-            }
-
-            if (uiState.filter == LoadFilter.THIS_WEEK) {
-                item(key = "hero") {
-                    val goalStore = LocalWeeklyProfitGoalStore.current
-                    val weeklyGoal by goalStore.goalAmount.collectAsState(initial = DEFAULT_WEEKLY_GROSS_GOAL)
-                    val progress = if (weeklyGoal > 0) {
-                        ((totals.totalRate / weeklyGoal) * 100).toFloat().coerceIn(0f, 100f)
-                    } else {
-                        0f
-                    }
-                    val rpm = if (totals.totalMiles > 0) totals.totalRate / totals.totalMiles else null
-                    HomeWeekHeroCard(
-                        gross = totals.totalRate,
-                        goal = weeklyGoal,
-                        progressPercent = progress,
-                        rpm = rpm,
-                        onClick = onWeeklyGoal,
-                    )
-                }
-            }
-
-            item(key = "dashboard") {
-                HomeBentoDashboard(
-                    totals = totals,
-                    hideRevenueDuplicates = hideRevenueDuplicates,
+            item(key = "search") {
+                BentoGlassSearchField(
+                    value = uiState.searchQuery,
+                    onValueChange = { viewModel.setSearchQuery(it) },
+                    placeholder = stringResource(R.string.home_search_hint),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
+            }
+
+            item(key = "goal_summary") {
+                HomeGoalSection(onOpenGoal = onWeeklyGoal)
             }
 
             item(key = "period_filter") {
@@ -341,7 +344,7 @@ private fun HomeScreenContent(
                     selectedDateLabel = uiState.selectedDateLabel,
                     selectedWeekLabel = uiState.selectedWeekLabel,
                     onFilterSelected = viewModel::setFilter,
-                    onOpenCalendar = { showCalendar = true },
+                    onOpenCalendar = onOpenCalendar,
                     onOpenArchive = {
                         viewModel.setFilter(LoadFilter.ALL)
                         showYearSelector = true
@@ -431,16 +434,11 @@ private fun HomeScreenContent(
             }
 
             item(key = "add_load_button") {
-                Button(
+                TlButton(
                     onClick = onAddLoad,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .background(DarkGlassGradients.button, RoundedCornerShape(16.dp)),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     Icon(
                         Icons.Default.Add,
@@ -488,21 +486,21 @@ private fun StatsHeader(
                 modifier = Modifier.weight(1f),
                 label = stringResource(R.string.metric_loads),
                 value = totals.loadCount.toString(),
-                accent = FinanceCockpitColors.SalaryAccent,
+                accent = SoftUiColors.PurpleEnd,
             )
             if (!hideRevenueDuplicates) {
                 BentoGlassMetricCell(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.metric_gross),
                     value = MoneyFormat.formatCurrency(totals.totalRate),
-                    accent = FinanceCockpitColors.TextPrimary,
+                    accent = SoftUiColors.TextPrimaryLight,
                 )
             } else {
                 BentoGlassMetricCell(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.widget_metric_miles),
                     value = MoneyFormat.formatNumber(totals.totalMiles),
-                    accent = FinanceCockpitColors.TextPrimary,
+                    accent = SoftUiColors.TextPrimaryLight,
                 )
             }
         }
@@ -515,7 +513,7 @@ private fun StatsHeader(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.widget_metric_miles),
                     value = MoneyFormat.formatNumber(totals.totalMiles),
-                    accent = FinanceCockpitColors.TextPrimary,
+                    accent = SoftUiColors.TextPrimaryLight,
                 )
                 BentoGlassMetricCell(
                     modifier = Modifier.weight(1f),
@@ -525,10 +523,6 @@ private fun StatsHeader(
                 )
             }
         }
-        RpmColorLegend(
-            compact = true,
-            modifier = Modifier.padding(top = 2.dp),
-        )
     }
 }
 

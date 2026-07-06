@@ -4,11 +4,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-/** One UI–style rounded shapes (28dp cards). */
+/** One UI–style rounded shapes — soft smart-home UI (16–28dp). */
 val Shapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(12.dp),
+    small = SoftUiShapes.Chip,
+    medium = SoftUiShapes.Button,
+    large = SoftUiShapes.Card,
+    extraLarge = SoftUiShapes.CardLarge,
 )
