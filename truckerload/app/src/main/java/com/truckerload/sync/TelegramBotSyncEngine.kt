@@ -12,8 +12,10 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadImportRepositoryImpl
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.import.usecase.ImportLoadsUseCase
+import com.truckerload.sync.DuplicateAuditRunner
 import com.truckerload.sync.import.ImportCommandHandler
 import com.truckerload.sync.import.ImportDocumentHandler
+import com.truckerload.sync.import.ImportHandlerSupport
 import com.truckerload.sync.import.ImportMessageHandler
 import com.truckerload.sync.import.ImportReportFormatter
 import com.truckerload.sync.import.ImportSessionManager
@@ -166,6 +168,9 @@ class TelegramBotSyncEngine(private val context: Context) {
             importUseCase = useCase,
             sessionManager = sessionManager,
             reportFormatter = ImportReportFormatter(context),
+            loadRepository = loadRepository,
+            paycheckRepository = PaycheckRepository(db),
+            dieselRepository = DieselRepository(db),
         )
     }
 
@@ -187,7 +192,26 @@ class TelegramBotSyncEngine(private val context: Context) {
             importUseCase = useCase,
             sessionManager = ImportSessionManager(prefs),
             reportFormatter = ImportReportFormatter(context),
+            loadRepository = loadRepository,
+            paycheckRepository = PaycheckRepository(db),
+            dieselRepository = DieselRepository(db),
         )
+    }
+
+    private suspend fun runDuplicateAudit(
+        loadRepository: LoadRepository,
+        paycheckRepository: PaycheckRepository,
+        dieselRepository: DieselRepository,
+    ): String {
+        val report = DuplicateAuditRunner.run(
+            loadRepository = loadRepository,
+            paycheckRepository = paycheckRepository,
+            dieselRepository = dieselRepository,
+        )
+        if (report.deletedLoads + report.deletedPaychecks + report.deletedDiesel > 0) {
+            DuplicateAuditRunner.refreshWidgets(context)
+        }
+        return DuplicateAuditRunner.formatReport(context, report)
     }
 
     private suspend fun parserConfig(settingsDataStore: SettingsDataStore): ParserConfig =
@@ -265,6 +289,16 @@ class TelegramBotSyncEngine(private val context: Context) {
             isCommand(rawText, "/stats") -> {
                 val stats = buildStatsMessage(loadRepository)
                 sendWithMenu(telegramApi, update.chatId, stats)
+                return
+            }
+            isCommand(rawText, "/dedup") -> {
+                sendWithMenu(
+                    telegramApi,
+                    update.chatId,
+                    context.getString(R.string.sync_dedup_running),
+                )
+                val report = runDuplicateAudit(loadRepository, paycheckRepository, dieselRepository)
+                sendWithMenu(telegramApi, update.chatId, report)
                 return
             }
             isCommand(rawText, "/cancel") -> {
@@ -384,7 +418,9 @@ class TelegramBotSyncEngine(private val context: Context) {
                     val reply = importExportDocument(
                         telegramApi = telegramApi,
                         update = update,
-                        loadRepository = loadRepository
+                        loadRepository = loadRepository,
+                        paycheckRepository = paycheckRepository,
+                        dieselRepository = dieselRepository,
                     )
                     sendWithMenu(telegramApi, update.chatId, reply)
                     return
@@ -461,6 +497,15 @@ class TelegramBotSyncEngine(private val context: Context) {
             isCommand(command, "/stats") -> {
                 val stats = buildStatsMessage(loadRepository)
                 sendWithMenu(telegramApi, chatId, stats)
+            }
+            isCommand(command, "/dedup") -> {
+                sendWithMenu(
+                    telegramApi,
+                    chatId,
+                    context.getString(R.string.sync_dedup_running),
+                )
+                val report = runDuplicateAudit(loadRepository, paycheckRepository, dieselRepository)
+                sendWithMenu(telegramApi, chatId, report)
             }
             isCommand(command, "/help_load") -> sendWithMenu(telegramApi, chatId, context.getString(R.string.sync_help_load))
             isCommand(command, "/help_pay") -> sendWithMenu(telegramApi, chatId, context.getString(R.string.sync_help_pay))
@@ -752,7 +797,9 @@ class TelegramBotSyncEngine(private val context: Context) {
     private suspend fun importExportDocument(
         telegramApi: TelegramApi,
         update: com.truckerload.data.remote.TelegramUpdate,
-        loadRepository: LoadRepository
+        loadRepository: LoadRepository,
+        paycheckRepository: PaycheckRepository,
+        dieselRepository: DieselRepository,
     ): String {
         val fileId = update.documentFileId ?: return context.getString(R.string.sync_doc_not_supported)
         val bytes = telegramApi.downloadFile(fileId).getOrElse { e ->
@@ -767,7 +814,14 @@ class TelegramBotSyncEngine(private val context: Context) {
         }
         WidgetDataUpdater.updateWidgetData(context)
         WidgetUpdateWorker.refreshNow(context)
-        return context.getString(R.string.file_received, result.imported)
+        val base = context.getString(R.string.file_received, result.imported)
+        val dedupSection = ImportHandlerSupport.runPostImportDedup(
+            context = context,
+            loadRepository = loadRepository,
+            paycheckRepository = paycheckRepository,
+            dieselRepository = dieselRepository,
+        )
+        return if (dedupSection.isBlank()) base else "$base\n\n$dedupSection"
     }
 
     private fun isExportTextDocument(update: com.truckerload.data.remote.TelegramUpdate): Boolean {

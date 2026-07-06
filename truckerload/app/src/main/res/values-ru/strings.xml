@@ -682,7 +682,7 @@
 
     <string name="sync_processing">⏳ Обрабатываю...</string>
     <string name="sync_welcome">🚛 Добро пожаловать в Truck Log!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
-    <string name="sync_help">📋 Как пользоваться ботом Truck Log:\n1. Перешлите текст лоуда Amazon Relay\n2. Или текст settlement / fuel receipt\n3. Данные сохранятся в приложении Truck Log\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
+    <string name="sync_help">📋 Как пользоваться ботом Truck Log:\n1. Перешлите текст лоуда Amazon Relay\n2. Или текст settlement / fuel receipt\n3. Данные сохранятся в приложении Truck Log\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
     <string name="sync_status">📊 Статус Truck Log:\n• Лоудов: %1$d\n• Зарплат: %2$d\n• Дизель: %3$d\n\nБот активен в фоне. Перешлите новые данные — добавлю в приложение.</string>
     <string name="sync_help_load">📦 Лоуд:\nПерешлите текст с Trip ID, PU#/DEL, Total Rate и адресами.\nПример: Trip ID: ABC123, Total Rate: $1,200</string>
     <string name="sync_help_pay">💰 Зарплата:\nПерешлите текст settlement с Grand Total / Net Pay.\nДубликаты за ту же неделю не добавляются.</string>
@@ -750,6 +750,15 @@
     <string name="sync_import_files_processed">• Файлов в этом импорте: %1$d 📁</string>
     <string name="sync_import_json_analyzing">📄 JSON-экспорт Telegram. Анализирую сообщения…</string>
     <string name="sync_import_send_more">Можно отправить ещё файлы (messages2.html, result.json…) или текст.\nФайлов в сессии: %1$d · /cancel — отмена</string>
+    <string name="sync_dedup_running">🔍 Проверяю базу на дубликаты…</string>
+    <string name="sync_dedup_done_title">🧹 Очистка дубликатов завершена</string>
+    <string name="sync_dedup_scanned">• Проверено лоудов: %1$d</string>
+    <string name="sync_dedup_deleted_loads">• Удалено лоудов: %1$d</string>
+    <string name="sync_dedup_deleted_paychecks">• Удалено зарплат: %1$d</string>
+    <string name="sync_dedup_deleted_diesel">• Удалено diesel: %1$d</string>
+    <string name="sync_dedup_duration">• Время: %1$d мс</string>
+    <string name="sync_dedup_none">Дубликатов не найдено ✅</string>
+    <string name="sync_dedup_removed_loads">Удалённые лоуды:</string>
     <string name="auto_restore_title">Восстановить данные?</string>
     <string name="auto_restore_message">Найдены сохранённые данные. Восстановить их?</string>
     <string name="auto_restore_confirm">Восстановить</string>

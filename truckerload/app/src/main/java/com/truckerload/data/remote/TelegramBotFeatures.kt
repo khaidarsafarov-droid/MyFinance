@@ -34,8 +34,9 @@ object TelegramBotFeatures {
             put(command("status", "Сколько данных в приложении"))
             put(command("stats", "Лоуды: всего и за неделю"))
             put(command("import", "Массовый импорт лоудов"))
+            put(command("dedup", "Удалить дубликаты в базе"))
             put(command("cancel", "Отменить импорт"))
-        put(command("restore", "Восстановить лоуды из сообщений"))
+            put(command("restore", "Восстановить лоуды из сообщений"))
         }
         return commands.toString()
     }
@@ -46,6 +47,7 @@ object TelegramBotFeatures {
         put(command("status", "Сколько данных в приложении"))
         put(command("stats", "Лоуды: всего и за неделю"))
         put(command("import", "Массовый импорт лоудов"))
+        put(command("dedup", "Удалить дубликаты в базе"))
         put(command("cancel", "Отменить импорт"))
         put(command("restore", "Восстановить лоуды из сообщений"))
     }
