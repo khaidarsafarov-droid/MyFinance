@@ -2,6 +2,9 @@ package com.truckerload.sync.import
 
 import android.content.Context
 import com.truckerload.R
+import com.truckerload.data.repository.DieselRepository
+import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.remote.TelegramApi
 import com.truckerload.domain.import.model.ImportException
 import com.truckerload.domain.import.parser.TelegramHtmlExportParser
@@ -13,6 +16,9 @@ class ImportDocumentHandler(
     private val importUseCase: ImportLoadsUseCase,
     private val sessionManager: ImportSessionManager,
     private val reportFormatter: ImportReportFormatter,
+    private val loadRepository: LoadRepository,
+    private val paycheckRepository: PaycheckRepository,
+    private val dieselRepository: DieselRepository,
 ) {
 
     suspend fun handle(
@@ -93,10 +99,17 @@ class ImportDocumentHandler(
                     report = report,
                     countAsFile = true,
                 )
+                val dedupSection = ImportHandlerSupport.runPostImportDedup(
+                    context = context,
+                    loadRepository = loadRepository,
+                    paycheckRepository = paycheckRepository,
+                    dieselRepository = dieselRepository,
+                )
+                val message = if (dedupSection.isBlank()) formatted else "$formatted\n\n$dedupSection"
                 progressMessageId?.let { id ->
-                    telegramApi.editMessageText(chatId, id, formatted)
+                    telegramApi.editMessageText(chatId, id, message)
                 }
-                if (progressMessageId != null) "" else formatted
+                if (progressMessageId != null) "" else message
             },
             onFailure = { error ->
                 val errorText = when (error) {
