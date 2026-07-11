@@ -3,6 +3,27 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+private fun SupportSQLiteDatabase.hasColumn(table: String, column: String): Boolean {
+    query("PRAGMA table_info(`$table`)").use { cursor ->
+        val nameIndex = cursor.getColumnIndex("name")
+        if (nameIndex < 0) return false
+        while (cursor.moveToNext()) {
+            if (cursor.getString(nameIndex) == column) return true
+        }
+    }
+    return false
+}
+
+private fun SupportSQLiteDatabase.addColumnIfMissing(
+    table: String,
+    column: String,
+    definitionSql: String,
+) {
+    if (!hasColumn(table, column)) {
+        execSQL("ALTER TABLE $table ADD COLUMN $column $definitionSql")
+    }
+}
+
 /** Добавляет PU/DEL millis без удаления существующих грузов. */
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -389,9 +410,9 @@ val MIGRATION_17_18 = object : Migration(17, 18) {
             )
             """.trimIndent(),
         )
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN creatorId TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN inviteCode TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE social_messages ADD COLUMN durationMs INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE driver_statuses ADD COLUMN durationMs INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_chats", "creatorId", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_chats", "inviteCode", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_messages", "durationMs", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_statuses", "durationMs", "INTEGER NOT NULL DEFAULT 0")
     }
 }
