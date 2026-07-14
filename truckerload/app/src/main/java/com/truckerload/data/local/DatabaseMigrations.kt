@@ -27,8 +27,8 @@ private fun SupportSQLiteDatabase.addColumnIfMissing(
 /** Добавляет PU/DEL millis без удаления существующих грузов. */
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE loads ADD COLUMN firstPuMillis INTEGER")
-        db.execSQL("ALTER TABLE loads ADD COLUMN lastDelMillis INTEGER")
+        db.addColumnIfMissing("loads", "firstPuMillis", "INTEGER")
+        db.addColumnIfMissing("loads", "lastDelMillis", "INTEGER")
     }
 }
 
@@ -55,12 +55,12 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
 /** Route metrics: duration, pace, stop count for weekly yield. */
 val MIGRATION_8_9 = object : Migration(8, 9) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE loads ADD COLUMN route TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE loads ADD COLUMN firstPuCityState TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE loads ADD COLUMN lastDelCityState TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE loads ADD COLUMN durationDays REAL NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE loads ADD COLUMN pace REAL NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE loads ADD COLUMN stopCount INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "route", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("loads", "firstPuCityState", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("loads", "lastDelCityState", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("loads", "durationDays", "REAL NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "pace", "REAL NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "stopCount", "INTEGER NOT NULL DEFAULT 0")
         db.execSQL(
             """
             UPDATE loads SET
@@ -200,14 +200,14 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
 
 val MIGRATION_13_14 = object : Migration(13, 14) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN onlineCount INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN description TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN rating REAL NOT NULL DEFAULT 4.5")
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN isPublic INTEGER NOT NULL DEFAULT 1")
-        db.execSQL("ALTER TABLE social_messages ADD COLUMN attachmentUrl TEXT")
-        db.execSQL("ALTER TABLE social_messages ADD COLUMN replyToId TEXT")
-        db.execSQL("ALTER TABLE social_messages ADD COLUMN locationLabel TEXT")
-        db.execSQL("ALTER TABLE social_messages ADD COLUMN isAnnouncement INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_chats", "onlineCount", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_chats", "description", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_chats", "rating", "REAL NOT NULL DEFAULT 4.5")
+        db.addColumnIfMissing("social_chats", "isPublic", "INTEGER NOT NULL DEFAULT 1")
+        db.addColumnIfMissing("social_messages", "attachmentUrl", "TEXT")
+        db.addColumnIfMissing("social_messages", "replyToId", "TEXT")
+        db.addColumnIfMissing("social_messages", "locationLabel", "TEXT")
+        db.addColumnIfMissing("social_messages", "isAnnouncement", "INTEGER NOT NULL DEFAULT 0")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_social_chats_lastMessageAt ON social_chats (lastMessageAt)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_social_chats_title ON social_chats (title)")
         db.execSQL(
@@ -219,9 +219,9 @@ val MIGRATION_13_14 = object : Migration(13, 14) {
 
 val MIGRATION_14_15 = object : Migration(14, 15) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE social_messages ADD COLUMN messageType TEXT NOT NULL DEFAULT 'TEXT'")
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN category TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE social_chats ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_messages", "messageType", "TEXT NOT NULL DEFAULT 'TEXT'")
+        db.addColumnIfMissing("social_chats", "category", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_chats", "archived", "INTEGER NOT NULL DEFAULT 0")
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS blocked_users (
@@ -265,20 +265,20 @@ val MIGRATION_14_15 = object : Migration(14, 15) {
 
 val MIGRATION_15_16 = object : Migration(15, 16) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN coverImageUrl TEXT")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN licenseClass TEXT NOT NULL DEFAULT 'A'")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN endorsementsJson TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN maxRadius INTEGER NOT NULL DEFAULT 500")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN specialtiesJson TEXT NOT NULL DEFAULT ''")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN languagesJson TEXT NOT NULL DEFAULT 'Русский,Английский'")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN phoneNumber TEXT")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN telegramUsername TEXT")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN whatsappNumber TEXT")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN reputation INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN followers INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN following INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN ratingCount INTEGER NOT NULL DEFAULT 124")
-        db.execSQL("ALTER TABLE driver_profile ADD COLUMN currentRoute TEXT")
+        db.addColumnIfMissing("driver_profile", "coverImageUrl", "TEXT")
+        db.addColumnIfMissing("driver_profile", "licenseClass", "TEXT NOT NULL DEFAULT 'A'")
+        db.addColumnIfMissing("driver_profile", "endorsementsJson", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("driver_profile", "maxRadius", "INTEGER NOT NULL DEFAULT 500")
+        db.addColumnIfMissing("driver_profile", "specialtiesJson", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("driver_profile", "languagesJson", "TEXT NOT NULL DEFAULT 'Русский,Английский'")
+        db.addColumnIfMissing("driver_profile", "phoneNumber", "TEXT")
+        db.addColumnIfMissing("driver_profile", "telegramUsername", "TEXT")
+        db.addColumnIfMissing("driver_profile", "whatsappNumber", "TEXT")
+        db.addColumnIfMissing("driver_profile", "reputation", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "followers", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "following", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "ratingCount", "INTEGER NOT NULL DEFAULT 124")
+        db.addColumnIfMissing("driver_profile", "currentRoute", "TEXT")
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS message_reactions (
@@ -413,6 +413,52 @@ val MIGRATION_17_18 = object : Migration(17, 18) {
         db.addColumnIfMissing("social_chats", "creatorId", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("social_chats", "inviteCode", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("social_messages", "durationMs", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_statuses", "durationMs", "INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/**
+ * Idempotent repair pass for devices that interrupted an earlier migration.
+ * Re-applies every column added via ALTER TABLE across v6–v18.
+ */
+val MIGRATION_18_19 = object : Migration(18, 19) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("loads", "firstPuMillis", "INTEGER")
+        db.addColumnIfMissing("loads", "lastDelMillis", "INTEGER")
+        db.addColumnIfMissing("loads", "route", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("loads", "firstPuCityState", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("loads", "lastDelCityState", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("loads", "durationDays", "REAL NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "pace", "REAL NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "stopCount", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_chats", "onlineCount", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_chats", "description", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_chats", "rating", "REAL NOT NULL DEFAULT 4.5")
+        db.addColumnIfMissing("social_chats", "isPublic", "INTEGER NOT NULL DEFAULT 1")
+        db.addColumnIfMissing("social_chats", "category", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_chats", "archived", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_chats", "creatorId", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_chats", "inviteCode", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("social_messages", "attachmentUrl", "TEXT")
+        db.addColumnIfMissing("social_messages", "replyToId", "TEXT")
+        db.addColumnIfMissing("social_messages", "locationLabel", "TEXT")
+        db.addColumnIfMissing("social_messages", "isAnnouncement", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("social_messages", "messageType", "TEXT NOT NULL DEFAULT 'TEXT'")
+        db.addColumnIfMissing("social_messages", "durationMs", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "coverImageUrl", "TEXT")
+        db.addColumnIfMissing("driver_profile", "licenseClass", "TEXT NOT NULL DEFAULT 'A'")
+        db.addColumnIfMissing("driver_profile", "endorsementsJson", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("driver_profile", "maxRadius", "INTEGER NOT NULL DEFAULT 500")
+        db.addColumnIfMissing("driver_profile", "specialtiesJson", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("driver_profile", "languagesJson", "TEXT NOT NULL DEFAULT 'Русский,Английский'")
+        db.addColumnIfMissing("driver_profile", "phoneNumber", "TEXT")
+        db.addColumnIfMissing("driver_profile", "telegramUsername", "TEXT")
+        db.addColumnIfMissing("driver_profile", "whatsappNumber", "TEXT")
+        db.addColumnIfMissing("driver_profile", "reputation", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "followers", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "following", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "ratingCount", "INTEGER NOT NULL DEFAULT 124")
+        db.addColumnIfMissing("driver_profile", "currentRoute", "TEXT")
         db.addColumnIfMissing("driver_statuses", "durationMs", "INTEGER NOT NULL DEFAULT 0")
     }
 }

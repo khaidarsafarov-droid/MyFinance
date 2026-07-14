@@ -57,7 +57,6 @@ class TruckerLoadApp : Application() {
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
-        AppDatabase.getInstance(this)
         TelegramTokenStore(this).syncFromBuildConfig()
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
