@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.social
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -147,8 +146,8 @@ fun ProfileAvatarPickerSheet(
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri ?: return@rememberLauncherForActivityResult
         context.contentResolver.openInputStream(uri)?.use { stream ->
-            val bitmap = BitmapFactory.decodeStream(stream) ?: return@rememberLauncherForActivityResult
-            cropSource = bitmap
+            val bitmap = AvatarCropUtils.decodeSampledBitmap(stream) ?: return@rememberLauncherForActivityResult
+            cropSource = AvatarCropUtils.prepareBitmapForCrop(bitmap)
             onDismiss()
         }
     }

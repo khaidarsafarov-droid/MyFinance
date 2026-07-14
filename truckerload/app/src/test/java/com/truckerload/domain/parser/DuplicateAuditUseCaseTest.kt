@@ -6,13 +6,14 @@ import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class DuplicateAuditUseCaseTest {
 
     private val useCase = DuplicateAuditUseCase(
-        loadRepository = throw UnsupportedOperationException(),
-        paycheckRepository = throw UnsupportedOperationException(),
-        dieselRepository = throw UnsupportedOperationException(),
+        loadRepository = mock(),
+        paycheckRepository = mock(),
+        dieselRepository = mock(),
     )
 
     @Test
@@ -98,10 +99,15 @@ class DuplicateAuditUseCaseTest {
         loadId = "load-1",
         stopNumber = number,
         type = type,
+        puNumber = null,
+        note = null,
+        scheduledTime = "2026-06-10 08:00",
+        timezone = "America/New_York",
+        facilityCode = null,
+        fullAddress = "$city, ${if (type == StopType.PU) "NY" else "NC"}",
         city = city,
         state = if (type == StopType.PU) "NY" else "NC",
-        facilityCode = null,
-        scheduledTime = "2026-06-10 08:00",
+        zip = if (type == StopType.PU) "12533" else "27529",
     )
 
     private fun paycheck(id: Int, addedAt: Long) =

@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
 import kotlin.math.max
@@ -9,6 +10,20 @@ import kotlin.math.min
 internal object AvatarCropUtils {
     private const val MAX_SOURCE_DIMENSION = 2048
     const val OUTPUT_SIZE = 512
+
+    fun decodeSampledBitmap(stream: java.io.InputStream, maxDimension: Int = MAX_SOURCE_DIMENSION): Bitmap? {
+        val bytes = stream.readBytes()
+        if (bytes.isEmpty()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val largest = max(bounds.outWidth, bounds.outHeight)
+        val sampleSize = generateSequence(1) { it * 2 }
+            .takeWhile { largest / it > maxDimension }
+            .lastOrNull()?.let { it * 2 } ?: 1
+        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+    }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
         val largest = max(source.width, source.height)

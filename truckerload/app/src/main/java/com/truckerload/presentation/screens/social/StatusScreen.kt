@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.social
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -76,7 +75,7 @@ fun StatusScreen(
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri ?: return@rememberLauncherForActivityResult
         context.contentResolver.openInputStream(uri)?.use { stream ->
-            val bitmap = BitmapFactory.decodeStream(stream) ?: return@rememberLauncherForActivityResult
+            val bitmap = AvatarCropUtils.decodeSampledBitmap(stream) ?: return@rememberLauncherForActivityResult
             viewModel.postPhotoStatus(bitmap, displayName, uiState.inputText)
             viewModel.setInput("")
         }

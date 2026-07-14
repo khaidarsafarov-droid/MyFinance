@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.social
 
-import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -90,7 +89,7 @@ fun SocialChatScreen(
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri ?: return@rememberLauncherForActivityResult
         context.contentResolver.openInputStream(uri)?.use { stream ->
-            val bitmap = BitmapFactory.decodeStream(stream) ?: return@rememberLauncherForActivityResult
+            val bitmap = AvatarCropUtils.decodeSampledBitmap(stream) ?: return@rememberLauncherForActivityResult
             viewModel.sendImage(bitmap, uiState.inputText)
             viewModel.setInput("")
         }

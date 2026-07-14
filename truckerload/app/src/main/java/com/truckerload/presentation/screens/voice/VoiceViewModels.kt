@@ -141,10 +141,15 @@ class VoiceRoomViewModel(
     override fun onCleared() {
         ticker?.cancel()
         levelJob?.cancel()
-        if (joined) {
-            viewModelScope.launch { voiceRepository.leaveRoom(roomId) }
-        }
+        val shouldLeave = joined
+        val id = roomId
+        val repo = voiceRepository
         super.onCleared()
+        if (shouldLeave) {
+            kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+                repo.leaveRoom(id)
+            }
+        }
     }
 
     class Factory(

@@ -156,7 +156,7 @@ class DuplicateAuditUseCase(
 
         val comparison = compareLoads(keeper, candidate)
         if (comparison.isIdentical()) return true
-        if (keeper.date == candidate.date && comparison.stopsHashMatch) return true
+        if (keeper.date == candidate.date && comparison.stopsHashMatch && comparison.totalRateMatch) return true
 
         val sameRoute = routeFingerprint(keeper) == routeFingerprint(candidate) && routeFingerprint(keeper).isNotBlank()
         return sameRoute && comparison.isIdentical()

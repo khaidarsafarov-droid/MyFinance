@@ -374,7 +374,9 @@ private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
                 ContactRow(
                     label = "📞 $phone",
                     onClick = {
-                        context.startActivity(Intent(Intent.ACTION_DIAL, "tel:$phone".toUri()))
+                        runCatching {
+                            context.startActivity(Intent(Intent.ACTION_DIAL, "tel:$phone".toUri()))
+                        }
                     },
                 )
             }
@@ -383,8 +385,10 @@ private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
                 ContactRow(
                     label = "💬 @$handle",
                     onClick = {
-                        val telegramUri = "https://t.me/$handle".toUri()
-                        context.startActivity(Intent(Intent.ACTION_VIEW, telegramUri))
+                        runCatching {
+                            val telegramUri = "https://t.me/$handle".toUri()
+                            context.startActivity(Intent(Intent.ACTION_VIEW, telegramUri))
+                        }
                     },
                 )
             }
@@ -392,8 +396,10 @@ private fun ProfileContactsSection(profile: EnhancedDriverProfile) {
                 ContactRow(
                     label = "📱 $whatsapp",
                     onClick = {
-                        val waUri = "https://wa.me/${whatsapp.filter { it.isDigit() }}".toUri()
-                        context.startActivity(Intent(Intent.ACTION_VIEW, waUri))
+                        runCatching {
+                            val waUri = "https://wa.me/${whatsapp.filter { it.isDigit() }}".toUri()
+                            context.startActivity(Intent(Intent.ACTION_VIEW, waUri))
+                        }
                     },
                 )
             }
