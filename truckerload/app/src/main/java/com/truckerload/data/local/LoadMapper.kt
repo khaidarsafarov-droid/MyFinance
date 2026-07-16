@@ -33,6 +33,9 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
         durationDays = durationDays,
         pace = pace,
         stopCount = stopCount,
+        isDispute = isDispute,
+        disputeResponseDate = disputeResponseDate,
+        disputeCompleted = disputeCompleted,
         stops = stops.map { it.toDomain() },
         penalties = penalties.map { it.toDomain() }
     )
@@ -62,6 +65,9 @@ fun Load.toEntity(): LoadEntity {
         durationDays = metrics.durationDays,
         pace = metrics.pace,
         stopCount = metrics.stopCount,
+        isDispute = metrics.isDispute,
+        disputeResponseDate = metrics.disputeResponseDate,
+        disputeCompleted = metrics.disputeCompleted,
     )
 }
 

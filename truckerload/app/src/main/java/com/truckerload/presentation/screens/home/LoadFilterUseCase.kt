@@ -76,6 +76,7 @@ class LoadFilterUseCase {
                     list
                 }
             }
+            LoadFilter.DISPUTE -> list.filter { it.isActiveDispute }
         }
 
         return list.sortedWith(compareByDescending<Load> { it.date }.thenByDescending { it.parsedAt })

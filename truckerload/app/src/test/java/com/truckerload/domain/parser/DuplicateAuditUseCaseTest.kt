@@ -98,10 +98,15 @@ class DuplicateAuditUseCaseTest {
         loadId = "load-1",
         stopNumber = number,
         type = type,
+        puNumber = null,
+        note = null,
         city = city,
         state = if (type == StopType.PU) "NY" else "NC",
         facilityCode = null,
         scheduledTime = "2026-06-10 08:00",
+        timezone = "ET",
+        fullAddress = "",
+        zip = "",
     )
 
     private fun paycheck(id: Int, addedAt: Long) =

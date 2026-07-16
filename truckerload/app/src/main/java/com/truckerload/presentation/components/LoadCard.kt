@@ -28,6 +28,7 @@ import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.SoftUiColors
@@ -69,11 +70,18 @@ fun LoadCard(
                     text = load.tripId,
                     style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
                 )
-                Text(
-                    text = load.date,
-                    style = AppTypography.CaptionMuted,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (load.isDispute) {
+                        DisputeCardChip(load = load)
+                    }
+                    Text(
+                        text = load.date,
+                        style = AppTypography.CaptionMuted,
+                    )
+                }
             }
             Text(
                 text = route,
@@ -158,5 +166,37 @@ fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String
         String.format(Locale.US, unitFormat, totalRate / totalMiles)
     } else {
         "—"
+    }
+}
+
+@Composable
+private fun DisputeCardChip(load: Load) {
+    val label: String
+    val color: androidx.compose.ui.graphics.Color
+    if (load.hadDispute) {
+        label = stringResource(R.string.dispute_was_dispute)
+        color = AppColors.RpmGreen
+    } else {
+        label = stringResource(R.string.dispute_active)
+        color = LocalTruckColors.current.AccentExpense
+    }
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(color.copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(color),
+        )
+        Text(
+            text = label,
+            style = AppTypography.Caption.copy(color = color),
+        )
     }
 }

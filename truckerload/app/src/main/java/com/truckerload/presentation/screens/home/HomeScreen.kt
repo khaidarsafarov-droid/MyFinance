@@ -384,6 +384,7 @@ private fun HomeScreenContent(
                                     LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
                                     LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
                                     LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
+                                    LoadFilter.DISPUTE -> stringResource(R.string.home_empty_dispute)
                                 },
                                 style = MaterialTheme.typography.titleMedium,
                                 color = tc.TextPrimary,

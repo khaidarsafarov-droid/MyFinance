@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -71,6 +72,7 @@ fun EditLoadScreen(
     var totalMiles by remember { mutableStateOf("") }
     var pointA by remember { mutableStateOf("") }
     var pointB by remember { mutableStateOf("") }
+    var disputeLoad by remember { mutableStateOf<Load?>(null) }
     LaunchedEffect(loadId) {
         if (loadId.isBlank()) {
             loadError = context.getString(R.string.load_invalid)
@@ -92,6 +94,7 @@ fun EditLoadScreen(
             totalMiles = it.totalMiles.toString()
             pointA = it.pointA
             pointB = it.pointB
+            disputeLoad = it
         }
     }
     Scaffold(
@@ -168,12 +171,21 @@ fun EditLoadScreen(
                     OutlinedTextField(value = pointB, onValueChange = { pointB = it }, label = { Text(stringResource(R.string.edit_load_point_b)) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(BentoGlassTheme.CellRadius), colors = fieldColors)
                 }
             }
+            disputeLoad?.let { dispute ->
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    DisputeSection(
+                        load = dispute,
+                        onDisputeChanged = { updated -> disputeLoad = updated },
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = {
                     val l = load ?: return@Button
                     val newDate = loadDate.ifBlank { l.date }
-                    val updated = l.copy(
+                    val updated = (disputeLoad ?: l).copy(
                         date = newDate,
                         totalRate = totalRate.toDoubleOrNull() ?: l.totalRate,
                         totalMiles = totalMiles.toDoubleOrNull() ?: l.totalMiles,
