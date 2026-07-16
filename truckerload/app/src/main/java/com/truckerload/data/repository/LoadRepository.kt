@@ -96,8 +96,9 @@ class LoadRepository(private val db: AppDatabase) {
         loads: List<Load>,
         parsedCount: Int
     ): com.truckerload.utils.LoadImporter.ImportResult {
-        val existingTripIds = getAll()
-            .map { it.tripId.uppercase() }
+        val incomingTripIds = loads.map { it.tripId.uppercase() }.filter { it.isNotBlank() }
+        val existingTripIds = loadDao.getExistingTripIds(incomingTripIds)
+            .map { it.uppercase() }
             .toMutableSet()
         var imported = 0
         var skipped = 0
@@ -207,6 +208,7 @@ class LoadRepository(private val db: AppDatabase) {
     }
 
     suspend fun deleteLoad(loadId: String) {
+        loadHistoryDao.deleteByLoadId(loadId)
         loadDao.deleteById(loadId)
         notifyWidgetDataChanged()
         scheduleAutoBackup()

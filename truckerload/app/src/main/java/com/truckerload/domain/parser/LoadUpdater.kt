@@ -25,6 +25,9 @@ class LoadUpdater(
             stops = newData.stops.map { stop ->
                 stop.copy(loadId = oldLoad.id)
             },
+            penalties = newData.penalties.map { penalty ->
+                penalty.copy(loadId = oldLoad.id)
+            },
             rawMessage = newData.rawMessage,
             updatedAt = now,
         ).withReportingWeek()

@@ -443,7 +443,7 @@ private fun LeaderboardTabContent(
             val clickable = !entry.isMe && !peerId.isNullOrBlank()
             BentoGlassClickableCard(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { if (clickable) onPeerClick(peerId!!) },
+                onClick = { peerId?.takeIf { clickable }?.let(onPeerClick) },
             ) {
                 Row(
                     modifier = Modifier

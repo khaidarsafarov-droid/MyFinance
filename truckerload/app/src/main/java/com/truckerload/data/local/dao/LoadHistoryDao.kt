@@ -12,4 +12,7 @@ interface LoadHistoryDao {
 
     @Query("SELECT * FROM load_history WHERE loadId = :loadId ORDER BY timestamp DESC")
     suspend fun getHistory(loadId: String): List<LoadHistory>
+
+    @Query("DELETE FROM load_history WHERE loadId = :loadId")
+    suspend fun deleteByLoadId(loadId: String)
 }

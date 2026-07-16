@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineScope
 
 data class VoiceRoomsUiState(
     val rooms: List<VoiceRoom> = emptyList(),
@@ -146,7 +149,7 @@ class VoiceRoomViewModel(
         val repo = voiceRepository
         super.onCleared()
         if (shouldLeave) {
-            kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                 repo.leaveRoom(id)
             }
         }

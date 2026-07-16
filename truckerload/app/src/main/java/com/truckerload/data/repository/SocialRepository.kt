@@ -47,9 +47,11 @@ import com.truckerload.domain.social.StatusType
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import java.io.File
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.io.File
 import java.util.UUID
 
 class SocialRepository(
@@ -72,19 +74,22 @@ class SocialRepository(
     private val attachmentStorage = ChatAttachmentStorage(context)
     private val recommendations = RecommendationService()
     private val appContext = context.applicationContext
+    private val initMutex = Mutex()
 
     private fun socialError(@StringRes fallbackRes: Int, throwable: Throwable): String =
         throwable.message?.takeIf { it.isNotBlank() } ?: appContext.getString(fallbackRes)
 
     suspend fun ensureInitialized() {
-        val displayName = userProfileStore.profile.value?.displayName.orEmpty()
-        SocialSeedData.seedIfEmpty(chatDao, messageDao, profileDao, displayName)
-        SocialPeerSeedData.seedIfEmpty(peerDao)
-        seedDemoStatuses(displayName)
-        seedGroupMemberships(displayName)
-        backfillGroupInviteCodes()
-        driverStatusDao.purgeExpired(System.currentTimeMillis())
-        refreshMyChallengeScore()
+        initMutex.withLock {
+            val displayName = userProfileStore.profile.value?.displayName.orEmpty()
+            SocialSeedData.seedIfEmpty(chatDao, messageDao, profileDao, displayName)
+            SocialPeerSeedData.seedIfEmpty(peerDao)
+            seedDemoStatuses(displayName)
+            seedGroupMemberships(displayName)
+            backfillGroupInviteCodes()
+            driverStatusDao.purgeExpired(System.currentTimeMillis())
+            refreshMyChallengeScore()
+        }
     }
 
     fun watchMyEnhancedProfile(): Flow<EnhancedDriverProfile> =
@@ -647,6 +652,7 @@ class SocialRepository(
                 score = peer.weeklyMiles,
                 rating = peer.rating,
                 trend = "—",
+                userId = peer.id,
             )
         }
         val myEntry = LeaderboardEntry(
