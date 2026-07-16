@@ -1,0 +1,221 @@
+package com.truckerload.presentation.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import com.truckerload.presentation.components.TlTextButton as TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.truckerload.R
+import com.truckerload.domain.model.Load
+import com.truckerload.presentation.theme.AppColors
+import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.utils.dateStringToStartOfDayMillis
+import java.util.Calendar
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DisputeSection(
+    load: Load,
+    onDisputeChanged: (Load) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tc = LocalTruckColors.current
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val initialMillis = load.disputeResponseDate?.let(::dateStringToStartOfDayMillis)
+            ?: System.currentTimeMillis()
+        val cal = Calendar.getInstance().apply { timeInMillis = initialMillis }
+        val dateState = rememberDatePickerState(
+            initialSelectedDateMillis = initialMillis,
+            yearRange = IntRange(cal.get(Calendar.YEAR) - 1, cal.get(Calendar.YEAR) + 2),
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            colors = androidx.compose.material3.DatePickerDefaults.colors(
+                containerColor = tc.CardBackground,
+            ),
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val selectedMillis = dateState.selectedDateMillis
+                        if (selectedMillis != null) {
+                            val selectedCal = Calendar.getInstance().apply { timeInMillis = selectedMillis }
+                            val date = "%04d-%02d-%02d".format(
+                                Locale.US,
+                                selectedCal.get(Calendar.YEAR),
+                                selectedCal.get(Calendar.MONTH) + 1,
+                                selectedCal.get(Calendar.DAY_OF_MONTH),
+                            )
+                            onDisputeChanged(
+                                load.copy(
+                                    isDispute = true,
+                                    disputeResponseDate = date,
+                                    disputeCompleted = false,
+                                ),
+                            )
+                        }
+                        showDatePicker = false
+                    },
+                ) { Text(stringResource(R.string.common_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        ) { DatePicker(state = dateState) }
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.dispute_section_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = tc.TextPrimary,
+        )
+
+        if (load.hadDispute) {
+            DisputeBadge(
+                label = stringResource(R.string.dispute_was_dispute),
+                color = AppColors.RpmGreen,
+            )
+            load.disputeResponseDate?.let { date ->
+                Text(
+                    text = stringResource(R.string.dispute_response_date_label, date),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextSecondary,
+                )
+            }
+            return@Column
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(
+                checked = load.isDispute,
+                onCheckedChange = { checked ->
+                    if (checked) {
+                        showDatePicker = true
+                    } else {
+                        onDisputeChanged(
+                            load.copy(
+                                isDispute = false,
+                                disputeResponseDate = null,
+                                disputeCompleted = false,
+                            ),
+                        )
+                    }
+                },
+                enabled = !load.disputeCompleted,
+            )
+            Text(
+                text = stringResource(R.string.dispute_checkbox_label),
+                style = MaterialTheme.typography.bodyLarge,
+                color = tc.TextPrimary,
+                modifier = Modifier.padding(start = 4.dp),
+            )
+        }
+
+        if (load.isActiveDispute) {
+            DisputeBadge(
+                label = stringResource(R.string.dispute_active),
+                color = tc.AccentExpense,
+            )
+            OutlinedTextField(
+                value = load.disputeResponseDate.orEmpty(),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.dispute_response_date_title)) },
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit))
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true },
+                colors = AppTextFieldDefaults.outlined(),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = load.disputeCompleted,
+                    onCheckedChange = { completed ->
+                        if (completed) {
+                            onDisputeChanged(load.copy(disputeCompleted = true))
+                        }
+                    },
+                )
+                Text(
+                    text = stringResource(R.string.dispute_completed_checkbox),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = tc.TextPrimary,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DisputeBadge(
+    label: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .clip(CircleShape)
+                .background(color),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = color,
+        )
+    }
+}

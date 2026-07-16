@@ -53,6 +53,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
+import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.StatBox
 import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
@@ -253,6 +254,26 @@ fun LoadDetailScreen(
                                 StopTimeline(stops = l.stops)
                             }
                         }
+                    }
+                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        DisputeSection(
+                            load = l,
+                            onDisputeChanged = { updated ->
+                                scope.launch {
+                                    try {
+                                        withContext(Dispatchers.IO) {
+                                            loadRepository.updateLoad(updated)
+                                        }
+                                        load = updated
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar(
+                                            e.message ?: context.getString(R.string.common_save_error, "")
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(20.dp),
+                        )
                     }
                     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(20.dp)) {

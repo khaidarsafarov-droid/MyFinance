@@ -419,7 +419,7 @@ val MIGRATION_17_18 = object : Migration(17, 18) {
 
 /**
  * Idempotent repair pass for devices that interrupted an earlier migration.
- * Re-applies every column added via ALTER TABLE across v6–v18.
+ * Re-applies every column added via ALTER TABLE across v6–v18, plus dispute fields.
  */
 val MIGRATION_18_19 = object : Migration(18, 19) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -431,6 +431,9 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
         db.addColumnIfMissing("loads", "durationDays", "REAL NOT NULL DEFAULT 0")
         db.addColumnIfMissing("loads", "pace", "REAL NOT NULL DEFAULT 0")
         db.addColumnIfMissing("loads", "stopCount", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "isDispute", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "disputeResponseDate", "TEXT")
+        db.addColumnIfMissing("loads", "disputeCompleted", "INTEGER NOT NULL DEFAULT 0")
         db.addColumnIfMissing("social_chats", "onlineCount", "INTEGER NOT NULL DEFAULT 0")
         db.addColumnIfMissing("social_chats", "description", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("social_chats", "rating", "REAL NOT NULL DEFAULT 4.5")

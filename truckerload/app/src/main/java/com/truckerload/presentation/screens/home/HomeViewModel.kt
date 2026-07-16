@@ -44,7 +44,7 @@ data class HomeUiState(
     val botStatusActive: Boolean = false
 )
 
-enum class LoadFilter { ALL, YESTERDAY, THIS_WEEK, LAST_WEEK, THIS_MONTH, CALENDAR_WEEK, CALENDAR_DATE }
+enum class LoadFilter { ALL, YESTERDAY, THIS_WEEK, LAST_WEEK, THIS_MONTH, CALENDAR_WEEK, CALENDAR_DATE, DISPUTE }
 
 data class YearSection(
     val year: Int,
@@ -244,6 +244,7 @@ class HomeViewModel(
                 LoadFilter.THIS_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_this_week), totals.loadCount)
                 LoadFilter.LAST_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_last_week), totals.loadCount)
                 LoadFilter.THIS_MONTH -> formatFilterLabel(app.getString(R.string.home_filter_this_month), totals.loadCount)
+                LoadFilter.DISPUTE -> formatFilterLabel(app.getString(R.string.home_filter_dispute), totals.loadCount)
                 LoadFilter.ALL -> null
             }
             val items = mutableListOf<HomeListItem>()

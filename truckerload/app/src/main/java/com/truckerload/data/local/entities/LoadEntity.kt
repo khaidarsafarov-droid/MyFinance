@@ -36,4 +36,10 @@ data class LoadEntity(
     val durationDays: Double = 0.0,
     val pace: Double = 0.0,
     val stopCount: Int = 0,
+    /** Груз помечен как диспют (или был диспютом). */
+    val isDispute: Boolean = false,
+    /** Дата ответа по диспюту (YYYY-MM-DD). */
+    val disputeResponseDate: String? = null,
+    /** Диспют закрыт пользователем. */
+    val disputeCompleted: Boolean = false,
 )

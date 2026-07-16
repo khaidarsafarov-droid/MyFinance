@@ -96,6 +96,10 @@ fun HomePeriodFilterDropdown(
                 onFilterSelected(LoadFilter.THIS_MONTH)
                 expanded = false
             }
+            periodMenuItem(R.string.home_filter_dispute, LoadFilter.DISPUTE) {
+                onFilterSelected(LoadFilter.DISPUTE)
+                expanded = false
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.home_filter_calendar)) },
                 onClick = {
@@ -132,6 +136,7 @@ private fun filterLabel(filter: LoadFilter): String = when (filter) {
     LoadFilter.YESTERDAY -> stringResource(R.string.home_filter_yesterday)
     LoadFilter.LAST_WEEK -> stringResource(R.string.home_filter_last_week)
     LoadFilter.THIS_MONTH -> stringResource(R.string.home_filter_this_month)
+    LoadFilter.DISPUTE -> stringResource(R.string.home_filter_dispute)
     LoadFilter.CALENDAR_WEEK, LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_filter_calendar)
     LoadFilter.ALL -> stringResource(R.string.home_filter_archive)
 }

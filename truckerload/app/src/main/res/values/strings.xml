@@ -281,6 +281,7 @@
     <string name="home_filter_this_week">Эта неделя</string>
     <string name="home_filter_last_week">Прошлая неделя</string>
     <string name="home_filter_this_month">Этот месяц</string>
+    <string name="home_filter_dispute">Диспют</string>
     <string name="home_empty_all_title">Грузов не найдено</string>
     <string name="home_empty_calendar_week">Нет грузов за выбранную неделю</string>
     <string name="home_empty_calendar_date">Нет грузов на выбранную дату</string>
@@ -288,6 +289,7 @@
     <string name="home_empty_this_week">Нет грузов за эту неделю</string>
     <string name="home_empty_last_week">Нет грузов за прошлую неделю</string>
     <string name="home_empty_this_month">Нет грузов за этот месяц</string>
+    <string name="home_empty_dispute">Нет грузов на диспюте</string>
     <string name="home_empty_all_body">Отправьте данные боту в Telegram или добавьте груз. Потяните вниз для обновления.</string>
     <string name="home_empty_filtered_body">Смените фильтр или потяните вниз для обновления.</string>
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
@@ -473,6 +475,13 @@
     <string name="load_card_pace_line">%1$s • %2$s</string>
     <string name="load_detail_stops">Стопы</string>
     <string name="load_detail_penalties">Штрафы</string>
+    <string name="dispute_section_title">Диспют</string>
+    <string name="dispute_checkbox_label">Dispute</string>
+    <string name="dispute_active">На диспюте</string>
+    <string name="dispute_was_dispute">Был диспют</string>
+    <string name="dispute_response_date_title">Дата ответа</string>
+    <string name="dispute_response_date_label">Дата ответа: %1$s</string>
+    <string name="dispute_completed_checkbox">Выполнено</string>
 
     <!-- Парсинг -->
     <string name="load_added">✅ Добавлен новый груз: %1$s</string>

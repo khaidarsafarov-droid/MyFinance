@@ -21,6 +21,12 @@ data class Load(
     val durationDays: Double = 0.0,
     val pace: Double = 0.0,
     val stopCount: Int = 0,
+    val isDispute: Boolean = false,
+    val disputeResponseDate: String? = null,
+    val disputeCompleted: Boolean = false,
     val stops: List<Stop> = emptyList(),
     val penalties: List<Penalty> = emptyList()
-)
+) {
+    val isActiveDispute: Boolean get() = isDispute && !disputeCompleted
+    val hadDispute: Boolean get() = isDispute && disputeCompleted
+}

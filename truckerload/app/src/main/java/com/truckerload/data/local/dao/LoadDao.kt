@@ -84,7 +84,10 @@ interface LoadDao {
             lastDelCityState = :lastDelCityState,
             durationDays = :durationDays,
             pace = :pace,
-            stopCount = :stopCount
+            stopCount = :stopCount,
+            isDispute = :isDispute,
+            disputeResponseDate = :disputeResponseDate,
+            disputeCompleted = :disputeCompleted
         WHERE id = :loadId
         """
     )
@@ -106,6 +109,9 @@ interface LoadDao {
         durationDays: Double,
         pace: Double,
         stopCount: Int,
+        isDispute: Boolean,
+        disputeResponseDate: String?,
+        disputeCompleted: Boolean,
     )
 
     /** Точный поиск по load_date (YYYY-MM-DD). */
