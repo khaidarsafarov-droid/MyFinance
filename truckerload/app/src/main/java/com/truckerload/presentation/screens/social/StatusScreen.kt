@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Stop
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,12 +30,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.truckerload.R
+import com.truckerload.data.social.VoiceNoteRecorder
 import com.truckerload.domain.social.DriverStatusPost
 import com.truckerload.domain.social.StatusType
 import com.truckerload.presentation.di.LocalSocialRepository
@@ -71,6 +81,24 @@ fun StatusScreen(
     val displayName = profileState.profile?.displayName.orEmpty()
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val voiceRecorder = remember { VoiceNoteRecorder(context) }
+    var isRecording by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (voiceRecorder.isRecording()) {
+                voiceRecorder.stop()
+            }
+        }
+    }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri ?: return@rememberLauncherForActivityResult
@@ -83,6 +111,7 @@ fun StatusScreen(
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.social_statuses)) },
@@ -122,6 +151,26 @@ fun StatusScreen(
                         }
                         IconButton(onClick = { photoPicker.launch("image/*") }) {
                             Icon(Icons.Default.Image, contentDescription = stringResource(R.string.social_attach_photo), tint = tc.AccentPrimary)
+                        }
+                        IconButton(
+                            onClick = {
+                                if (isRecording) {
+                                    val (file, duration) = voiceRecorder.stop()
+                                    isRecording = false
+                                    viewModel.setVoiceRecording(false)
+                                    file?.let { viewModel.postVoiceStatus(it, duration, displayName) }
+                                } else {
+                                    voiceRecorder.start()
+                                    isRecording = true
+                                    viewModel.setVoiceRecording(true)
+                                }
+                            },
+                        ) {
+                            Icon(
+                                imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
+                                contentDescription = stringResource(R.string.social_voice_status),
+                                tint = if (isRecording) tc.AccentProfit else tc.AccentPrimary,
+                            )
                         }
                     }
                 }

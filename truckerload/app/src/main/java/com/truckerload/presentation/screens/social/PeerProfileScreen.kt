@@ -14,12 +14,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,6 +43,8 @@ import com.truckerload.presentation.utils.MoneyFormat
 fun PeerProfileScreen(
     peerId: String,
     onBack: () -> Unit,
+    onOpenChat: (String) -> Unit = {},
+    onStartCall: (String, String) -> Unit = { _, _ -> },
     viewModel: PeerProfileViewModel = viewModel(
         key = peerId,
         factory = PeerProfileViewModel.Factory(peerId, LocalSocialRepository.current),
@@ -47,9 +53,18 @@ fun PeerProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val peer = uiState.peer
     val tc = LocalTruckColors.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(peer?.displayName ?: stringResource(R.string.profile)) },
@@ -90,7 +105,7 @@ fun PeerProfileScreen(
                     )
                     Button(
                         onClick = viewModel::toggleFollow,
-                        enabled = !uiState.isUpdatingFollow,
+                        enabled = !uiState.isUpdatingFollow && !uiState.isBlocked,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
@@ -98,6 +113,38 @@ fun PeerProfileScreen(
                                 stringResource(R.string.social_unfollow)
                             } else {
                                 stringResource(R.string.social_follow)
+                            },
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Button(
+                            onClick = { viewModel.startPrivateChat(onOpenChat) },
+                            enabled = !uiState.isBlocked,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.social_message_peer))
+                        }
+                        Button(
+                            onClick = { peer?.let { onStartCall(peerId, it.displayName) } },
+                            enabled = !uiState.isBlocked,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.social_call_peer))
+                        }
+                    }
+                    Button(
+                        onClick = viewModel::toggleBlock,
+                        enabled = !uiState.isBlocking,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            if (uiState.isBlocked) {
+                                stringResource(R.string.social_unblock_user)
+                            } else {
+                                stringResource(R.string.social_block_user)
                             },
                         )
                     }

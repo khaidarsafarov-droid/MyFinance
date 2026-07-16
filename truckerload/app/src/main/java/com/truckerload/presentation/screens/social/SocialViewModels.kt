@@ -11,8 +11,10 @@ import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.SocialChat
 import com.truckerload.domain.social.SocialMessage
+import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.getOrNull
+import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -144,6 +146,7 @@ data class ChatsUiState(
     val chats: List<SocialChat> = emptyList(),
     val groupChats: List<SocialChat> = emptyList(),
     val privateChats: List<SocialChat> = emptyList(),
+    val peers: List<SocialPeerProfile> = emptyList(),
     val searchQuery: String = "",
     val totalUnread: Int = 0,
     val isCreatingChat: Boolean = false,
@@ -161,13 +164,15 @@ class ChatsViewModel(
         combine(
             searchQuery.flatMapLatest { query -> socialRepository.watchChatsSearch(query) },
             socialRepository.watchTotalUnread(),
+            socialRepository.watchPeers(),
             searchQuery,
             _errorMessage,
-        ) { chats, unread, query, error ->
+        ) { chats, unread, peers, query, error ->
             ChatsUiState(
                 chats = chats,
                 groupChats = chats.filter { it.type != ChatType.PRIVATE },
                 privateChats = chats.filter { it.type == ChatType.PRIVATE },
+                peers = peers,
                 searchQuery = query,
                 totalUnread = unread,
                 errorMessage = error,
@@ -200,6 +205,16 @@ class ChatsViewModel(
         viewModelScope.launch {
             _errorMessage.value = null
             when (val result = socialRepository.createPrivateChat(trimmed)) {
+                is SocialResult.Success -> onCreated(result.data)
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
+
+    fun createPrivateChatWithPeer(peerId: String, onCreated: (String) -> Unit) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = socialRepository.createPrivateChatWithPeer(peerId)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -389,19 +404,32 @@ class CommunityViewModel(
     private val _state = MutableStateFlow(CommunityUiState())
     val uiState: StateFlow<CommunityUiState> = _state.asStateFlow()
 
-    val leaderboard = socialRepository.watchLeaderboard()
+    private val leaderboardCategory = MutableStateFlow(LeaderboardCategory.OVERALL)
+
+    val leaderboard = leaderboardCategory
+        .flatMapLatest { category -> socialRepository.watchLeaderboard(category) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         viewModelScope.launch {
             socialRepository.ensureInitialized()
-            _state.value = _state.value.copy(challenge = socialRepository.weeklyChallenge())
+            _state.value = _state.value.copy(
+                challenge = socialRepository.weeklyChallenge(),
+                challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+            )
         }
+    }
+
+    fun setLeaderboardCategory(category: LeaderboardCategory) {
+        leaderboardCategory.value = category
     }
 
     fun refreshChallenge() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(challenge = socialRepository.weeklyChallenge())
+            _state.value = _state.value.copy(
+                challenge = socialRepository.weeklyChallenge(),
+                challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+            )
         }
     }
 
@@ -430,18 +458,30 @@ data class StatusUiState(
     val statuses: List<com.truckerload.domain.social.DriverStatusPost> = emptyList(),
     val inputText: String = "",
     val isPosting: Boolean = false,
+    val isRecordingVoice: Boolean = false,
+    val errorMessage: String? = null,
 )
 
 class StatusViewModel(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
     private val _input = MutableStateFlow("")
+    private val _isRecordingVoice = MutableStateFlow(false)
+    private val _errorMessage = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<StatusUiState> =
         combine(
             socialRepository.watchFriendStatuses(),
             _input,
-        ) { statuses, input ->
-            StatusUiState(statuses = statuses, inputText = input)
+            _isRecordingVoice,
+            _errorMessage,
+        ) { statuses, input, recording, error ->
+            StatusUiState(
+                statuses = statuses,
+                inputText = input,
+                isRecordingVoice = recording,
+                errorMessage = error,
+            )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatusUiState())
 
     init {
@@ -463,8 +503,30 @@ class StatusViewModel(
 
     fun postPhotoStatus(bitmap: android.graphics.Bitmap, displayName: String, caption: String = "") {
         viewModelScope.launch {
-            socialRepository.createPhotoStatus(bitmap, displayName, caption)
+            _errorMessage.value = null
+            when (val result = socialRepository.createPhotoStatus(bitmap, displayName, caption)) {
+                is SocialResult.Success -> Unit
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
         }
+    }
+
+    fun postVoiceStatus(audioFile: java.io.File, durationMs: Long, displayName: String) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = socialRepository.createVoiceStatus(audioFile, durationMs, displayName)) {
+                is SocialResult.Success -> Unit
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
+
+    fun setVoiceRecording(recording: Boolean) {
+        _isRecordingVoice.value = recording
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 
     fun markViewed(statusId: String) {
@@ -480,19 +542,32 @@ class StatusViewModel(
 
 data class GroupsUiState(
     val publicGroups: List<com.truckerload.domain.social.SocialChat> = emptyList(),
+    val recommendedGroups: List<com.truckerload.domain.social.SocialChat> = emptyList(),
     val inviteCode: String = "",
+    val errorMessage: String? = null,
 )
 
 class GroupsViewModel(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
     private val _inviteCode = MutableStateFlow("")
+    private val _errorMessage = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<GroupsUiState> =
         combine(
             socialRepository.watchPublicGroups(),
+            socialRepository.recommendGroups(),
             _inviteCode,
-        ) { groups, code ->
-            GroupsUiState(publicGroups = groups, inviteCode = code)
+            _errorMessage,
+        ) { groups, recommended, code, error ->
+            GroupsUiState(
+                publicGroups = groups,
+                recommendedGroups = recommended.filter { rec ->
+                    groups.none { it.id == rec.id } || !rec.isMember
+                },
+                inviteCode = code,
+                errorMessage = error,
+            )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GroupsUiState())
 
     init {
@@ -505,9 +580,10 @@ class GroupsViewModel(
 
     fun joinGroup(chatId: String, displayName: String, onJoined: (String) -> Unit) {
         viewModelScope.launch {
+            _errorMessage.value = null
             when (val result = socialRepository.joinGroup(chatId, displayName)) {
-                is com.truckerload.domain.social.SocialResult.Success -> onJoined(chatId)
-                is com.truckerload.domain.social.SocialResult.Error -> Unit
+                is SocialResult.Success -> onJoined(chatId)
+                is SocialResult.Error -> _errorMessage.value = result.message
             }
         }
     }
@@ -516,11 +592,16 @@ class GroupsViewModel(
         val code = _inviteCode.value.trim()
         if (code.isBlank()) return
         viewModelScope.launch {
+            _errorMessage.value = null
             when (val result = socialRepository.joinGroupByInviteCode(code, displayName)) {
-                is com.truckerload.domain.social.SocialResult.Success -> onJoined(result.data)
-                is com.truckerload.domain.social.SocialResult.Error -> Unit
+                is SocialResult.Success -> onJoined(result.data)
+                is SocialResult.Error -> _errorMessage.value = result.message
             }
         }
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 
     class Factory(private val socialRepository: SocialRepository) : ViewModelProvider.Factory {
@@ -567,7 +648,10 @@ class GroupDetailViewModel(
 data class PeerProfileUiState(
     val peer: com.truckerload.domain.social.SocialPeerProfile? = null,
     val isFollowing: Boolean = false,
+    val isBlocked: Boolean = false,
     val isUpdatingFollow: Boolean = false,
+    val isBlocking: Boolean = false,
+    val errorMessage: String? = null,
 )
 
 class PeerProfileViewModel(
@@ -575,14 +659,26 @@ class PeerProfileViewModel(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
     private val _followUpdating = MutableStateFlow(false)
+    private val _blocking = MutableStateFlow(false)
+    private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<PeerProfileUiState> =
         combine(
             socialRepository.watchPeer(peerId),
             socialRepository.watchIsFollowing(peerId),
+            socialRepository.watchIsBlocked(peerId),
             _followUpdating,
-        ) { peer, isFollowing, updating ->
-            PeerProfileUiState(peer = peer, isFollowing = isFollowing, isUpdatingFollow = updating)
+            _blocking,
+            _errorMessage,
+        ) { peer, isFollowing, isBlocked, updating, blocking, error ->
+            PeerProfileUiState(
+                peer = peer,
+                isFollowing = isFollowing,
+                isBlocked = isBlocked,
+                isUpdatingFollow = updating,
+                isBlocking = blocking,
+                errorMessage = error,
+            )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PeerProfileUiState())
 
     init {
@@ -592,13 +688,47 @@ class PeerProfileViewModel(
     fun toggleFollow() {
         viewModelScope.launch {
             _followUpdating.value = true
-            if (uiState.value.isFollowing) {
+            _errorMessage.value = null
+            val result = if (uiState.value.isFollowing) {
                 socialRepository.unfollowDriver(peerId)
             } else {
                 socialRepository.followDriver(peerId)
             }
+            if (result is SocialResult.Error) {
+                _errorMessage.value = result.message
+            }
             _followUpdating.value = false
         }
+    }
+
+    fun toggleBlock() {
+        viewModelScope.launch {
+            _blocking.value = true
+            _errorMessage.value = null
+            val result = if (uiState.value.isBlocked) {
+                socialRepository.unblockUser(peerId)
+            } else {
+                socialRepository.blockUser(peerId)
+            }
+            if (result is SocialResult.Error) {
+                _errorMessage.value = result.message
+            }
+            _blocking.value = false
+        }
+    }
+
+    fun startPrivateChat(onCreated: (String) -> Unit) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = socialRepository.createPrivateChatWithPeer(peerId)) {
+                is SocialResult.Success -> onCreated(result.data)
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 
     class Factory(

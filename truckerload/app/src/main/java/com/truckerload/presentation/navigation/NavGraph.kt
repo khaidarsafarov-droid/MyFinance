@@ -11,6 +11,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalContext
@@ -18,6 +21,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.screens.home.HomeViewModel
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -288,9 +293,21 @@ fun NavGraph(
                 arguments = listOf(navArgument("peerId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val peerId = backStackEntry.arguments?.getString("peerId").orEmpty()
+                val voiceRepository = LocalVoiceRepository.current
+                val socialRepository = LocalSocialRepository.current
+                val scope = rememberCoroutineScope()
                 PeerProfileScreen(
                     peerId = peerId,
                     onBack = { navController.popBackStack() },
+                    onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
+                    onStartCall = { calleeId, calleeName ->
+                        scope.launch {
+                            val callerName = socialRepository.watchMyProfile().first().displayName.ifBlank { "Вы" }
+                            voiceRepository.startCall(calleeId, calleeName, callerName)
+                                .getOrNull()
+                                ?.let { call -> navController.navigate(Routes.call(call.callId)) }
+                        }
+                    },
                 )
             }
             composable(

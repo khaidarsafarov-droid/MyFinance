@@ -80,8 +80,8 @@ object SocialSeedData {
                 inviteCode = "ROADHELP",
             ),
             SocialChatEntity(
-                id = "dm_alexey",
-                title = "Алексей",
+                id = "dm_peer_alexey",
+                title = "Алексей С.",
                 type = ChatType.PRIVATE.name,
                 participantCount = 2,
                 lastMessage = "Привет! Ты где сейчас?",
@@ -122,7 +122,7 @@ object SocialSeedData {
                 ),
                 SocialMessageEntity(
                     id = UUID.randomUUID().toString(),
-                    chatId = "dm_alexey",
+                    chatId = "dm_peer_alexey",
                     senderId = "alexey",
                     senderName = "Алексей",
                     text = "Привет! Ты где сейчас?",

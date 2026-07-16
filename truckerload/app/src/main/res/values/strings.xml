@@ -896,4 +896,13 @@
     <string name="social_record_voice">Голосовое</string>
     <string name="social_voice_message">Голосовое сообщение</string>
     <string name="social_stop_recording">Стоп</string>
+    <string name="social_select_peer">Выберите водителя</string>
+    <string name="social_message_peer">Написать</string>
+    <string name="social_call_peer">Позвонить</string>
+    <string name="social_block_user">Заблокировать</string>
+    <string name="social_unblock_user">Разблокировать</string>
+    <string name="social_user_blocked">Пользователь заблокирован</string>
+    <string name="social_peer_not_found">Водитель не найден</string>
+    <string name="social_recommended_groups">Рекомендуемые группы</string>
+    <string name="social_voice_status">Голосовой статус</string>
 </resources>
