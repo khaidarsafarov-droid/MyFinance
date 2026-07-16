@@ -16,12 +16,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -51,9 +55,18 @@ fun GroupsScreen(
     val profileState by profileViewModel.uiState.collectAsState()
     val displayName = profileState.profile?.displayName.orEmpty()
     val tc = LocalTruckColors.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.social_groups)) },
@@ -105,6 +118,25 @@ fun GroupsScreen(
                     },
                     onOpen = { onOpenGroup(group.id) },
                 )
+            }
+            if (uiState.recommendedGroups.isNotEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.social_recommended_groups),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+                items(uiState.recommendedGroups, key = { "rec_${it.id}" }) { group ->
+                    GroupDiscoverCard(
+                        group = group,
+                        onJoin = {
+                            viewModel.joinGroup(group.id, displayName) { onOpenGroup(group.id) }
+                        },
+                        onOpen = { onOpenGroup(group.id) },
+                    )
+                }
             }
         }
     }

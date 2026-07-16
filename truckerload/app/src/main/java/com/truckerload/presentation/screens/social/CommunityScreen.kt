@@ -50,10 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.social.LeaderboardCategory
 import com.truckerload.domain.social.SocialChat
-import androidx.compose.runtime.rememberCoroutineScope
 import com.truckerload.presentation.di.LocalSocialRepository
-import com.truckerload.presentation.di.LocalVoiceRepository
-import kotlinx.coroutines.launch
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -97,7 +94,6 @@ fun CommunityScreen(
     val openDrawer = LocalOpenDrawer.current
     val challenge = communityState.challenge
 
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(chatsState.errorMessage) {
@@ -157,19 +153,21 @@ fun CommunityScreen(
                 0 -> ChatsTabContent(
                     groupChats = chatsState.groupChats,
                     privateChats = chatsState.privateChats,
+                    peers = chatsState.peers,
                     searchQuery = chatsState.searchQuery,
                     onSearchChange = chatsViewModel::setSearchQuery,
                     onCreateGroup = { name ->
                         chatsViewModel.createGroupChat(name) { chatId -> onOpenGroupDetail(chatId) }
                     },
-                    onCreatePrivate = { name ->
-                        chatsViewModel.createPrivateChat(name) { chatId -> onOpenChat(chatId) }
+                    onCreatePrivateWithPeer = { peerId ->
+                        chatsViewModel.createPrivateChatWithPeer(peerId) { chatId -> onOpenChat(chatId) }
                     },
                     onChatClick = onOpenChat,
                     onOpenVoiceRooms = onOpenVoiceRooms,
                 )
                 1 -> LeaderboardTabContent(
                     entries = leaderboard,
+                    onCategoryChange = communityViewModel::setLeaderboardCategory,
                     onPeerClick = onOpenPeerProfile,
                 )
                 2 -> challenge?.let { activeChallenge ->
@@ -189,18 +187,17 @@ fun CommunityScreen(
 private fun ChatsTabContent(
     groupChats: List<SocialChat>,
     privateChats: List<SocialChat>,
+    peers: List<com.truckerload.domain.social.SocialPeerProfile>,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     onCreateGroup: (String) -> Unit,
-    onCreatePrivate: (String) -> Unit,
+    onCreatePrivateWithPeer: (String) -> Unit,
     onChatClick: (String) -> Unit,
     onOpenVoiceRooms: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val voiceRepository = LocalVoiceRepository.current
-    val scope = rememberCoroutineScope()
     var showGroupDialog by remember { mutableStateOf(false) }
-    var showPrivateDialog by remember { mutableStateOf(false) }
+    var showPeerPicker by remember { mutableStateOf(false) }
     var chatNameInput by remember { mutableStateOf("") }
 
     if (showGroupDialog) {
@@ -236,33 +233,32 @@ private fun ChatsTabContent(
         )
     }
 
-    if (showPrivateDialog) {
+    if (showPeerPicker) {
         AlertDialog(
-            onDismissRequest = { showPrivateDialog = false },
-            title = { Text(stringResource(R.string.social_create_private)) },
+            onDismissRequest = { showPeerPicker = false },
+            title = { Text(stringResource(R.string.social_select_peer)) },
             text = {
-                OutlinedTextField(
-                    value = chatNameInput,
-                    onValueChange = { chatNameInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.social_chat_name_hint)) },
-                    singleLine = true,
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onCreatePrivate(chatNameInput)
-                        chatNameInput = ""
-                        showPrivateDialog = false
-                    },
-                    enabled = chatNameInput.isNotBlank(),
-                ) {
-                    Text(stringResource(R.string.common_add))
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(peers, key = { it.id }) { peer ->
+                        BentoGlassClickableCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                onCreatePrivateWithPeer(peer.id)
+                                showPeerPicker = false
+                            },
+                        ) {
+                            Text(
+                                text = peer.displayName,
+                                modifier = Modifier.padding(16.dp),
+                                color = tc.TextPrimary,
+                            )
+                        }
+                    }
                 }
             },
+            confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showPrivateDialog = false }) {
+                TextButton(onClick = { showPeerPicker = false }) {
                     Text(stringResource(R.string.common_cancel))
                 }
             },
@@ -308,7 +304,7 @@ private fun ChatsTabContent(
                 Button(
                     onClick = {
                         chatNameInput = ""
-                        showPrivateDialog = true
+                        showPeerPicker = true
                     },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -358,14 +354,6 @@ private fun ChatsTabContent(
                         )
                     }
                 }
-            }
-        }
-        item {
-            Button(
-                onClick = { scope.launch { voiceRepository.simulateIncomingCall() } },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.demo_incoming_call))
             }
         }
     }
@@ -424,6 +412,7 @@ private fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
 @Composable
 private fun LeaderboardTabContent(
     entries: List<com.truckerload.domain.social.LeaderboardEntry>,
+    onCategoryChange: (LeaderboardCategory) -> Unit,
     onPeerClick: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
@@ -440,19 +429,16 @@ private fun LeaderboardTabContent(
                 categories.forEachIndexed { index, category ->
                     Tab(
                         selected = categoryIndex == index,
-                        onClick = { categoryIndex = index },
+                        onClick = {
+                            categoryIndex = index
+                            onCategoryChange(category)
+                        },
                         text = { Text(category.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     )
                 }
             }
         }
-        val sorted = when (categories[categoryIndex]) {
-            LeaderboardCategory.OVERALL -> entries
-            LeaderboardCategory.LOADS -> entries.sortedByDescending { it.score * 0.1 }
-            LeaderboardCategory.REVENUE -> entries.sortedByDescending { it.score }
-            LeaderboardCategory.RPM -> entries.sortedByDescending { it.rating }
-        }
-        items(sorted, key = { it.rank }) { entry ->
+        items(entries, key = { "${it.rank}_${it.displayName}" }) { entry ->
             val peerId = entry.userId
             val clickable = !entry.isMe && !peerId.isNullOrBlank()
             BentoGlassClickableCard(

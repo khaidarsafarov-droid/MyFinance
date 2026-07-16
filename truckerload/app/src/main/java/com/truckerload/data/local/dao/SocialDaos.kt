@@ -225,6 +225,9 @@ interface ChatMemberDao {
 
     @Query("SELECT COUNT(*) FROM chat_members WHERE chatId = :chatId")
     suspend fun countMembers(chatId: String): Int
+
+    @Query("SELECT chatId FROM chat_members WHERE userId = :userId")
+    fun watchMemberChatIds(userId: String): Flow<List<String>>
 }
 
 @Dao

@@ -167,24 +167,47 @@ class SocialRepository(
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
 
     fun watchChats(): Flow<List<SocialChat>> =
-        chatDao.watchChats().map { list ->
-            list.map { chat ->
-                chat.toDomain(isMember = chat.type != ChatType.GROUP.name || chat.participantCount <= 1)
-            }
+        combine(
+            chatDao.watchChats(),
+            chatMemberDao.watchMemberChatIds(DriverProfileEntity.LOCAL_USER_ID),
+            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
+        ) { chats, memberChatIds, blockedIds ->
+            mapChatsWithMembership(chats, memberChatIds.toSet(), blockedIds.toSet())
         }
 
     fun watchPublicGroups(): Flow<List<SocialChat>> =
-        chatDao.watchChats().map { list ->
-            list.filter { it.type == ChatType.GROUP.name && it.isPublic && !it.archived }
-                .map { it.toDomain(isMember = false) }
+        combine(
+            chatDao.watchChats(),
+            chatMemberDao.watchMemberChatIds(DriverProfileEntity.LOCAL_USER_ID),
+        ) { chats, memberChatIds ->
+            val memberSet = memberChatIds.toSet()
+            chats
+                .filter { it.type == ChatType.GROUP.name && it.isPublic && !it.archived }
+                .map { it.toDomain(isMember = memberSet.contains(it.id)) }
+        }
+
+    fun watchPeers(): Flow<List<SocialPeerProfile>> =
+        combine(
+            peerDao.watchAll(),
+            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
+        ) { peers, blockedIds ->
+            val blockedSet = blockedIds.toSet()
+            peers.filter { it.id !in blockedSet }.map { it.toPeerProfile() }
         }
 
     fun watchChatsSearch(query: String): Flow<List<SocialChat>> {
         val trimmed = query.trim()
-        return if (trimmed.isEmpty()) {
-            watchChats()
+        val chatSource = if (trimmed.isEmpty()) {
+            chatDao.watchChats()
         } else {
-            chatDao.watchChatsSearch(trimmed).map { list -> list.map { it.toDomain() } }
+            chatDao.watchChatsSearch(trimmed)
+        }
+        return combine(
+            chatSource,
+            chatMemberDao.watchMemberChatIds(DriverProfileEntity.LOCAL_USER_ID),
+            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
+        ) { chats, memberChatIds, blockedIds ->
+            mapChatsWithMembership(chats, memberChatIds.toSet(), blockedIds.toSet())
         }
     }
 
@@ -289,12 +312,17 @@ class SocialRepository(
     }
 
     suspend fun createPrivateChat(peerName: String): SocialResult<String> = runCatching {
+        val trimmedName = peerName.trim()
+        if (trimmedName.isBlank()) {
+            return SocialResult.Error(appContext.getString(R.string.social_error_create_chat))
+        }
+        findPrivateChatByTitle(trimmedName)?.let { return SocialResult.Success(it.id) }
         val chatId = "dm_${UUID.randomUUID()}"
         val now = System.currentTimeMillis()
         chatDao.upsert(
             SocialChatEntity(
                 id = chatId,
-                title = peerName.ifBlank { "Новый чат" },
+                title = trimmedName,
                 type = ChatType.PRIVATE.name,
                 participantCount = 2,
                 lastMessage = "",
@@ -302,6 +330,34 @@ class SocialRepository(
                 unreadCount = 0,
                 avatarEmoji = "👤",
                 onlineCount = 0,
+            ),
+        )
+        SocialResult.Success(chatId)
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_chat, it), it) }
+
+    suspend fun createPrivateChatWithPeer(peerId: String): SocialResult<String> = runCatching {
+        if (peerId == DriverProfileEntity.LOCAL_USER_ID) {
+            return SocialResult.Error("Нельзя написать самому себе")
+        }
+        if (isBlocked(peerId)) {
+            return SocialResult.Error(appContext.getString(R.string.social_user_blocked))
+        }
+        findPrivateChatForPeer(peerId)?.let { return SocialResult.Success(it.id) }
+        val peer = peerDao.getById(peerId)
+            ?: return SocialResult.Error(appContext.getString(R.string.social_peer_not_found))
+        val chatId = privateChatIdForPeer(peerId)
+        val now = System.currentTimeMillis()
+        chatDao.upsert(
+            SocialChatEntity(
+                id = chatId,
+                title = peer.displayName,
+                type = ChatType.PRIVATE.name,
+                participantCount = 2,
+                lastMessage = "",
+                lastMessageAt = now,
+                unreadCount = 0,
+                avatarEmoji = "👤",
+                onlineCount = 1,
             ),
         )
         SocialResult.Success(chatId)
@@ -353,6 +409,9 @@ class SocialRepository(
                 blockedAt = System.currentTimeMillis(),
             ),
         )
+        followDao.unfollow(DriverProfileEntity.LOCAL_USER_ID, blockedId)
+        findPrivateChatForPeer(blockedId)?.let { chatDao.archiveChat(it.id) }
+        updateFollowCounts()
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_block_user, it), it) }
 
@@ -364,9 +423,20 @@ class SocialRepository(
     suspend fun isBlocked(targetId: String): Boolean =
         blockedUserDao.isBlocked(DriverProfileEntity.LOCAL_USER_ID, targetId)
 
+    fun watchIsBlocked(targetId: String): Flow<Boolean> =
+        blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID)
+            .map { blockedIds -> targetId in blockedIds }
+
     fun watchFriendStatuses(): Flow<List<DriverStatusPost>> =
-        driverStatusDao.watchActiveStatuses(System.currentTimeMillis())
-            .map { statuses -> statuses.map { it.toDomain() } }
+        combine(
+            driverStatusDao.watchActiveStatuses(System.currentTimeMillis()),
+            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
+        ) { statuses, blockedIds ->
+            val blockedSet = blockedIds.toSet()
+            statuses
+                .filter { it.userId !in blockedSet }
+                .map { it.toDomain() }
+        }
 
     suspend fun createTextStatus(text: String, displayName: String): SocialResult<Unit> = runCatching {
         val now = System.currentTimeMillis()
@@ -524,9 +594,14 @@ class SocialRepository(
         combine(
             loadRepository.getAllLoads(),
             peerDao.watchAll(),
-        ) { loads, peers ->
-            buildLeaderboard(loads, peers, category)
+            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
+        ) { loads, peers, blockedIds ->
+            val blockedSet = blockedIds.toSet()
+            buildLeaderboard(loads, peers.filter { it.id !in blockedSet }, category)
         }
+
+    suspend fun hasJoinedWeeklyChallenge(): Boolean =
+        challengeDao.getParticipation(WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID) != null
 
     suspend fun refreshMyChallengeScore() {
         val (week, year) = getCurrentWeekNumberAndYear()
@@ -602,7 +677,8 @@ class SocialRepository(
     suspend fun getLeaderboard(category: LeaderboardCategory): List<LeaderboardEntry> {
         val loads = loadRepository.getAllLoadsOnce()
         val peers = peerDao.getAll()
-        return buildLeaderboard(loads, peers, category)
+        val blockedIds = blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID).first().toSet()
+        return buildLeaderboard(loads, peers.filter { it.id !in blockedIds }, category)
     }
 
     private suspend fun seedDemoStatuses(displayName: String) {
@@ -766,6 +842,40 @@ class SocialRepository(
             joinedDate = base.joinedDate,
             lastActive = base.lastActive.takeIf { it > 0 } ?: System.currentTimeMillis(),
         )
+    }
+
+    private fun privateChatIdForPeer(peerId: String): String = "dm_$peerId"
+
+    private suspend fun findPrivateChatForPeer(peerId: String): SocialChatEntity? {
+        chatDao.getChat(privateChatIdForPeer(peerId))?.let { return it }
+        val peer = peerDao.getById(peerId) ?: return null
+        return findPrivateChatByTitle(peer.displayName)
+    }
+
+    private suspend fun findPrivateChatByTitle(title: String): SocialChatEntity? =
+        chatDao.watchChats().first()
+            .firstOrNull { it.type == ChatType.PRIVATE.name && it.title.equals(title, ignoreCase = true) }
+
+    private fun mapChatsWithMembership(
+        chats: List<SocialChatEntity>,
+        memberChatIds: Set<String>,
+        blockedIds: Set<String>,
+    ): List<SocialChat> =
+        chats
+            .filter { chat -> chat.type != ChatType.PRIVATE.name || !isBlockedPrivateChat(chat, blockedIds) }
+            .map { chat -> chat.toDomain(isMember = resolveIsMember(chat, memberChatIds)) }
+
+    private fun resolveIsMember(chat: SocialChatEntity, memberChatIds: Set<String>): Boolean =
+        when {
+            chat.type == ChatType.PRIVATE.name -> true
+            chat.type == ChatType.GROUP.name -> memberChatIds.contains(chat.id)
+            else -> true
+        }
+
+    private fun isBlockedPrivateChat(chat: SocialChatEntity, blockedIds: Set<String>): Boolean {
+        if (chat.type != ChatType.PRIVATE.name) return false
+        val peerId = chat.id.removePrefix("dm_")
+        return peerId.startsWith("peer_") && peerId in blockedIds
     }
 
     private suspend fun backfillGroupInviteCodes() {
