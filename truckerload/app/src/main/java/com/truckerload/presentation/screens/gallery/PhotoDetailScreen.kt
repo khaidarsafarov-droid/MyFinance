@@ -1,6 +1,6 @@
 package com.truckerload.presentation.screens.gallery
 
-import android.graphics.BitmapFactory
+import com.truckerload.presentation.utils.rememberDecodedBitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -85,11 +85,7 @@ fun PhotoDetailScreen(
         selectedLoadId = photo?.loadId
     }
 
-    val bitmap = remember(photo?.filePath) {
-        photo?.filePath?.let { path ->
-            if (File(path).exists()) BitmapFactory.decodeFile(path)?.asImageBitmap() else null
-        }
-    }
+    val bitmap = photo?.filePath?.let { rememberDecodedBitmap(it) }
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,

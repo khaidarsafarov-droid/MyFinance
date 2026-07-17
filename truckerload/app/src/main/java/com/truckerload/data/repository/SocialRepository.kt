@@ -15,6 +15,7 @@ import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.SocialChatEntity
 import com.truckerload.data.local.entities.SocialMessageEntity
 import com.truckerload.data.local.entities.SocialPeerEntity
+import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.social.AvatarStorage
 import com.truckerload.data.social.ChatAttachmentStorage
@@ -43,7 +44,7 @@ import com.truckerload.domain.social.SocialMessage
 import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.LeaderboardCategory
-import com.truckerload.domain.social.StatusType
+import com.truckerload.domain.social.leaderboardScore
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -95,14 +96,14 @@ class SocialRepository(
     fun watchMyEnhancedProfile(): Flow<EnhancedDriverProfile> =
         combine(
             profileDao.watchProfile(),
-            loadRepository.getAllLoads(),
+            loadRepository.watchTotalLoadStats(),
             userProfileStore.profile,
-        ) { entity, loads, userProfile ->
+        ) { entity, stats, userProfile ->
             buildEnhancedProfile(
                 entity,
-                loads.size,
-                loads.sumOf { it.totalMiles }.toInt(),
-                loads.sumOf { it.totalRate },
+                stats.totalLoads,
+                stats.totalMiles.toInt(),
+                stats.totalRevenue,
                 userProfile?.photoUrl,
             )
         }
@@ -595,23 +596,24 @@ class SocialRepository(
     suspend fun getPeer(peerId: String): SocialPeerProfile? =
         peerDao.getById(peerId)?.toPeerProfile()
 
-    fun watchLeaderboard(category: LeaderboardCategory = LeaderboardCategory.OVERALL): Flow<List<LeaderboardEntry>> =
-        combine(
-            loadRepository.getAllLoads(),
+    fun watchLeaderboard(category: LeaderboardCategory = LeaderboardCategory.OVERALL): Flow<List<LeaderboardEntry>> {
+        val (week, year) = getCurrentWeekNumberAndYear()
+        return combine(
+            loadRepository.watchWeeklyLoadStats(week, year),
             peerDao.watchAll(),
             blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
-        ) { loads, peers, blockedIds ->
+        ) { weekStats, peers, blockedIds ->
             val blockedSet = blockedIds.toSet()
-            buildLeaderboard(loads, peers.filter { it.id !in blockedSet }, category)
+            buildLeaderboard(weekStats, peers.filter { it.id !in blockedSet }, category)
         }
+    }
 
     suspend fun hasJoinedWeeklyChallenge(): Boolean =
         challengeDao.getParticipation(WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID) != null
 
     suspend fun refreshMyChallengeScore() {
         val (week, year) = getCurrentWeekNumberAndYear()
-        val loads = loadRepository.getLoadsByWeek(week, year).first()
-        val miles = loads.sumOf { it.totalMiles }
+        val miles = loadRepository.getWeeklyLoadStatsOnce(week, year).totalMiles
         val existing = challengeDao.getParticipation(WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID)
         if (existing != null) {
             challengeDao.updateScore(WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID, miles)
@@ -620,8 +622,7 @@ class SocialRepository(
 
     suspend fun joinWeeklyChallenge(): SocialResult<Unit> = runCatching {
         val (week, year) = getCurrentWeekNumberAndYear()
-        val loads = loadRepository.getLoadsByWeek(week, year).first()
-        val miles = loads.sumOf { it.totalMiles }
+        val miles = loadRepository.getWeeklyLoadStatsOnce(week, year).totalMiles
         challengeDao.join(
             ChallengeParticipationEntity(
                 challengeId = WEEKLY_CHALLENGE_ID,
@@ -635,8 +636,8 @@ class SocialRepository(
 
     suspend fun weeklyChallenge(): Challenge {
         val (week, year) = getCurrentWeekNumberAndYear()
-        val loads = loadRepository.getLoadsByWeek(week, year).first()
-        val myMiles = loads.sumOf { it.totalMiles }
+        val weekStats = loadRepository.getWeeklyLoadStatsOnce(week, year)
+        val myMiles = weekStats.totalMiles
         val myName = profileDao.getProfile()?.displayName
             ?: userProfileStore.profile.value?.displayName
             ?: "Вы"
@@ -681,10 +682,11 @@ class SocialRepository(
     }
 
     suspend fun getLeaderboard(category: LeaderboardCategory): List<LeaderboardEntry> {
-        val loads = loadRepository.getAllLoadsOnce()
+        val (week, year) = getCurrentWeekNumberAndYear()
+        val weekStats = loadRepository.getWeeklyLoadStatsOnce(week, year)
         val peers = peerDao.getAll()
         val blockedIds = blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID).first().toSet()
-        return buildLeaderboard(loads, peers.filter { it.id !in blockedIds }, category)
+        return buildLeaderboard(weekStats, peers.filter { it.id !in blockedIds }, category)
     }
 
     private suspend fun seedDemoStatuses(displayName: String) {
@@ -744,22 +746,12 @@ class SocialRepository(
     }
 
     private fun buildLeaderboard(
-        loads: List<com.truckerload.domain.model.Load>,
+        weekStats: WeeklyLoadStatsAgg,
         peers: List<SocialPeerEntity>,
         category: LeaderboardCategory,
     ): List<LeaderboardEntry> {
-        val (week, year) = getCurrentWeekNumberAndYear()
-        val weekLoads = loads.filter { it.weekNumber == week && it.year == year }
         val localName = userProfileStore.profile.value?.displayName ?: "Вы"
-        val myScore = when (category) {
-            LeaderboardCategory.LOADS -> weekLoads.size.toDouble()
-            LeaderboardCategory.REVENUE -> weekLoads.sumOf { it.totalRate }
-            LeaderboardCategory.RPM -> {
-                val miles = weekLoads.sumOf { it.totalMiles }
-                if (miles > 0) weekLoads.sumOf { it.totalRate } / miles else 0.0
-            }
-            LeaderboardCategory.OVERALL -> weekLoads.sumOf { it.totalMiles }
-        }
+        val myScore = weekStats.leaderboardScore(category)
         val peerEntries = peers.map { peer ->
             val score = when (category) {
                 LeaderboardCategory.LOADS -> peer.weeklyLoads.toDouble()

@@ -5,8 +5,10 @@ import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadHistory
+import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.WeekYieldAgg
+import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
@@ -46,6 +48,15 @@ class LoadRepository(private val db: AppDatabase) {
     /** Single Source of Truth: реактивный поток. Room эмитит при любом изменении таблицы loads. */
     fun getAllLoads(): Flow<List<Load>> =
         loadDao.getAllLoads().mapLatest { hydrateLoads(it) }
+
+    fun watchTotalLoadStats(): Flow<LoadStatsAgg> =
+        loadDao.watchTotalLoadStats()
+
+    fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg> =
+        loadDao.watchWeeklyLoadStats(weekNumber, year)
+
+    suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg =
+        loadDao.getWeeklyLoadStatsOnce(weekNumber, year)
 
     /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
     fun watchLoads(): Flow<List<Load>> = getAllLoads()

@@ -10,7 +10,7 @@ class TelegramBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
         val appContext = context.applicationContext
-        TelegramTokenStore(appContext).syncFromBuildConfig()
+        TelegramTokenStore(appContext).bootstrapFromBuildConfigIfEmpty()
         if (TelegramTokenStore(appContext).hasToken()) {
             TelegramBotForegroundService.start(appContext)
         }

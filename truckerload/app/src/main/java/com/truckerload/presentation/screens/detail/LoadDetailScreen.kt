@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.detail
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +44,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
+import com.truckerload.presentation.utils.rememberDecodedBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -225,11 +224,7 @@ fun LoadDetailScreen(
                                 )
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     items(linkedPhotos, key = { it.id }) { photo ->
-                                        val thumb = remember(photo.filePath) {
-                                            java.io.File(photo.filePath).takeIf { it.exists() }?.let { file ->
-                                                BitmapFactory.decodeFile(file.absolutePath)?.asImageBitmap()
-                                            }
-                                        }
+                                        val thumb = rememberDecodedBitmap(photo.filePath)
                                         if (thumb != null) {
                                             Image(
                                                 bitmap = thumb,

@@ -5,7 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.truckerload.data.local.entities.LoadEntity
+import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.WeekYieldAgg
+import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.data.local.entities.analytics.AnalyticsTotalsAgg
 import com.truckerload.data.local.entities.analytics.DailyGrossAgg
 import com.truckerload.data.local.entities.analytics.WeeklyRevenueAgg
@@ -219,4 +221,39 @@ interface LoadDao {
         """
     )
     suspend fun getAnalyticsTotals(minDate: String): AnalyticsTotalsAgg
+
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS totalLoads,
+            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
+        FROM loads
+        """
+    )
+    fun watchTotalLoadStats(): Flow<LoadStatsAgg>
+
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS loadCount,
+            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
+        FROM loads
+        WHERE weekNumber = :weekNumber AND year = :year
+        """
+    )
+    fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg>
+
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS loadCount,
+            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
+        FROM loads
+        WHERE weekNumber = :weekNumber AND year = :year
+        """
+    )
+    suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg
 }

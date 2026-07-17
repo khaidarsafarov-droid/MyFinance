@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.camera
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.rememberDecodedBitmap
 import com.truckerload.utils.PhotoManager
 import com.truckerload.utils.ShareHelper
 
@@ -56,9 +55,7 @@ fun PhotoPreviewScreen(
     val context = LocalContext.current
     val tc = LocalTruckColors.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val bitmap = remember(photo.file.absolutePath) {
-        BitmapFactory.decodeFile(photo.file.absolutePath)?.asImageBitmap()
-    }
+    val bitmap = rememberDecodedBitmap(photo.file.absolutePath)
 
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {

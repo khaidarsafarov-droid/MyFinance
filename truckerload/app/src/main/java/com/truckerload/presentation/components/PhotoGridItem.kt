@@ -1,6 +1,5 @@
 package com.truckerload.presentation.components
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,13 +15,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.truckerload.data.local.entities.PhotoEntity
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.rememberDecodedBitmap
 import com.truckerload.utils.PhotoManager
 import java.io.File
 
@@ -35,10 +34,7 @@ fun PhotoGridItem(
 ) {
     val tc = LocalTruckColors.current
     val fileExists = remember(photo.filePath) { File(photo.filePath).exists() }
-    val thumbnail = remember(photo.filePath) {
-        if (!fileExists) return@remember null
-        BitmapFactory.decodeFile(photo.filePath)?.asImageBitmap()
-    }
+    val thumbnail = if (fileExists) rememberDecodedBitmap(photo.filePath) else null
 
     BentoGlassCard(
         modifier = modifier

@@ -57,7 +57,7 @@ class TruckerLoadApp : Application() {
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
-        TelegramTokenStore(this).syncFromBuildConfig()
+        TelegramTokenStore(this).bootstrapFromBuildConfigIfEmpty()
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
@@ -66,7 +66,7 @@ class TruckerLoadApp : Application() {
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                TelegramTokenStore(this@TruckerLoadApp).syncFromBuildConfig()
+                TelegramTokenStore(this@TruckerLoadApp).bootstrapFromBuildConfigIfEmpty()
                 scheduleTelegramSync()
                 WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
                 if (TelegramTokenStore(this@TruckerLoadApp).hasToken()) {
