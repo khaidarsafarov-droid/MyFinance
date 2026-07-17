@@ -225,7 +225,40 @@ class HomeViewModel(
         .sortedDescending()
         .ifEmpty { listOf(Calendar.getInstance().get(Calendar.YEAR)) }
 
-    /** Плоский список для LazyColumn с заголовком секции для date/week. */
+    /** Заголовок с итогами выбранного периода — показывается над фильтром на главном экране. */
+    fun periodSummaryHeader(totals: LoadFilterUseCase.Totals): HomeListItem.FilteredSectionHeader? {
+        val state = _uiState.value
+        val label = when (state.filter) {
+            LoadFilter.CALENDAR_DATE -> if (state.selectedDateLabel.isNotBlank()) {
+                formatFilterLabel(state.selectedDateLabel, totals.loadCount)
+            } else {
+                null
+            }
+            LoadFilter.CALENDAR_WEEK -> if (state.selectedWeekLabel.isNotBlank()) {
+                formatFilterLabel(state.selectedWeekLabel, totals.loadCount)
+            } else {
+                null
+            }
+            LoadFilter.YESTERDAY -> formatFilterLabel(app.getString(R.string.home_filter_yesterday), totals.loadCount)
+            LoadFilter.THIS_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_this_week), totals.loadCount)
+            LoadFilter.LAST_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_last_week), totals.loadCount)
+            LoadFilter.THIS_MONTH -> formatFilterLabel(app.getString(R.string.home_filter_this_month), totals.loadCount)
+            LoadFilter.DISPUTE -> formatFilterLabel(app.getString(R.string.home_filter_dispute), totals.loadCount)
+            LoadFilter.ALL -> if (state.selectedYear != null) {
+                app.getString(
+                    R.string.home_year_selected_header,
+                    state.selectedYear ?: Calendar.getInstance().get(Calendar.YEAR),
+                    totals.loadCount,
+                    loadWord(totals.loadCount),
+                )
+            } else {
+                null
+            }
+        }
+        return label?.let { HomeListItem.FilteredSectionHeader(it, totals) }
+    }
+
+    /** Плоский список для LazyColumn. */
     fun flattenedListItems(
         filteredLoads: List<Load>,
         totals: LoadFilterUseCase.Totals
@@ -233,41 +266,13 @@ class HomeViewModel(
         val state = _uiState.value
 
         if (state.filter != LoadFilter.ALL) {
-            val label = when (state.filter) {
-                LoadFilter.CALENDAR_DATE -> if (state.selectedDateLabel.isNotBlank())
-                    formatFilterLabel(state.selectedDateLabel, totals.loadCount)
-                else null
-                LoadFilter.CALENDAR_WEEK -> if (state.selectedWeekLabel.isNotBlank())
-                    formatFilterLabel(state.selectedWeekLabel, totals.loadCount)
-                else null
-                LoadFilter.YESTERDAY -> formatFilterLabel(app.getString(R.string.home_filter_yesterday), totals.loadCount)
-                LoadFilter.THIS_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_this_week), totals.loadCount)
-                LoadFilter.LAST_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_last_week), totals.loadCount)
-                LoadFilter.THIS_MONTH -> formatFilterLabel(app.getString(R.string.home_filter_this_month), totals.loadCount)
-                LoadFilter.DISPUTE -> formatFilterLabel(app.getString(R.string.home_filter_dispute), totals.loadCount)
-                LoadFilter.ALL -> null
-            }
-            val items = mutableListOf<HomeListItem>()
-            if (label != null) items.add(HomeListItem.FilteredSectionHeader(label, totals))
-            items.addAll(filteredLoads.map { HomeListItem.LoadItem(it) })
-            return items
+            return filteredLoads.map { HomeListItem.LoadItem(it) }
         }
 
         if (state.selectedYear != null) {
             val yearLoads = filteredLoads
             val sections = buildYearMonthSections(yearLoads)
             val result = mutableListOf<HomeListItem>()
-            result.add(
-                HomeListItem.FilteredSectionHeader(
-                    app.getString(
-                        R.string.home_year_selected_header,
-                        state.selectedYear ?: Calendar.getInstance().get(Calendar.YEAR),
-                        totals.loadCount,
-                        loadWord(totals.loadCount)
-                    ),
-                    totals
-                )
-            )
             for (ys in sections) {
                 result.add(HomeListItem.YearHeader(ys))
                 for (ms in ys.months) {

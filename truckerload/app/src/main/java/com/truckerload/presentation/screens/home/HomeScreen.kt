@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
-import com.truckerload.presentation.components.HomeGoalSection
 import com.truckerload.presentation.components.LocalOpenDrawer
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Settings
@@ -120,6 +119,9 @@ fun HomeScreen(
     }
     val listItems = remember(uiState, filteredLoads, totals) {
         viewModel.flattenedListItems(filteredLoads, totals)
+    }
+    val periodSummary = remember(uiState, totals) {
+        viewModel.periodSummaryHeader(totals)
     }
     var showCalendar by remember { mutableStateOf(false) }
     val cal = remember { java.util.Calendar.getInstance() }
@@ -229,13 +231,13 @@ fun HomeScreen(
                     paddingValues = paddingValues,
                     uiState = uiState,
                     listItems = listItems,
+                    periodSummary = periodSummary,
                     totals = totals,
                     datesWithLoads = datesWithLoads,
                     viewModel = viewModel,
                     filteredLoads = filteredLoads,
                     onLoadClick = onLoadClick,
                     onAddLoad = onAddLoad,
-                    onWeeklyGoal = onWeeklyGoal,
                     context = context,
                     onOpenCalendar = { showCalendar = true },
                 )
@@ -258,13 +260,13 @@ private fun HomeScreenContent(
     paddingValues: PaddingValues,
     uiState: HomeUiState,
     listItems: List<HomeListItem>,
+    periodSummary: HomeListItem.FilteredSectionHeader?,
     totals: LoadFilterUseCase.Totals,
     datesWithLoads: Set<String>,
     viewModel: HomeViewModel,
     filteredLoads: List<com.truckerload.domain.model.Load>,
     onLoadClick: (String) -> Unit,
     onAddLoad: () -> Unit,
-    onWeeklyGoal: () -> Unit,
     context: Context,
     onOpenCalendar: () -> Unit,
 ) {
@@ -333,8 +335,10 @@ private fun HomeScreenContent(
                 )
             }
 
-            item(key = "goal_summary") {
-                HomeGoalSection(onOpenGoal = onWeeklyGoal)
+            periodSummary?.let { summary ->
+                item(key = "period_summary") {
+                    PeriodSummarySection(header = summary)
+                }
             }
 
             item(key = "period_filter") {
@@ -418,7 +422,7 @@ private fun HomeScreenContent(
                         when (item) {
                             is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
                             is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
-                            is HomeListItem.FilteredSectionHeader -> FilteredSectionHeader(header = item)
+                            is HomeListItem.FilteredSectionHeader -> Unit
                             is HomeListItem.LoadItem -> SwipeableLoadCard(
                                 load = item.load,
                                 onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
@@ -528,12 +532,11 @@ private fun StatsHeader(
 }
 
 @Composable
-private fun FilteredSectionHeader(header: HomeListItem.FilteredSectionHeader) {
-    val tc = LocalTruckColors.current
+private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = adaptiveHorizontalPadding()),
+            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
     ) {
         Text(
             text = header.label.uppercase(),
