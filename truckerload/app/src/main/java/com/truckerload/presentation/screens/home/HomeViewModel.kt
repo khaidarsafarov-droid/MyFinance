@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -68,6 +70,18 @@ sealed class HomeListItem {
     data class LoadItem(val load: Load) : HomeListItem()
 }
 
+/** Поля, влияющие на фильтрацию — отдельно от UI-флагов (поиск expanded и т.д.). */
+private data class HomeFilterState(
+    val filter: LoadFilter = LoadFilter.THIS_WEEK,
+    val searchQuery: String = "",
+    val selectedDate: String? = null,
+    val selectedWeekStart: String? = null,
+    val selectedWeekEnd: String? = null,
+    val selectedYear: Int? = null,
+    val selectedDateLabel: String = "",
+    val selectedWeekLabel: String = "",
+)
+
 class HomeViewModel(
     private val loadRepository: LoadRepository,
     private val isBotConfigured: Boolean = false,
@@ -76,17 +90,40 @@ class HomeViewModel(
 
     private val filterUseCase = LoadFilterUseCase()
 
-    /** Eagerly — подписка всегда активна, Room Flow эмитит при любом изменении таблицы loads. */
+    /** Одна подписка на Room — вместо двух параллельных watchLoads(). */
     private val loadsFromDb: StateFlow<List<Load>> = loadRepository.watchLoads()
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
-    /** true до первого эмита из Room. После — бесшовное обновление без спиннера. */
-    val isInitialLoading: StateFlow<Boolean> = loadRepository.watchLoads()
-        .map { false }
+    private val _initialLoadDone = MutableStateFlow(false)
+
+    /** true до первого эмита из Room. */
+    val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
+        .map { done -> !done }
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = true)
 
     private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    /** Только поля фильтра — не пересчитываем список при isSearchExpanded и прочих UI-флагах. */
+    private val filterState: StateFlow<HomeFilterState> = _uiState
+        .map { state ->
+            HomeFilterState(
+                filter = state.filter,
+                searchQuery = state.searchQuery,
+                selectedDate = state.selectedDate,
+                selectedWeekStart = state.selectedWeekStart,
+                selectedWeekEnd = state.selectedWeekEnd,
+                selectedYear = state.selectedYear,
+                selectedDateLabel = state.selectedDateLabel,
+                selectedWeekLabel = state.selectedWeekLabel,
+            )
+        }
+        .distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = HomeFilterState(),
+        )
 
     /** Оптимистичные обновления: loadId -> Load. При сбое сохранения — откат через revertOptimisticUpdate. */
     private val _optimisticOverlay = MutableStateFlow<Map<String, Load>>(emptyMap())
@@ -102,8 +139,8 @@ class HomeViewModel(
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
         _optimisticOverlay,
-        _uiState
-    ) { loads, overlay, state ->
+        filterState,
+    ) { loads, overlay, filter ->
         val base = loads.map { overlay[it.id] ?: it }
         val loadIds = loads.map { it.id }.toSet()
         val newLoads = overlay.values.filter { it.id !in loadIds }
@@ -111,12 +148,12 @@ class HomeViewModel(
         val dateIndex = LoadDateIndex.build(merged)
         val filtered = filterUseCase.filterLoads(
             loads = merged,
-            filter = state.filter,
-            searchQuery = state.searchQuery,
-            selectedDate = state.selectedDate,
-            selectedWeekStart = state.selectedWeekStart,
-            selectedWeekEnd = state.selectedWeekEnd,
-            selectedYear = state.selectedYear,
+            filter = filter.filter,
+            searchQuery = filter.searchQuery,
+            selectedDate = filter.selectedDate,
+            selectedWeekStart = filter.selectedWeekStart,
+            selectedWeekEnd = filter.selectedWeekEnd,
+            selectedYear = filter.selectedYear,
             dateIndex = dateIndex
         )
         FilteredResult(
@@ -129,13 +166,21 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             loadsFromDb.collect { list ->
+                if (!_initialLoadDone.value) {
+                    _initialLoadDone.value = true
+                }
                 _uiState.update { it.copy(loads = list) }
                 _optimisticOverlay.update { current ->
                     val ids = list.map { it.id }.toSet()
                     current.filterKeys { it !in ids }
                 }
-                WidgetDataUpdater.updateWidgetData(app)
             }
+        }
+        // Виджет обновляем с debounce — не на каждый символ поиска / оптимистичный оверлей.
+        viewModelScope.launch {
+            loadsFromDb
+                .debounce(400)
+                .collect { WidgetDataUpdater.updateWidgetData(app) }
         }
         if (isBotConfigured) {
             viewModelScope.launch {

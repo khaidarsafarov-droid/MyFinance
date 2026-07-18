@@ -33,6 +33,7 @@ import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.DriverStatusPost
 import com.truckerload.domain.social.LeaderboardEntry
 import com.truckerload.domain.social.MessageType
+import com.truckerload.domain.social.StatusType
 import com.truckerload.data.social.SocialSeedData
 import com.truckerload.domain.social.BadgeEngine
 import com.truckerload.domain.social.EnhancedDriverProfile

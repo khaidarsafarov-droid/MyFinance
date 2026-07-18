@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.R
 import com.truckerload.presentation.components.BotStatusBadge
@@ -81,6 +82,7 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -117,12 +119,27 @@ fun HomeScreen(
             else -> ""
         }
     }
-    val listItems = remember(uiState, filteredLoads, totals) {
+    val listItems = remember(
+        uiState.filter,
+        uiState.selectedYear,
+        uiState.selectedDateLabel,
+        uiState.selectedWeekLabel,
+        filteredLoads,
+        totals,
+    ) {
         viewModel.flattenedListItems(filteredLoads, totals)
     }
-    val periodSummary = remember(uiState, totals) {
+    val periodSummary = remember(
+        uiState.filter,
+        uiState.selectedYear,
+        uiState.selectedDateLabel,
+        uiState.selectedWeekLabel,
+        totals,
+    ) {
         viewModel.periodSummaryHeader(totals)
     }
+    val rpmStore = LocalRpmThresholdsStore.current
+    val rpmThresholds by rpmStore.thresholds.collectAsState()
     var showCalendar by remember { mutableStateOf(false) }
     val cal = remember { java.util.Calendar.getInstance() }
     var calendarYear by remember { mutableStateOf(cal.get(java.util.Calendar.YEAR)) }
@@ -232,6 +249,7 @@ fun HomeScreen(
                     uiState = uiState,
                     listItems = listItems,
                     periodSummary = periodSummary,
+                    rpmThresholds = rpmThresholds,
                     totals = totals,
                     datesWithLoads = datesWithLoads,
                     viewModel = viewModel,
@@ -261,6 +279,7 @@ private fun HomeScreenContent(
     uiState: HomeUiState,
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
+    rpmThresholds: RpmThresholds,
     totals: LoadFilterUseCase.Totals,
     datesWithLoads: Set<String>,
     viewModel: HomeViewModel,
@@ -431,6 +450,7 @@ private fun HomeScreenContent(
                                         viewModel.deleteLoad(item.load.id)
                                     }
                                 },
+                                rpmThresholds = rpmThresholds,
                                 modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
                             )
                         }

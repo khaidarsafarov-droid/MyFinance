@@ -4,6 +4,7 @@ import android.util.Log
 import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.utils.withReportingWeek
 
 class LoadUpdater(
@@ -19,9 +20,14 @@ class LoadUpdater(
         }
 
         val now = System.currentTimeMillis()
+        // Синхронизируем маршрут/даты из новых стопов, затем пересчитываем метрики —
+        // иначе карточки в журнале показывают устаревший маршрут после Telegram-обновления.
         val updatedLoad = oldLoad.copy(
+            date = newData.date,
             totalRate = newData.totalRate,
             totalMiles = newData.totalMiles,
+            pointA = newData.pointA,
+            pointB = newData.pointB,
             stops = newData.stops.map { stop ->
                 stop.copy(loadId = oldLoad.id)
             },
@@ -30,7 +36,7 @@ class LoadUpdater(
             },
             rawMessage = newData.rawMessage,
             updatedAt = now,
-        ).withReportingWeek()
+        ).withReportingWeek().withRouteMetrics()
 
         loadRepository.update(updatedLoad)
         recordHistory(oldLoad, newData, changes, now)

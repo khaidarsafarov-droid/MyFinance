@@ -286,7 +286,9 @@ class SocialChatViewModel(
                 inputText = input,
                 myDisplayName = profile.displayName,
                 isLoadingMore = meta.isLoadingMore,
-                hasMore = meta.hasMore || meta.olderMessages.isNotEmpty(),
+                // hasMore управляется loadMore()/refreshHasMore(); не привязываем к olderMessages —
+                // иначе кнопка «загрузить ещё» остаётся активной навсегда.
+                hasMore = meta.hasMore,
                 replyTo = meta.replyTo,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SocialChatUiState())
@@ -436,10 +438,13 @@ class CommunityViewModel(
     fun joinChallenge() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isJoiningChallenge = true)
-            socialRepository.joinWeeklyChallenge()
+            val joined = when (socialRepository.joinWeeklyChallenge()) {
+                is SocialResult.Success -> true
+                is SocialResult.Error -> false
+            }
             _state.value = _state.value.copy(
                 challenge = socialRepository.weeklyChallenge(),
-                challengeJoined = true,
+                challengeJoined = joined || socialRepository.hasJoinedWeeklyChallenge(),
                 isJoiningChallenge = false,
             )
         }
@@ -662,15 +667,18 @@ class PeerProfileViewModel(
     private val _blocking = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
+    // kotlinx.coroutines combine поддерживает до 5 Flow; вкладываем 3+3.
     val uiState: StateFlow<PeerProfileUiState> =
         combine(
-            socialRepository.watchPeer(peerId),
-            socialRepository.watchIsFollowing(peerId),
-            socialRepository.watchIsBlocked(peerId),
-            _followUpdating,
-            _blocking,
-            _errorMessage,
-        ) { peer, isFollowing, isBlocked, updating, blocking, error ->
+            combine(
+                socialRepository.watchPeer(peerId),
+                socialRepository.watchIsFollowing(peerId),
+                socialRepository.watchIsBlocked(peerId),
+            ) { peer, isFollowing, isBlocked -> Triple(peer, isFollowing, isBlocked) },
+            combine(_followUpdating, _blocking, _errorMessage) { updating, blocking, error ->
+                Triple(updating, blocking, error)
+            },
+        ) { (peer, isFollowing, isBlocked), (updating, blocking, error) ->
             PeerProfileUiState(
                 peer = peer,
                 isFollowing = isFollowing,

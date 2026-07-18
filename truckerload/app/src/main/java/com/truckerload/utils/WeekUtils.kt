@@ -230,22 +230,31 @@ fun parseDateFromScheduledTime(s: String): String? {
     return parseDateFromQuery(t)
 }
 
+/** Безопасный разбор YYYY-MM-DD; защита от NumberFormatException на битых датах в БД. */
+internal fun parseIsoDateParts(dateStr: String): Triple<Int, Int, Int>? {
+    val parts = dateStr.split("-")
+    if (parts.size != 3) return null
+    val year = parts[0].toIntOrNull() ?: return null
+    val month = parts[1].toIntOrNull() ?: return null
+    val day = parts[2].toIntOrNull() ?: return null
+    if (month !in 1..12 || day !in 1..31 || year !in 1970..2100) return null
+    return Triple(year, month, day)
+}
+
 /** Epoch millis for YYYY-MM-DD at start of day (local). */
 fun dateStringToStartOfDayMillis(dateStr: String): Long {
-    val parts = dateStr.split("-")
-    if (parts.size != 3) return System.currentTimeMillis()
+    val (year, month, day) = parseIsoDateParts(dateStr) ?: return System.currentTimeMillis()
     val cal = Calendar.getInstance(Locale.getDefault())
-    cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt(), 0, 0, 0)
+    cal.set(year, month - 1, day, 0, 0, 0)
     cal.set(Calendar.MILLISECOND, 0)
     return cal.timeInMillis
 }
 
 /** Epoch millis for YYYY-MM-DD at end of day (local). */
 fun dateStringToEndOfDayMillis(dateStr: String): Long {
-    val parts = dateStr.split("-")
-    if (parts.size != 3) return System.currentTimeMillis()
+    val (year, month, day) = parseIsoDateParts(dateStr) ?: return System.currentTimeMillis()
     val cal = Calendar.getInstance(Locale.getDefault())
-    cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt(), 23, 59, 59)
+    cal.set(year, month - 1, day, 23, 59, 59)
     cal.set(Calendar.MILLISECOND, 999)
     return cal.timeInMillis
 }

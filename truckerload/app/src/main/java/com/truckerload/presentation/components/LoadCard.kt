@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
+import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
@@ -43,17 +44,48 @@ fun LoadCard(
     modifier: Modifier = Modifier,
     solidBackground: Boolean = false,
     wrapInCard: Boolean = true,
+    rpmThresholds: RpmThresholds? = null,
+) {
+    // Разные ветки — единственный корректный способ избежать collectAsState в каждой карточке списка.
+    if (rpmThresholds != null) {
+        LoadCardContent(
+            load = load,
+            onClick = onClick,
+            modifier = modifier,
+            solidBackground = solidBackground,
+            wrapInCard = wrapInCard,
+            rpmThresholds = rpmThresholds,
+        )
+    } else {
+        val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsState()
+        LoadCardContent(
+            load = load,
+            onClick = onClick,
+            modifier = modifier,
+            solidBackground = solidBackground,
+            wrapInCard = wrapInCard,
+            rpmThresholds = thresholds,
+        )
+    }
+}
+
+@Composable
+private fun LoadCardContent(
+    load: Load,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    solidBackground: Boolean,
+    wrapInCard: Boolean,
+    rpmThresholds: RpmThresholds,
 ) {
     val tc = LocalTruckColors.current
-    val rpmStore = LocalRpmThresholdsStore.current
-    val thresholds by rpmStore.thresholds.collectAsState()
     val route = formatLoadRoute(load)
     val stopLabel = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
     val rpm = computeRpm(load.totalRate, load.totalMiles)
     val rpmColor = rpm?.let {
-        getRpmColor(it, tc, thresholds.minProfit, thresholds.targetProfit)
+        getRpmColor(it, tc, rpmThresholds.minProfit, rpmThresholds.targetProfit)
     }
-    val isProfitable = rpm != null && rpm >= thresholds.targetProfit
+    val isProfitable = rpm != null && rpm >= rpmThresholds.targetProfit
 
     val cardContent: @Composable () -> Unit = {
         Column(

@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -39,6 +40,7 @@ fun SwipeableLoadCard(
     load: Load,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    rpmThresholds: RpmThresholds,
     modifier: Modifier = Modifier,
 ) {
     val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
@@ -105,6 +107,7 @@ fun SwipeableLoadCard(
                 load = load,
                 onClick = onClick,
                 wrapInCard = false,
+                rpmThresholds = rpmThresholds,
             )
         }
     }
