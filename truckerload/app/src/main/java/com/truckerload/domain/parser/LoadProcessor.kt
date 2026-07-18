@@ -70,13 +70,15 @@ class LoadProcessor(
                 ProcessingResult.Updated(changes)
             }
             comparison.hasMajorChanges() -> {
-                loadRepository.deleteLoad(existingLoad.id)
-                val replacement = incoming.copy(
-                    id = incoming.id.ifBlank { existingLoad.id },
+                val preserved = incoming.copy(
+                    id = existingLoad.id,
                     parsedAt = existingLoad.parsedAt,
+                    isDispute = existingLoad.isDispute,
+                    disputeResponseDate = existingLoad.disputeResponseDate,
+                    disputeCompleted = existingLoad.disputeCompleted,
                 )
-                loadRepository.insertLoad(replacement, playFeedback = playFeedback)
-                ProcessingResult.Replaced("Старый удалён, новый добавлен")
+                loadUpdater.updateLoad(existingLoad, preserved, changes)
+                ProcessingResult.Updated(changes)
             }
             else -> {
                 loadUpdater.updateLoad(existingLoad, incoming, changes)

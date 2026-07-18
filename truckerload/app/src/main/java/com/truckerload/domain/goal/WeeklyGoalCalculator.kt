@@ -1,7 +1,7 @@
 package com.truckerload.domain.goal
 
 import com.truckerload.domain.model.Load
-import com.truckerload.presentation.screens.home.LoadFilterUseCase
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getDaysActiveForWeek
 import com.truckerload.utils.getDaysRemainingForWeek

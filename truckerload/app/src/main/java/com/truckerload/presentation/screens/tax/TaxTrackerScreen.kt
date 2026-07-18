@@ -9,6 +9,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,10 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,8 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,6 +41,8 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -93,50 +93,50 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                     .padding(16.dp),
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
             ) {
-            if (uiState.nextQuarterlyDate.isNotBlank()) {
-                BentoGlassCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    borderColor = FinanceCockpitColors.SalaryAccent.copy(alpha = 0.35f)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(stringResource(R.string.tax_next_quarter, uiState.nextQuarterlyDate), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
-                        Text(stringResource(R.string.tax_in_days, uiState.daysUntilNextQuarterly), style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
+                if (uiState.nextQuarterlyDate.isNotBlank()) {
+                    BentoGlassCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        borderColor = FinanceCockpitColors.SalaryAccent.copy(alpha = 0.35f)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(stringResource(R.string.tax_next_quarter, uiState.nextQuarterlyDate), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
+                            Text(stringResource(R.string.tax_in_days, uiState.daysUntilNextQuarterly), style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
+                        }
                     }
                 }
-            }
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.tax_income), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
-                    Text("$${String.format("%,.2f", uiState.totalGrossIncome)}", style = MaterialTheme.typography.headlineMedium, color = FinanceCockpitColors.SalaryAccent)
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.tax_income), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
+                        Text("$${String.format("%,.2f", uiState.totalGrossIncome)}", style = MaterialTheme.typography.headlineMedium, color = FinanceCockpitColors.SalaryAccent)
+                    }
                 }
-            }
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.tax_deductions), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
-                    Text(stringResource(R.string.tax_diesel_deduction, uiState.dieselDeductions), style = MaterialTheme.typography.bodyMedium, color = tc.AccentExpense)
-                    Text(stringResource(R.string.tax_per_diem, uiState.perDiemDays, uiState.perDiemAmount), style = MaterialTheme.typography.bodyMedium, color = tc.AccentExpense)
-                    Text(stringResource(R.string.tax_total_deductions, uiState.totalDeductions + uiState.perDiemAmount), style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.tax_deductions), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
+                        Text(stringResource(R.string.tax_diesel_deduction, uiState.dieselDeductions), style = MaterialTheme.typography.bodyMedium, color = tc.AccentExpense)
+                        Text(stringResource(R.string.tax_per_diem, uiState.perDiemDays, uiState.perDiemAmount), style = MaterialTheme.typography.bodyMedium, color = tc.AccentExpense)
+                        Text(stringResource(R.string.tax_total_deductions, uiState.totalDeductions + uiState.perDiemAmount), style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                    }
                 }
-            }
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.taxable_income), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
-                    Text("$${String.format("%,.2f", uiState.taxableIncome)}", style = MaterialTheme.typography.titleMedium, color = tc.TextPrimary)
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.taxable_income), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
+                        Text("$${String.format("%,.2f", uiState.taxableIncome)}", style = MaterialTheme.typography.titleMedium, color = tc.TextPrimary)
+                    }
                 }
-            }
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("SE Tax (~15.3%): $${String.format("%,.2f", uiState.selfEmploymentTax)}", style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
-                    Text("Federal Tax: $${String.format("%,.2f", uiState.federalTax)}", style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
-                    Text(stringResource(R.string.tax_total_owed, uiState.totalTaxOwed), style = MaterialTheme.typography.headlineSmall, color = tc.AccentExpense)
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("SE Tax (~15.3%): $${String.format("%,.2f", uiState.selfEmploymentTax)}", style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                        Text("Federal Tax: $${String.format("%,.2f", uiState.federalTax)}", style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                        Text(stringResource(R.string.tax_total_owed, uiState.totalTaxOwed), style = MaterialTheme.typography.headlineSmall, color = tc.AccentExpense)
+                    }
                 }
-            }
-            Text(
-                stringResource(R.string.tax_disclaimer),
-                style = MaterialTheme.typography.labelSmall,
-                color = tc.TextLabel,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+                Text(
+                    stringResource(R.string.tax_disclaimer),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tc.TextLabel,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
             PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }

@@ -31,6 +31,7 @@ class WebRtcCallManager(
     private var audioSource: AudioSource? = null
     private var localAudioTrack: AudioTrack? = null
     private var signalJob: Job? = null
+    private var callScope: CoroutineScope? = null
     private var activeSessionId: String? = null
 
     fun initialize(): Result<Unit> = runCatching {
@@ -52,6 +53,7 @@ class WebRtcCallManager(
         initialize().getOrThrow()
         releasePeerConnection()
         activeSessionId = sessionId
+        callScope = scope
         setupLocalAudio()
         createPeerConnection(sessionId, isCaller = true, onConnected)
         observeSignals(scope, sessionId)
@@ -66,6 +68,7 @@ class WebRtcCallManager(
         initialize().getOrThrow()
         releasePeerConnection()
         activeSessionId = sessionId
+        callScope = scope
         setupLocalAudio()
         createPeerConnection(sessionId, isCaller = false, onConnected)
         observeSignals(scope, sessionId)
@@ -78,6 +81,7 @@ class WebRtcCallManager(
     fun release() {
         signalJob?.cancel()
         signalJob = null
+        callScope = null
         releasePeerConnection()
         localAudioTrack?.dispose()
         localAudioTrack = null
@@ -118,7 +122,7 @@ class WebRtcCallManager(
             override fun onIceGatheringChange(state: PeerConnection.IceGatheringState?) = Unit
             override fun onIceCandidate(candidate: IceCandidate?) {
                 candidate ?: return
-                kotlinx.coroutines.GlobalScope.launch {
+                callScope?.launch {
                     signaling.sendSignal(
                         sessionId,
                         Signal(
@@ -156,7 +160,7 @@ class WebRtcCallManager(
                 description ?: return
                 peerConnection?.setLocalDescription(SimpleSdpObserver(), description)
                 val sessionId = activeSessionId ?: return
-                kotlinx.coroutines.GlobalScope.launch {
+                callScope?.launch {
                     signaling.sendSignal(
                         sessionId,
                         Signal(
@@ -183,7 +187,7 @@ class WebRtcCallManager(
                 description ?: return
                 peerConnection?.setLocalDescription(SimpleSdpObserver(), description)
                 val sessionId = activeSessionId ?: return
-                kotlinx.coroutines.GlobalScope.launch {
+                callScope?.launch {
                     signaling.sendSignal(
                         sessionId,
                         Signal(

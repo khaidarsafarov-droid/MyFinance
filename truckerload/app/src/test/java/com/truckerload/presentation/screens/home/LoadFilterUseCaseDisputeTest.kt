@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.home
 
+import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import org.junit.Assert.assertEquals
 import org.junit.Test

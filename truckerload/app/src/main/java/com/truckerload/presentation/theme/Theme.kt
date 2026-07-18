@@ -106,8 +106,12 @@ fun TruckerLoadTheme(
         SideEffect {
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
-            window.statusBarColor = colorScheme.surface.toArgb()
-            window.navigationBarColor = colorScheme.surface.toArgb()
+            if (Build.VERSION.SDK_INT < 35) {
+                @Suppress("DEPRECATION")
+                window.statusBarColor = colorScheme.surface.toArgb()
+                @Suppress("DEPRECATION")
+                window.navigationBarColor = colorScheme.surface.toArgb()
+            }
             val lightBars = colorScheme.surface.luminance() > 0.5f
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = lightBars
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = lightBars

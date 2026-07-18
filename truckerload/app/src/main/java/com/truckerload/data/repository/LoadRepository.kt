@@ -338,8 +338,13 @@ class LoadRepository(private val db: AppDatabase) {
     private suspend fun hydrateLoads(entities: List<LoadEntity>): List<Load> {
         if (entities.isEmpty()) return emptyList()
         val loadIds = entities.map { it.id }
-        val stopsByLoadId = stopDao.getStopsByLoadIds(loadIds).groupBy { it.loadId }
-        val penaltiesByLoadId = penaltyDao.getPenaltiesByLoadIds(loadIds).groupBy { it.loadId }
+        // SQLite ограничивает IN(...) ~999 параметрами — батчим крупные флоты.
+        val stopsByLoadId = loadIds.chunked(500)
+            .flatMap { chunk -> stopDao.getStopsByLoadIds(chunk) }
+            .groupBy { it.loadId }
+        val penaltiesByLoadId = loadIds.chunked(500)
+            .flatMap { chunk -> penaltyDao.getPenaltiesByLoadIds(chunk) }
+            .groupBy { it.loadId }
         return entities.map { entity ->
             entity.toDomain(
                 stops = stopsByLoadId[entity.id].orEmpty(),

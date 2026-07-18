@@ -8,7 +8,8 @@ import androidx.room.PrimaryKey
     tableName = "loads",
     indices = [
         Index(value = ["tripId"], unique = true),
-        Index(value = ["date"])  // load_date — для быстрого поиска по дате
+        Index(value = ["date"]),
+        Index(value = ["weekNumber", "year"]),
     ]
 )
 data class LoadEntity(

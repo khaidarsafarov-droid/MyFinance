@@ -465,3 +465,10 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
         db.addColumnIfMissing("driver_statuses", "durationMs", "INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+/** Индекс для фильтрации по неделе/году (THIS_WEEK, LAST_WEEK и т.д.). */
+val MIGRATION_19_20 = object : Migration(19, 20) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_loads_weekNumber_year ON loads(weekNumber, year)")
+    }
+}

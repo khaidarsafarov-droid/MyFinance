@@ -404,6 +404,7 @@ class SocialRepository(
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_create_group, it), it) }
 
     suspend fun leaveGroup(chatId: String): SocialResult<Unit> = runCatching {
+        chatMemberDao.remove(chatId, DriverProfileEntity.LOCAL_USER_ID)
         chatDao.archiveChat(chatId)
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_leave_group, it), it) }

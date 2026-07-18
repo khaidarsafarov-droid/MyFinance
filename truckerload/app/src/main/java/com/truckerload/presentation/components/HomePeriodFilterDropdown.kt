@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.screens.home.LoadFilter
+import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)

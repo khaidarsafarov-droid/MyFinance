@@ -52,8 +52,7 @@ import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -65,6 +64,7 @@ fun AddDieselScreen(
 ) {
     val tc = LocalTruckColors.current
     val dieselRepository = LocalDieselRepository.current
+    val scope = rememberCoroutineScope()
     val (initialWeek, initialYear) = getCurrentWeekNumberAndYear()
     var weekNumber by remember { mutableStateOf(initialWeek) }
     var year by remember { mutableStateOf(initialYear) }
@@ -156,7 +156,7 @@ fun AddDieselScreen(
                     val (w, y) = getWeekNumberAndYearFromTimestamp(recordedAtMillis)
                     val (ws, we, wl) = getWeekRange(w, y)
                     val diesel = Diesel(0, w, y, wl, ws, we, amount, null, null, null, "", null, recordedAtMillis)
-                    CoroutineScope(Dispatchers.Main).launch {
+                    scope.launch {
                         dieselRepository.insertDiesel(diesel)
                         showSaveDialog = false
                         onSaved()

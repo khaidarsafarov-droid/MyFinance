@@ -11,6 +11,8 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.widget.WidgetDataUpdater
+import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
@@ -31,6 +33,7 @@ import kotlinx.coroutines.withContext
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 
 data class HomeUiState(
     val loads: List<Load> = emptyList(),
@@ -45,8 +48,6 @@ data class HomeUiState(
     val isSearchExpanded: Boolean = false,
     val botStatusActive: Boolean = false
 )
-
-enum class LoadFilter { ALL, YESTERDAY, THIS_WEEK, LAST_WEEK, THIS_MONTH, CALENDAR_WEEK, CALENDAR_DATE, DISPUTE }
 
 data class YearSection(
     val year: Int,
@@ -87,6 +88,11 @@ class HomeViewModel(
     private val isBotConfigured: Boolean = false,
     private val app: Application
 ) : ViewModel() {
+
+    companion object {
+        /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
+        private val botServiceStarted = AtomicBoolean(false)
+    }
 
     private val filterUseCase = LoadFilterUseCase()
 
@@ -187,7 +193,7 @@ class HomeViewModel(
                 val token = TelegramTokenStore(app).getToken()
                 val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
                 _uiState.update { it.copy(botStatusActive = health.ok) }
-                if (health.ok) {
+                if (health.ok && botServiceStarted.compareAndSet(false, true)) {
                     TelegramBotForegroundService.start(app)
                 }
             }
@@ -229,16 +235,14 @@ class HomeViewModel(
 
     fun selectDate(date: String) {
         val label = formatDateLabel(date)
-        val (wn, wy) = getWeekNumberAndYearFromDate(date)
-        val (ws, we, wl) = getWeekRange(wn, wy)
         _uiState.update {
             it.copy(
-                filter = LoadFilter.CALENDAR_WEEK,
+                filter = LoadFilter.CALENDAR_DATE,
                 selectedDate = date,
                 selectedDateLabel = label,
-                selectedWeekStart = ws,
-                selectedWeekEnd = we,
-                selectedWeekLabel = wl
+                selectedWeekStart = null,
+                selectedWeekEnd = null,
+                selectedWeekLabel = "",
             )
         }
     }

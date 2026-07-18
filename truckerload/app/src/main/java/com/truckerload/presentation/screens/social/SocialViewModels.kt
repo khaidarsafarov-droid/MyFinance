@@ -31,6 +31,7 @@ data class ProfileUiState(
     val isSaving: Boolean = false,
     val isUploadingAvatar: Boolean = false,
     val avatarError: String? = null,
+    val saveError: String? = null,
 )
 
 class ProfileViewModel(
@@ -109,22 +110,26 @@ class ProfileViewModel(
         specialties: String = "",
     ) {
         viewModelScope.launch {
-            _editState.value = _editState.value?.copy(isSaving = true)
-            socialRepository.updateProfile(
-                displayName = displayName.trim(),
-                truckType = truckType.trim(),
-                experienceYears = experienceYears.coerceAtLeast(0),
-                homeState = homeState.trim().uppercase(),
-                routes = routes.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                about = about.trim(),
-                status = status,
-                licenseClass = licenseClass.trim().ifBlank { "A" },
-                phoneNumber = phoneNumber.trim().ifBlank { null },
-                telegramUsername = telegramUsername.trim().ifBlank { null },
-                whatsappNumber = whatsappNumber.trim().ifBlank { null },
-                specialties = specialties.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-            )
-            _editState.value = null
+            _editState.value = _editState.value?.copy(isSaving = true, saveError = null)
+            when (val result = socialRepository.updateProfile(
+                    displayName = displayName.trim(),
+                    truckType = truckType.trim(),
+                    experienceYears = experienceYears.coerceAtLeast(0),
+                    homeState = homeState.trim().uppercase(),
+                    routes = routes.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+                    about = about.trim(),
+                    status = status,
+                    licenseClass = licenseClass.trim().ifBlank { "A" },
+                    phoneNumber = phoneNumber.trim().ifBlank { null },
+                    telegramUsername = telegramUsername.trim().ifBlank { null },
+                    whatsappNumber = whatsappNumber.trim().ifBlank { null },
+                    specialties = specialties.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+            )) {
+                is SocialResult.Success -> _editState.value = null
+                is SocialResult.Error -> {
+                    _editState.value = _editState.value?.copy(isSaving = false, saveError = result.message)
+                }
+            }
         }
     }
 
@@ -246,6 +251,7 @@ data class SocialChatUiState(
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = false,
     val replyTo: SocialMessage? = null,
+    val errorMessage: String? = null,
 ) {
     val allMessages: List<SocialMessage> = olderMessages + messages
 }
@@ -264,6 +270,7 @@ class SocialChatViewModel(
         val isLoadingMore: Boolean = false,
         val hasMore: Boolean = false,
         val replyTo: SocialMessage? = null,
+        val errorMessage: String? = null,
     )
 
     private val _input = MutableStateFlow("")
@@ -290,6 +297,7 @@ class SocialChatViewModel(
                 // иначе кнопка «загрузить ещё» остаётся активной навсегда.
                 hasMore = meta.hasMore,
                 replyTo = meta.replyTo,
+                errorMessage = meta.errorMessage,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SocialChatUiState())
 
@@ -324,9 +332,15 @@ class SocialChatViewModel(
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Я" }
             val replyId = _meta.value.replyTo?.id
-            socialRepository.sendMessage(chatId, text, name, replyToId = replyId)
-            _input.value = ""
-            _meta.value = _meta.value.copy(replyTo = null)
+            when (val result = socialRepository.sendMessage(chatId, text, name, replyToId = replyId)) {
+                is SocialResult.Success -> {
+                    _input.value = ""
+                    _meta.value = _meta.value.copy(replyTo = null, errorMessage = null)
+                }
+                is SocialResult.Error -> {
+                    _meta.value = _meta.value.copy(errorMessage = result.message)
+                }
+            }
         }
     }
 
@@ -635,8 +649,10 @@ class GroupDetailViewModel(
 
     fun leaveGroup(onLeft: () -> Unit) {
         viewModelScope.launch {
-            socialRepository.leaveGroup(chatId)
-            onLeft()
+            when (socialRepository.leaveGroup(chatId)) {
+                is SocialResult.Success -> onLeft()
+                is SocialResult.Error -> Unit
+            }
         }
     }
 

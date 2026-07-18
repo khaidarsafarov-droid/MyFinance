@@ -2,6 +2,8 @@ package com.truckerload.presentation.screens.home
 
 import android.app.Application
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals

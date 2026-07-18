@@ -1,18 +1,16 @@
-package com.truckerload.presentation.screens.home
+package com.truckerload.domain.filter
 
 import com.truckerload.domain.model.Load
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getLoadDateRange
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
+import com.truckerload.utils.getYesterdayDate
 import com.truckerload.utils.isLoadInWeek
 import com.truckerload.utils.parseDateFromQuery
-import com.truckerload.utils.getLoadDateRange
-import com.truckerload.utils.getYesterdayDate
 import java.util.Calendar
 
-/**
- * Фильтрация грузов. Логика вынесена из ViewModel.
- */
+/** Фильтрация и агрегация грузов — чистая domain-логика без UI-зависимостей. */
 class LoadFilterUseCase {
 
     fun filterLoads(
@@ -23,7 +21,7 @@ class LoadFilterUseCase {
         selectedWeekStart: String?,
         selectedWeekEnd: String?,
         selectedYear: Int?,
-        dateIndex: Map<String, List<Load>>? = null
+        dateIndex: Map<String, List<Load>>? = null,
     ): List<Load> {
         var list = loads
 
@@ -47,7 +45,9 @@ class LoadFilterUseCase {
             LoadFilter.ALL -> {
                 if (selectedYear != null) {
                     list.filter { it.date.length >= 4 && it.date.substring(0, 4).toIntOrNull() == selectedYear }
-                } else list
+                } else {
+                    list
+                }
             }
             LoadFilter.YESTERDAY -> list.filter { getYesterdayDate() in getLoadDateRange(it) }
             LoadFilter.THIS_WEEK -> {
@@ -67,7 +67,9 @@ class LoadFilterUseCase {
                 if (selectedWeekStart != null) {
                     val (week, year) = getWeekNumberAndYearFromDate(selectedWeekStart)
                     list.filter { isLoadInWeek(it, week, year) }
-                } else list
+                } else {
+                    list
+                }
             }
             LoadFilter.CALENDAR_DATE -> {
                 if (selectedDate != null) {
@@ -86,7 +88,7 @@ class LoadFilterUseCase {
         val loadCount: Int,
         val totalRate: Double,
         val totalMiles: Double,
-        val avgRpm: Double = 0.0
+        val avgRpm: Double = 0.0,
     ) {
         val avgRpmFormatted: String
             get() = if (totalMiles > 0) "$${String.format("%.2f", totalRate / totalMiles)} / mi" else "—"
@@ -99,7 +101,7 @@ class LoadFilterUseCase {
             loadCount = loads.size,
             totalRate = totalRate,
             totalMiles = totalMiles,
-            avgRpm = if (totalMiles > 0) totalRate / totalMiles else 0.0
+            avgRpm = if (totalMiles > 0) totalRate / totalMiles else 0.0,
         )
     }
 }

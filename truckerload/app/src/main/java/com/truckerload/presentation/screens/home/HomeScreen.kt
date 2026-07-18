@@ -35,6 +35,10 @@ import androidx.compose.material.icons.outlined.Settings
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -48,9 +52,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -67,17 +68,17 @@ import android.content.Context
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.data.preferences.TelegramTokenStore
+import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.R
 import com.truckerload.presentation.components.BotStatusBadge
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
-import com.truckerload.presentation.theme.StaggeredAnimatedItem
-import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.theme.AppTypography
-import com.truckerload.presentation.theme.DarkGlassGradients
+import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
-import com.truckerload.presentation.theme.BentoGlassScreenBackground
+import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
@@ -88,7 +89,7 @@ import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
 import com.truckerload.widget.WidgetDeepLink
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.material.ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     onLoadClick: (String) -> Unit,
@@ -111,7 +112,8 @@ fun HomeScreen(
     val datesWithLoads = filteredResult.datesWithLoads
     val weekLabel = remember(uiState.filter, uiState.selectedWeekLabel) {
         when (uiState.filter) {
-            LoadFilter.CALENDAR_WEEK, LoadFilter.CALENDAR_DATE -> uiState.selectedWeekLabel
+            LoadFilter.CALENDAR_DATE -> uiState.selectedDateLabel
+            LoadFilter.CALENDAR_WEEK -> uiState.selectedWeekLabel
             LoadFilter.LAST_WEEK -> {
                 val (week, year) = getPreviousWeekNumberAndYear()
                 getWeekRange(week, year).third
@@ -272,7 +274,7 @@ fun HomeScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.material.ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 private fun HomeScreenContent(
     paddingValues: PaddingValues,
@@ -336,7 +338,7 @@ private fun HomeScreenContent(
     }
 
     BentoGlassScreenBackground {
-    Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
+        Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -378,13 +380,11 @@ private fun HomeScreenContent(
 
             if (listItems.isNotEmpty()) {
                 item(key = "recent_header") {
-                    StaggeredAnimatedItem(index = 0) {
-                        DarkGlassSectionTitle(
-                            text = stringResource(R.string.home_recent_loads),
-                            emoji = "📋",
-                            modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
-                        )
-                    }
+                    DarkGlassSectionTitle(
+                        text = stringResource(R.string.home_recent_loads),
+                        emoji = "📋",
+                        modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
+                    )
                 }
             }
 
@@ -436,24 +436,22 @@ private fun HomeScreenContent(
                             is HomeListItem.LoadItem -> "load_${item.load.id}"
                         }
                     },
-                ) { index, item ->
-                    StaggeredAnimatedItem(index = index + 1) {
-                        when (item) {
-                            is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
-                            is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
-                            is HomeListItem.FilteredSectionHeader -> Unit
-                            is HomeListItem.LoadItem -> SwipeableLoadCard(
-                                load = item.load,
-                                onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
-                                onDelete = {
-                                    if (item.load.id.isNotBlank()) {
-                                        viewModel.deleteLoad(item.load.id)
-                                    }
-                                },
-                                rpmThresholds = rpmThresholds,
-                                modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
-                            )
-                        }
+                ) { _, item ->
+                    when (item) {
+                        is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
+                        is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
+                        is HomeListItem.FilteredSectionHeader -> Unit
+                        is HomeListItem.LoadItem -> SwipeableLoadCard(
+                            load = item.load,
+                            onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
+                            onDelete = {
+                                if (item.load.id.isNotBlank()) {
+                                    viewModel.deleteLoad(item.load.id)
+                                }
+                            },
+                            rpmThresholds = rpmThresholds,
+                            modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
+                        )
                     }
                 }
             }
@@ -478,7 +476,7 @@ private fun HomeScreenContent(
             }
         }
         PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
-    }
+        }
     }
 }
 
