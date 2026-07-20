@@ -78,6 +78,7 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
@@ -551,6 +552,8 @@ private fun StatsHeader(
 
 @Composable
 private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
+    val tc = LocalTruckColors.current
+    val totals = header.totals
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -560,16 +563,44 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
             text = header.label.uppercase(),
             style = AppTypography.SectionTitle,
         )
-        Text(
-            text = stringResource(
-                R.string.home_filtered_header,
-                header.totals.totalRate,
-                header.totals.totalMiles,
-                header.totals.avgRpmFormatted
-            ),
-            style = AppTypography.CaptionMuted,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(top = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = MoneyFormat.formatCurrency(totals.totalRate),
+                style = AppTypography.NumbersSmall.copy(
+                    color = tc.AccentPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+            )
+            Text(
+                text = "•",
+                style = AppTypography.Body.copy(color = tc.TextSecondary),
+            )
+            Text(
+                text = "${MoneyFormat.formatNumber(totals.totalMiles)} mi",
+                style = AppTypography.Body.copy(
+                    color = tc.TextPrimary,
+                    fontWeight = FontWeight.Medium,
+                ),
+            )
+            Text(
+                text = "•",
+                style = AppTypography.Body.copy(color = tc.TextSecondary),
+            )
+            Text(
+                text = stringResource(
+                    R.string.home_period_avg_rpm,
+                    totals.avgRpmFormatted,
+                ),
+                style = AppTypography.Body.copy(
+                    color = SoftUiColors.PurpleEnd,
+                    fontWeight = FontWeight.Medium,
+                ),
+            )
+        }
     }
 }
 
