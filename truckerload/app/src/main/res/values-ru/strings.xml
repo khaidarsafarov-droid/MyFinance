@@ -240,6 +240,7 @@
     <string name="camera_finish_batch">Готово (%1$d)</string>
     <string name="camera_batch_count">Фото: %1$d</string>
     <string name="camera_batch_title">Сессия (%1$d)</string>
+    <string name="camera_photo_preview">Просмотр фото</string>
     <string name="camera_add_another">Добавить ещё</string>
     <string name="camera_share_all">Поделиться всеми</string>
     <string name="camera_save_all">Сохранить все</string>
