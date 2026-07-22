@@ -14,6 +14,8 @@ import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
+import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.LoadDateIndex
@@ -106,8 +108,34 @@ class HomeViewModel(
 
     private val filterUseCase = LoadFilterUseCase()
 
-    /** Одна подписка на Room — вместо двух параллельных watchLoads(). */
-    private val loadsFromDb: StateFlow<List<Load>> = loadRepository.watchLoads()
+    private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    /** Room subscription scoped by filter — THIS/LAST week avoid full-table hydrate. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val loadsFromDb: StateFlow<List<Load>> = _uiState
+        .map { Triple(it.filter, it.selectedWeekStart, it.selectedWeekEnd) }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, weekStart, weekEnd) ->
+            when (filter) {
+                LoadFilter.THIS_WEEK -> {
+                    val (w, y) = getCurrentWeekNumberAndYear()
+                    loadRepository.getLoadsByWeek(w, y)
+                }
+                LoadFilter.LAST_WEEK -> {
+                    val (w, y) = getPreviousWeekNumberAndYear()
+                    loadRepository.getLoadsByWeek(w, y)
+                }
+                LoadFilter.CALENDAR_WEEK -> {
+                    if (!weekStart.isNullOrBlank() && !weekEnd.isNullOrBlank()) {
+                        loadRepository.getLoadsByDateRange(weekStart, weekEnd)
+                    } else {
+                        loadRepository.watchLoads()
+                    }
+                }
+                else -> loadRepository.watchLoads()
+            }
+        }
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
@@ -116,9 +144,6 @@ class HomeViewModel(
     val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
         .map { done -> !done }
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = true)
-
-    private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
     private val _searchQuery = MutableStateFlow("")

@@ -47,6 +47,8 @@ class HomeViewModelPendingDeleteTest {
         loadRepository = mock()
         app = RuntimeEnvironment.getApplication()
         whenever(loadRepository.watchLoads()).thenReturn(loadsFlow)
+        whenever(loadRepository.getLoadsByWeek(any(), any())).thenReturn(loadsFlow)
+        whenever(loadRepository.getLoadsByDateRange(any(), any())).thenReturn(loadsFlow)
         loadRepository.stub {
             onBlocking { deleteLoad(any()) } doAnswer { inv: org.mockito.invocation.InvocationOnMock ->
                 deletedIds += inv.getArgument<String>(0)
