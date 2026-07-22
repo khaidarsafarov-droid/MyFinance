@@ -2,7 +2,7 @@
 
 Generated for overnight execution. Priority: P0 data integrity → P1 bugs → P2 perf → P3 UX → P4 tests/security.
 
-Status on `cursor/quality-50-improvements-f936`: **done unless marked remaining**.
+Status on `cursor/quality-50-improvements-f936`: **50/50 done**.
 
 ## P0 — Data integrity (1–10)
 
@@ -50,8 +50,8 @@ Status on `cursor/quality-50-improvements-f936`: **done unless marked remaining*
 
 ## P3 — Accessibility / i18n / UX polish (36–42)
 
-36. ⬜ Add contentDescriptions for Settings actionable icons (batch) — remaining polish
-37. ⬜ Add contentDescriptions for Home toolbar / load card actions gaps — mostly covered; residual polish
+36. ✅ Add contentDescriptions for Settings actionable icons (batch)
+37. ✅ Add contentDescriptions for Home toolbar / load card actions gaps
 38. ✅ Move default `values/strings.xml` dispute keys to values-en + values-ru
 39. ✅ Label social seed peers as demo when LOCAL_ONLY_MODE
 40. ✅ Location-denied camera banner: clearer “continue without GPS” copy
@@ -63,7 +63,7 @@ Status on `cursor/quality-50-improvements-f936`: **done unless marked remaining*
 43. ✅ Unit tests: `normalizeTripId` + CDC duplicate case
 44. ✅ Unit tests: date parse null-on-invalid (WeekUtils)
 45. ✅ Unit tests: AttachmentNaming + PhotoManager title fallback (pure logic)
-46. ⬜ In-memory Room test: deleteLoad clears photo rows — deferred
+46. ✅ In-memory Room test: deleteLoad clears photo rows
 47. ✅ Unit test: CameraAttachContext resolves latest load tripId
 48. ✅ Fix remaining broken unit test Stop.id types if any (suite green)
 49. ✅ Narrow FileProvider `files-path` away from `path="."`
@@ -71,4 +71,4 @@ Status on `cursor/quality-50-improvements-f936`: **done unless marked remaining*
 
 ---
 
-Track status in commits on `cursor/quality-50-improvements-f936`.
+**Status: 50/50 complete** on `cursor/quality-50-improvements-f936`.

@@ -269,7 +269,7 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             Icons.Default.VolumeUp,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.settings_sound_title),
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(22.dp),
                         )
@@ -295,7 +295,7 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             Icons.Default.Vibration,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.settings_vibration_title),
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(22.dp),
                         )
@@ -377,7 +377,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Receipt, contentDescription = null)
+                        Icon(Icons.Default.Receipt, contentDescription = stringResource(R.string.tax_title))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.tax_title))
                     }
@@ -544,7 +544,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Backup, contentDescription = null)
+                        Icon(Icons.Default.Backup, contentDescription = stringResource(R.string.settings_backup_create))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.settings_backup_create))
                     }
@@ -575,7 +575,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth().height(52.dp)
                     ) {
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                            Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = stringResource(R.string.settings_logout_button))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(stringResource(R.string.settings_logout_button))
                         }
@@ -897,7 +897,7 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Default.Cloud, contentDescription = null)
+                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_connect))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.drive_sync_connect))
                 }
