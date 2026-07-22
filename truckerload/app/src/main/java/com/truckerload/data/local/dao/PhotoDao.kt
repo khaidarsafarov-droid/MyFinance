@@ -16,11 +16,32 @@ interface PhotoDao {
     @Query("SELECT * FROM photos ORDER BY timestamp DESC")
     fun getAllPhotos(): Flow<List<PhotoEntity>>
 
+    @Query("SELECT * FROM photos")
+    suspend fun getAllPhotosOnce(): List<PhotoEntity>
+
     @Query("SELECT * FROM photos WHERE id = :id")
     suspend fun getById(id: String): PhotoEntity?
 
     @Query("SELECT * FROM photos WHERE loadId = :loadId ORDER BY timestamp DESC")
     fun getPhotosByLoadId(loadId: String): Flow<List<PhotoEntity>>
+
+    @Query("SELECT * FROM photos WHERE loadId = :loadId")
+    suspend fun getPhotosByLoadIdOnce(loadId: String): List<PhotoEntity>
+
+    @Query(
+        """
+        SELECT * FROM photos
+        WHERE (:loadId IS NULL OR loadId = :loadId)
+          AND (:dayStartMillis IS NULL OR timestamp >= :dayStartMillis)
+          AND (:dayEndMillis IS NULL OR timestamp <= :dayEndMillis)
+        ORDER BY timestamp DESC
+        """,
+    )
+    fun getPhotosFiltered(
+        loadId: String?,
+        dayStartMillis: Long?,
+        dayEndMillis: Long?,
+    ): Flow<List<PhotoEntity>>
 
     @Query("SELECT * FROM photos WHERE loadId IS NULL OR loadId = '' ORDER BY timestamp DESC")
     fun getUnlinkedPhotos(): Flow<List<PhotoEntity>>
@@ -30,4 +51,10 @@ interface PhotoDao {
 
     @Query("DELETE FROM photos WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM photos WHERE loadId = :loadId")
+    suspend fun deleteByLoadId(loadId: String)
+
+    @Query("DELETE FROM photos")
+    suspend fun deleteAll()
 }

@@ -44,6 +44,9 @@ interface LoadDao {
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     suspend fun getAllLoadsOnce(): List<LoadEntity>
 
+    @Query("SELECT * FROM loads ORDER BY updatedAt DESC, parsedAt DESC LIMIT :limit")
+    suspend fun getLoadsForLinking(limit: Int): List<LoadEntity>
+
     @Query("SELECT * FROM loads WHERE (:minDate = '' OR date >= :minDate) ORDER BY parsedAt DESC")
     suspend fun getLoadsSince(minDate: String): List<LoadEntity>
 

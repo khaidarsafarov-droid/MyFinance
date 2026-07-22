@@ -3,6 +3,7 @@ package com.truckerload.data.repository
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.ScanEntity
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 import java.util.UUID
 
 class ScanRepository(private val db: AppDatabase) {
@@ -38,6 +39,26 @@ class ScanRepository(private val db: AppDatabase) {
     }
 
     suspend fun deleteScan(id: String) {
+        val existing = scanDao.getAllScansOnce().find { it.id == id }
         scanDao.deleteById(id)
+        existing?.filePath?.takeIf { it.isNotBlank() }?.let { path ->
+            runCatching { File(path).delete() }
+        }
+    }
+
+    suspend fun deleteScansForLoad(loadId: String) {
+        val scans = scanDao.getScansByLoadIdOnce(loadId)
+        scanDao.deleteByLoadId(loadId)
+        scans.forEach { scan ->
+            runCatching { File(scan.filePath).delete() }
+        }
+    }
+
+    suspend fun deleteAllScansAndFiles() {
+        val all = scanDao.getAllScansOnce()
+        scanDao.deleteAll()
+        all.forEach { scan ->
+            runCatching { File(scan.filePath).delete() }
+        }
     }
 }
