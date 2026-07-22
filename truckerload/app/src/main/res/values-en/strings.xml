@@ -263,7 +263,11 @@
     <string name="scan_session_count">In session: %1$d</string>
     <string name="scan_add_another">Add another</string>
     <string name="scan_share_all">Share all</string>
+    <string name="scan_already_saved">Saved to app</string>
+    <string name="scan_share_failed">Could not share the file</string>
     <string name="ocr_text">Recognized text</string>
+    <string name="ocr_show_text">Show recognized text</string>
+    <string name="ocr_hide_text">Hide text</string>
     <string name="copy_text">Copy text</string>
     <string name="text_copied">Text copied</string>
     <string name="ocr_russian_detected">🇷🇺 Russian text detected</string>

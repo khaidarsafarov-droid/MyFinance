@@ -264,7 +264,11 @@
     <string name="scan_session_count">В сессии: %1$d</string>
     <string name="scan_add_another">Добавить ещё</string>
     <string name="scan_share_all">Поделиться всеми</string>
+    <string name="scan_already_saved">Сохранено в приложение</string>
+    <string name="scan_share_failed">Не удалось поделиться файлом</string>
     <string name="ocr_text">Распознанный текст</string>
+    <string name="ocr_show_text">Показать распознанный текст</string>
+    <string name="ocr_hide_text">Скрыть текст</string>
     <string name="copy_text">Копировать текст</string>
     <string name="text_copied">Текст скопирован</string>
     <string name="ocr_russian_detected">🇷🇺 Обнаружен русский текст</string>

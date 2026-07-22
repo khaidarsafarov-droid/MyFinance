@@ -133,8 +133,22 @@ class ScannerViewModel(
 
     fun mergedShareFile(): File? = _uiState.value.pendingScan?.file?.takeIf { it.exists() }
 
+    fun onShareUnavailable() {
+        _uiState.update { it.copy(errorKey = "share_failed") }
+    }
+
     fun saveToApp() {
         viewModelScope.launch { persistPendingToApp(showSuccess = true) }
+    }
+
+    /** Persists the current scan (if needed), then invokes [onReady] on the main thread. */
+    fun saveThenOpenGallery(onReady: () -> Unit) {
+        viewModelScope.launch {
+            persistPendingToApp(showSuccess = false)
+            if (_uiState.value.pendingScan?.savedToDb == true) {
+                onReady()
+            }
+        }
     }
 
     fun saveToPhone() {

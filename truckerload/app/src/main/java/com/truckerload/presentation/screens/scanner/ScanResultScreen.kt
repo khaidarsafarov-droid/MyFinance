@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.scanner
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,24 +12,31 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import com.truckerload.presentation.components.TlButton as Button
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.ClipboardUtils
 import com.truckerload.utils.PDFGenerator
@@ -50,6 +58,10 @@ fun ScanResultScreen(
     val context = LocalContext.current
     val tc = LocalTruckColors.current
     val scroll = rememberScrollState()
+    var ocrExpanded by remember(pending.timestamp, pending.file.absolutePath) {
+        mutableStateOf(false)
+    }
+    val hasOcr = pending.ocrText.isNotBlank()
 
     Scaffold(
         topBar = {
@@ -57,10 +69,15 @@ fun ScanResultScreen(
                 title = { Text(stringResource(R.string.scan_results)) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
         },
     ) { padding ->
@@ -109,8 +126,16 @@ fun ScanResultScreen(
                 style = MaterialTheme.typography.titleSmall,
                 color = tc.TextPrimary,
             )
-            if (pending.ocrText.isNotBlank()) {
-                val detectedLang = remember(pending.ocrText) { LanguageDetector.detect(pending.ocrText) }
+            if (!hasOcr) {
+                Text(
+                    text = stringResource(R.string.no_text_found),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextSecondary,
+                )
+            } else {
+                val detectedLang = remember(pending.ocrText) {
+                    LanguageDetector.detect(pending.ocrText)
+                }
                 Text(
                     text = when (detectedLang) {
                         "ru" -> stringResource(R.string.russian_text)
@@ -128,14 +153,40 @@ fun ScanResultScreen(
                         else -> tc.TextSecondary
                     },
                 )
-            }
-            Text(
-                text = pending.ocrText.ifBlank { stringResource(R.string.no_text_found) },
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextSecondary,
-            )
-
-            if (pending.ocrText.isNotBlank()) {
+                TextButton(
+                    onClick = { ocrExpanded = !ocrExpanded },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (ocrExpanded) R.string.ocr_hide_text else R.string.ocr_show_text,
+                            ),
+                            color = tc.AccentPrimary,
+                        )
+                        Icon(
+                            imageVector = if (ocrExpanded) {
+                                Icons.Default.ExpandLess
+                            } else {
+                                Icons.Default.ExpandMore
+                            },
+                            contentDescription = null,
+                            tint = tc.AccentPrimary,
+                        )
+                    }
+                }
+                AnimatedVisibility(visible = ocrExpanded) {
+                    Text(
+                        text = pending.ocrText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
                 OutlinedButton(
                     onClick = { ClipboardUtils.copyTextWithToast(context, pending.ocrText) },
                     modifier = Modifier.fillMaxWidth(),
@@ -146,10 +197,15 @@ fun ScanResultScreen(
 
             Button(
                 onClick = onSaveToApp,
+                enabled = !pending.savedToDb,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = tc.AccentProfit),
             ) {
-                Text(stringResource(R.string.save_to_app))
+                Text(
+                    stringResource(
+                        if (pending.savedToDb) R.string.scan_already_saved else R.string.save_to_app,
+                    ),
+                )
             }
             OutlinedButton(
                 onClick = onAddAnother,
@@ -174,7 +230,11 @@ fun ScanResultScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = tc.AccentSecondary),
                 ) {
                     Text(
-                        if (sessionCount > 1) stringResource(R.string.scan_share_all) else stringResource(R.string.send_to),
+                        if (sessionCount > 1) {
+                            stringResource(R.string.scan_share_all)
+                        } else {
+                            stringResource(R.string.send_to)
+                        },
                     )
                 }
                 OutlinedButton(
@@ -188,7 +248,11 @@ fun ScanResultScreen(
                 onClick = onClose,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(R.string.common_cancel))
+                Text(
+                    stringResource(
+                        if (pending.savedToDb) R.string.common_done else R.string.common_cancel,
+                    ),
+                )
             }
         }
     }
