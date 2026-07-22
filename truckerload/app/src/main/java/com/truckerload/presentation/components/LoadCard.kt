@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
@@ -124,7 +125,7 @@ private fun LoadCardContent(
                         DisputeCardChip(load = load)
                     }
                     Text(
-                        text = load.date,
+                        text = load.effectiveFinishDate() ?: load.date,
                         style = AppTypography.CaptionMuted,
                     )
                     if (onCameraClick != null) {

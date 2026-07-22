@@ -39,7 +39,8 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.utils.dateStringToStartOfDayMillis
+import com.truckerload.utils.dateStringToUtcDatePickerMillis
+import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
 import java.util.Locale
 
@@ -54,12 +55,20 @@ fun DisputeSection(
     var showDatePicker by remember { mutableStateOf(false) }
 
     if (showDatePicker) {
-        val initialMillis = load.disputeResponseDate?.let(::dateStringToStartOfDayMillis)
+        val today = Calendar.getInstance(Locale.US)
+        val todayIso = "%04d-%02d-%02d".format(
+            Locale.US,
+            today.get(Calendar.YEAR),
+            today.get(Calendar.MONTH) + 1,
+            today.get(Calendar.DAY_OF_MONTH),
+        )
+        val initialMillis = dateStringToUtcDatePickerMillis(load.disputeResponseDate ?: todayIso)
             ?: System.currentTimeMillis()
-        val cal = Calendar.getInstance().apply { timeInMillis = initialMillis }
+        val yearForRange = load.disputeResponseDate?.take(4)?.toIntOrNull()
+            ?: today.get(Calendar.YEAR)
         val dateState = rememberDatePickerState(
             initialSelectedDateMillis = initialMillis,
-            yearRange = IntRange(cal.get(Calendar.YEAR) - 1, cal.get(Calendar.YEAR) + 2),
+            yearRange = IntRange(yearForRange - 1, yearForRange + 2),
         )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -71,13 +80,7 @@ fun DisputeSection(
                     onClick = {
                         val selectedMillis = dateState.selectedDateMillis
                         if (selectedMillis != null) {
-                            val selectedCal = Calendar.getInstance().apply { timeInMillis = selectedMillis }
-                            val date = "%04d-%02d-%02d".format(
-                                Locale.US,
-                                selectedCal.get(Calendar.YEAR),
-                                selectedCal.get(Calendar.MONTH) + 1,
-                                selectedCal.get(Calendar.DAY_OF_MONTH),
-                            )
+                            val date = utcDatePickerMillisToDateString(selectedMillis)
                             onDisputeChanged(
                                 load.copy(
                                     isDispute = true,
