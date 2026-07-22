@@ -54,7 +54,6 @@ import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.rememberDecodedBitmap
-import com.truckerload.utils.ShareHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +62,7 @@ fun PhotoBatchReviewScreen(
     onAddMore: () -> Unit,
     onRemoveAt: (Int) -> Unit,
     onSaveAll: () -> Unit,
+    onShare: () -> Unit,
     onCancel: () -> Unit,
     onSaved: () -> Unit,
     saveSuccess: Boolean,
@@ -180,9 +180,7 @@ fun PhotoBatchReviewScreen(
                     Text(stringResource(R.string.camera_add_another))
                 }
                 Button(
-                    onClick = {
-                        ShareHelper(context).sharePhotos(photos.map { it.file })
-                    },
+                    onClick = onShare,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = tc.AccentPrimary),
                 ) {
