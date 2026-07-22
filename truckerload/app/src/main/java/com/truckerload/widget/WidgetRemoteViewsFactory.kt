@@ -218,20 +218,20 @@ object WidgetRemoteViewsFactory {
     if (tier == LayoutTier.COMPACT) {
       views.setTextViewText(
         R.id.widget_gross_hero,
-        WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
+        WidgetStatsFormatter.formatGrossUsd(context, stats.totalLoadRate),
       )
       views.setViewVisibility(R.id.widget_goal_subtitle, View.GONE)
     } else {
       views.setTextViewText(
         R.id.widget_gross_hero,
-        WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
+        WidgetStatsFormatter.formatGrossUsd(context, stats.totalLoadRate),
       )
       val goalSubtitle = when {
         !prefs.showGoal || !goalSet ->
           context.getString(R.string.widget_goal_not_set)
         else -> context.getString(
           R.string.widget_goal_out_of,
-          WidgetStatsFormatter.formatGrossUsd(stats.weeklyProfitGoal),
+          WidgetStatsFormatter.formatGrossUsd(context, stats.weeklyProfitGoal),
         )
       }
       views.setViewVisibility(R.id.widget_goal_subtitle, View.VISIBLE)

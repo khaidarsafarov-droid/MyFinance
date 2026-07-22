@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="cache" path="." />
-    <external-files-path name="downloads" path="Download/" />
+    <!-- Only explicit shareable folders — never the whole files/ tree -->
+    <cache-path name="cache" path="share/" />
     <external-files-path name="exports" path="exports/" />
     <external-files-path name="photos" path="photos/" />
     <external-files-path name="scans" path="scans/" />
-    <external-path name="public_downloads" path="Download/" />
-    <files-path name="files" path="." />
+    <files-path name="private_exports" path="exports/" />
+    <files-path name="private_backups" path="backups/" />
 </paths>

@@ -11,6 +11,8 @@ import com.truckerload.R
 import com.truckerload.data.backup.BackupData
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toEntity
+import com.truckerload.data.preferences.PrivacyStore
+import com.truckerload.data.privacy.BackupCrypto
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
@@ -76,9 +78,10 @@ object BackupService {
         val json = gson.toJson(backup)
         val dir = autoBackupDir(appContext).apply { mkdirs() }
         val fileName = "auto_backup_${autoBackupTimestamp.format(Date())}.tlb"
-        File(dir, fileName).writeText(json, Charsets.UTF_8)
+        val encrypted = BackupCrypto.encrypt(appContext, json)
+        File(dir, fileName).writeBytes(encrypted)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
-        Log.d(TAG, "createAutoBackup saved $fileName (${loads.size} loads)")
+        Log.d(TAG, "createAutoBackup saved $fileName (${loads.size} loads, encrypted)")
     }
 
     suspend fun restoreFromFile(context: Context, file: File): Result<Int> = withContext(Dispatchers.IO) {
@@ -87,7 +90,8 @@ object BackupService {
                 IllegalStateException(context.getString(R.string.auto_restore_no_file))
             )
         }
-        restoreFromJson(context, file.readText(Charsets.UTF_8)).map { backup ->
+        val json = readBackupJson(context, file)
+        restoreFromJson(context, json).map { backup ->
             WidgetDataUpdater.updateWidgetData(context.applicationContext)
             backup.loads.size
         }
@@ -102,15 +106,6 @@ object BackupService {
                 IllegalStateException(context.getString(R.string.auto_restore_no_file))
             )
         restoreFromFile(context, latest)
-    }
-
-    fun getAutoBackups(context: Context): List<File> {
-        val dir = autoBackupDir(context)
-        if (!dir.isDirectory) return emptyList()
-        return dir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
-            ?.sortedByDescending { backupSortKey(it) }
-            .orEmpty()
     }
 
     fun pruneAutoBackups(context: Context, keepCount: Int = DEFAULT_KEEP_COUNT) {
@@ -142,13 +137,13 @@ object BackupService {
             val textBytes = note.visibleText.toByteArray(StandardCharsets.UTF_8)
             val storageHelper = StorageHelper(appContext)
 
-            val saveResult = storageHelper.saveToPublicDownloads(fileName, BrandConstants.DOWNLOADS_FOLDER, "text/plain") { out ->
+            val saveResult = storageHelper.saveExport(fileName, BrandConstants.DOWNLOADS_FOLDER, "text/plain") { out ->
                 out.write(textBytes)
             } ?: run {
                 val file = storageHelper.saveToAppStorage(fileName, "backups") { out ->
                     out.write(textBytes)
                 }
-                StorageHelper.SaveResult(storageHelper.getShareableUri(file), "${BrandConstants.DOWNLOADS_FOLDER}/$fileName")
+                StorageHelper.SaveResult(storageHelper.getShareableUri(file), "private/backups/$fileName")
             }
 
             saveCompanionBackup(appContext, fileName, json)
@@ -165,6 +160,14 @@ object BackupService {
 
     fun shareNoteText(context: Context, visibleText: String) {
         if (visibleText.isBlank()) return
+        if (PrivacyStore(context).isLockdownEnabled()) {
+            android.widget.Toast.makeText(
+                context.applicationContext,
+                context.getString(R.string.privacy_share_blocked),
+                android.widget.Toast.LENGTH_LONG,
+            ).show()
+            return
+        }
         val appContext = context.applicationContext
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
@@ -223,16 +226,19 @@ object BackupService {
         val loadRepository = LoadRepository(db)
         if (loadRepository.getAllLoadsOnce().isNotEmpty()) return@withContext null
 
-        val dir = File(appContext.getExternalFilesDir(null), "backups")
-        if (!dir.isDirectory) return@withContext null
+        val dir = File(appContext.filesDir, "backups")
+        val legacyDir = File(appContext.getExternalFilesDir(null), "backups")
+        if (!dir.isDirectory && !legacyDir.isDirectory) return@withContext null
 
-        val latest = dir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
-            ?.maxByOrNull { it.lastModified() }
+        val latest = listOf(dir, legacyDir)
+            .filter { it.isDirectory }
+            .flatMap { it.listFiles()?.toList().orEmpty() }
+            .filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
+            .maxByOrNull { it.lastModified() }
             ?: return@withContext null
 
         android.util.Log.i(TAG, "Auto-restore from companion ${latest.name}")
-        restoreFromJson(appContext, latest.readText(Charsets.UTF_8)).map { backup ->
+        restoreFromJson(appContext, readBackupJson(appContext, latest)).map { backup ->
             WidgetDataUpdater.updateWidgetData(appContext)
             appContext.getString(
                 R.string.backup_restore_success,
@@ -244,7 +250,7 @@ object BackupService {
     }
 
     private fun autoBackupDir(context: Context): File =
-        File(context.getExternalFilesDir(null), AUTO_BACKUP_SUBDIR)
+        File(context.filesDir, AUTO_BACKUP_SUBDIR)
 
     private fun backupSortKey(file: File): String {
         val name = file.name
@@ -253,9 +259,9 @@ object BackupService {
     }
 
     private fun saveCompanionBackup(context: Context, txtFileName: String, json: String) {
-        val dir = File(context.getExternalFilesDir(null), "backups").apply { mkdirs() }
+        val dir = File(context.filesDir, "backups").apply { mkdirs() }
         val companion = File(dir, BackupNoteFormatter.companionFileName(txtFileName))
-        companion.writeText(json, Charsets.UTF_8)
+        companion.writeBytes(BackupCrypto.encrypt(context, json))
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit {
                 putString(txtFileName, companion.absolutePath)
@@ -269,7 +275,26 @@ object BackupService {
             ?: return null
         val file = File(path)
         if (!file.exists()) return null
-        return file.readText(Charsets.UTF_8).takeIf { it.startsWith("{") }
+        return runCatching { readBackupJson(context, file) }.getOrNull()
+            ?.takeIf { it.trimStart().startsWith("{") }
+    }
+
+    private fun readBackupJson(context: Context, file: File): String =
+        BackupCrypto.decrypt(context, file.readBytes())
+
+    /** Also look in legacy external backup dir for migration. */
+    fun getAutoBackups(context: Context): List<File> {
+        val dirs = listOf(
+            autoBackupDir(context),
+            File(context.getExternalFilesDir(null), AUTO_BACKUP_SUBDIR),
+        )
+        return dirs.flatMap { dir ->
+            if (!dir.isDirectory) emptyList()
+            else dir.listFiles()
+                ?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
+                .orEmpty()
+        }.distinctBy { it.absolutePath }
+            .sortedByDescending { backupSortKey(it) }
     }
 
     private fun queryDisplayName(context: Context, uri: Uri): String? =

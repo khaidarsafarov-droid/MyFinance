@@ -29,6 +29,7 @@ import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.preferences.PrivacyStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.LoadImporter
@@ -296,6 +297,14 @@ class TelegramBotSyncEngine(private val context: Context) {
                 return
             }
             isCommand(rawText, "/stats") -> {
+                if (!PrivacyStore(context).allowTelegramFinancialShare()) {
+                    sendWithMenu(
+                        telegramApi,
+                        update.chatId,
+                        context.getString(R.string.privacy_telegram_stats_blocked),
+                    )
+                    return
+                }
                 val stats = buildStatsMessage(loadRepository)
                 sendWithMenu(telegramApi, update.chatId, stats)
                 return
@@ -504,8 +513,16 @@ class TelegramBotSyncEngine(private val context: Context) {
                 sendWithMenu(telegramApi, chatId, status)
             }
             isCommand(command, "/stats") -> {
-                val stats = buildStatsMessage(loadRepository)
-                sendWithMenu(telegramApi, chatId, stats)
+                if (!PrivacyStore(context).allowTelegramFinancialShare()) {
+                    sendWithMenu(
+                        telegramApi,
+                        chatId,
+                        context.getString(R.string.privacy_telegram_stats_blocked),
+                    )
+                } else {
+                    val stats = buildStatsMessage(loadRepository)
+                    sendWithMenu(telegramApi, chatId, stats)
+                }
             }
             isCommand(command, "/dedup") -> {
                 sendWithMenu(
@@ -675,7 +692,6 @@ class TelegramBotSyncEngine(private val context: Context) {
         val weekCount = weekLoads.size
         val weekIncome = weekLoads.sumOf { it.totalRate }
         val weekMiles = weekLoads.sumOf { it.totalMiles }
-        Log.d("BackupRestore", "/stats total=$total week=$weekCount income=$weekIncome miles=$weekMiles")
         return context.getString(
             R.string.sync_stats,
             total,
@@ -884,6 +900,11 @@ class TelegramBotSyncEngine(private val context: Context) {
             chatId: Long,
             file: File
         ): Result<Unit> {
+            if (!PrivacyStore(context).allowTelegramFinancialShare()) {
+                return Result.failure(
+                    IllegalStateException(context.getString(R.string.privacy_telegram_export_blocked)),
+                )
+            }
             val caption = context.getString(
                 R.string.telegram_export_caption,
                 exportCaptionDate.format(Date())
