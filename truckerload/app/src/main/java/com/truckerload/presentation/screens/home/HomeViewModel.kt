@@ -18,7 +18,11 @@ import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.getYesterdayDate
+import com.truckerload.utils.getMonthRange
 import com.truckerload.utils.LoadDateIndex
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +35,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
@@ -227,9 +232,47 @@ class HomeViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
-    // True Room PagingSource + SQL filters remains a follow-up; THIS/LAST week already
-    // scopes via getLoadsByWeek. In-memory FilteredLoadsPagingSource stays unit-tested
-    // under data/paging for future alternate UIs.
+    /**
+     * True Room SQL paging for flat journal filters (not year/month archive sections).
+     * Home list cards use denormalized entity fields; stop hydrate stays on detail.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val roomPagedLoads: Flow<PagingData<Load>> = filterState
+        .map { Triple(it.filter, it.searchQuery, Triple(it.selectedDate, it.selectedWeekStart, it.selectedWeekEnd)) }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, searchQuery, dates) ->
+            val (selectedDate, weekStart, weekEnd) = dates
+            val trimmed = searchQuery.trim()
+            when {
+                trimmed.isNotEmpty() -> loadRepository.pagingLoads(searchQuery = trimmed)
+                filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(activeDisputesOnly = true)
+                filter == LoadFilter.THIS_WEEK -> {
+                    val (w, y) = getCurrentWeekNumberAndYear()
+                    loadRepository.pagingLoads(weekNumber = w, year = y)
+                }
+                filter == LoadFilter.LAST_WEEK -> {
+                    val (w, y) = getPreviousWeekNumberAndYear()
+                    loadRepository.pagingLoads(weekNumber = w, year = y)
+                }
+                filter == LoadFilter.CALENDAR_WEEK && !weekStart.isNullOrBlank() && !weekEnd.isNullOrBlank() ->
+                    loadRepository.pagingLoads(startDate = weekStart, endDate = weekEnd)
+                filter == LoadFilter.CALENDAR_DATE && !selectedDate.isNullOrBlank() ->
+                    loadRepository.pagingLoads(exactDate = selectedDate)
+                filter == LoadFilter.YESTERDAY ->
+                    loadRepository.pagingLoads(exactDate = getYesterdayDate())
+                filter == LoadFilter.THIS_MONTH -> {
+                    val cal = Calendar.getInstance()
+                    val (start, end) = getMonthRange(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.YEAR))
+                    loadRepository.pagingLoads(startDate = start, endDate = end)
+                }
+                else -> loadRepository.pagingLoads() // ALL / unset week → SQL page all
+            }
+        }
+        .cachedIn(viewModelScope)
+
+    /** True when the journal should render [roomPagedLoads] instead of year/month section headers. */
+    fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean =
+        selectedYear == null && filter != LoadFilter.ALL
 
     init {
         viewModelScope.launch {
