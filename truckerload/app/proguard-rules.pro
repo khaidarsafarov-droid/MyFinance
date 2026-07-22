@@ -22,3 +22,8 @@
 
 # Google Sign-In / Play services
 -dontwarn com.google.android.gms.**
+
+# iText optional crypto factories + SLF4J binder (not shipped on Android)
+-dontwarn com.itextpdf.bouncycastle.BouncyCastleFactory
+-dontwarn com.itextpdf.bouncycastlefips.BouncyCastleFipsFactory
+-dontwarn org.slf4j.impl.StaticLoggerBinder

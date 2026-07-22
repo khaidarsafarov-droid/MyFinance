@@ -56,6 +56,33 @@ interface LoadDao {
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     fun pagingAllLoads(): androidx.paging.PagingSource<Int, LoadEntity>
 
+    @Query("SELECT * FROM loads WHERE weekNumber = :weekNumber AND year = :year ORDER BY parsedAt DESC")
+    fun pagingLoadsByWeek(weekNumber: Int, year: Int): androidx.paging.PagingSource<Int, LoadEntity>
+
+    @Query("SELECT * FROM loads WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC, parsedAt DESC")
+    fun pagingLoadsByDateRange(
+        startDate: String,
+        endDate: String,
+    ): androidx.paging.PagingSource<Int, LoadEntity>
+
+    @Query("SELECT * FROM loads WHERE date = :loadDate ORDER BY parsedAt DESC")
+    fun pagingLoadsByDate(loadDate: String): androidx.paging.PagingSource<Int, LoadEntity>
+
+    @Query(
+        """
+        SELECT * FROM loads
+        WHERE tripId LIKE '%' || :query || '%'
+           OR pointA LIKE '%' || :query || '%'
+           OR pointB LIKE '%' || :query || '%'
+           OR date LIKE '%' || :query || '%'
+        ORDER BY parsedAt DESC
+        """,
+    )
+    fun pagingSearchLoads(query: String): androidx.paging.PagingSource<Int, LoadEntity>
+
+    @Query("SELECT * FROM loads WHERE isDispute = 1 AND disputeCompleted = 0 ORDER BY parsedAt DESC")
+    fun pagingActiveDisputes(): androidx.paging.PagingSource<Int, LoadEntity>
+
     @Query("SELECT * FROM loads WHERE id = :loadId")
     suspend fun getLoadById(loadId: String): LoadEntity?
 

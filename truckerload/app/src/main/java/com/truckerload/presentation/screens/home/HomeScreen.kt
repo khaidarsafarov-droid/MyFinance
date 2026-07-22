@@ -12,7 +12,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import androidx.paging.LoadState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -139,6 +143,9 @@ fun HomeScreen(
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val datesWithLoads = filteredResult.datesWithLoads
+    val useRoomPaging = viewModel.usesRoomPaging(uiState.filter, uiState.selectedYear) ||
+        searchQuery.isNotBlank()
+    val pagedLoads = viewModel.roomPagedLoads.collectAsLazyPagingItems()
     val weekLabel = remember(
         uiState.filter,
         uiState.selectedDateLabel,
@@ -336,6 +343,8 @@ fun HomeScreen(
                         datesWithLoads = datesWithLoads,
                         viewModel = viewModel,
                         filteredLoads = filteredLoads,
+                        useRoomPaging = useRoomPaging,
+                        pagedLoads = pagedLoads,
                         onLoadClick = onLoadClick,
                         onAddLoad = onAddLoad,
                         context = context,
@@ -369,6 +378,8 @@ private fun HomeScreenContent(
     datesWithLoads: Set<String>,
     viewModel: HomeViewModel,
     filteredLoads: List<com.truckerload.domain.model.Load>,
+    useRoomPaging: Boolean,
+    pagedLoads: androidx.paging.compose.LazyPagingItems<com.truckerload.domain.model.Load>,
     onLoadClick: (String) -> Unit,
     onAddLoad: () -> Unit,
     context: Context,
@@ -478,7 +489,7 @@ private fun HomeScreenContent(
                 )
             }
 
-            if (listItems.isNotEmpty()) {
+            if ((useRoomPaging && pagedLoads.itemCount > 0) || (!useRoomPaging && listItems.isNotEmpty())) {
                 item(key = "recent_header") {
                     DarkGlassSectionTitle(
                         text = stringResource(R.string.home_recent_loads),
@@ -488,7 +499,11 @@ private fun HomeScreenContent(
                 }
             }
 
-            if (listItems.isEmpty()) {
+            val pagingEmpty = useRoomPaging &&
+                pagedLoads.itemCount == 0 &&
+                pagedLoads.loadState.refresh !is LoadState.Loading
+            val listEmpty = !useRoomPaging && listItems.isEmpty()
+            if (pagingEmpty || listEmpty) {
                 item(key = "empty_${uiState.filter}") {
                     Box(
                         modifier = Modifier
@@ -524,6 +539,35 @@ private fun HomeScreenContent(
                             )
                         }
                     }
+                }
+            } else if (useRoomPaging) {
+                items(
+                    count = pagedLoads.itemCount,
+                    key = pagedLoads.itemKey { it.id },
+                ) { index ->
+                    val load = pagedLoads[index] ?: return@items
+                    SwipeableLoadCard(
+                        load = load,
+                        onClick = { if (load.id.isNotBlank()) onLoadClick(load.id) },
+                        onDelete = {
+                            if (load.id.isNotBlank()) {
+                                viewModel.requestDeleteLoad(load.id)
+                            }
+                        },
+                        rpmThresholds = rpmThresholds,
+                        modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
+                        onCameraClick = {
+                            if (load.id.isNotBlank()) {
+                                onLoadCamera(load.id, load.tripId, load.date)
+                            }
+                        },
+                        onScanClick = {
+                            if (load.id.isNotBlank()) {
+                                onLoadScan(load.id, load.tripId, load.date)
+                            }
+                        },
+                        settleKey = swipeSettleGeneration,
+                    )
                 }
             } else {
                 itemsIndexed(

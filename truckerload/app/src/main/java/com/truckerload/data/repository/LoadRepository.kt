@@ -1,6 +1,10 @@
 package com.truckerload.data.repository
 
 import androidx.room.withTransaction
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map as mapPaging
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
@@ -136,6 +140,42 @@ class LoadRepository(private val db: AppDatabase) {
     /** Диапазон дат (включительно). */
     fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<Load>> =
         loadDao.getLoadsByDateRange(startDate, endDate).mapLatest { hydrateLoads(it) }
+
+    /**
+     * True Room [PagingSource] journal rows (entity → domain without stop hydrate —
+     * list cards use denormalized route fields; detail screen hydrates stops).
+     */
+    fun pagingLoads(
+        weekNumber: Int? = null,
+        year: Int? = null,
+        startDate: String? = null,
+        endDate: String? = null,
+        exactDate: String? = null,
+        searchQuery: String? = null,
+        activeDisputesOnly: Boolean = false,
+    ): Flow<PagingData<Load>> {
+        val trimmedSearch = searchQuery?.trim().orEmpty()
+        return Pager(
+            config = PagingConfig(
+                pageSize = 40,
+                enablePlaceholders = false,
+                prefetchDistance = 20,
+            ),
+            pagingSourceFactory = {
+                when {
+                    trimmedSearch.isNotEmpty() -> loadDao.pagingSearchLoads(trimmedSearch)
+                    activeDisputesOnly -> loadDao.pagingActiveDisputes()
+                    weekNumber != null && year != null -> loadDao.pagingLoadsByWeek(weekNumber, year)
+                    !exactDate.isNullOrBlank() -> loadDao.pagingLoadsByDate(exactDate)
+                    !startDate.isNullOrBlank() && !endDate.isNullOrBlank() ->
+                        loadDao.pagingLoadsByDateRange(startDate, endDate)
+                    else -> loadDao.pagingAllLoads()
+                }
+            },
+        ).flow.map { pagingData ->
+            pagingData.mapPaging { entity -> entity.toDomain() }
+        }
+    }
 
     suspend fun getLoadsByYear(year: Int): List<Load> =
         getLoadsByDateRange("$year-01-01", "$year-12-31").first()
