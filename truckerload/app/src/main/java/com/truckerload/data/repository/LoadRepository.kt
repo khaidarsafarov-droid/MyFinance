@@ -22,6 +22,7 @@ import com.truckerload.domain.parser.StopsHasher
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
+import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.utils.withReportingWeek
 import com.truckerload.utils.BackupService
@@ -290,7 +291,10 @@ class LoadRepository(private val db: AppDatabase) {
                 year = normalized.year,
                 updatedAt = System.currentTimeMillis(),
                 firstPuMillis = getFirstPickUpMillis(normalized),
-                lastDelMillis = getLastDeliveryMillis(normalized),
+                // Persist finish override into lastDelMillis so SQL week-yield and
+                // widgets follow the driver's actual end date, not only Relay DEL.
+                lastDelMillis = LoadYieldCalculator.resolveFinishMillis(normalized)
+                    ?: getLastDeliveryMillis(normalized),
                 route = normalized.route,
                 firstPuCityState = normalized.firstPuCityState,
                 lastDelCityState = normalized.lastDelCityState,

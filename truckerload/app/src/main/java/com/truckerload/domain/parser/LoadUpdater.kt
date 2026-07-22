@@ -36,6 +36,8 @@ class LoadUpdater(
             },
             rawMessage = newData.rawMessage,
             updatedAt = now,
+            // Keep driver finish override across Relay/Telegram sync updates.
+            actualFinishDate = oldLoad.actualFinishDate,
         ).withReportingWeek().withRouteMetrics()
 
         loadRepository.update(updatedLoad)

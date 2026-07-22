@@ -65,7 +65,9 @@ class LoadDetailViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, loadError = null) }
             try {
-                val loaded = loadRepository.getLoadById(loadId)
+                // Always recompute duration/pace from stops + actualFinishDate so the
+                // detail stats stay in sync even if denormalized DB fields were stale.
+                val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -104,12 +106,15 @@ class LoadDetailViewModel(
         val current = _uiState.value.load ?: return
         viewModelScope.launch {
             try {
+                val normalizedDate = isoDate?.trim()?.takeIf { it.length >= 10 }?.take(10)
                 val next = current.copy(
-                    actualFinishDate = isoDate,
+                    actualFinishDate = normalizedDate,
                     updatedAt = System.currentTimeMillis(),
                 ).withRouteMetrics()
                 loadRepository.updateLoad(next)
-                _uiState.update { it.copy(load = next, showFinishPicker = false) }
+                // Reload from Room so UI reflects persisted durationDays/pace/lastDelMillis.
+                val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
+                _uiState.update { it.copy(load = reloaded, showFinishPicker = false) }
             } catch (e: Exception) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
             }

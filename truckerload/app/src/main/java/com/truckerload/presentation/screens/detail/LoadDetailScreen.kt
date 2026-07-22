@@ -58,6 +58,7 @@ import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
+import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.StatBox
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -174,7 +175,9 @@ fun LoadDetailScreen(
                 CircularProgressIndicator(color = tc.AccentPrimary)
             }
             else -> {
-                val l = uiState.load ?: return@Scaffold
+                val raw = uiState.load ?: return@Scaffold
+                // Live recompute so duration/pace always reflect actualFinishDate + stops.
+                val l = remember(raw) { raw.withRouteMetrics() }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -280,11 +283,7 @@ fun LoadDetailScreen(
                             confirmButton = {
                                 TextButton(
                                     onClick = {
-                                        val ms = dateState.selectedDateMillis
-                                        if (ms == null) {
-                                            viewModel.setShowFinishPicker(false)
-                                            return@TextButton
-                                        }
+                                        val ms = dateState.selectedDateMillis ?: initialMs
                                         val iso = utcDatePickerMillisToDateString(ms)
                                         viewModel.setActualFinishDate(iso, saveErrorEmpty)
                                     },
