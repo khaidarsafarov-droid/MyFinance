@@ -1007,5 +1007,8 @@
     <string name="map_state_trips">%1$s (%2$s) • %3$d рейс(ов)</string>
     <string name="map_rpm_per_mile">$%1$s / милю</string>
     <string name="map_gross_label">Гросс: $%1$s</string>
+    <string name="map_rating_format">Рейтинг: %1$s</string>
+    <string name="notification_permission_required">Разрешите уведомления, чтобы бот Telegram работал в фоне</string>
+    <string name="notification_permission_rationale">Уведомления нужны для фоновой синхронизации с Telegram (Android 13+)</string>
     <string name="home_calendar_select_week">Выбрать неделю этой даты</string>
 </resources>

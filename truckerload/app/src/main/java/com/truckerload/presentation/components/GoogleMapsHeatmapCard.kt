@@ -214,7 +214,7 @@ fun GoogleMapsHeatmapCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Нейтрально",
+                            stringResource(R.string.map_rating_neutral),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -226,7 +226,7 @@ fun GoogleMapsHeatmapCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Нет данных",
+                            stringResource(R.string.map_rating_no_data),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -297,7 +297,7 @@ fun GoogleMapsHeatmapCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "Рейтинг: $ratingLabel",
+                                text = stringResource(R.string.map_rating_format, ratingLabel),
                                 modifier = Modifier.padding(top = 6.dp),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.outline

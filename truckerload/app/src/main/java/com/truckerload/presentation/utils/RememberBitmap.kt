@@ -24,6 +24,22 @@ fun rememberDecodedBitmap(path: String, maxEdgePx: Int = 512): ImageBitmap? {
     return state.value
 }
 
+/** Power-of-two sample size so the longer edge stays near [maxEdgePx]. */
+internal fun computeInSampleSize(width: Int, height: Int, maxEdgePx: Int): Int {
+    if (width <= 0 || height <= 0 || maxEdgePx <= 0) return 1
+    var sample = 1
+    var halfW = width / 2
+    var halfH = height / 2
+    while (halfW / sample >= maxEdgePx && halfH / sample >= maxEdgePx) {
+        sample *= 2
+    }
+    // Ensure the longer edge is near maxEdgePx even when aspect is extreme.
+    while (max(width, height) / sample > maxEdgePx * 2) {
+        sample *= 2
+    }
+    return sample.coerceAtLeast(1)
+}
+
 internal fun decodeSampledBitmap(path: String, maxEdgePx: Int): android.graphics.Bitmap? {
     val file = File(path)
     if (!file.exists()) return null
@@ -32,16 +48,7 @@ internal fun decodeSampledBitmap(path: String, maxEdgePx: Int): android.graphics
     val w = bounds.outWidth
     val h = bounds.outHeight
     if (w <= 0 || h <= 0) return null
-    var sample = 1
-    var halfW = w / 2
-    var halfH = h / 2
-    while (halfW / sample >= maxEdgePx && halfH / sample >= maxEdgePx) {
-        sample *= 2
-    }
-    // Ensure the longer edge is near maxEdgePx even when aspect is extreme.
-    while (max(w, h) / sample > maxEdgePx * 2) {
-        sample *= 2
-    }
-    val opts = BitmapFactory.Options().apply { inSampleSize = sample.coerceAtLeast(1) }
+    val sample = computeInSampleSize(w, h, maxEdgePx)
+    val opts = BitmapFactory.Options().apply { inSampleSize = sample }
     return BitmapFactory.decodeFile(file.absolutePath, opts)
 }

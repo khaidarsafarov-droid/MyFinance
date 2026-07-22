@@ -91,7 +91,7 @@ class TelegramBotSyncEngine(private val context: Context) {
         ).getOrElse { e ->
             Log.e(TAG, "getUpdates failed: ${e.message}", e)
             val delay = if (e.message?.contains("409") == true) 45L else 30L
-            if (e.message?.contains("401") == true) {
+            if (TelegramAuthErrors.shouldStopService(e.message)) {
                 TelegramBotForegroundService.stop(context)
             }
             return SyncRunResult(skipped = false, processedUpdates = 0, nextDelaySeconds = delay, error = e.message)
