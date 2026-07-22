@@ -7,14 +7,13 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
-import com.truckerload.data.preferences.PrivacyStore
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
 /**
- * Saves files into app-private storage by default (privacy lockdown).
- * Public Downloads only when [PrivacyStore.allowPublicDownloads] is explicitly enabled.
+ * Saves files into public device folders (Downloads, Documents/TruckLog/Reports).
+ * Uses MediaStore on Android 10+ to avoid WRITE_EXTERNAL_STORAGE.
  */
 class StorageHelper(private val context: Context) {
 
@@ -22,36 +21,8 @@ class StorageHelper(private val context: Context) {
     data class SaveResult(val uri: Uri, val displayPath: String)
 
     /**
-     * Saves finance/export file. Uses public Downloads only if privacy allows;
-     * otherwise writes to app-private `exports/` and returns a FileProvider URI.
-     */
-    fun saveExport(
-        fileName: String,
-        relativeSubDir: String = BrandConstants.DOWNLOADS_FOLDER,
-        mimeType: String = "application/octet-stream",
-        writeBlock: (OutputStream) -> Unit,
-    ): SaveResult? {
-        val privacy = PrivacyStore(context)
-        if (privacy.allowPublicDownloads()) {
-            return saveToPublicDownloads(fileName, relativeSubDir, mimeType, writeBlock)
-                ?: savePrivateExport(fileName, writeBlock)
-        }
-        return savePrivateExport(fileName, writeBlock)
-    }
-
-    private fun savePrivateExport(fileName: String, writeBlock: (OutputStream) -> Unit): SaveResult? {
-        return try {
-            val file = saveToAppStorage(fileName, "exports", writeBlock)
-            SaveResult(getShareableUri(file), "private/exports/$fileName")
-        } catch (e: Exception) {
-            android.util.Log.e("StorageHelper", "savePrivateExport failed", e)
-            null
-        }
-    }
-
-    /**
      * Saves file into Downloads (or Downloads/TruckLog for reports).
-     * Prefer [saveExport] which respects privacy lockdown.
+     * Returns content URI for sharing and a display path like "Downloads/TruckLog/Reports/filename".
      */
     fun saveToPublicDownloads(
         fileName: String,
@@ -109,8 +80,8 @@ class StorageHelper(private val context: Context) {
      * Used as fallback when MediaStore is unavailable.
      */
     fun saveToAppStorage(fileName: String, subDir: String = "exports", writeBlock: (OutputStream) -> Unit): File {
-        // Always use internal app storage (not browsable via USB file managers as easily).
-        val targetDir = File(context.filesDir, subDir).apply { mkdirs() }
+        val dir = context.getExternalFilesDir(null) ?: context.filesDir
+        val targetDir = File(dir, subDir).apply { mkdirs() }
         val file = File(targetDir, fileName)
         FileOutputStream(file).use { writeBlock(it) }
         return file

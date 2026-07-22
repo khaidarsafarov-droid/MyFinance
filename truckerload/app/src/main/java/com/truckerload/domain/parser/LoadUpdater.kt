@@ -16,7 +16,7 @@ class LoadUpdater(
         changes: List<String>,
     ): Load {
         changes.forEach { change ->
-            Log.d(TAG, "Load field changed")
+            Log.d(TAG, "Изменение: $change")
         }
 
         val now = System.currentTimeMillis()

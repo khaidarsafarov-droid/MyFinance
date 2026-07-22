@@ -24,7 +24,7 @@ class ExportService(
             .sortedWith(compareBy<com.truckerload.domain.model.WeekSummary> { it.year }.thenBy { it.weekNumber })
         val fileName = "${BrandConstants.FILE_PREFIX}_$year.csv"
         val storageHelper = StorageHelper(context)
-        return storageHelper.saveExport(fileName, BrandConstants.DOWNLOADS_FOLDER, "text/csv") { out ->
+        return storageHelper.saveToPublicDownloads(fileName, BrandConstants.DOWNLOADS_FOLDER, "text/csv") { out ->
             OutputStreamWriter(out, Charsets.UTF_8).use { w ->
                 w.append("Week,Dates,Paycheck,Diesel,Loads,Miles,Gross,NetProfit\n")
                 weeks.forEach { s ->

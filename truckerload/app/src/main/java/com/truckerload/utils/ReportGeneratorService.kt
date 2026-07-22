@@ -79,12 +79,12 @@ class ReportGeneratorService(private val context: Context) {
             val safeLabel = params.periodLabel.replace(Regex("[^\\p{L}0-9\\s-]"), "_")
             val fileName = "${BrandConstants.FILE_PREFIX}_Report_${safeLabel}_${System.currentTimeMillis()}.pdf"
             val storageHelper = StorageHelper(context)
-            storageHelper.saveExport(fileName, "${BrandConstants.DOWNLOADS_FOLDER}/Reports", "application/pdf") { out ->
+            storageHelper.saveToPublicDownloads(fileName, "${BrandConstants.DOWNLOADS_FOLDER}/Reports", "application/pdf") { out ->
                 generatePdfToStream(params, out)
             }
                 ?: run {
-                    val file = storageHelper.saveToAppStorage(fileName, "exports") { generatePdfToStream(params, it) }
-                    StorageHelper.SaveResult(storageHelper.getShareableUri(file), "private/exports/$fileName")
+                    val file = storageHelper.saveToAppStorage(fileName, "Reports") { generatePdfToStream(params, it) }
+                    StorageHelper.SaveResult(storageHelper.getShareableUri(file), "${BrandConstants.DOWNLOADS_FOLDER}/Reports/$fileName")
                 }
         } catch (e: Exception) {
             android.util.Log.e("ReportGenerator", "generatePdfAndSaveToStorage failed", e)

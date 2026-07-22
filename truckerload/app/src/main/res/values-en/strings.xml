@@ -509,18 +509,6 @@
 
     <string name="settings_title">Settings</string>
     <string name="settings_section_tools">Tools</string>
-    <string name="privacy_section_title">Privacy</string>
-    <string name="privacy_section_desc">Your loads, money and passwords stay only on this phone. By default nothing is shared.</string>
-    <string name="privacy_lockdown_title">Privacy mode</string>
-    <string name="privacy_lockdown_on">On — data stays with you only</string>
-    <string name="privacy_lockdown_off">Off — sharing allowed when you choose</string>
-    <string name="privacy_share_blocked">Sharing blocked by privacy mode. Turn it off in Settings → Privacy if you want to share.</string>
-    <string name="privacy_telegram_stats_blocked">🔒 /stats hidden: financial data is not sent to Telegram. Enable “Allow Telegram finance” in Settings → Privacy.</string>
-    <string name="privacy_telegram_export_blocked">🔒 Telegram export blocked by privacy mode.</string>
-    <string name="privacy_allow_telegram_finance">Allow Telegram finance (/stats, export)</string>
-    <string name="privacy_allow_public_downloads">Save reports to public Downloads</string>
-    <string name="privacy_hide_widget_amounts">Hide amounts on widget</string>
-    <string name="privacy_widget_hidden">•••</string>
     <string name="settings_language_title">Language</string>
     <string name="settings_language_desc">App and widget interface language</string>
     <string name="settings_language_ru">Русский</string>

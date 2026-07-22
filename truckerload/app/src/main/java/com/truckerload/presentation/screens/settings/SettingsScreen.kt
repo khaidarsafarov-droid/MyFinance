@@ -73,7 +73,6 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.TruckColorPalette
-import com.truckerload.data.preferences.PrivacyStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.sync.TelegramBotForegroundService
@@ -362,81 +361,6 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Text(stringResource(R.string.settings_rpm_save))
-                }
-            }
-
-            BentoGlassSection(
-                title = stringResource(R.string.privacy_section_title),
-                subtitle = stringResource(R.string.privacy_section_desc),
-            ) {
-                val privacyStore = remember { PrivacyStore(context) }
-                var lockdown by remember { mutableStateOf(privacyStore.isLockdownEnabled()) }
-                var rawTelegram by remember { mutableStateOf(privacyStore.isTelegramFinanceOptIn()) }
-                var rawDownloads by remember { mutableStateOf(privacyStore.isPublicDownloadsOptIn()) }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.privacy_lockdown_title), color = tc.TextPrimary)
-                        Text(
-                            if (lockdown) stringResource(R.string.privacy_lockdown_on)
-                            else stringResource(R.string.privacy_lockdown_off),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = tc.TextSecondary,
-                        )
-                    }
-                    Switch(
-                        checked = lockdown,
-                        onCheckedChange = {
-                            lockdown = it
-                            privacyStore.setLockdownEnabled(it)
-                        },
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                }
-                if (!lockdown) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            stringResource(R.string.privacy_allow_telegram_finance),
-                            modifier = Modifier.weight(1f),
-                            color = tc.TextPrimary,
-                        )
-                        Switch(
-                            checked = rawTelegram,
-                            onCheckedChange = {
-                                rawTelegram = it
-                                privacyStore.setAllowTelegramFinancialShare(it)
-                            },
-                            colors = AppSwitchDefaults.colors(),
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            stringResource(R.string.privacy_allow_public_downloads),
-                            modifier = Modifier.weight(1f),
-                            color = tc.TextPrimary,
-                        )
-                        Switch(
-                            checked = rawDownloads,
-                            onCheckedChange = {
-                                rawDownloads = it
-                                privacyStore.setAllowPublicDownloads(it)
-                            },
-                            colors = AppSwitchDefaults.colors(),
-                        )
-                    }
                 }
             }
 

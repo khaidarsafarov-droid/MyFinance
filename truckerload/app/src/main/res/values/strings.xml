@@ -518,18 +518,6 @@
 
     <string name="settings_title">Настройки</string>
     <string name="settings_section_tools">Инструменты</string>
-    <string name="privacy_section_title">Приватность</string>
-    <string name="privacy_section_desc">Ваши грузы, деньги и пароли остаются только на этом телефоне. По умолчанию никуда не отправляются.</string>
-    <string name="privacy_lockdown_title">Режим приватности</string>
-    <string name="privacy_lockdown_on">Включён — данные только у вас</string>
-    <string name="privacy_lockdown_off">Выключен — разрешён шаринг по вашему выбору</string>
-    <string name="privacy_share_blocked">Шаринг заблокирован режимом приватности. Отключите его в Настройках → Приватность, если хотите поделиться.</string>
-    <string name="privacy_telegram_stats_blocked">🔒 /stats скрыт: финансовые данные не отправляются в Telegram. Включите «Разрешить финансы в Telegram» в Настройках → Приватность.</string>
-    <string name="privacy_telegram_export_blocked">🔒 Экспорт в Telegram заблокирован режимом приватности.</string>
-    <string name="privacy_allow_telegram_finance">Разрешить финансы в Telegram (/stats, экспорт)</string>
-    <string name="privacy_allow_public_downloads">Сохранять отчёты в общую папку Downloads</string>
-    <string name="privacy_hide_widget_amounts">Скрыть суммы на виджете</string>
-    <string name="privacy_widget_hidden">•••</string>
     <string name="settings_language_title">Язык</string>
     <string name="settings_language_desc">Язык интерфейса приложения и виджета</string>
     <string name="settings_language_ru">Русский</string>

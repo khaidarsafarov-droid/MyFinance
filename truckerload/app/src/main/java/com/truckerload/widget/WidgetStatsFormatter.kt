@@ -1,8 +1,5 @@
 package com.truckerload.widget
 
-import android.content.Context
-import com.truckerload.R
-import com.truckerload.data.preferences.PrivacyStore
 import java.util.Locale
 
 object WidgetStatsFormatter {
@@ -13,13 +10,6 @@ object WidgetStatsFormatter {
     /** USD with leading dollar sign for home-screen widget. */
     fun formatGrossUsd(value: Double): String =
         String.format(Locale.US, "$%,.0f", value)
-
-    fun formatGrossUsd(context: Context, value: Double): String {
-        if (PrivacyStore(context).hideWidgetAmounts()) {
-            return context.getString(R.string.privacy_widget_hidden)
-        }
-        return formatGrossUsd(value)
-    }
 
     fun formatCpm(value: Double): String =
         String.format(Locale.US, "%.2f$", value)
@@ -34,12 +24,8 @@ object WidgetStatsFormatter {
     fun formatProgressPercent(progress: Float): String =
         String.format(Locale.US, "%.1f%%", progress.coerceIn(0f, 100f))
 
-    fun formatRpmPerMile(context: Context, rpm: Double): String {
-        if (PrivacyStore(context).hideWidgetAmounts()) {
-            return context.getString(R.string.privacy_widget_hidden)
-        }
-        return context.getString(R.string.rpm_per_mile_format, rpm)
-    }
+    fun formatRpmPerMile(context: android.content.Context, rpm: Double): String =
+        context.getString(com.truckerload.R.string.rpm_per_mile_format, rpm)
 
     @Deprecated("Use formatRpmPerMile(context, rpm) for localized unit")
     fun formatRpmPerMile(rpm: Double): String =
@@ -59,13 +45,6 @@ object WidgetStatsFormatter {
         }
     }
 
-    fun formatDailyPaceShort(context: Context, value: Double): String {
-        if (PrivacyStore(context).hideWidgetAmounts()) {
-            return context.getString(R.string.privacy_widget_hidden)
-        }
-        return formatDailyPaceShort(value)
-    }
-
     /** Pace as gross per active day, e.g. $607/день or $607.50/день */
     fun formatDailyPace(value: Double): String {
         if (value <= 0.0) return "$0/день"
@@ -75,12 +54,5 @@ object WidgetStatsFormatter {
         } else {
             String.format(Locale.US, "$%,.0f/день", value)
         }
-    }
-
-    fun formatDailyPace(context: Context, value: Double): String {
-        if (PrivacyStore(context).hideWidgetAmounts()) {
-            return context.getString(R.string.privacy_widget_hidden)
-        }
-        return formatDailyPace(value)
     }
 }
