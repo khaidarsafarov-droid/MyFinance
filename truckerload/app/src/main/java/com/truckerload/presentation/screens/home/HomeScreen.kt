@@ -19,11 +19,15 @@ import androidx.paging.compose.itemKey
 import androidx.paging.LoadState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.SoftUiColors
+import com.truckerload.presentation.theme.SoftUiElevation
+import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.UiDimens
@@ -267,12 +271,12 @@ fun HomeScreen(
                             Text(
                                 stringResource(R.string.home_welcome, welcomeName),
                                 style = AppTypography.Subtitle,
-                                color = tc.AccentPrimary,
+                                color = SoftUiColors.ForestMuted,
                             )
                         } else {
                             Text(
                                 stringResource(R.string.app_tagline),
-                                style = AppTypography.Subtitle,
+                                style = AppTypography.Subtitle.copy(color = SoftUiColors.ForestMuted),
                             )
                         }
                         weekLabel.takeIf { it.isNotBlank() && uiState.filter != LoadFilter.THIS_WEEK }?.let { week ->
@@ -286,9 +290,10 @@ fun HomeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                    actionIconContentColor = tc.TextPrimary
+                    containerColor = SoftUiColors.Sage,
+                    titleContentColor = SoftUiColors.ForestPrimary,
+                    actionIconContentColor = SoftUiColors.ForestPrimary,
+                    navigationIconContentColor = SoftUiColors.ForestPrimary,
                 ),
                 actions = {
                     if (isBotConfigured) {
@@ -485,15 +490,33 @@ private fun HomeScreenContent(
                         viewModel.setFilter(LoadFilter.ALL)
                         showYearSelector = true
                     },
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.padding(bottom = 4.dp),
                 )
+            }
+
+            item(key = "add_load_button") {
+                TlButton(
+                    onClick = onAddLoad,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.home_add_load_button),
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.home_add_load_button),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
 
             if ((useRoomPaging && pagedLoads.itemCount > 0) || (!useRoomPaging && listItems.isNotEmpty())) {
                 item(key = "recent_header") {
                     DarkGlassSectionTitle(
                         text = stringResource(R.string.home_recent_loads),
-                        emoji = "📋",
                         modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
                     )
                 }
@@ -610,25 +633,6 @@ private fun HomeScreenContent(
                     }
                 }
             }
-
-            item(key = "add_load_button") {
-                TlButton(
-                    onClick = onAddLoad,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
-            }
         }
         PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
@@ -655,7 +659,6 @@ private fun HomeScreenContent(
 
 @Composable
 private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
-    val tc = LocalTruckColors.current
     val totals = header.totals
     val gross = MoneyFormat.formatCurrency(totals.totalRate)
     val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
@@ -667,50 +670,63 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
         miles,
         rpm,
     )
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
+            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp)
+            .shadow(
+                elevation = SoftUiElevation.Card,
+                shape = SoftUiShapes.Card,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            )
+            .clip(SoftUiShapes.Card)
+            .background(SoftUiColors.ForestPrimary)
+            .padding(20.dp)
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
-        Text(
-            text = header.label.uppercase(),
-            style = AppTypography.SectionTitle.copy(color = tc.TextPrimary),
-        )
-        Row(
-            modifier = Modifier.padding(top = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Column {
+            Text(
+                text = header.label.uppercase(),
+                style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
+            )
             Text(
                 text = gross,
                 style = AppTypography.NumbersSmall.copy(
-                    color = tc.AccentPrimary,
-                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
                 ),
+                modifier = Modifier.padding(top = 4.dp),
             )
             Text(
-                text = "•",
-                style = AppTypography.Body.copy(color = tc.TextSecondary),
+                text = "$miles • $rpm",
+                style = AppTypography.Body.copy(color = SoftUiColors.ForestSoft),
+                modifier = Modifier.padding(top = 2.dp),
             )
-            Text(
-                text = miles,
-                style = AppTypography.Body.copy(
-                    color = tc.TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                ),
-            )
-            Text(
-                text = "•",
-                style = AppTypography.Body.copy(color = tc.TextSecondary),
-            )
-            Text(
-                text = rpm,
-                style = AppTypography.Body.copy(
-                    color = SoftUiColors.PurpleEnd,
-                    fontWeight = FontWeight.Medium,
-                ),
-            )
+            Row(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.10f))
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.home_period_filter_label),
+                        style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
+                    )
+                    Text(
+                        text = header.label,
+                        style = AppTypography.Subtitle.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+            }
         }
     }
 }

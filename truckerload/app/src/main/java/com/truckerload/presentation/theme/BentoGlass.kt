@@ -76,34 +76,27 @@ fun BentoGlassCard(
     val cs = MaterialTheme.colorScheme
     val containerColor = when {
         solidBackground -> cs.surface
-        useHeroGradient -> Color.Transparent
-        useHighlight -> SoftUiColors.PurpleLight
+        useHeroGradient -> SoftUiColors.ForestPrimary
+        useHighlight -> SoftUiColors.Sage
         useCream -> cs.secondaryContainer
         else -> cs.surface
     }
-    val heroBrush = if (useHeroGradient) BentoGlassTheme.HeroGradient else null
     Surface(
         modifier = modifier.then(
-            if (!useHeroGradient) {
-                Modifier.shadow(
-                    elevation = SoftUiElevation.Card,
-                    shape = shape,
-                    ambientColor = SoftUiColors.ShadowTint,
-                    spotColor = SoftUiColors.ShadowNeutral,
-                )
-            } else {
-                Modifier
-            },
-        ).then(
-            if (heroBrush != null) {
-                Modifier.background(heroBrush, shape)
-            } else {
-                Modifier
-            },
+            Modifier.shadow(
+                elevation = SoftUiElevation.Card,
+                shape = shape,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            ),
         ),
         shape = shape,
         color = containerColor,
-        tonalElevation = if (useHeroGradient) 0.dp else 1.dp,
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (useHeroGradient) 0.dp else BentoGlassTheme.BorderWidth,
+            color = if (useHeroGradient) Color.Transparent else SoftUiColors.CardBorder,
+        ),
+        tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         content = { Column(content = content) },
     )

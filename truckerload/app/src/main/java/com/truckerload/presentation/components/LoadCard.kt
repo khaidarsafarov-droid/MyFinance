@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.outlined.DocumentScanner
@@ -103,7 +104,6 @@ private fun LoadCardContent(
     val rpmColor = rpm?.let {
         getRpmColor(it, tc, rpmThresholds.minProfit, rpmThresholds.targetProfit)
     }
-    val isProfitable = rpm != null && rpm >= rpmThresholds.targetProfit
 
     val cardContent: @Composable () -> Unit = {
         Column(
@@ -119,7 +119,11 @@ private fun LoadCardContent(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = load.tripId,
-                        style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
+                        style = AppTypography.CardTitle.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 14.sp,
+                            color = SoftUiColors.ForestPrimary,
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -130,55 +134,17 @@ private fun LoadCardContent(
                         )
                     }
                 }
-                Row(
-                    modifier = Modifier.wrapContentWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = load.effectiveFinishDate() ?: load.date,
-                        style = AppTypography.CaptionMuted,
-                        maxLines = 1,
-                        softWrap = false,
-                    )
-                    if (onCameraClick != null) {
-                        val photoCd = stringResource(R.string.load_card_attach_photo)
-                        IconButton(
-                            onClick = onCameraClick,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .semantics { contentDescription = photoCd },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = null,
-                                tint = tc.AccentPrimary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    }
-                    if (onScanClick != null) {
-                        val scanCd = stringResource(R.string.load_card_attach_scan)
-                        IconButton(
-                            onClick = onScanClick,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .semantics { contentDescription = scanCd },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.DocumentScanner,
-                                contentDescription = null,
-                                tint = tc.AccentPrimary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    }
-                }
+                Text(
+                    text = load.effectiveFinishDate() ?: load.date,
+                    style = AppTypography.CaptionMuted.copy(color = SoftUiColors.ForestMuted),
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
             Text(
                 text = route,
-                style = AppTypography.CardRoute,
-                modifier = Modifier.padding(top = 12.dp),
+                style = AppTypography.CardRoute.copy(color = SoftUiColors.ForestPrimary),
+                modifier = Modifier.padding(top = 8.dp),
             )
             Text(
                 text = stringResource(
@@ -187,7 +153,7 @@ private fun LoadCardContent(
                     String.format(Locale.US, "%,.0f", load.totalMiles),
                     String.format(Locale.US, "$%,.2f", load.totalRate),
                 ),
-                style = AppTypography.Caption,
+                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
                 modifier = Modifier.padding(top = 6.dp),
             )
             if (load.durationDays > 0.0) {
@@ -197,30 +163,81 @@ private fun LoadCardContent(
                         formatDurationDays(load.durationDays),
                         formatPacePerDay(load.pace),
                     ),
-                    style = AppTypography.Subtitle,
+                    style = AppTypography.Subtitle.copy(color = SoftUiColors.ForestMuted),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            if (rpm != null && rpmColor != null) {
-                Row(
-                    modifier = Modifier
-                        .padding(top = 10.dp)
-                        .clip(CircleShape)
-                        .background(SoftUiColors.PurpleLight.copy(alpha = 0.65f))
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Box(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (rpm != null && rpmColor != null) {
+                    Row(
                         modifier = Modifier
-                            .size(6.dp)
                             .clip(CircleShape)
-                            .background(rpmColor),
-                    )
-                    Text(
-                        text = formatRpm(load.totalRate, load.totalMiles, stringResource(R.string.rpm_per_mile_format)),
-                        style = AppTypography.NumbersSmall.copy(color = SoftUiColors.PurpleEnd),
-                    )
+                            .background(SoftUiColors.Sage)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(rpmColor),
+                        )
+                        Text(
+                            text = formatRpm(
+                                load.totalRate,
+                                load.totalMiles,
+                                stringResource(R.string.rpm_per_mile_format),
+                            ),
+                            style = AppTypography.NumbersSmall.copy(color = SoftUiColors.ForestPrimary),
+                        )
+                    }
+                } else {
+                    Box(modifier = Modifier.size(1.dp))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (onCameraClick != null) {
+                        val photoCd = stringResource(R.string.load_card_attach_photo)
+                        IconButton(
+                            onClick = onCameraClick,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(SoftUiColors.Sage)
+                                .semantics { contentDescription = photoCd },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = null,
+                                tint = SoftUiColors.ForestPrimary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                    if (onScanClick != null) {
+                        val scanCd = stringResource(R.string.load_card_attach_scan)
+                        IconButton(
+                            onClick = onScanClick,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(SoftUiColors.Sage)
+                                .semantics { contentDescription = scanCd },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.DocumentScanner,
+                                contentDescription = null,
+                                tint = SoftUiColors.ForestPrimary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -233,7 +250,7 @@ private fun LoadCardContent(
                 .fillMaxWidth()
                 .heightIn(min = UiDimens.LoadCardMinHeight),
             solidBackground = solidBackground,
-            highlight = isProfitable && !solidBackground,
+            highlight = false,
             content = { cardContent() },
         )
     } else {
