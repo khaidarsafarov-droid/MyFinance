@@ -25,13 +25,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.model.Load
@@ -47,6 +50,7 @@ import com.truckerload.utils.formatDateTimeForDisplay
 @Composable
 fun EditLoadScreen(
     loadId: String,
+    focusFinish: Boolean = false,
     onSaved: () -> Unit,
     onBack: () -> Unit,
     onOptimisticUpdate: ((Load) -> Unit)? = null,
@@ -57,15 +61,24 @@ fun EditLoadScreen(
     val application = context.applicationContext as Application
     val loadRepository = LocalLoadRepository.current
     val viewModel: EditLoadViewModel = viewModel(
-        key = "edit_$loadId",
-        factory = EditLoadViewModel.Factory(application, loadId, loadRepository),
+        key = "edit_${loadId}_$focusFinish",
+        factory = EditLoadViewModel.Factory(application, loadId, loadRepository, focusFinish),
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollState = rememberScrollState()
+    val finishFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
             viewModel.clearSaved()
             onSaved()
+        }
+    }
+
+    LaunchedEffect(uiState.focusFinish, uiState.isLoading, uiState.original) {
+        if (uiState.focusFinish && !uiState.isLoading && uiState.original != null) {
+            scrollState.animateScrollTo(0)
+            runCatching { finishFocusRequester.requestFocus() }
         }
     }
 
@@ -93,7 +106,7 @@ fun EditLoadScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -145,6 +158,18 @@ fun EditLoadScreen(
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
+                        // Finish date first when opened from «Когда закончили груз?»
+                        if (uiState.focusFinish) {
+                            FinishDateField(
+                                value = uiState.finishDate,
+                                lastDelDate = uiState.lastDelDate,
+                                onValueChange = viewModel::setFinishDate,
+                                fieldColors = fieldColors,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(finishFocusRequester),
+                            )
+                        }
                         OutlinedTextField(
                             value = uiState.loadDate,
                             onValueChange = viewModel::setLoadDate,
@@ -154,6 +179,15 @@ fun EditLoadScreen(
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
+                        if (!uiState.focusFinish) {
+                            FinishDateField(
+                                value = uiState.finishDate,
+                                lastDelDate = uiState.lastDelDate,
+                                onValueChange = viewModel::setFinishDate,
+                                fieldColors = fieldColors,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                         OutlinedTextField(
                             value = uiState.totalRate,
                             onValueChange = viewModel::setTotalRate,
@@ -224,4 +258,28 @@ fun EditLoadScreen(
             }
         }
     }
+}
+
+@Composable
+private fun FinishDateField(
+    value: String,
+    lastDelDate: String?,
+    onValueChange: (String) -> Unit,
+    fieldColors: androidx.compose.material3.TextFieldColors,
+    modifier: Modifier = Modifier,
+) {
+    val help = if (lastDelDate.isNullOrBlank()) {
+        stringResource(R.string.edit_load_finish_help)
+    } else {
+        stringResource(R.string.edit_load_finish_help_with_del, lastDelDate)
+    }
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(R.string.edit_load_finish_label)) },
+        modifier = modifier,
+        supportingText = { Text(help) },
+        shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
+        colors = fieldColors,
+    )
 }

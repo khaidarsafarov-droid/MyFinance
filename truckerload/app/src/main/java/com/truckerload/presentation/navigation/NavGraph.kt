@@ -88,7 +88,7 @@ object Routes {
     const val MAP = "map"
     const val LOAD_DETAIL = "load_detail/{loadId}"
     const val ADD_LOAD = "add_load"
-    const val EDIT_LOAD = "edit_load/{loadId}"
+    const val EDIT_LOAD = "edit_load/{loadId}?focusFinish={focusFinish}"
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
     const val TAX_TRACKER = "tax_tracker"
@@ -103,7 +103,8 @@ object Routes {
     const val PHOTO_DETAIL = "photo_detail/{photoId}"
 
     fun loadDetail(loadId: String) = "load_detail/${encodePathSegment(loadId)}"
-    fun editLoad(loadId: String) = "edit_load/${encodePathSegment(loadId)}"
+    fun editLoad(loadId: String, focusFinish: Boolean = false) =
+        "edit_load/${encodePathSegment(loadId)}?focusFinish=$focusFinish"
     fun photoDetail(photoId: String) = "photo_detail/${encodePathSegment(photoId)}"
     fun socialChat(chatId: String) = "social_chat/${encodePathSegment(chatId)}"
     fun cameraForLoad(loadId: String, tripId: String, loadDate: String): String {
@@ -477,6 +478,7 @@ fun NavGraph(
                     loadId = loadId,
                     onBack = { navController.popBackStack() },
                     onEdit = { navController.navigate(Routes.editLoad(loadId)) },
+                    onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
                     onDelete = { navController.popBackStack() },
                     onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
                 )
@@ -499,9 +501,16 @@ fun NavGraph(
             }
             composable(
                 route = Routes.EDIT_LOAD,
-                arguments = listOf(navArgument("loadId") { type = NavType.StringType })
+                arguments = listOf(
+                    navArgument("loadId") { type = NavType.StringType },
+                    navArgument("focusFinish") {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    },
+                ),
             ) { editBackStackEntry ->
                 val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
+                val focusFinish = editBackStackEntry.arguments?.getBoolean("focusFinish") == true
                 val loadRepository = LocalLoadRepository.current
                 val isBotConfigured = TelegramTokenStore(context).hasToken()
                 val homeEntry = remember(editBackStackEntry) {
@@ -512,6 +521,7 @@ fun NavGraph(
                 }
                 EditLoadScreen(
                     loadId = loadId,
+                    focusFinish = focusFinish,
                     onSaved = { navController.popBackStack() },
                     onBack = { navController.popBackStack() },
                     onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },

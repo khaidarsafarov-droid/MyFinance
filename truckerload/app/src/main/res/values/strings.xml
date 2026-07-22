@@ -406,7 +406,10 @@
     <string name="edit_load_added_at">Добавлено: %1$s</string>
     <string name="edit_load_trip_id">Trip ID</string>
     <string name="edit_load_date_label">Дата груза (YYYY-MM-DD)</string>
-    <string name="edit_load_date_help">load_date — можно изменить</string>
+    <string name="edit_load_date_help">load_date — для отчёта по неделям</string>
+    <string name="edit_load_finish_label">Дата завершения (YYYY-MM-DD)</string>
+    <string name="edit_load_finish_help">По умолчанию — последний DEL. Измените — пересчитаются длительность и темп.</string>
+    <string name="edit_load_finish_help_with_del">Последний DEL: %1$s. Измените дату — длительность и темп пересчитаются.</string>
     <string name="edit_load_total_rate">Total Rate</string>
     <string name="edit_load_total_miles">Всего миль</string>
     <string name="edit_load_point_a">Point A</string>
@@ -428,9 +431,9 @@
     <string name="load_detail_finish_title">Когда закончили груз?</string>
     <string name="load_detail_finish_from_stops">По стопам: %1$s</string>
     <string name="load_detail_finish_manual">Своя дата: %1$s</string>
-    <string name="load_detail_finish_pick">Выбрать дату окончания</string>
+    <string name="load_detail_finish_pick">Указать дату окончания</string>
     <string name="load_detail_finish_clear">Сбросить на дату из стопов</string>
-    <string name="load_detail_finish_hint">По умолчанию — последний DEL. Если закончили раньше — укажите свою дату: длительность и темп пересчитаются.</string>
+    <string name="load_detail_finish_hint">По умолчанию — последний DEL. Нажмите кнопку — откроется редактирование с этой датой. Если закончили раньше — измените дату и сохраните: длительность и темп пересчитаются.</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
     <string name="load_card_attach_photo">Сфотографировать для груза</string>
