@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
@@ -111,13 +112,16 @@ private fun LoadCardContent(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = load.tripId,
                     style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
-                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -129,6 +133,8 @@ private fun LoadCardContent(
                     Text(
                         text = load.effectiveFinishDate() ?: load.date,
                         style = AppTypography.CaptionMuted,
+                        maxLines = 1,
+                        softWrap = false,
                     )
                     if (onCameraClick != null) {
                         val photoCd = stringResource(R.string.load_card_attach_photo)
@@ -278,6 +284,8 @@ private fun DisputeCardChip(load: Load) {
         Text(
             text = label,
             style = AppTypography.Caption.copy(color = color),
+            maxLines = 1,
+            softWrap = false,
         )
     }
 }
