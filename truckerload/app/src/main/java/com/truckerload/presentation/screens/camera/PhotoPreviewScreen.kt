@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
+import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.rememberDecodedBitmap
@@ -186,16 +187,18 @@ fun CameraFlowScreen(
     attachTripId: String? = null,
     attachLoadDate: String? = null,
     viewModel: CameraViewModel = viewModel(
-        key = "camera_${attachLoadId.orEmpty()}",
+        key = "camera_${attachLoadId.orEmpty()}_${attachTripId.orEmpty()}",
         factory = CameraViewModel.Factory(
             LocalContext.current,
             LocalPhotoRepository.current,
+            LocalLoadRepository.current,
             attachLoadId = attachLoadId,
             attachTripId = attachTripId,
             attachLoadDate = attachLoadDate,
         ),
     ),
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
     when {
@@ -205,6 +208,13 @@ fun CameraFlowScreen(
                 onAddMore = viewModel::closeBatchReview,
                 onRemoveAt = viewModel::removePhotoAt,
                 onSaveAll = viewModel::persistAllPhotos,
+                onShare = {
+                    viewModel.persistThenShare { files ->
+                        ShareHelper(context).sharePhotos(files)
+                        viewModel.finishSession()
+                        onFinished()
+                    }
+                },
                 onCancel = {
                     viewModel.discardSession()
                     onFinished()

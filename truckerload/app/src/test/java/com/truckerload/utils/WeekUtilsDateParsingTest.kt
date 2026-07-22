@@ -24,4 +24,19 @@ class WeekUtilsDateParsingTest {
         val millis = dateStringToStartOfDayMillis("invalid")
         assertNotNull(millis)
     }
+
+    @Test
+    fun datePickerUtcRoundTrip_preservesCalendarDay() {
+        val iso = "2026-07-17"
+        val utcMs = dateStringToUtcDatePickerMillis(iso)
+        assertNotNull(utcMs)
+        assertEquals(iso, utcDatePickerMillisToDateString(utcMs!!))
+    }
+
+    @Test
+    fun datePickerUtc_doesNotShiftDayWhenConvertedViaUtc() {
+        // Regression: local Calendar on UTC midnight used to yield previous day in US timezones.
+        val utcMs = dateStringToUtcDatePickerMillis("2026-07-22")!!
+        assertEquals("2026-07-22", utcDatePickerMillisToDateString(utcMs))
+    }
 }

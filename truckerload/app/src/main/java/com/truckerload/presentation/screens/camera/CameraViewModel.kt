@@ -9,10 +9,13 @@ import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PhotoRepository
+import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.utils.LocationData
 import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.PhotoManager
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,11 +38,20 @@ data class CameraUiState(
     val sessionPhotos: List<CapturedPhoto> = emptyList(),
     val reviewingBatch: Boolean = false,
     val saveSuccess: Boolean = false,
+    /** Trip ID used for watermark / filenames (from load card or latest load). */
+    val watermarkTripId: String? = null,
+)
+
+private data class CameraAttachContext(
+    val loadId: String?,
+    val tripId: String?,
+    val loadDate: String?,
 )
 
 class CameraViewModel(
     private val app: Application,
     private val photoRepository: PhotoRepository,
+    private val loadRepository: LoadRepository,
     private val attachLoadId: String? = null,
     private val attachTripId: String? = null,
     private val attachLoadDate: String? = null,
@@ -47,11 +59,42 @@ class CameraViewModel(
 
     private val locationHelper = LocationHelper(app)
     private val photoManager = PhotoManager(app)
-
-    val isAttachedToLoad: Boolean = !attachLoadId.isNullOrBlank()
+    private val attachContext = CompletableDeferred<CameraAttachContext>()
+    @Volatile
+    private var resolvedAttach: CameraAttachContext? = null
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
+
+    val isAttachedToLoad: Boolean
+        get() = !(resolvedAttach?.loadId ?: attachLoadId).isNullOrBlank()
+
+    init {
+        viewModelScope.launch {
+            val ctx = resolveAttachContext()
+            resolvedAttach = ctx
+            attachContext.complete(ctx)
+            _uiState.update { it.copy(watermarkTripId = ctx.tripId) }
+        }
+    }
+
+    private suspend fun resolveAttachContext(): CameraAttachContext {
+        if (!attachLoadId.isNullOrBlank() || !attachTripId.isNullOrBlank()) {
+            return CameraAttachContext(
+                loadId = attachLoadId?.takeIf { it.isNotBlank() },
+                tripId = attachTripId?.takeIf { it.isNotBlank() },
+                loadDate = attachLoadDate?.takeIf { it.isNotBlank() },
+            )
+        }
+        // Widget / drawer camera: use the most recently added load.
+        val latest = runCatching { loadRepository.getAllLoadsOnce().firstOrNull() }.getOrNull()
+        return CameraAttachContext(
+            loadId = latest?.id?.takeIf { it.isNotBlank() },
+            tripId = latest?.tripId?.takeIf { it.isNotBlank() },
+            loadDate = latest?.effectiveFinishDate()
+                ?: latest?.date?.takeIf { it.length >= 10 },
+        )
+    }
 
     fun onCaptureError(message: String) {
         _uiState.update { it.copy(errorMessage = message, isProcessing = false) }
@@ -62,7 +105,6 @@ class CameraViewModel(
     }
 
     fun processCapturedImage(imageFile: File) {
-        // Claim processing synchronously so a second shutter tap cannot race the coroutine start.
         val previous = _uiState.getAndUpdate { state ->
             if (state.isProcessing) state
             else state.copy(isProcessing = true, errorMessage = null)
@@ -74,6 +116,7 @@ class CameraViewModel(
         viewModelScope.launch {
             var bitmap: Bitmap? = null
             try {
+                val ctx = attachContext.await()
                 bitmap = decodeBitmap(imageFile) ?: run {
                     _uiState.update {
                         it.copy(isProcessing = false, errorMessage = "decode_failed")
@@ -92,8 +135,9 @@ class CameraViewModel(
                     bitmap = bitmap,
                     locationData = location,
                     timestamp = timestamp,
-                    tripId = attachTripId,
-                    loadDate = attachLoadDate,
+                    tripId = ctx.tripId,
+                    loadDate = ctx.loadDate,
+                    watermarkTitle = ctx.tripId,
                 )
                 bitmap.recycle()
                 bitmap = null
@@ -102,7 +146,7 @@ class CameraViewModel(
                     locationData = location,
                     timestamp = timestamp,
                 )
-                if (isAttachedToLoad) {
+                if (!ctx.loadId.isNullOrBlank()) {
                     val entity = photoRepository.savePhoto(
                         fileName = photo.file.name,
                         filePath = photo.file.absolutePath,
@@ -112,7 +156,7 @@ class CameraViewModel(
                         state = photo.locationData.state,
                         zipCode = photo.locationData.zipCode,
                         timestamp = photo.timestamp,
-                        loadId = attachLoadId,
+                        loadId = ctx.loadId,
                     )
                     photo = photo.copy(savedToDb = true, dbId = entity.id)
                 }
@@ -120,6 +164,7 @@ class CameraViewModel(
                     it.copy(
                         isProcessing = false,
                         sessionPhotos = it.sessionPhotos + photo,
+                        watermarkTripId = ctx.tripId,
                     )
                 }
             } catch (_: Exception) {
@@ -165,12 +210,11 @@ class CameraViewModel(
                 photo.file.delete()
             }
         }
-        _uiState.update { CameraUiState() }
+        _uiState.update { CameraUiState(watermarkTripId = it.watermarkTripId) }
     }
 
-    /** Clears in-memory session after a successful save without deleting persisted files. */
     fun finishSession() {
-        _uiState.update { CameraUiState() }
+        _uiState.update { CameraUiState(watermarkTripId = it.watermarkTripId) }
     }
 
     fun persistAllPhotos() {
@@ -182,34 +226,55 @@ class CameraViewModel(
             return
         }
         viewModelScope.launch {
-            _uiState.update { it.copy(isProcessing = true, errorMessage = null) }
-            try {
-                val updated = photos.map { photo ->
-                    if (photo.savedToDb) return@map photo
-                    val entity = photoRepository.savePhoto(
-                        fileName = photo.file.name,
-                        filePath = photo.file.absolutePath,
-                        latitude = photo.locationData.latitude,
-                        longitude = photo.locationData.longitude,
-                        city = photo.locationData.city,
-                        state = photo.locationData.state,
-                        zipCode = photo.locationData.zipCode,
-                        timestamp = photo.timestamp,
-                        loadId = attachLoadId,
-                    )
-                    photo.copy(savedToDb = true, dbId = entity.id)
-                }
-                _uiState.update {
-                    it.copy(
-                        sessionPhotos = updated,
-                        saveSuccess = true,
-                        isProcessing = false,
-                    )
-                }
-            } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(isProcessing = false, errorMessage = "save_failed")
-                }
+            persistUnsavedPhotos()
+            if (_uiState.value.errorMessage == null) {
+                _uiState.update { it.copy(saveSuccess = true) }
+            }
+        }
+    }
+
+    /**
+     * Ensures all session photos are saved/linked to the load, then invokes [onReady]
+     * with the file list for sharing. Does not set [CameraUiState.saveSuccess] so the
+     * caller can finish navigation after launching the share sheet.
+     */
+    fun persistThenShare(onReady: (List<File>) -> Unit) {
+        val photos = _uiState.value.sessionPhotos
+        if (photos.isEmpty() || _uiState.value.isProcessing) return
+        viewModelScope.launch {
+            persistUnsavedPhotos()
+            if (_uiState.value.errorMessage != null) return@launch
+            onReady(_uiState.value.sessionPhotos.map { it.file })
+        }
+    }
+
+    private suspend fun persistUnsavedPhotos() {
+        val ctx = attachContext.await()
+        val photos = _uiState.value.sessionPhotos
+        if (photos.all { it.savedToDb }) return
+        _uiState.update { it.copy(isProcessing = true, errorMessage = null) }
+        try {
+            val updated = photos.map { photo ->
+                if (photo.savedToDb) return@map photo
+                val entity = photoRepository.savePhoto(
+                    fileName = photo.file.name,
+                    filePath = photo.file.absolutePath,
+                    latitude = photo.locationData.latitude,
+                    longitude = photo.locationData.longitude,
+                    city = photo.locationData.city,
+                    state = photo.locationData.state,
+                    zipCode = photo.locationData.zipCode,
+                    timestamp = photo.timestamp,
+                    loadId = ctx.loadId,
+                )
+                photo.copy(savedToDb = true, dbId = entity.id)
+            }
+            _uiState.update {
+                it.copy(sessionPhotos = updated, isProcessing = false)
+            }
+        } catch (_: Exception) {
+            _uiState.update {
+                it.copy(isProcessing = false, errorMessage = "save_failed")
             }
         }
     }
@@ -241,6 +306,7 @@ class CameraViewModel(
     class Factory(
         private val context: Context,
         private val photoRepository: PhotoRepository,
+        private val loadRepository: LoadRepository,
         private val attachLoadId: String? = null,
         private val attachTripId: String? = null,
         private val attachLoadDate: String? = null,
@@ -250,6 +316,7 @@ class CameraViewModel(
             return CameraViewModel(
                 context.applicationContext as Application,
                 photoRepository,
+                loadRepository,
                 attachLoadId = attachLoadId,
                 attachTripId = attachTripId,
                 attachLoadDate = attachLoadDate,

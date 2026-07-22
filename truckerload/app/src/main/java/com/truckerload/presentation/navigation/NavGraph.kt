@@ -528,7 +528,12 @@ fun NavGraph(
             }
             composable(Routes.CAMERA) {
                 CameraFlowScreen(
-                    onFinished = { navController.popBackStack() },
+                    onFinished = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.HOME) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
                     onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
                 )
             }
@@ -545,7 +550,12 @@ fun NavGraph(
                 val loadDate = Uri.decode(entry.arguments?.getString("loadDate").orEmpty())
                     .takeIf { it != "_" }.orEmpty()
                 CameraFlowScreen(
-                    onFinished = { navController.popBackStack() },
+                    onFinished = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.HOME) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
                     onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
                     attachLoadId = loadId.takeIf { it.isNotBlank() && it != "_" },
                     attachTripId = tripId.takeIf { it.isNotBlank() && it != "_" },

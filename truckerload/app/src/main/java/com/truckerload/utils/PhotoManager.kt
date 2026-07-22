@@ -27,6 +27,7 @@ class PhotoManager(private val context: Context) {
         timestamp: Long = System.currentTimeMillis(),
         tripId: String? = null,
         loadDate: String? = null,
+        watermarkTitle: String? = null,
     ): File {
         val fileName = if (!tripId.isNullOrBlank()) {
             AttachmentNaming.buildFileName(tripId, loadDate.orEmpty(), timestamp, "jpg")
@@ -34,7 +35,12 @@ class PhotoManager(private val context: Context) {
             "photo_${timestampFormat.format(Date(timestamp))}_${timestamp}.jpg"
         }
         val file = File(photosDir, fileName)
-        val watermarked = addWatermark(bitmap, locationData, timestamp)
+        val watermarked = addWatermark(
+            bitmap = bitmap,
+            locationData = locationData,
+            timestamp = timestamp,
+            title = watermarkTitle?.takeIf { it.isNotBlank() } ?: tripId,
+        )
         FileOutputStream(file).use { out ->
             watermarked.compress(Bitmap.CompressFormat.JPEG, 95, out)
         }
@@ -44,7 +50,12 @@ class PhotoManager(private val context: Context) {
         return file
     }
 
-    fun addWatermark(bitmap: Bitmap, locationData: LocationData, timestamp: Long): Bitmap {
+    fun addWatermark(
+        bitmap: Bitmap,
+        locationData: LocationData,
+        timestamp: Long,
+        title: String? = null,
+    ): Bitmap {
         val result = bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(result)
         val scale = result.width / 1080f
@@ -53,10 +64,11 @@ class PhotoManager(private val context: Context) {
         val textSize = 40f * scale
 
         val unknown = context.getString(com.truckerload.R.string.watermark_unknown)
-        val appName = context.getString(com.truckerload.R.string.watermark_app_name)
+        val header = title?.takeIf { it.isNotBlank() }
+            ?: context.getString(com.truckerload.R.string.watermark_app_name)
         val dateLine = formatDateTime(timestamp)
         val lines = listOf(
-            appName,
+            header,
             dateLine,
             locationData.cityStateLine.ifBlank { unknown },
             locationData.zipCode.ifBlank { unknown },

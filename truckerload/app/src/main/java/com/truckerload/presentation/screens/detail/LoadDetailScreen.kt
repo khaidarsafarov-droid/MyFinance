@@ -69,7 +69,8 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.utils.dateStringToStartOfDayMillis
+import com.truckerload.utils.dateStringToUtcDatePickerMillis
+import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
 import java.util.Locale
 
@@ -249,13 +250,21 @@ fun LoadDetailScreen(
                         },
                     )
                     if (uiState.showFinishPicker) {
-                        val initialMs = (l.actualFinishDate ?: l.effectiveFinishDate())
-                            ?.let { dateStringToStartOfDayMillis(it) }
+                        val initialIso = l.actualFinishDate ?: l.effectiveFinishDate()
+                        val today = Calendar.getInstance(Locale.US)
+                        val todayIso = "%04d-%02d-%02d".format(
+                            Locale.US,
+                            today.get(Calendar.YEAR),
+                            today.get(Calendar.MONTH) + 1,
+                            today.get(Calendar.DAY_OF_MONTH),
+                        )
+                        val initialMs = dateStringToUtcDatePickerMillis(initialIso ?: todayIso)
                             ?: System.currentTimeMillis()
-                        val cal = Calendar.getInstance().apply { timeInMillis = initialMs }
+                        val yearForRange = (initialIso ?: todayIso).take(4).toIntOrNull()
+                            ?: today.get(Calendar.YEAR)
                         val dateState = rememberDatePickerState(
                             initialSelectedDateMillis = initialMs,
-                            yearRange = IntRange(cal.get(Calendar.YEAR) - 2, cal.get(Calendar.YEAR) + 1),
+                            yearRange = IntRange(yearForRange - 2, yearForRange + 1),
                         )
                         DatePickerDialog(
                             onDismissRequest = { viewModel.setShowFinishPicker(false) },
@@ -266,17 +275,12 @@ fun LoadDetailScreen(
                                 TextButton(
                                     onClick = {
                                         val ms = dateState.selectedDateMillis
-                                        if (ms != null) {
-                                            val c = Calendar.getInstance(Locale.US).apply { timeInMillis = ms }
-                                            val iso = "%04d-%02d-%02d".format(
-                                                c.get(Calendar.YEAR),
-                                                c.get(Calendar.MONTH) + 1,
-                                                c.get(Calendar.DAY_OF_MONTH),
-                                            )
-                                            viewModel.setActualFinishDate(iso, saveErrorEmpty)
-                                        } else {
+                                        if (ms == null) {
                                             viewModel.setShowFinishPicker(false)
+                                            return@TextButton
                                         }
+                                        val iso = utcDatePickerMillisToDateString(ms)
+                                        viewModel.setActualFinishDate(iso, saveErrorEmpty)
                                     },
                                 ) { Text(stringResource(R.string.common_ok)) }
                             },
