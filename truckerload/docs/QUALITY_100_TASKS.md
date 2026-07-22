@@ -115,7 +115,7 @@ Status legend: ✅ done · 🔄 in progress · ⬜ todo
 97. ✅ WeekUtils null date parse (exists) keep green
 98. ✅ Smoke script update: swipe-delete confirm + dispute EN
 99. ✅ CompileDebug + full unit test suite green
-100. ⬜ PR + backlog progress committed
+100. ✅ PR + backlog progress committed
 
 ---
 
