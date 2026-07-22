@@ -1,7 +1,7 @@
 package com.truckerload.presentation.screens.add
 
+import android.app.Application
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,24 +24,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,16 +45,25 @@ fun AddLoadScreen(
     onSaved: () -> Unit,
     onBack: () -> Unit,
     onOptimisticInsert: ((com.truckerload.domain.model.Load) -> Unit)? = null,
-    onRevertOptimistic: ((String) -> Unit)? = null
+    onRevertOptimistic: ((String) -> Unit)? = null,
 ) {
     val tc = LocalTruckColors.current
-    var rawText by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var isSaving by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val application = context.applicationContext as Application
     val loadRepository = LocalLoadRepository.current
     val aiRepository = LocalAiRepository.current
+    val viewModel: AddLoadViewModel = viewModel(
+        factory = AddLoadViewModel.Factory(application, loadRepository, aiRepository),
+    )
+    val uiState by viewModel.uiState.collectAsState()
+    val parseFailed = stringResource(R.string.add_load_parse_failed)
+
+    LaunchedEffect(uiState.savedLoad) {
+        if (uiState.savedLoad != null) {
+            viewModel.clearSaved()
+            onSaved()
+        }
+    }
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
@@ -67,15 +72,19 @@ fun AddLoadScreen(
                 title = { Text(stringResource(R.string.add_load_title), color = tc.TextPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = tc.TextPrimary,
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary
-                )
+                    titleContentColor = tc.TextPrimary,
+                ),
             )
-        }
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -83,12 +92,12 @@ fun AddLoadScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
-                    value = rawText,
-                    onValueChange = { rawText = it; error = null },
+                    value = uiState.rawText,
+                    onValueChange = viewModel::setRawText,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
@@ -105,47 +114,42 @@ fun AddLoadScreen(
                         unfocusedTextColor = tc.TextPrimary,
                         focusedContainerColor = BentoGlassTheme.CardFill,
                         unfocusedContainerColor = BentoGlassTheme.CardFill,
-                        cursorColor = tc.AccentPrimary
-                    )
+                        cursorColor = tc.AccentPrimary,
+                    ),
                 )
             }
             Button(
                 onClick = {
-                    if (rawText.isBlank() || aiRepository == null) return@Button
-                    isSaving = true
-                    error = null
-                    scope.launch {
-                        aiRepository.parseLoadFromMessage(rawText)
-                            .onSuccess { load ->
-                                try {
-                                    withContext(Dispatchers.IO) { loadRepository.insertLoad(load) }
-                                    onOptimisticInsert?.invoke(load)
-                                    onSaved()
-                                } catch (e: Exception) {
-                                    error = context.getString(R.string.common_save_error, e.message.orEmpty())
-                                    isSaving = false
-                                }
-                            }
-                            .onFailure {
-                                error = it.message ?: context.getString(R.string.add_load_parse_failed)
-                                isSaving = false
-                            }
-                    }
+                    viewModel.save(
+                        parseFailedFallback = parseFailed,
+                        saveErrorFormatter = { msg ->
+                            context.getString(R.string.common_save_error, msg)
+                        },
+                        onOptimisticInsert = onOptimisticInsert,
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                enabled = rawText.isNotBlank() && !isSaving
+                enabled = uiState.rawText.isNotBlank() && !uiState.isSaving && aiRepository != null,
             ) {
-                Text(if (isSaving) stringResource(R.string.add_load_saving) else stringResource(R.string.add_load_save_offline))
+                Text(
+                    if (uiState.isSaving) {
+                        stringResource(R.string.add_load_saving)
+                    } else {
+                        stringResource(R.string.add_load_save_offline)
+                    },
+                )
             }
             Text(
                 stringResource(R.string.add_load_hint_online),
                 style = MaterialTheme.typography.bodySmall,
                 color = tc.TextSecondary,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
             )
-            error?.let { Text(it, color = tc.AccentExpense, modifier = Modifier.padding(top = 8.dp)) }
+            uiState.error?.let {
+                Text(it, color = tc.AccentExpense, modifier = Modifier.padding(top = 8.dp))
+            }
         }
     }
 }

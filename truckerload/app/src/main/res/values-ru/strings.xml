@@ -158,6 +158,8 @@
     <string name="home_cd_settings">Настройки</string>
     <string name="home_cd_statistics">Статистика</string>
     <string name="home_cd_add_load">Добавить груз</string>
+    <string name="home_cd_bot_active">Telegram-бот активен</string>
+    <string name="home_cd_bot_inactive">Telegram-бот неактивен</string>
     <string name="nav_finance">Финансы</string>
     <string name="nav_logs">Логи</string>
     <string name="nav_profile">Профиль</string>
@@ -317,6 +319,7 @@
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
     <string name="home_filtered_header">$%1$.0f  •  %2$.0f mi  •  %3$s ср. RPM</string>
     <string name="home_period_avg_rpm">%1$s ср. RPM</string>
+    <string name="home_period_summary_cd">%1$s: %2$s, %3$s, %4$s</string>
     <string name="home_year_section">%1$d год</string>
     <string name="home_year_totals">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi</string>
     <string name="home_month_section">%1$s (%2$d грузов)</string>
@@ -603,6 +606,7 @@
     <string name="drive_sync_busy">Синхронизация…</string>
     <string name="drive_sync_restore_confirm_title">Восстановить из Drive?</string>
     <string name="drive_sync_restore_confirm_body">Локальные грузы будут заменены копией из Google Drive.</string>
+    <string name="drive_sync_restore_conflict_body">На устройстве есть изменения после последней синхронизации, а в Drive — более новая копия. Восстановление перезапишет локальные данные.</string>
     <string name="settings_app_version">Версия %1$s</string>
 
     <string name="settings_theme_title">Тема оформления</string>

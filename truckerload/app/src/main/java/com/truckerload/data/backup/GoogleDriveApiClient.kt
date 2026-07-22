@@ -7,12 +7,16 @@ import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 /**
@@ -39,9 +43,10 @@ class GoogleDriveApiClient(
         GoogleSignIn.getLastSignedInAccount(appContext)
 
     suspend fun uploadBackupJson(json: String): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
+        withRetry {
             val token = accessToken()
-            val existingId = prefs.driveFileId?.takeIf { it.isNotBlank() } ?: findBackupFileId(token)
+            val existing = findBackupFileMeta(token)
+            val existingId = prefs.driveFileId?.takeIf { it.isNotBlank() } ?: existing?.id
             val fileId = if (existingId != null) {
                 updateFileContent(token, existingId, json)
                 existingId
@@ -50,16 +55,21 @@ class GoogleDriveApiClient(
             }
             prefs.driveFileId = fileId
             prefs.lastSyncAt = System.currentTimeMillis()
+            // Refresh remote modified time after write
+            findBackupFileMeta(token)?.modifiedAt?.let { prefs.remoteModifiedAt = it }
+                ?: run { prefs.remoteModifiedAt = prefs.lastSyncAt }
         }
     }
 
     suspend fun downloadBackupJson(): Result<String> = withContext(Dispatchers.IO) {
-        runCatching {
+        withRetry {
             val token = accessToken()
+            val meta = findBackupFileMeta(token)
             val fileId = prefs.driveFileId?.takeIf { it.isNotBlank() }
-                ?: findBackupFileId(token)
+                ?: meta?.id
                 ?: throw DriveError.Api("No backup on Google Drive yet")
             prefs.driveFileId = fileId
+            meta?.modifiedAt?.let { prefs.remoteModifiedAt = it }
             downloadFile(token, fileId)
         }
     }
@@ -67,10 +77,37 @@ class GoogleDriveApiClient(
     suspend fun hasRemoteBackup(): Boolean = withContext(Dispatchers.IO) {
         runCatching {
             val token = accessToken()
-            val id = prefs.driveFileId?.takeIf { it.isNotBlank() } ?: findBackupFileId(token)
-            if (id != null) prefs.driveFileId = id
-            id != null
+            val meta = findBackupFileMeta(token)
+            if (meta != null) {
+                prefs.driveFileId = meta.id
+                prefs.remoteModifiedAt = meta.modifiedAt
+            }
+            meta != null
         }.getOrDefault(false)
+    }
+
+    /** Remote newer than last successful local sync — useful for restore warnings. */
+    fun isRemoteNewerThanLastSync(): Boolean =
+        DriveSyncPolicy.remoteIsNewer(prefs.remoteModifiedAt, prefs.lastSyncAt)
+
+    private suspend fun <T> withRetry(block: suspend () -> T): Result<T> {
+        var last: Throwable? = null
+        repeat(DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS) { attempt ->
+            try {
+                return Result.success(block())
+            } catch (e: Throwable) {
+                if (e is DriveError.NeedsUserConsent || e is DriveError.NotSignedIn) {
+                    return Result.failure(e)
+                }
+                last = e
+                val retryable = DriveSyncPolicy.isRetryableFailure(e.message)
+                if (!retryable || attempt == DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS - 1) {
+                    return Result.failure(e)
+                }
+                delay(DriveSyncPolicy.backoffDelayMs(attempt))
+            }
+        }
+        return Result.failure(last ?: DriveError.Api("Unknown Drive error"))
     }
 
     private fun accessToken(): String {
@@ -87,7 +124,9 @@ class GoogleDriveApiClient(
         }
     }
 
-    private fun findBackupFileId(token: String): String? {
+    private data class RemoteFileMeta(val id: String, val modifiedAt: Long)
+
+    private fun findBackupFileMeta(token: String): RemoteFileMeta? {
         val q = java.net.URLEncoder.encode(
             "name='${GoogleDriveBackupPrefs.BACKUP_FILE_NAME}' and trashed=false",
             Charsets.UTF_8.name(),
@@ -105,9 +144,14 @@ class GoogleDriveApiClient(
             }
             val files = JSONObject(body).optJSONArray("files") ?: return null
             if (files.length() == 0) return null
-            return files.getJSONObject(0).getString("id")
+            val obj = files.getJSONObject(0)
+            return RemoteFileMeta(
+                id = obj.getString("id"),
+                modifiedAt = parseRfc3339Millis(obj.optString("modifiedTime")),
+            )
         }
     }
+
 
     private fun createFile(token: String, json: String): String {
         val metadata = JSONObject()
@@ -178,6 +222,24 @@ class GoogleDriveApiClient(
                 append(fileJson).append("\r\n")
                 append("--").append(boundary).append("--")
             }
+        }
+
+        fun parseRfc3339Millis(value: String?): Long {
+            if (value.isNullOrBlank()) return 0L
+            return runCatching {
+                val formats = arrayOf(
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                )
+                for (pattern in formats) {
+                    val sdf = SimpleDateFormat(pattern, Locale.US).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+                    val parsed = runCatching { sdf.parse(value)?.time }.getOrNull()
+                    if (parsed != null) return parsed
+                }
+                0L
+            }.getOrDefault(0L)
         }
     }
 }

@@ -821,6 +821,7 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     var lastSyncAt by remember { mutableStateOf(prefs.lastSyncAt) }
     var busy by remember { mutableStateOf(false) }
     var showRestoreConfirm by remember { mutableStateOf(false) }
+    var restoreConflict by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
 
     val driveSignInLauncher = rememberLauncherForActivityResult(
@@ -949,7 +950,20 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                 Text(stringResource(R.string.drive_sync_backup_now))
             }
             OutlinedButton(
-                onClick = { showRestoreConfirm = true },
+                onClick = {
+                    scope.launch {
+                        busy = true
+                        val (hasRemote, localDirty) = withContext(Dispatchers.IO) {
+                            val remote = GoogleDriveBackupService.probeRemote(context)
+                            val dirty = GoogleDriveBackupService.hasLocalChangesAfterLastSync(context)
+                            remote to dirty
+                        }
+                        restoreConflict = hasRemote &&
+                            GoogleDriveBackupService.shouldWarnBeforeRestore(context, localDirty)
+                        busy = false
+                        showRestoreConfirm = true
+                    }
+                },
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().height(48.dp).padding(top = 8.dp),
             ) {
@@ -979,7 +993,17 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         AlertDialog(
             onDismissRequest = { showRestoreConfirm = false },
             title = { Text(stringResource(R.string.drive_sync_restore_confirm_title)) },
-            text = { Text(stringResource(R.string.drive_sync_restore_confirm_body)) },
+            text = {
+                Text(
+                    stringResource(
+                        if (restoreConflict) {
+                            R.string.drive_sync_restore_conflict_body
+                        } else {
+                            R.string.drive_sync_restore_confirm_body
+                        },
+                    ),
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {

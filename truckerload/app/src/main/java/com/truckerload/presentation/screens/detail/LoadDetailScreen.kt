@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.detail
 
+import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,10 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,13 +49,13 @@ import androidx.compose.ui.draw.clip
 import com.truckerload.presentation.utils.rememberDecodedBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
-import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.StatBox
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -72,11 +70,9 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.utils.dateStringToStartOfDayMillis
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Locale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadDetailScreen(
@@ -88,117 +84,131 @@ fun LoadDetailScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val application = context.applicationContext as Application
     val loadRepository = LocalLoadRepository.current
     val photoRepository = LocalPhotoRepository.current
     val scanRepository = LocalScanRepository.current
+    val viewModel: LoadDetailViewModel = viewModel(
+        key = "detail_$loadId",
+        factory = LoadDetailViewModel.Factory(application, loadId, loadRepository),
+    )
+    val uiState by viewModel.uiState.collectAsState()
     val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsState(initial = emptyList())
     val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var load by remember(loadId) { mutableStateOf<Load?>(null) }
-    var loadError by remember(loadId) { mutableStateOf<String?>(null) }
-    var isLoading by remember(loadId) { mutableStateOf(true) }
-    var showFinishPicker by remember { mutableStateOf(false) }
+    val deleteFailed = stringResource(R.string.load_delete_failed)
+    val saveErrorEmpty = stringResource(R.string.common_save_error, "")
+
     LaunchedEffect(loadId) {
-        if (loadId.isBlank()) {
-            loadError = context.resources.getString(R.string.load_invalid)
-            isLoading = false
-            return@LaunchedEffect
-        }
-        loadError = null
-        isLoading = true
-        load = try {
-            withContext(Dispatchers.IO) {
-                loadRepository.getLoadById(loadId)
-            }
-        } catch (e: Exception) {
-            loadError = e.message ?: context.resources.getString(R.string.load_error_loading)
-            null
-        }
-        if (load == null && loadError == null) loadError = context.resources.getString(R.string.load_detail_not_found)
-        isLoading = false
+        viewModel.refresh()
     }
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                LoadDetailEvent.Deleted -> onDelete()
+                is LoadDetailEvent.Message -> snackbarHostState.showSnackbar(event.text)
+            }
+        }
+    }
+
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(load?.tripId ?: stringResource(R.string.load_detail_title), color = tc.TextPrimary) },
+                title = {
+                    Text(
+                        uiState.load?.tripId ?: stringResource(R.string.load_detail_title),
+                        color = tc.TextPrimary,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = tc.TextPrimary,
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = onEdit, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.load_detail_cd_edit), tint = tc.TextPrimary)
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.load_detail_cd_edit),
+                            tint = tc.TextPrimary,
+                        )
                     }
-                    IconButton(onClick = {
-                        scope.launch {
-                            try {
-                                loadRepository.deleteLoad(loadId)
-                                onDelete()
-                            } catch (e: Exception) {
-                                snackbarHostState.showSnackbar(
-                                    e.message ?: context.getString(R.string.load_delete_failed)
-                                )
-                            }
-                        }
-                    }, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.load_detail_cd_delete), tint = tc.AccentExpense)
+                    IconButton(
+                        onClick = { viewModel.delete(deleteFailed) },
+                        modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.load_detail_cd_delete),
+                            tint = tc.AccentExpense,
+                        )
                     }
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
                     containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary
-                )
+                    titleContentColor = tc.TextPrimary,
+                ),
             )
-        }
+        },
     ) { padding ->
         when {
-            loadError != null -> Box(
+            uiState.loadError != null -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
-                Text(loadError ?: stringResource(R.string.load_error_generic), color = tc.TextPrimary)
+                Text(uiState.loadError ?: stringResource(R.string.load_error_generic), color = tc.TextPrimary)
             }
-            isLoading || load == null -> Box(
+            uiState.isLoading || uiState.load == null -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = tc.AccentPrimary)
             }
             else -> {
-                val l = load!!
+                val l = uiState.load!!
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(20.dp)) {
                             Text(
                                 formatLoadRoute(l),
                                 style = MaterialTheme.typography.titleMedium,
-                                color = tc.TextPrimary
+                                color = tc.TextPrimary,
                             )
                             Text(
                                 "${String.format("%,.2f", l.totalMiles)} mi · ${l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount)} stops",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = tc.TextSecondary,
-                                modifier = Modifier.padding(top = 8.dp)
+                                modifier = Modifier.padding(top = 8.dp),
                             )
                         }
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        StatBox(title = stringResource(R.string.load_detail_stat_total_rate), value = "$${String.format("%.2f", l.totalRate)}", modifier = Modifier.weight(1f))
-                        StatBox(title = stringResource(R.string.load_detail_stat_miles), value = "${String.format("%.2f", l.totalMiles)}", modifier = Modifier.weight(1f))
+                        StatBox(
+                            title = stringResource(R.string.load_detail_stat_total_rate),
+                            value = "$${String.format("%.2f", l.totalRate)}",
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatBox(
+                            title = stringResource(R.string.load_detail_stat_miles),
+                            value = "${String.format("%.2f", l.totalMiles)}",
+                            modifier = Modifier.weight(1f),
+                        )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_rpm),
                             value = formatRpm(l.totalRate, l.totalMiles, stringResource(R.string.rpm_per_mile_format)),
@@ -207,50 +217,38 @@ fun LoadDetailScreen(
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_duration),
                             value = if (l.durationDays > 0) formatDurationDays(l.durationDays) else "—",
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_pace),
                             value = if (l.pace > 0) formatPacePerDay(l.pace) else "—",
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         StatBox(title = "PU", value = "${l.puCount}", modifier = Modifier.weight(1f))
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        StatBox(title = stringResource(R.string.load_detail_stat_del), value = "${l.delCount}", modifier = Modifier.weight(1f))
+                        StatBox(
+                            title = stringResource(R.string.load_detail_stat_del),
+                            value = "${l.delCount}",
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                     ActualFinishSection(
                         load = l,
-                        onPickClick = { showFinishPicker = true },
+                        onPickClick = { viewModel.setShowFinishPicker(true) },
                         onClearClick = {
-                            scope.launch {
-                                try {
-                                    val updated = withContext(Dispatchers.IO) {
-                                        val next = l.copy(
-                                            actualFinishDate = null,
-                                            updatedAt = System.currentTimeMillis(),
-                                        ).withRouteMetrics()
-                                        loadRepository.updateLoad(next)
-                                        next
-                                    }
-                                    load = updated
-                                } catch (e: Exception) {
-                                    snackbarHostState.showSnackbar(
-                                        e.message ?: context.getString(R.string.common_save_error, "")
-                                    )
-                                }
-                            }
+                            viewModel.setActualFinishDate(null, saveErrorEmpty)
                         },
                     )
-                    if (showFinishPicker) {
+                    if (uiState.showFinishPicker) {
                         val initialMs = (l.actualFinishDate ?: l.effectiveFinishDate())
                             ?.let { dateStringToStartOfDayMillis(it) }
                             ?: System.currentTimeMillis()
@@ -260,7 +258,7 @@ fun LoadDetailScreen(
                             yearRange = IntRange(cal.get(Calendar.YEAR) - 2, cal.get(Calendar.YEAR) + 1),
                         )
                         DatePickerDialog(
-                            onDismissRequest = { showFinishPicker = false },
+                            onDismissRequest = { viewModel.setShowFinishPicker(false) },
                             colors = androidx.compose.material3.DatePickerDefaults.colors(
                                 containerColor = tc.CardBackground,
                             ),
@@ -275,33 +273,15 @@ fun LoadDetailScreen(
                                                 c.get(Calendar.MONTH) + 1,
                                                 c.get(Calendar.DAY_OF_MONTH),
                                             )
-                                            scope.launch {
-                                                try {
-                                                    val updated = withContext(Dispatchers.IO) {
-                                                        val next = l.copy(
-                                                            actualFinishDate = iso,
-                                                            updatedAt = System.currentTimeMillis(),
-                                                        ).withRouteMetrics()
-                                                        loadRepository.updateLoad(next)
-                                                        next
-                                                    }
-                                                    load = updated
-                                                    showFinishPicker = false
-                                                } catch (e: Exception) {
-                                                    snackbarHostState.showSnackbar(
-                                                        e.message
-                                                            ?: context.getString(R.string.common_save_error, "")
-                                                    )
-                                                }
-                                            }
+                                            viewModel.setActualFinishDate(iso, saveErrorEmpty)
                                         } else {
-                                            showFinishPicker = false
+                                            viewModel.setShowFinishPicker(false)
                                         }
-                                    }
+                                    },
                                 ) { Text(stringResource(R.string.common_ok)) }
                             },
                             dismissButton = {
-                                TextButton(onClick = { showFinishPicker = false }) {
+                                TextButton(onClick = { viewModel.setShowFinishPicker(false) }) {
                                     Text(stringResource(R.string.common_cancel))
                                 }
                             },
@@ -364,7 +344,12 @@ fun LoadDetailScreen(
                     if (l.stops.isNotEmpty()) {
                         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(20.dp)) {
-                                Text(stringResource(R.string.load_detail_stops), style = MaterialTheme.typography.titleMedium, color = tc.TextPrimary, modifier = Modifier.padding(bottom = 8.dp))
+                                Text(
+                                    stringResource(R.string.load_detail_stops),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = tc.TextPrimary,
+                                    modifier = Modifier.padding(bottom = 8.dp),
+                                )
                                 StopTimeline(stops = l.stops)
                             }
                         }
@@ -373,26 +358,24 @@ fun LoadDetailScreen(
                         DisputeSection(
                             load = l,
                             onDisputeChanged = { updated ->
-                                scope.launch {
-                                    try {
-                                        withContext(Dispatchers.IO) {
-                                            loadRepository.updateLoad(updated)
-                                        }
-                                        load = updated
-                                    } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar(
-                                            e.message ?: context.getString(R.string.common_save_error, "")
-                                        )
-                                    }
-                                }
+                                viewModel.updateDispute(updated, saveErrorEmpty)
                             },
                             modifier = Modifier.padding(20.dp),
                         )
                     }
                     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(20.dp)) {
-                            Text(stringResource(R.string.load_raw_message), style = MaterialTheme.typography.labelMedium, color = tc.TextLabel)
-                            Text((l.rawMessage).take(500).ifEmpty { "—" }, style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary, modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                stringResource(R.string.load_raw_message),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = tc.TextLabel,
+                            )
+                            Text(
+                                (l.rawMessage).take(500).ifEmpty { "—" },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
                         }
                     }
                 }

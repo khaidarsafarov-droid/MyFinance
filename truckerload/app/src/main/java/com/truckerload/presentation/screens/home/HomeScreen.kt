@@ -17,13 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
-import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.UiDimens
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
@@ -275,7 +276,6 @@ fun HomeScreen(
                     listItems = listItems,
                     periodSummary = periodSummary,
                     rpmThresholds = rpmThresholds,
-                    totals = totals,
                     datesWithLoads = datesWithLoads,
                     viewModel = viewModel,
                     filteredLoads = filteredLoads,
@@ -307,7 +307,6 @@ private fun HomeScreenContent(
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
     rpmThresholds: RpmThresholds,
-    totals: LoadFilterUseCase.Totals,
     datesWithLoads: Set<String>,
     viewModel: HomeViewModel,
     filteredLoads: List<com.truckerload.domain.model.Load>,
@@ -518,86 +517,28 @@ private fun HomeScreenContent(
 }
 
 @Composable
-private fun HomeBentoDashboard(
-    totals: LoadFilterUseCase.Totals,
-    hideRevenueDuplicates: Boolean = false,
-) {
-    val tc = LocalTruckColors.current
-    StatsHeader(totals = totals, tc = tc, hideRevenueDuplicates = hideRevenueDuplicates)
-}
-
-@Composable
-private fun StatsHeader(
-    totals: LoadFilterUseCase.Totals,
-    tc: com.truckerload.presentation.theme.TruckColorPalette,
-    hideRevenueDuplicates: Boolean = false,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.metric_loads),
-                value = totals.loadCount.toString(),
-                accent = SoftUiColors.PurpleEnd,
-            )
-            if (!hideRevenueDuplicates) {
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.metric_gross),
-                    value = MoneyFormat.formatCurrency(totals.totalRate),
-                    accent = SoftUiColors.TextPrimaryLight,
-                )
-            } else {
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.widget_metric_miles),
-                    value = MoneyFormat.formatNumber(totals.totalMiles),
-                    accent = SoftUiColors.TextPrimaryLight,
-                )
-            }
-        }
-        if (!hideRevenueDuplicates) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.widget_metric_miles),
-                    value = MoneyFormat.formatNumber(totals.totalMiles),
-                    accent = SoftUiColors.TextPrimaryLight,
-                )
-                BentoGlassMetricCell(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.widget_metric_cpm),
-                    value = totals.avgRpmFormatted.substringBefore(" /").ifBlank { "—" },
-                    accent = tc.AccentInfo,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
     val tc = LocalTruckColors.current
     val totals = header.totals
+    val gross = MoneyFormat.formatCurrency(totals.totalRate)
+    val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
+    val rpm = stringResource(R.string.home_period_avg_rpm, totals.avgRpmFormatted)
+    val summaryCd = stringResource(
+        R.string.home_period_summary_cd,
+        header.label,
+        gross,
+        miles,
+        rpm,
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
+            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
+            .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
         Text(
             text = header.label.uppercase(),
-            style = AppTypography.SectionTitle,
+            style = AppTypography.SectionTitle.copy(color = tc.TextPrimary),
         )
         Row(
             modifier = Modifier.padding(top = 6.dp),
@@ -605,7 +546,7 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = MoneyFormat.formatCurrency(totals.totalRate),
+                text = gross,
                 style = AppTypography.NumbersSmall.copy(
                     color = tc.AccentPrimary,
                     fontWeight = FontWeight.SemiBold,
@@ -616,7 +557,7 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
                 style = AppTypography.Body.copy(color = tc.TextSecondary),
             )
             Text(
-                text = "${MoneyFormat.formatNumber(totals.totalMiles)} mi",
+                text = miles,
                 style = AppTypography.Body.copy(
                     color = tc.TextPrimary,
                     fontWeight = FontWeight.Medium,
@@ -627,10 +568,7 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
                 style = AppTypography.Body.copy(color = tc.TextSecondary),
             )
             Text(
-                text = stringResource(
-                    R.string.home_period_avg_rpm,
-                    totals.avgRpmFormatted,
-                ),
+                text = rpm,
                 style = AppTypography.Body.copy(
                     color = SoftUiColors.PurpleEnd,
                     fontWeight = FontWeight.Medium,

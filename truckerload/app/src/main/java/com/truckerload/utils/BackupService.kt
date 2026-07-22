@@ -5,10 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.truckerload.R
 import com.truckerload.data.backup.BackupData
+import com.truckerload.data.backup.BackupDataCodec
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.repository.DieselRepository
@@ -34,7 +33,6 @@ object BackupService {
     private const val DEFAULT_KEEP_COUNT = 5
     private const val TAG = "BackupRestore"
 
-    private val gson: Gson = GsonBuilder().create()
     private val autoBackupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val autoBackupTimestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
 
@@ -73,7 +71,7 @@ object BackupService {
             paychecks = paycheckRepository.getAllPaychecksOnce(),
             diesel = dieselRepository.getAllDieselOnce()
         )
-        val json = gson.toJson(backup)
+        val json = BackupDataCodec.toJson(backup)
         val dir = autoBackupDir(appContext).apply { mkdirs() }
         val fileName = "auto_backup_${autoBackupTimestamp.format(Date())}.tlb"
         File(dir, fileName).writeText(json, Charsets.UTF_8)
@@ -137,7 +135,7 @@ object BackupService {
             val paychecks = paycheckRepository.getAllPaychecksOnce()
             val diesel = dieselRepository.getAllDieselOnce()
             if (loads.isEmpty() && paychecks.isEmpty() && diesel.isEmpty()) return@withContext null
-            gson.toJson(
+            BackupDataCodec.toJson(
                 BackupData(
                     loads = loads,
                     paychecks = paychecks,
@@ -169,7 +167,7 @@ object BackupService {
                 paychecks = paycheckRepository.getAllPaychecksOnce(),
                 diesel = dieselRepository.getAllDieselOnce()
             )
-            val json = gson.toJson(backup)
+            val json = BackupDataCodec.toJson(backup)
             val note = BackupNoteFormatter.buildNote(backup)
             val fileName = BackupNoteFormatter.noteFileName(backup.exportedAt)
             val textBytes = note.visibleText.toByteArray(StandardCharsets.UTF_8)
@@ -312,7 +310,7 @@ object BackupService {
         }
 
     private suspend fun restoreFromJson(context: Context, json: String): Result<BackupData> {
-        val backup = gson.fromJson(json, BackupData::class.java)
+        val backup = BackupDataCodec.fromJson(json)
             ?: return Result.failure(
                 IllegalStateException(context.getString(R.string.backup_restore_bad_format))
             )

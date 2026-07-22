@@ -13,6 +13,7 @@ object LoadYieldCalculator {
     /** End of load: driver override (end of day) or last DEL from Relay. */
     fun resolveFinishMillis(load: Load): Long? {
         val override = load.actualFinishDate
+            ?.trim()
             ?.takeIf { it.length >= 10 }
             ?.let { dateStringToEndOfDayMillis(it) }
         if (override != null) return override

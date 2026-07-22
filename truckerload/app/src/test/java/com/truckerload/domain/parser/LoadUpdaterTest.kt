@@ -7,6 +7,7 @@ import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.argumentCaptor
@@ -66,6 +67,68 @@ class LoadUpdaterTest {
         val captor = argumentCaptor<Load>()
         verify(repository).update(captor.capture())
         assertEquals("persist-id", captor.firstValue.penalties.single().loadId)
+    }
+
+    @Test
+    fun `updateLoad remaps stops and recomputes route metrics`() = runBlocking {
+        val repository = mock<LoadRepository>()
+        whenever(repository.update(org.mockito.kotlin.any())).thenAnswer { }
+        val updater = LoadUpdater(repository)
+
+        val oldLoad = sampleLoad(id = "load-42")
+        val newLoad = oldLoad.copy(
+            totalRate = 3000.0,
+            totalMiles = 900.0,
+            stops = listOf(
+                Stop(
+                    id = 10,
+                    loadId = "incoming",
+                    stopNumber = 1,
+                    type = StopType.PU,
+                    puNumber = null,
+                    note = null,
+                    scheduledTime = "2026-06-10 08:00",
+                    timezone = "America/New_York",
+                    facilityCode = null,
+                    fullAddress = "Garner, NC",
+                    city = "Garner",
+                    state = "NC",
+                    zip = "27529",
+                ),
+                Stop(
+                    id = 11,
+                    loadId = "incoming",
+                    stopNumber = 2,
+                    type = StopType.DEL,
+                    puNumber = null,
+                    note = null,
+                    scheduledTime = "2026-06-11 18:00",
+                    timezone = "America/New_York",
+                    facilityCode = null,
+                    fullAddress = "Hopewell Junction, NY",
+                    city = "Hopewell Junction",
+                    state = "NY",
+                    zip = "12533",
+                ),
+            ),
+        )
+
+        updater.updateLoad(oldLoad, newLoad, listOf("stopCount: 1 → 2", "totalRate: 2500.0 → 3000.0"))
+
+        val captor = argumentCaptor<Load>()
+        verify(repository).update(captor.capture())
+        val saved = captor.firstValue
+        assertEquals("load-42", saved.id)
+        assertEquals(2, saved.stops.size)
+        assertEquals("load-42", saved.stops[0].loadId)
+        assertEquals("load-42", saved.stops[1].loadId)
+        assertEquals(1, saved.puCount)
+        assertEquals(1, saved.delCount)
+        assertEquals(2, saved.stopCount)
+        assertTrue(saved.pointA.contains("Garner"))
+        assertTrue(saved.pointB.contains("Hopewell"))
+        assertTrue(saved.durationDays > 0.0)
+        assertTrue(saved.pace > 0.0)
     }
 
     private fun sampleLoad(

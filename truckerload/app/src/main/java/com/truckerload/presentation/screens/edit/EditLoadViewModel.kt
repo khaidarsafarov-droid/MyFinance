@@ -1,0 +1,191 @@
+package com.truckerload.presentation.screens.edit
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.truckerload.R
+import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.model.Load
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+data class EditLoadUiState(
+    val isLoading: Boolean = true,
+    val loadError: String? = null,
+    val original: Load? = null,
+    val tripId: String = "",
+    val loadDate: String = "",
+    val totalRate: String = "",
+    val totalMiles: String = "",
+    val pointA: String = "",
+    val pointB: String = "",
+    val disputeLoad: Load? = null,
+    val isSaving: Boolean = false,
+    val saveError: String? = null,
+    val saved: Boolean = false,
+)
+
+class EditLoadViewModel(
+    application: Application,
+    private val loadId: String,
+    private val loadRepository: LoadRepository,
+    private val savedStateHandle: SavedStateHandle,
+) : AndroidViewModel(application) {
+
+    private val _uiState = MutableStateFlow(EditLoadUiState())
+    val uiState: StateFlow<EditLoadUiState> = _uiState.asStateFlow()
+
+    init {
+        load()
+    }
+
+    fun setTripId(value: String) {
+        savedStateHandle[KEY_TRIP] = value
+        _uiState.update { it.copy(tripId = value, saveError = null) }
+    }
+
+    fun setLoadDate(value: String) {
+        savedStateHandle[KEY_DATE] = value
+        _uiState.update { it.copy(loadDate = value, saveError = null) }
+    }
+
+    fun setTotalRate(value: String) {
+        savedStateHandle[KEY_RATE] = value
+        _uiState.update { it.copy(totalRate = value, saveError = null) }
+    }
+
+    fun setTotalMiles(value: String) {
+        savedStateHandle[KEY_MILES] = value
+        _uiState.update { it.copy(totalMiles = value, saveError = null) }
+    }
+
+    fun setPointA(value: String) {
+        savedStateHandle[KEY_A] = value
+        _uiState.update { it.copy(pointA = value, saveError = null) }
+    }
+
+    fun setPointB(value: String) {
+        savedStateHandle[KEY_B] = value
+        _uiState.update { it.copy(pointB = value, saveError = null) }
+    }
+
+    fun setDisputeLoad(updated: Load) {
+        _uiState.update { it.copy(disputeLoad = updated, saveError = null) }
+    }
+
+    fun clearSaved() {
+        _uiState.update { it.copy(saved = false) }
+    }
+
+    fun save(
+        saveErrorFormatter: (String) -> String,
+        onOptimisticUpdate: ((Load) -> Unit)?,
+    ) {
+        val state = _uiState.value
+        val original = state.original ?: return
+        if (state.isSaving) return
+        val updated = (state.disputeLoad ?: original).copy(
+            tripId = state.tripId.ifBlank { original.tripId },
+            date = state.loadDate.ifBlank { original.date },
+            totalRate = state.totalRate.toDoubleOrNull() ?: original.totalRate,
+            totalMiles = state.totalMiles.toDoubleOrNull() ?: original.totalMiles,
+            pointA = state.pointA,
+            pointB = state.pointB,
+            updatedAt = System.currentTimeMillis(),
+        )
+        _uiState.update { it.copy(isSaving = true, saveError = null) }
+        viewModelScope.launch {
+            try {
+                loadRepository.updateLoad(updated)
+                onOptimisticUpdate?.invoke(updated)
+                _uiState.update { it.copy(isSaving = false, saved = true, original = updated) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        saveError = saveErrorFormatter(e.message.orEmpty()),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun load() {
+        val app = getApplication<Application>()
+        if (loadId.isBlank()) {
+            _uiState.update {
+                it.copy(isLoading = false, loadError = app.getString(R.string.load_invalid))
+            }
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val loaded = loadRepository.getLoadById(loadId)
+                if (loaded == null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            loadError = app.getString(R.string.load_detail_not_found),
+                        )
+                    }
+                    return@launch
+                }
+                val tripId = savedStateHandle[KEY_TRIP] ?: loaded.tripId
+                val loadDate = savedStateHandle[KEY_DATE] ?: loaded.date
+                val totalRate = savedStateHandle[KEY_RATE] ?: loaded.totalRate.toString()
+                val totalMiles = savedStateHandle[KEY_MILES] ?: loaded.totalMiles.toString()
+                val pointA = savedStateHandle[KEY_A] ?: loaded.pointA
+                val pointB = savedStateHandle[KEY_B] ?: loaded.pointB
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        original = loaded,
+                        tripId = tripId,
+                        loadDate = loadDate,
+                        totalRate = totalRate,
+                        totalMiles = totalMiles,
+                        pointA = pointA,
+                        pointB = pointB,
+                        disputeLoad = loaded,
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, loadError = e.message)
+                }
+            }
+        }
+    }
+
+    class Factory(
+        private val application: Application,
+        private val loadId: String,
+        private val loadRepository: LoadRepository,
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
+            EditLoadViewModel(
+                application,
+                loadId,
+                loadRepository,
+                extras.createSavedStateHandle(),
+            ) as T
+    }
+
+    companion object {
+        private const val KEY_TRIP = "edit_trip_id"
+        private const val KEY_DATE = "edit_load_date"
+        private const val KEY_RATE = "edit_total_rate"
+        private const val KEY_MILES = "edit_total_miles"
+        private const val KEY_A = "edit_point_a"
+        private const val KEY_B = "edit_point_b"
+    }
+}

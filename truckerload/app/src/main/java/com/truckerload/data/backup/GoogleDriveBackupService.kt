@@ -122,7 +122,38 @@ object GoogleDriveBackupService {
         syncLinkedAccountFromGoogle(app)
         val json = BackupService.createBackupJson(app) ?: return
         GoogleDriveApiClient(app, prefs).uploadBackupJson(json)
+            .onSuccess { Log.d(TAG, "auto push ok") }
             .onFailure { Log.w(TAG, "auto push failed: ${it.message}") }
+    }
+
+    /**
+     * True when restore may overwrite newer local edits with a newer Drive file.
+     * Call after refreshing remote metadata via [probeRemote].
+     */
+    fun shouldWarnBeforeRestore(context: Context, localChangedAfterLastSync: Boolean): Boolean {
+        val prefs = prefs(context)
+        return DriveSyncPolicy.shouldWarnBeforeRestore(
+            localChangedAfterLastSync = localChangedAfterLastSync,
+            remoteModifiedAt = prefs.remoteModifiedAt,
+            lastSyncAt = prefs.lastSyncAt,
+        )
+    }
+
+    /** Local loads edited after last successful Drive sync. */
+    suspend fun hasLocalChangesAfterLastSync(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val app = context.applicationContext
+        val lastSync = prefs(app).lastSyncAt
+        val db = com.truckerload.data.local.AppDatabase.getInstanceForActiveUser(app)
+            ?: return@withContext lastSync <= 0L
+        val loads = com.truckerload.data.repository.LoadRepository(db).getAllLoadsOnce()
+        if (lastSync <= 0L) return@withContext loads.isNotEmpty()
+        loads.any { it.updatedAt > lastSync || it.parsedAt > lastSync }
+    }
+
+    suspend fun probeRemote(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val app = context.applicationContext
+        if (!prefs(app).isLinked && !isDriveScopeGranted(app)) return@withContext false
+        GoogleDriveApiClient(app, prefs(app)).hasRemoteBackup()
     }
 
     fun mapError(context: Context, error: Throwable): Exception {

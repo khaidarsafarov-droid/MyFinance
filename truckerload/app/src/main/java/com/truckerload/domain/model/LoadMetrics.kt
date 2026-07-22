@@ -62,7 +62,7 @@ fun formatPacePerDay(pace: Double): String {
 
 /** Дата окончания для UI: override или дата последнего DEL / load.date. */
 fun Load.effectiveFinishDate(): String? {
-    actualFinishDate?.takeIf { it.length >= 10 }?.let { return it.take(10) }
+    actualFinishDate?.trim()?.takeIf { it.length >= 10 }?.let { return it.take(10) }
     val fromDel = stops
         .filter { it.type == StopType.DEL }
         .mapNotNull { com.truckerload.utils.parseDateFromScheduledTime(it.scheduledTime) }

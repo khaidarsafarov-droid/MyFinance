@@ -24,6 +24,11 @@ class GoogleDriveBackupPrefs(context: Context) {
         get() = prefs.getLong(KEY_LAST_SYNC, 0L)
         set(value) = prefs.edit { putLong(KEY_LAST_SYNC, value) }
 
+    /** Drive file modifiedTime (epoch ms) from last list/upload/download. */
+    var remoteModifiedAt: Long
+        get() = prefs.getLong(KEY_REMOTE_MODIFIED, 0L)
+        set(value) = prefs.edit { putLong(KEY_REMOTE_MODIFIED, value) }
+
     val isLinked: Boolean
         get() = !accountEmail.isNullOrBlank()
 
@@ -37,6 +42,7 @@ class GoogleDriveBackupPrefs(context: Context) {
         private const val KEY_FILE_ID = "drive_file_id"
         private const val KEY_AUTO_SYNC = "auto_sync"
         private const val KEY_LAST_SYNC = "last_sync_at"
+        private const val KEY_REMOTE_MODIFIED = "remote_modified_at"
 
         const val BACKUP_FILE_NAME = "truckerload_backup.tlb"
         const val DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
