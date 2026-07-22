@@ -53,13 +53,13 @@ import com.truckerload.presentation.auth.rememberGoogleSignInLauncher
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.PhoneWithCountryField
 import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalTruckColors
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -73,6 +73,7 @@ fun SignUpScreen(
     val context = LocalContext.current
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
+    val credentialsStore = LocalAuthCredentialsStore.current
     val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val scope = rememberCoroutineScope()
 
@@ -97,6 +98,30 @@ fun SignUpScreen(
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSuccess() }, 400)
     }
 
+    fun finishLocalSignUp(
+        emailTrimmed: String,
+        passwordValue: String,
+        nameTrimmed: String,
+        phoneFormatted: String,
+        toastRes: Int,
+    ) {
+        credentialsStore.saveCredentials(emailTrimmed, passwordValue)
+        AuthLogin.completeLogin(
+            authStore = authStore,
+            userProfileStore = userProfileStore,
+            userId = AccountIds.fromEmail(emailTrimmed),
+            profile = UserProfile(
+                email = emailTrimmed,
+                givenName = nameTrimmed,
+                familyName = "",
+                photoUrl = null,
+                phoneNumber = phoneFormatted,
+            ),
+        )
+        android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
+        completeSignUp()
+    }
+
     fun performSignUp() {
         error = null
         val nameTrimmed = fullName.trim()
@@ -109,20 +134,13 @@ fun SignUpScreen(
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
-                android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured), android.widget.Toast.LENGTH_LONG).show()
-                AuthLogin.completeLogin(
-                    authStore = authStore,
-                    userProfileStore = userProfileStore,
-                    userId = AccountIds.fromEmail(emailTrimmed),
-                    profile = UserProfile(
-                        email = emailTrimmed,
-                        givenName = nameTrimmed,
-                        familyName = "",
-                        photoUrl = null,
-                        phoneNumber = phoneFormatted,
-                    ),
+                finishLocalSignUp(
+                    emailTrimmed,
+                    password,
+                    nameTrimmed,
+                    phoneFormatted,
+                    R.string.supabase_not_configured_local,
                 )
-                completeSignUp()
             }
             else -> {
                 isLoading = true
@@ -146,46 +164,74 @@ fun SignUpScreen(
                     val signUpResult = supabaseAuth.signUp(emailTrimmed, password, nameTrimmed, phoneFormatted)
                     withContext(Dispatchers.Main) {
                         signUpResult.fold(
-                                                    onSuccess = { r ->
-                                                        val parts = nameTrimmed.split(" ", limit = 2)
-                                                        if (r.accessToken.isNotBlank()) {
-                                                            scope.launch {
-                                                                val upsertResult = supabaseAuth.upsertProfile(r.accessToken, r.user.id, nameTrimmed, phoneFormatted, r.user.email ?: emailTrimmed)
-                                                                withContext(Dispatchers.Main) {
-                                                                    isLoading = false
-                                                                    upsertResult.fold(
-                                                                        onSuccess = {
-                                                                            AuthLogin.completeLogin(
-                                                                                authStore = authStore,
-                                                                                userProfileStore = userProfileStore,
-                                                                                userId = r.user.id,
-                                                                                profile = UserProfile(
-                                                                                    email = r.user.email ?: emailTrimmed,
-                                                                                    givenName = parts.firstOrNull() ?: "",
-                                                                                    familyName = parts.getOrNull(1) ?: "",
-                                                                                    photoUrl = null,
-                                                                                    phoneNumber = phoneFormatted,
-                                                                                ),
-                                                                                accessToken = r.accessToken,
-                                                                                refreshToken = r.refreshToken,
-                                                                            )
-                                                                            completeSignUp()
-                                                                        },
-                                                                        onFailure = { error = it.message ?: context.getString(R.string.signup_error_profile_save) }
-                                                                    )
-                                                                }
-                                                            }
-                                                        } else {
-                                                            isLoading = false
-                                                            android.widget.Toast.makeText(context, context.getString(R.string.signup_success_confirm_email), android.widget.Toast.LENGTH_LONG).show()
-                                                        }
-                                                    },
-                                                    onFailure = {
-                                                        isLoading = false
-                                                        error = it.message ?: context.getString(R.string.signup_error_register)
-                                                    }
-                                                )
-                                            }
+                            onSuccess = { r ->
+                                val parts = nameTrimmed.split(" ", limit = 2)
+                                if (r.accessToken.isNotBlank()) {
+                                    scope.launch {
+                                        val upsertResult = supabaseAuth.upsertProfile(
+                                            r.accessToken,
+                                            r.user.id,
+                                            nameTrimmed,
+                                            phoneFormatted,
+                                            r.user.email ?: emailTrimmed,
+                                        )
+                                        withContext(Dispatchers.Main) {
+                                            isLoading = false
+                                            upsertResult.fold(
+                                                onSuccess = {
+                                                    credentialsStore.saveCredentials(emailTrimmed, password)
+                                                    AuthLogin.completeLogin(
+                                                        authStore = authStore,
+                                                        userProfileStore = userProfileStore,
+                                                        userId = r.user.id,
+                                                        profile = UserProfile(
+                                                            email = r.user.email ?: emailTrimmed,
+                                                            givenName = parts.firstOrNull() ?: "",
+                                                            familyName = parts.getOrNull(1) ?: "",
+                                                            photoUrl = null,
+                                                            phoneNumber = phoneFormatted,
+                                                        ),
+                                                        accessToken = r.accessToken,
+                                                        refreshToken = r.refreshToken,
+                                                    )
+                                                    completeSignUp()
+                                                },
+                                                onFailure = {
+                                                    error = it.message
+                                                        ?: context.getString(R.string.signup_error_profile_save)
+                                                },
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    isLoading = false
+                                    // Confirm-email mode: keep a local account so the user can work now.
+                                    finishLocalSignUp(
+                                        emailTrimmed,
+                                        password,
+                                        nameTrimmed,
+                                        phoneFormatted,
+                                        R.string.signup_success_confirm_email,
+                                    )
+                                }
+                            },
+                            onFailure = { err ->
+                                isLoading = false
+                                if (SupabaseAuthService.isEmailSendRateLimited(err)) {
+                                    finishLocalSignUp(
+                                        emailTrimmed,
+                                        password,
+                                        nameTrimmed,
+                                        phoneFormatted,
+                                        R.string.auth_error_email_rate_limit,
+                                    )
+                                } else {
+                                    error = err.message
+                                        ?: context.getString(R.string.signup_error_register)
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }

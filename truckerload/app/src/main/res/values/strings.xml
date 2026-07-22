@@ -117,6 +117,9 @@
     <string name="auth_error_no_network">Нет соединения с сетью</string>
     <string name="auth_remember_me">Запомнить меня</string>
     <string name="auth_error_email_invalid">Некорректный адрес email</string>
+    <string name="auth_error_email_rate_limit">Слишком много писем подтверждения. Аккаунт создан локально на этом устройстве — можно работать без ожидания письма.</string>
+    <string name="auth_local_account_created">Аккаунт сохранён локально на этом устройстве</string>
+    <string name="auth_local_login_fallback">Вход выполнен локально (облако временно недоступно)</string>
     <string name="signup_error_profile_save">Не удалось сохранить профиль</string>
     <string name="signup_error_register">Ошибка регистрации</string>
     <string name="signup_success_confirm_email">Регистрация успешна. Подтвердите email по ссылке в письме, затем войдите.</string>

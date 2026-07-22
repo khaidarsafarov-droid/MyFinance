@@ -29,7 +29,25 @@ class SupabaseAuthService(private val appContext: Context) {
             BuildConfig.SUPABASE_URL.isNotBlank() &&
             BuildConfig.SUPABASE_ANON_KEY.isNotBlank()
 
-    private fun mapSignUpError(raw: String): String {
+    class AuthApiException(
+        message: String,
+        val errorCode: String? = null,
+        val httpCode: Int? = null,
+    ) : Exception(message) {
+        val isEmailSendRateLimited: Boolean
+            get() = httpCode == 429 ||
+                errorCode == "over_email_send_rate_limit" ||
+                errorCode?.contains("rate_limit", ignoreCase = true) == true ||
+                message?.contains("over_email_send_rate_limit", ignoreCase = true) == true
+    }
+
+    private fun mapSignUpError(raw: String, errorCode: String? = null, httpCode: Int? = null): String {
+        if (errorCode == "over_email_send_rate_limit" ||
+            httpCode == 429 ||
+            raw.contains("over_email_send_rate_limit", ignoreCase = true)
+        ) {
+            return appContext.getString(R.string.auth_error_email_rate_limit)
+        }
         val lower = raw.lowercase()
         return when {
             lower.contains("already registered") || lower.contains("duplicate") || lower.contains("already exists") ->
@@ -40,7 +58,17 @@ class SupabaseAuthService(private val appContext: Context) {
                 appContext.getString(R.string.auth_error_network)
             lower.contains("email") && lower.contains("invalid") ->
                 appContext.getString(R.string.auth_error_email_invalid)
-            else -> raw
+            else -> raw.ifBlank { appContext.getString(R.string.signup_error_register) }
+        }
+    }
+
+    companion object {
+        fun isEmailSendRateLimited(error: Throwable?): Boolean {
+            if (error is AuthApiException) return error.isEmailSendRateLimited
+            val msg = error?.message.orEmpty()
+            return msg.contains("over_email_send_rate_limit", ignoreCase = true) ||
+                msg.contains("email rate limit", ignoreCase = true) ||
+                msg.contains("лимит отправки", ignoreCase = true)
         }
     }
 
@@ -202,6 +230,7 @@ class SupabaseAuthService(private val appContext: Context) {
         val request = Request.Builder()
             .url(url)
             .addHeader("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            .addHeader("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
             .addHeader("Content-Type", "application/json")
             .post(body.toRequestBody("application/json".toMediaType()))
             .build()
@@ -209,11 +238,24 @@ class SupabaseAuthService(private val appContext: Context) {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string() ?: ""
             if (!response.isSuccessful) {
+                val errorCode = response.header("x-sb-error-code")
+                    ?: try {
+                        JSONObject(responseBody).optString("error_code").takeIf { it.isNotBlank() }
+                            ?: JSONObject(responseBody).optString("code").takeIf { it.isNotBlank() }
+                    } catch (_: Exception) { null }
                 val err = try {
-                    JSONObject(responseBody).optString("msg", JSONObject(responseBody).optString("error_description", JSONObject(responseBody).optString("message", responseBody)))
+                    JSONObject(responseBody).optString(
+                        "msg",
+                        JSONObject(responseBody).optString(
+                            "error_description",
+                            JSONObject(responseBody).optString("message", responseBody),
+                        ),
+                    )
                 } catch (_: Exception) { responseBody }
-                val friendly = mapSignUpError(err)
-                return@withContext Result.failure(Exception(friendly))
+                val friendly = mapSignUpError(err, errorCode, response.code)
+                return@withContext Result.failure(
+                    AuthApiException(friendly, errorCode = errorCode, httpCode = response.code),
+                )
             }
             val json = JSONObject(responseBody)
             val userJson = json.optJSONObject("user")
@@ -288,6 +330,7 @@ class SupabaseAuthService(private val appContext: Context) {
         val request = Request.Builder()
             .url(url)
             .addHeader("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            .addHeader("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
             .addHeader("Content-Type", "application/json")
             .post(body.toRequestBody("application/json".toMediaType()))
             .build()
@@ -295,10 +338,18 @@ class SupabaseAuthService(private val appContext: Context) {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string() ?: ""
             if (!response.isSuccessful) {
+                val errorCode = response.header("x-sb-error-code")
                 val err = try {
                     JSONObject(responseBody).optString("error_description", JSONObject(responseBody).optString("msg", responseBody))
                 } catch (_: Exception) { responseBody }
-                return@withContext Result.failure(Exception(mapSignInError(err)))
+                val friendly = if (errorCode == "over_email_send_rate_limit" || response.code == 429) {
+                    appContext.getString(R.string.auth_error_email_rate_limit)
+                } else {
+                    mapSignInError(err)
+                }
+                return@withContext Result.failure(
+                    AuthApiException(friendly, errorCode = errorCode, httpCode = response.code),
+                )
             }
             val json = JSONObject(responseBody)
             val userJson = json.optJSONObject("user") ?: return@withContext Result.failure(Exception(appContext.getString(R.string.auth_error_login_invalid)))

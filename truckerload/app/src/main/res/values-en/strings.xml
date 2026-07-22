@@ -117,6 +117,9 @@
     <string name="auth_error_no_network">No network connection</string>
     <string name="auth_remember_me">Remember me</string>
     <string name="auth_error_email_invalid">Invalid email address</string>
+    <string name="auth_error_email_rate_limit">Too many confirmation emails. Account created locally on this device — you can keep working without waiting for email.</string>
+    <string name="auth_local_account_created">Account saved locally on this device</string>
+    <string name="auth_local_login_fallback">Signed in locally (cloud temporarily unavailable)</string>
     <string name="signup_error_profile_save">Could not save profile</string>
     <string name="signup_error_register">Registration error</string>
     <string name="signup_success_confirm_email">Registration successful. Confirm your email via the link in the message, then sign in.</string>

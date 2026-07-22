@@ -67,6 +67,7 @@ import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
+import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -158,6 +159,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
+    val credentialsStore = LocalAuthCredentialsStore.current
     val scope = rememberCoroutineScope()
     val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     var isLoading by remember { mutableStateOf(false) }
@@ -322,7 +324,20 @@ fun LoginScreen(
             password.isBlank() -> error = context.getString(R.string.auth_error_password_required)
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
-                android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured_local), android.widget.Toast.LENGTH_LONG).show()
+                if (!credentialsStore.validateCredentials(emailTrimmed, password) &&
+                    !credentialsStore.hasCredentialsFor(emailTrimmed)
+                ) {
+                    credentialsStore.saveCredentials(emailTrimmed, password)
+                }
+                if (!credentialsStore.validateCredentials(emailTrimmed, password)) {
+                    error = context.getString(R.string.auth_error_invalid_credentials)
+                    return
+                }
+                android.widget.Toast.makeText(
+                    context,
+                    context.getString(R.string.supabase_not_configured_local),
+                    android.widget.Toast.LENGTH_LONG,
+                ).show()
                 saveProfileAndLogin(
                     emailTrimmed, "", "", null,
                     context, userProfileStore, authStore, rememberMe,
@@ -334,6 +349,7 @@ fun LoginScreen(
                     val result = supabaseAuth.signInWithPassword(emailTrimmed, password)
                     result.fold(
                         onSuccess = { r ->
+                            credentialsStore.saveCredentials(emailTrimmed, password)
                             val profileResult = supabaseAuth.getProfile(r.accessToken, r.user.id)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
@@ -375,10 +391,23 @@ fun LoginScreen(
                                 )
                             }
                         },
-                        onFailure = {
+                        onFailure = { err ->
                             withContext(Dispatchers.Main) {
                                 isLoading = false
-                                error = it.message ?: context.getString(R.string.auth_error_login_invalid)
+                                if (credentialsStore.validateCredentials(emailTrimmed, password)) {
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        context.getString(R.string.auth_local_login_fallback),
+                                        android.widget.Toast.LENGTH_LONG,
+                                    ).show()
+                                    saveProfileAndLogin(
+                                        emailTrimmed, "", "", null,
+                                        context, userProfileStore, authStore, rememberMe,
+                                    )
+                                } else {
+                                    error = err.message
+                                        ?: context.getString(R.string.auth_error_login_invalid)
+                                }
                             }
                         }
                     )
