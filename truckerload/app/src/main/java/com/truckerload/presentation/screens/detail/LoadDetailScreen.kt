@@ -71,7 +71,8 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.utils.dateStringToStartOfDayMillis
+import com.truckerload.utils.dateStringToUtcDatePickerMillis
+import com.truckerload.utils.utcDatePickerMillisToDateString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -239,7 +240,7 @@ fun LoadDetailScreen(
                                             updatedAt = System.currentTimeMillis(),
                                         ).withRouteMetrics()
                                         loadRepository.updateLoad(next)
-                                        next
+                                        loadRepository.getLoadById(loadId) ?: next
                                     }
                                     load = updated
                                 } catch (e: Exception) {
@@ -251,13 +252,21 @@ fun LoadDetailScreen(
                         },
                     )
                     if (showFinishPicker) {
-                        val initialMs = (l.actualFinishDate ?: l.effectiveFinishDate())
-                            ?.let { dateStringToStartOfDayMillis(it) }
+                        val initialIso = l.actualFinishDate ?: l.effectiveFinishDate()
+                        val today = Calendar.getInstance(Locale.US)
+                        val todayIso = "%04d-%02d-%02d".format(
+                            Locale.US,
+                            today.get(Calendar.YEAR),
+                            today.get(Calendar.MONTH) + 1,
+                            today.get(Calendar.DAY_OF_MONTH),
+                        )
+                        val initialMs = dateStringToUtcDatePickerMillis(initialIso ?: todayIso)
                             ?: System.currentTimeMillis()
-                        val cal = Calendar.getInstance().apply { timeInMillis = initialMs }
+                        val yearForRange = (initialIso ?: todayIso).take(4).toIntOrNull()
+                            ?: today.get(Calendar.YEAR)
                         val dateState = rememberDatePickerState(
                             initialSelectedDateMillis = initialMs,
-                            yearRange = IntRange(cal.get(Calendar.YEAR) - 2, cal.get(Calendar.YEAR) + 1),
+                            yearRange = IntRange(yearForRange - 2, yearForRange + 1),
                         )
                         DatePickerDialog(
                             onDismissRequest = { showFinishPicker = false },
@@ -268,34 +277,29 @@ fun LoadDetailScreen(
                                 TextButton(
                                     onClick = {
                                         val ms = dateState.selectedDateMillis
-                                        if (ms != null) {
-                                            val c = Calendar.getInstance(Locale.US).apply { timeInMillis = ms }
-                                            val iso = "%04d-%02d-%02d".format(
-                                                c.get(Calendar.YEAR),
-                                                c.get(Calendar.MONTH) + 1,
-                                                c.get(Calendar.DAY_OF_MONTH),
-                                            )
-                                            scope.launch {
-                                                try {
-                                                    val updated = withContext(Dispatchers.IO) {
-                                                        val next = l.copy(
-                                                            actualFinishDate = iso,
-                                                            updatedAt = System.currentTimeMillis(),
-                                                        ).withRouteMetrics()
-                                                        loadRepository.updateLoad(next)
-                                                        next
-                                                    }
-                                                    load = updated
-                                                    showFinishPicker = false
-                                                } catch (e: Exception) {
-                                                    snackbarHostState.showSnackbar(
-                                                        e.message
-                                                            ?: context.getString(R.string.common_save_error, "")
-                                                    )
-                                                }
-                                            }
-                                        } else {
+                                        if (ms == null) {
                                             showFinishPicker = false
+                                            return@TextButton
+                                        }
+                                        val iso = utcDatePickerMillisToDateString(ms)
+                                        showFinishPicker = false
+                                        scope.launch {
+                                            try {
+                                                val updated = withContext(Dispatchers.IO) {
+                                                    val next = l.copy(
+                                                        actualFinishDate = iso,
+                                                        updatedAt = System.currentTimeMillis(),
+                                                    ).withRouteMetrics()
+                                                    loadRepository.updateLoad(next)
+                                                    loadRepository.getLoadById(loadId) ?: next
+                                                }
+                                                load = updated
+                                            } catch (e: Exception) {
+                                                snackbarHostState.showSnackbar(
+                                                    e.message
+                                                        ?: context.getString(R.string.common_save_error, "")
+                                                )
+                                            }
                                         }
                                     }
                                 ) { Text(stringResource(R.string.common_ok)) }

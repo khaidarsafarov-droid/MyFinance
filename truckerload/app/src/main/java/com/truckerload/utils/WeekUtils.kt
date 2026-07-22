@@ -5,6 +5,7 @@ import com.truckerload.domain.model.StopType
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 /** Неделя водителя: воскресенье — первый день (Sun–Sat). */
 private fun truckingWeekCalendar(): Calendar =
@@ -274,6 +275,34 @@ fun dateStringToEndOfDayMillis(dateStr: String): Long {
     cal.set(year, month - 1, day, 23, 59, 59)
     cal.set(Calendar.MILLISECOND, 999)
     return cal.timeInMillis
+}
+
+/**
+ * Material3 [androidx.compose.material3.DatePicker] stores selected days as
+ * UTC midnight. Convert YYYY-MM-DD → that UTC millis for [rememberDatePickerState].
+ */
+fun dateStringToUtcDatePickerMillis(dateStr: String): Long? {
+    val (year, month, day) = parseIsoDateParts(dateStr) ?: return null
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
+    cal.clear()
+    cal.set(year, month - 1, day, 0, 0, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    return cal.timeInMillis
+}
+
+/**
+ * Inverse of [dateStringToUtcDatePickerMillis]: UTC midnight millis → YYYY-MM-DD
+ * of the calendar day the user tapped in the DatePicker.
+ */
+fun utcDatePickerMillisToDateString(utcMillis: Long): String {
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
+    cal.timeInMillis = utcMillis
+    return "%04d-%02d-%02d".format(
+        Locale.US,
+        cal.get(Calendar.YEAR),
+        cal.get(Calendar.MONTH) + 1,
+        cal.get(Calendar.DAY_OF_MONTH),
+    )
 }
 
 /** Parse stop scheduledTime to epoch millis. Supports YYYY-MM-DD HH:mm and DD.MM.YYYY HH:mm. */
