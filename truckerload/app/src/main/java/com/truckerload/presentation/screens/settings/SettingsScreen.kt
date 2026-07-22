@@ -659,10 +659,16 @@ fun SettingsScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        userProfileStore.clearProfile()
-                        authStore.logout()
-                        showLogoutConfirm = false
-                        android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()
+                        scope.launch {
+                            // Keep this account's Room DB + prefs on disk so they return on next login.
+                            // Only close the active session — other users' data stays isolated.
+                            com.truckerload.data.local.AppDatabase.closeCurrent()
+                            userProfileStore.unbind()
+                            authStore.logout()
+                            com.truckerload.sync.TelegramBotForegroundService.stop(context)
+                            showLogoutConfirm = false
+                            android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()
+                        }
                     }
                 ) {
                     Text(stringResource(R.string.settings_logout_button))

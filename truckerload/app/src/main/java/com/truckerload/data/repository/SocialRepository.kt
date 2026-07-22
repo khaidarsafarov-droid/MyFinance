@@ -35,6 +35,7 @@ import com.truckerload.domain.social.LeaderboardEntry
 import com.truckerload.domain.social.MessageType
 import com.truckerload.domain.social.StatusType
 import com.truckerload.data.social.SocialSeedData
+import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.BadgeEngine
 import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.domain.social.ReactionSummary
@@ -83,8 +84,18 @@ class SocialRepository(
 
     suspend fun ensureInitialized() {
         initMutex.withLock {
-            val displayName = userProfileStore.profile.value?.displayName.orEmpty()
-            SocialSeedData.seedIfEmpty(chatDao, messageDao, profileDao, displayName)
+            val userProfile = userProfileStore.profile.value
+            val displayName = userProfile?.displayName.orEmpty()
+            SocialSeedData.seedIfEmpty(
+                chatDao,
+                messageDao,
+                profileDao,
+                displayName,
+                userProfile?.photoUrl,
+                userProfile?.phoneNumber,
+            )
+            syncIdentityFromUserProfile()
+            maybeMarkSetupCompleteFromExistingProfile()
             SocialPeerSeedData.seedIfEmpty(peerDao)
             seedDemoStatuses(displayName)
             seedGroupMemberships(displayName)
@@ -92,6 +103,159 @@ class SocialRepository(
             driverStatusDao.purgeExpired(System.currentTimeMillis())
             refreshMyChallengeScore()
         }
+    }
+
+    /**
+     * Copies login identity (name / phone / photo) into the Room driver profile.
+     * Never overwrites a local uploaded avatar file with a remote URL, or a filled phone/name with blanks.
+     */
+    suspend fun syncIdentityFromUserProfile() {
+        val user = userProfileStore.profile.value ?: return
+        val existing = profileDao.getProfile() ?: DriverProfileEntity()
+        val loginName = user.displayName.takeIf { it.isNotBlank() && it != user.email }.orEmpty()
+        val placeholder = existing.displayName.isBlank() ||
+            existing.displayName == "Водитель" ||
+            existing.displayName == "Driver" ||
+            existing.displayName == "User"
+        val mergedName = when {
+            !placeholder -> existing.displayName
+            loginName.isNotBlank() -> loginName
+            else -> existing.displayName
+        }
+        val mergedPhone = existing.phoneNumber?.takeIf { it.isNotBlank() }
+            ?: user.phoneNumber?.takeIf { it.isNotBlank() }
+        val existingAvatar = existing.avatarUrl
+        val mergedAvatar = when {
+            !existingAvatar.isNullOrBlank() &&
+                !existingAvatar.startsWith("http://") &&
+                !existingAvatar.startsWith("https://") -> existingAvatar
+            !existingAvatar.isNullOrBlank() -> existingAvatar
+            !user.photoUrl.isNullOrBlank() -> user.photoUrl
+            else -> null
+        }
+        val demoAbout = existing.about.contains("Дальнобойщик") || existing.about.contains("открытые дороги")
+        val demoLanguages = existing.languagesJson == "Русский,Английский"
+        // Legacy seed defaults (ratingCount=124, canned about/languages) must not look like real identity.
+        profileDao.upsert(
+            existing.copy(
+                displayName = mergedName,
+                phoneNumber = mergedPhone,
+                avatarUrl = mergedAvatar,
+                about = if (demoAbout) "" else existing.about,
+                languagesJson = if (demoLanguages) "" else existing.languagesJson,
+                ratingCount = 0,
+                lastActive = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    /** True when the user still needs the first check-in (name + phone + country). */
+    suspend fun needsProfileSetup(): Boolean {
+        if (userProfileStore.setupComplete.value) return false
+        val entity = profileDao.getProfile()
+        val nameOk = !entity?.displayName.isNullOrBlank() &&
+            entity?.displayName !in setOf("Водитель", "Driver", "User")
+        val phoneOk = !entity?.phoneNumber.isNullOrBlank()
+        val countryOk = CountryCatalog.byIso2(entity?.homeState) != null
+        return !(nameOk && phoneOk && countryOk)
+    }
+
+    private suspend fun maybeMarkSetupCompleteFromExistingProfile() {
+        if (userProfileStore.setupComplete.value) return
+        val entity = profileDao.getProfile() ?: return
+        val nameOk = entity.displayName.isNotBlank() &&
+            entity.displayName !in setOf("Водитель", "Driver", "User")
+        val phoneOk = !entity.phoneNumber.isNullOrBlank()
+        val countryOk = CountryCatalog.byIso2(entity.homeState) != null
+        // Only auto-complete for profiles that look intentionally filled (not seed leftovers).
+        if (nameOk && phoneOk && countryOk) {
+            userProfileStore.setSetupComplete(true)
+        }
+    }
+
+    suspend fun completeProfileSetup(
+        displayName: String,
+        phoneNumber: String,
+        homeCountryIso2: String,
+        truckType: String = "",
+    ): SocialResult<Unit> = runCatching {
+        val existing = profileDao.getProfile() ?: DriverProfileEntity()
+        val name = displayName.trim()
+        val phone = phoneNumber.trim()
+        val country = homeCountryIso2.trim().uppercase().take(2)
+        require(name.isNotBlank()) { appContext.getString(R.string.profile_setup_name_required) }
+        require(phone.filter { it.isDigit() }.length >= 8) {
+            appContext.getString(R.string.profile_setup_phone_required)
+        }
+        require(country.length == 2 && CountryCatalog.byIso2(country) != null) {
+            appContext.getString(R.string.profile_setup_country_required)
+        }
+        profileDao.upsert(
+            existing.copy(
+                displayName = name,
+                phoneNumber = phone,
+                homeState = country,
+                truckType = truckType.trim().ifBlank { existing.truckType },
+                // Wipe leftover demo identity fields from older installs.
+                about = existing.about.takeIf { !it.contains("Дальнобойщик") && !it.contains("открытые дороги") }.orEmpty(),
+                ratingCount = 0,
+                languagesJson = existing.languagesJson.takeIf {
+                    it != "Русский,Английский"
+                }.orEmpty(),
+                status = "ONLINE",
+                lastActive = System.currentTimeMillis(),
+            ),
+        )
+        val current = userProfileStore.profile.value
+        if (current != null) {
+            val parts = name.split(" ", limit = 2)
+            userProfileStore.saveProfile(
+                current.copy(
+                    givenName = parts.firstOrNull().orEmpty(),
+                    familyName = parts.getOrNull(1).orEmpty(),
+                    phoneNumber = phone,
+                ),
+            )
+        } else {
+            val parts = name.split(" ", limit = 2)
+            userProfileStore.saveProfile(
+                com.truckerload.data.preferences.UserProfile(
+                    email = "",
+                    givenName = parts.firstOrNull().orEmpty(),
+                    familyName = parts.getOrNull(1).orEmpty(),
+                    photoUrl = null,
+                    phoneNumber = phone,
+                ),
+            )
+        }
+        userProfileStore.setSetupComplete(true)
+        SocialResult.Success(Unit)
+    }.getOrElse { SocialResult.Error(socialError(R.string.social_error_save_profile, it), it) }
+
+    /** Clears personal identity fields so the next account does not inherit them. */
+    suspend fun clearLocalIdentity() {
+        val existing = profileDao.getProfile() ?: return
+        avatarStorage.deleteAvatar(existing.avatarUrl)
+        profileDao.upsert(
+            existing.copy(
+                displayName = "",
+                avatarUrl = null,
+                phoneNumber = null,
+                telegramUsername = null,
+                whatsappNumber = null,
+                homeState = "",
+                truckType = "",
+                experienceYears = 0,
+                routesJson = "",
+                about = "",
+                specialtiesJson = "",
+                languagesJson = "",
+                ratingCount = 0,
+                reputation = 0,
+                status = "OFFLINE",
+            ),
+        )
+        userProfileStore.setSetupComplete(false)
     }
 
     fun watchMyEnhancedProfile(): Flow<EnhancedDriverProfile> =
@@ -120,7 +284,7 @@ class SocialRepository(
         routes: List<String>,
         about: String,
         status: DriverStatus,
-        licenseClass: String = "A",
+        licenseClass: String = "",
         endorsements: List<String> = emptyList(),
         specialties: List<String> = emptyList(),
         phoneNumber: String? = null,
@@ -129,16 +293,17 @@ class SocialRepository(
         maxRadius: Int = 500,
     ): SocialResult<Unit> = runCatching {
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
+        val country = homeState.trim().uppercase().take(2)
         profileDao.upsert(
             existing.copy(
                 displayName = displayName,
                 truckType = truckType,
                 experienceYears = experienceYears,
-                homeState = homeState,
+                homeState = country,
                 routesJson = routes.joinToString(","),
                 about = about,
                 status = status.name,
-                licenseClass = licenseClass,
+                licenseClass = licenseClass.trim(),
                 endorsementsJson = endorsements.joinToString(","),
                 specialtiesJson = specialties.joinToString(","),
                 phoneNumber = phoneNumber?.trim()?.ifBlank { null },
@@ -148,6 +313,22 @@ class SocialRepository(
                 lastActive = System.currentTimeMillis(),
             ),
         )
+        userProfileStore.profile.value?.let { current ->
+            val parts = displayName.trim().split(" ", limit = 2)
+            userProfileStore.saveProfile(
+                current.copy(
+                    givenName = parts.firstOrNull().orEmpty(),
+                    familyName = parts.getOrNull(1).orEmpty(),
+                    phoneNumber = phoneNumber?.trim()?.ifBlank { null },
+                ),
+            )
+        }
+        if (displayName.isNotBlank() &&
+            !phoneNumber.isNullOrBlank() &&
+            CountryCatalog.byIso2(homeState) != null
+        ) {
+            userProfileStore.setSetupComplete(true)
+        }
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_save_profile, it), it) }
 
@@ -170,6 +351,12 @@ class SocialRepository(
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
         avatarStorage.deleteAvatar(existing.avatarUrl)
         profileDao.upsert(existing.copy(avatarUrl = null))
+        // Also clear login/Google photo so remove actually sticks in the UI.
+        userProfileStore.profile.value?.let { profile ->
+            if (!profile.photoUrl.isNullOrBlank()) {
+                userProfileStore.saveProfile(profile.copy(photoUrl = null))
+            }
+        }
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
 
@@ -794,10 +981,19 @@ class SocialRepository(
         val routes = base.routesJson.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         val endorsements = base.endorsementsJson.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         val specialties = base.specialtiesJson.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-        val languages = base.languagesJson.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val languages = base.languagesJson
+            .takeIf { it != "Русский,Английский" }
+            .orEmpty()
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
         val status = runCatching { DriverStatus.valueOf(base.status) }.getOrDefault(DriverStatus.OFFLINE)
         val averageRpm = if (totalMiles > 0) totalRevenue / totalMiles else 0.0
-        val onTimePercentage = 95.0
+        // No fake on-time / ratings — only real load stats until reviews exist.
+        val onTimePercentage = 0.0
+        val about = base.about.takeIf {
+            !it.contains("Дальнобойщик") && !it.contains("открытые дороги")
+        }.orEmpty()
         val badges = BadgeEngine.compute(
             totalLoads = totalLoads,
             totalMiles = totalMiles,
@@ -807,15 +1003,21 @@ class SocialRepository(
             endorsements = endorsements,
             onTimePercentage = onTimePercentage,
         )
-        val reputation = badges.size * 25 + totalLoads.coerceAtMost(500)
+        val reputation = if (totalLoads > 0) badges.size * 25 + totalLoads.coerceAtMost(500) else 0
+        val loginName = userProfileStore.profile.value?.displayName?.takeIf {
+            it.isNotBlank() && it != userProfileStore.profile.value?.email
+        }
+        val displayName = base.displayName
+            .takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?: loginName.orEmpty()
         return EnhancedDriverProfile(
             id = base.id,
-            displayName = base.displayName.ifBlank { userProfileStore.profile.value?.displayName ?: "Водитель" },
+            displayName = displayName,
             avatarUrl = base.avatarUrl ?: avatarUrl,
             coverImageUrl = base.coverImageUrl,
-            truckType = TruckType.fromLabel(base.truckType.ifBlank { "Dry Van" }),
+            truckType = TruckType.fromLabel(base.truckType),
             experienceYears = base.experienceYears,
-            licenseClass = base.licenseClass.ifBlank { "A" },
+            licenseClass = base.licenseClass,
             endorsements = endorsements,
             homeState = base.homeState,
             preferredRoutes = routes,
@@ -825,17 +1027,17 @@ class SocialRepository(
             totalRevenue = totalRevenue,
             averageRpm = averageRpm,
             onTimePercentage = onTimePercentage,
-            rating = 4.8,
-            ratingCount = base.ratingCount,
+            rating = 0.0,
+            ratingCount = 0,
             reputation = reputation,
             badges = badges,
             followers = base.followers,
             following = base.following,
             status = status,
             currentRoute = base.currentRoute ?: routes.firstOrNull(),
-            about = base.about,
-            specialties = specialties.ifEmpty { listOf("Дальнобой") },
-            languages = languages.ifEmpty { listOf("Русский", "Английский") },
+            about = about,
+            specialties = specialties,
+            languages = languages,
             phoneNumber = base.phoneNumber,
             telegramUsername = base.telegramUsername,
             whatsappNumber = base.whatsappNumber,

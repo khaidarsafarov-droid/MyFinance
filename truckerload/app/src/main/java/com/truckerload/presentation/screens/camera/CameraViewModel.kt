@@ -16,6 +16,7 @@ import com.truckerload.utils.PhotoManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -31,7 +32,8 @@ data class CapturedPhoto(
 data class CameraUiState(
     val isProcessing: Boolean = false,
     val errorMessage: String? = null,
-    val capturedPhoto: CapturedPhoto? = null,
+    val sessionPhotos: List<CapturedPhoto> = emptyList(),
+    val reviewingBatch: Boolean = false,
     val saveSuccess: Boolean = false,
 )
 
@@ -55,11 +57,19 @@ class CameraViewModel(
     }
 
     fun processCapturedImage(imageFile: File) {
+        // Claim processing synchronously so a second shutter tap cannot race the coroutine start.
+        val previous = _uiState.getAndUpdate { state ->
+            if (state.isProcessing) state
+            else state.copy(isProcessing = true, errorMessage = null)
+        }
+        if (previous.isProcessing) {
+            imageFile.delete()
+            return
+        }
         viewModelScope.launch {
-            _uiState.update { it.copy(isProcessing = true, errorMessage = null) }
+            var bitmap: Bitmap? = null
             try {
-                val bitmap = decodeBitmap(imageFile) ?: run {
-                    imageFile.delete()
+                bitmap = decodeBitmap(imageFile) ?: run {
                     _uiState.update {
                         it.copy(isProcessing = false, errorMessage = "decode_failed")
                     }
@@ -75,15 +85,99 @@ class CameraViewModel(
                 )
                 val savedFile = photoManager.savePhoto(bitmap, location, timestamp)
                 bitmap.recycle()
-                imageFile.delete()
+                bitmap = null
+                val photo = CapturedPhoto(
+                    file = savedFile,
+                    locationData = location,
+                    timestamp = timestamp,
+                )
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        capturedPhoto = CapturedPhoto(
-                            file = savedFile,
-                            locationData = location,
-                            timestamp = timestamp,
-                        ),
+                        sessionPhotos = it.sessionPhotos + photo,
+                    )
+                }
+            } catch (_: Exception) {
+                bitmap?.recycle()
+                _uiState.update {
+                    it.copy(isProcessing = false, errorMessage = "save_failed")
+                }
+            } finally {
+                imageFile.delete()
+            }
+        }
+    }
+
+    fun openBatchReview() {
+        if (_uiState.value.sessionPhotos.isNotEmpty()) {
+            _uiState.update { it.copy(reviewingBatch = true) }
+        }
+    }
+
+    fun closeBatchReview() {
+        _uiState.update { it.copy(reviewingBatch = false) }
+    }
+
+    fun removePhotoAt(index: Int) {
+        val photos = _uiState.value.sessionPhotos.toMutableList()
+        if (index !in photos.indices) return
+        val removed = photos.removeAt(index)
+        removed.file.delete()
+        if (removed.savedToDb && removed.dbId != null) {
+            viewModelScope.launch { photoRepository.deletePhoto(removed.dbId) }
+        }
+        _uiState.update {
+            it.copy(
+                sessionPhotos = photos,
+                reviewingBatch = photos.isNotEmpty() && it.reviewingBatch,
+            )
+        }
+    }
+
+    fun discardSession() {
+        _uiState.value.sessionPhotos.forEach { photo ->
+            if (!photo.savedToDb) {
+                photo.file.delete()
+            }
+        }
+        _uiState.update { CameraUiState() }
+    }
+
+    /** Clears in-memory session after a successful save without deleting persisted files. */
+    fun finishSession() {
+        _uiState.update { CameraUiState() }
+    }
+
+    fun persistAllPhotos() {
+        val state = _uiState.value
+        val photos = state.sessionPhotos
+        if (photos.isEmpty() || state.isProcessing) return
+        if (photos.all { it.savedToDb }) {
+            _uiState.update { it.copy(saveSuccess = true) }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isProcessing = true, errorMessage = null) }
+            try {
+                val updated = photos.map { photo ->
+                    if (photo.savedToDb) return@map photo
+                    val entity = photoRepository.savePhoto(
+                        fileName = photo.file.name,
+                        filePath = photo.file.absolutePath,
+                        latitude = photo.locationData.latitude,
+                        longitude = photo.locationData.longitude,
+                        city = photo.locationData.city,
+                        state = photo.locationData.state,
+                        zipCode = photo.locationData.zipCode,
+                        timestamp = photo.timestamp,
+                    )
+                    photo.copy(savedToDb = true, dbId = entity.id)
+                }
+                _uiState.update {
+                    it.copy(
+                        sessionPhotos = updated,
+                        saveSuccess = true,
+                        isProcessing = false,
                     )
                 }
             } catch (_: Exception) {
@@ -94,49 +188,8 @@ class CameraViewModel(
         }
     }
 
-    fun discardCapturedPhoto() {
-        val photo = _uiState.value.capturedPhoto ?: return
-        photo.file.delete()
-        if (photo.savedToDb && photo.dbId != null) {
-            viewModelScope.launch {
-                photoRepository.deletePhoto(photo.dbId)
-            }
-        }
-        _uiState.update { it.copy(capturedPhoto = null, saveSuccess = false) }
-    }
-
-    fun persistCapturedPhoto() {
-        val photo = _uiState.value.capturedPhoto ?: return
-        if (photo.savedToDb) {
-            _uiState.update { it.copy(saveSuccess = true) }
-            return
-        }
-        viewModelScope.launch {
-            try {
-                val entity = photoRepository.savePhoto(
-                    fileName = photo.file.name,
-                    filePath = photo.file.absolutePath,
-                    latitude = photo.locationData.latitude,
-                    longitude = photo.locationData.longitude,
-                    city = photo.locationData.city,
-                    state = photo.locationData.state,
-                    zipCode = photo.locationData.zipCode,
-                    timestamp = photo.timestamp,
-                )
-                _uiState.update {
-                    it.copy(
-                        capturedPhoto = photo.copy(savedToDb = true, dbId = entity.id),
-                        saveSuccess = true,
-                    )
-                }
-            } catch (_: Exception) {
-                _uiState.update { it.copy(errorMessage = "save_failed") }
-            }
-        }
-    }
-
-    fun clearCapturedPhotoState() {
-        _uiState.update { it.copy(capturedPhoto = null, saveSuccess = false) }
+    fun clearSaveSuccess() {
+        _uiState.update { it.copy(saveSuccess = false) }
     }
 
     private fun decodeBitmap(file: File): Bitmap? {

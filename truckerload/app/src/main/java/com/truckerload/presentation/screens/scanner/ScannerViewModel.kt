@@ -25,11 +25,14 @@ data class PendingScan(
     val timestamp: Long,
     val usedRussianEngine: Boolean = false,
     val savedToDb: Boolean = false,
+    val isMerged: Boolean = false,
 )
 
 data class ScannerUiState(
     val isProcessing: Boolean = false,
     val pendingScan: PendingScan? = null,
+    val sessionScans: List<PendingScan> = emptyList(),
+    val scanLaunchKey: Int = 0,
     val statusMessage: String? = null,
     val errorKey: String? = null,
 )
@@ -48,7 +51,9 @@ class ScannerViewModel(
     fun onScanResult(intent: Intent?) {
         val result = intent?.let { GmsDocumentScanningResult.fromActivityResultIntent(it) }
         if (result == null) {
-            _uiState.update { it.copy(errorKey = "scan_error") }
+            if (_uiState.value.sessionScans.isEmpty()) {
+                _uiState.update { it.copy(errorKey = "scan_error") }
+            }
             return
         }
         viewModelScope.launch {
@@ -57,66 +62,79 @@ class ScannerViewModel(
                 val timestamp = System.currentTimeMillis()
                 val saved = pdfGenerator.saveScanFromResult(result, timestamp)
                 val ocrResult = ocrService.recognizeScanResult(app, result)
+                val newScan = PendingScan(
+                    file = saved.file,
+                    pageCount = saved.pageCount,
+                    ocrText = ocrResult.text,
+                    timestamp = timestamp,
+                    usedRussianEngine = ocrResult.usedRussianEngine,
+                )
+                val session = _uiState.value.sessionScans + newScan
+                val oldMerged = _uiState.value.pendingScan?.takeIf { it.isMerged && !it.savedToDb }
+                val display = buildMergedPending(session, timestamp)
+                oldMerged?.file?.delete()
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        pendingScan = PendingScan(
-                            file = saved.file,
-                            pageCount = saved.pageCount,
-                            ocrText = ocrResult.text,
-                            timestamp = timestamp,
-                            usedRussianEngine = ocrResult.usedRussianEngine,
-                        ),
+                        sessionScans = session,
+                        pendingScan = display,
                     )
                 }
             } catch (_: Exception) {
-                _uiState.update { it.copy(isProcessing = false, errorKey = "scan_error") }
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorKey = if (it.sessionScans.isEmpty()) "scan_error" else "scan_error_keep",
+                    )
+                }
             }
         }
+    }
+
+    fun requestAnotherScan() {
+        _uiState.update { it.copy(scanLaunchKey = it.scanLaunchKey + 1, statusMessage = null, errorKey = null) }
     }
 
     fun onScanCancelled() {
-        _uiState.update { it.copy(errorKey = "scan_cancelled") }
+        if (_uiState.value.sessionScans.isEmpty()) {
+            _uiState.update { it.copy(errorKey = "scan_cancelled") }
+        }
     }
 
     fun clearPendingScan() {
-        val pending = _uiState.value.pendingScan ?: return
-        if (!pending.savedToDb) {
-            pending.file.delete()
+        val state = _uiState.value
+        state.sessionScans.forEach { scan ->
+            if (!scan.savedToDb) scan.file.delete()
         }
-        _uiState.update { it.copy(pendingScan = null, statusMessage = null, errorKey = null) }
+        state.pendingScan?.takeIf { it.isMerged && !it.savedToDb }?.file?.delete()
+        _uiState.update {
+            it.copy(
+                pendingScan = null,
+                sessionScans = emptyList(),
+                statusMessage = null,
+                errorKey = null,
+            )
+        }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorKey = null) }
+    }
+
+    fun clearStatus() {
+        _uiState.update { it.copy(statusMessage = null) }
     }
 
     fun onScanStartFailed() {
-        _uiState.update { it.copy(errorKey = "scan_error") }
+        if (_uiState.value.sessionScans.isEmpty()) {
+            _uiState.update { it.copy(errorKey = "scan_error") }
+        }
     }
 
+    fun mergedShareFile(): File? = _uiState.value.pendingScan?.file?.takeIf { it.exists() }
+
     fun saveToApp() {
-        val pending = _uiState.value.pendingScan ?: return
-        if (pending.savedToDb) {
-            _uiState.update { it.copy(statusMessage = "scan_success") }
-            return
-        }
-        viewModelScope.launch {
-            try {
-                scanRepository.saveScan(
-                    fileName = pending.file.name,
-                    filePath = pending.file.absolutePath,
-                    timestamp = pending.timestamp,
-                    fileSizeBytes = pending.file.length(),
-                    pageCount = pending.pageCount,
-                    ocrText = pending.ocrText,
-                )
-                _uiState.update {
-                    it.copy(
-                        pendingScan = pending.copy(savedToDb = true),
-                        statusMessage = "scan_success",
-                    )
-                }
-            } catch (_: Exception) {
-                _uiState.update { it.copy(errorKey = "scan_error") }
-            }
-        }
+        viewModelScope.launch { persistPendingToApp(showSuccess = true) }
     }
 
     fun saveToPhone() {
@@ -130,12 +148,80 @@ class ScannerViewModel(
                 ) { out ->
                     pending.file.inputStream().use { it.copyTo(out) }
                 } ?: throw IllegalStateException("MediaStore save failed")
-                saveToApp()
+                persistPendingToApp(showSuccess = false)
                 _uiState.update { it.copy(statusMessage = "scan_saved_phone:${result.displayPath}") }
             } catch (_: Exception) {
-                _uiState.update { it.copy(errorKey = "scan_error") }
+                _uiState.update {
+                    it.copy(
+                        errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
+                            "scan_error"
+                        } else {
+                            "scan_error_keep"
+                        },
+                    )
+                }
             }
         }
+    }
+
+    private suspend fun persistPendingToApp(showSuccess: Boolean) {
+        val state = _uiState.value
+        val pending = state.pendingScan ?: return
+        if (pending.savedToDb) {
+            if (showSuccess) {
+                _uiState.update { it.copy(statusMessage = "scan_success") }
+            }
+            return
+        }
+        try {
+            scanRepository.saveScan(
+                fileName = pending.file.name,
+                filePath = pending.file.absolutePath,
+                timestamp = pending.timestamp,
+                fileSizeBytes = pending.file.length(),
+                pageCount = pending.pageCount,
+                ocrText = pending.ocrText,
+            )
+            // Protect only files that were actually inserted. Merged saves keep part files
+            // deletable on clear; single-scan saves mark that session entry.
+            val markedSession = if (pending.isMerged) {
+                state.sessionScans
+            } else {
+                state.sessionScans.map { scan ->
+                    if (scan.file.absolutePath == pending.file.absolutePath) {
+                        scan.copy(savedToDb = true)
+                    } else {
+                        scan
+                    }
+                }
+            }
+            _uiState.update {
+                it.copy(
+                    pendingScan = pending.copy(savedToDb = true),
+                    sessionScans = markedSession,
+                    statusMessage = if (showSuccess) "scan_success" else it.statusMessage,
+                )
+            }
+        } catch (_: Exception) {
+            _uiState.update { it.copy(errorKey = "scan_error_keep") }
+        }
+    }
+
+    private fun buildMergedPending(session: List<PendingScan>, timestamp: Long): PendingScan {
+        if (session.size == 1) return session.first()
+        val existing = session.map { it.file }.filter { it.exists() }
+        require(existing.isNotEmpty()) { "No PDF files to merge" }
+        val mergedFile = pdfGenerator.mergePdfFiles(existing)
+        return PendingScan(
+            file = mergedFile,
+            pageCount = session.sumOf { it.pageCount },
+            ocrText = session.mapIndexed { index, scan ->
+                if (index == 0) scan.ocrText else "---\n\n${scan.ocrText}"
+            }.joinToString("\n\n"),
+            timestamp = timestamp,
+            usedRussianEngine = session.any { it.usedRussianEngine },
+            isMerged = true,
+        )
     }
 
     override fun onCleared() {

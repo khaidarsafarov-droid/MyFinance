@@ -107,6 +107,8 @@ class SupabaseAuthService(private val appContext: Context) {
                         }
                     }.takeIf { it.isNotBlank() },
                 avatarUrl = userMeta.optString("avatar_url").takeIf { it.isNotBlank() }
+                    ?: userMeta.optString("picture").takeIf { it.isNotBlank() }
+                    ?: userMeta.optString("avatar").takeIf { it.isNotBlank() }
             )
             val result = SignInResult(
                 user = user,

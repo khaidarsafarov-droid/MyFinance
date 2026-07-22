@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -37,7 +38,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import coil.compose.AsyncImage
+import androidx.core.content.FileProvider
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -52,7 +55,16 @@ fun ProfileAvatar(
     onClick: (() -> Unit)? = null,
 ) {
     val tc = LocalTruckColors.current
+    val context = LocalContext.current
     val model = remember(avatarUrl) { resolveAvatarModel(avatarUrl) }
+    val imageRequest = remember(model) {
+        model?.let {
+            ImageRequest.Builder(context)
+                .data(it)
+                .crossfade(true)
+                .build()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -68,12 +80,22 @@ fun ProfileAvatar(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (model != null) {
-            AsyncImage(
-                model = model,
+        if (imageRequest != null) {
+            SubcomposeAsyncImage(
+                model = imageRequest,
                 contentDescription = stringResource(R.string.profile_photo),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
+                loading = {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        strokeWidth = 2.dp,
+                        color = tc.AccentPrimary,
+                    )
+                },
+                error = {
+                    Text("👤", style = MaterialTheme.typography.headlineMedium)
+                },
             )
         } else {
             Text("👤", style = MaterialTheme.typography.headlineMedium)
@@ -123,8 +145,68 @@ fun ProfileAvatarPickerSheet(
     onBitmapSelected: (Bitmap) -> Unit,
     onRemove: () -> Unit,
 ) {
+    val context = LocalContext.current
+    // Hoisted above sheet visibility so dismissing the sheet for gallery/camera does not drop the image.
     var cropSource by remember { mutableStateOf<Bitmap?>(null) }
+    var awaitingExternalPicker by remember { mutableStateOf(false) }
+    var captureFile by remember { mutableStateOf<File?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    fun beginCrop(bitmap: Bitmap?) {
+        awaitingExternalPicker = false
+        if (bitmap == null || bitmap.width <= 0 || bitmap.height <= 0) {
+            Toast.makeText(context, context.getString(R.string.profile_photo_load_failed), Toast.LENGTH_SHORT).show()
+            return
+        }
+        cropSource = AvatarCropUtils.prepareBitmapForCrop(bitmap)
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri == null) {
+            awaitingExternalPicker = false
+            return@rememberLauncherForActivityResult
+        }
+        val bitmap = runCatching {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                AvatarCropUtils.decodeSampledBitmap(stream)
+            }
+        }.getOrNull()
+        beginCrop(bitmap)
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        val file = captureFile
+        captureFile = null
+        if (!success || file == null || !file.exists()) {
+            awaitingExternalPicker = false
+            file?.delete()
+            if (!success) return@rememberLauncherForActivityResult
+            Toast.makeText(context, context.getString(R.string.profile_photo_load_failed), Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+        val bitmap = runCatching {
+            file.inputStream().use { AvatarCropUtils.decodeSampledBitmap(it) }
+        }.getOrNull()
+        file.delete()
+        beginCrop(bitmap)
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (!granted) {
+            awaitingExternalPicker = false
+            Toast.makeText(context, context.getString(R.string.camera_permission_denied), Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+        val file = File(context.cacheDir, "avatar_capture_${System.currentTimeMillis()}.jpg")
+        captureFile = file
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        awaitingExternalPicker = true
+        cameraLauncher.launch(uri)
+    }
+
+    // Crop UI stays mounted even when the bottom sheet was dismissed for the system picker.
     cropSource?.let { bitmap ->
         AvatarCropScreen(
             source = bitmap,
@@ -133,39 +215,15 @@ fun ProfileAvatarPickerSheet(
                 onBitmapSelected(cropped)
                 onDismiss()
             },
-            onCancel = { cropSource = null },
+            onCancel = {
+                cropSource = null
+                onDismiss()
+            },
         )
         return
     }
 
     if (!visible) return
-
-    val context = LocalContext.current
-    val sheetState = rememberModalBottomSheetState()
-
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri ?: return@rememberLauncherForActivityResult
-        context.contentResolver.openInputStream(uri)?.use { stream ->
-            val bitmap = AvatarCropUtils.decodeSampledBitmap(stream) ?: return@rememberLauncherForActivityResult
-            cropSource = AvatarCropUtils.prepareBitmapForCrop(bitmap)
-            onDismiss()
-        }
-    }
-
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-        bitmap?.let {
-            cropSource = it
-            onDismiss()
-        }
-    }
-
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) {
-            cameraLauncher.launch(null)
-        }
-    }
 
     fun launchCamera() {
         val hasPermission = ContextCompat.checkSelfPermission(
@@ -173,14 +231,21 @@ fun ProfileAvatarPickerSheet(
             Manifest.permission.CAMERA,
         ) == PackageManager.PERMISSION_GRANTED
         if (hasPermission) {
-            cameraLauncher.launch(null)
+            val file = File(context.cacheDir, "avatar_capture_${System.currentTimeMillis()}.jpg")
+            captureFile = file
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            awaitingExternalPicker = true
+            cameraLauncher.launch(uri)
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            // Don't clear picker state while the system gallery/camera is open.
+            if (!awaitingExternalPicker) onDismiss()
+        },
         sheetState = sheetState,
     ) {
         Column(
@@ -195,7 +260,10 @@ fun ProfileAvatarPickerSheet(
                 modifier = Modifier.padding(bottom = 16.dp),
             )
             Button(
-                onClick = { galleryLauncher.launch("image/*") },
+                onClick = {
+                    awaitingExternalPicker = true
+                    galleryLauncher.launch("image/*")
+                },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.profile_photo_from_gallery))
@@ -227,9 +295,11 @@ fun ProfileAvatarPickerSheet(
 
 private fun resolveAvatarModel(avatarUrl: String?): Any? {
     if (avatarUrl.isNullOrBlank()) return null
-    return if (avatarUrl.startsWith("http://") || avatarUrl.startsWith("https://")) {
+    return if (avatarUrl.startsWith("http://") || avatarUrl.startsWith("https://") ||
+        avatarUrl.startsWith("file://") || avatarUrl.startsWith("content://")
+    ) {
         avatarUrl
     } else {
-        File(avatarUrl)
+        File(avatarUrl).takeIf { it.exists() }
     }
 }

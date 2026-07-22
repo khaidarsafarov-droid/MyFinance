@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import android.util.Log
 
@@ -49,7 +50,12 @@ class TelegramSyncWorker(
     }
 
     override suspend fun doWork(): Result {
-        val token = TelegramTokenStore(applicationContext).getToken()
+        val userId = AuthStore(applicationContext).currentUserIdOrNull()
+        if (userId.isNullOrBlank()) {
+            Log.w("TelegramSync", "No active user — skip ensuring Telegram service")
+            return Result.success()
+        }
+        val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w("TelegramSync", "No bot token — set TELEGRAM_BOT_TOKEN in local.properties or Settings")
             return Result.success()

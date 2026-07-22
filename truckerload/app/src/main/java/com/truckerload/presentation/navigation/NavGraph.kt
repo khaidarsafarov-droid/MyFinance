@@ -49,7 +49,8 @@ import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
 import com.truckerload.presentation.screens.map.MapScreen
-import com.truckerload.presentation.navigation.AuthNavHost
+import com.truckerload.presentation.screens.auth.ProfileSetupScreen
+import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsScreen
 import com.truckerload.presentation.screens.stats.StatsScreen
@@ -79,6 +80,7 @@ object Routes {
     const val COMMUNITY = "community"
     const val PROFILE = "profile"
     const val PROFILE_EDIT = "profile_edit"
+    const val PROFILE_SETUP = "profile_setup"
     const val PROFILE_PEER = "profile_peer/{peerId}"
     const val SOCIAL_CHAT = "social_chat/{chatId}"
     const val ADVANCED_STATS = "advanced_stats"
@@ -193,12 +195,35 @@ fun NavGraph(
     }
 
     if (!isLoggedIn) {
-        AuthNavHost(authStore = authStore, onLoginSuccess = { authStore.login() })
+        // Auth UI is hosted by MainActivity (account switch recreates user-scoped deps).
         return
     }
     if (!showMainContent) {
         return
     }
+
+    val socialRepository = LocalSocialRepository.current
+    val userProfileStore = LocalUserProfileStore.current
+    val setupComplete by userProfileStore.setupComplete.collectAsState()
+    var needsSetup by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(isLoggedIn, setupComplete) {
+        if (!isLoggedIn) {
+            needsSetup = null
+            return@LaunchedEffect
+        }
+        socialRepository.ensureInitialized()
+        needsSetup = socialRepository.needsProfileSetup()
+    }
+    if (needsSetup == true) {
+        ProfileSetupScreen(
+            onCompleted = { needsSetup = false },
+        )
+        return
+    }
+    if (needsSetup == null) {
+        return
+    }
+
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
     val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.PROFILE)
@@ -223,6 +248,8 @@ fun NavGraph(
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
+                DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
+                DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.SUPPORT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
             }

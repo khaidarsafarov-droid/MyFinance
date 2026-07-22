@@ -12,6 +12,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.truckerload.BuildConfig
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
 import com.truckerload.data.preferences.AppThemeMode
@@ -57,7 +58,9 @@ class TruckerLoadApp : Application() {
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
-        TelegramTokenStore(this).bootstrapFromBuildConfigIfEmpty()
+        AuthStore(this).currentUserIdOrNull()?.let { userId ->
+            TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
+        }
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
@@ -66,12 +69,15 @@ class TruckerLoadApp : Application() {
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                TelegramTokenStore(this@TruckerLoadApp).bootstrapFromBuildConfigIfEmpty()
-                scheduleTelegramSync()
-                WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
-                if (TelegramTokenStore(this@TruckerLoadApp).hasToken()) {
-                    TelegramBotForegroundService.start(this@TruckerLoadApp)
+                val userId = AuthStore(this@TruckerLoadApp).currentUserIdOrNull()
+                if (userId != null) {
+                    TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
+                    scheduleTelegramSync()
+                    if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
+                        TelegramBotForegroundService.start(this@TruckerLoadApp)
+                    }
                 }
+                WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
             }
 
             override fun onStop(owner: LifecycleOwner) {
@@ -111,9 +117,9 @@ class TruckerLoadApp : Application() {
     }
 
     private fun refreshLoadReportingWeeks() {
-        val db = AppDatabase.getInstance(this)
-        val repo = LoadRepository(db)
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            val db = AppDatabase.getInstanceForActiveUser(this@TruckerLoadApp) ?: return@launch
+            val repo = LoadRepository(db)
             BackupService.restoreLatestCompanionBackupIfEmpty(this@TruckerLoadApp)
                 ?.onSuccess { message ->
                     withContext(Dispatchers.Main) {

@@ -48,6 +48,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
+import com.truckerload.domain.geo.CountryCatalog
+import java.util.Locale
 import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.AppTypography
@@ -154,7 +156,9 @@ fun ProfileScreen(
             if (profile.preferredRoutes.isNotEmpty() || profile.homeState.isNotBlank()) {
                 item { ProfileTerritorySection(profile) }
             }
-            item { ProfileSocialSection(profile) }
+            if (profile.followers > 0 || profile.following > 0) {
+                item { ProfileSocialSection(profile) }
+            }
             if (profile.phoneNumber != null || profile.telegramUsername != null) {
                 item { ProfileContactsSection(profile) }
             }
@@ -195,26 +199,52 @@ private fun PremiumProfileHeader(
                         onClick = onAvatarClick,
                     )
                     Column {
-                        Text(profile.displayName, style = AppTypography.CardTitle, color = tc.TextPrimary)
                         Text(
-                            "${profile.truckType.emoji} ${profile.truckType.label} · ${profile.experienceYears} ${stringResource(R.string.experience_years)}",
-                            style = AppTypography.Subtitle,
-                            color = tc.TextSecondary,
+                            profile.displayName.ifBlank { stringResource(R.string.profile_name_placeholder) },
+                            style = AppTypography.CardTitle,
+                            color = tc.TextPrimary,
                         )
-                        Text(
-                            "📍 ${profile.homeState.ifBlank { "—" }} · ${profile.status.label}",
-                            style = AppTypography.Subtitle,
-                            color = tc.TextSecondary,
-                        )
+                        val truckMeta = buildList {
+                            if (profile.truckType != com.truckerload.domain.social.TruckType.OTHER) {
+                                add("${profile.truckType.emoji} ${profile.truckType.label}")
+                            }
+                            if (profile.experienceYears > 0) {
+                                add("${profile.experienceYears} ${stringResource(R.string.experience_years)}")
+                            }
+                        }
+                        if (truckMeta.isNotEmpty()) {
+                            Text(
+                                truckMeta.joinToString(" · "),
+                                style = AppTypography.Subtitle,
+                                color = tc.TextSecondary,
+                            )
+                        }
+                        val isRussian = Locale.getDefault().language.equals("ru", ignoreCase = true)
+                        val locationLabel = CountryCatalog.byIso2(profile.homeState)
+                            ?.let { "${it.iso2} · ${it.displayName(isRussian)}" }
+                            ?: profile.homeState
+                        if (locationLabel.isNotBlank() || profile.status != com.truckerload.domain.social.DriverStatus.OFFLINE) {
+                            Text(
+                                buildString {
+                                    if (locationLabel.isNotBlank()) append("📍 $locationLabel")
+                                    if (locationLabel.isNotBlank()) append(" · ")
+                                    append(profile.status.label)
+                                },
+                                style = AppTypography.Subtitle,
+                                color = tc.TextSecondary,
+                            )
+                        }
                     }
                 }
-                Text(
-                    text = "⭐ ${"%.1f".format(profile.rating)} ★ (${profile.ratingCount}) · 🏅 ${profile.reputation} ${stringResource(R.string.social_reputation_short)}",
-                    style = AppTypography.Subtitle,
-                    color = tc.AccentPrimary,
-                    modifier = Modifier.padding(top = 12.dp),
-                )
-                profile.currentRoute?.let { route ->
+                if (profile.ratingCount > 0) {
+                    Text(
+                        text = "⭐ ${"%.1f".format(profile.rating)} ★ (${profile.ratingCount}) · 🏅 ${profile.reputation} ${stringResource(R.string.social_reputation_short)}",
+                        style = AppTypography.Subtitle,
+                        color = tc.AccentPrimary,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+                profile.currentRoute?.takeIf { it.isNotBlank() }?.let { route ->
                     Text("🛣️ $route", style = AppTypography.Subtitle, color = tc.TextSecondary, modifier = Modifier.padding(top = 4.dp))
                 }
             }
@@ -313,12 +343,18 @@ private fun ProfileTerritorySection(profile: EnhancedDriverProfile) {
     BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(stringResource(R.string.social_territory), style = AppTypography.CardTitle, color = tc.TextPrimary)
-            Text(
-                "${stringResource(R.string.home_state)}: ${profile.homeState}",
-                style = AppTypography.Subtitle,
-                color = tc.TextSecondary,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+            val isRussian = Locale.getDefault().language.equals("ru", ignoreCase = true)
+            val countryLabel = CountryCatalog.byIso2(profile.homeState)
+                ?.let { "${it.displayName(isRussian)} (${it.iso2})" }
+                ?: profile.homeState
+            if (countryLabel.isNotBlank()) {
+                Text(
+                    "${stringResource(R.string.home_country)}: $countryLabel",
+                    style = AppTypography.Subtitle,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
             if (profile.preferredRoutes.isNotEmpty()) {
                 Text(
                     "${stringResource(R.string.social_favorite_routes)}: ${profile.preferredRoutes.joinToString(", ")}",
@@ -327,12 +363,14 @@ private fun ProfileTerritorySection(profile: EnhancedDriverProfile) {
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            Text(
-                "${stringResource(R.string.social_max_radius)}: ${profile.maxRadius} mi",
-                style = AppTypography.Subtitle,
-                color = tc.TextSecondary,
-                modifier = Modifier.padding(top = 4.dp),
-            )
+            if (profile.maxRadius > 0 && profile.maxRadius != 500) {
+                Text(
+                    "${stringResource(R.string.social_max_radius)}: ${profile.maxRadius} mi",
+                    style = AppTypography.Subtitle,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
         }
     }
 }

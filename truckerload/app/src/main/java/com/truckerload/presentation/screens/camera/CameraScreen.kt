@@ -53,6 +53,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.truckerload.R
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassTheme
 import java.io.File
 import java.util.concurrent.Executors
@@ -60,7 +62,8 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreen(
-    onPhotoReady: (CapturedPhoto) -> Unit,
+    sessionCount: Int,
+    onOpenBatch: () -> Unit,
     onBack: () -> Unit,
     viewModel: CameraViewModel,
 ) {
@@ -105,22 +108,32 @@ fun CameraScreen(
         }
     }
 
-    LaunchedEffect(uiState.capturedPhoto) {
-        uiState.capturedPhoto?.let(onPhotoReady)
+    // Seed with current size so remounting after batch review does not re-toast old photos.
+    var lastNotifiedCount by remember { mutableStateOf(uiState.sessionPhotos.size) }
+    LaunchedEffect(uiState.sessionPhotos.size) {
+        val count = uiState.sessionPhotos.size
+        if (count < lastNotifiedCount) {
+            lastNotifiedCount = count
+        }
+        if (count > lastNotifiedCount) {
+            snackbarHostState.showSnackbar(
+                context.getString(R.string.camera_photo_added, count),
+            )
+            lastNotifiedCount = count
+        }
     }
 
     LaunchedEffect(uiState.errorMessage) {
-        when (uiState.errorMessage) {
-            "decode_failed", "save_failed", "camera_bind_failed", "capture_failed" ->
-                snackbarHostState.showSnackbar(context.getString(R.string.photo_save_error))
-            null -> Unit
+        if (uiState.errorMessage != null) {
+            snackbarHostState.showSnackbar(context.getString(R.string.photo_save_error))
+            viewModel.clearError()
         }
-        if (uiState.errorMessage != null) viewModel.clearError()
     }
 
     val imageCapture = remember { ImageCapture.Builder().build() }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val previewViewHolder = remember { mutableStateOf<PreviewView?>(null) }
+    var captureInFlight by remember { mutableStateOf(false) }
 
     DisposableEffect(previewViewHolder.value, hasCameraPermission, lifecycleOwner) {
         val previewView = previewViewHolder.value
@@ -130,9 +143,15 @@ fun CameraScreen(
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val mainExecutor = ContextCompat.getMainExecutor(context)
         var cameraProvider: ProcessCameraProvider? = null
+        var disposed = false
         cameraProviderFuture.addListener({
+            if (disposed) return@addListener
             try {
                 val provider = cameraProviderFuture.get()
+                if (disposed) {
+                    provider.unbindAll()
+                    return@addListener
+                }
                 cameraProvider = provider
                 val preview = Preview.Builder().build().also {
                     it.surfaceProvider = previewView.surfaceProvider
@@ -145,10 +164,14 @@ fun CameraScreen(
                     imageCapture,
                 )
             } catch (_: Exception) {
-                viewModel.onCaptureError("camera_bind_failed")
+                if (!disposed) viewModel.onCaptureError("camera_bind_failed")
             }
         }, mainExecutor)
-        onDispose { cameraProvider?.unbindAll() }
+        onDispose {
+            disposed = true
+            cameraProvider?.unbindAll()
+            runCatching { cameraProviderFuture.get().unbindAll() }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -164,6 +187,13 @@ fun CameraScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                    }
+                },
+                actions = {
+                    if (sessionCount > 0) {
+                        TextButton(onClick = onOpenBatch) {
+                            Text(stringResource(R.string.camera_finish_batch, sessionCount))
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -225,6 +255,17 @@ fun CameraScreen(
                         )
                     }
 
+                    if (sessionCount > 0) {
+                        Button(
+                            onClick = onOpenBatch,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp),
+                        ) {
+                            Text(stringResource(R.string.camera_batch_count, sessionCount))
+                        }
+                    }
+
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -237,25 +278,36 @@ fun CameraScreen(
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.onPrimary)
                             .clickable(
+                                enabled = !captureInFlight && !uiState.isProcessing,
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
                                 onClick = {
+                                    if (captureInFlight || uiState.isProcessing) return@clickable
+                                    captureInFlight = true
                                     val photoFile = File(
                                         context.cacheDir,
                                         "capture_${System.currentTimeMillis()}.jpg",
                                     )
                                     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+                                    val mainExecutor = ContextCompat.getMainExecutor(context)
                                     imageCapture.takePicture(
                                         outputOptions,
                                         cameraExecutor,
                                         object : ImageCapture.OnImageSavedCallback {
                                             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                                viewModel.processCapturedImage(photoFile)
+                                                // Compose state + ViewModel entry must run on main.
+                                                mainExecutor.execute {
+                                                    viewModel.processCapturedImage(photoFile)
+                                                    captureInFlight = false
+                                                }
                                             }
 
                                             override fun onError(exception: ImageCaptureException) {
-                                                photoFile.delete()
-                                                viewModel.onCaptureError(exception.message ?: "capture_failed")
+                                                mainExecutor.execute {
+                                                    photoFile.delete()
+                                                    viewModel.onCaptureError("capture_failed")
+                                                    captureInFlight = false
+                                                }
                                             }
                                         },
                                     )

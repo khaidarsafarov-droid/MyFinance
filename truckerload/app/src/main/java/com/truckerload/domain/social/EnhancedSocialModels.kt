@@ -45,8 +45,9 @@ enum class TruckType(val label: String, val emoji: String) {
 
     companion object {
         fun fromLabel(value: String): TruckType =
-            entries.firstOrNull { it.name.equals(value, ignoreCase = true) || it.label.equals(value, ignoreCase = true) }
-                ?: DRY_VAN
+            if (value.isBlank()) OTHER
+            else entries.firstOrNull { it.name.equals(value, ignoreCase = true) || it.label.equals(value, ignoreCase = true) }
+                ?: OTHER
     }
 }
 

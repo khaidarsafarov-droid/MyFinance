@@ -39,9 +39,11 @@ import com.truckerload.utils.ocr.LanguageDetector
 @Composable
 fun ScanResultScreen(
     pending: PendingScan,
+    sessionCount: Int = 1,
     onSaveToApp: () -> Unit,
     onSaveToPhone: () -> Unit,
     onShare: () -> Unit,
+    onAddAnother: () -> Unit,
     onOpenGallery: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -81,6 +83,13 @@ fun ScanResultScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.TextSecondary,
             )
+            if (sessionCount > 1) {
+                Text(
+                    text = stringResource(R.string.scan_session_count, sessionCount),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.AccentPrimary,
+                )
+            }
             Text(
                 text = stringResource(
                     R.string.scan_size,
@@ -142,6 +151,12 @@ fun ScanResultScreen(
             ) {
                 Text(stringResource(R.string.save_to_app))
             }
+            OutlinedButton(
+                onClick = onAddAnother,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.scan_add_another))
+            }
             Button(
                 onClick = onSaveToPhone,
                 modifier = Modifier.fillMaxWidth(),
@@ -158,7 +173,9 @@ fun ScanResultScreen(
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = tc.AccentSecondary),
                 ) {
-                    Text(stringResource(R.string.send_to))
+                    Text(
+                        if (sessionCount > 1) stringResource(R.string.scan_share_all) else stringResource(R.string.send_to),
+                    )
                 }
                 OutlinedButton(
                     onClick = onOpenGallery,

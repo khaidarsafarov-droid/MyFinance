@@ -27,6 +27,8 @@ import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.LoadImporter
@@ -65,14 +67,19 @@ class TelegramBotSyncEngine(private val context: Context) {
     }
 
     private suspend fun runOnceLocked(token: String): SyncRunResult {
-        val prefs = context.getSharedPreferences(TelegramSyncWorker.PREFS_NAME, Context.MODE_PRIVATE)
+        val userId = AuthStore(context).currentUserIdOrNull()
+        if (userId.isNullOrBlank()) {
+            Log.w(TAG, "No active user session — skip Telegram sync")
+            return SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 60)
+        }
+        val prefs = telegramSyncPrefs(context, userId)
         val settingsDataStore = SettingsDataStore(context)
         var nextRequestOffset = loadNextRequestOffset(prefs, settingsDataStore)
-        Log.d(TAG, "📥 Last update offset (next request): $nextRequestOffset")
+        Log.d(TAG, "📥 Last update offset (next request): $nextRequestOffset user=$userId")
 
         val telegramApi = TelegramApi(token)
 
-        val db = AppDatabase.getInstance(context)
+        val db = AppDatabase.getInstance(context, userId)
         val loadRepository = LoadRepository(db)
         val paycheckRepository = PaycheckRepository(db)
         val dieselRepository = DieselRepository(db)
@@ -153,7 +160,8 @@ class TelegramBotSyncEngine(private val context: Context) {
         loadRepository: LoadRepository,
         prefs: SharedPreferences,
     ): ImportMessageHandler {
-        val db = AppDatabase.getInstance(context)
+        val db = AppDatabase.getInstanceForActiveUser(context)
+            ?: error("No active user for Telegram import")
         val importRepo = LoadImportRepositoryImpl(loadRepository, db.loadDao())
         val settingsDataStore = SettingsDataStore(context)
         val config = parserConfig(settingsDataStore)
@@ -178,7 +186,8 @@ class TelegramBotSyncEngine(private val context: Context) {
         loadRepository: LoadRepository,
         prefs: SharedPreferences,
     ): ImportDocumentHandler {
-        val db = AppDatabase.getInstance(context)
+        val db = AppDatabase.getInstanceForActiveUser(context)
+            ?: error("No active user for Telegram import")
         val importRepo = LoadImportRepositoryImpl(loadRepository, db.loadDao())
         val settingsDataStore = SettingsDataStore(context)
         val config = parserConfig(settingsDataStore)
@@ -850,6 +859,21 @@ class TelegramBotSyncEngine(private val context: Context) {
     companion object {
         private const val TAG = "TelegramBotSync"
         private val exportCaptionDate = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.US)
+
+        fun telegramSyncPrefs(context: Context, userId: String): SharedPreferences {
+            val name = "telegram_sync_${AccountIds.sanitizeFilePart(userId)}"
+            val scoped = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+            if (!scoped.contains(TelegramSyncWorker.KEY_LAST_OFFSET)) {
+                val legacy = context.getSharedPreferences(TelegramSyncWorker.PREFS_NAME, Context.MODE_PRIVATE)
+                val offset = legacy.getLong(TelegramSyncWorker.KEY_LAST_OFFSET, 0L)
+                if (offset > 0L) {
+                    scoped.edit(commit = true) {
+                        putLong(TelegramSyncWorker.KEY_LAST_OFFSET, offset)
+                    }
+                }
+            }
+            return scoped
+        }
 
         suspend fun sendFileToTelegram(
             context: Context,

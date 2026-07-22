@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -45,9 +43,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthSession
 import com.truckerload.data.preferences.UserProfile
-import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.SupabaseAuthService
+import com.truckerload.domain.geo.CountryCatalog
+import com.truckerload.presentation.auth.GoogleAuthCallbacks
+import com.truckerload.presentation.auth.rememberGoogleSignInLauncher
+import com.truckerload.presentation.components.GoogleSignInButton
+import com.truckerload.presentation.components.PhoneWithCountryField
+import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -72,12 +77,21 @@ fun SignUpScreen(
     val scope = rememberCoroutineScope()
 
     var fullName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
+    var phoneCountry by remember { mutableStateOf(CountryCatalog.default) }
+    var nationalNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var isGoogleLoading by remember { mutableStateOf(false) }
+
+    val googleSignIn = rememberGoogleSignInLauncher(
+        GoogleAuthCallbacks(
+            onBusy = { isGoogleLoading = it },
+            onSignedIn = onSuccess,
+        ),
+    )
 
     fun completeSignUp() {
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSuccess() }, 400)
@@ -87,16 +101,27 @@ fun SignUpScreen(
         error = null
         val nameTrimmed = fullName.trim()
         val emailTrimmed = email.trim()
-        val phoneTrimmed = phone.trim().replace(Regex("[^+0-9]"), "")
-        val phoneFormatted = if (phoneTrimmed.startsWith("+")) phoneTrimmed else "+1 $phoneTrimmed"
+        val phoneFormatted = CountryCatalog.formatE164(phoneCountry, nationalNumber)
+        val phoneDigits = phoneFormatted.filter { it.isDigit() }
         when {
             nameTrimmed.isBlank() -> error = context.getString(R.string.auth_error_name_required)
-            phoneTrimmed.length < 10 -> error = context.getString(R.string.auth_error_phone_required)
+            phoneDigits.length < 8 -> error = context.getString(R.string.auth_error_phone_required)
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
                 android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured), android.widget.Toast.LENGTH_LONG).show()
-                userProfileStore.saveProfile(UserProfile(email = emailTrimmed, givenName = nameTrimmed, familyName = "", photoUrl = null))
+                AuthSession.completeLogin(
+                    authStore = authStore,
+                    userProfileStore = userProfileStore,
+                    userId = AccountIds.fromEmail(emailTrimmed),
+                    profile = UserProfile(
+                        email = emailTrimmed,
+                        givenName = nameTrimmed,
+                        familyName = "",
+                        photoUrl = null,
+                        phoneNumber = phoneFormatted,
+                    ),
+                )
                 completeSignUp()
             }
             else -> {
@@ -130,7 +155,20 @@ fun SignUpScreen(
                                                                     isLoading = false
                                                                     upsertResult.fold(
                                                                         onSuccess = {
-                                                                            userProfileStore.saveProfile(UserProfile(email = r.user.email ?: emailTrimmed, givenName = parts.firstOrNull() ?: "", familyName = parts.getOrNull(1) ?: "", photoUrl = null))
+                                                                            AuthSession.completeLogin(
+                                                                                authStore = authStore,
+                                                                                userProfileStore = userProfileStore,
+                                                                                userId = r.user.id,
+                                                                                profile = UserProfile(
+                                                                                    email = r.user.email ?: emailTrimmed,
+                                                                                    givenName = parts.firstOrNull() ?: "",
+                                                                                    familyName = parts.getOrNull(1) ?: "",
+                                                                                    photoUrl = null,
+                                                                                    phoneNumber = phoneFormatted,
+                                                                                ),
+                                                                                accessToken = r.accessToken,
+                                                                                refreshToken = r.refreshToken,
+                                                                            )
                                                                             completeSignUp()
                                                                         },
                                                                         onFailure = { error = it.message ?: context.getString(R.string.signup_error_profile_save) }
@@ -194,23 +232,12 @@ fun SignUpScreen(
                     colors = tfColors
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { s ->
-                        val digits = s.filter { it.isDigit() || it == '+' }
-                        phone = if (digits.startsWith("+")) {
-                            if (digits.length > 1) "+${digits.drop(1).take(11)}" else "+"
-                        } else {
-                            digits.take(11)
-                        }
-                        error = null
-                    },
-                    label = { Text(stringResource(R.string.auth_phone_hint)) },
-                    placeholder = { Text("+1 234 567 8900") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    colors = tfColors
+                PhoneWithCountryField(
+                    country = phoneCountry,
+                    nationalNumber = nationalNumber,
+                    onCountryChange = { phoneCountry = it; error = null },
+                    onNationalNumberChange = { nationalNumber = it; error = null },
+                    label = stringResource(R.string.auth_phone_hint),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
@@ -242,7 +269,21 @@ fun SignUpScreen(
                     colors = tfColors
                 )
                 error?.let { Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+                GoogleSignInButton(
+                    onClick = { googleSignIn.launch() },
+                    enabled = !isLoading && !isGoogleLoading,
+                    loading = isGoogleLoading,
+                    text = stringResource(R.string.signup_with_google),
+                )
+                Text(
+                    text = stringResource(R.string.login_or_divider),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(vertical = 16.dp),
+                )
                 Button(
                     onClick = { if (!isLoading) performSignUp() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),

@@ -85,6 +85,8 @@ import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -101,6 +103,16 @@ fun HomeScreen(
 ) {
     val tc = LocalTruckColors.current
     val loadRepository = LocalLoadRepository.current
+    val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
+        .collectAsState(initial = null)
+    val userProfile by LocalUserProfileStore.current.profile.collectAsState()
+    val welcomeName = remember(socialProfile, userProfile) {
+        socialProfile?.displayName
+            ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?: userProfile?.displayName
+                ?.takeIf { it.isNotBlank() && it != userProfile?.email }
+            ?: ""
+    }
     val context = LocalContext.current
     val openDrawer = LocalOpenDrawer.current
     val isBotConfigured = remember(context) { TelegramTokenStore(context).hasToken() }
@@ -205,10 +217,18 @@ fun HomeScreen(
                 title = {
                     Column {
                         DarkGlassScreenTitle(stringResource(R.string.home_brand_title))
-                        Text(
-                            stringResource(R.string.app_tagline),
-                            style = AppTypography.Subtitle,
-                        )
+                        if (welcomeName.isNotBlank()) {
+                            Text(
+                                stringResource(R.string.home_welcome, welcomeName),
+                                style = AppTypography.Subtitle,
+                                color = tc.AccentPrimary,
+                            )
+                        } else {
+                            Text(
+                                stringResource(R.string.app_tagline),
+                                style = AppTypography.Subtitle,
+                            )
+                        }
                         weekLabel.takeIf { it.isNotBlank() && uiState.filter != LoadFilter.THIS_WEEK }?.let { week ->
                             Text(week, style = AppTypography.Subtitle)
                         }

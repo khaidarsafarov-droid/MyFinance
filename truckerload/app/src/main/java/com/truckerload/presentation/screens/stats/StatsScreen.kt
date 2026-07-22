@@ -93,7 +93,9 @@ import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
+import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalStatsSelectionStore
+import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalWeekRepository
 import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
@@ -121,6 +123,16 @@ fun StatsScreen(
     onOpenMap: () -> Unit = {}
 ) {
     val aiRepository = LocalAiRepository.current
+    val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
+        .collectAsState(initial = null)
+    val userProfile by LocalUserProfileStore.current.profile.collectAsState()
+    val welcomeName = remember(socialProfile, userProfile) {
+        socialProfile?.displayName
+            ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?: userProfile?.displayName
+                ?.takeIf { it.isNotBlank() && it != userProfile?.email }
+            ?: ""
+    }
     val viewModel: StatsViewModel = viewModel(
         factory = StatsViewModel.Factory(
             LocalWeekRepository.current,
@@ -231,7 +243,7 @@ fun StatsScreen(
                     .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-            SmartHeader(period = uiState.statsPeriod)
+            SmartHeader(period = uiState.statsPeriod, userName = welcomeName)
                 ContextCard(month = uiState.calendarMonth, year = uiState.calendarYear)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -765,7 +777,7 @@ private fun AdvancedStats(modifier: Modifier = Modifier, content: @Composable Co
 }
 
 @Composable
-private fun SmartHeader(period: StatsPeriod) {
+private fun SmartHeader(period: StatsPeriod, userName: String = "") {
     val tc = LocalTruckColors.current
     val periodLabel = when (period) {
         StatsPeriod.WEEK -> stringResource(R.string.common_week)
@@ -775,7 +787,11 @@ private fun SmartHeader(period: StatsPeriod) {
     SoftCard {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                stringResource(R.string.stats_header_greeting),
+                if (userName.isNotBlank()) {
+                    stringResource(R.string.stats_header_greeting_named, userName)
+                } else {
+                    stringResource(R.string.stats_header_greeting)
+                },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = tc.TextPrimary

@@ -66,7 +66,9 @@
     <string name="login_no_account_prefix">No account? </string>
     <string name="login_no_account_create">No account? Create account</string>
     <string name="login_with_google">Sign in with Google</string>
+    <string name="signup_with_google">Sign up with Google</string>
     <string name="login_with_email">Sign in with email</string>
+    <string name="login_or_divider">or</string>
     <string name="login_checking">Checking account…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>
@@ -228,8 +230,16 @@
     <string name="retake">🔄 Retake</string>
     <string name="share">Share</string>
     <string name="share_photo">Share photo</string>
+    <string name="share_photos_batch">Share photos</string>
     <string name="location_failed">Could not get location</string>
     <string name="camera_permission_denied">Camera permission denied</string>
+    <string name="camera_photo_added">Photo added (%1$d)</string>
+    <string name="camera_finish_batch">Done (%1$d)</string>
+    <string name="camera_batch_count">Photos: %1$d</string>
+    <string name="camera_batch_title">Session (%1$d)</string>
+    <string name="camera_add_another">Add more</string>
+    <string name="camera_share_all">Share all</string>
+    <string name="camera_save_all">Save all</string>
     <string name="location_permission_denied">Location permission denied</string>
     <string name="watermark_app_name">Truck Log</string>
     <string name="watermark_unknown">Unknown</string>
@@ -247,6 +257,9 @@
     <string name="no_scans">No saved scans</string>
     <string name="scan_pages">Pages: %1$d</string>
     <string name="scan_size">Size: %1$s</string>
+    <string name="scan_session_count">In session: %1$d</string>
+    <string name="scan_add_another">Add another</string>
+    <string name="scan_share_all">Share all</string>
     <string name="ocr_text">Recognized text</string>
     <string name="copy_text">Copy text</string>
     <string name="text_copied">Text copied</string>
@@ -787,11 +800,26 @@
     <!-- Community -->
     <string name="profile">Profile</string>
     <string name="edit_profile">Edit profile</string>
+    <string name="profile_setup_title">Profile setup</string>
+    <string name="profile_setup_subtitle">First check-in: your name, country, and phone with country code — needed later for verification.</string>
+    <string name="profile_setup_continue">Continue</string>
+    <string name="profile_setup_name_required">Enter your name</string>
+    <string name="profile_setup_phone_required">Enter your phone number</string>
+    <string name="profile_setup_state_required">Enter home state (2 letters, e.g. TX)</string>
+    <string name="profile_setup_country_required">Select your country</string>
+    <string name="home_country">Country</string>
+    <string name="phone_country_code">Country code</string>
+    <string name="phone_national_number">Phone number</string>
+    <string name="common_search">Search</string>
+    <string name="home_welcome">Hi, %1$s</string>
+    <string name="stats_header_greeting_named">Hello, %1$s!</string>
+    <string name="profile_name_placeholder">No name yet</string>
     <string name="profile_photo">Profile photo</string>
     <string name="profile_change_photo">Change photo</string>
     <string name="profile_photo_from_gallery">Choose from gallery</string>
     <string name="profile_photo_take_selfie">Take a selfie</string>
     <string name="profile_photo_remove">Remove photo</string>
+    <string name="profile_photo_load_failed">Could not load photo</string>
     <string name="profile_crop_photo">Crop photo</string>
     <string name="profile_crop_hint">Pinch to zoom and drag to position your photo</string>
     <string name="social_reputation_short">rep</string>

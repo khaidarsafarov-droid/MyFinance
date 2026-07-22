@@ -34,7 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
+import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.DriverStatus
+import com.truckerload.domain.social.TruckType
+import com.truckerload.presentation.components.CountryPickerField
+import com.truckerload.presentation.components.PhoneWithCountryField
 import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -72,14 +76,25 @@ fun ProfileEditScreen(
     )
 
     var displayName by remember(profile) { mutableStateOf(profile?.displayName.orEmpty()) }
-    var truckType by remember(profile) { mutableStateOf(profile?.truckType?.label.orEmpty()) }
-    var experienceYears by remember(profile) { mutableStateOf(profile?.experienceYears?.toString().orEmpty()) }
-    var homeState by remember(profile) { mutableStateOf(profile?.homeState.orEmpty()) }
+    var truckType by remember(profile) {
+        mutableStateOf(
+            profile?.truckType
+                ?.takeIf { it != TruckType.OTHER }
+                ?.label
+                .orEmpty(),
+        )
+    }
+    var experienceYears by remember(profile) { mutableStateOf(profile?.experienceYears?.takeIf { it > 0 }?.toString().orEmpty()) }
+    var homeCountry by remember(profile) {
+        mutableStateOf(CountryCatalog.byIso2(profile?.homeState) ?: CountryCatalog.default)
+    }
     var routes by remember(profile) { mutableStateOf(profile?.preferredRoutes?.joinToString(", ").orEmpty()) }
     var about by remember(profile) { mutableStateOf(profile?.about.orEmpty()) }
     var status by remember(profile) { mutableStateOf(profile?.status ?: DriverStatus.ONLINE) }
     var licenseClass by remember(profile) { mutableStateOf(profile?.licenseClass.orEmpty()) }
-    var phoneNumber by remember(profile) { mutableStateOf(profile?.phoneNumber.orEmpty()) }
+    val parsedPhone = remember(profile?.phoneNumber) { CountryCatalog.parsePhone(profile?.phoneNumber) }
+    var phoneCountry by remember(profile) { mutableStateOf(parsedPhone.first) }
+    var nationalNumber by remember(profile) { mutableStateOf(parsedPhone.second) }
     var telegramUsername by remember(profile) { mutableStateOf(profile?.telegramUsername.orEmpty()) }
     var whatsappNumber by remember(profile) { mutableStateOf(profile?.whatsappNumber.orEmpty()) }
     var specialties by remember(profile) { mutableStateOf(profile?.specialties?.joinToString(", ").orEmpty()) }
@@ -129,6 +144,16 @@ fun ProfileEditScreen(
                 colors = AppTextFieldDefaults.outlined(),
                 singleLine = true,
             )
+            CountryPickerField(
+                selected = homeCountry,
+                onSelected = { homeCountry = it },
+            )
+            PhoneWithCountryField(
+                country = phoneCountry,
+                nationalNumber = nationalNumber,
+                onCountryChange = { phoneCountry = it },
+                onNationalNumberChange = { nationalNumber = it },
+            )
             OutlinedTextField(
                 value = truckType,
                 onValueChange = { truckType = it },
@@ -141,14 +166,6 @@ fun ProfileEditScreen(
                 value = experienceYears,
                 onValueChange = { experienceYears = it.filter { ch -> ch.isDigit() } },
                 label = { Text(stringResource(R.string.experience_years)) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = AppTextFieldDefaults.outlined(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = homeState,
-                onValueChange = { homeState = it.uppercase().take(2) },
-                label = { Text(stringResource(R.string.home_state)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = AppTextFieldDefaults.outlined(),
                 singleLine = true,
@@ -174,14 +191,6 @@ fun ProfileEditScreen(
                 label = { Text(stringResource(R.string.social_specialties)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = AppTextFieldDefaults.outlined(),
-            )
-            OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = { phoneNumber = it },
-                label = { Text(stringResource(R.string.social_phone)) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = AppTextFieldDefaults.outlined(),
-                singleLine = true,
             )
             OutlinedTextField(
                 value = telegramUsername,
@@ -222,12 +231,12 @@ fun ProfileEditScreen(
                         displayName = displayName,
                         truckType = truckType,
                         experienceYears = experienceYears.toIntOrNull() ?: 0,
-                        homeState = homeState,
+                        homeState = homeCountry.iso2,
                         routes = routes,
                         about = about,
                         status = status,
                         licenseClass = licenseClass,
-                        phoneNumber = phoneNumber,
+                        phoneNumber = CountryCatalog.formatE164(phoneCountry, nationalNumber),
                         telegramUsername = telegramUsername,
                         whatsappNumber = whatsappNumber,
                         specialties = specialties,

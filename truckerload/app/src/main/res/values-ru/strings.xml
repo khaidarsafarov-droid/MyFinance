@@ -66,7 +66,9 @@
     <string name="login_no_account_prefix">Нет аккаунта? </string>
     <string name="login_no_account_create">Нет аккаунта? Создать аккаунт</string>
     <string name="login_with_google">Войти через Google</string>
+    <string name="signup_with_google">Зарегистрироваться через Google</string>
     <string name="login_with_email">Войти через почту</string>
+    <string name="login_or_divider">или</string>
     <string name="login_checking">Проверка аккаунта…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>
@@ -228,8 +230,16 @@
     <string name="retake">🔄 Переснять</string>
     <string name="share">Поделиться</string>
     <string name="share_photo">Поделиться фото</string>
+    <string name="share_photos_batch">Поделиться фото</string>
     <string name="location_failed">Не удалось получить местоположение</string>
     <string name="camera_permission_denied">Нет разрешения на использование камеры</string>
+    <string name="camera_photo_added">Фото добавлено (%1$d)</string>
+    <string name="camera_finish_batch">Готово (%1$d)</string>
+    <string name="camera_batch_count">Фото: %1$d</string>
+    <string name="camera_batch_title">Сессия (%1$d)</string>
+    <string name="camera_add_another">Добавить ещё</string>
+    <string name="camera_share_all">Поделиться всеми</string>
+    <string name="camera_save_all">Сохранить все</string>
     <string name="location_permission_denied">Нет разрешения на определение местоположения</string>
     <string name="watermark_app_name">Truck Log</string>
     <string name="watermark_unknown">Неизвестно</string>
@@ -247,6 +257,9 @@
     <string name="no_scans">Нет сохранённых сканов</string>
     <string name="scan_pages">Страниц: %1$d</string>
     <string name="scan_size">Размер: %1$s</string>
+    <string name="scan_session_count">В сессии: %1$d</string>
+    <string name="scan_add_another">Добавить ещё</string>
+    <string name="scan_share_all">Поделиться всеми</string>
     <string name="ocr_text">Распознанный текст</string>
     <string name="copy_text">Копировать текст</string>
     <string name="text_copied">Текст скопирован</string>
@@ -787,11 +800,26 @@
     <!-- Сообщество -->
     <string name="profile">Профиль</string>
     <string name="edit_profile">Редактировать профиль</string>
+    <string name="profile_setup_title">Настройка профиля</string>
+    <string name="profile_setup_subtitle">Первый вход: укажите имя, страну и телефон с кодом страны — пригодится для проверки номера.</string>
+    <string name="profile_setup_continue">Продолжить</string>
+    <string name="profile_setup_name_required">Введите имя</string>
+    <string name="profile_setup_phone_required">Введите телефон</string>
+    <string name="profile_setup_state_required">Укажите штат (2 буквы, например TX)</string>
+    <string name="profile_setup_country_required">Выберите страну</string>
+    <string name="home_country">Страна</string>
+    <string name="phone_country_code">Код страны</string>
+    <string name="phone_national_number">Номер телефона</string>
+    <string name="common_search">Поиск</string>
+    <string name="home_welcome">Привет, %1$s</string>
+    <string name="stats_header_greeting_named">Здравствуйте, %1$s!</string>
+    <string name="profile_name_placeholder">Без имени</string>
     <string name="profile_photo">Фото профиля</string>
     <string name="profile_change_photo">Изменить фото</string>
     <string name="profile_photo_from_gallery">Выбрать из галереи</string>
     <string name="profile_photo_take_selfie">Сделать селфи</string>
     <string name="profile_photo_remove">Удалить фото</string>
+    <string name="profile_photo_load_failed">Не удалось загрузить фото</string>
     <string name="profile_crop_photo">Обрезка фото</string>
     <string name="profile_crop_hint">Увеличьте и переместите фото в круг</string>
     <string name="social_reputation_short">реп</string>

@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.clickable
@@ -25,22 +24,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import com.truckerload.presentation.components.TlButton as Button
-import androidx.compose.material3.ButtonDefaults
+import com.truckerload.presentation.components.GoogleSignInButton
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,14 +45,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -71,9 +61,11 @@ import com.truckerload.BuildConfig
 import com.truckerload.R
 import android.util.Base64
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthSession
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.di.LocalAuthStore
@@ -96,25 +88,61 @@ private fun decodeGoogleIdToken(idToken: String): JSONObject? {
     } catch (_: Exception) { null }
 }
 
-private fun scheduleLoginAfterTransition(context: android.content.Context, authStore: AuthStore, rememberMe: Boolean = true) {
+/** Prefer Supabase/metadata avatar, then Google ID-token picture, then legacy account photo. */
+private fun resolveGooglePhotoUrl(
+    primary: String?,
+    idToken: String? = null,
+    accountPhotoUrl: String? = null,
+): String? {
+    primary?.takeIf { it.isNotBlank() }?.let { return it }
+    idToken?.let { token ->
+        decodeGoogleIdToken(token)?.optString("picture")?.takeIf { it.isNotBlank() }?.let { return it }
+    }
+    return accountPhotoUrl?.takeIf { it.isNotBlank() }
+}
+
+private fun saveProfileAndLogin(
+    email: String,
+    givenName: String,
+    familyName: String,
+    photoUrl: String?,
+    context: android.content.Context,
+    userProfileStore: UserProfileStore,
+    authStore: AuthStore,
+    rememberMe: Boolean = true,
+    phoneNumber: String? = null,
+    supabaseUserId: String? = null,
+    accessToken: String? = null,
+    refreshToken: String? = null,
+) {
+    val profile = UserProfile(
+        email = email,
+        givenName = givenName,
+        familyName = familyName,
+        photoUrl = photoUrl,
+        phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
+    )
+    val userId = AccountIds.resolve(supabaseUserId, email)
+    val finish = {
+        AuthSession.completeLogin(
+            authStore = authStore,
+            userProfileStore = userProfileStore,
+            userId = userId,
+            profile = profile,
+            rememberMe = rememberMe,
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+        )
+    }
     val activity = context as? ComponentActivity
     if (activity != null) {
         activity.lifecycleScope.launch {
             delay(400)
-            withContext(Dispatchers.Main) { authStore.login(rememberMe) }
+            withContext(Dispatchers.Main) { finish() }
         }
     } else {
-        Handler(Looper.getMainLooper()).postDelayed({ authStore.login(rememberMe) }, 400)
+        Handler(Looper.getMainLooper()).postDelayed({ finish() }, 400)
     }
-}
-
-private fun saveProfileAndLogin(
-    email: String, givenName: String, familyName: String, photoUrl: String?,
-    context: android.content.Context, userProfileStore: UserProfileStore, authStore: AuthStore,
-    rememberMe: Boolean = true
-) {
-    userProfileStore.saveProfile(UserProfile(email = email, givenName = givenName, familyName = familyName, photoUrl = photoUrl))
-    scheduleLoginAfterTransition(context, authStore, rememberMe)
 }
 
 @Composable
@@ -149,7 +177,15 @@ fun LoginScreen(
             try {
                 val idToken = account.idToken
                 fun signInLocally() {
-                    saveProfileAndLogin(account.email ?: "", account.givenName ?: "", account.familyName ?: "", account.photoUrl?.toString(), context, userProfileStore, authStore)
+                    saveProfileAndLogin(
+                        account.email ?: "",
+                        account.givenName ?: "",
+                        account.familyName ?: "",
+                        resolveGooglePhotoUrl(null, idToken, account.photoUrl?.toString()),
+                        context,
+                        userProfileStore,
+                        authStore,
+                    )
                     isLoading = false
                 }
                 if (supabaseAuth.isConfigured() && !idToken.isNullOrBlank()) {
@@ -161,7 +197,18 @@ fun LoginScreen(
                                 if (signInResult != null) {
                                     val u = signInResult.user
                                     val parts = (u.fullName ?: "${u.email?.take(10) ?: "User"}").trim().split(" ")
-                                    saveProfileAndLogin(u.email ?: "", parts.firstOrNull() ?: "", parts.drop(1).joinToString(" "), u.avatarUrl, context, userProfileStore, authStore)
+                                    saveProfileAndLogin(
+                                        u.email ?: account.email ?: "",
+                                        parts.firstOrNull() ?: account.givenName ?: "",
+                                        parts.drop(1).joinToString(" ").ifBlank { account.familyName ?: "" },
+                                        resolveGooglePhotoUrl(u.avatarUrl, idToken, account.photoUrl?.toString()),
+                                        context,
+                                        userProfileStore,
+                                        authStore,
+                                        supabaseUserId = u.id,
+                                        accessToken = signInResult.accessToken,
+                                        refreshToken = signInResult.refreshToken,
+                                    )
                                 } else {
                                     android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                                     signInLocally()
@@ -198,11 +245,12 @@ fun LoginScreen(
     }
 
     fun launchGoogleSignIn() {
+        isLoading = true
         if (!CredentialManagerGoogleSignIn.isAvailable()) {
-            android.widget.Toast.makeText(context, context.getString(R.string.login_google_error, "GOOGLE_WEB_CLIENT_ID не задан"), android.widget.Toast.LENGTH_LONG).show()
+            // No web client ID — still try the legacy Google Sign-In activity.
+            launchLegacyGoogleSignIn()
             return
         }
-        isLoading = true
         scope.launch {
             val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(context)
             val idToken = tokenResult.getOrNull()
@@ -214,34 +262,48 @@ fun LoginScreen(
                             val signInResult = authResult.getOrNull()
                             if (signInResult != null) {
                                 val u = signInResult.user
+                                val claims = decodeGoogleIdToken(idToken)
                                 val parts = (u.fullName ?: u.email?.take(10) ?: "User").trim().split(" ")
-                                saveProfileAndLogin(u.email ?: "", parts.firstOrNull() ?: "", parts.drop(1).joinToString(" "), u.avatarUrl, context, userProfileStore, authStore)
+                                saveProfileAndLogin(
+                                    u.email ?: claims?.optString("email").orEmpty(),
+                                    parts.firstOrNull() ?: claims?.optString("given_name").orEmpty(),
+                                    parts.drop(1).joinToString(" ").ifBlank { claims?.optString("family_name").orEmpty() },
+                                    resolveGooglePhotoUrl(u.avatarUrl, idToken),
+                                    context,
+                                    userProfileStore,
+                                    authStore,
+                                    supabaseUserId = u.id,
+                                    accessToken = signInResult.accessToken,
+                                    refreshToken = signInResult.refreshToken,
+                                )
                             } else {
                                 android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                                 val c = decodeGoogleIdToken(idToken)
-                                saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", c?.optString("picture")?.takeIf { it.isNotBlank() }, context, userProfileStore, authStore)
+                                saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
                             }
                         } catch (e: Exception) {
                             android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, e.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                             val c = decodeGoogleIdToken(idToken)
-                            saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", c?.optString("picture")?.takeIf { it.isNotBlank() }, context, userProfileStore, authStore)
+                            saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
                         }
                     } else {
                         val c = decodeGoogleIdToken(idToken)
-                        saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", c?.optString("picture")?.takeIf { it.isNotBlank() }, context, userProfileStore, authStore)
+                        saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
                     }
                     isLoading = false
                 }
             } else {
                 withContext(Dispatchers.Main) {
                     when (tokenResult.exceptionOrNull()) {
-                        is GetCredentialCancellationException ->
-                            android.widget.Toast.makeText(context, "Credential Manager отменён.", android.widget.Toast.LENGTH_LONG).show()
-                        else ->
-                            android.widget.Toast.makeText(context, context.getString(R.string.login_google_error, "Unknown"), android.widget.Toast.LENGTH_LONG).show()
+                        is GetCredentialCancellationException -> {
+                            android.widget.Toast.makeText(context, context.getString(R.string.login_google_cancelled), android.widget.Toast.LENGTH_SHORT).show()
+                            isLoading = false
+                        }
+                        else -> {
+                            // Fall back to the classic Google account picker.
+                            launchLegacyGoogleSignIn()
+                        }
                     }
-                    launchLegacyGoogleSignIn()
-                    isLoading = false
                 }
             }
         }
@@ -256,8 +318,10 @@ fun LoginScreen(
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
                 android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured_local), android.widget.Toast.LENGTH_LONG).show()
-                userProfileStore.saveProfile(UserProfile(email = emailTrimmed, givenName = "", familyName = "", photoUrl = null))
-                scheduleLoginAfterTransition(context, authStore, rememberMe)
+                saveProfileAndLogin(
+                    emailTrimmed, "", "", null,
+                    context, userProfileStore, authStore, rememberMe,
+                )
             }
             else -> {
                 isLoading = true
@@ -280,12 +344,28 @@ fun LoginScreen(
                                             context,
                                             userProfileStore,
                                             authStore,
-                                            rememberMe
+                                            rememberMe,
+                                            phoneNumber = profile.phoneNumber,
+                                            supabaseUserId = r.user.id,
+                                            accessToken = r.accessToken,
+                                            refreshToken = r.refreshToken,
                                         )
                                     },
                                     onFailure = {
                                         val parts = (r.user.fullName ?: "").trim().split(" ", limit = 2)
-                                        saveProfileAndLogin(r.user.email ?: emailTrimmed, parts.firstOrNull() ?: "", parts.getOrNull(1) ?: "", null, context, userProfileStore, authStore, rememberMe)
+                                        saveProfileAndLogin(
+                                            r.user.email ?: emailTrimmed,
+                                            parts.firstOrNull() ?: "",
+                                            parts.getOrNull(1) ?: "",
+                                            null,
+                                            context,
+                                            userProfileStore,
+                                            authStore,
+                                            rememberMe,
+                                            supabaseUserId = r.user.id,
+                                            accessToken = r.accessToken,
+                                            refreshToken = r.refreshToken,
+                                        )
                                     }
                                 )
                             }
@@ -316,12 +396,34 @@ fun LoginScreen(
                 Text(text = stringResource(R.string.login_subtitle), style = MaterialTheme.typography.bodyLarge, color = tc.TextSecondary, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(32.dp))
 
+                GoogleSignInButton(
+                    onClick = { launchGoogleSignIn() },
+                    enabled = !isLoading,
+                    loading = isLoading && !showEmailFields,
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = tc.TextSecondary.copy(alpha = 0.35f))
+                    Text(
+                        text = stringResource(R.string.login_or_divider),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = tc.TextSecondary.copy(alpha = 0.35f))
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+
                 if (!showEmailFields) {
                     Button(
                         onClick = { showEmailFields = true },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         enabled = !isLoading,
-                    ) { Text(stringResource(R.string.login_button)) }
+                    ) { Text(stringResource(R.string.login_with_email)) }
                 } else {
                     AnimatedVisibility(visible = showEmailFields, enter = expandVertically(), exit = shrinkVertically()) {
                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -372,16 +474,6 @@ fun LoginScreen(
                             }
                         }
                     }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedButton(
-                    onClick = { launchGoogleSignIn() },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    enabled = !isLoading
-                ) {
-                    Image(painter = painterResource(R.drawable.ic_google), contentDescription = null, modifier = Modifier.size(22.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(stringResource(R.string.login_with_google))
                 }
             }
             Text(

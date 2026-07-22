@@ -20,9 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,7 +48,6 @@ fun ScannerFlowScreen(
     val activity = context as? ComponentActivity
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var scannerLaunched by remember { mutableStateOf(false) }
 
     val scannerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult(),
@@ -62,24 +59,28 @@ fun ScannerFlowScreen(
         }
     }
 
-    LaunchedEffect(activity) {
-        if (scannerLaunched) return@LaunchedEffect
+    LaunchedEffect(activity, uiState.scanLaunchKey) {
         if (activity == null) {
-            viewModel.onScanStartFailed()
+            if (uiState.sessionScans.isEmpty()) {
+                viewModel.onScanStartFailed()
+            }
             return@LaunchedEffect
         }
         if (!DocumentScannerService.isAvailable(context)) {
-            viewModel.onScanStartFailed()
+            if (uiState.sessionScans.isEmpty()) {
+                viewModel.onScanStartFailed()
+            }
             return@LaunchedEffect
         }
-        scannerLaunched = true
         val scanner = DocumentScannerService(context).createScanner()
         scanner.getStartScanIntent(activity)
             .addOnSuccessListener { intentSender ->
                 scannerLauncher.launch(IntentSenderRequest.Builder(intentSender).build())
             }
             .addOnFailureListener {
-                viewModel.onScanStartFailed()
+                if (uiState.sessionScans.isEmpty()) {
+                    viewModel.onScanStartFailed()
+                }
             }
     }
 
@@ -95,89 +96,98 @@ fun ScannerFlowScreen(
                 delay(1200)
                 onFinished()
             }
+            "scan_error_keep" -> {
+                snackbarHostState.showSnackbar(context.getString(R.string.scan_error))
+                viewModel.clearError()
+            }
             else -> Unit
         }
     }
 
     LaunchedEffect(uiState.statusMessage) {
         when {
-            uiState.statusMessage == "scan_success" ->
+            uiState.statusMessage == "scan_success" -> {
                 snackbarHostState.showSnackbar(context.getString(R.string.scan_success))
+                viewModel.clearStatus()
+            }
             uiState.statusMessage?.startsWith("scan_saved_phone:") == true -> {
                 val path = uiState.statusMessage!!.removePrefix("scan_saved_phone:")
                 snackbarHostState.showSnackbar(context.getString(R.string.scan_saved_to_phone, path))
+                viewModel.clearStatus()
             }
         }
     }
 
-    when {
-        uiState.pendingScan != null -> {
-            ScanResultScreen(
-                pending = uiState.pendingScan!!,
-                onSaveToApp = viewModel::saveToApp,
-                onSaveToPhone = viewModel::saveToPhone,
-                onShare = { ShareHelperWrapper.share(context, uiState.pendingScan!!.file) },
-                onOpenGallery = onOpenGallery,
-                onClose = {
-                    viewModel.clearPendingScan()
-                    onFinished()
-                },
-            )
-        }
-        uiState.isProcessing -> {
-            ScannerLoadingScreen(message = stringResource(R.string.scanning))
-        }
-        activity == null || !DocumentScannerService.isAvailable(context) -> {
-            val gmsUnavailable = activity != null && !DocumentScannerService.isAvailable(context)
-            Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = stringResource(
-                            if (gmsUnavailable) R.string.scanner_unavailable else R.string.scan_error,
-                        ),
-                        style = MaterialTheme.typography.titleMedium,
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            when {
+                uiState.isProcessing -> {
+                    ScannerLoadingScreen(message = stringResource(R.string.scanning))
+                }
+                uiState.pendingScan != null -> {
+                    ScanResultScreen(
+                        pending = uiState.pendingScan!!,
+                        sessionCount = uiState.sessionScans.size,
+                        onSaveToApp = viewModel::saveToApp,
+                        onSaveToPhone = viewModel::saveToPhone,
+                        onShare = {
+                            val file = viewModel.mergedShareFile()
+                            if (file != null) ShareHelperWrapper.share(context, file)
+                        },
+                        onAddAnother = viewModel::requestAnotherScan,
+                        onOpenGallery = onOpenGallery,
+                        onClose = {
+                            viewModel.clearPendingScan()
+                            onFinished()
+                        },
                     )
-                    if (gmsUnavailable) {
+                }
+                activity == null || !DocumentScannerService.isAvailable(context) -> {
+                    val gmsUnavailable = activity != null && !DocumentScannerService.isAvailable(context)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Text(
-                            text = stringResource(R.string.scanner_unavailable_msg),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 8.dp),
+                            text = stringResource(
+                                if (gmsUnavailable) R.string.scanner_unavailable else R.string.scan_error,
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
                         )
-                        Button(
-                            onClick = { DocumentScannerService.openPlayServicesUpdate(context) },
-                            modifier = Modifier.padding(top = 16.dp),
-                        ) {
-                            Text(stringResource(R.string.scanner_update))
+                        if (gmsUnavailable) {
+                            Text(
+                                text = stringResource(R.string.scanner_unavailable_msg),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                            Button(
+                                onClick = { DocumentScannerService.openPlayServicesUpdate(context) },
+                                modifier = Modifier.padding(top = 16.dp),
+                            ) {
+                                Text(stringResource(R.string.scanner_update))
+                            }
+                            Button(
+                                onClick = onCameraFallback,
+                                modifier = Modifier.padding(top = 8.dp),
+                            ) {
+                                Text(stringResource(R.string.scanner_camera_fallback))
+                            }
                         }
-                        Button(
-                            onClick = onCameraFallback,
-                            modifier = Modifier.padding(top = 8.dp),
-                        ) {
-                            Text(stringResource(R.string.scanner_camera_fallback))
+                        Button(onClick = onFinished, modifier = Modifier.padding(top = 16.dp)) {
+                            Text(stringResource(R.string.common_back))
                         }
-                    }
-                    Button(onClick = onFinished, modifier = Modifier.padding(top = 16.dp)) {
-                        Text(stringResource(R.string.common_back))
                     }
                 }
-            }
-        }
-        else -> {
-            Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
+                else -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }

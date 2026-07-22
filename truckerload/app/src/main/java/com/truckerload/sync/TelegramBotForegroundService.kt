@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramApi
 import com.truckerload.R
@@ -38,7 +39,13 @@ class TelegramBotForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val token = TelegramTokenStore(applicationContext).getToken()
+        val userId = AuthStore(applicationContext).currentUserIdOrNull()
+        if (userId.isNullOrBlank()) {
+            Log.w(TAG, "No active user — stopping Telegram service")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w(TAG, "No TELEGRAM_BOT_TOKEN — stopping service")
             stopSelf()
@@ -156,7 +163,8 @@ class TelegramBotForegroundService : Service() {
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
 
         fun start(context: Context) {
-            if (TelegramTokenStore(context).getToken().isBlank()) return
+            val userId = AuthStore(context).currentUserIdOrNull() ?: return
+            if (TelegramTokenStore(context, userId).getToken().isBlank()) return
             val intent = Intent(context, TelegramBotForegroundService::class.java)
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

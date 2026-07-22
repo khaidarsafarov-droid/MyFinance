@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.truckerload.BuildConfig
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
@@ -30,6 +31,7 @@ import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.StatsSelectionStore
+import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.AiRepository
@@ -61,9 +63,11 @@ import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.di.LocalWeekRepository
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
+import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.presentation.theme.TruckerLoadTheme
+import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.widget.WidgetDataUpdater
@@ -98,10 +102,47 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         FeedbackManager.init(applicationContext)
         val settingsDataStore = SettingsDataStore(applicationContext)
+        val authStore = AuthStore(applicationContext)
+        val authCredentialsStore = AuthCredentialsStore(applicationContext)
+        val userProfileStore = UserProfileStore(applicationContext)
+
         setContent {
             var dependencies by remember { mutableStateOf<MainDependencies?>(null) }
-            LaunchedEffect(Unit) {
-                dependencies = createDependencies(applicationContext)
+            var sessionReady by remember { mutableStateOf(false) }
+            val isLoggedIn by authStore.isLoggedIn.collectAsState()
+            val userId by authStore.userId.collectAsState()
+
+            LaunchedEffect(isLoggedIn, userId) {
+                sessionReady = false
+                if (BuildConfig.LOCAL_ONLY_MODE && (!isLoggedIn || userId.isNullOrBlank())) {
+                    authStore.login(
+                        userId = AccountIds.LOCAL_DEV,
+                        email = "local@device",
+                        rememberMe = true,
+                    )
+                    return@LaunchedEffect
+                }
+                if (isLoggedIn && !userId.isNullOrBlank()) {
+                    dependencies = createDependencies(
+                        context = applicationContext,
+                        userId = userId!!,
+                        authStore = authStore,
+                        authCredentialsStore = authCredentialsStore,
+                        userProfileStore = userProfileStore,
+                    )
+                    val tokenStore = TelegramTokenStore(applicationContext, userId)
+                    tokenStore.bootstrapFromBuildConfigIfEmpty()
+                    if (tokenStore.hasToken()) {
+                        TelegramBotForegroundService.start(applicationContext)
+                    }
+                    sessionReady = true
+                } else {
+                    AppDatabase.closeCurrent()
+                    userProfileStore.unbind()
+                    dependencies = null
+                    TelegramBotForegroundService.stop(applicationContext)
+                    sessionReady = true
+                }
             }
 
             val themeMode by settingsDataStore.themeMode.collectAsState(initial = AppThemeMode.SYSTEM)
@@ -115,40 +156,56 @@ class MainActivity : AppCompatActivity() {
             }
             TruckerLoadTheme(darkTheme = darkTheme, themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    val deps = dependencies
-                    if (deps == null) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            CircularProgressIndicator()
+                    when {
+                        !sessionReady -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
-                    } else {
-                        CompositionLocalProvider(
-                            LocalSettingsDataStore provides settingsDataStore,
-                            LocalAuthStore provides deps.authStore,
-                            LocalAuthCredentialsStore provides deps.authCredentialsStore,
-                            LocalUserProfileStore provides deps.userProfileStore,
-                            LocalLoadRepository provides deps.loadRepository,
-                            LocalPaycheckRepository provides deps.paycheckRepository,
-                            LocalDieselRepository provides deps.dieselRepository,
-                            LocalWeekRepository provides deps.weekRepository,
-                            LocalAiRepository provides deps.aiRepository,
-                            LocalRpmThresholdsStore provides deps.rpmThresholdsStore,
-                            LocalSelectedStateStore provides deps.selectedStateStore,
-                            LocalStatsSelectionStore provides deps.statsSelectionStore,
-                            LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
-                            LocalAnalyticsRepository provides deps.analyticsRepository,
-                            LocalPhotoRepository provides deps.photoRepository,
-                            LocalScanRepository provides deps.scanRepository,
-                            LocalSocialRepository provides deps.socialRepository,
-                            LocalVoiceRepository provides deps.voiceRepository,
-                        ) {
-                            NavGraph(
-                                deepLinkRoute = deepLinkRoute,
-                                onDeepLinkHandled = { deepLinkRoute = null },
-                            )
-                            AutoRestoreDialog(loadRepository = deps.loadRepository)
+                        !isLoggedIn || dependencies == null -> {
+                            CompositionLocalProvider(
+                                LocalSettingsDataStore provides settingsDataStore,
+                                LocalAuthStore provides authStore,
+                                LocalAuthCredentialsStore provides authCredentialsStore,
+                                LocalUserProfileStore provides userProfileStore,
+                            ) {
+                                AuthNavHost(
+                                    authStore = authStore,
+                                    onLoginSuccess = { /* session LaunchedEffect rebuilds deps */ },
+                                )
+                            }
+                        }
+                        else -> {
+                            val deps = dependencies!!
+                            CompositionLocalProvider(
+                                LocalSettingsDataStore provides settingsDataStore,
+                                LocalAuthStore provides deps.authStore,
+                                LocalAuthCredentialsStore provides deps.authCredentialsStore,
+                                LocalUserProfileStore provides deps.userProfileStore,
+                                LocalLoadRepository provides deps.loadRepository,
+                                LocalPaycheckRepository provides deps.paycheckRepository,
+                                LocalDieselRepository provides deps.dieselRepository,
+                                LocalWeekRepository provides deps.weekRepository,
+                                LocalAiRepository provides deps.aiRepository,
+                                LocalRpmThresholdsStore provides deps.rpmThresholdsStore,
+                                LocalSelectedStateStore provides deps.selectedStateStore,
+                                LocalStatsSelectionStore provides deps.statsSelectionStore,
+                                LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
+                                LocalAnalyticsRepository provides deps.analyticsRepository,
+                                LocalPhotoRepository provides deps.photoRepository,
+                                LocalScanRepository provides deps.scanRepository,
+                                LocalSocialRepository provides deps.socialRepository,
+                                LocalVoiceRepository provides deps.voiceRepository,
+                            ) {
+                                NavGraph(
+                                    deepLinkRoute = deepLinkRoute,
+                                    onDeepLinkHandled = { deepLinkRoute = null },
+                                )
+                                AutoRestoreDialog(loadRepository = deps.loadRepository)
+                            }
                         }
                     }
                 }
@@ -189,18 +246,19 @@ class MainActivity : AppCompatActivity() {
         val aiRepository: AiRepository,
     )
 
-    private suspend fun createDependencies(context: Context): MainDependencies = withContext(Dispatchers.IO) {
-        val db = AppDatabase.getInstance(context)
+    private suspend fun createDependencies(
+        context: Context,
+        userId: String,
+        authStore: AuthStore,
+        authCredentialsStore: AuthCredentialsStore,
+        userProfileStore: UserProfileStore,
+    ): MainDependencies = withContext(Dispatchers.IO) {
+        userProfileStore.bindUser(userId)
+        val db = AppDatabase.getInstance(context, userId)
         val loadRepository = LoadRepository(db)
         val paycheckRepository = PaycheckRepository(db)
         val dieselRepository = DieselRepository(db)
         val weekRepository = WeekRepository(loadRepository, paycheckRepository, dieselRepository)
-        val authStore = AuthStore(context)
-        val authCredentialsStore = AuthCredentialsStore(context)
-        val userProfileStore = UserProfileStore(context)
-        if (BuildConfig.LOCAL_ONLY_MODE) {
-            authStore.login(rememberMe = true)
-        }
         MainDependencies(
             authStore = authStore,
             authCredentialsStore = authCredentialsStore,
@@ -209,10 +267,10 @@ class MainActivity : AppCompatActivity() {
             paycheckRepository = paycheckRepository,
             dieselRepository = dieselRepository,
             weekRepository = weekRepository,
-            rpmThresholdsStore = RpmThresholdsStore(context),
-            selectedStateStore = SelectedStateStore(context),
-            statsSelectionStore = StatsSelectionStore(context),
-            weeklyProfitGoalStore = WeeklyProfitGoalStore(context),
+            rpmThresholdsStore = RpmThresholdsStore(context, userId),
+            selectedStateStore = SelectedStateStore(context, userId),
+            statsSelectionStore = StatsSelectionStore(context, userId),
+            weeklyProfitGoalStore = WeeklyProfitGoalStore(context, userId),
             analyticsRepository = AnalyticsRepository(db),
             photoRepository = PhotoRepository(db),
             scanRepository = ScanRepository(db),

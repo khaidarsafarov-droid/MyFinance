@@ -190,30 +190,41 @@ fun CameraFlowScreen(
     ),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val photo = uiState.capturedPhoto
 
-    if (photo == null) {
-        CameraScreen(
-            onPhotoReady = { },
-            onBack = onFinished,
-            viewModel = viewModel,
-        )
-    } else {
-        PhotoPreviewScreen(
-            photo = photo,
-            onCancel = {
-                viewModel.discardCapturedPhoto()
-                onFinished()
-            },
-            onRetake = {
-                viewModel.discardCapturedPhoto()
-            },
-            onSave = viewModel::persistCapturedPhoto,
-            onOpenGallery = onOpenGallery,
-            saveSuccess = uiState.saveSuccess,
-            saveError = uiState.errorMessage == "save_failed",
-            onSaveErrorShown = viewModel::clearError,
-            onSaved = onFinished,
-        )
+    when {
+        uiState.reviewingBatch -> {
+            PhotoBatchReviewScreen(
+                photos = uiState.sessionPhotos,
+                onAddMore = viewModel::closeBatchReview,
+                onRemoveAt = viewModel::removePhotoAt,
+                onSaveAll = viewModel::persistAllPhotos,
+                onCancel = {
+                    viewModel.discardSession()
+                    onFinished()
+                },
+                onSaved = {
+                    viewModel.clearSaveSuccess()
+                    viewModel.finishSession()
+                    onFinished()
+                },
+                saveSuccess = uiState.saveSuccess,
+                saveError = uiState.errorMessage == "save_failed",
+                onSaveErrorShown = viewModel::clearError,
+            )
+        }
+        else -> {
+            CameraScreen(
+                sessionCount = uiState.sessionPhotos.size,
+                onOpenBatch = viewModel::openBatchReview,
+                onBack = {
+                    if (uiState.sessionPhotos.isNotEmpty()) {
+                        viewModel.openBatchReview()
+                    } else {
+                        onFinished()
+                    }
+                },
+                viewModel = viewModel,
+            )
+        }
     }
 }

@@ -1,5 +1,11 @@
 # IDE / OS
-.idea/
+.idea/*
+!.idea/vcs.xml
+!.idea/git.xml
+!.idea/gradle.xml
+!.idea/misc.xml
+!.idea/AndroidProjectSystem.xml
+!.idea/runConfigurations.xml
 .cursor/
 *.iml
 .DS_Store

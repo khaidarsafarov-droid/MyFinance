@@ -8,22 +8,44 @@ import java.util.UUID
 
 object SocialSeedData {
 
+    private val PLACEHOLDER_NAMES = setOf("", "Водитель", "Driver", "User")
+
     suspend fun seedIfEmpty(
         chatDao: com.truckerload.data.local.dao.SocialChatDao,
         messageDao: com.truckerload.data.local.dao.SocialMessageDao,
         profileDao: com.truckerload.data.local.dao.DriverProfileDao,
         defaultDisplayName: String,
+        defaultAvatarUrl: String? = null,
+        defaultPhone: String? = null,
     ) {
-        if (profileDao.getProfile() == null) {
+        val existing = profileDao.getProfile()
+        if (existing == null) {
+            // Minimal personal profile — no fake truck/state/about pretending the user finished setup.
             profileDao.upsert(
                 DriverProfileEntity(
-                    displayName = defaultDisplayName.ifBlank { "Водитель" },
-                    truckType = "Dry Van",
-                    experienceYears = 5,
-                    homeState = "TX",
-                    routesJson = "I-95,TX→CA",
-                    about = "Дальнобойщик. Люблю открытые дороги и честный RPM.",
+                    displayName = defaultDisplayName.takeIf { it !in PLACEHOLDER_NAMES }.orEmpty(),
+                    avatarUrl = defaultAvatarUrl?.takeIf { it.isNotBlank() },
+                    phoneNumber = defaultPhone?.takeIf { it.isNotBlank() },
+                    truckType = "",
+                    experienceYears = 0,
+                    homeState = "",
+                    routesJson = "",
+                    about = "",
                     status = "ONLINE",
+                ),
+            )
+        } else {
+            profileDao.upsert(
+                existing.copy(
+                    displayName = when {
+                        existing.displayName !in PLACEHOLDER_NAMES -> existing.displayName
+                        defaultDisplayName !in PLACEHOLDER_NAMES -> defaultDisplayName
+                        else -> existing.displayName
+                    },
+                    avatarUrl = existing.avatarUrl?.takeIf { it.isNotBlank() }
+                        ?: defaultAvatarUrl?.takeIf { it.isNotBlank() },
+                    phoneNumber = existing.phoneNumber?.takeIf { it.isNotBlank() }
+                        ?: defaultPhone?.takeIf { it.isNotBlank() },
                 ),
             )
         }
@@ -52,7 +74,7 @@ object SocialSeedData {
                 title = "Топливо и цены",
                 type = ChatType.GROUP.name,
                 participantCount = 56,
-                lastMessage = "Diesel $3.89 на TA в SC",
+                lastMessage = "Diesel \$3.89 на TA в SC",
                 lastMessageAt = now - 45 * 60_000,
                 unreadCount = 0,
                 avatarEmoji = "⛽",

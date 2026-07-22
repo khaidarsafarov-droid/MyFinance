@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SupportAgent
-import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,8 @@ enum class DrawerDestination {
     SETTINGS,
     REPORTS,
     DOCUMENTS,
+    SCANNER,
+    CAMERA,
     SUPPORT,
     ABOUT,
 }
@@ -79,6 +83,16 @@ fun AppDrawerContent(
                 icon = Icons.Outlined.Description,
                 label = stringResource(R.string.drawer_documents),
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.DocumentScanner,
+                label = stringResource(R.string.scanner),
+                onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.CameraAlt,
+                label = stringResource(R.string.camera),
+                onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
             )
             drawerItem(
                 icon = Icons.Outlined.SupportAgent,

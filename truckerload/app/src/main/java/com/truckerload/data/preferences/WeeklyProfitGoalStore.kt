@@ -1,21 +1,29 @@
 package com.truckerload.data.preferences
 
-import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.truckerload.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-private const val PREFS_NAME = "truckerload_widget_goals"
+private const val LEGACY_PREFS_NAME = "truckerload_widget_goals"
 private const val KEY_WEEKLY_PROFIT_GOAL = "weekly_profit_goal"
 const val DEFAULT_WEEKLY_GROSS_GOAL = 0.0
 
-class WeeklyProfitGoalStore(context: Context) {
+class WeeklyProfitGoalStore(
+    context: Context,
+    userId: String = AuthStore(context).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV,
+) {
     private val appContext = context.applicationContext
     private val prefs: SharedPreferences =
-        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(
+            "truckerload_widget_goals_${AccountIds.sanitizeFilePart(userId)}",
+            Context.MODE_PRIVATE,
+        ).also { scoped ->
+            migrateFromLegacyIfEmpty(appContext, scoped)
+        }
 
     private val _goalAmount = MutableStateFlow(loadFromPrefs())
     val goalAmount: StateFlow<Double> = _goalAmount.asStateFlow()
@@ -51,5 +59,17 @@ class WeeklyProfitGoalStore(context: Context) {
         }
         _goalAmount.value = goal
         return Result.success(Unit)
+    }
+
+    companion object {
+        private fun migrateFromLegacyIfEmpty(context: Context, scoped: SharedPreferences) {
+            if (scoped.contains(KEY_WEEKLY_PROFIT_GOAL)) return
+            val legacy = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+            if (!legacy.contains(KEY_WEEKLY_PROFIT_GOAL)) return
+            val raw = legacy.all[KEY_WEEKLY_PROFIT_GOAL] ?: return
+            scoped.edit(commit = true) {
+                putString(KEY_WEEKLY_PROFIT_GOAL, raw.toString())
+            }
+        }
     }
 }

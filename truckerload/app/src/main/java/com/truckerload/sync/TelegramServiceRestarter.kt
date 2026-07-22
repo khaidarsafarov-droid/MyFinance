@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 
 /** Планирует перезапуск foreground-сервиса бота после убийства задачи или процесса. */
@@ -14,7 +15,8 @@ object TelegramServiceRestarter {
     private const val ACTION_RESTART = "com.truckerload.action.RESTART_TELEGRAM_BOT"
 
     fun schedule(context: Context, delayMs: Long = 3_000L) {
-        if (!TelegramTokenStore(context).hasToken()) return
+        val userId = AuthStore(context).currentUserIdOrNull() ?: return
+        if (!TelegramTokenStore(context, userId).hasToken()) return
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val intent = Intent(context, TelegramServiceRestartReceiver::class.java).apply {
             action = ACTION_RESTART

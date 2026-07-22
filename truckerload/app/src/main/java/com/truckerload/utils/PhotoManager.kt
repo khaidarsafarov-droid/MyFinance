@@ -22,7 +22,7 @@ class PhotoManager(private val context: Context) {
         }
 
     fun savePhoto(bitmap: Bitmap, locationData: LocationData, timestamp: Long = System.currentTimeMillis()): File {
-        val fileName = "photo_${timestampFormat.format(Date(timestamp))}.jpg"
+        val fileName = "photo_${timestampFormat.format(Date(timestamp))}_${timestamp}.jpg"
         val file = File(photosDir, fileName)
         val watermarked = addWatermark(bitmap, locationData, timestamp)
         FileOutputStream(file).use { out ->

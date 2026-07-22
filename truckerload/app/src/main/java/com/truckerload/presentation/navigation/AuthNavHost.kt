@@ -27,10 +27,7 @@ fun AuthNavHost(
         composable(AuthRoutes.SIGNUP) {
             SignUpScreen(
                 onBack = { navController.popBackStack() },
-                onSuccess = {
-                    authStore.login()
-                    onLoginSuccess()
-                }
+                onSuccess = onLoginSuccess,
             )
         }
     }

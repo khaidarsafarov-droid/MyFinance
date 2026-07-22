@@ -75,7 +75,15 @@ class SettingsDataStore(context: Context) {
 
     suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
 
-    suspend fun getTelegramChatIdOnce(): Long? = telegramChatId.first()
+    suspend fun getTelegramChatIdOnce(): Long? {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        if (userId != null) {
+            val key = longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}")
+            val scoped = appContext.settingsDataStore.data.first()[key]
+            if (scoped != null) return scoped
+        }
+        return telegramChatId.first()
+    }
 
     suspend fun markFirstRunComplete() {
         appContext.settingsDataStore.edit { prefs ->
@@ -84,18 +92,36 @@ class SettingsDataStore(context: Context) {
     }
 
     suspend fun saveTelegramChatId(chatId: Long) {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_TELEGRAM_CHAT_ID] = chatId
+            if (userId != null) {
+                prefs[longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}")] = chatId
+            } else {
+                prefs[KEY_TELEGRAM_CHAT_ID] = chatId
+            }
         }
     }
 
-    /** Next offset for getUpdates (last processed update_id + 1). */
-    suspend fun getLastUpdateOffset(): Long =
-        appContext.settingsDataStore.data.first()[KEY_TELEGRAM_UPDATE_OFFSET] ?: 0L
+    /** Next offset for getUpdates (last processed update_id + 1). Scoped per active account. */
+    suspend fun getLastUpdateOffset(): Long {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        if (userId != null) {
+            val key = longPreferencesKey("telegram_last_update_offset_${AccountIds.sanitizeFilePart(userId)}")
+            val scoped = appContext.settingsDataStore.data.first()[key]
+            if (scoped != null) return scoped
+        }
+        return appContext.settingsDataStore.data.first()[KEY_TELEGRAM_UPDATE_OFFSET] ?: 0L
+    }
 
     suspend fun saveLastUpdateOffset(offset: Long) {
+        val safe = offset.coerceAtLeast(0L)
+        val userId = AuthStore(appContext).currentUserIdOrNull()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_TELEGRAM_UPDATE_OFFSET] = offset.coerceAtLeast(0L)
+            if (userId != null) {
+                prefs[longPreferencesKey("telegram_last_update_offset_${AccountIds.sanitizeFilePart(userId)}")] = safe
+            } else {
+                prefs[KEY_TELEGRAM_UPDATE_OFFSET] = safe
+            }
         }
     }
 
