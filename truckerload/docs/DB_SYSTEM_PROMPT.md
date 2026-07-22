@@ -40,3 +40,19 @@
 - **Архив по годам:** Вкладка показывает только те месяцы, в которых есть записи.
 - **Годовая статистика:** В каждой секции года: количество грузов, общая выручка, общий пробег.
 - **Редактирование:** При смене даты груза с 2024 на 2025 запись автоматически переходит в секцию 2025.
+
+## Room `exportSchema=false` risk
+
+`AppDatabase` sets `exportSchema = false`, so Room does **not** emit versioned schema JSON under `schemas/`. Migrations still run from Kotlin code, but CI cannot auto-diff schemas across versions. Before enabling destructive migrations or shipping major schema bumps, turn `exportSchema = true` and commit the JSON exports.
+
+## Legacy DB migrate flag (`legacy_db_migrated`)
+
+Pre-multi-account installs used a single Room file `truckerload_db`. On first open for a logged-in user, `AppDatabase.migrateLegacyDatabaseIfNeeded` copies that file into `truckerload_<userId>` and sets SharedPreferences meta key **`legacy_db_migrated`** (`truckerload_account_meta`) to `true`. Related keys:
+
+| Key | Meaning |
+|-----|---------|
+| `legacy_db_migrated` | One-shot flag — legacy file already handled (copied or absent) |
+| `legacy_db_owner` | Account that received the legacy file copy |
+| `legacy_db_claimed_by_account` | Absorb/claim of a previous local-only DB finished |
+
+Do not clear these flags in production; clearing them can re-trigger copy/absorb logic against a missing or already-moved file.

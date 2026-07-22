@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -152,6 +153,19 @@ class HomeViewModel(
     /** Оптимистичные обновления: loadId -> Load. При сбое сохранения — откат через revertOptimisticUpdate. */
     private val _optimisticOverlay = MutableStateFlow<Map<String, Load>>(emptyMap())
 
+    /** IDs being deleted — excluded from merged list so they cannot reappear via overlay. */
+    private val _pendingDeleteIds = MutableStateFlow<Set<String>>(emptySet())
+
+    private val _pendingDeleteConfirmId = MutableStateFlow<String?>(null)
+    val pendingDeleteConfirmId: StateFlow<String?> = _pendingDeleteConfirmId.asStateFlow()
+
+    private val _deleteError = MutableStateFlow<String?>(null)
+    val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
+
+    /** Bumped when delete dialog is cancelled so swipe cards snap back. */
+    private val _swipeSettleGeneration = MutableStateFlow(0)
+    val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
+
     /** Результат фильтрации: список, итоги, даты с грузами (для индикаторов календаря). */
     data class FilteredResult(
         val loads: List<Load>,
@@ -163,11 +177,14 @@ class HomeViewModel(
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
         _optimisticOverlay,
+        _pendingDeleteIds,
         filterState,
-    ) { loads, overlay, filter ->
-        val base = loads.map { overlay[it.id] ?: it }
+    ) { loads, overlay, pendingDeletes, filter ->
+        val base = loads
+            .filter { it.id !in pendingDeletes }
+            .map { overlay[it.id] ?: it }
         val loadIds = loads.map { it.id }.toSet()
-        val newLoads = overlay.values.filter { it.id !in loadIds }
+        val newLoads = overlay.values.filter { it.id !in loadIds && it.id !in pendingDeletes }
         val merged = base + newLoads
         val dateIndex = LoadDateIndex.build(merged)
         val filtered = filterUseCase.filterLoads(
@@ -185,9 +202,18 @@ class HomeViewModel(
             totals = filterUseCase.calculateTotals(filtered),
             datesWithLoads = dateIndex.keys.toSet()
         )
-    }.stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
-    /** Windowed journal rows for large filtered sets (Paging 3). */
+    /**
+     * Windowed journal rows for large filtered sets (Paging 3).
+     *
+     * Note: [HomeScreen] still renders [flattenedListItems] so year/month section headers
+     * stay correct. This Flow pages an already-filtered in-memory list (does not reduce
+     * Room hydrate cost). Prefer Room `PagingSource` + SQL filters for true memory wins;
+     * keep this for alternate UIs / tests until that lands.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     val filteredLoadsPaging: Flow<PagingData<Load>> = filteredLoadsAndTotals
         .map { it.loads }
@@ -207,10 +233,11 @@ class HomeViewModel(
                     _initialLoadDone.value = true
                 }
                 _uiState.update { it.copy(loads = list) }
-                _optimisticOverlay.update { current ->
-                    val ids = list.map { it.id }.toSet()
-                    current.filterKeys { it !in ids }
-                }
+                val ids = list.map { it.id }.toSet()
+                // Keep only optimistic inserts not yet present in Room.
+                _optimisticOverlay.update { current -> current.filterKeys { it !in ids } }
+                // Once Room confirms deletion, clear pending delete markers.
+                _pendingDeleteIds.update { pending -> pending.filter { it !in ids }.toSet() }
             }
         }
         // Виджет обновляем с debounce — не на каждый символ поиска / оптимистичный оверлей.
@@ -242,9 +269,51 @@ class HomeViewModel(
     }
 
     fun deleteLoad(loadId: String) {
+        requestDeleteLoad(loadId)
+    }
+
+    fun requestDeleteLoad(loadId: String) {
+        if (loadId.isBlank()) return
+        _pendingDeleteConfirmId.value = loadId
+    }
+
+    fun dismissDeleteLoad() {
+        _pendingDeleteConfirmId.value = null
+        _swipeSettleGeneration.update { it + 1 }
+    }
+
+    fun clearDeleteError() {
+        _deleteError.value = null
+    }
+
+    fun confirmDeleteLoad() {
+        val loadId = _pendingDeleteConfirmId.value ?: return
+        _pendingDeleteConfirmId.value = null
         viewModelScope.launch {
-            loadRepository.deleteLoad(loadId)
-            WidgetDataUpdater.updateWidgetData(app.applicationContext)
+            _optimisticOverlay.update { it - loadId }
+            _pendingDeleteIds.update { it + loadId }
+            try {
+                loadRepository.deleteLoad(loadId)
+                WidgetDataUpdater.updateWidgetData(app.applicationContext)
+            } catch (e: Exception) {
+                _pendingDeleteIds.update { it - loadId }
+                _swipeSettleGeneration.update { it + 1 }
+                _deleteError.value = e.message?.takeIf { it.isNotBlank() }
+                    ?: app.getString(R.string.home_delete_failed)
+            }
+        }
+    }
+
+    fun selectWeek(weekStart: String, weekEnd: String, label: String) {
+        _uiState.update {
+            it.copy(
+                filter = LoadFilter.CALENDAR_WEEK,
+                selectedWeekStart = weekStart,
+                selectedWeekEnd = weekEnd,
+                selectedWeekLabel = label,
+                selectedDate = null,
+                selectedDateLabel = "",
+            )
         }
     }
 

@@ -42,4 +42,58 @@ class TelegramJsonExportParserTest {
         assertEquals(1, loads.size)
         assertEquals("T-116KYL6KW", loads[0].tripId)
     }
+
+    @Test
+    fun parse_emptyMessages_zeroCount() {
+        val json = """
+            {
+              "name": "Relay",
+              "type": "private_supergroup",
+              "id": 1,
+              "messages": []
+            }
+        """.trimIndent()
+        val loads = parser.parse(json)
+        assertEquals(0, loads.size)
+        val result = com.truckerload.utils.LoadImporter.ImportResult(
+            imported = 0,
+            skipped = 0,
+            parsed = loads.size,
+        )
+        assertEquals(0, result.parsed)
+    }
+
+    @Test
+    fun parse_twoLoads_countMatches() {
+        val json = """
+            {
+              "name": "Relay",
+              "type": "private_supergroup",
+              "id": 1,
+              "messages": [
+                {
+                  "id": 1,
+                  "type": "message",
+                  "from": "bot",
+                  "text": "Trip ID: T-AAA\nTotal Rate: ${'$'}1000.00\nTotal Loaded Miles: 400 mi\nPu-address: SWF2, Hopewell Junction, NY\nDel-address: TOL3, Perrysburg, OH"
+                },
+                {
+                  "id": 2,
+                  "type": "message",
+                  "from": "bot",
+                  "text": "Trip ID: T-BBB\nTotal Rate: ${'$'}2000.00\nTotal Loaded Miles: 800 mi\nPu-address: SWF2, Hopewell Junction, NY\nDel-address: TOL3, Perrysburg, OH"
+                }
+              ]
+            }
+        """.trimIndent()
+        val loads = parser.parse(json)
+        assertEquals(2, loads.size)
+        val result = com.truckerload.utils.LoadImporter.ImportResult(
+            imported = loads.size,
+            skipped = 0,
+            parsed = loads.size,
+        )
+        assertEquals(2, result.parsed)
+        assertEquals(2, result.imported)
+    }
 }

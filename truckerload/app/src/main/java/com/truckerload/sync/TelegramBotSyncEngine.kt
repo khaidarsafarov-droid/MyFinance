@@ -28,6 +28,7 @@ import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.data.preferences.AccountIds
+import com.truckerload.utils.LogRedactor
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.utils.FeedbackManager
@@ -89,17 +90,23 @@ class TelegramBotSyncEngine(private val context: Context) {
             offset = nextRequestOffset.takeIf { it > 0L },
             timeoutSeconds = 25
         ).getOrElse { e ->
-            Log.e(TAG, "getUpdates failed: ${e.message}", e)
+            Log.e(TAG, "getUpdates failed: ${LogRedactor.redact(e.message)}", e)
             val delay = if (e.message?.contains("409") == true) 45L else 30L
-            if (e.message?.contains("401") == true) {
+            if (TelegramAuthErrors.shouldStopService(e.message)) {
                 TelegramBotForegroundService.stop(context)
             }
-            return SyncRunResult(skipped = false, processedUpdates = 0, nextDelaySeconds = delay, error = e.message)
+            return SyncRunResult(
+                skipped = false,
+                processedUpdates = 0,
+                nextDelaySeconds = delay,
+                error = LogRedactor.redact(e.message),
+            )
         }
 
         Log.d(TAG, "📥 Получено ${result.updates.size} обновлений (rawMax=${result.rawMaxUpdateId})")
 
         var processed = 0
+        var stoppedOnFailure = false
         for (update in result.updates) {
             if (update.updateId + 1 <= nextRequestOffset) {
                 Log.d(TAG, "⏭️ Пропуск уже обработанного updateId=${update.updateId}")
@@ -117,14 +124,22 @@ class TelegramBotSyncEngine(private val context: Context) {
                     chatRestore = chatRestore,
                     prefs = prefs
                 )
+                nextRequestOffset = update.updateId + 1
+                persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
             } catch (e: Exception) {
-                Log.e(TAG, "handleUpdate failed for updateId=${update.updateId}", e)
+                Log.e(
+                    TAG,
+                    "handleUpdate failed for updateId=${update.updateId}; offset NOT advanced: ${LogRedactor.redact(e.message)}",
+                    e,
+                )
+                // Stop this poll cycle so the failed update is retried next run.
+                // Do NOT jump to result.nextOffset — that would skip the failed update.
+                stoppedOnFailure = true
+                break
             }
-            nextRequestOffset = update.updateId + 1
-            persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
         }
 
-        if (result.nextOffset > nextRequestOffset) {
+        if (!stoppedOnFailure && result.nextOffset > nextRequestOffset) {
             nextRequestOffset = result.nextOffset
             persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
         }

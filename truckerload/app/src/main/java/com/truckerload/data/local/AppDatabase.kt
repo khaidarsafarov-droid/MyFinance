@@ -78,6 +78,9 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         SocialPeerEntity::class,
     ],
     version = 22,
+    // exportSchema=false: Room will not write schema JSON under schemas/. Migrations still
+    // run from code, but CI cannot diff exported schemas — enable exportSchema=true +
+    // schemas/ in VCS before shipping destructive migration changes.
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -164,6 +167,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_20_21,
                         MIGRATION_21_22,
                     )
+                    // RISK: versions 1–5 have no migrations — opening an ancient DB wipes all tables.
+                    // Ship with exportSchema=true + documented upgrade path before removing this.
                     .fallbackToDestructiveMigrationFrom(dropAllTables = true, 1, 2, 3, 4, 5)
                     .build()
                 INSTANCE = db

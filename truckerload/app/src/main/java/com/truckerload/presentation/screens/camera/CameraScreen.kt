@@ -124,10 +124,15 @@ fun CameraScreen(
     }
 
     LaunchedEffect(uiState.errorMessage) {
-        if (uiState.errorMessage != null) {
-            snackbarHostState.showSnackbar(context.getString(R.string.photo_save_error))
-            viewModel.clearError()
+        val code = uiState.errorMessage ?: return@LaunchedEffect
+        val msg = when (code) {
+            "decode_failed" -> context.getString(R.string.photo_decode_error)
+            "busy" -> context.getString(R.string.camera_busy)
+            "camera_bind_failed" -> context.getString(R.string.camera_bind_error)
+            else -> context.getString(R.string.photo_save_error)
         }
+        snackbarHostState.showSnackbar(msg)
+        viewModel.clearError()
     }
 
     val imageCapture = remember { ImageCapture.Builder().build() }
@@ -242,7 +247,7 @@ fun CameraScreen(
 
                     if (!hasLocationPermission) {
                         Text(
-                            text = stringResource(R.string.location_permission_denied),
+                            text = stringResource(R.string.camera_continue_without_gps),
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .align(Alignment.TopCenter)

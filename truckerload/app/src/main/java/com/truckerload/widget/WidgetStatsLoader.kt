@@ -4,6 +4,7 @@ import android.content.Context
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL
+import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
@@ -14,7 +15,6 @@ import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
-import com.truckerload.utils.isLoadInWeek
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -33,16 +33,20 @@ object WidgetStatsLoader {
         )
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
         val (_, _, weekLabel) = getWeekRange(weekNumber, year)
-        val allLoads = loadRepository.getAllLoadsOnce()
+        val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
         val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)
         val profitGoal = WeeklyProfitGoalStore(appContext).getGoal().takeIf { it > 0 }
             ?: DEFAULT_WEEKLY_GROSS_GOAL
-        val goalProgress = WeeklyGoalCalculator.calculateCurrentWeek(profitGoal, allLoads, sqlYield)
-        val rpmTarget = appContext.getSharedPreferences("truckerload_settings", Context.MODE_PRIVATE)
-            .getFloat("target_profit_threshold", 2.5f)
-            .toDouble()
+        val goalProgress = WeeklyGoalCalculator.calculate(
+            profitGoal,
+            weekLoads,
+            weekNumber,
+            year,
+            sqlYield,
+        )
+        val rpmTarget = RpmThresholdsStore(appContext).thresholds.value.targetProfit
         val statsLine = appContext.getString(
             R.string.home_stats_header,
             goalProgress.loadsCount,
@@ -71,9 +75,7 @@ object WidgetStatsLoader {
             goalDaysRemaining = goalProgress.daysRemainingInWeek,
             goalPaceStatus = goalProgress.paceStatus.name,
             totalActiveDays = sqlYield.totalActiveDays.takeIf { it > 0.0 }
-                ?: LoadYieldCalculator.totalActiveDays(
-                    allLoads.filter { isLoadInWeek(it, weekNumber, year) },
-                ),
+                ?: LoadYieldCalculator.totalActiveDays(weekLoads),
             updatedAtMillis = System.currentTimeMillis()
         ).also { WidgetDataStore.save(appContext, it) }
     }

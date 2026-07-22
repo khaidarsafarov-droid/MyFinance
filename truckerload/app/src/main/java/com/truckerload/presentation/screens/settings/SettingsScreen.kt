@@ -2,6 +2,8 @@ package com.truckerload.presentation.screens.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -271,7 +273,7 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             Icons.Default.VolumeUp,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.settings_sound_title),
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(22.dp),
                         )
@@ -297,7 +299,7 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             Icons.Default.Vibration,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.settings_vibration_title),
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(22.dp),
                         )
@@ -379,7 +381,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Receipt, contentDescription = null)
+                        Icon(Icons.Default.Receipt, contentDescription = stringResource(R.string.tax_title))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.tax_title))
                     }
@@ -476,7 +478,10 @@ fun SettingsScreen(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("📦")
+                        Text(
+                            "📦",
+                            modifier = Modifier,
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.export_loads))
                     }
@@ -484,7 +489,10 @@ fun SettingsScreen(
                 Button(
                     onClick = { settingsViewModel.exportCsv() },
                     enabled = exportState !is SettingsViewModel.ExportState.Loading,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .semantics { contentDescription = context.getString(R.string.settings_cd_export_csv) },
                 ) {
                     Row(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -498,7 +506,10 @@ fun SettingsScreen(
                 OutlinedButton(
                     onClick = { loadRestoreLauncher.launch(arrayOf("text/plain")) },
                     enabled = restoreState !is SettingsViewModel.RestoreState.Loading,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .semantics { contentDescription = context.getString(R.string.settings_cd_import) },
                 ) {
                     Row(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -546,7 +557,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Backup, contentDescription = null)
+                        Icon(Icons.Default.Backup, contentDescription = stringResource(R.string.settings_backup_create))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.settings_backup_create))
                     }
@@ -577,7 +588,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth().height(52.dp)
                     ) {
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                            Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = stringResource(R.string.settings_logout_button))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(stringResource(R.string.settings_logout_button))
                         }
@@ -910,7 +921,7 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Default.Cloud, contentDescription = null)
+                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_connect))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.drive_sync_connect))
                 }

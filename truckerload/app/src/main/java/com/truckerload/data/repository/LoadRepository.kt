@@ -1,5 +1,6 @@
 package com.truckerload.data.repository
 
+import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
@@ -12,6 +13,7 @@ import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
+import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.StopsHasher
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getFirstPickUpMillis
@@ -22,11 +24,16 @@ import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.widget.WidgetDataUpdater
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.io.File
 
 /** Результат CDC-синхронизации грузов. */
 data class SyncLoadsResult(
@@ -44,6 +51,8 @@ class LoadRepository(private val db: AppDatabase) {
     private val loadHistoryDao = db.loadHistoryDao()
     private val stopDao = db.stopDao()
     private val penaltyDao = db.penaltyDao()
+    private val photoDao = db.photoDao()
+    private val scanDao = db.scanDao()
 
     /** Single Source of Truth: реактивный поток. Room эмитит при любом изменении таблицы loads. */
     fun getAllLoads(): Flow<List<Load>> =
@@ -61,10 +70,46 @@ class LoadRepository(private val db: AppDatabase) {
     /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
     fun watchLoads(): Flow<List<Load>> = getAllLoads()
 
-    /** SQL «двигатель эффективности» — реактивно при каждом insert/update loads. */
-    fun watchCurrentWeekYieldSnapshot(): Flow<WeekYieldSnapshot> {
-        val (weekNumber, year) = getCurrentWeekNumberAndYear()
-        return loadDao.watchWeekYieldAgg(weekNumber, year).map { it.toSnapshot() }
+    /** SQL «двигатель эффективности» — пересчитывает неделю при смене календарной недели. */
+    fun watchCurrentWeekYieldSnapshot(): Flow<WeekYieldSnapshot> =
+        flow {
+            while (true) {
+                emit(getCurrentWeekNumberAndYear())
+                delay(60_000L)
+            }
+        }
+            .distinctUntilChanged()
+            .flatMapLatest { (weekNumber, year) -> loadDao.watchWeekYieldAgg(weekNumber, year) }
+            .map { it.toSnapshot() }
+
+    /**
+     * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
+     * Safe to call periodically after imports/restores.
+     */
+    suspend fun cleanupOrphanAttachments(): Int {
+        val loadIds = loadDao.getAllLoadsOnce().map { it.id }.toSet()
+        var removed = 0
+        db.withTransaction {
+            val orphanPhotos = photoDao.getAllPhotosOnce().filter { photo ->
+                val id = photo.loadId
+                !id.isNullOrBlank() && id !in loadIds
+            }
+            orphanPhotos.forEach { photo ->
+                photoDao.deleteById(photo.id)
+                runCatching { File(photo.filePath).delete() }
+                removed++
+            }
+            val orphanScans = scanDao.getAllScansOnce().filter { scan ->
+                val id = scan.loadId
+                !id.isNullOrBlank() && id !in loadIds
+            }
+            orphanScans.forEach { scan ->
+                scanDao.deleteById(scan.id)
+                runCatching { File(scan.filePath).delete() }
+                removed++
+            }
+        }
+        return removed
     }
 
     fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =
@@ -96,9 +141,7 @@ class LoadRepository(private val db: AppDatabase) {
     suspend fun getAllLoadsOnce(): List<Load> = hydrateLoads(loadDao.getAllLoadsOnce())
 
     suspend fun getLoadsForLinking(limit: Int = 50): List<Load> =
-        getAllLoadsOnce()
-            .sortedByDescending { getFirstPickUpMillis(it) ?: it.updatedAt }
-            .take(limit)
+        hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
 
     /** Все грузы (разовый запрос). */
     suspend fun getAll(): List<Load> = getAllLoadsOnce()
@@ -107,20 +150,20 @@ class LoadRepository(private val db: AppDatabase) {
         loads: List<Load>,
         parsedCount: Int
     ): com.truckerload.utils.LoadImporter.ImportResult {
-        val incomingTripIds = loads.map { it.tripId.uppercase() }.filter { it.isNotBlank() }
+        val incomingTripIds = loads.map { normalizeTripId(it.tripId) }.filter { it.isNotBlank() }
         val existingTripIds = loadDao.getExistingTripIds(incomingTripIds)
-            .map { it.uppercase() }
+            .map { normalizeTripId(it) }
             .toMutableSet()
         var imported = 0
         var skipped = 0
         for (load in loads) {
-            val tripId = load.tripId.uppercase()
+            val tripId = normalizeTripId(load.tripId)
             if (tripId in existingTripIds) {
                 skipped++
                 continue
             }
-            insertLoad(load, playFeedback = false)
             existingTripIds.add(tripId)
+            insertLoad(load.copy(tripId = tripId), playFeedback = false)
             imported++
         }
         if (imported > 0) {
@@ -176,9 +219,11 @@ class LoadRepository(private val db: AppDatabase) {
 
     suspend fun insertLoad(load: Load, playFeedback: Boolean = true) {
         val normalized = load.withReportingWeek().withRouteMetrics()
-        loadDao.insert(normalized.toEntity())
-        stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
-        penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
+        db.withTransaction {
+            loadDao.insert(normalized.toEntity())
+            stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
+            penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
+        }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
         if (playFeedback) {
@@ -188,46 +233,68 @@ class LoadRepository(private val db: AppDatabase) {
 
     suspend fun updateLoad(load: Load) {
         val normalized = load.withReportingWeek().withRouteMetrics()
-        loadDao.update(
-            loadId = normalized.id,
-            loadDate = normalized.date,
-            totalRate = normalized.totalRate,
-            totalMiles = normalized.totalMiles,
-            pointA = normalized.pointA,
-            pointB = normalized.pointB,
-            weekNumber = normalized.weekNumber,
-            year = normalized.year,
-            updatedAt = System.currentTimeMillis(),
-            firstPuMillis = getFirstPickUpMillis(normalized),
-            lastDelMillis = getLastDeliveryMillis(normalized),
-            route = normalized.route,
-            firstPuCityState = normalized.firstPuCityState,
-            lastDelCityState = normalized.lastDelCityState,
-            durationDays = normalized.durationDays,
-            pace = normalized.pace,
-            stopCount = normalized.stopCount,
-            isDispute = normalized.isDispute,
-            disputeResponseDate = normalized.disputeResponseDate,
-            disputeCompleted = normalized.disputeCompleted,
-            actualFinishDate = normalized.actualFinishDate,
-        )
-        stopDao.deleteByLoadId(normalized.id)
-        penaltyDao.deleteByLoadId(normalized.id)
-        if (normalized.stops.isNotEmpty()) stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
-        if (normalized.penalties.isNotEmpty()) penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
+        db.withTransaction {
+            loadDao.update(
+                loadId = normalized.id,
+                loadDate = normalized.date,
+                totalRate = normalized.totalRate,
+                totalMiles = normalized.totalMiles,
+                pointA = normalized.pointA,
+                pointB = normalized.pointB,
+                weekNumber = normalized.weekNumber,
+                year = normalized.year,
+                updatedAt = System.currentTimeMillis(),
+                firstPuMillis = getFirstPickUpMillis(normalized),
+                lastDelMillis = getLastDeliveryMillis(normalized),
+                route = normalized.route,
+                firstPuCityState = normalized.firstPuCityState,
+                lastDelCityState = normalized.lastDelCityState,
+                durationDays = normalized.durationDays,
+                pace = normalized.pace,
+                stopCount = normalized.stopCount,
+                isDispute = normalized.isDispute,
+                disputeResponseDate = normalized.disputeResponseDate,
+                disputeCompleted = normalized.disputeCompleted,
+                actualFinishDate = normalized.actualFinishDate,
+            )
+            stopDao.deleteByLoadId(normalized.id)
+            penaltyDao.deleteByLoadId(normalized.id)
+            if (normalized.stops.isNotEmpty()) {
+                stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
+            }
+            if (normalized.penalties.isNotEmpty()) {
+                penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
+            }
+        }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
     }
 
     suspend fun deleteLoad(loadId: String) {
-        loadHistoryDao.deleteByLoadId(loadId)
-        loadDao.deleteById(loadId)
+        db.withTransaction {
+            val photos = photoDao.getPhotosByLoadIdOnce(loadId)
+            val scans = scanDao.getScansByLoadIdOnce(loadId)
+            photoDao.deleteByLoadId(loadId)
+            scanDao.deleteByLoadId(loadId)
+            loadHistoryDao.deleteByLoadId(loadId)
+            loadDao.deleteById(loadId)
+            photos.forEach { runCatching { File(it.filePath).delete() } }
+            scans.forEach { runCatching { File(it.filePath).delete() } }
+        }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
     }
 
     suspend fun deleteAllLoads() {
-        loadDao.deleteAll()
+        db.withTransaction {
+            val photos = photoDao.getAllPhotosOnce()
+            val scans = scanDao.getAllScansOnce()
+            photoDao.deleteAll()
+            scanDao.deleteAll()
+            loadDao.deleteAll()
+            photos.forEach { runCatching { File(it.filePath).delete() } }
+            scans.forEach { runCatching { File(it.filePath).delete() } }
+        }
     }
 
     suspend fun refreshReportingWeeks() {
@@ -288,10 +355,10 @@ class LoadRepository(private val db: AppDatabase) {
             return SyncLoadsResult(0, "", SyncStatus.EMPTY)
         }
 
-        val tripIds = validLoads.map { it.tripId }
-        val existingIds = loadDao.getExistingTripIds(tripIds).toSet()
+        val tripIds = validLoads.map { normalizeTripId(it.tripId) }
+        val existingIds = loadDao.getExistingTripIds(tripIds).map { normalizeTripId(it) }.toSet()
 
-        val toInsert = validLoads.filter { it.tripId !in existingIds }
+        val toInsert = validLoads.filter { normalizeTripId(it.tripId) !in existingIds }
         if (toInsert.isEmpty()) {
             return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
         }
@@ -303,9 +370,12 @@ class LoadRepository(private val db: AppDatabase) {
 
         for (load in toInsert) {
             val dated = if (messageDateSeconds != null && load.date.isBlank()) {
-                load.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
+                load.copy(
+                    tripId = normalizeTripId(load.tripId),
+                    date = formatDateFromUnixSeconds(messageDateSeconds),
+                )
             } else {
-                load
+                load.copy(tripId = normalizeTripId(load.tripId))
             }
             val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
                 parsedAt = parsedAt,
@@ -315,8 +385,10 @@ class LoadRepository(private val db: AppDatabase) {
             stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
         }
 
-        loadDao.insertAll(loadEntities)
-        if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
+        db.withTransaction {
+            loadDao.insertAll(loadEntities)
+            if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
+        }
 
         val lastAdded = toInsert.last()
         val lastAddedText = "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"

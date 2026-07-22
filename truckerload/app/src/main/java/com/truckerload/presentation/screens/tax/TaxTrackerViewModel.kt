@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.domain.goal.LoadYieldCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,9 +68,14 @@ class TaxTrackerViewModel(
             val diesel = dieselRepository.getDieselForYear(year)
             val loads = loadRepository.getLoadsByYear(year)
 
-            val totalGross = paychecks.sumOf { it.netAmount }
+            val totalGross = paychecks.sumOf { paycheck ->
+                paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
+            }
             val dieselDed = diesel.sumOf { it.totalAmount }
-            val perDiemDays = loads.size
+            // Active days per load (min 1), summed — better than counting loads as days.
+            val perDiemDays = loads.sumOf {
+                LoadYieldCalculator.loadActiveDurationDays(it).toInt().coerceAtLeast(1)
+            }
             val perDiemAmt = perDiemDays * PER_DIEM_RATE
             val totalDed = dieselDed
             val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
@@ -79,6 +85,7 @@ class TaxTrackerViewModel(
             val totalOwed = seTax + fedTax
 
             val (daysUntil, nextDate) = getNextQuarterlyDate()
+            // Reserved for quarterly: leave 0 until user enters a savings field (UI not yet).
             val reserved = 0.0
             val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
 
@@ -128,18 +135,17 @@ class TaxTrackerViewModel(
     }
 
     private fun getNextQuarterlyDate(): Pair<Int, String> {
-        val cal = Calendar.getInstance()
-        val today = cal.get(Calendar.DAY_OF_YEAR)
-        val todayYear = cal.get(Calendar.YEAR)
+        val todayCal = Calendar.getInstance()
+        val todayYear = todayCal.get(Calendar.YEAR)
         for ((month, day, label) in QUARTERLY_DATES) {
             val qCal = Calendar.getInstance().apply {
+                clear()
+                set(Calendar.YEAR, if (month == 1) todayYear + 1 else todayYear)
                 set(Calendar.MONTH, month - 1)
                 set(Calendar.DAY_OF_MONTH, day)
-                set(Calendar.YEAR, if (month == 1) todayYear + 1 else todayYear)
             }
-            val qDay = qCal.get(Calendar.DAY_OF_YEAR)
-            val qYear = qCal.get(Calendar.YEAR)
-            val daysUntil = (qYear - todayYear) * 365 + (qDay - today)
+            val millisUntil = qCal.timeInMillis - todayCal.timeInMillis
+            val daysUntil = ((millisUntil + 23 * 60 * 60 * 1000L) / (24 * 60 * 60 * 1000L)).toInt()
             if (daysUntil > 0) {
                 return Pair(daysUntil, "$label ${month}/$day")
             }

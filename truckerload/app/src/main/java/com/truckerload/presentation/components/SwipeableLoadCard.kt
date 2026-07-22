@@ -17,6 +17,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,18 +45,24 @@ fun SwipeableLoadCard(
     modifier: Modifier = Modifier,
     onCameraClick: (() -> Unit)? = null,
     onScanClick: (() -> Unit)? = null,
+    /** Bump to snap the card back to settled (e.g. after canceling delete confirm). */
+    settleKey: Any = Unit,
 ) {
     val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
+                // Request delete confirm; keep the card settled so cancel does not leave a ghost.
                 onDelete()
-                true
+                false
             } else {
                 false
             }
         },
     )
+    LaunchedEffect(settleKey, load.id) {
+        dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+    }
     val showDeleteBackground = dismissState.progress > 0.02f
 
     SwipeToDismissBox(

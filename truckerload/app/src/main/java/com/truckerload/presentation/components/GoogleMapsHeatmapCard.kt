@@ -190,7 +190,7 @@ fun GoogleMapsHeatmapCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Хорошо",
+                            stringResource(R.string.map_rating_good),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )
@@ -202,7 +202,7 @@ fun GoogleMapsHeatmapCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Плохо",
+                            stringResource(R.string.map_rating_low),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )
@@ -214,7 +214,7 @@ fun GoogleMapsHeatmapCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Нейтрально",
+                            stringResource(R.string.map_rating_neutral),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -226,7 +226,7 @@ fun GoogleMapsHeatmapCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            "Нет данных",
+                            stringResource(R.string.map_rating_no_data),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -262,10 +262,10 @@ fun GoogleMapsHeatmapCard(
                         String.format(Locale.getDefault(), "%.2f", state.revenuePerMile) else "—"
                     val grossStr = String.format(Locale.getDefault(), "%,.0f", state.revenue)
                     val ratingLabel = when (state.rating) {
-                        StateRating.GOOD -> "Хорошо"
-                        StateRating.BAD -> "Плохо"
-                        StateRating.NEUTRAL -> "Нейтрально"
-                        StateRating.NO_DATA -> "Нет данных"
+                        StateRating.GOOD -> stringResource(R.string.map_rating_good)
+                        StateRating.BAD -> stringResource(R.string.map_rating_bad)
+                        StateRating.NEUTRAL -> stringResource(R.string.map_rating_neutral)
+                        StateRating.NO_DATA -> stringResource(R.string.map_rating_no_data)
                     }
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -275,24 +275,29 @@ fun GoogleMapsHeatmapCard(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "${getStateDisplayName(state.code)} (${state.code}) • ${state.trips} рейс(ов)",
+                                text = stringResource(
+                                    R.string.map_state_trips,
+                                    getStateDisplayName(state.code),
+                                    state.code,
+                                    state.trips,
+                                ),
                                 style = AppTypography.CardTitle,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "$$rpmStr / милю",
+                                text = stringResource(R.string.map_rpm_per_mile, rpmStr),
                                 modifier = Modifier.padding(top = 4.dp),
                                 style = AppTypography.Body,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "Гросс: $$grossStr",
+                                text = stringResource(R.string.map_gross_label, grossStr),
                                 modifier = Modifier.padding(top = 2.dp),
                                 style = AppTypography.Body,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "Рейтинг: $ratingLabel",
+                                text = stringResource(R.string.map_rating_format, ratingLabel),
                                 modifier = Modifier.padding(top = 6.dp),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.outline

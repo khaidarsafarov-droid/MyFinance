@@ -6,5 +6,8 @@
     <external-files-path name="photos" path="photos/" />
     <external-files-path name="scans" path="scans/" />
     <external-path name="public_downloads" path="Download/" />
-    <files-path name="files" path="." />
+    <files-path name="backups" path="backups/" />
+    <files-path name="avatars" path="avatars/" />
+    <files-path name="chat_attachments" path="chat_attachments/" />
+    <files-path name="statuses" path="statuses/" />
 </paths>

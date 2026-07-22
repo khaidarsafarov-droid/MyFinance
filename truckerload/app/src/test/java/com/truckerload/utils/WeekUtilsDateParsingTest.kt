@@ -19,9 +19,15 @@ class WeekUtilsDateParsingTest {
         assertNull(parseIsoDateParts("2026-07-xx"))
     }
 
+@Test
+    fun dateStringToStartOfDayMillis_returnsNullOnBadInput() {
+        assertNull(dateStringToStartOfDayMillis("invalid"))
+        assertNull(dateStringToEndOfDayMillis("2026-13-99"))
+    }
+
     @Test
-    fun dateStringToStartOfDayMillis_doesNotThrowOnBadInput() {
-        val millis = dateStringToStartOfDayMillis("invalid")
+    fun dateStringToStartOfDayMillis_parsesValidDate() {
+        val millis = dateStringToStartOfDayMillis("2026-07-16")
         assertNotNull(millis)
     }
 

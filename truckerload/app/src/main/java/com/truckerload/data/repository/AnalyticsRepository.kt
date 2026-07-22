@@ -62,7 +62,9 @@ class AnalyticsRepository(private val db: AppDatabase) {
         val entities = loadDao.getLoadsByWeekOnce(weekNumber, year)
         if (entities.isEmpty()) return emptyList()
         val loadIds = entities.map { it.id }
-        val stopsByLoadId = stopDao.getStopsByLoadIds(loadIds).groupBy { it.loadId }
+        val stopsByLoadId = loadIds.chunked(500)
+            .flatMap { chunk -> stopDao.getStopsByLoadIds(chunk) }
+            .groupBy { it.loadId }
         return entities.map { entity ->
             entity.toDomain(stops = stopsByLoadId[entity.id].orEmpty())
         }
@@ -72,7 +74,9 @@ class AnalyticsRepository(private val db: AppDatabase) {
         val entities = loadDao.getLoadsSince(minDate)
         if (entities.isEmpty()) return emptyList()
         val loadIds = entities.map { it.id }
-        val stopsByLoadId = stopDao.getStopsByLoadIds(loadIds).groupBy { it.loadId }
+        val stopsByLoadId = loadIds.chunked(500)
+            .flatMap { chunk -> stopDao.getStopsByLoadIds(chunk) }
+            .groupBy { it.loadId }
         val loads = entities.map { entity ->
             entity.toDomain(stops = stopsByLoadId[entity.id].orEmpty())
         }

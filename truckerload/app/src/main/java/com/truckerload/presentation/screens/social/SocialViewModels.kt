@@ -14,6 +14,7 @@ import com.truckerload.domain.social.SocialMessage
 import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.getOrNull
+import com.truckerload.domain.social.GroupInviteCode
 import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -608,11 +609,12 @@ class GroupsViewModel(
     }
 
     fun joinByCode(displayName: String, onJoined: (String) -> Unit) {
-        val code = _inviteCode.value.trim()
-        if (code.isBlank()) return
+        val code = _inviteCode.value
+        // Blank / whitespace: no-op (button should stay disabled for blank).
+        if (GroupInviteCode.isBlank(code)) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.joinGroupByInviteCode(code, displayName)) {
+            when (val result = socialRepository.joinGroupByInviteCode(GroupInviteCode.normalize(code), displayName)) {
                 is SocialResult.Success -> onJoined(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }

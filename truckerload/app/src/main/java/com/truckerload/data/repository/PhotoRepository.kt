@@ -3,7 +3,7 @@ package com.truckerload.data.repository
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.PhotoEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import java.io.File
 import java.util.UUID
 
 class PhotoRepository(private val db: AppDatabase) {
@@ -19,18 +19,8 @@ class PhotoRepository(private val db: AppDatabase) {
         loadId: String? = null,
         dayStartMillis: Long? = null,
         dayEndMillis: Long? = null,
-    ): Flow<List<PhotoEntity>> {
-        return photoDao.getAllPhotos().map { photos ->
-            photos.filter { photo ->
-                val loadOk = loadId == null || photo.loadId == loadId
-                val dateOk = when {
-                    dayStartMillis == null || dayEndMillis == null -> true
-                    else -> photo.timestamp in dayStartMillis..dayEndMillis
-                }
-                loadOk && dateOk
-            }
-        }
-    }
+    ): Flow<List<PhotoEntity>> =
+        photoDao.getPhotosFiltered(loadId, dayStartMillis, dayEndMillis)
 
     suspend fun getPhotoById(id: String): PhotoEntity? = photoDao.getById(id)
 
@@ -65,7 +55,28 @@ class PhotoRepository(private val db: AppDatabase) {
         photoDao.updateLoadId(photoId, loadId)
     }
 
+    /** Deletes DB row and the file on disk when present. */
     suspend fun deletePhoto(id: String) {
+        val existing = photoDao.getById(id)
         photoDao.deleteById(id)
+        existing?.filePath?.takeIf { it.isNotBlank() }?.let { path ->
+            runCatching { File(path).delete() }
+        }
+    }
+
+    suspend fun deletePhotosForLoad(loadId: String) {
+        val photos = photoDao.getPhotosByLoadIdOnce(loadId)
+        photoDao.deleteByLoadId(loadId)
+        photos.forEach { photo ->
+            runCatching { File(photo.filePath).delete() }
+        }
+    }
+
+    suspend fun deleteAllPhotosAndFiles() {
+        val all = photoDao.getAllPhotosOnce()
+        photoDao.deleteAll()
+        all.forEach { photo ->
+            runCatching { File(photo.filePath).delete() }
+        }
     }
 }
