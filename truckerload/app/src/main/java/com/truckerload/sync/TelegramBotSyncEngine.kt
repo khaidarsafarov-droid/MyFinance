@@ -117,11 +117,13 @@ class TelegramBotSyncEngine(private val context: Context) {
                     chatRestore = chatRestore,
                     prefs = prefs
                 )
+                nextRequestOffset = update.updateId + 1
+                persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
             } catch (e: Exception) {
-                Log.e(TAG, "handleUpdate failed for updateId=${update.updateId}", e)
+                Log.e(TAG, "handleUpdate failed for updateId=${update.updateId}; offset NOT advanced", e)
+                // Stop this poll cycle so the failed update is retried next run.
+                break
             }
-            nextRequestOffset = update.updateId + 1
-            persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
         }
 
         if (result.nextOffset > nextRequestOffset) {

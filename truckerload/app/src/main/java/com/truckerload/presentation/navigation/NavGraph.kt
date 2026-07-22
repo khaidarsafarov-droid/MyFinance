@@ -127,8 +127,8 @@ object Routes {
     fun groupDetail(chatId: String) = "group_detail/${encodePathSegment(chatId)}"
     fun peerProfile(peerId: String) = "profile_peer/${encodePathSegment(peerId)}"
 
-    fun voiceRoom(roomId: String) = "voice_room/$roomId"
-    fun call(callId: String) = "call/$callId"
+    fun voiceRoom(roomId: String) = "voice_room/${encodePathSegment(roomId)}"
+    fun call(callId: String) = "call/${encodePathSegment(callId)}"
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)

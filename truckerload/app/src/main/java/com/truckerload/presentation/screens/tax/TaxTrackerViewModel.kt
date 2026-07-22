@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.domain.goal.LoadYieldCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,7 +70,10 @@ class TaxTrackerViewModel(
 
             val totalGross = paychecks.sumOf { it.netAmount }
             val dieselDed = diesel.sumOf { it.totalAmount }
-            val perDiemDays = loads.size
+            // Active days per load (min 1), summed — better than counting loads as days.
+            val perDiemDays = loads.sumOf {
+                LoadYieldCalculator.loadActiveDurationDays(it).toInt().coerceAtLeast(1)
+            }
             val perDiemAmt = perDiemDays * PER_DIEM_RATE
             val totalDed = dieselDed
             val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
@@ -79,6 +83,7 @@ class TaxTrackerViewModel(
             val totalOwed = seTax + fedTax
 
             val (daysUntil, nextDate) = getNextQuarterlyDate()
+            // Reserved for quarterly: leave 0 until user enters a savings field (UI not yet).
             val reserved = 0.0
             val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
 

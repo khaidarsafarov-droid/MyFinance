@@ -84,4 +84,44 @@ class DeleteLoadClearsPhotosTest {
         assertTrue(db.loadDao().getLoadById(load.id) == null)
         assertTrue(!photoFile.exists())
     }
+
+    @Test
+    fun deleteLoad_removesScanRowsAndFiles() = runBlocking {
+        val load = Load(
+            id = "load-2",
+            tripId = "T-TEST2",
+            date = "2026-07-21",
+            totalRate = 1000.0,
+            totalMiles = 100.0,
+            pointA = "A",
+            pointB = "B",
+            puCount = 1,
+            delCount = 1,
+            weekNumber = 30,
+            year = 2026,
+            rawMessage = "",
+            parsedAt = 1L,
+            updatedAt = 1L,
+        )
+        repo.insertLoad(load, playFeedback = false)
+        val scanFile = File(RuntimeEnvironment.getApplication().cacheDir, "test_scan.pdf").apply {
+            writeText("%PDF-fake")
+        }
+        db.scanDao().insert(
+            com.truckerload.data.local.entities.ScanEntity(
+                id = "scan-1",
+                fileName = scanFile.name,
+                filePath = scanFile.absolutePath,
+                timestamp = 1L,
+                fileSizeBytes = 9,
+                pageCount = 1,
+                ocrText = "",
+                loadId = load.id,
+            ),
+        )
+        assertEquals(1, db.scanDao().getScansByLoadIdOnce(load.id).size)
+        repo.deleteLoad(load.id)
+        assertTrue(db.scanDao().getScansByLoadIdOnce(load.id).isEmpty())
+        assertTrue(!scanFile.exists())
+    }
 }

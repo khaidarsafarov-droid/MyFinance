@@ -141,6 +141,13 @@ class HomeViewModel(
     private val _pendingDeleteConfirmId = MutableStateFlow<String?>(null)
     val pendingDeleteConfirmId: StateFlow<String?> = _pendingDeleteConfirmId.asStateFlow()
 
+    private val _deleteError = MutableStateFlow<String?>(null)
+    val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
+
+    /** Bumped when delete dialog is cancelled so swipe cards snap back. */
+    private val _swipeSettleGeneration = MutableStateFlow(0)
+    val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
+
     /** Результат фильтрации: список, итоги, даты с грузами (для индикаторов календаря). */
     data class FilteredResult(
         val loads: List<Load>,
@@ -234,6 +241,11 @@ class HomeViewModel(
 
     fun dismissDeleteLoad() {
         _pendingDeleteConfirmId.value = null
+        _swipeSettleGeneration.update { it + 1 }
+    }
+
+    fun clearDeleteError() {
+        _deleteError.value = null
     }
 
     fun confirmDeleteLoad() {
@@ -245,9 +257,25 @@ class HomeViewModel(
             try {
                 loadRepository.deleteLoad(loadId)
                 WidgetDataUpdater.updateWidgetData(app.applicationContext)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 _pendingDeleteIds.update { it - loadId }
+                _swipeSettleGeneration.update { it + 1 }
+                _deleteError.value = e.message?.takeIf { it.isNotBlank() }
+                    ?: app.getString(R.string.home_delete_failed)
             }
+        }
+    }
+
+    fun selectWeek(weekStart: String, weekEnd: String, label: String) {
+        _uiState.update {
+            it.copy(
+                filter = LoadFilter.CALENDAR_WEEK,
+                selectedWeekStart = weekStart,
+                selectedWeekEnd = weekEnd,
+                selectedWeekLabel = label,
+                selectedDate = null,
+                selectedDateLabel = "",
+            )
         }
     }
 

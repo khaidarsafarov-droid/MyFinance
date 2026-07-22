@@ -99,3 +99,19 @@ Use this template when a step fails:
 - GO: all critical flows pass (launch, navigation, Finance period updates, Stats consistency, FAB actions).
 - NO-GO: any crash, blocked flow, or stale/incorrect period-based totals.
 
+## 7) Journal / Loads QA (2–3 min) — added for QUALITY_100
+
+1. Home: tap Search icon — search field appears; tap again with empty query — field hides.
+2. Swipe a load left → confirm dialog → Cancel → card stays visible (not ghost-dismissed).
+3. Swipe again → Confirm delete → load gone; linked photos/scans gone if any.
+4. Switch language to EN → Home DISPUTE filter label is English («Dispute»), not Russian.
+5. Add Load: paste Relay fixture with Total Rate + Pu-address → Save → appears in list immediately.
+6. Open load camera from card → capture → share/save → returns to load detail.
+7. Drawer/widget camera: watermark shows Trip ID of latest load but does **not** auto-attach files.
+8. Pull to refresh → toast «Telegram sync started» (when bot configured).
+
+Expected:
+- No silent swipe-dismiss without confirm.
+- EN dispute strings present.
+- Free camera does not silently link photos to a load.
+

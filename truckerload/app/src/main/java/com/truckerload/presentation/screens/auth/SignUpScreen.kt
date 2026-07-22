@@ -271,7 +271,7 @@ fun SignUpScreen(
                     value = fullName,
                     onValueChange = { fullName = it; error = null },
                     label = { Text(stringResource(R.string.auth_full_name_hint)) },
-                    placeholder = { Text("Иван Иванов") },
+                    placeholder = { Text(stringResource(R.string.signup_name_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),

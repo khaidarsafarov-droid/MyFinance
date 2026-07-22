@@ -108,10 +108,10 @@ class CameraViewModel(
 
     private suspend fun resolveAttachContext(): CameraAttachContext {
         CameraAttachContext.fromExplicit(attachLoadId, attachTripId, attachLoadDate)?.let { return it }
-        // Widget / drawer camera: use the most recently added load.
+        // Widget / drawer camera: use latest Trip ID for watermark only — do not auto-attach files.
         val latest = runCatching { loadRepository.getAllLoadsOnce().firstOrNull() }.getOrNull()
         return CameraAttachContext.fromLatestLoad(
-            loadId = latest?.id,
+            loadId = null,
             tripId = latest?.tripId,
             loadDate = latest?.effectiveFinishDate()
                 ?: latest?.date?.takeIf { it.length >= 10 },

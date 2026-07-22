@@ -117,11 +117,12 @@ fun AddLoadScreen(
                     scope.launch {
                         aiRepository.parseLoadFromMessage(rawText)
                             .onSuccess { load ->
+                                onOptimisticInsert?.invoke(load)
                                 try {
                                     withContext(Dispatchers.IO) { loadRepository.insertLoad(load) }
-                                    onOptimisticInsert?.invoke(load)
                                     onSaved()
                                 } catch (e: Exception) {
+                                    onRevertOptimistic?.invoke(load.id)
                                     error = context.getString(R.string.common_save_error, e.message.orEmpty())
                                     isSaving = false
                                 }

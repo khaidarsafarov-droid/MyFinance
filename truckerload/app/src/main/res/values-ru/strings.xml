@@ -499,6 +499,7 @@
     <string name="load_detail_stat_total_rate">Total Rate</string>
     <string name="load_detail_stat_miles">Miles</string>
     <string name="load_detail_stat_rpm">RPM</string>
+    <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>
     <string name="load_detail_stat_duration">Длительность</string>
     <string name="load_detail_stat_pace">Темп</string>
@@ -981,4 +982,27 @@
     <string name="dispute_response_date_title">Дата ответа</string>
     <string name="dispute_response_date_label">Дата ответа: %1$s</string>
     <string name="dispute_completed_checkbox">Выполнено</string>
+    <string name="home_filter_dispute">Диспют</string>
+    <string name="home_empty_dispute">Нет грузов на диспюте</string>
+    <string name="goal_error_enter_amount">Введите сумму цели</string>
+    <string name="signup_name_placeholder">Иван Иванов</string>
+    <string name="map_rating_good">Хорошо</string>
+    <string name="map_rating_avg">Средне</string>
+    <string name="map_rating_low">Низко</string>
+    <string name="load_detail_miles_stops">%1$.0f mi · %2$d остановок</string>
+    <string name="edit_load_invalid_number">Введите корректное число</string>
+    <string name="home_delete_failed">Не удалось удалить груз</string>
+    <string name="ocr_image_disabled">OCR отключён: отправьте текст лоуда или чека</string>
+    <string name="home_sync_triggered">Синхронизация Telegram запущена</string>
+    <string name="settings_cd_export_csv">Экспорт CSV</string>
+    <string name="settings_cd_export_json">Экспорт JSON</string>
+    <string name="settings_cd_import">Импорт</string>
+    <string name="tax_per_diem_hint">Дни per-diem ≈ сумма активных дней по каждому грузу (мин. 1 на груз)</string>
+    <string name="map_rating_bad">Плохо</string>
+    <string name="map_rating_neutral">Нейтрально</string>
+    <string name="map_rating_no_data">Нет данных</string>
+    <string name="map_state_trips">%1$s (%2$s) • %3$d рейс(ов)</string>
+    <string name="map_rpm_per_mile">$%1$s / милю</string>
+    <string name="map_gross_label">Гросс: $%1$s</string>
+    <string name="home_calendar_select_week">Выбрать неделю этой даты</string>
 </resources>

@@ -184,25 +184,33 @@ fun EditLoadScreen(
             Button(
                 onClick = {
                     val l = load ?: return@Button
+                    val parsedRate = totalRate.toDoubleOrNull()
+                    val parsedMiles = totalMiles.toDoubleOrNull()
+                    if (parsedRate == null || parsedMiles == null) {
+                        saveError = context.getString(R.string.edit_load_invalid_number)
+                        return@Button
+                    }
                     val newDate = loadDate.ifBlank { l.date }
                     val updated = (disputeLoad ?: l).copy(
+                        tripId = tripId.ifBlank { l.tripId },
                         date = newDate,
-                        totalRate = totalRate.toDoubleOrNull() ?: l.totalRate,
-                        totalMiles = totalMiles.toDoubleOrNull() ?: l.totalMiles,
+                        totalRate = parsedRate,
+                        totalMiles = parsedMiles,
                         pointA = pointA,
                         pointB = pointB,
                         updatedAt = System.currentTimeMillis()
                     )
                     isSaving = true
                     saveError = null
+                    onOptimisticUpdate?.invoke(updated)
                     scope.launch {
                         try {
                             withContext(Dispatchers.IO) {
                                 loadRepository.updateLoad(updated)
                             }
-                            onOptimisticUpdate?.invoke(updated)
                             onSaved()
                         } catch (e: Exception) {
+                            onRevertOptimistic?.invoke(updated.id)
                             saveError = context.getString(R.string.common_save_error, e.message.orEmpty())
                             isSaving = false
                         }

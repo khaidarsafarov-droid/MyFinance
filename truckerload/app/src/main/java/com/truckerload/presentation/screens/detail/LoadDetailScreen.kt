@@ -177,7 +177,11 @@ fun LoadDetailScreen(
                                 color = tc.TextPrimary
                             )
                             Text(
-                                "${String.format("%,.2f", l.totalMiles)} mi · ${l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount)} stops",
+                                stringResource(
+                                    R.string.load_detail_miles_stops,
+                                    l.totalMiles,
+                                    l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = tc.TextSecondary,
                                 modifier = Modifier.padding(top = 8.dp)
@@ -210,7 +214,7 @@ fun LoadDetailScreen(
                             value = if (l.pace > 0) formatPacePerDay(l.pace) else "—",
                             modifier = Modifier.weight(1f)
                         )
-                        StatBox(title = "PU", value = "${l.puCount}", modifier = Modifier.weight(1f))
+                        StatBox(title = stringResource(R.string.load_detail_stat_pu), value = "${l.puCount}", modifier = Modifier.weight(1f))
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),

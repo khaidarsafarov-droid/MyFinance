@@ -83,7 +83,9 @@ class GoogleDriveApiClient(
                 "oauth2:${GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE}",
             )
         } catch (e: UserRecoverableAuthException) {
-            throw DriveError.NeedsUserConsent(e.intent!!)
+            val intent = e.intent
+                ?: throw DriveError.Api("Drive consent required but no recovery intent")
+            throw DriveError.NeedsUserConsent(intent)
         }
     }
 

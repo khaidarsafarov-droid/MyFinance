@@ -499,6 +499,7 @@
     <string name="load_detail_stat_total_rate">Total Rate</string>
     <string name="load_detail_stat_miles">Miles</string>
     <string name="load_detail_stat_rpm">RPM</string>
+    <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>
     <string name="load_detail_stat_duration">Duration</string>
     <string name="load_detail_stat_pace">Pace</string>
@@ -983,4 +984,27 @@
     <string name="dispute_completed_checkbox">Completed</string>
 
 
+    <string name="home_filter_dispute">Dispute</string>
+    <string name="home_empty_dispute">No loads in dispute</string>
+    <string name="goal_error_enter_amount">Enter a goal amount</string>
+    <string name="signup_name_placeholder">John Doe</string>
+    <string name="map_rating_good">Good</string>
+    <string name="map_rating_avg">Average</string>
+    <string name="map_rating_low">Low</string>
+    <string name="load_detail_miles_stops">%1$.0f mi · %2$d stops</string>
+    <string name="edit_load_invalid_number">Enter a valid number</string>
+    <string name="home_delete_failed">Could not delete load</string>
+    <string name="ocr_image_disabled">OCR is disabled — send load or receipt text</string>
+    <string name="home_sync_triggered">Telegram sync started</string>
+    <string name="settings_cd_export_csv">Export CSV</string>
+    <string name="settings_cd_export_json">Export JSON</string>
+    <string name="settings_cd_import">Import</string>
+    <string name="tax_per_diem_hint">Per-diem days approximate sum of each load active days (min 1 per load)</string>
+    <string name="map_rating_bad">Poor</string>
+    <string name="map_rating_neutral">Neutral</string>
+    <string name="map_rating_no_data">No data</string>
+    <string name="map_state_trips">%1$s (%2$s) • %3$d trip(s)</string>
+    <string name="map_rpm_per_mile">$%1$s / mile</string>
+    <string name="map_gross_label">Gross: $%1$s</string>
+    <string name="home_calendar_select_week">Select week of this date</string>
 </resources>

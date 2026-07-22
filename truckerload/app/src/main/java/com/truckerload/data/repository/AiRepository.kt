@@ -30,7 +30,12 @@ class AiRepository(
     ): Result<String> = advisorService.chat(history, userMessage, appContext)
 
     suspend fun extractTextFromImage(imageBytes: ByteArray, mimeType: String): Result<String> =
-        Result.failure(UnsupportedOperationException("OCR отключён: отправьте текст лоуда или чека"))
+        Result.failure(UnsupportedOperationException(OCR_IMAGE_DISABLED_CODE))
+
+    companion object {
+        /** Callers should map this to [com.truckerload.R.string.ocr_image_disabled]. */
+        const val OCR_IMAGE_DISABLED_CODE = "OCR_IMAGE_DISABLED"
+    }
 
     suspend fun parseLoadFromMessage(rawMessage: String): Result<Load> =
         messageParseService.parseLoadFromMessage(rawMessage)

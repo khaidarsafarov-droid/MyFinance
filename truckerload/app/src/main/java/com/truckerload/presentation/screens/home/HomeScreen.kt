@@ -195,8 +195,22 @@ fun HomeScreen(
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.End,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
+                        TextButton(onClick = {
+                            val date = uiState.selectedDate
+                                ?: java.time.LocalDate.of(
+                                    calendarYear,
+                                    calendarMonth,
+                                    1,
+                                ).toString()
+                            val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
+                            val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
+                            viewModel.selectWeek(start, end, label)
+                            showCalendar = false
+                        }) {
+                            Text(stringResource(R.string.home_calendar_select_week), color = tc.AccentPrimary)
+                        }
                         TextButton(onClick = { showCalendar = false }) {
                             Text(stringResource(R.string.common_close), color = tc.AccentPrimary)
                         }
@@ -322,10 +336,23 @@ private fun HomeScreenContent(
     var showYearSelector by remember { mutableStateOf(false) }
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsState()
+    val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsState()
+    val deleteError by viewModel.deleteError.collectAsState()
+    LaunchedEffect(deleteError) {
+        val msg = deleteError ?: return@LaunchedEffect
+        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+        viewModel.clearDeleteError()
+    }
 
     fun onRefresh() {
         refreshing = true
         TelegramSyncWorker.enqueueEnsureService(context.applicationContext, replace = true)
+        android.widget.Toast.makeText(
+            context,
+            context.getString(R.string.home_sync_triggered),
+            android.widget.Toast.LENGTH_SHORT,
+        ).show()
         scope.launch {
             delay(2500)
             refreshing = false
@@ -375,12 +402,14 @@ private fun HomeScreenContent(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item(key = "search") {
-                BentoGlassSearchField(
-                    value = uiState.searchQuery,
-                    onValueChange = { viewModel.setSearchQuery(it) },
-                    placeholder = stringResource(R.string.home_search_hint),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+                if (uiState.isSearchExpanded || uiState.searchQuery.isNotBlank()) {
+                    BentoGlassSearchField(
+                        value = uiState.searchQuery,
+                        onValueChange = { viewModel.setSearchQuery(it) },
+                        placeholder = stringResource(R.string.home_search_hint),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
             }
 
             periodSummary?.let { summary ->
@@ -488,6 +517,7 @@ private fun HomeScreenContent(
                                     onLoadScan(item.load.id, item.load.tripId, item.load.date)
                                 }
                             },
+                            settleKey = swipeSettleGeneration,
                         )
                     }
                 }
@@ -515,7 +545,6 @@ private fun HomeScreenContent(
         PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
 
-    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsState()
     if (pendingDeleteId != null) {
         AlertDialog(
             onDismissRequest = viewModel::dismissDeleteLoad,

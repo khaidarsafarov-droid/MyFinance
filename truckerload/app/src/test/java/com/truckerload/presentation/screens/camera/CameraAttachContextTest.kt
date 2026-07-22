@@ -27,4 +27,12 @@ class CameraAttachContextTest {
         assertEquals("TRIP", ctx.tripId)
         assertNull(ctx.loadDate)
     }
+
+    @Test
+    fun freeCameraWatermarkOnly_keepsTripWithoutLoadId() {
+        val ctx = CameraAttachContext.fromLatestLoad(null, "T-LATEST", "2026-07-21")
+        assertNull(ctx.loadId)
+        assertEquals("T-LATEST", ctx.tripId)
+        assertEquals("2026-07-21", ctx.loadDate)
+    }
 }
