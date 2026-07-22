@@ -85,7 +85,7 @@ class EffectiveFinishDateTest {
     }
 
     private fun stop(type: StopType, scheduledTime: String) = Stop(
-        id = "$type-$scheduledTime",
+        id = type.name.hashCode() + scheduledTime.hashCode(),
         loadId = "id-1",
         stopNumber = 1,
         type = type,

@@ -28,14 +28,14 @@ class DriveSyncPolicyTest {
         assertTrue(
             DriveSyncPolicy.shouldWarnBeforeRestore(
                 localChangedAfterLastSync = true,
-                remoteModifiedAt = 2_000L,
+                remoteModifiedAt = 10_000L,
                 lastSyncAt = 1_000L,
             )
         )
         assertFalse(
             DriveSyncPolicy.shouldWarnBeforeRestore(
                 localChangedAfterLastSync = false,
-                remoteModifiedAt = 2_000L,
+                remoteModifiedAt = 10_000L,
                 lastSyncAt = 1_000L,
             )
         )
@@ -43,7 +43,7 @@ class DriveSyncPolicyTest {
             DriveSyncPolicy.shouldWarnBeforeRestore(
                 localChangedAfterLastSync = true,
                 remoteModifiedAt = 1_000L,
-                lastSyncAt = 2_000L,
+                lastSyncAt = 10_000L,
             )
         )
     }
