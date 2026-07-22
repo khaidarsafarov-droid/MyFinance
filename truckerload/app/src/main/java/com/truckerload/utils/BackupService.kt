@@ -79,6 +79,9 @@ object BackupService {
         File(dir, fileName).writeText(json, Charsets.UTF_8)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
         Log.d(TAG, "createAutoBackup saved $fileName (${loads.size} loads)")
+        runCatching {
+            com.truckerload.data.backup.GoogleDriveBackupService.pushAutoBackupIfEnabled(appContext)
+        }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", e) }
     }
 
     suspend fun restoreFromFile(context: Context, file: File): Result<Int> = withContext(Dispatchers.IO) {
@@ -121,6 +124,36 @@ object BackupService {
     suspend fun hasAutoBackups(context: Context): Boolean = withContext(Dispatchers.IO) {
         getAutoBackups(context).isNotEmpty()
     }
+
+    /** Полный JSON бэкапа (loads/paychecks/diesel) для локального файла или Google Drive. */
+    suspend fun createBackupJson(context: Context): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val appContext = context.applicationContext
+            val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
+            val loadRepository = LoadRepository(db)
+            val paycheckRepository = PaycheckRepository(db)
+            val dieselRepository = DieselRepository(db)
+            val loads = loadRepository.getAllLoadsOnce()
+            val paychecks = paycheckRepository.getAllPaychecksOnce()
+            val diesel = dieselRepository.getAllDieselOnce()
+            if (loads.isEmpty() && paychecks.isEmpty() && diesel.isEmpty()) return@withContext null
+            gson.toJson(
+                BackupData(
+                    loads = loads,
+                    paychecks = paychecks,
+                    diesel = diesel,
+                )
+            )
+        }.getOrElse { e ->
+            Log.e(TAG, "createBackupJson failed", e)
+            null
+        }
+    }
+
+    suspend fun restoreBackupJson(context: Context, json: String): Result<BackupData> =
+        restoreFromJson(context, json).onSuccess {
+            WidgetDataUpdater.updateWidgetData(context.applicationContext)
+        }
 
     suspend fun createManualBackup(context: Context): CreateResult? = withContext(Dispatchers.IO) {
         try {

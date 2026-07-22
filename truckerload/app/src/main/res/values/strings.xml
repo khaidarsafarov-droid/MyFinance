@@ -575,6 +575,27 @@
     <string name="settings_backup_restore_hint">Файл Loads_… из папки Загрузки/TruckLog или Samsung Notes</string>
     <string name="settings_backup_restore_hidden">Импорт</string>
     <string name="settings_backup_share_title">Открыть в заметках</string>
+    <string name="drive_sync_title">Google Drive</string>
+    <string name="drive_sync_desc">Данные остаются в Room на телефоне. Облачная копия — в вашем Google-аккаунте (скрытая папка приложения). iCloud на Android недоступен.</string>
+    <string name="drive_sync_status_off">Не подключено</string>
+    <string name="drive_sync_status_on">Подключено: %1$s</string>
+    <string name="drive_sync_last">Последняя синхронизация: %1$s</string>
+    <string name="drive_sync_last_never">ещё не было</string>
+    <string name="drive_sync_connect">Подключить Google Drive</string>
+    <string name="drive_sync_disconnect">Отключить</string>
+    <string name="drive_sync_backup_now">Сохранить в Drive</string>
+    <string name="drive_sync_restore_now">Восстановить из Drive</string>
+    <string name="drive_sync_auto">Автосинхронизация</string>
+    <string name="drive_sync_auto_desc">После изменений грузов копировать бэкап в Drive</string>
+    <string name="drive_sync_not_linked">Сначала подключите Google Drive</string>
+    <string name="drive_sync_nothing_to_backup">Нет данных для бэкапа</string>
+    <string name="drive_sync_backup_ok">Сохранено в Google Drive (%1$s)</string>
+    <string name="drive_sync_connected">Google Drive подключён</string>
+    <string name="drive_sync_connect_failed">Не удалось подключить Google Drive</string>
+    <string name="drive_sync_api_error">Ошибка Drive: %1$s</string>
+    <string name="drive_sync_busy">Синхронизация…</string>
+    <string name="drive_sync_restore_confirm_title">Восстановить из Drive?</string>
+    <string name="drive_sync_restore_confirm_body">Локальные грузы будут заменены копией из Google Drive.</string>
     <string name="settings_app_version">Версия %1$s</string>
 
     <string name="settings_theme_title">Тема оформления</string>

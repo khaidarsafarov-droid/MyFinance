@@ -566,6 +566,27 @@
     <string name="settings_backup_restore_hint">Loads_… file from Downloads/TruckLog or Samsung Notes</string>
     <string name="settings_backup_restore_hidden">Import</string>
     <string name="settings_backup_share_title">Open in notes</string>
+    <string name="drive_sync_title">Google Drive</string>
+    <string name="drive_sync_desc">Data stays in Room on the phone. Cloud copy goes to your Google account (hidden app folder). iCloud is not available on Android.</string>
+    <string name="drive_sync_status_off">Not connected</string>
+    <string name="drive_sync_status_on">Connected: %1$s</string>
+    <string name="drive_sync_last">Last sync: %1$s</string>
+    <string name="drive_sync_last_never">never</string>
+    <string name="drive_sync_connect">Connect Google Drive</string>
+    <string name="drive_sync_disconnect">Disconnect</string>
+    <string name="drive_sync_backup_now">Save to Drive</string>
+    <string name="drive_sync_restore_now">Restore from Drive</string>
+    <string name="drive_sync_auto">Auto-sync</string>
+    <string name="drive_sync_auto_desc">After load changes, copy backup to Drive</string>
+    <string name="drive_sync_not_linked">Connect Google Drive first</string>
+    <string name="drive_sync_nothing_to_backup">Nothing to back up</string>
+    <string name="drive_sync_backup_ok">Saved to Google Drive (%1$s)</string>
+    <string name="drive_sync_connected">Google Drive connected</string>
+    <string name="drive_sync_connect_failed">Could not connect Google Drive</string>
+    <string name="drive_sync_api_error">Drive error: %1$s</string>
+    <string name="drive_sync_busy">Syncing…</string>
+    <string name="drive_sync_restore_confirm_title">Restore from Drive?</string>
+    <string name="drive_sync_restore_confirm_body">Local loads will be replaced by the Google Drive copy.</string>
     <string name="settings_app_version">Version %1$s</string>
 
     <string name="settings_theme_title">Theme</string>
