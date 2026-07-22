@@ -176,6 +176,7 @@ fun AppDrawerContent(
                             userProfileStore.unbind()
                             authStore.logout()
                             showLogoutConfirm = false
+                            onClose()
                             Toast.makeText(
                                 context,
                                 context.getString(R.string.settings_logout_success),

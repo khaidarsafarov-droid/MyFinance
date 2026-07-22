@@ -139,6 +139,7 @@ private fun LoadCardContent(
                         text = load.effectiveFinishDate() ?: load.date,
                         style = AppTypography.CaptionMuted,
                         maxLines = 1,
+                        softWrap = false,
                     )
                     if (onCameraClick != null) {
                         val photoCd = stringResource(R.string.load_card_attach_photo)
