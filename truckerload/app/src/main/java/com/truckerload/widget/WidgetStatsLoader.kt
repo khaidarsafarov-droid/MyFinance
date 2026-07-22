@@ -9,10 +9,12 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.WeekRepository
+import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.isLoadInWeek
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -68,6 +70,10 @@ object WidgetStatsLoader {
             goalActualDailyYield = goalProgress.actualDailyYield,
             goalDaysRemaining = goalProgress.daysRemainingInWeek,
             goalPaceStatus = goalProgress.paceStatus.name,
+            totalActiveDays = sqlYield.totalActiveDays.takeIf { it > 0.0 }
+                ?: LoadYieldCalculator.totalActiveDays(
+                    allLoads.filter { isLoadInWeek(it, weekNumber, year) },
+                ),
             updatedAtMillis = System.currentTimeMillis()
         ).also { WidgetDataStore.save(appContext, it) }
     }

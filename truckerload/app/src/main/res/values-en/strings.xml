@@ -160,6 +160,7 @@
     <string name="home_cd_add_load">Add load</string>
     <string name="home_cd_bot_active">Telegram bot active</string>
     <string name="home_cd_bot_inactive">Telegram bot inactive</string>
+    <string name="connectivity_offline_banner">Offline — local data available; Drive/Telegram sync paused</string>
     <string name="nav_finance">Finance</string>
     <string name="nav_logs">Logs</string>
     <string name="nav_profile">Profile</string>
@@ -307,6 +308,7 @@
     <string name="home_filter_this_week">This week</string>
     <string name="home_filter_last_week">Last week</string>
     <string name="home_filter_this_month">This month</string>
+    <string name="home_filter_dispute">Dispute</string>
     <string name="home_empty_all_title">No loads found</string>
     <string name="home_empty_calendar_week">No loads for selected week</string>
     <string name="home_empty_calendar_date">No loads for selected date</string>
@@ -314,6 +316,7 @@
     <string name="home_empty_this_week">No loads this week</string>
     <string name="home_empty_last_week">No loads last week</string>
     <string name="home_empty_this_month">No loads this month</string>
+    <string name="home_empty_dispute">No loads in dispute</string>
     <string name="home_empty_all_body">Send data to the Telegram bot or add a load. Pull down to refresh.</string>
     <string name="home_empty_filtered_body">Change the filter or pull down to refresh.</string>
     <string name="home_stats_header">%1$d loads total  •  $%2$.0f  •  %3$.0f mi  •  %4$s avg RPM</string>
@@ -502,6 +505,13 @@
     <string name="load_detail_finish_pick">Pick finish date</string>
     <string name="load_detail_finish_clear">Reset to stop date</string>
     <string name="load_detail_finish_hint">Default is the last DEL. If you finished earlier, set your date — duration and pace will update.</string>
+    <string name="dispute_section_title">Dispute</string>
+    <string name="dispute_checkbox_label">Dispute</string>
+    <string name="dispute_active">In dispute</string>
+    <string name="dispute_was_dispute">Was disputed</string>
+    <string name="dispute_response_date_title">Response date</string>
+    <string name="dispute_response_date_label">Response date: %1$s</string>
+    <string name="dispute_completed_checkbox">Completed</string>
     <string name="load_detail_route">Route</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>

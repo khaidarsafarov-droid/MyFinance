@@ -1,8 +1,11 @@
 package com.truckerload.presentation.screens.stats
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.StatsSelectionSnapshot
 import com.truckerload.data.preferences.StatsSelectionStore
@@ -66,7 +69,8 @@ class StatsViewModel(
     private val weekRepository: WeekRepository,
     private val loadRepository: LoadRepository,
     private val selectedStateStore: SelectedStateStore,
-    private val statsSelectionStore: StatsSelectionStore
+    private val statsSelectionStore: StatsSelectionStore,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
     private val minYear = currentYear - 5
@@ -108,13 +112,15 @@ class StatsViewModel(
         )
         val restoredWeekYear = persisted.weekYear.coerceIn(minYear, maxYear)
         val restoredCalendarYear = persisted.calendarYear.coerceIn(minYear, maxYear)
+        val periodFromHandle = savedStateHandle.get<String>(KEY_PERIOD)
+            ?.let { runCatching { StatsPeriod.valueOf(it) }.getOrNull() }
         _uiState.update {
             it.copy(
                 weekNumber = persisted.weekNumber.coerceIn(1, 53),
                 year = restoredWeekYear,
                 calendarMonth = persisted.calendarMonth.coerceIn(1, 12),
                 calendarYear = restoredCalendarYear,
-                statsPeriod = persisted.period,
+                statsPeriod = periodFromHandle ?: persisted.period,
                 selectedStateCode = selectedStateStore.current()
             )
         }
@@ -139,6 +145,7 @@ class StatsViewModel(
     }
 
     fun setStatsPeriod(period: StatsPeriod) {
+        savedStateHandle[KEY_PERIOD] = period.name
         val cached = periodCache[period]
         _uiState.update {
             if (cached != null) {
@@ -546,10 +553,20 @@ class StatsViewModel(
         private val weekRepository: WeekRepository,
         private val loadRepository: LoadRepository,
         private val selectedStateStore: SelectedStateStore,
-        private val statsSelectionStore: StatsSelectionStore
+        private val statsSelectionStore: StatsSelectionStore,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            StatsViewModel(weekRepository, loadRepository, selectedStateStore, statsSelectionStore) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
+            StatsViewModel(
+                weekRepository,
+                loadRepository,
+                selectedStateStore,
+                statsSelectionStore,
+                extras.createSavedStateHandle(),
+            ) as T
+    }
+
+    companion object {
+        private const val KEY_PERIOD = "stats_period"
     }
 }

@@ -16,6 +16,8 @@ data class WidgetStats(
     val goalActualDailyYield: Double = 0.0,
     val goalDaysRemaining: Int = 0,
     val goalPaceStatus: String = "",
+    /** Sum of PU→finish active days (respects actualFinishDate). */
+    val totalActiveDays: Double = 0.0,
     val updatedAtMillis: Long = 0L,
 ) {
     /** Weekly rate per mile: total gross ÷ total miles for the current week. */

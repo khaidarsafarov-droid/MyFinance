@@ -50,6 +50,9 @@ interface LoadDao {
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     fun getAllLoads(): Flow<List<LoadEntity>>
 
+    @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
+    fun pagingAllLoads(): androidx.paging.PagingSource<Int, LoadEntity>
+
     @Query("SELECT * FROM loads WHERE id = :loadId")
     suspend fun getLoadById(loadId: String): LoadEntity?
 

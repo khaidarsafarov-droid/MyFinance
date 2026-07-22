@@ -27,6 +27,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.truckerload.data.paging.FilteredLoadsPagingSource
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -110,21 +118,31 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    private val debouncedSearchQuery: StateFlow<String> = _searchQuery
+        .debounce(250)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
     /** Только поля фильтра — не пересчитываем список при isSearchExpanded и прочих UI-флагах. */
-    private val filterState: StateFlow<HomeFilterState> = _uiState
-        .map { state ->
-            HomeFilterState(
-                filter = state.filter,
-                searchQuery = state.searchQuery,
-                selectedDate = state.selectedDate,
-                selectedWeekStart = state.selectedWeekStart,
-                selectedWeekEnd = state.selectedWeekEnd,
-                selectedYear = state.selectedYear,
-                selectedDateLabel = state.selectedDateLabel,
-                selectedWeekLabel = state.selectedWeekLabel,
-            )
-        }
-        .distinctUntilChanged()
+    private val filterState: StateFlow<HomeFilterState> = combine(
+        _uiState
+            .map { state ->
+                HomeFilterState(
+                    filter = state.filter,
+                    searchQuery = "",
+                    selectedDate = state.selectedDate,
+                    selectedWeekStart = state.selectedWeekStart,
+                    selectedWeekEnd = state.selectedWeekEnd,
+                    selectedYear = state.selectedYear,
+                    selectedDateLabel = state.selectedDateLabel,
+                    selectedWeekLabel = state.selectedWeekLabel,
+                )
+            }
+            .distinctUntilChanged(),
+        debouncedSearchQuery,
+    ) { base, query -> base.copy(searchQuery = query) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -168,6 +186,19 @@ class HomeViewModel(
             datesWithLoads = dateIndex.keys.toSet()
         )
     }.stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
+
+    /** Windowed journal rows for large filtered sets (Paging 3). */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val filteredLoadsPaging: Flow<PagingData<Load>> = filteredLoadsAndTotals
+        .map { it.loads }
+        .distinctUntilChanged()
+        .flatMapLatest { loads ->
+            Pager(
+                config = PagingConfig(pageSize = 40, enablePlaceholders = false, prefetchDistance = 20),
+                pagingSourceFactory = { FilteredLoadsPagingSource(loads) },
+            ).flow
+        }
+        .cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {
@@ -217,8 +248,24 @@ class HomeViewModel(
         }
     }
 
-    fun setSearchQuery(query: String) { _uiState.update { it.copy(searchQuery = query) } }
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+        _uiState.update { it.copy(searchQuery = query) }
+    }
     fun setSearchExpanded(expanded: Boolean) { _uiState.update { it.copy(isSearchExpanded = expanded) } }
+
+    fun refreshBotStatus() {
+        viewModelScope.launch {
+            val configured = TelegramTokenStore(app).hasToken()
+            if (!configured) {
+                _uiState.update { it.copy(botStatusActive = false) }
+                return@launch
+            }
+            val token = TelegramTokenStore(app).getToken()
+            val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+            _uiState.update { it.copy(botStatusActive = health.ok) }
+        }
+    }
 
     fun setFilter(filter: LoadFilter) {
         _uiState.update {

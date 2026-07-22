@@ -2,6 +2,15 @@
 
 Goal: quickly detect critical regressions after UI/date-engine changes.
 
+## Automated (emulator ADB)
+
+```bash
+chmod +x docs/smoke_adb.sh
+docs/smoke_adb.sh            # optional: docs/smoke_adb.sh <serial>
+```
+
+Covers: boot wait, disable animations, cold launch, screencap, restart, recent FATAL/ANR scan.
+
 ## Preconditions
 
 - App is installed on a test device.

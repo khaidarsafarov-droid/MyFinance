@@ -84,6 +84,8 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
+import com.truckerload.presentation.connectivity.ConnectivityObserver
+import com.truckerload.presentation.connectivity.ConnectivityStatus
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalSocialRepository
@@ -92,6 +94,9 @@ import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
 import com.truckerload.widget.WidgetDeepLink
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -121,8 +126,18 @@ fun HomeScreen(
     val isBotConfigured = remember(context) { TelegramTokenStore(context).hasToken() }
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
     val uiState by viewModel.uiState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsState()
     val isInitialLoading by viewModel.isInitialLoading.collectAsState()
+    val connectivity by remember(context) {
+        ConnectivityObserver.observe(context)
+    }.collectAsState(initial = ConnectivityStatus.Online)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshBotStatus()
+        }
+    }
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val datesWithLoads = filteredResult.datesWithLoads
@@ -270,22 +285,36 @@ fun HomeScreen(
         },
         content = { paddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
-                HomeScreenContent(
-                    paddingValues = paddingValues,
-                    uiState = uiState,
-                    listItems = listItems,
-                    periodSummary = periodSummary,
-                    rpmThresholds = rpmThresholds,
-                    datesWithLoads = datesWithLoads,
-                    viewModel = viewModel,
-                    filteredLoads = filteredLoads,
-                    onLoadClick = onLoadClick,
-                    onAddLoad = onAddLoad,
-                    context = context,
-                    onOpenCalendar = { showCalendar = true },
-                    onLoadCamera = onLoadCamera,
-                    onLoadScan = onLoadScan,
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (connectivity == ConnectivityStatus.Offline) {
+                        Text(
+                            text = stringResource(R.string.connectivity_offline_banner),
+                            color = tc.TextPrimary,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(tc.AccentExpense.copy(alpha = 0.25f))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                    HomeScreenContent(
+                        paddingValues = paddingValues,
+                        uiState = uiState,
+                        searchQuery = searchQuery,
+                        listItems = listItems,
+                        periodSummary = periodSummary,
+                        rpmThresholds = rpmThresholds,
+                        datesWithLoads = datesWithLoads,
+                        viewModel = viewModel,
+                        filteredLoads = filteredLoads,
+                        onLoadClick = onLoadClick,
+                        onAddLoad = onAddLoad,
+                        context = context,
+                        onOpenCalendar = { showCalendar = true },
+                        onLoadCamera = onLoadCamera,
+                        onLoadScan = onLoadScan,
+                    )
+                }
                 if (isInitialLoading) {
                     Box(
                         modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.7f)),
@@ -304,6 +333,7 @@ fun HomeScreen(
 private fun HomeScreenContent(
     paddingValues: PaddingValues,
     uiState: HomeUiState,
+    searchQuery: String,
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
     rpmThresholds: RpmThresholds,
@@ -375,7 +405,7 @@ private fun HomeScreenContent(
         ) {
             item(key = "search") {
                 BentoGlassSearchField(
-                    value = uiState.searchQuery,
+                    value = searchQuery,
                     onValueChange = { viewModel.setSearchQuery(it) },
                     placeholder = stringResource(R.string.home_search_hint),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

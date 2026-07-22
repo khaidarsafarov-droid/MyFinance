@@ -160,6 +160,7 @@
     <string name="home_cd_add_load">Добавить груз</string>
     <string name="home_cd_bot_active">Telegram-бот активен</string>
     <string name="home_cd_bot_inactive">Telegram-бот неактивен</string>
+    <string name="connectivity_offline_banner">Нет сети — локальные данные доступны, синхронизация Drive/Telegram отложена</string>
     <string name="nav_finance">Финансы</string>
     <string name="nav_logs">Логи</string>
     <string name="nav_profile">Профиль</string>
@@ -307,6 +308,7 @@
     <string name="home_filter_this_week">Эта неделя</string>
     <string name="home_filter_last_week">Прошлая неделя</string>
     <string name="home_filter_this_month">Этот месяц</string>
+    <string name="home_filter_dispute">Диспют</string>
     <string name="home_empty_all_title">Грузов не найдено</string>
     <string name="home_empty_calendar_week">Нет грузов за выбранную неделю</string>
     <string name="home_empty_calendar_date">Нет грузов на выбранную дату</string>
@@ -314,6 +316,7 @@
     <string name="home_empty_this_week">Нет грузов за эту неделю</string>
     <string name="home_empty_last_week">Нет грузов за прошлую неделю</string>
     <string name="home_empty_this_month">Нет грузов за этот месяц</string>
+    <string name="home_empty_dispute">Нет грузов на диспюте</string>
     <string name="home_empty_all_body">Отправьте данные боту в Telegram или добавьте груз. Потяните вниз для обновления.</string>
     <string name="home_empty_filtered_body">Смените фильтр или потяните вниз для обновления.</string>
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
@@ -502,6 +505,13 @@
     <string name="load_detail_finish_pick">Выбрать дату окончания</string>
     <string name="load_detail_finish_clear">Сбросить на дату из стопов</string>
     <string name="load_detail_finish_hint">По умолчанию — последний DEL. Если закончили раньше — укажите свою дату: длительность и темп пересчитаются.</string>
+    <string name="dispute_section_title">Диспют</string>
+    <string name="dispute_checkbox_label">Dispute</string>
+    <string name="dispute_active">На диспюте</string>
+    <string name="dispute_was_dispute">Был диспют</string>
+    <string name="dispute_response_date_title">Дата ответа</string>
+    <string name="dispute_response_date_label">Дата ответа: %1$s</string>
+    <string name="dispute_completed_checkbox">Выполнено</string>
     <string name="load_detail_route">Маршрут</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>

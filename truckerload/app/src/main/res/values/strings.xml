@@ -160,6 +160,7 @@
     <string name="home_cd_add_load">Добавить груз</string>
     <string name="home_cd_bot_active">Telegram-бот активен</string>
     <string name="home_cd_bot_inactive">Telegram-бот неактивен</string>
+    <string name="connectivity_offline_banner">Нет сети — локальные данные доступны, синхронизация Drive/Telegram отложена</string>
     <string name="nav_finance">Финансы</string>
     <string name="nav_logs">Логи</string>
     <string name="nav_profile">Профиль</string>

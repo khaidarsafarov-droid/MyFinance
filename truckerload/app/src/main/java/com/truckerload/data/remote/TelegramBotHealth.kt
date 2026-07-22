@@ -44,7 +44,7 @@ object TelegramBotHealth {
                 if (!response.isSuccessful) {
                     return@withContext TelegramBotHealthResult(
                         ok = false,
-                        error = "HTTP ${response.code}: $body"
+                        error = com.truckerload.utils.LogRedactor.redact("HTTP ${response.code}: $body")
                     )
                 }
                 val json = JSONObject(body)
@@ -52,7 +52,10 @@ object TelegramBotHealth {
                 TelegramBotHealthResult(ok = json.optBoolean("ok"), username = username)
             }
         }.getOrElse { e ->
-            TelegramBotHealthResult(ok = false, error = e.message ?: "Network error")
+            TelegramBotHealthResult(
+                ok = false,
+                error = com.truckerload.utils.LogRedactor.redact(e.message ?: "Network error"),
+            )
         }
     }
 }

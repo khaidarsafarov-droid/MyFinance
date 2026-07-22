@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.VolumeUp
 import android.app.Activity
 import android.widget.Toast
 import com.truckerload.data.backup.GoogleDriveBackupService
+import com.truckerload.presentation.connectivity.ConnectivityObserver
+import com.truckerload.presentation.connectivity.ConnectivityStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -809,6 +811,8 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val activity = context as? Activity
     val scope = rememberCoroutineScope()
     val prefs = remember { GoogleDriveBackupService.prefs(context) }
+    val connectivity by ConnectivityObserver.observe(context)
+        .collectAsState(initial = ConnectivityStatus.Online)
     var linkedEmail by remember {
         mutableStateOf(
             prefs.accountEmail ?: run {
@@ -875,6 +879,14 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             color = tc.TextSecondary,
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
         )
+        if (connectivity == ConnectivityStatus.Offline) {
+            Text(
+                text = stringResource(R.string.connectivity_offline_banner),
+                style = MaterialTheme.typography.labelSmall,
+                color = tc.AccentExpense,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
 
         if (busy) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
