@@ -30,15 +30,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import com.truckerload.data.paging.FilteredLoadsPagingSource
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -232,25 +226,9 @@ class HomeViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
-    /**
-     * Windowed journal rows for large filtered sets (Paging 3).
-     *
-     * Note: [HomeScreen] still renders [flattenedListItems] so year/month section headers
-     * stay correct. This Flow pages an already-filtered in-memory list (does not reduce
-     * Room hydrate cost). Prefer Room `PagingSource` + SQL filters for true memory wins;
-     * keep this for alternate UIs / tests until that lands.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val filteredLoadsPaging: Flow<PagingData<Load>> = filteredLoadsAndTotals
-        .map { it.loads }
-        .distinctUntilChanged()
-        .flatMapLatest { loads ->
-            Pager(
-                config = PagingConfig(pageSize = 40, enablePlaceholders = false, prefetchDistance = 20),
-                pagingSourceFactory = { FilteredLoadsPagingSource(loads) },
-            ).flow
-        }
-        .cachedIn(viewModelScope)
+    // True Room PagingSource + SQL filters remains a follow-up; THIS/LAST week already
+    // scopes via getLoadsByWeek. In-memory FilteredLoadsPagingSource stays unit-tested
+    // under data/paging for future alternate UIs.
 
     init {
         viewModelScope.launch {

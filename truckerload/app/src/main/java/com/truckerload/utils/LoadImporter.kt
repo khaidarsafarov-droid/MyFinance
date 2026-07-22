@@ -129,10 +129,13 @@ object LoadImporter {
 
     private fun parseLine(line: String): ParsedLoadRow? {
         if (line.startsWith("=") || line.startsWith("🚛") || line.startsWith("📦") ||
-            line.startsWith("📊") || line.startsWith("Дата экспорта") ||
-            line.startsWith("Всего рейсов") || line.startsWith("Общий доход") ||
-            line.startsWith("Общие мили") || line.startsWith("Средний") ||
-            line.startsWith("Средняя")
+            line.startsWith("📊") || line.startsWith("📝") ||
+            line.startsWith("Дата экспорта") || line.startsWith("Export date") ||
+            line.startsWith("Всего рейсов") || line.startsWith("Total loads") ||
+            line.startsWith("Общий доход") || line.startsWith("Total income") ||
+            line.startsWith("Общие мили") || line.startsWith("Total miles") ||
+            line.startsWith("Средний") || line.startsWith("Средняя") ||
+            line.startsWith("Avg income") || line.startsWith("Avg rate")
         ) {
             return null
         }

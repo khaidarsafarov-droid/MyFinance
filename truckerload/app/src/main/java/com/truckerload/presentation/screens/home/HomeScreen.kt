@@ -31,8 +31,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import com.truckerload.presentation.components.LocalOpenDrawer
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Settings
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -141,7 +139,11 @@ fun HomeScreen(
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val datesWithLoads = filteredResult.datesWithLoads
-    val weekLabel = remember(uiState.filter, uiState.selectedWeekLabel) {
+    val weekLabel = remember(
+        uiState.filter,
+        uiState.selectedDateLabel,
+        uiState.selectedWeekLabel,
+    ) {
         when (uiState.filter) {
             LoadFilter.CALENDAR_DATE -> uiState.selectedDateLabel
             LoadFilter.CALENDAR_WEEK -> uiState.selectedWeekLabel
@@ -165,9 +167,14 @@ fun HomeScreen(
     val periodSummary = remember(
         uiState.filter,
         uiState.selectedYear,
+        uiState.selectedDate,
+        uiState.selectedWeekStart,
+        uiState.selectedWeekEnd,
         uiState.selectedDateLabel,
         uiState.selectedWeekLabel,
-        totals,
+        totals.loadCount,
+        totals.totalRate,
+        totals.totalMiles,
     ) {
         viewModel.periodSummaryHeader(totals)
     }
@@ -284,14 +291,22 @@ fun HomeScreen(
                             },
                             modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                         ) {
-                            Icon(Icons.Default.Sync, contentDescription = stringResource(R.string.home_cd_sync_telegram))
+                            Icon(
+                                Icons.Default.Sync,
+                                contentDescription = stringResource(R.string.home_cd_sync_telegram),
+                                tint = tc.TextPrimary,
+                            )
                         }
                     }
                     IconButton(
                         onClick = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                     ) {
-                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.home_cd_search))
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = stringResource(R.string.home_cd_search),
+                            tint = tc.TextPrimary,
+                        )
                     }
                     BotStatusBadge(active = uiState.botStatusActive)
                 }
@@ -442,7 +457,7 @@ private fun HomeScreenContent(
             }
 
             periodSummary?.let { summary ->
-                item(key = "period_summary") {
+                item(key = "period_summary_${summary.label}") {
                     PeriodSummarySection(header = summary)
                 }
             }
@@ -474,7 +489,7 @@ private fun HomeScreenContent(
             }
 
             if (listItems.isEmpty()) {
-                item(key = "empty") {
+                item(key = "empty_${uiState.filter}") {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

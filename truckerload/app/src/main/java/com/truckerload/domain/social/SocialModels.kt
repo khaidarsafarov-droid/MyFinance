@@ -19,10 +19,10 @@ data class DriverProfile(
 )
 
 enum class DriverStatus(val label: String) {
-    ONLINE("🟢 В сети"),
-    ON_ROAD("🛣️ В рейсе"),
-    RESTING("😴 Отдыхает"),
-    OFFLINE("⚫ Не в сети"),
+    ONLINE("🟢 Online"),
+    ON_ROAD("🛣️ On the road"),
+    RESTING("😴 Resting"),
+    OFFLINE("⚫ Offline"),
 }
 
 data class Badge(
@@ -86,11 +86,11 @@ data class ChatMember(
 )
 
 enum class ChallengeType(val label: String) {
-    MILES("📏 Больше всех миль"),
-    REVENUE("💰 Больше всех дохода"),
-    RPM("📈 Лучший RPM"),
-    LOADS("📦 Больше всех грузов"),
-    PUNCTUALITY("⏱️ Точность"),
+    MILES("📏 Most miles"),
+    REVENUE("💰 Most revenue"),
+    RPM("📈 Best RPM"),
+    LOADS("📦 Most loads"),
+    PUNCTUALITY("⏱️ On-time"),
 }
 
 data class Challenge(

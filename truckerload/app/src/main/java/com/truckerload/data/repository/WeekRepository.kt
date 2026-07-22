@@ -4,7 +4,9 @@ import com.truckerload.domain.model.PeriodSummary
 import com.truckerload.domain.model.WeekSummary
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getWeeksInMonth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 
@@ -42,7 +44,7 @@ class WeekRepository(
                 hasDiesel = hasDiesel,
                 netProfit = paycheckAmount - dieselAmount
             )
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     suspend fun getWeekSummaryOnce(weekNumber: Int, year: Int): WeekSummary {

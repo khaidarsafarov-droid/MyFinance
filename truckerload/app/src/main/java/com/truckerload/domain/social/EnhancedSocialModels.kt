@@ -40,7 +40,7 @@ enum class TruckType(val label: String, val emoji: String) {
     REEFER("Reefer", "❄️"),
     DRY_VAN("Dry Van", "🚛"),
     TANKER("Tanker", "🛢️"),
-    OTHER("Другое", "🛣️"),
+    OTHER("Other", "🛣️"),
     ;
 
     companion object {
@@ -52,19 +52,19 @@ enum class TruckType(val label: String, val emoji: String) {
 }
 
 enum class BadgeType(val icon: String, val title: String, val description: String) {
-    LOAD_MASTER("🏆", "Мастер грузов", "1000+ грузов"),
-    MILE_KING("👑", "Король миль", "100 000+ миль"),
-    RPM_CHAMPION("⭐", "Чемпион RPM", "$2.50+/миля"),
-    FLATBED_SPECIALIST("📦", "Flatbed", "500+ грузов на платформе"),
-    REEFER_SPECIALIST("❄️", "Reefer", "500+ грузов с охлаждением"),
-    HAZMAT_SPECIALIST("☣️", "Hazmat", "Сертификат Hazmat"),
-    HELPER("🤝", "Помощник", "Помог 50+ водителям"),
-    MENTOR("🎓", "Наставник", "Обучил 10+ водителей"),
-    COMMUNITY_LEADER("🌟", "Лидер сообщества", "Создал 5+ групп"),
-    PUNCTUAL("⏱️", "Пунктуальный", "95%+ вовремя"),
-    RELIABLE("🔒", "Надёжный", "Никогда не отменял груз"),
-    LEGEND("🏅", "Легенда", "10 лет в профессии"),
-    FIRST_LOAD("🎯", "Первый груз", "Первый загруженный груз"),
+    LOAD_MASTER("🏆", "Load Master", "1000+ loads"),
+    MILE_KING("👑", "Mile King", "100,000+ miles"),
+    RPM_CHAMPION("⭐", "RPM Champion", "$2.50+/mile"),
+    FLATBED_SPECIALIST("📦", "Flatbed", "500+ flatbed loads"),
+    REEFER_SPECIALIST("❄️", "Reefer", "500+ reefer loads"),
+    HAZMAT_SPECIALIST("☣️", "Hazmat", "Hazmat certified"),
+    HELPER("🤝", "Helper", "Helped 50+ drivers"),
+    MENTOR("🎓", "Mentor", "Mentored 10+ drivers"),
+    COMMUNITY_LEADER("🌟", "Community Leader", "Created 5+ groups"),
+    PUNCTUAL("⏱️", "Punctual", "95%+ on time"),
+    RELIABLE("🔒", "Reliable", "Never canceled a load"),
+    LEGEND("🏅", "Legend", "10 years on the road"),
+    FIRST_LOAD("🎯", "First Load", "First load logged"),
 }
 
 enum class EnhancedChatType {
@@ -108,9 +108,9 @@ data class ReactionSummary(
 )
 
 enum class LeaderboardCategory(val label: String) {
-    OVERALL("📊 Общий"),
-    LOADS("📦 Грузы"),
-    REVENUE("💰 Доход"),
+    OVERALL("📊 Overall"),
+    LOADS("📦 Loads"),
+    REVENUE("💰 Revenue"),
     RPM("📈 RPM"),
 }
 

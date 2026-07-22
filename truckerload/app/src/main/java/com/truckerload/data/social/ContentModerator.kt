@@ -12,11 +12,11 @@ object ContentModerator {
 
     fun moderateText(text: String): ModerationResult {
         val trimmed = text.trim()
-        if (trimmed.isEmpty()) return ModerationResult(false, "Пустое сообщение")
-        if (trimmed.length > 4000) return ModerationResult(false, "Слишком длинное сообщение")
+        if (trimmed.isEmpty()) return ModerationResult(false, "Empty message")
+        if (trimmed.length > 4000) return ModerationResult(false, "Message too long")
         blockedPatterns.forEach { pattern ->
             if (pattern.containsMatchIn(trimmed)) {
-                return ModerationResult(false, "Сообщение заблокировано модерацией")
+                return ModerationResult(false, "Message blocked by moderation")
             }
         }
         return ModerationResult(true)

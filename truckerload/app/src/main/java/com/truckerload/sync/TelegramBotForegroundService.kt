@@ -18,6 +18,7 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramApi
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
+import com.truckerload.utils.LogRedactor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -90,11 +91,11 @@ class TelegramBotForegroundService : Service() {
         if (prefs.getBoolean(KEY_BOT_FEATURES_SETUP, false)) return
         scope.launch {
             val api = TelegramApi(token)
-            api.deleteWebhook().onFailure { e -> Log.w(TAG, "deleteWebhook: ${e.message}") }
+            api.deleteWebhook().onFailure { e -> Log.w(TAG, "deleteWebhook: ${LogRedactor.redact(e.message)}") }
             api.setMyCommands().onSuccess {
                 prefs.edit {putBoolean(KEY_BOT_FEATURES_SETUP, true)}
-            }.onFailure { e -> Log.w(TAG, "setMyCommands: ${e.message}") }
-            api.setChatMenuButton().onFailure { e -> Log.w(TAG, "setChatMenuButton: ${e.message}") }
+            }.onFailure { e -> Log.w(TAG, "setMyCommands: ${LogRedactor.redact(e.message)}") }
+            api.setChatMenuButton().onFailure { e -> Log.w(TAG, "setChatMenuButton: ${LogRedactor.redact(e.message)}") }
         }
     }
 
@@ -181,7 +182,7 @@ class TelegramBotForegroundService : Service() {
                     context.startService(intent)
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Cannot start foreground bot service: ${e.message}")
+                Log.w(TAG, "Cannot start foreground bot service: ${LogRedactor.redact(e.message)}")
             }
         }
 

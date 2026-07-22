@@ -49,4 +49,16 @@ class WidgetStatsFormatterTest {
     fun formatRpmPerMile_legacyDollarFormat() {
         assertEquals("$2.46/mi", WidgetStatsFormatter.formatRpmPerMile(2.46))
     }
+
+    @Test
+    fun formatMiles_usesEnglishUnitSuffix() {
+        assertEquals("1,250 mi", WidgetStatsFormatter.formatMiles(1250.4))
+    }
+
+    @Test
+    fun formatDailyPace_usesEnglishDaySuffix() {
+        assertEquals("$0/day", WidgetStatsFormatter.formatDailyPace(0.0))
+        assertEquals("$607/day", WidgetStatsFormatter.formatDailyPace(607.0))
+        assertTrue(WidgetStatsFormatter.formatDailyPace(607.5).endsWith("/day"))
+    }
 }

@@ -35,7 +35,7 @@ class DeterministicAdvisorService {
     ): Result<String> = Result.success(buildReply(userMessage, appContext))
 
     fun healthCheck(): Result<String> =
-        Result.success("Локальный анализатор активен (без внешних AI API)")
+        Result.success("Local analyzer active (no external AI APIs)")
 
     fun generateInsight(
         rpm: Double,
@@ -49,40 +49,40 @@ class DeterministicAdvisorService {
         val insight = buildString {
             when {
                 rpm < 2.5 && miles > 0 ->
-                    append("RPM ниже $2.5 — маржа на милю слабая. ")
+                    append("RPM below $2.5 — per-mile margin is weak. ")
                 rpm >= 3.0 ->
-                    append("RPM $rpm — хороший показатель на текущем периоде. ")
+                    append("RPM $rpm — strong result for the current period. ")
                 else ->
-                    append("RPM $rpm — средний уровень. ")
+                    append("RPM $rpm — average level. ")
             }
             if (fuelShare > 0.3) {
-                append("Дизель съедает более 30% вала — проверьте маршруты и заправки. ")
+                append("Diesel eats more than 30% of gross — review routes and fuel stops. ")
             }
             if (profit < 0) {
-                append("Чистая прибыль отрицательная — сократите deadhead и пересмотрите ставки. ")
+                append("Net profit is negative — cut deadhead and revisit rates. ")
             }
             if (topStates.isNotEmpty()) {
-                append("Топ штаты: ${topStates.take(3).joinToString(", ")}. ")
+                append("Top states: ${topStates.take(3).joinToString(", ")}. ")
             }
             if (anomalies.isNotBlank()) {
-                append("Аномалии: $anomalies")
+                append("Anomalies: $anomalies")
             }
         }.trim()
 
         val actions = buildList {
-            if (rpm < 2.5) add("Сфокусируйтесь на рейсах с Total Rate / miles > $2.5")
-            if (fuelShare > 0.3) add("Сравните цену дизеля по неделям и выберите дешёвые АЗС")
-            if (profit < 0) add("Отложите низкомаржинальные направления до восстановления RPM")
+            if (rpm < 2.5) add("Focus on loads with Total Rate / miles > $2.5")
+            if (fuelShare > 0.3) add("Compare diesel prices week over week and pick cheaper truck stops")
+            if (profit < 0) add("Pause low-margin lanes until RPM recovers")
             if (isEmpty()) {
-                add("Продолжайте синхронизировать лоуды через Telegram")
-                add("Сверяйте зарплату и дизель по неделям")
-                add("Отслеживайте RPM в разделе Статистика")
+                add("Keep syncing loads via Telegram")
+                add("Reconcile paychecks and diesel by week")
+                add("Track RPM in the Statistics section")
             }
         }
 
         return Result.success(
             LogisticsInsight(
-                insight = insight.ifBlank { "Данные обновлены. Следите за RPM и долей дизеля в расходах." },
+                insight = insight.ifBlank { "Data updated. Watch RPM and diesel share of expenses." },
                 actions = actions.take(3)
             )
         )
@@ -93,26 +93,26 @@ class DeterministicAdvisorService {
         val ctx = appContext.orEmpty()
 
         return when {
-            msg.contains("rpm") || msg.contains("рентаб") || msg.contains("ставк") ->
-                "RPM считается как доход на милю. Откройте Статистику — там средний RPM и чистая прибыль по выбранному периоду."
-            msg.contains("дизел") || msg.contains("топлив") || msg.contains("fuel") ->
-                summarizeDiesel(ctx) ?: "Отправьте чек за дизель боту в Telegram (текст с Total и gallons) — сумма попадёт в журнал."
-            msg.contains("зарплат") || msg.contains("paycheck") || msg.contains("settlement") ->
-                summarizePaychecks(ctx) ?: "Перешлите текст платёжки (Grand Total / Зарплата) боту — выплата сохранится по неделе."
-            msg.contains("лоуд") || msg.contains("груз") || msg.contains("trip") || msg.contains("рейс") ->
-                summarizeLoads(ctx) ?: "Перешлите сообщение Amazon Relay с Trip ID / PU# / Total Rate — бот добавит лоуд без дубликатов."
+            msg.contains("rpm") || msg.contains("рентаб") || msg.contains("ставк") || msg.contains("rate") ->
+                "RPM is revenue per mile. Open Statistics — average RPM and net profit for the selected period are there."
+            msg.contains("дизел") || msg.contains("топлив") || msg.contains("fuel") || msg.contains("diesel") ->
+                summarizeDiesel(ctx) ?: "Send a diesel receipt to the Telegram bot (text with Total and gallons) — the amount goes into the journal."
+            msg.contains("зарплат") || msg.contains("paycheck") || msg.contains("settlement") || msg.contains("pay") ->
+                summarizePaychecks(ctx) ?: "Forward settlement text (Grand Total / Net Pay) to the bot — payout is saved by week."
+            msg.contains("лоуд") || msg.contains("груз") || msg.contains("trip") || msg.contains("рейс") || msg.contains("load") ->
+                summarizeLoads(ctx) ?: "Forward an Amazon Relay message with Trip ID / PU# / Total Rate — the bot adds the load without duplicates."
             msg.contains("прибыл") || msg.contains("profit") ->
-                "Чистая прибыль = зарплата − дизель за период. Смотрите карточки в Финансах и Статистике."
+                "Net profit = paycheck − diesel for the period. See cards in Finances and Statistics."
             msg.contains("помощ") || msg.contains("help") || msg.contains("что умеешь") ->
-                """Локальный помощник (без облачного AI):
-• Синхронизация лоудов из Telegram по Trip ID
-• Зарплата из текста платёжки (Grand Total)
-• Дизель из текста чека (Total / gallons)
-• RPM и прибыль — в разделе Статистика"""
+                """Local assistant (no cloud AI):
+• Sync loads from Telegram by Trip ID
+• Paycheck from settlement text (Grand Total)
+• Diesel from receipt text (Total / gallons)
+• RPM and profit — in Statistics"""
             else ->
-                """Я работаю на правилах внутри приложения, без внешних AI.
-Спросите про: лоуды, зарплату, дизель, RPM или прибыль.
-Или перешлите данные боту в Telegram для автосинхронизации."""
+                """I run on in-app rules, without external AI.
+Ask about: loads, paycheck, diesel, RPM, or profit.
+Or forward data to the Telegram bot for auto-sync."""
         }
     }
 
@@ -120,18 +120,18 @@ class DeterministicAdvisorService {
         val lines = ctx.lines().filter { it.trimStart().startsWith("-") && "→" in it }
         if (lines.isEmpty()) return null
         val last = lines.takeLast(3)
-        return "Последние лоуды:\n${last.joinToString("\n")}"
+        return "Recent loads:\n${last.joinToString("\n")}"
     }
 
     private fun summarizePaychecks(ctx: String): String? {
         val lines = ctx.lines().filter { it.contains("Week", ignoreCase = true) && "$" in it }
         if (lines.isEmpty()) return null
-        return "Зарплаты:\n${lines.takeLast(3).joinToString("\n")}"
+        return "Paychecks:\n${lines.takeLast(3).joinToString("\n")}"
     }
 
     private fun summarizeDiesel(ctx: String): String? {
         val lines = ctx.lines().filter { it.contains("DIESEL", ignoreCase = true) || (it.contains("Week") && "$" in it) }
         if (lines.isEmpty()) return null
-        return "Дизель:\n${lines.takeLast(3).joinToString("\n")}"
+        return "Diesel:\n${lines.takeLast(3).joinToString("\n")}"
     }
 }

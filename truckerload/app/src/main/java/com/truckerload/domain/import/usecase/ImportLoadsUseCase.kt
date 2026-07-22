@@ -204,9 +204,12 @@ class ImportLoadsUseCase(
         }
 
     private fun mapSkipReason(reason: String): SkipReason = when {
-        reason.contains("Авто-обновление", ignoreCase = true) -> SkipReason.AUTO_UPDATE_DISABLED
-        reason.contains("Изменений нет", ignoreCase = true) -> SkipReason.NO_CHANGES
-        reason.contains("Дубликат", ignoreCase = true) -> SkipReason.SUSPICIOUS_DUPLICATE
+        reason.contains("Авто-обновление", ignoreCase = true) ||
+            reason.contains("Auto-update disabled", ignoreCase = true) -> SkipReason.AUTO_UPDATE_DISABLED
+        reason.contains("Изменений нет", ignoreCase = true) ||
+            reason.contains("No changes", ignoreCase = true) -> SkipReason.NO_CHANGES
+        reason.contains("Дубликат", ignoreCase = true) ||
+            reason.contains("Duplicate", ignoreCase = true) -> SkipReason.SUSPICIOUS_DUPLICATE
         else -> SkipReason.DUPLICATE
     }
 

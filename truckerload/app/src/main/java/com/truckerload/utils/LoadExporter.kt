@@ -55,16 +55,16 @@ object LoadExporter {
 
     private fun formatHeader(count: Int): String = buildString {
         appendLine("========================================")
-        appendLine("📝🚛 TRUCK LOG — ВСЕ РЕЙСЫ")
+        appendLine("📝🚛 TRUCK LOG — ALL LOADS")
         appendLine("========================================")
-        appendLine("Дата экспорта: ${formatExportTimestamp()}")
-        appendLine("Всего рейсов: $count")
+        appendLine("Export date: ${formatExportTimestamp()}")
+        appendLine("Total loads: $count")
     }
 
     private fun formatLoads(loads: List<Load>): String = buildString {
         appendLine()
         appendLine("========================================")
-        appendLine("📦 РЕЙСЫ (${loads.size})")
+        appendLine("📦 LOADS (${loads.size})")
         appendLine("========================================")
         appendLine()
         loads.forEachIndexed { index, load ->
@@ -85,13 +85,13 @@ object LoadExporter {
         return buildString {
             appendLine()
             appendLine("========================================")
-            appendLine("📊 ИТОГО:")
+            appendLine("📊 TOTALS:")
             appendLine("========================================")
-            appendLine("Всего рейсов: $count")
-            appendLine("Общий доход: ${formatMoney(totalIncome)}")
-            appendLine("Общие мили: ${formatMilesValue(totalMiles)}")
-            appendLine("Средний доход за рейс: ${formatMoney(avgIncome)}")
-            appendLine("Средняя цена за милю: ${formatRpm(avgRpm)}")
+            appendLine("Total loads: $count")
+            appendLine("Total income: ${formatMoney(totalIncome)}")
+            appendLine("Total miles: ${formatMilesValue(totalMiles)}")
+            appendLine("Avg income per load: ${formatMoney(avgIncome)}")
+            appendLine("Avg rate per mile: ${formatRpm(avgRpm)}")
             appendLine("========================================")
         }
     }

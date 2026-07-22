@@ -8,6 +8,9 @@ import com.truckerload.utils.OcrResult
 /**
  * Hybrid OCR facade: ML Kit Latin + Tesseract rus+eng.
  * See [OCRService] for implementation details.
+ *
+ * Kept as the public entry point for scan flows; prefer this over calling
+ * [OCRService] / [com.truckerload.utils.TesseractOCRService] directly from UI.
  */
 class HybridOCRService(context: Context) {
 

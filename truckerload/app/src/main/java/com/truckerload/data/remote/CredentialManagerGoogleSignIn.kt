@@ -31,7 +31,7 @@ object CredentialManagerGoogleSignIn {
     suspend fun getGoogleIdToken(context: Context): Result<String> = suspendCoroutine { cont ->
         val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
         if (webClientId.isBlank()) {
-            cont.resume(Result.failure(Exception("GOOGLE_WEB_CLIENT_ID не настроен")))
+            cont.resume(Result.failure(Exception("GOOGLE_WEB_CLIENT_ID is not configured")))
             return@suspendCoroutine
         }
         val credentialManager = CredentialManager.create(context)
@@ -62,7 +62,7 @@ object CredentialManagerGoogleSignIn {
                     if (!idToken.isNullOrBlank()) {
                         cont.resume(Result.success(idToken))
                     } else {
-                        cont.resume(Result.failure(Exception("Не удалось получить ID token")))
+                        cont.resume(Result.failure(Exception("Failed to obtain ID token")))
                     }
                 } catch (e: Exception) {
                     cont.resume(Result.failure(e))
