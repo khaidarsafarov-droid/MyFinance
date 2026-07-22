@@ -23,6 +23,7 @@
     <string name="common_year">Год</string>
     <string name="common_date_time">Дата и время записи:</string>
     <string name="common_enter_amount">Введите сумму</string>
+    <string name="common_amount_must_be_positive">Введите сумму больше нуля</string>
     <string name="common_save_error">Ошибка сохранения: %1$s</string>
     <string name="common_save_failed">Ошибка сохранения</string>
     <string name="common_ok">OK</string>

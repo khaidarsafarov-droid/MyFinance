@@ -72,6 +72,40 @@ class TelegramHtmlExportParserTest {
         assertEquals(2945.56, loads.first().totalRate, 1.0)
     }
 
+    @Test
+    fun parse_emptyExport_returnsZeroLoads_importResultShape() {
+        val html = sampleTelegramExport(emptyList())
+        val loads = parser.parse(html)
+        assertEquals(0, loads.size)
+        val result = com.truckerload.utils.LoadImporter.ImportResult(
+            imported = 0,
+            skipped = 0,
+            parsed = loads.size,
+        )
+        assertEquals(0, result.parsed)
+        assertEquals(0, result.imported)
+    }
+
+    @Test
+    fun parse_threeLoads_countMatchesImportParsed() {
+        val html = sampleTelegramExport(
+            listOf(
+                loadBlock("T-A"),
+                loadBlock("T-B"),
+                loadBlock("T-C"),
+            ),
+        )
+        val loads = parser.parse(html)
+        assertEquals(3, loads.size)
+        val result = com.truckerload.utils.LoadImporter.ImportResult(
+            imported = loads.size,
+            skipped = 0,
+            parsed = loads.size,
+        )
+        assertEquals(3, result.parsed)
+        assertEquals(3, result.imported)
+    }
+
     private fun realExportLoadBlock(): String {
         val relayText = """
             𝗧𝗿𝗶𝗽 𝗜𝗗:  T-116KYL6KW<br>

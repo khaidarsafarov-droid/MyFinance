@@ -749,7 +749,11 @@ class SocialRepository(
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_join_challenge, it), it) }
 
     suspend fun joinGroupByInviteCode(code: String, displayName: String): SocialResult<String> {
-        val chat = chatDao.getChatByInviteCode(code.trim())
+        val normalized = com.truckerload.domain.social.GroupInviteCode.normalize(code)
+        if (com.truckerload.domain.social.GroupInviteCode.isBlank(normalized)) {
+            return SocialResult.Error("Группа с таким кодом не найдена")
+        }
+        val chat = chatDao.getChatByInviteCode(normalized)
             ?: return SocialResult.Error("Группа с таким кодом не найдена")
         return when (val joined = joinGroup(chat.id, displayName)) {
             is SocialResult.Success -> SocialResult.Success(chat.id)

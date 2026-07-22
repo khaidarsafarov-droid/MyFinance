@@ -50,6 +50,7 @@ import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
@@ -158,8 +159,11 @@ fun AddPaycheckScreen(
             },
             confirmButton = {
                 Button(onClick = {
-                    val amount = netAmount.toDoubleOrNull() ?: 0.0
-                    if (amount <= 0) return@Button
+                    val amount = AmountInputValidator.parsePositiveAmount(netAmount)
+                    if (amount == null) {
+                        error = context.getString(R.string.common_amount_must_be_positive)
+                        return@Button
+                    }
                     val (w, y) = getWeekNumberAndYearFromTimestamp(recordedAtMillis)
                     val (ws, we, wl) = getWeekRange(w, y)
                     val paycheck = Paycheck(0, w, y, wl, ws, we, null, null, amount, "", null, recordedAtMillis)
@@ -213,7 +217,7 @@ fun AddPaycheckScreen(
                     }
                     OutlinedTextField(
                         value = netAmount,
-                        onValueChange = { netAmount = it },
+                        onValueChange = { netAmount = it; error = null },
                         label = { Text(stringResource(R.string.common_enter_amount)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -233,8 +237,11 @@ fun AddPaycheckScreen(
                 }
             }
             Button(onClick = {
-                val amount = netAmount.toDoubleOrNull() ?: 0.0
-                if (amount <= 0) return@Button
+                val amount = AmountInputValidator.parsePositiveAmount(netAmount)
+                if (amount == null) {
+                    error = context.getString(R.string.common_amount_must_be_positive)
+                    return@Button
+                }
                 error = null
                 recordedAtMillis = System.currentTimeMillis()
                 showSaveDialog = true

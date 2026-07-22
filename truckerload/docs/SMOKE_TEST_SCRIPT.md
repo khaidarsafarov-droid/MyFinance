@@ -115,3 +115,20 @@ Expected:
 - EN dispute strings present.
 - Free camera does not silently link photos to a load.
 
+## Emulator / Home animation note (QUALITY_100 #81)
+
+On the **software-GPU emulator** (no KVM), the Compose Home screen’s animations keep the main thread busy and can look like freezes/ANRs. For smoke runs:
+
+1. Disable animator scales: `adb shell settings put global window_animation_scale 0`, `transition_animation_scale 0`, `animator_duration_scale 0`.
+2. After install, AOT-compile once: `adb shell cmd package compile -m speed -f com.truckerload`.
+
+Do not treat Home animation jank on the unaccelerated emulator as a product regression if the same build is smooth on a real device / KVM AVD.
+
+## PDF reports EN-only (QUALITY_100 #88)
+
+`ReportGeneratorService` PDF headers/labels (Metric, Gross Revenue, Detailed Log, etc.) are **English-only** regardless of app language. Documented in the service KDoc; i18n of PDF copy is out of scope for this backlog.
+
+## Lint triage (QUALITY_100 #89)
+
+`:app:lintDebug` currently reports hundreds of pre-existing issues (no `lint-baseline.xml`). Treat **crash / correctness** lint findings as P0 when introduced by a change; do not block QA on cleaning the historical backlog in this pass.
+

@@ -48,6 +48,7 @@ import com.truckerload.presentation.di.LocalDieselRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
@@ -55,6 +56,7 @@ import com.truckerload.utils.getWeekRange
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +65,7 @@ fun AddDieselScreen(
     onBack: () -> Unit
 ) {
     val tc = LocalTruckColors.current
+    val context = LocalContext.current
     val dieselRepository = LocalDieselRepository.current
     val scope = rememberCoroutineScope()
     val (initialWeek, initialYear) = getCurrentWeekNumberAndYear()
@@ -151,8 +154,11 @@ fun AddDieselScreen(
             },
             confirmButton = {
                 Button(onClick = {
-                    val amount = totalAmount.toDoubleOrNull() ?: 0.0
-                    if (amount <= 0) return@Button
+                    val amount = AmountInputValidator.parsePositiveAmount(totalAmount)
+                    if (amount == null) {
+                        error = context.getString(R.string.common_amount_must_be_positive)
+                        return@Button
+                    }
                     val (w, y) = getWeekNumberAndYearFromTimestamp(recordedAtMillis)
                     val (ws, we, wl) = getWeekRange(w, y)
                     val diesel = Diesel(0, w, y, wl, ws, we, amount, null, null, null, "", null, recordedAtMillis)
@@ -200,7 +206,7 @@ fun AddDieselScreen(
                     }
                     OutlinedTextField(
                         value = totalAmount,
-                        onValueChange = { totalAmount = it },
+                        onValueChange = { totalAmount = it; error = null },
                         label = { Text(stringResource(R.string.common_enter_amount)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -220,8 +226,11 @@ fun AddDieselScreen(
                 }
             }
             Button(onClick = {
-                val amount = totalAmount.toDoubleOrNull() ?: 0.0
-                if (amount <= 0) return@Button
+                val amount = AmountInputValidator.parsePositiveAmount(totalAmount)
+                if (amount == null) {
+                    error = context.getString(R.string.common_amount_must_be_positive)
+                    return@Button
+                }
                 recordedAtMillis = System.currentTimeMillis()
                 showSaveDialog = true
             }, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(stringResource(R.string.common_save)) }

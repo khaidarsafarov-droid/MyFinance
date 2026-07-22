@@ -36,4 +36,17 @@ class NavEncodingTest {
         val encoded = NavEncoding.encodePathSegment("T 1")
         assertEquals("T 1", Uri.decode(encoded))
     }
+
+    @Test
+    fun cameraRouteEncodesSlashAndPercentInTripId() {
+        val tripId = "T-1/2%3"
+        val loadId = "load-1"
+        val loadDate = "2026-07-22"
+        val path = "camera_load/${NavEncoding.encodePathSegment(loadId)}/" +
+            "${NavEncoding.encodePathSegment(tripId)}/${NavEncoding.encodePathSegment(loadDate)}"
+        val segments = path.split("/")
+        assertEquals(4, segments.size)
+        assertFalse(segments[2].contains("/"))
+        assertEquals(tripId, Uri.decode(segments[2]))
+    }
 }

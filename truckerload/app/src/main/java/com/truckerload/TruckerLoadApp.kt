@@ -116,6 +116,10 @@ class TruckerLoadApp : Application() {
         )
     }
 
+    /**
+     * QUALITY_100 #76: startup backfill + orphan cleanup run on [Dispatchers.IO]
+     * (never on the main thread from [onCreate]).
+     */
     private fun refreshLoadReportingWeeks() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             val db = AppDatabase.getInstanceForActiveUser(this@TruckerLoadApp) ?: return@launch
