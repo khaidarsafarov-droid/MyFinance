@@ -99,7 +99,9 @@ fun HomeScreen(
     onAddLoad: () -> Unit,
     onStats: () -> Unit,
     onWeeklyGoal: () -> Unit = onStats,
-    onSettings: () -> Unit = {}
+    onSettings: () -> Unit = {},
+    onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
+    onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
 ) {
     val tc = LocalTruckColors.current
     val loadRepository = LocalLoadRepository.current
@@ -281,6 +283,8 @@ fun HomeScreen(
                     onAddLoad = onAddLoad,
                     context = context,
                     onOpenCalendar = { showCalendar = true },
+                    onLoadCamera = onLoadCamera,
+                    onLoadScan = onLoadScan,
                 )
                 if (isInitialLoading) {
                     Box(
@@ -311,6 +315,8 @@ private fun HomeScreenContent(
     onAddLoad: () -> Unit,
     context: Context,
     onOpenCalendar: () -> Unit,
+    onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit,
+    onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
     var showYearSelector by remember { mutableStateOf(false) }
@@ -472,6 +478,16 @@ private fun HomeScreenContent(
                             },
                             rpmThresholds = rpmThresholds,
                             modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
+                            onCameraClick = {
+                                if (item.load.id.isNotBlank()) {
+                                    onLoadCamera(item.load.id, item.load.tripId, item.load.date)
+                                }
+                            },
+                            onScanClick = {
+                                if (item.load.id.isNotBlank()) {
+                                    onLoadScan(item.load.id, item.load.tripId, item.load.date)
+                                }
+                            },
                         )
                     }
                 }

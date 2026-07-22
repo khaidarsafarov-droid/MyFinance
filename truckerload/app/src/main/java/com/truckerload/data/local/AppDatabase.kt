@@ -77,7 +77,7 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         ChatMemberEntity::class,
         SocialPeerEntity::class,
     ],
-    version = 21,
+    version = 22,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -162,6 +162,7 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_18_19,
                         MIGRATION_19_20,
                         MIGRATION_20_21,
+                        MIGRATION_21_22,
                     )
                     .fallbackToDestructiveMigrationFrom(dropAllTables = true, 1, 2, 3, 4, 5)
                     .build()

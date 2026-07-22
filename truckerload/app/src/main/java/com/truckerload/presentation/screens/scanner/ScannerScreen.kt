@@ -37,10 +37,17 @@ fun ScannerFlowScreen(
     onFinished: () -> Unit,
     onOpenGallery: () -> Unit,
     onCameraFallback: () -> Unit = onFinished,
+    attachLoadId: String? = null,
+    attachTripId: String? = null,
+    attachLoadDate: String? = null,
     viewModel: ScannerViewModel = viewModel(
+        key = "scanner_${attachLoadId.orEmpty()}",
         factory = ScannerViewModel.Factory(
             LocalContext.current,
             LocalScanRepository.current,
+            attachLoadId = attachLoadId,
+            attachTripId = attachTripId,
+            attachLoadDate = attachLoadDate,
         ),
     ),
 ) {
@@ -60,6 +67,7 @@ fun ScannerFlowScreen(
     }
 
     LaunchedEffect(activity, uiState.scanLaunchKey) {
+        if (uiState.autoAttachedAndDone) return@LaunchedEffect
         if (activity == null) {
             if (uiState.sessionScans.isEmpty()) {
                 viewModel.onScanStartFailed()
@@ -104,11 +112,21 @@ fun ScannerFlowScreen(
         }
     }
 
-    LaunchedEffect(uiState.statusMessage) {
+    LaunchedEffect(uiState.statusMessage, uiState.autoAttachedAndDone) {
         when {
             uiState.statusMessage == "scan_success" -> {
-                snackbarHostState.showSnackbar(context.getString(R.string.scan_success))
+                snackbarHostState.showSnackbar(
+                    context.getString(
+                        if (viewModel.isAttachedToLoad) R.string.scan_attached_to_load
+                        else R.string.scan_success,
+                    ),
+                )
                 viewModel.clearStatus()
+                if (uiState.autoAttachedAndDone) {
+                    delay(700)
+                    viewModel.clearPendingScan()
+                    onFinished()
+                }
             }
             uiState.statusMessage?.startsWith("scan_saved_phone:") == true -> {
                 val path = uiState.statusMessage!!.removePrefix("scan_saved_phone:")
@@ -121,8 +139,13 @@ fun ScannerFlowScreen(
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
-                uiState.isProcessing -> {
-                    ScannerLoadingScreen(message = stringResource(R.string.scanning))
+                uiState.isProcessing || (uiState.autoAttachedAndDone && uiState.pendingScan != null) -> {
+                    ScannerLoadingScreen(
+                        message = stringResource(
+                            if (uiState.autoAttachedAndDone) R.string.scan_attaching
+                            else R.string.scanning,
+                        ),
+                    )
                 }
                 uiState.pendingScan != null -> {
                     ScanResultScreen(

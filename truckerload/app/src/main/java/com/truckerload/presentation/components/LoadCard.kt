@@ -11,6 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.outlined.DocumentScanner
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -45,6 +50,8 @@ fun LoadCard(
     solidBackground: Boolean = false,
     wrapInCard: Boolean = true,
     rpmThresholds: RpmThresholds? = null,
+    onCameraClick: (() -> Unit)? = null,
+    onScanClick: (() -> Unit)? = null,
 ) {
     // Разные ветки — единственный корректный способ избежать collectAsState в каждой карточке списка.
     if (rpmThresholds != null) {
@@ -55,6 +62,8 @@ fun LoadCard(
             solidBackground = solidBackground,
             wrapInCard = wrapInCard,
             rpmThresholds = rpmThresholds,
+            onCameraClick = onCameraClick,
+            onScanClick = onScanClick,
         )
     } else {
         val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsState()
@@ -65,6 +74,8 @@ fun LoadCard(
             solidBackground = solidBackground,
             wrapInCard = wrapInCard,
             rpmThresholds = thresholds,
+            onCameraClick = onCameraClick,
+            onScanClick = onScanClick,
         )
     }
 }
@@ -77,6 +88,8 @@ private fun LoadCardContent(
     solidBackground: Boolean,
     wrapInCard: Boolean,
     rpmThresholds: RpmThresholds,
+    onCameraClick: (() -> Unit)?,
+    onScanClick: (() -> Unit)?,
 ) {
     val tc = LocalTruckColors.current
     val route = formatLoadRoute(load)
@@ -101,9 +114,10 @@ private fun LoadCardContent(
                 Text(
                     text = load.tripId,
                     style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (load.isDispute) {
@@ -113,6 +127,32 @@ private fun LoadCardContent(
                         text = load.date,
                         style = AppTypography.CaptionMuted,
                     )
+                    if (onCameraClick != null) {
+                        IconButton(
+                            onClick = onCameraClick,
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = stringResource(R.string.load_card_attach_photo),
+                                tint = tc.AccentPrimary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                    if (onScanClick != null) {
+                        IconButton(
+                            onClick = onScanClick,
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.DocumentScanner,
+                                contentDescription = stringResource(R.string.load_card_attach_scan),
+                                tint = tc.AccentPrimary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                 }
             }
             Text(

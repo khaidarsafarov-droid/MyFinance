@@ -230,6 +230,7 @@
     <string name="filter_by_load">По грузу</string>
     <string name="filter_unlinked">Без привязки</string>
     <string name="load_detail_photos">Фото груза</string>
+    <string name="load_detail_scans">Сканы груза</string>
     <string name="retake">🔄 Переснять</string>
     <string name="share">Поделиться</string>
     <string name="share_photo">Поделиться фото</string>
@@ -251,6 +252,8 @@
     <string name="scan_document">Сканировать документ</string>
     <string name="scanning">Сканирование…</string>
     <string name="scan_success">Документ отсканирован успешно</string>
+    <string name="scan_attached_to_load">Скан сохранён и прикреплён к грузу</string>
+    <string name="scan_attaching">Сохранение скана…</string>
     <string name="scan_cancelled">Сканирование отменено</string>
     <string name="scan_error">Ошибка сканирования</string>
     <string name="scan_results">Результаты сканирования</string>
@@ -495,6 +498,8 @@
     <string name="load_detail_route">Маршрут</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
+    <string name="load_card_attach_photo">Сфотографировать для груза</string>
+    <string name="load_card_attach_scan">Сканировать для груза</string>
     <string name="load_detail_stops">Стопы</string>
     <string name="load_detail_penalties">Штрафы</string>
 

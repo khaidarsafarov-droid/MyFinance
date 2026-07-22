@@ -230,6 +230,7 @@
     <string name="filter_by_load">By load</string>
     <string name="filter_unlinked">Unlinked</string>
     <string name="load_detail_photos">Load photos</string>
+    <string name="load_detail_scans">Load scans</string>
     <string name="retake">🔄 Retake</string>
     <string name="share">Share</string>
     <string name="share_photo">Share photo</string>
@@ -251,6 +252,8 @@
     <string name="scan_document">Scan document</string>
     <string name="scanning">Scanning…</string>
     <string name="scan_success">Document scanned successfully</string>
+    <string name="scan_attached_to_load">Scan saved and attached to the load</string>
+    <string name="scan_attaching">Saving scan…</string>
     <string name="scan_cancelled">Scan cancelled</string>
     <string name="scan_error">Scan failed</string>
     <string name="scan_results">Scan results</string>
@@ -495,6 +498,8 @@
     <string name="load_detail_route">Route</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
+    <string name="load_card_attach_photo">Take photo for load</string>
+    <string name="load_card_attach_scan">Scan document for load</string>
     <string name="load_detail_stops">Stops</string>
     <string name="load_detail_penalties">Penalties</string>
 
