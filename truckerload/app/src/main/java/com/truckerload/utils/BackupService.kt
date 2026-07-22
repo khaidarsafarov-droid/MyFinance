@@ -55,7 +55,7 @@ object BackupService {
 
     suspend fun createAutoBackup(context: Context) = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
-        val db = AppDatabase.getInstance(appContext)
+        val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext
         val loadRepository = LoadRepository(db)
         val paycheckRepository = PaycheckRepository(db)
         val dieselRepository = DieselRepository(db)
@@ -125,7 +125,7 @@ object BackupService {
     suspend fun createManualBackup(context: Context): CreateResult? = withContext(Dispatchers.IO) {
         try {
             val appContext = context.applicationContext
-            val db = AppDatabase.getInstance(appContext)
+            val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
             val loadRepository = LoadRepository(db)
             val paycheckRepository = PaycheckRepository(db)
             val dieselRepository = DieselRepository(db)
@@ -219,7 +219,7 @@ object BackupService {
 
     suspend fun restoreLatestCompanionBackupIfEmpty(context: Context): Result<String>? = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
-        val db = AppDatabase.getInstance(appContext)
+        val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
         val loadRepository = LoadRepository(db)
         if (loadRepository.getAllLoadsOnce().isNotEmpty()) return@withContext null
 
@@ -284,7 +284,8 @@ object BackupService {
                 IllegalStateException(context.getString(R.string.backup_restore_bad_format))
             )
 
-        val db = AppDatabase.getInstance(context.applicationContext)
+        val db = AppDatabase.getInstanceForActiveUser(context.applicationContext)
+            ?: return Result.failure(IllegalStateException("No active user session"))
         val loadDao = db.loadDao()
         val stopDao = db.stopDao()
         val penaltyDao = db.penaltyDao()

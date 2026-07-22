@@ -660,12 +660,12 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            // Keep this account's Room DB + prefs on disk so they return on next login.
-                            // Only close the active session — other users' data stays isolated.
+                            // Stop Telegram first so it cannot write into a closed Room pool.
+                            com.truckerload.sync.TelegramBotForegroundService.stopForLogout(context)
+                            kotlinx.coroutines.delay(300)
                             com.truckerload.data.local.AppDatabase.closeCurrent()
                             userProfileStore.unbind()
                             authStore.logout()
-                            com.truckerload.sync.TelegramBotForegroundService.stop(context)
                             showLogoutConfirm = false
                             android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()
                         }

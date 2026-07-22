@@ -19,11 +19,20 @@ object AccountIds {
         return "local_$hex"
     }
 
-    fun resolve(supabaseUserId: String?, email: String): String {
+    /**
+     * @return account id, or null when neither Supabase id nor a usable email is available.
+     */
+    fun resolveOrNull(supabaseUserId: String?, email: String?): String? {
         val remote = supabaseUserId?.trim().orEmpty()
         if (remote.isNotBlank()) return remote
-        return fromEmail(email)
+        val mail = email?.trim().orEmpty()
+        if (mail.isBlank()) return null
+        return fromEmail(mail)
     }
+
+    fun resolve(supabaseUserId: String?, email: String): String =
+        resolveOrNull(supabaseUserId, email)
+            ?: error("Cannot resolve account id without Supabase user id or email")
 
     /** Safe fragment for Room database file names. */
     fun sanitizeFilePart(userId: String): String =

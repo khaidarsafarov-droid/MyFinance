@@ -79,8 +79,12 @@ class SettingsDataStore(context: Context) {
         val userId = AuthStore(appContext).currentUserIdOrNull()
         if (userId != null) {
             val key = longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}")
-            val scoped = appContext.settingsDataStore.data.first()[key]
-            if (scoped != null) return scoped
+            val prefs = appContext.settingsDataStore.data.first()
+            prefs[key]?.let { return it }
+            // One-shot migrate global chat id into this account.
+            val legacy = prefs[KEY_TELEGRAM_CHAT_ID] ?: return null
+            saveTelegramChatId(legacy)
+            return legacy
         }
         return telegramChatId.first()
     }

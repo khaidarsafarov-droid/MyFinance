@@ -74,10 +74,14 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onDestroy() {
-        Log.w(TAG, "Service destroyed — scheduling restart")
         pollJob?.cancel()
         scope.cancel()
-        TelegramServiceRestarter.schedule(applicationContext)
+        if (!suppressRestart) {
+            Log.w(TAG, "Service destroyed — scheduling restart")
+            TelegramServiceRestarter.schedule(applicationContext)
+        } else {
+            Log.i(TAG, "Service destroyed — restart suppressed (logout)")
+        }
         super.onDestroy()
     }
 
@@ -162,9 +166,13 @@ class TelegramBotForegroundService : Service() {
         private const val NOTIFICATION_ID = 4101
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
 
+        @Volatile
+        private var suppressRestart = false
+
         fun start(context: Context) {
             val userId = AuthStore(context).currentUserIdOrNull() ?: return
             if (TelegramTokenStore(context, userId).getToken().isBlank()) return
+            suppressRestart = false
             val intent = Intent(context, TelegramBotForegroundService::class.java)
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -178,7 +186,12 @@ class TelegramBotForegroundService : Service() {
         }
 
         fun stop(context: Context) {
+            suppressRestart = true
+            TelegramPollCoordinator.markForegroundPolling(false)
             context.stopService(Intent(context, TelegramBotForegroundService::class.java))
         }
+
+        /** Stop for logout: do not schedule AlarmManager restart. */
+        fun stopForLogout(context: Context) = stop(context)
     }
 }

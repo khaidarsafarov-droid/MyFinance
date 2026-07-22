@@ -15,6 +15,7 @@ class WeekUtilsTest {
     fun `parseDateFromScheduledTime handles Relay US Del-time`() {
         assertEquals("2025-07-06", parseDateFromScheduledTime("07/06 00:01 EDT", defaultYear = 2025))
         assertEquals("2025-07-05", parseDateFromScheduledTime("07/05 18:30 CDT", defaultYear = 2025))
+        assertEquals("2025-07-06", parseDateFromScheduledTime("2025-07-06 00:01 EDT"))
     }
 
     @Test

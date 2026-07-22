@@ -44,7 +44,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.AccountIds
-import com.truckerload.data.preferences.AuthSession
+import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.domain.geo.CountryCatalog
@@ -110,7 +110,7 @@ fun SignUpScreen(
             password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
                 android.widget.Toast.makeText(context, context.getString(R.string.supabase_not_configured), android.widget.Toast.LENGTH_LONG).show()
-                AuthSession.completeLogin(
+                AuthLogin.completeLogin(
                     authStore = authStore,
                     userProfileStore = userProfileStore,
                     userId = AccountIds.fromEmail(emailTrimmed),
@@ -155,7 +155,7 @@ fun SignUpScreen(
                                                                     isLoading = false
                                                                     upsertResult.fold(
                                                                         onSuccess = {
-                                                                            AuthSession.completeLogin(
+                                                                            AuthLogin.completeLogin(
                                                                                 authStore = authStore,
                                                                                 userProfileStore = userProfileStore,
                                                                                 userId = r.user.id,

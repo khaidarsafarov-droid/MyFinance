@@ -24,37 +24,57 @@ data class AuthSession(
     val refreshToken: String? = null,
 )
 
+/**
+ * Process-wide auth session. Every `AuthStore(context)` shares the same state so
+ * Telegram workers / widgets see the active user even when `rememberMe=false`
+ * (in-memory only, cleared on process death).
+ */
 class AuthStore(context: Context) {
     private val appContext = context.applicationContext
     private val prefs: SharedPreferences = openPrefs(appContext)
 
-    private val _isLoggedIn = MutableStateFlow(prefs.getBoolean(KEY_LOGGED_IN, DEFAULT_LOGGED_IN))
+    init {
+        synchronized(lock) {
+            if (!bootstrapped) {
+                bootstrapped = true
+                val persistedId = prefs.getString(KEY_USER_ID, null)?.takeIf { it.isNotBlank() }
+                if (prefs.getBoolean(KEY_LOGGED_IN, DEFAULT_LOGGED_IN) && persistedId != null) {
+                    liveUserId = persistedId
+                    liveEmail = prefs.getString(KEY_EMAIL, null).orEmpty()
+                    liveAccessToken = prefs.getString(KEY_ACCESS_TOKEN, null)?.takeIf { it.isNotBlank() }
+                    liveRefreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)?.takeIf { it.isNotBlank() }
+                    liveLoggedIn = true
+                }
+                _isLoggedIn.value = liveLoggedIn
+                _userId.value = liveUserId
+                _email.value = liveEmail
+            }
+        }
+    }
+
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
-
-    private val _userId = MutableStateFlow(prefs.getString(KEY_USER_ID, null)?.takeIf { it.isNotBlank() })
     val userId: StateFlow<String?> = _userId.asStateFlow()
-
-    private val _email = MutableStateFlow(prefs.getString(KEY_EMAIL, null).orEmpty())
     val email: StateFlow<String> = _email.asStateFlow()
 
-    fun currentUserIdOrNull(): String? = _userId.value?.takeIf { it.isNotBlank() }
+    fun currentUserIdOrNull(): String? = synchronized(lock) {
+        liveUserId?.takeIf { liveLoggedIn && it.isNotBlank() }
+    }
 
     fun requireUserId(): String =
         currentUserIdOrNull() ?: error("No active user session")
 
-    fun sessionOrNull(): AuthSession? {
-        val id = currentUserIdOrNull() ?: return null
-        if (!_isLoggedIn.value) return null
-        return AuthSession(
+    fun sessionOrNull(): AuthSession? = synchronized(lock) {
+        val id = liveUserId?.takeIf { it.isNotBlank() } ?: return null
+        if (!liveLoggedIn) return null
+        AuthSession(
             userId = id,
-            email = _email.value,
-            accessToken = prefs.getString(KEY_ACCESS_TOKEN, null)?.takeIf { it.isNotBlank() },
-            refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)?.takeIf { it.isNotBlank() },
+            email = liveEmail,
+            accessToken = liveAccessToken,
+            refreshToken = liveRefreshToken,
         )
     }
 
-    fun accessTokenOrNull(): String? =
-        prefs.getString(KEY_ACCESS_TOKEN, null)?.takeIf { it.isNotBlank() }
+    fun accessTokenOrNull(): String? = synchronized(lock) { liveAccessToken }
 
     /**
      * Starts a multi-user session. Each [userId] gets its own Room DB and preference namespaces.
@@ -68,21 +88,64 @@ class AuthStore(context: Context) {
     ) {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
-        _userId.value = id
-        _email.value = email.trim()
-        _isLoggedIn.value = true
-        if (rememberMe) {
-            prefs.edit {
-                putBoolean(KEY_LOGGED_IN, true)
-                putString(KEY_USER_ID, id)
-                putString(KEY_EMAIL, email.trim())
-                if (accessToken.isNullOrBlank()) remove(KEY_ACCESS_TOKEN)
-                else putString(KEY_ACCESS_TOKEN, accessToken)
-                if (refreshToken.isNullOrBlank()) remove(KEY_REFRESH_TOKEN)
-                else putString(KEY_REFRESH_TOKEN, refreshToken)
+        val mail = email.trim()
+        synchronized(lock) {
+            liveUserId = id
+            liveEmail = mail
+            liveAccessToken = accessToken?.takeIf { it.isNotBlank() }
+            liveRefreshToken = refreshToken?.takeIf { it.isNotBlank() }
+            liveLoggedIn = true
+            _userId.value = id
+            _email.value = mail
+            _isLoggedIn.value = true
+            if (rememberMe) {
+                prefs.edit {
+                    putBoolean(KEY_LOGGED_IN, true)
+                    putString(KEY_USER_ID, id)
+                    putString(KEY_EMAIL, mail)
+                    if (accessToken.isNullOrBlank()) remove(KEY_ACCESS_TOKEN)
+                    else putString(KEY_ACCESS_TOKEN, accessToken)
+                    if (refreshToken.isNullOrBlank()) remove(KEY_REFRESH_TOKEN)
+                    else putString(KEY_REFRESH_TOKEN, refreshToken)
+                }
+            } else {
+                // Ephemeral session: keep process-wide memory, clear disk so next cold start logs out.
+                prefs.edit {
+                    remove(KEY_LOGGED_IN)
+                    remove(KEY_USER_ID)
+                    remove(KEY_EMAIL)
+                    remove(KEY_ACCESS_TOKEN)
+                    remove(KEY_REFRESH_TOKEN)
+                }
             }
-        } else {
-            // In-memory session only — clear persisted identity.
+        }
+    }
+
+    /** @deprecated Use [login] with userId. */
+    fun login(rememberMe: Boolean = true) {
+        val existing = currentUserIdOrNull()
+        if (existing != null) {
+            login(existing, email.value, rememberMe)
+            return
+        }
+        if (rememberMe && prefs.getBoolean(KEY_LOGGED_IN, false)) {
+            login(
+                AccountIds.LOCAL_DEV,
+                prefs.getString(KEY_EMAIL, null).orEmpty().ifBlank { "local@device" },
+                true,
+            )
+            return
+        }
+        error("login(userId, email) required for multi-user sessions")
+    }
+
+    fun logout() {
+        synchronized(lock) {
+            liveLoggedIn = false
+            liveUserId = null
+            liveEmail = ""
+            liveAccessToken = null
+            liveRefreshToken = null
             prefs.edit {
                 remove(KEY_LOGGED_IN)
                 remove(KEY_USER_ID)
@@ -90,35 +153,10 @@ class AuthStore(context: Context) {
                 remove(KEY_ACCESS_TOKEN)
                 remove(KEY_REFRESH_TOKEN)
             }
+            _isLoggedIn.value = false
+            _userId.value = null
+            _email.value = ""
         }
-    }
-
-    /** @deprecated Use [login] with userId. Kept so accidental call sites fail loudly in debug. */
-    fun login(rememberMe: Boolean = true) {
-        val existing = currentUserIdOrNull()
-        if (existing != null) {
-            login(existing, _email.value, rememberMe)
-            return
-        }
-        if (rememberMe && prefs.getBoolean(KEY_LOGGED_IN, false)) {
-            // Legacy: logged-in flag without userId — upgrade to local_dev so existing DB migrates.
-            login(AccountIds.LOCAL_DEV, prefs.getString(KEY_EMAIL, null).orEmpty().ifBlank { "local@device" }, true)
-            return
-        }
-        error("login(userId, email) required for multi-user sessions")
-    }
-
-    fun logout() {
-        prefs.edit {
-            remove(KEY_LOGGED_IN)
-            remove(KEY_USER_ID)
-            remove(KEY_EMAIL)
-            remove(KEY_ACCESS_TOKEN)
-            remove(KEY_REFRESH_TOKEN)
-        }
-        _isLoggedIn.value = false
-        _userId.value = null
-        _email.value = ""
     }
 
     fun setLoggedIn(value: Boolean) {
@@ -127,10 +165,22 @@ class AuthStore(context: Context) {
             return
         }
         val id = currentUserIdOrNull() ?: return
-        login(id, _email.value, rememberMe = true)
+        login(id, email.value, rememberMe = true)
     }
 
     companion object {
+        private val lock = Any()
+        private var bootstrapped = false
+        private var liveLoggedIn = false
+        private var liveUserId: String? = null
+        private var liveEmail: String = ""
+        private var liveAccessToken: String? = null
+        private var liveRefreshToken: String? = null
+
+        private val _isLoggedIn = MutableStateFlow(DEFAULT_LOGGED_IN)
+        private val _userId = MutableStateFlow<String?>(null)
+        private val _email = MutableStateFlow("")
+
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
             SecurePreferences.migratePlainToSecure(
@@ -139,7 +189,6 @@ class AuthStore(context: Context) {
                 securePrefs = secure,
                 migrationFlagKey = MIGRATION_FLAG,
             )
-            // Upgrade legacy "logged in with no userId" sessions.
             if (secure.getBoolean(KEY_LOGGED_IN, false) &&
                 secure.getString(KEY_USER_ID, null).isNullOrBlank()
             ) {

@@ -167,19 +167,22 @@ fun getLastWeekStartAndEnd(): Pair<String, String> {
 
 /** Дата первого Pick Up (PU) или load.date. */
 fun getPickUpDate(load: Load): String? {
+    val yearHint = load.date.take(4).toIntOrNull()
     val fromStops = load.stops
         .filter { it.type == StopType.PU }
-        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime) }
+        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint) }
         .minOrNull()
     return fromStops ?: load.date.takeIf { it.length >= 10 }
 }
 
 /** Дата последней доставки (DEL), если есть. */
-fun getDeliveryDate(load: Load): String? =
-    load.stops
+fun getDeliveryDate(load: Load): String? {
+    val yearHint = load.date.take(4).toIntOrNull()
+    return load.stops
         .filter { it.type == StopType.DEL }
-        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime) }
+        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint) }
         .maxOrNull()
+}
 
 /**
  * Неделя отчёта для груза: по дате PU (воскресенье = новая неделя).
@@ -219,13 +222,27 @@ fun canonicalDateString(raw: String?): String? {
     return parseDateFromQuery(trimmed)
 }
 
-/** Парсит дату из scheduledTime (YYYY-MM-DD HH:mm, DD.MM.YYYY, etc). Возвращает YYYY-MM-DD или null. */
-fun parseDateFromScheduledTime(s: String): String? {
+/**
+ * Парсит дату из scheduledTime (YYYY-MM-DD HH:mm, DD.MM.YYYY, Relay `MM/DD HH:mm TZ`).
+ * Возвращает YYYY-MM-DD или null. [defaultYear] used for US `MM/DD` Relay times without a year.
+ */
+fun parseDateFromScheduledTime(s: String, defaultYear: Int? = null): String? {
     if (s.isBlank()) return null
     val t = s.trim()
     if (t.length >= 10 && t[4] == '-' && t[7] == '-') {
         val sub = t.substring(0, 10)
         if (sub.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) return sub
+    }
+    // Relay US: "07/06 00:01 EDT" / "7/6 18:30 CDT"
+    val us = Regex("""^(\d{1,2})/(\d{1,2})(?:\s|$)""").find(t)
+    if (us != null) {
+        val month = us.groupValues[1].toIntOrNull() ?: return null
+        val day = us.groupValues[2].toIntOrNull() ?: return null
+        val year = defaultYear ?: Calendar.getInstance().get(Calendar.YEAR)
+        if (month in 1..12 && day in 1..31 && year in 1970..2100) {
+            return "%04d-%02d-%02d".format(year, month, day)
+        }
+        return null
     }
     return parseDateFromQuery(t)
 }

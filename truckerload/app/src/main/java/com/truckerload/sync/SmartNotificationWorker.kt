@@ -27,7 +27,8 @@ class SmartNotificationWorker(
     }
 
     override suspend fun doWork(): Result {
-        val db = AppDatabase.getInstance(applicationContext)
+        val db = AppDatabase.getInstanceForActiveUser(applicationContext)
+            ?: return Result.success()
         val paycheckRepo = PaycheckRepository(db)
         val dieselRepo = DieselRepository(db)
 

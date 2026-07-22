@@ -21,7 +21,8 @@ object WidgetStatsLoader {
 
     suspend fun refresh(context: Context): WidgetStats = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
-        val db = AppDatabase.getInstance(appContext)
+        val db = AppDatabase.getInstanceForActiveUser(appContext)
+            ?: return@withContext WidgetStats(updatedAtMillis = System.currentTimeMillis())
         val loadRepository = LoadRepository(db)
         val weekRepository = WeekRepository(
             loadRepository,

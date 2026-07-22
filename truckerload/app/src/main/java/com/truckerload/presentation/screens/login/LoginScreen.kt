@@ -61,8 +61,7 @@ import com.truckerload.BuildConfig
 import com.truckerload.R
 import android.util.Base64
 import androidx.credentials.exceptions.GetCredentialCancellationException
-import com.truckerload.data.preferences.AccountIds
-import com.truckerload.data.preferences.AuthSession
+import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
@@ -122,17 +121,23 @@ private fun saveProfileAndLogin(
         photoUrl = photoUrl,
         phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
     )
-    val userId = AccountIds.resolve(supabaseUserId, email)
     val finish = {
-        AuthSession.completeLogin(
+        val ok = AuthLogin.tryCompleteLogin(
             authStore = authStore,
             userProfileStore = userProfileStore,
-            userId = userId,
+            supabaseUserId = supabaseUserId,
             profile = profile,
             rememberMe = rememberMe,
             accessToken = accessToken,
             refreshToken = refreshToken,
         )
+        if (!ok) {
+            android.widget.Toast.makeText(
+                context,
+                context.getString(R.string.auth_error_email_required),
+                android.widget.Toast.LENGTH_LONG,
+            ).show()
+        }
     }
     val activity = context as? ComponentActivity
     if (activity != null) {

@@ -180,11 +180,17 @@ abstract class AppDatabase : RoomDatabase() {
             return getInstance(context, userId)
         }
 
-        /** @deprecated Use [getInstance] with userId or [getInstanceForActiveUser]. */
+        /**
+         * Opens the active user's DB, or [AccountIds.LOCAL_DEV] only in LOCAL_ONLY_MODE.
+         * Prefer [getInstanceForActiveUser] in background jobs — returns null when logged out.
+         */
         fun getInstance(context: Context): AppDatabase {
             val userId = com.truckerload.data.preferences.AuthStore(context).currentUserIdOrNull()
-                ?: com.truckerload.data.preferences.AccountIds.LOCAL_DEV
-            return getInstance(context, userId)
+            if (userId != null) return getInstance(context, userId)
+            if (com.truckerload.BuildConfig.LOCAL_ONLY_MODE) {
+                return getInstance(context, com.truckerload.data.preferences.AccountIds.LOCAL_DEV)
+            }
+            error("No active user session — open AppDatabase with userId or wait until login")
         }
 
         fun closeCurrent() {

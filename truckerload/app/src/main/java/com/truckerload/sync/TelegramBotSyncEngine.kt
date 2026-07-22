@@ -863,7 +863,9 @@ class TelegramBotSyncEngine(private val context: Context) {
         fun telegramSyncPrefs(context: Context, userId: String): SharedPreferences {
             val name = "telegram_sync_${AccountIds.sanitizeFilePart(userId)}"
             val scoped = context.getSharedPreferences(name, Context.MODE_PRIVATE)
-            if (!scoped.contains(TelegramSyncWorker.KEY_LAST_OFFSET)) {
+            val meta = context.getSharedPreferences("truckerload_account_meta", Context.MODE_PRIVATE)
+            val migrated = meta.getBoolean("legacy_telegram_offset_migrated", false)
+            if (!migrated && !scoped.contains(TelegramSyncWorker.KEY_LAST_OFFSET)) {
                 val legacy = context.getSharedPreferences(TelegramSyncWorker.PREFS_NAME, Context.MODE_PRIVATE)
                 val offset = legacy.getLong(TelegramSyncWorker.KEY_LAST_OFFSET, 0L)
                 if (offset > 0L) {
@@ -871,6 +873,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                         putLong(TelegramSyncWorker.KEY_LAST_OFFSET, offset)
                     }
                 }
+                meta.edit().putBoolean("legacy_telegram_offset_migrated", true).apply()
             }
             return scoped
         }

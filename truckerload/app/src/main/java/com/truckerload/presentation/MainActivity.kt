@@ -137,10 +137,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     sessionReady = true
                 } else {
+                    TelegramBotForegroundService.stopForLogout(applicationContext)
+                    kotlinx.coroutines.delay(300)
                     AppDatabase.closeCurrent()
                     userProfileStore.unbind()
                     dependencies = null
-                    TelegramBotForegroundService.stop(applicationContext)
                     sessionReady = true
                 }
             }

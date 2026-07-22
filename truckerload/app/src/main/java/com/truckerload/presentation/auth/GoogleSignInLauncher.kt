@@ -16,8 +16,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.truckerload.BuildConfig
 import com.truckerload.R
-import com.truckerload.data.preferences.AccountIds
-import com.truckerload.data.preferences.AuthSession
+import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
@@ -60,10 +59,10 @@ fun rememberGoogleSignInLauncher(
         accessToken: String? = null,
         refreshToken: String? = null,
     ) {
-        AuthSession.completeLogin(
+        val ok = AuthLogin.tryCompleteLogin(
             authStore = authStore,
             userProfileStore = userProfileStore,
-            userId = AccountIds.resolve(supabaseUserId, email),
+            supabaseUserId = supabaseUserId,
             profile = UserProfile(
                 email = email,
                 givenName = givenName,
@@ -76,7 +75,15 @@ fun rememberGoogleSignInLauncher(
             refreshToken = refreshToken,
         )
         callbacksState.value.onBusy(false)
-        callbacksState.value.onSignedIn()
+        if (ok) {
+            callbacksState.value.onSignedIn()
+        } else {
+            Toast.makeText(
+                context,
+                context.getString(R.string.auth_error_email_required),
+                Toast.LENGTH_LONG,
+            ).show()
+        }
     }
 
     val legacyLauncher = rememberLauncherForActivityResult(
