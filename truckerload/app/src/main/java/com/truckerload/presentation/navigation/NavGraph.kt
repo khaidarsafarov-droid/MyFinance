@@ -160,8 +160,10 @@ fun NavGraph(
 
     LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent) {
         if (!isLoggedIn || !showMainContent) return@LaunchedEffect
-        when (deepLinkRoute) {
-            Routes.HOME, WidgetDeepLink.ROUTE_HOME -> {
+        val route = deepLinkRoute ?: return@LaunchedEffect
+        val destination = WidgetDeepLink.resolveNavRoute(route) ?: return@LaunchedEffect
+        when (destination) {
+            Routes.HOME -> {
                 navController.navigate(Routes.HOME) {
                     popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
@@ -171,35 +173,31 @@ fun NavGraph(
                 }
                 onDeepLinkHandled()
             }
-            Routes.ADD_LOAD, WidgetDeepLink.ROUTE_ADD_LOAD -> {
+            Routes.ADD_LOAD -> {
                 navController.navigate(Routes.ADD_LOAD)
                 onDeepLinkHandled()
             }
-            WidgetDeepLink.ROUTE_STATS -> {
+            Routes.ANALYTICS -> {
+                // Widget RPM / "stats" intent → Analytics (not WeeklyGoal; that is Routes.STATS)
                 navController.navigate(Routes.ANALYTICS) {
                     launchSingleTop = true
                 }
                 onDeepLinkHandled()
             }
-            WidgetDeepLink.ROUTE_JOURNAL_THIS_WEEK -> {
-                navController.navigate(Routes.HOME) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
-            WidgetDeepLink.ROUTE_WEEKLY_GOAL -> {
+            Routes.STATS -> {
+                // Widget weekly-goal taps + Routes.STATS → WeeklyGoalScreen
                 navController.navigate(Routes.STATS) {
                     launchSingleTop = true
                 }
                 onDeepLinkHandled()
             }
-            WidgetDeepLink.ROUTE_CAMERA, Routes.CAMERA -> {
+            Routes.CAMERA -> {
                 navController.navigate(Routes.CAMERA) {
                     launchSingleTop = true
                 }
                 onDeepLinkHandled()
             }
-            WidgetDeepLink.ROUTE_SCANNER, Routes.SCANNER -> {
+            Routes.SCANNER -> {
                 navController.navigate(Routes.SCANNER) {
                     launchSingleTop = true
                 }

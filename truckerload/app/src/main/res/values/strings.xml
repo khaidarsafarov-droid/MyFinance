@@ -105,6 +105,8 @@
 
     <string name="auth_email_hint">Email</string>
     <string name="auth_password_hint">Пароль</string>
+    <string name="auth_password_show_cd">Показать пароль</string>
+    <string name="auth_password_hide_cd">Скрыть пароль</string>
     <string name="auth_confirm_password_hint">Подтвердите пароль</string>
     <string name="auth_error_email_required">Введите email</string>
     <string name="auth_error_password_required">Введите пароль</string>

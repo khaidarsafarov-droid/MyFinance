@@ -32,7 +32,7 @@ Status legend: ✅ done · 🔄 in progress · ⬜ todo
 
 21. ✅ Unit: syncLoadsCdc SUCCESS / DUPLICATE / EMPTY matrix
 22. ✅ Unit: LoadFilterUseCase full matrix (yesterday/month/year/search)
-23. ⬜ Unit: HomeViewModel pending delete cancel/confirm
+23. ✅ Unit: HomeViewModel pending delete cancel/confirm
 24. ✅ Unit: BackupService restoreFromJson round-trip (loads count)
 25. ✅ Unit: Nav encodePathSegment blank → `_`
 26. ✅ Unit: ContentModerator blocked patterns
@@ -47,17 +47,17 @@ Status legend: ✅ done · 🔄 in progress · ⬜ todo
 35. ✅ Batch discard confirm when attached
 36. ⬜ Scanner GMS-unavailable path no crash
 37. ⬜ Scan attach appears on detail
-38. ⬜ Orphan scan cleanup unit/integration
+38. ✅ Orphan scan cleanup unit/integration
 39. ⬜ Photo link/unlink to load
 40. ⬜ Photo delete removes file
 41. ⬜ Gallery TODAY/WEEK boundary helpers tested
-42. ⬜ Missing photo file → graceful UI
+42. ✅ Missing photo file → graceful UI
 43. ⬜ Theme survives process death (SettingsDataStore)
 44. ✅ Language EN↔RU dispute strings English when EN
 45. ✅ Local backup/restore count parity (test harness)
 46. ⬜ RPM thresholds update LoadCard colors (pure color helper test)
 47. ✅ Weekly goal vs widget yield parity (calculator)
-48. ⬜ Widget deep-link route mapping documented/fixed if wrong
+48. ✅ Widget deep-link route mapping documented/fixed if wrong
 49. ⬜ Analytics empty-loads export no crash
 50. ⬜ Stats week totals parity with Home THIS_WEEK (filter use case)
 
@@ -70,12 +70,12 @@ Status legend: ✅ done · 🔄 in progress · ⬜ todo
 55. ⬜ Group invite code edge (blank/invalid)
 56. ⬜ Social seed only when empty (already) — assert idempotent
 57. ✅ LOCAL_ONLY cold start auto-login
-58. ⬜ Multi-user DB isolation note + AccountIds tests
+58. ✅ Multi-user DB isolation note + AccountIds tests
 59. ⬜ Logout stops FGS when not LOCAL_ONLY (guard)
 60. ⬜ Legacy DB migrate flag documented
 61. ⬜ Map empty loads metrics
 62. ⬜ Tax year switch recalculation
-63. ⬜ Advisor empty + with-load context (DeterministicAdvisor)
+63. ✅ Advisor empty + with-load context (DeterministicAdvisor)
 64. ⬜ Add paycheck/diesel validation
 65. ⬜ Map i18n remaining strings
 66. ⬜ Telegram 401 stops service (verify log path)
@@ -84,7 +84,7 @@ Status legend: ✅ done · 🔄 in progress · ⬜ todo
 69. ⬜ Boot/watchdog work unique name stable
 70. ⬜ Notification permission rationale string API 33+
 71. ⬜ SmartNotificationWorker zero-loads safe
-72. ⬜ DuplicateAuditUseCase after import
+72. ✅ DuplicateAuditUseCase after import
 73. ✅ Battery optimization helper no crash
 74. ✅ FileProvider share paths for photos/scans/avatars
 75. ⬜ ReportGenerator special chars in tripId
@@ -102,10 +102,10 @@ Status legend: ✅ done · 🔄 in progress · ⬜ todo
 84. ⬜ Parser settings threshold affects LoadUpdater
 85. ⬜ CSV export special characters
 86. ✅ Strings key-set parity script (en vs ru vs default)
-87. ⬜ Replace remaining hardcoded SignUp password CD if any
+87. ✅ Replace remaining hardcoded SignUp password CD if any
 88. ⬜ PDF report headers: document EN-only or i18n
 89. ⬜ Lint crash-severity triage note (no full lint fix)
-90. ⬜ exportSchema=false documented risk
+90. ✅ exportSchema=false documented risk
 91. ⬜ Concurrent insertLoad + backup mutex (already) — stress test light
 92. ✅ Photo watermark GPS unknown when no fix
 93. ✅ ScanResult OCR collapse still works (regression)

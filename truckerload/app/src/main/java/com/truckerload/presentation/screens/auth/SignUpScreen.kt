@@ -308,7 +308,10 @@ fun SignUpScreen(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (passwordVisible) "Скрыть пароль" else "Показать пароль"
+                                contentDescription = stringResource(
+                                    if (passwordVisible) R.string.auth_password_hide_cd
+                                    else R.string.auth_password_show_cd,
+                                )
                             )
                         }
                     },

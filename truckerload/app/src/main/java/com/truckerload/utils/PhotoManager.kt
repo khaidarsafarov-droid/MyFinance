@@ -75,11 +75,11 @@ class PhotoManager(private val context: Context) {
             dateLine,
             locationData.cityStateLine.ifBlank { unknown },
             locationData.zipCode.ifBlank { unknown },
-            if (!locationData.hasCoordinates) {
-                unknown
-            } else {
-                locationData.coordinatesLine
-            },
+            resolveGpsWatermarkLine(
+                hasCoordinates = locationData.hasCoordinates,
+                coordinatesLine = locationData.coordinatesLine,
+                unknownLabel = unknown,
+            ),
         )
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -135,5 +135,12 @@ class PhotoManager(private val context: Context) {
             watermarkTitle?.takeIf { it.isNotBlank() }
                 ?: tripId?.takeIf { it.isNotBlank() }
                 ?: fallback
+
+        /** When GPS fix is missing, watermark shows [unknownLabel] instead of coordinates. */
+        fun resolveGpsWatermarkLine(
+            hasCoordinates: Boolean,
+            coordinatesLine: String,
+            unknownLabel: String,
+        ): String = if (!hasCoordinates) unknownLabel else coordinatesLine
     }
 }

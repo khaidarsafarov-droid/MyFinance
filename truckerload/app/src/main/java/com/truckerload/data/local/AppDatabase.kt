@@ -78,6 +78,9 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         SocialPeerEntity::class,
     ],
     version = 22,
+    // exportSchema=false: Room will not write schema JSON under schemas/. Migrations still
+    // run from code, but CI cannot diff exported schemas — enable exportSchema=true +
+    // schemas/ in VCS before shipping destructive migration changes.
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -40,3 +40,7 @@
 - **Архив по годам:** Вкладка показывает только те месяцы, в которых есть записи.
 - **Годовая статистика:** В каждой секции года: количество грузов, общая выручка, общий пробег.
 - **Редактирование:** При смене даты груза с 2024 на 2025 запись автоматически переходит в секцию 2025.
+
+## Room `exportSchema=false` risk
+
+`AppDatabase` sets `exportSchema = false`, so Room does **not** emit versioned schema JSON under `schemas/`. Migrations still run from Kotlin code, but CI cannot auto-diff schemas across versions. Before enabling destructive migrations or shipping major schema bumps, turn `exportSchema = true` and commit the JSON exports.
