@@ -89,6 +89,7 @@ private data class HomeFilterState(
     val selectedWeekLabel: String = "",
 )
 
+@OptIn(FlowPreview::class)
 class HomeViewModel(
     private val loadRepository: LoadRepository,
     private val isBotConfigured: Boolean = false,
