@@ -6,7 +6,10 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "scans",
-    indices = [Index(value = ["timestamp"])],
+    indices = [
+        Index(value = ["timestamp"]),
+        Index(value = ["loadId"]),
+    ],
 )
 data class ScanEntity(
     @PrimaryKey val id: String,
@@ -16,4 +19,5 @@ data class ScanEntity(
     val fileSizeBytes: Long,
     val pageCount: Int,
     val ocrText: String = "",
+    val loadId: String? = null,
 )

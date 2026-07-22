@@ -182,10 +182,17 @@ fun PhotoPreviewScreen(
 fun CameraFlowScreen(
     onFinished: () -> Unit,
     onOpenGallery: () -> Unit = {},
+    attachLoadId: String? = null,
+    attachTripId: String? = null,
+    attachLoadDate: String? = null,
     viewModel: CameraViewModel = viewModel(
+        key = "camera_${attachLoadId.orEmpty()}",
         factory = CameraViewModel.Factory(
             LocalContext.current,
             LocalPhotoRepository.current,
+            attachLoadId = attachLoadId,
+            attachTripId = attachTripId,
+            attachLoadDate = attachLoadDate,
         ),
     ),
 ) {
@@ -217,10 +224,13 @@ fun CameraFlowScreen(
                 sessionCount = uiState.sessionPhotos.size,
                 onOpenBatch = viewModel::openBatchReview,
                 onBack = {
-                    if (uiState.sessionPhotos.isNotEmpty()) {
-                        viewModel.openBatchReview()
-                    } else {
-                        onFinished()
+                    when {
+                        uiState.sessionPhotos.isEmpty() -> onFinished()
+                        viewModel.isAttachedToLoad && uiState.sessionPhotos.all { it.savedToDb } -> {
+                            viewModel.finishSession()
+                            onFinished()
+                        }
+                        else -> viewModel.openBatchReview()
                     }
                 },
                 viewModel = viewModel,

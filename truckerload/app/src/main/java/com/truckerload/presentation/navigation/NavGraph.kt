@@ -25,6 +25,7 @@ import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.screens.home.HomeViewModel
 import androidx.compose.ui.Modifier
+import android.net.Uri
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -94,7 +95,9 @@ object Routes {
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
     const val CAMERA = "camera"
+    const val CAMERA_FOR_LOAD = "camera_load/{loadId}/{tripId}/{loadDate}"
     const val SCANNER = "scanner"
+    const val SCANNER_FOR_LOAD = "scanner_load/{loadId}/{tripId}/{loadDate}"
     const val SCAN_GALLERY = "scan_gallery"
     const val PHOTO_GALLERY = "photo_gallery"
     const val PHOTO_DETAIL = "photo_detail/{photoId}"
@@ -103,6 +106,17 @@ object Routes {
     fun editLoad(loadId: String) = "edit_load/$loadId"
     fun photoDetail(photoId: String) = "photo_detail/$photoId"
     fun socialChat(chatId: String) = "social_chat/$chatId"
+    fun cameraForLoad(loadId: String, tripId: String, loadDate: String): String {
+        return "camera_load/${encodePathSegment(loadId)}/${encodePathSegment(tripId)}/${encodePathSegment(loadDate)}"
+    }
+
+    fun scannerForLoad(loadId: String, tripId: String, loadDate: String): String {
+        return "scanner_load/${encodePathSegment(loadId)}/${encodePathSegment(tripId)}/${encodePathSegment(loadDate)}"
+    }
+
+    private fun encodePathSegment(value: String): String =
+        Uri.encode(value.ifBlank { "_" }) ?: "_"
+
     const val VOICE_ROOMS = "voice_rooms"
     const val VOICE_ROOM = "voice_room/{roomId}"
     const val CALL = "call/{callId}"
@@ -230,6 +244,7 @@ fun NavGraph(
     val showMainNavigation = if (tablet) {
         currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
+            currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
             currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
             !currentRoute.orEmpty().startsWith("photo_detail") &&
             !currentRoute.orEmpty().startsWith("profile_peer") &&
@@ -274,7 +289,13 @@ fun NavGraph(
                     onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
                     onStats = { navController.navigate(Routes.ANALYTICS) },
                     onWeeklyGoal = { navController.navigate(Routes.STATS) },
-                    onSettings = { navController.navigate(Routes.SETTINGS) }
+                    onSettings = { navController.navigate(Routes.SETTINGS) },
+                    onLoadCamera = { loadId, tripId, loadDate ->
+                        navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
+                    },
+                    onLoadScan = { loadId, tripId, loadDate ->
+                        navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
+                    },
                 )
             }
             composable(
@@ -511,6 +532,26 @@ fun NavGraph(
                     onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
                 )
             }
+            composable(
+                route = Routes.CAMERA_FOR_LOAD,
+                arguments = listOf(
+                    navArgument("loadId") { type = NavType.StringType },
+                    navArgument("tripId") { type = NavType.StringType },
+                    navArgument("loadDate") { type = NavType.StringType },
+                ),
+            ) { entry ->
+                val loadId = Uri.decode(entry.arguments?.getString("loadId").orEmpty())
+                val tripId = Uri.decode(entry.arguments?.getString("tripId").orEmpty())
+                val loadDate = Uri.decode(entry.arguments?.getString("loadDate").orEmpty())
+                    .takeIf { it != "_" }.orEmpty()
+                CameraFlowScreen(
+                    onFinished = { navController.popBackStack() },
+                    onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
+                    attachLoadId = loadId.takeIf { it.isNotBlank() && it != "_" },
+                    attachTripId = tripId.takeIf { it.isNotBlank() && it != "_" },
+                    attachLoadDate = loadDate,
+                )
+            }
             composable(Routes.SCANNER) {
                 ScannerFlowScreen(
                     onFinished = { navController.popBackStack() },
@@ -519,6 +560,36 @@ fun NavGraph(
                         navController.popBackStack()
                         navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                     },
+                )
+            }
+            composable(
+                route = Routes.SCANNER_FOR_LOAD,
+                arguments = listOf(
+                    navArgument("loadId") { type = NavType.StringType },
+                    navArgument("tripId") { type = NavType.StringType },
+                    navArgument("loadDate") { type = NavType.StringType },
+                ),
+            ) { entry ->
+                val loadId = Uri.decode(entry.arguments?.getString("loadId").orEmpty())
+                val tripId = Uri.decode(entry.arguments?.getString("tripId").orEmpty())
+                val loadDate = Uri.decode(entry.arguments?.getString("loadDate").orEmpty())
+                    .takeIf { it != "_" }.orEmpty()
+                ScannerFlowScreen(
+                    onFinished = { navController.popBackStack() },
+                    onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
+                    onCameraFallback = {
+                        navController.popBackStack()
+                        if (loadId.isNotBlank() && loadId != "_") {
+                            navController.navigate(
+                                Routes.cameraForLoad(loadId, tripId, loadDate),
+                            ) { launchSingleTop = true }
+                        } else {
+                            navController.navigate(Routes.CAMERA) { launchSingleTop = true }
+                        }
+                    },
+                    attachLoadId = loadId.takeIf { it.isNotBlank() && it != "_" },
+                    attachTripId = tripId.takeIf { it.isNotBlank() && it != "_" },
+                    attachLoadDate = loadDate,
                 )
             }
             composable(Routes.SCAN_GALLERY) {

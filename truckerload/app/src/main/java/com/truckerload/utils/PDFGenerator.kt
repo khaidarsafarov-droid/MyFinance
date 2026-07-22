@@ -25,13 +25,27 @@ class PDFGenerator(private val context: Context) {
             return dir
         }
 
-    fun buildScanFileName(timestamp: Long = System.currentTimeMillis()): String =
-        "scan_${scanTimestampFormat.format(Date(timestamp))}.pdf"
+    fun buildScanFileName(
+        timestamp: Long = System.currentTimeMillis(),
+        tripId: String? = null,
+        loadDate: String? = null,
+    ): String {
+        if (!tripId.isNullOrBlank()) {
+            return AttachmentNaming.buildFileName(tripId, loadDate.orEmpty(), timestamp, "pdf")
+        }
+        return "scan_${scanTimestampFormat.format(Date(timestamp))}.pdf"
+    }
 
-    fun saveScanFromResult(result: GmsDocumentScanningResult, timestamp: Long = System.currentTimeMillis()): SavedScanFile {
+    fun saveScanFromResult(
+        result: GmsDocumentScanningResult,
+        timestamp: Long = System.currentTimeMillis(),
+        tripId: String? = null,
+        loadDate: String? = null,
+    ): SavedScanFile {
+        val fileName = buildScanFileName(timestamp, tripId, loadDate)
         val pdfUri = result.pdf?.uri
         if (pdfUri != null) {
-            val file = copyUriToScansDir(pdfUri, buildScanFileName(timestamp))
+            val file = copyUriToScansDir(pdfUri, fileName)
             return SavedScanFile(
                 file = file,
                 pageCount = result.pdf?.pageCount ?: result.pages?.size ?: 1,
@@ -41,7 +55,7 @@ class PDFGenerator(private val context: Context) {
         require(pages.isNotEmpty()) { "No scan pages returned" }
         val file = createPdfFromPageUris(
             pageUris = pages.mapNotNull { it.imageUri },
-            fileName = buildScanFileName(timestamp),
+            fileName = fileName,
         )
         return SavedScanFile(file = file, pageCount = pages.size)
     }
@@ -71,7 +85,10 @@ class PDFGenerator(private val context: Context) {
         return dest
     }
 
-    fun mergePdfFiles(sources: List<File>, fileName: String = buildScanFileName()): File {
+    fun mergePdfFiles(
+        sources: List<File>,
+        fileName: String = buildScanFileName(),
+    ): File {
         val existing = sources.filter { it.exists() }
         require(existing.isNotEmpty()) { "No PDF files to merge" }
         if (existing.size == 1) return existing.first()

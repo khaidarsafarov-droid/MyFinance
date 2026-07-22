@@ -35,15 +35,21 @@ data class ScannerUiState(
     val scanLaunchKey: Int = 0,
     val statusMessage: String? = null,
     val errorKey: String? = null,
+    val autoAttachedAndDone: Boolean = false,
 )
 
 class ScannerViewModel(
     private val app: Application,
     private val scanRepository: ScanRepository,
+    private val attachLoadId: String? = null,
+    private val attachTripId: String? = null,
+    private val attachLoadDate: String? = null,
 ) : ViewModel() {
 
     private val pdfGenerator = PDFGenerator(app)
     private val ocrService = OCRService(app)
+
+    val isAttachedToLoad: Boolean = !attachLoadId.isNullOrBlank()
 
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
@@ -60,7 +66,12 @@ class ScannerViewModel(
             _uiState.update { it.copy(isProcessing = true, errorKey = null) }
             try {
                 val timestamp = System.currentTimeMillis()
-                val saved = pdfGenerator.saveScanFromResult(result, timestamp)
+                val saved = pdfGenerator.saveScanFromResult(
+                    result = result,
+                    timestamp = timestamp,
+                    tripId = attachTripId,
+                    loadDate = attachLoadDate,
+                )
                 val ocrResult = ocrService.recognizeScanResult(app, result)
                 val newScan = PendingScan(
                     file = saved.file,
@@ -79,6 +90,9 @@ class ScannerViewModel(
                         sessionScans = session,
                         pendingScan = display,
                     )
+                }
+                if (isAttachedToLoad) {
+                    persistPendingToApp(showSuccess = true, finishAfter = true)
                 }
             } catch (_: Exception) {
                 _uiState.update {
@@ -113,6 +127,7 @@ class ScannerViewModel(
                 sessionScans = emptyList(),
                 statusMessage = null,
                 errorKey = null,
+                autoAttachedAndDone = false,
             )
         }
     }
@@ -164,12 +179,19 @@ class ScannerViewModel(
         }
     }
 
-    private suspend fun persistPendingToApp(showSuccess: Boolean) {
+    private suspend fun persistPendingToApp(showSuccess: Boolean, finishAfter: Boolean = false) {
         val state = _uiState.value
         val pending = state.pendingScan ?: return
         if (pending.savedToDb) {
             if (showSuccess) {
-                _uiState.update { it.copy(statusMessage = "scan_success") }
+                _uiState.update {
+                    it.copy(
+                        statusMessage = "scan_success",
+                        autoAttachedAndDone = finishAfter,
+                    )
+                }
+            } else if (finishAfter) {
+                _uiState.update { it.copy(autoAttachedAndDone = true) }
             }
             return
         }
@@ -181,9 +203,8 @@ class ScannerViewModel(
                 fileSizeBytes = pending.file.length(),
                 pageCount = pending.pageCount,
                 ocrText = pending.ocrText,
+                loadId = attachLoadId,
             )
-            // Protect only files that were actually inserted. Merged saves keep part files
-            // deletable on clear; single-scan saves mark that session entry.
             val markedSession = if (pending.isMerged) {
                 state.sessionScans
             } else {
@@ -200,6 +221,7 @@ class ScannerViewModel(
                     pendingScan = pending.copy(savedToDb = true),
                     sessionScans = markedSession,
                     statusMessage = if (showSuccess) "scan_success" else it.statusMessage,
+                    autoAttachedAndDone = finishAfter,
                 )
             }
         } catch (_: Exception) {
@@ -211,7 +233,14 @@ class ScannerViewModel(
         if (session.size == 1) return session.first()
         val existing = session.map { it.file }.filter { it.exists() }
         require(existing.isNotEmpty()) { "No PDF files to merge" }
-        val mergedFile = pdfGenerator.mergePdfFiles(existing)
+        val mergedFile = pdfGenerator.mergePdfFiles(
+            sources = existing,
+            fileName = pdfGenerator.buildScanFileName(
+                timestamp = timestamp,
+                tripId = attachTripId,
+                loadDate = attachLoadDate,
+            ),
+        )
         return PendingScan(
             file = mergedFile,
             pageCount = session.sumOf { it.pageCount },
@@ -232,10 +261,19 @@ class ScannerViewModel(
     class Factory(
         private val context: Context,
         private val scanRepository: ScanRepository,
+        private val attachLoadId: String? = null,
+        private val attachTripId: String? = null,
+        private val attachLoadDate: String? = null,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ScannerViewModel(context.applicationContext as Application, scanRepository) as T
+            return ScannerViewModel(
+                context.applicationContext as Application,
+                scanRepository,
+                attachLoadId = attachLoadId,
+                attachTripId = attachTripId,
+                attachLoadDate = attachLoadDate,
+            ) as T
         }
     }
 }

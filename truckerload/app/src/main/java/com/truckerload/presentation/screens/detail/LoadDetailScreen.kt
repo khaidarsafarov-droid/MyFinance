@@ -65,6 +65,8 @@ import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalPhotoRepository
+import com.truckerload.presentation.di.LocalScanRepository
+import com.truckerload.utils.ShareHelper
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -88,7 +90,9 @@ fun LoadDetailScreen(
     val context = LocalContext.current
     val loadRepository = LocalLoadRepository.current
     val photoRepository = LocalPhotoRepository.current
+    val scanRepository = LocalScanRepository.current
     val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsState(initial = emptyList())
+    val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var load by remember(loadId) { mutableStateOf<Load?>(null) }
@@ -328,6 +332,31 @@ fun LoadDetailScreen(
                                             )
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                    if (linkedScans.isNotEmpty()) {
+                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Text(
+                                    stringResource(R.string.load_detail_scans),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = tc.TextPrimary,
+                                    modifier = Modifier.padding(bottom = 8.dp),
+                                )
+                                linkedScans.forEach { scan ->
+                                    Text(
+                                        text = scan.fileName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = tc.TextPrimary,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                ShareHelper(context).sharePdf(java.io.File(scan.filePath))
+                                            }
+                                            .padding(vertical = 6.dp),
+                                    )
                                 }
                             }
                         }

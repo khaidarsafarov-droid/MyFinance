@@ -40,10 +40,15 @@ data class CameraUiState(
 class CameraViewModel(
     private val app: Application,
     private val photoRepository: PhotoRepository,
+    private val attachLoadId: String? = null,
+    private val attachTripId: String? = null,
+    private val attachLoadDate: String? = null,
 ) : ViewModel() {
 
     private val locationHelper = LocationHelper(app)
     private val photoManager = PhotoManager(app)
+
+    val isAttachedToLoad: Boolean = !attachLoadId.isNullOrBlank()
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -83,14 +88,34 @@ class CameraViewModel(
                     state = "",
                     zipCode = "",
                 )
-                val savedFile = photoManager.savePhoto(bitmap, location, timestamp)
+                val savedFile = photoManager.savePhoto(
+                    bitmap = bitmap,
+                    locationData = location,
+                    timestamp = timestamp,
+                    tripId = attachTripId,
+                    loadDate = attachLoadDate,
+                )
                 bitmap.recycle()
                 bitmap = null
-                val photo = CapturedPhoto(
+                var photo = CapturedPhoto(
                     file = savedFile,
                     locationData = location,
                     timestamp = timestamp,
                 )
+                if (isAttachedToLoad) {
+                    val entity = photoRepository.savePhoto(
+                        fileName = photo.file.name,
+                        filePath = photo.file.absolutePath,
+                        latitude = photo.locationData.latitude,
+                        longitude = photo.locationData.longitude,
+                        city = photo.locationData.city,
+                        state = photo.locationData.state,
+                        zipCode = photo.locationData.zipCode,
+                        timestamp = photo.timestamp,
+                        loadId = attachLoadId,
+                    )
+                    photo = photo.copy(savedToDb = true, dbId = entity.id)
+                }
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
@@ -170,6 +195,7 @@ class CameraViewModel(
                         state = photo.locationData.state,
                         zipCode = photo.locationData.zipCode,
                         timestamp = photo.timestamp,
+                        loadId = attachLoadId,
                     )
                     photo.copy(savedToDb = true, dbId = entity.id)
                 }
@@ -215,10 +241,19 @@ class CameraViewModel(
     class Factory(
         private val context: Context,
         private val photoRepository: PhotoRepository,
+        private val attachLoadId: String? = null,
+        private val attachTripId: String? = null,
+        private val attachLoadDate: String? = null,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CameraViewModel(context.applicationContext as Application, photoRepository) as T
+            return CameraViewModel(
+                context.applicationContext as Application,
+                photoRepository,
+                attachLoadId = attachLoadId,
+                attachTripId = attachTripId,
+                attachLoadDate = attachLoadDate,
+            ) as T
         }
     }
 }

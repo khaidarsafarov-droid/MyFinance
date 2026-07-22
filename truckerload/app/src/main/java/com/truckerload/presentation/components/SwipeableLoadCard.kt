@@ -42,6 +42,8 @@ fun SwipeableLoadCard(
     onDelete: () -> Unit,
     rpmThresholds: RpmThresholds,
     modifier: Modifier = Modifier,
+    onCameraClick: (() -> Unit)? = null,
+    onScanClick: (() -> Unit)? = null,
 ) {
     val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
     val dismissState = rememberSwipeToDismissBoxState(
@@ -108,6 +110,8 @@ fun SwipeableLoadCard(
                 onClick = onClick,
                 wrapInCard = false,
                 rpmThresholds = rpmThresholds,
+                onCameraClick = onCameraClick,
+                onScanClick = onScanClick,
             )
         }
     }

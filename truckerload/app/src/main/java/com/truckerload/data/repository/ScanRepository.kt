@@ -11,6 +11,9 @@ class ScanRepository(private val db: AppDatabase) {
 
     fun watchScans(): Flow<List<ScanEntity>> = scanDao.getAllScans()
 
+    fun watchScansByLoadId(loadId: String): Flow<List<ScanEntity>> =
+        scanDao.getScansByLoadId(loadId)
+
     suspend fun saveScan(
         fileName: String,
         filePath: String,
@@ -18,6 +21,7 @@ class ScanRepository(private val db: AppDatabase) {
         fileSizeBytes: Long,
         pageCount: Int,
         ocrText: String,
+        loadId: String? = null,
     ): ScanEntity {
         val entity = ScanEntity(
             id = UUID.randomUUID().toString(),
@@ -27,6 +31,7 @@ class ScanRepository(private val db: AppDatabase) {
             fileSizeBytes = fileSizeBytes,
             pageCount = pageCount,
             ocrText = ocrText,
+            loadId = loadId,
         )
         scanDao.insert(entity)
         return entity
