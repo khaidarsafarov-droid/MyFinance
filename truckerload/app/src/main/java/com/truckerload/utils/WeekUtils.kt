@@ -350,7 +350,9 @@ fun getLoadDateRange(load: Load): Set<String> {
     if (stopDates.isNotEmpty()) {
         val sorted = stopDates.sorted()
         val start = sorted.first()
-        val end = sorted.last()
+        val end = load.actualFinishDate?.takeIf { it.length >= 10 }?.take(10)
+            ?.takeIf { it >= start }
+            ?: sorted.last()
         val p1 = start.split("-").mapNotNull { it.toIntOrNull() }
         val p2 = end.split("-").mapNotNull { it.toIntOrNull() }
         if (p1.size == 3 && p2.size == 3) {
@@ -363,6 +365,8 @@ fun getLoadDateRange(load: Load): Set<String> {
                 cal.add(Calendar.DAY_OF_YEAR, 1)
             }
         }
+    } else {
+        load.actualFinishDate?.takeIf { it.length >= 10 }?.let { dates.add(it.take(10)) }
     }
     return dates
 }

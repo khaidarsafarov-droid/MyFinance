@@ -43,4 +43,6 @@ data class LoadEntity(
     val disputeResponseDate: String? = null,
     /** Диспют закрыт пользователем. */
     val disputeCompleted: Boolean = false,
+    /** Фактическая дата окончания (YYYY-MM-DD); null = из последнего DEL. */
+    val actualFinishDate: String? = null,
 )

@@ -89,7 +89,8 @@ interface LoadDao {
             stopCount = :stopCount,
             isDispute = :isDispute,
             disputeResponseDate = :disputeResponseDate,
-            disputeCompleted = :disputeCompleted
+            disputeCompleted = :disputeCompleted,
+            actualFinishDate = :actualFinishDate
         WHERE id = :loadId
         """
     )
@@ -114,6 +115,7 @@ interface LoadDao {
         isDispute: Boolean,
         disputeResponseDate: String?,
         disputeCompleted: Boolean,
+        actualFinishDate: String?,
     )
 
     /** Точный поиск по load_date (YYYY-MM-DD). */

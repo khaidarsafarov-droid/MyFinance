@@ -17,6 +17,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,7 +27,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,11 +53,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
+import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.StatBox
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
 import com.truckerload.presentation.di.LocalLoadRepository
@@ -62,10 +69,12 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.utils.dateStringToStartOfDayMillis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
+import java.util.Calendar
+import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadDetailScreen(
@@ -85,6 +94,7 @@ fun LoadDetailScreen(
     var load by remember(loadId) { mutableStateOf<Load?>(null) }
     var loadError by remember(loadId) { mutableStateOf<String?>(null) }
     var isLoading by remember(loadId) { mutableStateOf(true) }
+    var showFinishPicker by remember { mutableStateOf(false) }
     LaunchedEffect(loadId) {
         if (loadId.isBlank()) {
             loadError = context.resources.getString(R.string.load_invalid)
@@ -213,6 +223,86 @@ fun LoadDetailScreen(
                     ) {
                         StatBox(title = stringResource(R.string.load_detail_stat_del), value = "${l.delCount}", modifier = Modifier.weight(1f))
                     }
+                    ActualFinishSection(
+                        load = l,
+                        onPickClick = { showFinishPicker = true },
+                        onClearClick = {
+                            scope.launch {
+                                try {
+                                    val updated = withContext(Dispatchers.IO) {
+                                        val next = l.copy(
+                                            actualFinishDate = null,
+                                            updatedAt = System.currentTimeMillis(),
+                                        ).withRouteMetrics()
+                                        loadRepository.updateLoad(next)
+                                        next
+                                    }
+                                    load = updated
+                                } catch (e: Exception) {
+                                    snackbarHostState.showSnackbar(
+                                        e.message ?: context.getString(R.string.common_save_error, "")
+                                    )
+                                }
+                            }
+                        },
+                    )
+                    if (showFinishPicker) {
+                        val initialMs = (l.actualFinishDate ?: l.effectiveFinishDate())
+                            ?.let { dateStringToStartOfDayMillis(it) }
+                            ?: System.currentTimeMillis()
+                        val cal = Calendar.getInstance().apply { timeInMillis = initialMs }
+                        val dateState = rememberDatePickerState(
+                            initialSelectedDateMillis = initialMs,
+                            yearRange = IntRange(cal.get(Calendar.YEAR) - 2, cal.get(Calendar.YEAR) + 1),
+                        )
+                        DatePickerDialog(
+                            onDismissRequest = { showFinishPicker = false },
+                            colors = androidx.compose.material3.DatePickerDefaults.colors(
+                                containerColor = tc.CardBackground,
+                            ),
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        val ms = dateState.selectedDateMillis
+                                        if (ms != null) {
+                                            val c = Calendar.getInstance(Locale.US).apply { timeInMillis = ms }
+                                            val iso = "%04d-%02d-%02d".format(
+                                                c.get(Calendar.YEAR),
+                                                c.get(Calendar.MONTH) + 1,
+                                                c.get(Calendar.DAY_OF_MONTH),
+                                            )
+                                            scope.launch {
+                                                try {
+                                                    val updated = withContext(Dispatchers.IO) {
+                                                        val next = l.copy(
+                                                            actualFinishDate = iso,
+                                                            updatedAt = System.currentTimeMillis(),
+                                                        ).withRouteMetrics()
+                                                        loadRepository.updateLoad(next)
+                                                        next
+                                                    }
+                                                    load = updated
+                                                    showFinishPicker = false
+                                                } catch (e: Exception) {
+                                                    snackbarHostState.showSnackbar(
+                                                        e.message
+                                                            ?: context.getString(R.string.common_save_error, "")
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            showFinishPicker = false
+                                        }
+                                    }
+                                ) { Text(stringResource(R.string.common_ok)) }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showFinishPicker = false }) {
+                                    Text(stringResource(R.string.common_cancel))
+                                }
+                            },
+                        ) { DatePicker(state = dateState) }
+                    }
                     if (linkedPhotos.isNotEmpty()) {
                         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(20.dp)) {
@@ -276,6 +366,57 @@ fun LoadDetailScreen(
                             Text((l.rawMessage).take(500).ifEmpty { "—" }, style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActualFinishSection(
+    load: Load,
+    onPickClick: () -> Unit,
+    onClearClick: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    val finishLabel = load.effectiveFinishDate() ?: "—"
+    val statusText = if (!load.actualFinishDate.isNullOrBlank()) {
+        stringResource(R.string.load_detail_finish_manual, finishLabel)
+    } else {
+        stringResource(R.string.load_detail_finish_from_stops, finishLabel)
+    }
+    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                stringResource(R.string.load_detail_finish_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = tc.TextPrimary,
+            )
+            Text(
+                statusText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextSecondary,
+            )
+            Text(
+                stringResource(R.string.load_detail_finish_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = tc.TextLabel,
+            )
+            OutlinedButton(
+                onClick = onPickClick,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.load_detail_finish_pick))
+            }
+            if (!load.actualFinishDate.isNullOrBlank()) {
+                OutlinedButton(
+                    onClick = onClearClick,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.load_detail_finish_clear))
                 }
             }
         }
