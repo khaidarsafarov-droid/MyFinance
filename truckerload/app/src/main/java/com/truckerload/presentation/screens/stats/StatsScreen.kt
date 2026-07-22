@@ -53,7 +53,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -124,8 +124,8 @@ fun StatsScreen(
 ) {
     val aiRepository = LocalAiRepository.current
     val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
-        .collectAsState(initial = null)
-    val userProfile by LocalUserProfileStore.current.profile.collectAsState()
+        .collectAsStateWithLifecycle(initialValue = null)
+    val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
     val welcomeName = remember(socialProfile, userProfile) {
         socialProfile?.displayName
             ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
@@ -141,7 +141,7 @@ fun StatsScreen(
             LocalStatsSelectionStore.current
         )
     )
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resetFiltersDoneText = stringResource(R.string.stats_filters_reset_done)

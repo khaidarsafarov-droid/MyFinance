@@ -25,7 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
@@ -55,7 +55,7 @@ fun AddLoadScreen(
     val viewModel: AddLoadViewModel = viewModel(
         factory = AddLoadViewModel.Factory(application, loadRepository, aiRepository),
     )
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val parseFailed = stringResource(R.string.add_load_parse_failed)
 
     LaunchedEffect(uiState.savedLoad) {

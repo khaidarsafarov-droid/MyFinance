@@ -18,6 +18,7 @@ import com.truckerload.utils.getWeekRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 object WidgetStatsLoader {
 
@@ -53,7 +54,7 @@ object WidgetStatsLoader {
             goalProgress.currentGross,
             goalProgress.totalMiles,
             if (goalProgress.totalMiles > 0) {
-                String.format("%.2f", goalProgress.currentGross / goalProgress.totalMiles)
+                String.format(Locale.US, "%.2f", goalProgress.currentGross / goalProgress.totalMiles)
             } else {
                 "0.00"
             }

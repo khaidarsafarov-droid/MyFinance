@@ -547,7 +547,7 @@ fun getWeekNumberAndYearFromDate(dateStr: String?): Pair<Int, Int> {
         val cal = truckingWeekCalendar()
         cal.set(y, m, d)
         Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         getCurrentWeekNumberAndYear()
     }
 }

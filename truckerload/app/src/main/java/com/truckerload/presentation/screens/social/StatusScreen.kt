@@ -38,7 +38,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,11 +73,11 @@ fun StatusScreen(
         factory = StatusViewModel.Factory(LocalSocialRepository.current),
     ),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profileVm: ProfileViewModel = viewModel(
         factory = ProfileViewModel.Factory(LocalSocialRepository.current),
     )
-    val profileState by profileVm.uiState.collectAsState()
+    val profileState by profileVm.uiState.collectAsStateWithLifecycle()
     val displayName = profileState.profile?.displayName.orEmpty()
     val tc = LocalTruckColors.current
     val context = LocalContext.current

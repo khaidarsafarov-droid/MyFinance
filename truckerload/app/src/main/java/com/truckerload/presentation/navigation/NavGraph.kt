@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -139,7 +139,7 @@ fun NavGraph(
     onDeepLinkHandled: () -> Unit = {}
 ) {
     val authStore = LocalAuthStore.current
-    val isLoggedIn by authStore.isLoggedIn.collectAsState()
+    val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
     var showMainContent by remember { mutableStateOf(true) }
     var hasShownAuth by remember { mutableStateOf(false) }
     LaunchedEffect(isLoggedIn) {
@@ -216,7 +216,7 @@ fun NavGraph(
 
     val socialRepository = LocalSocialRepository.current
     val userProfileStore = LocalUserProfileStore.current
-    val setupComplete by userProfileStore.setupComplete.collectAsState()
+    val setupComplete by userProfileStore.setupComplete.collectAsStateWithLifecycle()
     var needsSetup by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(isLoggedIn, setupComplete) {
         if (!isLoggedIn) {

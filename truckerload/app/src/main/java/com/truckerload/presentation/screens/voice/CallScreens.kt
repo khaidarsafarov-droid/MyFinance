@@ -26,7 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,7 +55,7 @@ fun IncomingCallOverlay(
         factory = IncomingCallViewModel.Factory(LocalVoiceRepository.current),
     ),
 ) {
-    val call by viewModel.incomingCall.collectAsState()
+    val call by viewModel.incomingCall.collectAsStateWithLifecycle()
     val ringing = call
     if (ringing?.status == CallStatus.RINGING && ringing.isIncoming) {
         IncomingCallScreen(
@@ -144,7 +144,7 @@ fun CallScreen(
         factory = CallViewModel.Factory(callId, LocalVoiceRepository.current),
     ),
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val call = state.call
     val tc = LocalTruckColors.current
     val peerName = if (call?.isIncoming == true) call.callerName else call?.calleeName.orEmpty()

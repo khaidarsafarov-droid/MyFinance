@@ -24,16 +24,19 @@ import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.widget.WidgetDataUpdater
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
+import java.util.Locale
 
 /** Результат CDC-синхронизации грузов. */
 data class SyncLoadsResult(
@@ -56,13 +59,15 @@ class LoadRepository(private val db: AppDatabase) {
 
     /** Single Source of Truth: реактивный поток. Room эмитит при любом изменении таблицы loads. */
     fun getAllLoads(): Flow<List<Load>> =
-        loadDao.getAllLoads().mapLatest { hydrateLoads(it) }
+        loadDao.getAllLoads()
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     fun watchTotalLoadStats(): Flow<LoadStatsAgg> =
-        loadDao.watchTotalLoadStats()
+        loadDao.watchTotalLoadStats().flowOn(Dispatchers.IO)
 
     fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg> =
-        loadDao.watchWeeklyLoadStats(weekNumber, year)
+        loadDao.watchWeeklyLoadStats(weekNumber, year).flowOn(Dispatchers.IO)
 
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg =
         loadDao.getWeeklyLoadStatsOnce(weekNumber, year)

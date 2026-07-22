@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.StateRevenue
 import com.truckerload.presentation.theme.LocalTruckColors
+import java.util.Locale
 
 @Composable
 fun StateProfitabilityList(
@@ -93,5 +94,5 @@ fun StateProfitabilityList(
 }
 
 private fun formatMoney(v: Double): String =
-    if (v >= 1000 || v <= -1000) String.format("%,.0f", v)
-    else String.format("%,.2f", v)
+    if (v >= 1000 || v <= -1000) String.format(Locale.US, "%,.0f", v)
+    else String.format(Locale.US, "%,.2f", v)

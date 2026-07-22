@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 
 @Composable
 fun PenaltyItem(
@@ -20,7 +21,7 @@ fun PenaltyItem(
     ) {
         Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
         Text(
-            if (amount < 0) "-$${String.format("%.2f", -amount)}" else "$${String.format("%.2f", amount)}",
+            if (amount < 0) "-$${String.format(Locale.US, "%.2f", -amount)}" else "$${String.format(Locale.US, "%.2f", amount)}",
             style = MaterialTheme.typography.bodyMedium,
             color = if (amount < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
         )

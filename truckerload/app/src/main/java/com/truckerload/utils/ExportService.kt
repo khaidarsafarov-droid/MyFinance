@@ -61,6 +61,6 @@ class ExportService(
     private suspend fun getWeeksInYear(month: Int, year: Int): List<com.truckerload.domain.model.WeekSummary> {
         return try {
             weekRepository.getWeeksInMonthSummaries(month, year)
-        } catch (_: Exception) { emptyList() }
+        } catch (e: Exception) { android.util.Log.w("TL", "swallowed", e); emptyList() }
     }
 }

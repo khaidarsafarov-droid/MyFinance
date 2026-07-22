@@ -23,7 +23,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -51,8 +51,8 @@ fun GroupsScreen(
         factory = ProfileViewModel.Factory(LocalSocialRepository.current),
     ),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val profileState by profileViewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
     val displayName = profileState.profile?.displayName.orEmpty()
     val tc = LocalTruckColors.current
     val snackbarHostState = remember { SnackbarHostState() }

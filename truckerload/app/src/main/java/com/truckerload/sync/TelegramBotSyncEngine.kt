@@ -385,7 +385,7 @@ class TelegramBotSyncEngine(private val context: Context) {
             }
             rawText.isBlank() && update.documentFileId != null -> {
                 val importSessions = ImportSessionManager(prefs)
-                val fileId = update.documentFileId!!
+                val fileId = update.documentFileId ?: return
                 val isHtml = ImportDocumentHandler.isSupportedHtml(
                     update.documentFileName,
                     update.documentMimeType,
@@ -771,7 +771,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                 )
                 return context.getString(
                     R.string.sync_last_paycheck,
-                    String.format("%,.2f", r.netAmount),
+                    String.format(Locale.US, "%,.2f", r.netAmount),
                     weekNumber
                 )
             }
@@ -810,7 +810,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                 prefs.edit {putInt("last_diesel_text_hash", textHash)}
                 return context.getString(
                     R.string.sync_last_diesel,
-                    String.format("%,.2f", r.totalAmount),
+                    String.format(Locale.US, "%,.2f", r.totalAmount),
                     weekNumber
                 )
             }

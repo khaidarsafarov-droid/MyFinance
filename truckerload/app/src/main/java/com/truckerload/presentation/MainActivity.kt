@@ -17,7 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                     "TruckLog",
                     "Uncaught exception in ${t.name}: ${e.javaClass.name}: ${e.message}",
                 )
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 android.util.Log.e("TruckLog", "Uncaught exception in ${t.name}")
             }
             defaultUncaughtExceptionHandler?.uncaughtException(t, e)
@@ -115,8 +115,8 @@ class MainActivity : AppCompatActivity() {
         setContent {
             var dependencies by remember { mutableStateOf<MainDependencies?>(null) }
             var sessionReady by remember { mutableStateOf(false) }
-            val isLoggedIn by authStore.isLoggedIn.collectAsState()
-            val userId by authStore.userId.collectAsState()
+            val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
+            val userId by authStore.userId.collectAsStateWithLifecycle()
 
             LaunchedEffect(isLoggedIn, userId) {
                 sessionReady = false
@@ -129,14 +129,15 @@ class MainActivity : AppCompatActivity() {
                     return@LaunchedEffect
                 }
                 if (isLoggedIn && !userId.isNullOrBlank()) {
+                    val activeUserId = userId as String
                     dependencies = createDependencies(
                         context = applicationContext,
-                        userId = userId!!,
+                        userId = activeUserId,
                         authStore = authStore,
                         authCredentialsStore = authCredentialsStore,
                         userProfileStore = userProfileStore,
                     )
-                    val tokenStore = TelegramTokenStore(applicationContext, userId)
+                    val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
                     tokenStore.bootstrapFromBuildConfigIfEmpty()
                     if (tokenStore.hasToken()) {
                         TelegramBotForegroundService.start(applicationContext)
@@ -152,7 +153,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            val themeMode by settingsDataStore.themeMode.collectAsState(initial = AppThemeMode.SYSTEM)
+            val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
             val darkTheme = when (themeMode) {
                 AppThemeMode.DARK -> true
                 AppThemeMode.LIGHT -> false
@@ -186,7 +187,8 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         else -> {
-                            val deps = dependencies!!
+                            val deps = dependencies
+                            if (deps != null) {
                             CompositionLocalProvider(
                                 LocalSettingsDataStore provides settingsDataStore,
                                 LocalAuthStore provides deps.authStore,
@@ -212,6 +214,7 @@ class MainActivity : AppCompatActivity() {
                                     onDeepLinkHandled = { deepLinkRoute = null },
                                 )
                                 AutoRestoreDialog(loadRepository = deps.loadRepository)
+                            }
                             }
                         }
                     }

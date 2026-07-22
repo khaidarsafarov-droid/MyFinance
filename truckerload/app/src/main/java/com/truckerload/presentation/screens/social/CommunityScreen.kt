@@ -29,7 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.SnackbarHost
@@ -86,9 +86,9 @@ fun CommunityScreen(
         stringResource(R.string.leaderboard),
         stringResource(R.string.challenges),
     )
-    val chatsState by chatsViewModel.uiState.collectAsState()
-    val communityState by communityViewModel.uiState.collectAsState()
-    val leaderboard by communityViewModel.leaderboard.collectAsState()
+    val chatsState by chatsViewModel.uiState.collectAsStateWithLifecycle()
+    val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
+    val leaderboard by communityViewModel.leaderboard.collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val openDrawer = LocalOpenDrawer.current

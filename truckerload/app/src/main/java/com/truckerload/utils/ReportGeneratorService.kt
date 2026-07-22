@@ -154,7 +154,7 @@ class ReportGeneratorService(private val context: Context) {
                 val summaryRows = listOf(
                     "Gross Revenue" to "$${formatMoney(params.grossRevenue)}",
                     "Total Miles" to "${formatMiles(params.totalMiles)} mi",
-                    "Avg RPM" to "$${String.format("%.2f", params.avgRpm)}/mi",
+                    "Avg RPM" to "$${String.format(Locale.US, "%.2f", params.avgRpm)}/mi",
                     "Total Loads" to "${params.totalLoads}"
                 )
                 summaryRows.forEachIndexed { i, (label, value) ->
@@ -187,7 +187,7 @@ class ReportGeneratorService(private val context: Context) {
                     canvas.drawText(routeShort, margin + 75f, y + 14, cellPaint)
                     canvas.drawText(formatMiles(load.totalMiles), margin + 260f, y + 14, cellPaint)
                     canvas.drawText("$${formatMoney(load.totalRate)}", margin + 320f, y + 14, cellPaint)
-                    canvas.drawText("$${String.format("%.2f", rpm)}", (margin + contentWidth - 55).toFloat(), y + 14, cellPaint)
+                    canvas.drawText("$${String.format(Locale.US, "%.2f", rpm)}", (margin + contentWidth - 55).toFloat(), y + 14, cellPaint)
                     y += 22
                 }
                 canvas.drawLine(margin.toFloat(), y, (margin + contentWidth).toFloat(), y, linePaint)

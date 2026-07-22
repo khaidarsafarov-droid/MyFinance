@@ -33,7 +33,7 @@ class FuelAnalyticsService(
         val prevYear = if (weekNumber <= 1) year - 1 else year
         val prev = try {
             calculateForWeek(prevWeek, prevYear)
-        } catch (_: Exception) { null }
+        } catch (e: Exception) { android.util.Log.w("TL", "swallowed", e); null }
 
         return FuelAnalytics(
             periodLabel = "Week $weekNumber",

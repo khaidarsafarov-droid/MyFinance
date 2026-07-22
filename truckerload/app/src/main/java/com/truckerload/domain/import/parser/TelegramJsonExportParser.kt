@@ -59,7 +59,7 @@ class TelegramJsonExportParser(
             root.has("messages") &&
                 root.optJSONArray("messages") != null &&
                 (root.has("name") || root.has("type") || root.has("id"))
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             false
         }
     }

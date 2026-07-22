@@ -2,6 +2,7 @@ package com.truckerload.domain.model
 
 import com.truckerload.domain.goal.GoalMoneyMath
 import com.truckerload.domain.goal.LoadYieldCalculator
+import java.util.Locale
 
 /** Recomputes route, duration, pace and stop counts from stops + rate. */
 fun Load.withRouteMetrics(): Load {
@@ -54,9 +55,9 @@ fun formatPacePerDay(pace: Double): String {
     if (pace <= 0.0) return "—"
     val hasFraction = kotlin.math.abs(pace - pace.toLong()) > 0.009
     return if (hasFraction) {
-        String.format(java.util.Locale.US, "$%,.2f/день", pace)
+        String.format(Locale.US, "$%,.2f/день", pace)
     } else {
-        String.format(java.util.Locale.US, "$%,.0f/день", pace)
+        String.format(Locale.US, "$%,.0f/день", pace)
     }
 }
 

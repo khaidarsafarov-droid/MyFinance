@@ -18,7 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,7 +67,7 @@ fun LoadCard(
             onScanClick = onScanClick,
         )
     } else {
-        val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsState()
+        val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
         LoadCardContent(
             load = load,
             onClick = onClick,

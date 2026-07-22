@@ -94,7 +94,7 @@ class ScannerViewModel(
                 if (isAttachedToLoad) {
                     persistPendingToApp(showSuccess = true, finishAfter = true)
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
@@ -179,7 +179,7 @@ class ScannerViewModel(
                 } ?: throw IllegalStateException("MediaStore save failed")
                 persistPendingToApp(showSuccess = false)
                 _uiState.update { it.copy(statusMessage = "scan_saved_phone:${result.displayPath}") }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
@@ -238,7 +238,7 @@ class ScannerViewModel(
                     autoAttachedAndDone = finishAfter,
                 )
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             _uiState.update { it.copy(errorKey = "scan_error_keep") }
         }
     }

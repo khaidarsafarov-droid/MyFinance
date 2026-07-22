@@ -51,6 +51,7 @@ import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppTypography
 import org.json.JSONObject
 import java.util.Locale
+import android.util.Log
 
 private val STATE_NAME_TO_ABBR = mapOf(
     "Alabama" to "AL", "Alaska" to "AK", "Arizona" to "AZ", "Arkansas" to "AR",
@@ -314,7 +315,9 @@ private fun loadGeoJsonFromRaw(context: Context): JSONObject? {
     return try {
         val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
         JSONObject(json)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("TL", "swallowed", e)
+        null
         null
     }
 }

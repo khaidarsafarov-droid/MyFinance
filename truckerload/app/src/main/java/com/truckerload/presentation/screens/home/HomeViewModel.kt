@@ -35,6 +35,7 @@ import androidx.paging.cachedIn
 import com.truckerload.data.paging.FilteredLoadsPagingSource
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -214,7 +215,7 @@ class HomeViewModel(
      * Room hydrate cost). Prefer Room `PagingSource` + SQL filters for true memory wins;
      * keep this for alternate UIs / tests until that lands.
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val filteredLoadsPaging: Flow<PagingData<Load>> = filteredLoadsAndTotals
         .map { it.loads }
         .distinctUntilChanged()

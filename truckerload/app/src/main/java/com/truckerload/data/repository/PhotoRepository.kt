@@ -2,7 +2,9 @@ package com.truckerload.data.repository
 
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.PhotoEntity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import java.io.File
 import java.util.UUID
 
@@ -10,17 +12,18 @@ class PhotoRepository(private val db: AppDatabase) {
 
     private val photoDao = db.photoDao()
 
-    fun watchPhotos(): Flow<List<PhotoEntity>> = photoDao.getAllPhotos()
+    fun watchPhotos(): Flow<List<PhotoEntity>> =
+        photoDao.getAllPhotos().flowOn(Dispatchers.IO)
 
     fun watchPhotosByLoadId(loadId: String): Flow<List<PhotoEntity>> =
-        photoDao.getPhotosByLoadId(loadId)
+        photoDao.getPhotosByLoadId(loadId).flowOn(Dispatchers.IO)
 
     fun watchPhotosFiltered(
         loadId: String? = null,
         dayStartMillis: Long? = null,
         dayEndMillis: Long? = null,
     ): Flow<List<PhotoEntity>> =
-        photoDao.getPhotosFiltered(loadId, dayStartMillis, dayEndMillis)
+        photoDao.getPhotosFiltered(loadId, dayStartMillis, dayEndMillis).flowOn(Dispatchers.IO)
 
     suspend fun getPhotoById(id: String): PhotoEntity? = photoDao.getById(id)
 

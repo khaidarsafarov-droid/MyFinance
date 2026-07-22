@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import android.util.Log
 
 data class GoogleAuthCallbacks(
     val onBusy: (Boolean) -> Unit,
@@ -310,7 +311,9 @@ internal fun decodeGoogleIdToken(idToken: String): JSONObject? {
             Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP),
         )
         JSONObject(payload)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("TL", "swallowed", e)
+        null
         null
     }
 }

@@ -26,7 +26,7 @@ object TelegramServiceRestarter {
         val triggerAt = SystemClock.elapsedRealtime() + delayMs.coerceAtLeast(1_000L)
         try {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pending)
-        } catch (_: SecurityException) {
+        } catch (e: SecurityException) {
             alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pending)
         }
     }

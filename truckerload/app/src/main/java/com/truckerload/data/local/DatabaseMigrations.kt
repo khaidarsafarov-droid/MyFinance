@@ -487,3 +487,13 @@ val MIGRATION_21_22 = object : Migration(21, 22) {
         db.execSQL("CREATE INDEX IF NOT EXISTS index_scans_loadId ON scans(loadId)")
     }
 }
+
+/** Week/year indexes for diesel + paychecks (widget/tax year filters). */
+val MIGRATION_22_23 = object : Migration(22, 23) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_diesel_weekNumber_year ON diesel(weekNumber, year)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_diesel_addedAt ON diesel(addedAt)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_paychecks_weekNumber_year ON paychecks(weekNumber, year)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_paychecks_addedAt ON paychecks(addedAt)")
+    }
+}

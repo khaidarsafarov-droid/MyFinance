@@ -50,7 +50,7 @@ class ImportLoadsUseCase(
                 val parsedLoads = parser.parse(rawInput).distinctBy { it.tripId.uppercase() }
                 processParsedLoads(parsedLoads, startTime, onProgress)
             }
-        } catch (_: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(IMPORT_TIMEOUT_MS))
         }
     }
@@ -77,7 +77,7 @@ class ImportLoadsUseCase(
                     fileName = fileName,
                 )
             }
-        } catch (_: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(IMPORT_TIMEOUT_MS))
         }
     }
@@ -107,7 +107,7 @@ class ImportLoadsUseCase(
                     maxLoads = MAX_LOADS_PER_JSON_IMPORT,
                 )
             }
-        } catch (_: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(JSON_IMPORT_TIMEOUT_MS))
         }
     }
@@ -176,8 +176,10 @@ class ImportLoadsUseCase(
     }
 
     private suspend fun processWithProcessor(load: Load): ImportResult {
+        val processor = loadProcessor
+            ?: return processLegacy(load)
         return when (
-            val processing = loadProcessor!!.processLoad(
+            val processing = processor.processLoad(
                 parsedLoad = load,
                 config = parserConfig,
                 playFeedback = false,

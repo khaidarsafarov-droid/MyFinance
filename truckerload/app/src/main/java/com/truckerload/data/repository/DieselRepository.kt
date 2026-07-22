@@ -5,8 +5,10 @@ import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Diesel
 import com.truckerload.utils.BackupService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
 class DieselRepository(private val db: AppDatabase) {
@@ -14,10 +16,10 @@ class DieselRepository(private val db: AppDatabase) {
     private val dao = db.dieselDao()
 
     fun getAllDiesel(): Flow<List<Diesel>> =
-        dao.getAllDiesel().map { list -> list.map { it.toDomain() } }
+        dao.getAllDiesel().map { list -> list.map { it.toDomain() } }.flowOn(Dispatchers.IO)
 
     fun getDieselForWeek(weekNumber: Int, year: Int): Flow<List<Diesel>> =
-        dao.getDieselForWeek(weekNumber, year).map { list -> list.map { it.toDomain() } }
+        dao.getDieselForWeek(weekNumber, year).map { list -> list.map { it.toDomain() } }.flowOn(Dispatchers.IO)
 
     suspend fun insertDiesel(diesel: Diesel) {
         dao.insert(diesel.toEntity())

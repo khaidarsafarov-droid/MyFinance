@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.LocalTruckColors
+import java.util.Locale
 
 @Composable
 fun ComparisonIndicator(
@@ -103,9 +104,9 @@ fun ComparisonIndicator(
 }
 
 private fun formatValue(v: Double): String = when {
-    v >= 1000 || v <= -1000 -> String.format("%,.0f", v)
-    v >= 1 || v <= -1 -> String.format("%,.2f", v)
-    else -> String.format("%.2f", v)
+    v >= 1000 || v <= -1000 -> String.format(Locale.US, "%,.0f", v)
+    v >= 1 || v <= -1 -> String.format(Locale.US, "%,.2f", v)
+    else -> String.format(Locale.US, "%.2f", v)
 }
 
-private fun formatPercent(v: Double): String = String.format("%+.1f%%", v)
+private fun formatPercent(v: Double): String = String.format(Locale.US, "%+.1f%%", v)

@@ -51,7 +51,7 @@ import androidx.compose.runtime.Composable
 import com.truckerload.BuildConfig
 import com.truckerload.data.preferences.AppThemeMode
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -104,8 +104,8 @@ fun SettingsScreen(
     showBack: Boolean = false
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
-    val themeMode by settingsDataStore.themeMode.collectAsState(initial = AppThemeMode.SYSTEM)
-    val appLanguage by settingsDataStore.language.collectAsState(initial = com.truckerload.data.preferences.AppLanguage.RU)
+    val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
+    val appLanguage by settingsDataStore.language.collectAsStateWithLifecycle(initialValue = com.truckerload.data.preferences.AppLanguage.RU)
     val tc = LocalTruckColors.current
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
@@ -115,10 +115,10 @@ fun SettingsScreen(
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModel.factory(loadRepo, context)
     )
-    val exportState by settingsViewModel.exportState.collectAsState()
-    val restoreState by settingsViewModel.restoreState.collectAsState()
-    val sendTelegramState by settingsViewModel.sendTelegramState.collectAsState()
-    val savedTelegramChatId by settingsViewModel.telegramChatId.collectAsState()
+    val exportState by settingsViewModel.exportState.collectAsStateWithLifecycle()
+    val restoreState by settingsViewModel.restoreState.collectAsStateWithLifecycle()
+    val sendTelegramState by settingsViewModel.sendTelegramState.collectAsStateWithLifecycle()
+    val savedTelegramChatId by settingsViewModel.telegramChatId.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var backupRestoreMessage by remember { mutableStateOf<String?>(null) }
     var exportedFile by remember { mutableStateOf<java.io.File?>(null) }
@@ -148,7 +148,7 @@ fun SettingsScreen(
             android.widget.Toast.makeText(context, backupRestoreMessage, android.widget.Toast.LENGTH_LONG).show()
         }
     }
-    val thresholds by store.thresholds.collectAsState()
+    val thresholds by store.thresholds.collectAsStateWithLifecycle()
     var minInput by remember(thresholds) { mutableStateOf(thresholds.minProfit.toString()) }
     var targetInput by remember(thresholds) { mutableStateOf(thresholds.targetProfit.toString()) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -606,20 +606,20 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
-    if (showExportActions && exportedFile != null) {
-        val file = exportedFile!!
+    val exportTarget = exportedFile
+    if (showExportActions && exportTarget != null) {
         AlertDialog(
             onDismissRequest = {
                 showExportActions = false
                 exportedFile = null
             },
             title = { Text(stringResource(R.string.export_actions_title), color = tc.TextPrimary) },
-            text = { Text(stringResource(R.string.export_loads_success, file.name), color = tc.TextSecondary) },
+            text = { Text(stringResource(R.string.export_loads_success, exportTarget.name), color = tc.TextSecondary) },
             confirmButton = {
                 Button(
                     onClick = {
-                        pendingTelegramFile = file
-                        settingsViewModel.sendExportToTelegram(file)
+                        pendingTelegramFile = exportTarget
+                        settingsViewModel.sendExportToTelegram(exportTarget)
                         showExportActions = false
                     }
                 ) {
@@ -629,7 +629,7 @@ fun SettingsScreen(
             dismissButton = {
                 OutlinedButton(
                     onClick = {
-                        settingsViewModel.openExportsFolder(file)
+                        settingsViewModel.openExportsFolder(exportTarget)
                         showExportActions = false
                     }
                 ) {
@@ -823,7 +823,7 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val scope = rememberCoroutineScope()
     val prefs = remember { GoogleDriveBackupService.prefs(context) }
     val connectivity by ConnectivityObserver.observe(context)
-        .collectAsState(initial = ConnectivityStatus.Online)
+        .collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
     var linkedEmail by remember {
         mutableStateOf(
             prefs.accountEmail ?: run {
@@ -875,7 +875,7 @@ private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             text = if (linkedEmail.isNullOrBlank()) {
                 stringResource(R.string.drive_sync_status_off)
             } else {
-                stringResource(R.string.drive_sync_status_on, linkedEmail!!)
+                stringResource(R.string.drive_sync_status_on, linkedEmail.orEmpty())
             },
             style = MaterialTheme.typography.bodyMedium,
             color = tc.TextPrimary,
