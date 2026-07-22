@@ -108,6 +108,10 @@ fun ScannerFlowScreen(
                 snackbarHostState.showSnackbar(context.getString(R.string.scan_error))
                 viewModel.clearError()
             }
+            "share_failed" -> {
+                snackbarHostState.showSnackbar(context.getString(R.string.scan_share_failed))
+                viewModel.clearError()
+            }
             else -> Unit
         }
     }
@@ -155,10 +159,16 @@ fun ScannerFlowScreen(
                         onSaveToPhone = viewModel::saveToPhone,
                         onShare = {
                             val file = viewModel.mergedShareFile()
-                            if (file != null) ShareHelperWrapper.share(context, file)
+                            if (file != null) {
+                                ShareHelperWrapper.share(context, file)
+                            } else {
+                                viewModel.onShareUnavailable()
+                            }
                         },
                         onAddAnother = viewModel::requestAnotherScan,
-                        onOpenGallery = onOpenGallery,
+                        onOpenGallery = {
+                            viewModel.saveThenOpenGallery(onOpenGallery)
+                        },
                         onClose = {
                             viewModel.clearPendingScan()
                             onFinished()
