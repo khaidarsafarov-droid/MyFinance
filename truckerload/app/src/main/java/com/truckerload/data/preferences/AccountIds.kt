@@ -5,6 +5,11 @@ import java.security.MessageDigest
 /**
  * Stable account identifiers for multi-user local isolation.
  * Supabase users keep their UUID; offline / Google-without-Supabase use a hash of email.
+ *
+ * Isolation note: Room DB file name and preference/DataStore file names are keyed by
+ * [sanitizeFilePart] of the resolved account id, so two device logins with different
+ * emails (or Supabase UUIDs) do not share loads/settings. [LOCAL_DEV] is the single
+ * shared offline id when [com.truckerload.BuildConfig.LOCAL_ONLY_MODE] is on.
  */
 object AccountIds {
     /** Single-device offline mode ([com.truckerload.BuildConfig.LOCAL_ONLY_MODE]). */

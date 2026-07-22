@@ -5,14 +5,35 @@ import android.content.Context
 
 object WidgetDeepLink {
     const val ROUTE_HOME = "home"
-    const val ROUTE_STATS = "stats"
+    /**
+     * Opens Analytics (RPM / period stats). Value is **"analytics"** — not `"stats"` —
+     * because [com.truckerload.presentation.navigation.Routes.STATS] hosts WeeklyGoalScreen.
+     */
+    const val ROUTE_STATS = "analytics"
     const val ROUTE_ADD_LOAD = "add_load"
     const val ROUTE_JOURNAL_THIS_WEEK = "journal_this_week"
+    /** Opens WeeklyGoalScreen via [com.truckerload.presentation.navigation.Routes.STATS]. */
     const val ROUTE_WEEKLY_GOAL = "weekly_goal"
     const val ROUTE_CAMERA = "camera"
     const val ROUTE_SCANNER = "scanner"
     private const val PREFS = "truckerload_widget"
     private const val KEY_OPEN_THIS_WEEK = "open_this_week"
+
+    /**
+     * Maps a widget / MainActivity EXTRA_ROUTE value to a NavGraph route string.
+     * Pure helper for unit tests and to keep NavGraph branches consistent.
+     */
+    fun resolveNavRoute(deepLinkRoute: String): String? = when (deepLinkRoute) {
+        ROUTE_HOME, "home" -> "home"
+        ROUTE_ADD_LOAD, "add_load" -> "add_load"
+        // Current + legacy widget RPM target (pre-rename value was "stats")
+        ROUTE_STATS, "analytics", "stats" -> "analytics"
+        ROUTE_JOURNAL_THIS_WEEK -> "home"
+        ROUTE_WEEKLY_GOAL -> "stats" // WeeklyGoalScreen lives at Routes.STATS
+        ROUTE_CAMERA, "camera" -> "camera"
+        ROUTE_SCANNER, "scanner" -> "scanner"
+        else -> null
+    }
 
     fun markOpenJournalThisWeek(context: Context) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

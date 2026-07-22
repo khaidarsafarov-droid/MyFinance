@@ -92,45 +92,14 @@ class PhotoGalleryViewModel(
         val now = Calendar.getInstance()
         return when (filter.mode) {
             PhotoGalleryFilter.ALL -> photos
-            PhotoGalleryFilter.TODAY -> {
-                val start = startOfDay(now)
-                val end = endOfDay(now)
-                photos.filter { it.timestamp in start..end }
-            }
-            PhotoGalleryFilter.THIS_WEEK -> {
-                val weekStart = startOfWeek(now)
-                photos.filter { it.timestamp >= weekStart }
-            }
+            PhotoGalleryFilter.TODAY -> photos.filter { PhotoGalleryTimeBounds.isInToday(it.timestamp, now) }
+            PhotoGalleryFilter.THIS_WEEK -> photos.filter { PhotoGalleryTimeBounds.isInThisWeek(it.timestamp, now) }
             PhotoGalleryFilter.BY_LOAD -> {
                 val id = filter.loadId
                 if (id.isNullOrBlank()) photos.filter { it.loadId.isNullOrBlank() }
                 else photos.filter { it.loadId == id }
             }
         }
-    }
-
-    private fun startOfDay(cal: Calendar): Long {
-        val c = cal.clone() as Calendar
-        c.set(Calendar.HOUR_OF_DAY, 0)
-        c.set(Calendar.MINUTE, 0)
-        c.set(Calendar.SECOND, 0)
-        c.set(Calendar.MILLISECOND, 0)
-        return c.timeInMillis
-    }
-
-    private fun endOfDay(cal: Calendar): Long {
-        val c = cal.clone() as Calendar
-        c.set(Calendar.HOUR_OF_DAY, 23)
-        c.set(Calendar.MINUTE, 59)
-        c.set(Calendar.SECOND, 59)
-        c.set(Calendar.MILLISECOND, 999)
-        return c.timeInMillis
-    }
-
-    private fun startOfWeek(cal: Calendar): Long {
-        val c = cal.clone() as Calendar
-        c.set(Calendar.DAY_OF_WEEK, c.firstDayOfWeek)
-        return startOfDay(c)
     }
 
     private data class PhotoGalleryFilterState(

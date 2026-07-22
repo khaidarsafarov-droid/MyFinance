@@ -119,7 +119,7 @@ class GoalViewModel(
     fun saveGoal() {
         val parsed = _uiState.value.goalInput.replace(",", ".").toDoubleOrNull()
         if (parsed == null) {
-            _uiState.update { it.copy(goalError = "Введите сумму цели") }
+            _uiState.update { it.copy(goalError = appContext.getString(com.truckerload.R.string.goal_error_enter_amount)) }
             return
         }
         _uiState.update { it.copy(isSavingGoal = true, goalError = null) }

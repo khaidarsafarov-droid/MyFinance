@@ -116,6 +116,10 @@ class TruckerLoadApp : Application() {
         )
     }
 
+    /**
+     * QUALITY_100 #76: startup backfill + orphan cleanup run on [Dispatchers.IO]
+     * (never on the main thread from [onCreate]).
+     */
     private fun refreshLoadReportingWeeks() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             val db = AppDatabase.getInstanceForActiveUser(this@TruckerLoadApp) ?: return@launch
@@ -127,15 +131,24 @@ class TruckerLoadApp : Application() {
                     }
                     WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
                 }
-            runCatching { repo.backfillPuDelMillisFromStops() }
-                .onFailure { e -> Log.e(TAG, "PU/DEL backfill failed", e) }
-            runCatching { repo.refreshReportingWeeks() }
-                .onFailure { e -> Log.e(TAG, "Reporting weeks refresh failed", e) }
-                .onSuccess { WidgetUpdateWorker.refreshNow(this@TruckerLoadApp) }
+            val prefs = getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
+            val backfillDone = prefs.getBoolean(KEY_STARTUP_BACKFILL_DONE, false)
+            if (!backfillDone) {
+                runCatching { repo.backfillPuDelMillisFromStops() }
+                    .onFailure { e -> Log.e(TAG, "PU/DEL backfill failed", e) }
+                runCatching { repo.refreshReportingWeeks() }
+                    .onFailure { e -> Log.e(TAG, "Reporting weeks refresh failed", e) }
+                    .onSuccess { WidgetUpdateWorker.refreshNow(this@TruckerLoadApp) }
+                prefs.edit().putBoolean(KEY_STARTUP_BACKFILL_DONE, true).apply()
+            }
+            runCatching { repo.cleanupOrphanAttachments() }
+                .onFailure { e -> Log.e(TAG, "Orphan attachment cleanup failed", e) }
         }
     }
 
     companion object {
         private const val TAG = "TruckerLoadApp"
+        private const val META_PREFS = "truckerload_app_meta"
+        private const val KEY_STARTUP_BACKFILL_DONE = "startup_backfill_done_v1"
     }
 }

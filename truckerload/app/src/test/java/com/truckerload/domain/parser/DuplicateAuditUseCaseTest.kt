@@ -1,19 +1,30 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.data.repository.DieselRepository
+import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.whenever
 
 class DuplicateAuditUseCaseTest {
 
+    private val loadRepository: LoadRepository = mock()
+    private val paycheckRepository: PaycheckRepository = mock()
+    private val dieselRepository: DieselRepository = mock()
     private val useCase = DuplicateAuditUseCase(
-        loadRepository = mock(),
-        paycheckRepository = mock(),
-        dieselRepository = mock(),
+        loadRepository = loadRepository,
+        paycheckRepository = paycheckRepository,
+        dieselRepository = dieselRepository,
     )
 
     @Test
@@ -63,6 +74,46 @@ class DuplicateAuditUseCaseTest {
         val deleted = useCase.findDuplicatePaycheckIds(paychecks)
 
         assertEquals(setOf(1), deleted)
+    }
+
+    @Test
+    fun `auditAndRemove after import deletes newer tripId duplicate`() = runBlocking {
+        val keeper = sampleLoad(id = "1", tripId = "T-IMPORT", parsedAt = 10L)
+        val dup = sampleLoad(id = "2", tripId = "t-import", parsedAt = 99L)
+        val deleted = mutableListOf<String>()
+        whenever(loadRepository.getAllLoadsOnce()).thenReturn(listOf(keeper, dup))
+        whenever(paycheckRepository.getAllPaychecksOnce()).thenReturn(emptyList())
+        whenever(dieselRepository.getAllDieselOnce()).thenReturn(emptyList())
+        loadRepository.stub {
+            onBlocking { deleteLoad(any()) } doAnswer { inv: org.mockito.invocation.InvocationOnMock ->
+                deleted += inv.getArgument<String>(0)
+                Unit
+            }
+        }
+
+        val report = useCase.auditAndRemove()
+
+        assertEquals(2, report.scannedLoads)
+        assertEquals(1, report.deletedLoads)
+        assertEquals(listOf("t-import"), report.deletedLoadTripIds)
+        assertEquals(listOf("2"), deleted)
+    }
+
+    @Test
+    fun `auditAndRemove with no duplicates returns zeros`() = runBlocking {
+        whenever(loadRepository.getAllLoadsOnce()).thenReturn(
+            listOf(sampleLoad(id = "1", tripId = "T-ONLY", parsedAt = 1L)),
+        )
+        whenever(paycheckRepository.getAllPaychecksOnce()).thenReturn(emptyList())
+        whenever(dieselRepository.getAllDieselOnce()).thenReturn(emptyList())
+
+        val report = useCase.auditAndRemove()
+
+        assertEquals(1, report.scannedLoads)
+        assertEquals(0, report.deletedLoads)
+        assertEquals(0, report.deletedPaychecks)
+        assertEquals(0, report.deletedDiesel)
+        assertTrue(report.deletedLoadTripIds.isEmpty())
     }
 
     private fun sampleLoad(

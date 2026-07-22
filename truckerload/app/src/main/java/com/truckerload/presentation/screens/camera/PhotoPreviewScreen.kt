@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.components.TlTextButton as TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -216,8 +218,7 @@ fun CameraFlowScreen(
                     }
                 },
                 onCancel = {
-                    viewModel.discardSession()
-                    onFinished()
+                    viewModel.requestDiscardSession()
                 },
                 onSaved = {
                     viewModel.clearSaveSuccess()
@@ -225,9 +226,29 @@ fun CameraFlowScreen(
                     onFinished()
                 },
                 saveSuccess = uiState.saveSuccess,
-                saveError = uiState.errorMessage == "save_failed",
+                saveError = uiState.errorMessage == "save_failed" || uiState.errorMessage == "decode_failed",
                 onSaveErrorShown = viewModel::clearError,
             )
+            if (uiState.confirmDiscardAttached) {
+                AlertDialog(
+                    onDismissRequest = viewModel::dismissDiscardConfirm,
+                    title = { Text(stringResource(R.string.camera_discard_attached_title)) },
+                    text = { Text(stringResource(R.string.camera_discard_attached_message)) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.confirmDiscardSession()
+                            onFinished()
+                        }) {
+                            Text(stringResource(R.string.common_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = viewModel::dismissDiscardConfirm) {
+                            Text(stringResource(R.string.common_cancel))
+                        }
+                    },
+                )
+            }
         }
         else -> {
             CameraScreen(

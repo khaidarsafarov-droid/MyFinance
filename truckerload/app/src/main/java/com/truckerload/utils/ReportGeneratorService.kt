@@ -21,8 +21,20 @@ import java.util.Locale
 /**
  * Generates professional PDF reports from Truck Log data.
  * Style: accounting document, white background, black text, gray borders.
+ *
+ * PDF report headers/labels are English-only (Metric, Gross Revenue, Detailed Log, etc.).
+ * UI language does not affect PDF column titles.
  */
 class ReportGeneratorService(private val context: Context) {
+
+    companion object {
+        /** Sanitize period labels / trip-like tokens for safe PDF filenames. */
+        fun sanitizeFileLabel(raw: String): String =
+            raw.replace(Regex("[^\\p{L}0-9\\s-]"), "_")
+                .replace(Regex("_+"), "_")
+                .trim('_')
+                .ifBlank { "report" }
+    }
 
     private val pageWidth = 595
     private val pageHeight = 842
@@ -76,7 +88,7 @@ class ReportGeneratorService(private val context: Context) {
      */
     suspend fun generatePdfAndSaveToStorage(params: ReportParams): StorageHelper.SaveResult? = withContext(Dispatchers.IO) {
         try {
-            val safeLabel = params.periodLabel.replace(Regex("[^\\p{L}0-9\\s-]"), "_")
+            val safeLabel = sanitizeFileLabel(params.periodLabel)
             val fileName = "${BrandConstants.FILE_PREFIX}_Report_${safeLabel}_${System.currentTimeMillis()}.pdf"
             val storageHelper = StorageHelper(context)
             storageHelper.saveToPublicDownloads(fileName, "${BrandConstants.DOWNLOADS_FOLDER}/Reports", "application/pdf") { out ->
@@ -95,8 +107,8 @@ class ReportGeneratorService(private val context: Context) {
     suspend fun generatePdf(params: ReportParams): Uri? = withContext(Dispatchers.IO) {
         try {
             val dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
-                ?: context.filesDir
-            val safeLabel = params.periodLabel.replace(Regex("[^\\p{L}0-9\\s-]"), "_")
+                ?: File(context.getExternalFilesDir(null), "exports").also { it.mkdirs() }
+            val safeLabel = sanitizeFileLabel(params.periodLabel)
             val fileName = "${BrandConstants.FILE_PREFIX}_Report_${safeLabel}_${System.currentTimeMillis()}.pdf"
             val file = File(dir, fileName)
             generatePdfToStream(params, FileOutputStream(file))

@@ -92,11 +92,19 @@ class EditLoadViewModel(
         val state = _uiState.value
         val original = state.original ?: return
         if (state.isSaving) return
+        val parsedRate = state.totalRate.toDoubleOrNull()
+        val parsedMiles = state.totalMiles.toDoubleOrNull()
+        if (parsedRate == null || parsedMiles == null) {
+            _uiState.update {
+                it.copy(saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number))
+            }
+            return
+        }
         val updated = (state.disputeLoad ?: original).copy(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
-            totalRate = state.totalRate.toDoubleOrNull() ?: original.totalRate,
-            totalMiles = state.totalMiles.toDoubleOrNull() ?: original.totalMiles,
+            totalRate = parsedRate,
+            totalMiles = parsedMiles,
             pointA = state.pointA,
             pointB = state.pointB,
             updatedAt = System.currentTimeMillis(),

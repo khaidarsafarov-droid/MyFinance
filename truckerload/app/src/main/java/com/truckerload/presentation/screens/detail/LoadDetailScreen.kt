@@ -35,7 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -98,8 +100,7 @@ fun LoadDetailScreen(
     val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsState(initial = emptyList())
     val snackbarHostState = remember { SnackbarHostState() }
     val deleteFailed = stringResource(R.string.load_delete_failed)
-    val saveErrorEmpty = stringResource(R.string.common_save_error, "")
-
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     LaunchedEffect(loadId) {
         viewModel.refresh()
     }
@@ -141,7 +142,7 @@ fun LoadDetailScreen(
                         )
                     }
                     IconButton(
-                        onClick = { viewModel.delete(deleteFailed) },
+                        onClick = { showDeleteConfirm = true },
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                     ) {
                         Icon(
@@ -189,7 +190,11 @@ fun LoadDetailScreen(
                                 color = tc.TextPrimary,
                             )
                             Text(
-                                "${String.format("%,.2f", l.totalMiles)} mi · ${l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount)} stops",
+                                stringResource(
+                                    R.string.load_detail_miles_stops,
+                                    l.totalMiles,
+                                    l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = tc.TextSecondary,
                                 modifier = Modifier.padding(top = 8.dp),
@@ -230,7 +235,7 @@ fun LoadDetailScreen(
                             value = if (l.pace > 0) formatPacePerDay(l.pace) else "—",
                             modifier = Modifier.weight(1f),
                         )
-                        StatBox(title = "PU", value = "${l.puCount}", modifier = Modifier.weight(1f))
+                        StatBox(title = stringResource(R.string.load_detail_stat_pu), value = "${l.puCount}", modifier = Modifier.weight(1f))
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -385,6 +390,26 @@ fun LoadDetailScreen(
                 }
             }
         }
+    }
+    if (showDeleteConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.load_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.load_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    viewModel.delete(deleteFailed)
+                }) {
+                    Text(stringResource(R.string.common_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
     }
 }
 

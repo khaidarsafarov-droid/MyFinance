@@ -108,3 +108,36 @@ Use this template when a step fails:
 - GO: all critical flows pass (launch, navigation, Finance period updates, Stats consistency, FAB actions).
 - NO-GO: any crash, blocked flow, or stale/incorrect period-based totals.
 
+## 7) Journal / Loads QA (2–3 min) — added for QUALITY_100
+
+1. Home: tap Search icon — search field appears; tap again with empty query — field hides.
+2. Swipe a load left → confirm dialog → Cancel → card stays visible (not ghost-dismissed).
+3. Swipe again → Confirm delete → load gone; linked photos/scans gone if any.
+4. Switch language to EN → Home DISPUTE filter label is English («Dispute»), not Russian.
+5. Add Load: paste Relay fixture with Total Rate + Pu-address → Save → appears in list immediately.
+6. Open load camera from card → capture → share/save → returns to load detail.
+7. Drawer/widget camera: watermark shows Trip ID of latest load but does **not** auto-attach files.
+8. Pull to refresh → toast «Telegram sync started» (when bot configured).
+
+Expected:
+- No silent swipe-dismiss without confirm.
+- EN dispute strings present.
+- Free camera does not silently link photos to a load.
+
+## Emulator / Home animation note (QUALITY_100 #81)
+
+On the **software-GPU emulator** (no KVM), the Compose Home screen’s animations keep the main thread busy and can look like freezes/ANRs. For smoke runs:
+
+1. Disable animator scales: `adb shell settings put global window_animation_scale 0`, `transition_animation_scale 0`, `animator_duration_scale 0`.
+2. After install, AOT-compile once: `adb shell cmd package compile -m speed -f com.truckerload`.
+
+Do not treat Home animation jank on the unaccelerated emulator as a product regression if the same build is smooth on a real device / KVM AVD.
+
+## PDF reports EN-only (QUALITY_100 #88)
+
+`ReportGeneratorService` PDF headers/labels (Metric, Gross Revenue, Detailed Log, etc.) are **English-only** regardless of app language. Documented in the service KDoc; i18n of PDF copy is out of scope for this backlog.
+
+## Lint triage (QUALITY_100 #89)
+
+`:app:lintDebug` currently reports hundreds of pre-existing issues (no `lint-baseline.xml`). Treat **crash / correctness** lint findings as P0 when introduced by a change; do not block QA on cleaning the historical backlog in this pass.
+

@@ -26,6 +26,7 @@ import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +45,9 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.PDFGenerator
 import com.truckerload.utils.PhotoManager
 import com.truckerload.utils.ShareHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +61,13 @@ fun ScanGalleryScreen(
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
     var scanToDelete by remember { mutableStateOf<ScanEntity?>(null) }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            val scansDir = File(context.getExternalFilesDir(null), "scans")
+            runCatching { repository.cleanupOrphanScanFiles(scansDir) }
+        }
+    }
 
     Scaffold(
         topBar = {

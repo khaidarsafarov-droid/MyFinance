@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.R
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
+import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
@@ -77,8 +78,13 @@ class AddDieselViewModel(
     }
 
     fun openSaveDialog() {
-        val amount = _uiState.value.amountText.toDoubleOrNull() ?: 0.0
-        if (amount <= 0.0 || _uiState.value.isSaving) return
+        if (_uiState.value.isSaving) return
+        if (AmountInputValidator.parsePositiveAmount(_uiState.value.amountText) == null) {
+            _uiState.update {
+                it.copy(error = getApplication<Application>().getString(R.string.common_amount_must_be_positive))
+            }
+            return
+        }
 
         val now = System.currentTimeMillis()
         savedStateHandle[KEY_RECORDED_AT_MILLIS] = now
@@ -119,8 +125,15 @@ class AddDieselViewModel(
 
     fun save() {
         val state = _uiState.value
-        val amount = state.amountText.toDoubleOrNull() ?: 0.0
-        if (amount <= 0.0 || state.isSaving) return
+        val amount = AmountInputValidator.parsePositiveAmount(state.amountText)
+        if (amount == null || state.isSaving) {
+            if (amount == null) {
+                _uiState.update {
+                    it.copy(error = getApplication<Application>().getString(R.string.common_amount_must_be_positive))
+                }
+            }
+            return
+        }
 
         val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(state.recordedAtMillis)
         val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)

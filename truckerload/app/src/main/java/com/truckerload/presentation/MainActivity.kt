@@ -1,7 +1,10 @@
 package com.truckerload.presentation
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import com.truckerload.BuildConfig
+import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AppThemeMode
@@ -87,6 +92,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
         WidgetDataUpdater.updateWidgetData(applicationContext)
+        requestNotificationPermissionIfNeeded()
         val defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->
             try {
@@ -281,9 +287,30 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) return
+        // Rationale string is available for UI that explains why we need it (API 33+).
+        if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+            android.util.Log.i(
+                "TruckLog",
+                getString(R.string.notification_permission_rationale),
+            )
+        }
+        requestPermissions(
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            REQ_POST_NOTIFICATIONS,
+        )
+    }
+
     companion object {
         const val EXTRA_ROUTE = "truckerload.route"
         const val ROUTE_ADD_LOAD = "add_load"
         const val ROUTE_JOURNAL_THIS_WEEK = WidgetDeepLink.ROUTE_JOURNAL_THIS_WEEK
+        private const val REQ_POST_NOTIFICATIONS = 1001
     }
 }

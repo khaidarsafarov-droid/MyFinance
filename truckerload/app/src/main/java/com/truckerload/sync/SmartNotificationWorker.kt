@@ -37,8 +37,14 @@ class SmartNotificationWorker(
         val (lastWeek, lastYear) = shiftWeekNumberAndYear(currentWeek, year, -1)
 
         return try {
+            // Zero loads is fine — planner only looks at paycheck/diesel for last week.
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
-            if (paycheck == null) {
+            val diesel = dieselRepo.getDieselForWeek(lastWeek, lastYear).first()
+            val plan = SmartNotificationPlanner.plan(
+                hasPaycheckForLastWeek = paycheck != null,
+                dieselEntriesLastWeek = diesel.size,
+            )
+            if (plan.notifyMissingPaycheck) {
                 notify(
                     applicationContext,
                     1,
@@ -47,9 +53,7 @@ class SmartNotificationWorker(
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
                 )
             }
-
-            val diesel = dieselRepo.getDieselForWeek(lastWeek, lastYear).first()
-            if (diesel.isEmpty()) {
+            if (plan.notifyMissingDiesel) {
                 notify(
                     applicationContext,
                     2,

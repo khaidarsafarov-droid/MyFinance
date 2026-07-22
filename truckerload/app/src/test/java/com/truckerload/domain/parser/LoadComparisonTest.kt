@@ -48,6 +48,22 @@ class LoadComparisonTest {
         assertTrue(comparison.isIdentical())
     }
 
+    @Test
+    fun `rate change above parser threshold is not identical`() {
+        val old = sampleLoad(totalRate = 1000.0)
+        val newLoad = old.copy(totalRate = 1020.0) // 2% > 1% threshold
+        val comparison = compareLoads(old, newLoad, priceThresholdPercent = 1.0)
+        assertFalse(comparison.isIdentical())
+        assertTrue(comparison.hasMinorChanges())
+    }
+
+    @Test
+    fun `LoadChangeDetector significant uses threshold percent`() {
+        assertFalse(LoadChangeDetector.isRateChangedSignificant(1000.0, 1005.0, 1.0))
+        assertTrue(LoadChangeDetector.isRateChangedSignificant(1000.0, 1020.0, 1.0))
+        assertTrue(LoadChangeDetector.isRateChangedSignificant(0.0, 100.0, 1.0))
+    }
+
     private fun sampleLoad(
         totalRate: Double = 2500.0,
         totalMiles: Double = 850.0,

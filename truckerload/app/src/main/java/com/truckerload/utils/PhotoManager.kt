@@ -11,6 +11,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicReference
 
 class PhotoManager(private val context: Context) {
 
@@ -32,17 +33,19 @@ class PhotoManager(private val context: Context) {
         val fileName = if (!tripId.isNullOrBlank()) {
             AttachmentNaming.buildFileName(tripId, loadDate.orEmpty(), timestamp, "jpg")
         } else {
-            "photo_${timestampFormat.format(Date(timestamp))}_${timestamp}.jpg"
+            "photo_${formatTimestampFile(timestamp)}_${timestamp}.jpg"
         }
         val file = File(photosDir, fileName)
+        val scaled = scaleDownIfNeeded(bitmap, MAX_EDGE_PX)
         val watermarked = addWatermark(
-            bitmap = bitmap,
+            bitmap = scaled,
             locationData = locationData,
             timestamp = timestamp,
             title = watermarkTitle?.takeIf { it.isNotBlank() } ?: tripId,
         )
+        if (scaled !== bitmap) scaled.recycle()
         FileOutputStream(file).use { out ->
-            watermarked.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            watermarked.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
         }
         if (watermarked !== bitmap) {
             watermarked.recycle()
@@ -72,11 +75,11 @@ class PhotoManager(private val context: Context) {
             dateLine,
             locationData.cityStateLine.ifBlank { unknown },
             locationData.zipCode.ifBlank { unknown },
-            if (locationData.latitude == 0.0 && locationData.longitude == 0.0) {
-                unknown
-            } else {
-                locationData.coordinatesLine
-            },
+            resolveGpsWatermarkLine(
+                hasCoordinates = locationData.hasCoordinates,
+                coordinatesLine = locationData.coordinatesLine,
+                unknownLabel = unknown,
+            ),
         )
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -100,10 +103,44 @@ class PhotoManager(private val context: Context) {
     }
 
     companion object {
-        private val timestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
-        private val dateTimeFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+        const val JPEG_QUALITY = 90
+        const val MAX_EDGE_PX = 2048
+
+        private val timestampPattern = "yyyyMMdd_HHmmss"
+        private val dateTimePattern = "dd.MM.yyyy HH:mm"
+        private val timestampFormatRef = AtomicReference(SimpleDateFormat(timestampPattern, Locale.US))
+        private val dateTimeFormatRef = AtomicReference(SimpleDateFormat(dateTimePattern, Locale.getDefault()))
+
+        private fun formatTimestampFile(timestamp: Long): String =
+            synchronized(timestampFormatRef) {
+                timestampFormatRef.get().format(Date(timestamp))
+            }
 
         fun formatDateTime(timestamp: Long): String =
-            dateTimeFormat.format(Date(timestamp))
+            synchronized(dateTimeFormatRef) {
+                dateTimeFormatRef.get().format(Date(timestamp))
+            }
+
+        fun scaleDownIfNeeded(bitmap: Bitmap, maxEdge: Int = MAX_EDGE_PX): Bitmap {
+            val maxDim = maxOf(bitmap.width, bitmap.height)
+            if (maxDim <= maxEdge) return bitmap
+            val scale = maxEdge.toFloat() / maxDim
+            val w = (bitmap.width * scale).toInt().coerceAtLeast(1)
+            val h = (bitmap.height * scale).toInt().coerceAtLeast(1)
+            return Bitmap.createScaledBitmap(bitmap, w, h, true)
+        }
+
+        /** Pure title resolution for tests (no Android Context). */
+        fun resolveWatermarkTitle(watermarkTitle: String?, tripId: String?, fallback: String): String =
+            watermarkTitle?.takeIf { it.isNotBlank() }
+                ?: tripId?.takeIf { it.isNotBlank() }
+                ?: fallback
+
+        /** When GPS fix is missing, watermark shows [unknownLabel] instead of coordinates. */
+        fun resolveGpsWatermarkLine(
+            hasCoordinates: Boolean,
+            coordinatesLine: String,
+            unknownLabel: String,
+        ): String = if (!hasCoordinates) unknownLabel else coordinatesLine
     }
 }

@@ -11,6 +11,40 @@ import java.util.Locale
 
 object AnalyticsExporter {
 
+    /** Pure CSV body — safe for empty dashboards (zero loads, empty weeks/routes). */
+    fun buildCsvContent(dashboard: AnalyticsDashboard, period: AnalyticsPeriod): String = buildString {
+        appendLine("Truck Log Analytics,${period.name}")
+        appendLine()
+        appendLine("Summary")
+        val s = dashboard.summary
+        appendLine("Total loads,${s.totalLoads}")
+        appendLine("Total gross,${s.totalGross}")
+        appendLine("Total miles,${s.totalMiles}")
+        appendLine("Avg RPM,${"%.2f".format(Locale.US, s.avgRpm)}")
+        appendLine("Avg per load,${"%.2f".format(Locale.US, s.avgGrossPerLoad)}")
+        s.bestWeek?.let {
+            appendLine("Best week,W${it.weekNumber} ${it.year},${it.gross}")
+        }
+        appendLine()
+        appendLine("Weekly revenue")
+        appendLine("Week,Year,Gross,Miles,Loads")
+        dashboard.weeks.forEach { w ->
+            appendLine("W${w.weekNumber},${w.year},${w.gross},${w.miles},${w.loadCount}")
+        }
+        appendLine()
+        appendLine("Top routes")
+        appendLine("Route,Gross,Miles,RPM,Loads")
+        dashboard.routes.forEach { r ->
+            appendLine("\"${r.route}\",${r.gross},${r.miles},${"%.2f".format(Locale.US, r.rpm)},${r.loadCount}")
+        }
+        appendLine()
+        appendLine("Daily distribution")
+        appendLine("Day,Gross,Loads")
+        dashboard.daily.forEach { d ->
+            appendLine("${d.dayLabel},${d.gross},${d.loadCount}")
+        }
+    }
+
     fun exportToCsv(context: Context, dashboard: AnalyticsDashboard, period: AnalyticsPeriod): Result<File> {
         return try {
             val dir = File(
@@ -24,38 +58,7 @@ object AnalyticsExporter {
             }
             val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
             val file = File(dir, "analytics_${period.name.lowercase(Locale.US)}_$stamp.csv")
-            file.bufferedWriter().use { out ->
-                out.appendLine("Truck Log Analytics,${period.name}")
-                out.appendLine()
-                out.appendLine("Summary")
-                val s = dashboard.summary
-                out.appendLine("Total loads,${s.totalLoads}")
-                out.appendLine("Total gross,${s.totalGross}")
-                out.appendLine("Total miles,${s.totalMiles}")
-                out.appendLine("Avg RPM,${"%.2f".format(Locale.US, s.avgRpm)}")
-                out.appendLine("Avg per load,${"%.2f".format(Locale.US, s.avgGrossPerLoad)}")
-                s.bestWeek?.let {
-                    out.appendLine("Best week,W${it.weekNumber} ${it.year},${it.gross}")
-                }
-                out.appendLine()
-                out.appendLine("Weekly revenue")
-                out.appendLine("Week,Year,Gross,Miles,Loads")
-                dashboard.weeks.forEach { w ->
-                    out.appendLine("W${w.weekNumber},${w.year},${w.gross},${w.miles},${w.loadCount}")
-                }
-                out.appendLine()
-                out.appendLine("Top routes")
-                out.appendLine("Route,Gross,Miles,RPM,Loads")
-                dashboard.routes.forEach { r ->
-                    out.appendLine("\"${r.route}\",${r.gross},${r.miles},${"%.2f".format(Locale.US, r.rpm)},${r.loadCount}")
-                }
-                out.appendLine()
-                out.appendLine("Daily distribution")
-                out.appendLine("Day,Gross,Loads")
-                dashboard.daily.forEach { d ->
-                    out.appendLine("${d.dayLabel},${d.gross},${d.loadCount}")
-                }
-            }
+            file.writeText(buildCsvContent(dashboard, period), Charsets.UTF_8)
             Result.success(file)
         } catch (e: Exception) {
             Result.failure(e)

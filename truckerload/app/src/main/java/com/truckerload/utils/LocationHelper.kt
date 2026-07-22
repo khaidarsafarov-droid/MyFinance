@@ -48,7 +48,8 @@ class LocationHelper(private val context: Context) {
                 state = geo?.second ?: "",
                 zipCode = geo?.third ?: "",
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.w("LocationHelper", "getCurrentLocation failed", e)
             null
         }
     }
@@ -64,7 +65,8 @@ class LocationHelper(private val context: Context) {
                 address.adminArea.orEmpty(),
                 address.postalCode.orEmpty(),
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.w("LocationHelper", "reverseGeocode failed", e)
             null
         }
     }

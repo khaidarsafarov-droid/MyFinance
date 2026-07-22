@@ -91,7 +91,7 @@ class TelegramBotSyncEngine(private val context: Context) {
         ).getOrElse { e ->
             Log.e(TAG, "getUpdates failed: ${e.message}", e)
             val delay = if (e.message?.contains("409") == true) 45L else 30L
-            if (e.message?.contains("401") == true) {
+            if (TelegramAuthErrors.shouldStopService(e.message)) {
                 TelegramBotForegroundService.stop(context)
             }
             return SyncRunResult(skipped = false, processedUpdates = 0, nextDelaySeconds = delay, error = e.message)
@@ -117,11 +117,13 @@ class TelegramBotSyncEngine(private val context: Context) {
                     chatRestore = chatRestore,
                     prefs = prefs
                 )
+                nextRequestOffset = update.updateId + 1
+                persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
             } catch (e: Exception) {
-                Log.e(TAG, "handleUpdate failed for updateId=${update.updateId}", e)
+                Log.e(TAG, "handleUpdate failed for updateId=${update.updateId}; offset NOT advanced", e)
+                // Stop this poll cycle so the failed update is retried next run.
+                break
             }
-            nextRequestOffset = update.updateId + 1
-            persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
         }
 
         if (result.nextOffset > nextRequestOffset) {
