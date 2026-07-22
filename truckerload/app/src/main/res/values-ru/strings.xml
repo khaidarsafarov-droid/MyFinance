@@ -142,6 +142,7 @@
     <string name="drawer_documents">Документы</string>
     <string name="drawer_support">Техподдержка</string>
     <string name="drawer_about">О приложении</string>
+    <string name="drawer_logout">Выход</string>
 
     <string name="goal_screen_title">Цель недели</string>
     <string name="goal_pace_period_hint">В рейсе: %1$s дн.</string>

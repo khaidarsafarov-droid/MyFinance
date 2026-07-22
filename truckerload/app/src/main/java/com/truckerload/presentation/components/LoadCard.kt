@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -27,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
@@ -112,23 +114,31 @@ private fun LoadCardContent(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
             ) {
-                Text(
-                    text = load.tripId,
-                    style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
-                    modifier = Modifier.weight(1f, fill = false),
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = load.tripId,
+                        style = AppTypography.CardTitle.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (load.isDispute) {
+                        DisputeCardChip(
+                            load = load,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
                 Row(
+                    modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (load.isDispute) {
-                        DisputeCardChip(load = load)
-                    }
                     Text(
                         text = load.effectiveFinishDate() ?: load.date,
                         style = AppTypography.CaptionMuted,
+                        maxLines = 1,
                     )
                     if (onCameraClick != null) {
                         val photoCd = stringResource(R.string.load_card_attach_photo)
@@ -251,7 +261,10 @@ fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String
 }
 
 @Composable
-private fun DisputeCardChip(load: Load) {
+private fun DisputeCardChip(
+    load: Load,
+    modifier: Modifier = Modifier,
+) {
     val label: String
     val color: androidx.compose.ui.graphics.Color
     if (load.hadDispute) {
@@ -262,7 +275,7 @@ private fun DisputeCardChip(load: Load) {
         color = LocalTruckColors.current.AccentExpense
     }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(color.copy(alpha = 0.15f))
             .padding(horizontal = 8.dp, vertical = 4.dp),

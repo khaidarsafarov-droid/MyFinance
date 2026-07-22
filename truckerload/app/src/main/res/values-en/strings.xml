@@ -142,6 +142,7 @@
     <string name="drawer_documents">Documents</string>
     <string name="drawer_support">Support</string>
     <string name="drawer_about">About app</string>
+    <string name="drawer_logout">Sign out</string>
 
     <string name="goal_screen_title">Weekly Goal</string>
     <string name="goal_pace_period_hint">On the road: %1$s days</string>
