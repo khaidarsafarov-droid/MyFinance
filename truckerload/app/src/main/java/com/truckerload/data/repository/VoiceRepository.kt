@@ -21,7 +21,9 @@ import com.truckerload.domain.voice.SignalType
 import com.truckerload.domain.voice.VoiceParticipant
 import com.truckerload.domain.voice.VoiceRoom
 import com.truckerload.domain.voice.VoiceRoomType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -55,7 +57,7 @@ class VoiceRepository(
                     .map { it.toDomain(it.userId == DriverProfileEntity.LOCAL_USER_ID) }
                 room.toDomain(participants)
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     fun watchRoom(roomId: String, myName: String): Flow<VoiceRoom?> =
         combine(
@@ -68,7 +70,7 @@ class VoiceRepository(
                 val me = voiceRoom.participants.find { it.isMe }
                     ?: VoiceParticipant(
                         userId = DriverProfileEntity.LOCAL_USER_ID,
-                        displayName = myName.ifBlank { "Вы" },
+                        displayName = myName.ifBlank { "You" },
                         joinedAt = System.currentTimeMillis(),
                         isMe = true,
                     )
@@ -76,7 +78,7 @@ class VoiceRepository(
                     voiceRoom.copy(participants = voiceRoom.participants + me)
                 } else voiceRoom
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     suspend fun createRoom(name: String, type: VoiceRoomType = VoiceRoomType.PUBLIC): Result<String> = runCatching {
         val id = "voice_${UUID.randomUUID()}"
@@ -84,7 +86,7 @@ class VoiceRepository(
         roomDao.upsert(
             VoiceRoomEntity(
                 id = id,
-                name = name.ifBlank { "Новая комната" },
+                name = name.ifBlank { "New room" },
                 type = type.name,
                 creatorId = DriverProfileEntity.LOCAL_USER_ID,
                 maxParticipants = 50,
@@ -105,7 +107,7 @@ class VoiceRepository(
             VoiceRoomParticipantEntity(
                 roomId = roomId,
                 userId = DriverProfileEntity.LOCAL_USER_ID,
-                displayName = displayName.ifBlank { "Вы" },
+                displayName = displayName.ifBlank { "You" },
                 isMuted = false,
                 isDeafened = false,
                 isSpeaking = false,
@@ -158,10 +160,10 @@ class VoiceRepository(
     }
 
     fun watchIncomingCall(): Flow<CallState?> =
-        callDao.watchIncomingCall().map { it?.toDomain() }
+        callDao.watchIncomingCall().map { it?.toDomain() }.flowOn(Dispatchers.IO)
 
     fun watchCall(callId: String): Flow<CallState?> =
-        callDao.watchCall(callId).map { it?.toDomain() }
+        callDao.watchCall(callId).map { it?.toDomain() }.flowOn(Dispatchers.IO)
 
     suspend fun startCall(calleeId: String, calleeName: String, callerName: String): Result<CallState> = runCatching {
         val callId = "call_${UUID.randomUUID()}"
@@ -198,7 +200,7 @@ class VoiceRepository(
         }
     }
 
-    suspend fun simulateIncomingCall(callerName: String = "Алексей"): Result<CallState> = runCatching {
+    suspend fun simulateIncomingCall(callerName: String = "Alexey"): Result<CallState> = runCatching {
         val callId = "call_${UUID.randomUUID()}"
         val now = System.currentTimeMillis()
         val state = CallSessionEntity(
@@ -208,7 +210,7 @@ class VoiceRepository(
             callerId = "demo_caller",
             callerName = callerName,
             calleeId = DriverProfileEntity.LOCAL_USER_ID,
-            calleeName = "Вы",
+            calleeName = "You",
             isIncoming = true,
             startedAt = now,
             endedAt = null,

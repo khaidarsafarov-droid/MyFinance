@@ -63,7 +63,7 @@ internal object ParseUtils {
             val cal = Calendar.getInstance()
             cal.set(y, m, d)
             Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             Pair(Calendar.getInstance().get(Calendar.WEEK_OF_YEAR), Calendar.getInstance().get(Calendar.YEAR))
         }
     }

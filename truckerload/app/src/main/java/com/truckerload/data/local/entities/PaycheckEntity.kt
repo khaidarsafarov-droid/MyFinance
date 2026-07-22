@@ -1,9 +1,13 @@
 package com.truckerload.data.local.entities
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "paychecks")
+@Entity(
+    tableName = "paychecks",
+    indices = [Index(value = ["weekNumber", "year"]), Index(value = ["addedAt"])],
+)
 data class PaycheckEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val weekNumber: Int,

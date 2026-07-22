@@ -7,7 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,8 +39,8 @@ fun ParserSettings(
     val scope = rememberCoroutineScope()
     val tc = LocalTruckColors.current
 
-    val autoUpdate by settingsDataStore.parserAutoUpdate.collectAsState(initial = true)
-    val priceThreshold by settingsDataStore.parserPriceThreshold.collectAsState(initial = 1.0)
+    val autoUpdate by settingsDataStore.parserAutoUpdate.collectAsStateWithLifecycle(initialValue = true)
+    val priceThreshold by settingsDataStore.parserPriceThreshold.collectAsStateWithLifecycle(initialValue = 1.0)
     var thresholdInput by remember(priceThreshold) {
         mutableStateOf(priceThreshold.toString())
     }

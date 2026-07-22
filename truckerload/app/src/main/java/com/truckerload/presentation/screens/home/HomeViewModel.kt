@@ -14,6 +14,8 @@ import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
+import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.LoadDateIndex
@@ -28,14 +30,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import com.truckerload.data.paging.FilteredLoadsPagingSource
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -92,6 +89,7 @@ private data class HomeFilterState(
     val selectedWeekLabel: String = "",
 )
 
+@OptIn(FlowPreview::class)
 class HomeViewModel(
     private val loadRepository: LoadRepository,
     private val isBotConfigured: Boolean = false,
@@ -105,8 +103,34 @@ class HomeViewModel(
 
     private val filterUseCase = LoadFilterUseCase()
 
-    /** Одна подписка на Room — вместо двух параллельных watchLoads(). */
-    private val loadsFromDb: StateFlow<List<Load>> = loadRepository.watchLoads()
+    private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    /** Room subscription scoped by filter — THIS/LAST week avoid full-table hydrate. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val loadsFromDb: StateFlow<List<Load>> = _uiState
+        .map { Triple(it.filter, it.selectedWeekStart, it.selectedWeekEnd) }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, weekStart, weekEnd) ->
+            when (filter) {
+                LoadFilter.THIS_WEEK -> {
+                    val (w, y) = getCurrentWeekNumberAndYear()
+                    loadRepository.getLoadsByWeek(w, y)
+                }
+                LoadFilter.LAST_WEEK -> {
+                    val (w, y) = getPreviousWeekNumberAndYear()
+                    loadRepository.getLoadsByWeek(w, y)
+                }
+                LoadFilter.CALENDAR_WEEK -> {
+                    if (!weekStart.isNullOrBlank() && !weekEnd.isNullOrBlank()) {
+                        loadRepository.getLoadsByDateRange(weekStart, weekEnd)
+                    } else {
+                        loadRepository.watchLoads()
+                    }
+                }
+                else -> loadRepository.watchLoads()
+            }
+        }
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
@@ -115,9 +139,6 @@ class HomeViewModel(
     val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
         .map { done -> !done }
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = true)
-
-    private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
     private val _searchQuery = MutableStateFlow("")
@@ -206,25 +227,9 @@ class HomeViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
-    /**
-     * Windowed journal rows for large filtered sets (Paging 3).
-     *
-     * Note: [HomeScreen] still renders [flattenedListItems] so year/month section headers
-     * stay correct. This Flow pages an already-filtered in-memory list (does not reduce
-     * Room hydrate cost). Prefer Room `PagingSource` + SQL filters for true memory wins;
-     * keep this for alternate UIs / tests until that lands.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val filteredLoadsPaging: Flow<PagingData<Load>> = filteredLoadsAndTotals
-        .map { it.loads }
-        .distinctUntilChanged()
-        .flatMapLatest { loads ->
-            Pager(
-                config = PagingConfig(pageSize = 40, enablePlaceholders = false, prefetchDistance = 20),
-                pagingSourceFactory = { FilteredLoadsPagingSource(loads) },
-            ).flow
-        }
-        .cachedIn(viewModelScope)
+    // True Room PagingSource + SQL filters remains a follow-up; THIS/LAST week already
+    // scopes via getLoadsByWeek. In-memory FilteredLoadsPagingSource stays unit-tested
+    // under data/paging for future alternate UIs.
 
     init {
         viewModelScope.launch {

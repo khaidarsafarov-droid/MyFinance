@@ -7,6 +7,10 @@ import androidx.core.content.edit
 /**
  * Local email/password store for offline login and Supabase outage / rate-limit fallback.
  * Credentials are keyed by normalized email so multiple users on one device stay isolated.
+ *
+ * Passwords are stored reversibly (not hashed) because [validateCredentials] must compare
+ * plaintext for offline fallback when Supabase is unreachable. At rest they live in
+ * [SecurePreferences] (EncryptedSharedPreferences / AES-GCM); see also [AuthStore] for tokens.
  */
 class AuthCredentialsStore(context: Context) {
     private val prefs: SharedPreferences = openPrefs(context)

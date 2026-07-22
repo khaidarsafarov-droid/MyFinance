@@ -13,7 +13,7 @@ class DeterministicAdvisorServiceTest {
         val result = advisor.chat(history = emptyList(), userMessage = "", appContext = null)
         assertTrue(result.isSuccess)
         val reply = result.getOrThrow()
-        assertTrue(reply.contains("правилах") || reply.contains("лоуды", ignoreCase = true))
+        assertTrue(reply.contains("rules", ignoreCase = true) || reply.contains("loads", ignoreCase = true))
     }
 
     @Test
@@ -26,21 +26,21 @@ class DeterministicAdvisorServiceTest {
 
         val result = advisor.chat(
             history = emptyList(),
-            userMessage = "какие у меня лоуды?",
+            userMessage = "what are my loads?",
             appContext = ctx,
         )
 
         assertTrue(result.isSuccess)
         val reply = result.getOrThrow()
-        assertTrue(reply.contains("Последние лоуды"))
+        assertTrue(reply.contains("Recent loads"))
         assertTrue(reply.contains("SWF2"))
     }
 
     @Test
     fun chat_rpmKeyword_mentionsStatistics() {
-        val reply = advisor.chat(emptyList(), "мой rpm за неделю", null).getOrThrow()
+        val reply = advisor.chat(emptyList(), "my rpm this week", null).getOrThrow()
         assertTrue(reply.contains("RPM", ignoreCase = true))
-        assertTrue(reply.contains("Статистик") || reply.contains("милю"))
+        assertTrue(reply.contains("Statistics", ignoreCase = true) || reply.contains("mile", ignoreCase = true))
     }
 
     @Test

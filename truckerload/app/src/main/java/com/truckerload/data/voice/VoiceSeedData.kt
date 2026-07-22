@@ -13,21 +13,21 @@ object VoiceSeedData {
         if (roomDao.count() > 0) return
         val now = System.currentTimeMillis()
         val rooms = listOf(
-            demoRoom("voice_general", "Общий зал", VoiceRoomType.PUBLIC, now, 12),
-            demoRoom("voice_routes", "Комната маршрутов", VoiceRoomType.GROUP, now, 5),
-            demoRoom("voice_fuel", "Топливо и цены", VoiceRoomType.PUBLIC, now, 3),
-            demoRoom("voice_lounge", "Кабинет дальнобойщиков", VoiceRoomType.PRIVATE, now, 8),
+            demoRoom("voice_general", "General lounge", VoiceRoomType.PUBLIC, now, 12),
+            demoRoom("voice_routes", "Route room", VoiceRoomType.GROUP, now, 5),
+            demoRoom("voice_fuel", "Fuel & prices", VoiceRoomType.PUBLIC, now, 3),
+            demoRoom("voice_lounge", "Truckers' lounge", VoiceRoomType.PRIVATE, now, 8),
         )
         rooms.forEach { roomDao.upsert(it) }
         participantDao.upsertAll(
             listOf(
-                demoParticipant("voice_general", "anton", "Антон", now - 600_000, speaking = true),
-                demoParticipant("voice_general", "sergey", "Сергей", now - 500_000),
-                demoParticipant("voice_general", "ivan", "Иван", now - 400_000, muted = true),
-                demoParticipant("voice_routes", "dmitry", "Дмитрий", now - 300_000),
-                demoParticipant("voice_routes", "alexey", "Алексей", now - 200_000, speaking = true),
-                demoParticipant("voice_fuel", "maxim", "Максим", now - 100_000),
-                demoParticipant("voice_lounge", "nikolay", "Николай", now - 50_000),
+                demoParticipant("voice_general", "anton", "Anton", now - 600_000, speaking = true),
+                demoParticipant("voice_general", "sergey", "Sergey", now - 500_000),
+                demoParticipant("voice_general", "ivan", "Ivan", now - 400_000, muted = true),
+                demoParticipant("voice_routes", "dmitry", "Dmitry", now - 300_000),
+                demoParticipant("voice_routes", "alexey", "Alexey", now - 200_000, speaking = true),
+                demoParticipant("voice_fuel", "maxim", "Maxim", now - 100_000),
+                demoParticipant("voice_lounge", "nikolay", "Nikolay", now - 50_000),
             ),
         )
     }

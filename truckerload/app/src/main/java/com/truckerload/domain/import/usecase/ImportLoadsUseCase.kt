@@ -50,7 +50,7 @@ class ImportLoadsUseCase(
                 val parsedLoads = parser.parse(rawInput).distinctBy { it.tripId.uppercase() }
                 processParsedLoads(parsedLoads, startTime, onProgress)
             }
-        } catch (_: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(IMPORT_TIMEOUT_MS))
         }
     }
@@ -77,7 +77,7 @@ class ImportLoadsUseCase(
                     fileName = fileName,
                 )
             }
-        } catch (_: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(IMPORT_TIMEOUT_MS))
         }
     }
@@ -107,7 +107,7 @@ class ImportLoadsUseCase(
                     maxLoads = MAX_LOADS_PER_JSON_IMPORT,
                 )
             }
-        } catch (_: TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(JSON_IMPORT_TIMEOUT_MS))
         }
     }
@@ -176,8 +176,10 @@ class ImportLoadsUseCase(
     }
 
     private suspend fun processWithProcessor(load: Load): ImportResult {
+        val processor = loadProcessor
+            ?: return processLegacy(load)
         return when (
-            val processing = loadProcessor!!.processLoad(
+            val processing = processor.processLoad(
                 parsedLoad = load,
                 config = parserConfig,
                 playFeedback = false,
@@ -202,9 +204,12 @@ class ImportLoadsUseCase(
         }
 
     private fun mapSkipReason(reason: String): SkipReason = when {
-        reason.contains("Авто-обновление", ignoreCase = true) -> SkipReason.AUTO_UPDATE_DISABLED
-        reason.contains("Изменений нет", ignoreCase = true) -> SkipReason.NO_CHANGES
-        reason.contains("Дубликат", ignoreCase = true) -> SkipReason.SUSPICIOUS_DUPLICATE
+        reason.contains("Авто-обновление", ignoreCase = true) ||
+            reason.contains("Auto-update disabled", ignoreCase = true) -> SkipReason.AUTO_UPDATE_DISABLED
+        reason.contains("Изменений нет", ignoreCase = true) ||
+            reason.contains("No changes", ignoreCase = true) -> SkipReason.NO_CHANGES
+        reason.contains("Дубликат", ignoreCase = true) ||
+            reason.contains("Duplicate", ignoreCase = true) -> SkipReason.SUSPICIOUS_DUPLICATE
         else -> SkipReason.DUPLICATE
     }
 

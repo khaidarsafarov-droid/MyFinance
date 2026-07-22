@@ -24,7 +24,7 @@ object TelegramBotHealth {
         if (token.isBlank()) {
             return@withContext TelegramBotHealthResult(
                 ok = false,
-                error = "Токен не задан"
+                error = "Token not set",
             )
         }
         runCatching {
@@ -38,7 +38,7 @@ object TelegramBotHealth {
                     return@withContext TelegramBotHealthResult(
                         ok = false,
                         isUnauthorized = true,
-                        error = "Токен недействителен (401). Получите новый у @BotFather → /token"
+                        error = "Invalid token (401). Get a new one from @BotFather → /token",
                     )
                 }
                 if (!response.isSuccessful) {

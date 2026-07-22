@@ -50,7 +50,7 @@ class OCRService(context: Context) {
         return try {
             val image = InputImage.fromFilePath(appContext, uri)
             latinRecognizer.process(image).await().text.trim()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             ""
         }
     }

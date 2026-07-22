@@ -107,7 +107,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
     private fun mapDailyDistribution(rows: List<com.truckerload.data.local.entities.analytics.DailyGrossAgg>): List<DailyData> {
         val byDay = rows.associateBy { it.dayOfWeek }
         val order = listOf(0, 1, 2, 3, 4, 5, 6)
-        val labels = listOf("Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб")
+        val labels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
         return order.mapIndexed { index, dow ->
             val row = byDay[dow]
             DailyData(

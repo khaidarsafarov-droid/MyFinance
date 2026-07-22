@@ -270,7 +270,7 @@ val MIGRATION_15_16 = object : Migration(15, 16) {
         db.addColumnIfMissing("driver_profile", "endorsementsJson", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("driver_profile", "maxRadius", "INTEGER NOT NULL DEFAULT 500")
         db.addColumnIfMissing("driver_profile", "specialtiesJson", "TEXT NOT NULL DEFAULT ''")
-        db.addColumnIfMissing("driver_profile", "languagesJson", "TEXT NOT NULL DEFAULT 'Русский,Английский'")
+        db.addColumnIfMissing("driver_profile", "languagesJson", "TEXT NOT NULL DEFAULT 'English,Russian'")
         db.addColumnIfMissing("driver_profile", "phoneNumber", "TEXT")
         db.addColumnIfMissing("driver_profile", "telegramUsername", "TEXT")
         db.addColumnIfMissing("driver_profile", "whatsappNumber", "TEXT")
@@ -453,7 +453,7 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
         db.addColumnIfMissing("driver_profile", "endorsementsJson", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("driver_profile", "maxRadius", "INTEGER NOT NULL DEFAULT 500")
         db.addColumnIfMissing("driver_profile", "specialtiesJson", "TEXT NOT NULL DEFAULT ''")
-        db.addColumnIfMissing("driver_profile", "languagesJson", "TEXT NOT NULL DEFAULT 'Русский,Английский'")
+        db.addColumnIfMissing("driver_profile", "languagesJson", "TEXT NOT NULL DEFAULT 'English,Russian'")
         db.addColumnIfMissing("driver_profile", "phoneNumber", "TEXT")
         db.addColumnIfMissing("driver_profile", "telegramUsername", "TEXT")
         db.addColumnIfMissing("driver_profile", "whatsappNumber", "TEXT")
@@ -485,5 +485,15 @@ val MIGRATION_21_22 = object : Migration(21, 22) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.addColumnIfMissing("scans", "loadId", "TEXT")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_scans_loadId ON scans(loadId)")
+    }
+}
+
+/** Week/year indexes for diesel + paychecks (widget/tax year filters). */
+val MIGRATION_22_23 = object : Migration(22, 23) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_diesel_weekNumber_year ON diesel(weekNumber, year)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_diesel_addedAt ON diesel(addedAt)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_paychecks_weekNumber_year ON paychecks(weekNumber, year)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_paychecks_addedAt ON paychecks(addedAt)")
     }
 }

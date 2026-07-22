@@ -4,7 +4,9 @@ import com.truckerload.data.local.dao.VoiceSignalDao
 import com.truckerload.data.local.entities.VoiceSignalEntity
 import com.truckerload.domain.voice.Signal
 import com.truckerload.domain.voice.SignalType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
@@ -36,7 +38,7 @@ class LocalSignalingService(
     override fun watchSignals(sessionId: String, excludeUserId: String): Flow<List<Signal>> =
         signalDao.watchSignals(sessionId).map { list ->
             list.filter { it.fromUserId != excludeUserId }.map { it.toDomain() }
-        }
+        }.flowOn(Dispatchers.IO)
 
     override suspend fun clearSignals(sessionId: String): Result<Unit> = runCatching {
         signalDao.clear(sessionId)

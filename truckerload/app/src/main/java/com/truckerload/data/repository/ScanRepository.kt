@@ -2,7 +2,9 @@ package com.truckerload.data.repository
 
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.ScanEntity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import java.io.File
 import java.util.UUID
 
@@ -10,10 +12,11 @@ class ScanRepository(private val db: AppDatabase) {
 
     private val scanDao = db.scanDao()
 
-    fun watchScans(): Flow<List<ScanEntity>> = scanDao.getAllScans()
+    fun watchScans(): Flow<List<ScanEntity>> =
+        scanDao.getAllScans().flowOn(Dispatchers.IO)
 
     fun watchScansByLoadId(loadId: String): Flow<List<ScanEntity>> =
-        scanDao.getScansByLoadId(loadId)
+        scanDao.getScansByLoadId(loadId).flowOn(Dispatchers.IO)
 
     suspend fun saveScan(
         fileName: String,

@@ -21,6 +21,7 @@ import com.truckerload.R
 import com.truckerload.domain.usecase.ForecastTrend
 import com.truckerload.domain.usecase.WeekForecast
 import com.truckerload.presentation.theme.LocalTruckColors
+import java.util.Locale
 
 @Composable
 fun ForecastCard(
@@ -56,7 +57,7 @@ fun ForecastCard(
                 color = tc.TextSecondary
             )
             Text(
-                text = "$${String.format("%,.0f", forecast.expectedRate)}",
+                text = "$${String.format(Locale.US, "%,.0f", forecast.expectedRate)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.TextSecondary
             )

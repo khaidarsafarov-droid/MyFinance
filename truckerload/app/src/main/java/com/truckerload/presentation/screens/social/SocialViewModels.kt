@@ -331,7 +331,7 @@ class SocialChatViewModel(
         val text = _input.value
         if (text.isBlank()) return
         viewModelScope.launch {
-            val name = uiState.value.myDisplayName.ifBlank { "Я" }
+            val name = uiState.value.myDisplayName.ifBlank { "Me" }
             val replyId = _meta.value.replyTo?.id
             when (val result = socialRepository.sendMessage(chatId, text, name, replyToId = replyId)) {
                 is SocialResult.Success -> {
@@ -347,14 +347,14 @@ class SocialChatViewModel(
 
     fun sendImage(bitmap: android.graphics.Bitmap, caption: String = "") {
         viewModelScope.launch {
-            val name = uiState.value.myDisplayName.ifBlank { "Я" }
+            val name = uiState.value.myDisplayName.ifBlank { "Me" }
             socialRepository.sendImageMessage(chatId, bitmap, caption, name)
         }
     }
 
     fun sendVoiceNote(file: java.io.File, durationMs: Long) {
         viewModelScope.launch {
-            val name = uiState.value.myDisplayName.ifBlank { "Я" }
+            val name = uiState.value.myDisplayName.ifBlank { "Me" }
             socialRepository.sendVoiceMessage(chatId, file, durationMs, name)
         }
     }

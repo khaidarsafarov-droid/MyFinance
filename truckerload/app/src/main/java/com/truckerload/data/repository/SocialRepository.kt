@@ -48,7 +48,9 @@ import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.LeaderboardCategory
 import com.truckerload.domain.social.leaderboardScore
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -73,6 +75,14 @@ class SocialRepository(
     private val followDao = db.driverFollowDao()
     private val chatMemberDao = db.chatMemberDao()
     private val peerDao = db.socialPeerDao()
+    private val chatStore = SocialChatStore(
+        chatDao = chatDao,
+        chatMemberDao = chatMemberDao,
+        blockedUserDao = blockedUserDao,
+        peerDao = peerDao,
+        messageDao = messageDao,
+        reactionDao = reactionDao,
+    )
     private val avatarStorage = AvatarStorage(context)
     private val attachmentStorage = ChatAttachmentStorage(context)
     private val recommendations = RecommendationService()
@@ -271,10 +281,10 @@ class SocialRepository(
                 stats.totalRevenue,
                 userProfile?.photoUrl,
             )
-        }
+        }.flowOn(Dispatchers.IO)
 
     fun watchMyProfile(): Flow<DriverProfile> =
-        watchMyEnhancedProfile().map { it.toLegacyProfile() }
+        watchMyEnhancedProfile().map { it.toLegacyProfile() }.flowOn(Dispatchers.IO)
 
     suspend fun updateProfile(
         displayName: String,
@@ -360,67 +370,18 @@ class SocialRepository(
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
 
-    fun watchChats(): Flow<List<SocialChat>> =
-        combine(
-            chatDao.watchChats(),
-            chatMemberDao.watchMemberChatIds(DriverProfileEntity.LOCAL_USER_ID),
-            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
-        ) { chats, memberChatIds, blockedIds ->
-            mapChatsWithMembership(chats, memberChatIds.toSet(), blockedIds.toSet())
-        }
+    fun watchChats(): Flow<List<SocialChat>> = chatStore.watchChats()
 
-    fun watchPublicGroups(): Flow<List<SocialChat>> =
-        combine(
-            chatDao.watchChats(),
-            chatMemberDao.watchMemberChatIds(DriverProfileEntity.LOCAL_USER_ID),
-        ) { chats, memberChatIds ->
-            val memberSet = memberChatIds.toSet()
-            chats
-                .filter { it.type == ChatType.GROUP.name && it.isPublic && !it.archived }
-                .map { it.toDomain(isMember = memberSet.contains(it.id)) }
-        }
+    fun watchPublicGroups(): Flow<List<SocialChat>> = chatStore.watchPublicGroups()
 
-    fun watchPeers(): Flow<List<SocialPeerProfile>> =
-        combine(
-            peerDao.watchAll(),
-            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
-        ) { peers, blockedIds ->
-            val blockedSet = blockedIds.toSet()
-            peers.filter { it.id !in blockedSet }.map { it.toPeerProfile() }
-        }
+    fun watchPeers(): Flow<List<SocialPeerProfile>> = chatStore.watchPeers()
 
-    fun watchChatsSearch(query: String): Flow<List<SocialChat>> {
-        val trimmed = query.trim()
-        val chatSource = if (trimmed.isEmpty()) {
-            chatDao.watchChats()
-        } else {
-            chatDao.watchChatsSearch(trimmed)
-        }
-        return combine(
-            chatSource,
-            chatMemberDao.watchMemberChatIds(DriverProfileEntity.LOCAL_USER_ID),
-            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
-        ) { chats, memberChatIds, blockedIds ->
-            mapChatsWithMembership(chats, memberChatIds.toSet(), blockedIds.toSet())
-        }
-    }
+    fun watchChatsSearch(query: String): Flow<List<SocialChat>> = chatStore.watchChatsSearch(query)
 
-    fun watchTotalUnread(): Flow<Int> = chatDao.watchTotalUnread()
+    fun watchTotalUnread(): Flow<Int> = chatStore.watchTotalUnread()
 
     fun watchMessages(chatId: String, limit: Int = MESSAGE_PAGE_SIZE): Flow<List<SocialMessage>> =
-        combine(
-            messageDao.watchRecentMessages(chatId, limit),
-            reactionDao.watchReactionsForChat(chatId),
-        ) { messages, reactions ->
-            val byId = messages.associateBy { it.id }
-            messages.map { entity ->
-                entity.toDomain(
-                    isMine = entity.senderId == LOCAL_SENDER_ID,
-                    reactions = summarizeReactions(reactions.filter { it.messageId == entity.id }),
-                    replyPreview = entity.replyToId?.let { byId[it]?.text },
-                )
-            }
-        }
+        chatStore.watchMessages(chatId, limit)
 
     suspend fun loadMoreMessages(
         chatId: String,
@@ -457,8 +418,8 @@ class SocialRepository(
         }
         val now = System.currentTimeMillis()
         val preview = when (messageType) {
-            MessageType.IMAGE -> "📷 Фото"
-            MessageType.VOICE -> "🎤 Голосовое"
+            MessageType.IMAGE -> "📷 Photo"
+            MessageType.VOICE -> "🎤 Voice"
             MessageType.ANNOUNCEMENT -> "📌 $trimmed"
             MessageType.TEXT -> trimmed
         }
@@ -501,7 +462,7 @@ class SocialRepository(
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_add_reaction, it), it) }
 
     fun recommendGroups(): Flow<List<SocialChat>> =
-        watchChats().map { recommendations.recommendGroups(it) }
+        watchChats().map { recommendations.recommendGroups(it) }.flowOn(Dispatchers.IO)
 
     suspend fun markChatRead(chatId: String) {
         chatDao.markRead(chatId)
@@ -584,7 +545,7 @@ class SocialRepository(
             ChatMemberEntity(
                 chatId = chatId,
                 userId = DriverProfileEntity.LOCAL_USER_ID,
-                displayName = displayName.ifBlank { "Вы" },
+                displayName = displayName.ifBlank { "You" },
                 role = "OWNER",
                 joinedAt = now,
             ),
@@ -622,7 +583,7 @@ class SocialRepository(
 
     fun watchIsBlocked(targetId: String): Flow<Boolean> =
         blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID)
-            .map { blockedIds -> targetId in blockedIds }
+            .map { blockedIds -> targetId in blockedIds }.flowOn(Dispatchers.IO)
 
     fun watchFriendStatuses(): Flow<List<DriverStatusPost>> =
         combine(
@@ -633,7 +594,7 @@ class SocialRepository(
             statuses
                 .filter { it.userId !in blockedSet }
                 .map { it.toDomain() }
-        }
+        }.flowOn(Dispatchers.IO)
 
     suspend fun createTextStatus(text: String, displayName: String): SocialResult<Unit> = runCatching {
         val now = System.currentTimeMillis()
@@ -729,7 +690,7 @@ class SocialRepository(
                     isMe = it.userId == DriverProfileEntity.LOCAL_USER_ID,
                 )
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     suspend fun joinGroup(chatId: String, displayName: String): SocialResult<Unit> = runCatching {
         if (chatMemberDao.isMember(chatId, DriverProfileEntity.LOCAL_USER_ID)) {
@@ -740,7 +701,7 @@ class SocialRepository(
             ChatMemberEntity(
                 chatId = chatId,
                 userId = DriverProfileEntity.LOCAL_USER_ID,
-                displayName = displayName.ifBlank { "Вы" },
+                displayName = displayName.ifBlank { "You" },
                 role = "MEMBER",
                 joinedAt = now,
             ),
@@ -785,10 +746,10 @@ class SocialRepository(
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_unfollow, it), it) }
 
     fun watchIsFollowing(targetId: String): Flow<Boolean> =
-        followDao.watchIsFollowing(DriverProfileEntity.LOCAL_USER_ID, targetId)
+        followDao.watchIsFollowing(DriverProfileEntity.LOCAL_USER_ID, targetId).flowOn(Dispatchers.IO)
 
     fun watchPeer(peerId: String): Flow<SocialPeerProfile?> =
-        peerDao.watchById(peerId).map { entity -> entity?.toPeerProfile() }
+        peerDao.watchById(peerId).map { entity -> entity?.toPeerProfile() }.flowOn(Dispatchers.IO)
 
     suspend fun getPeer(peerId: String): SocialPeerProfile? =
         peerDao.getById(peerId)?.toPeerProfile()
@@ -802,7 +763,7 @@ class SocialRepository(
         ) { weekStats, peers, blockedIds ->
             val blockedSet = blockedIds.toSet()
             buildLeaderboard(weekStats, peers.filter { it.id !in blockedSet }, category)
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     suspend fun hasJoinedWeeklyChallenge(): Boolean =
@@ -837,7 +798,7 @@ class SocialRepository(
         val myMiles = weekStats.totalMiles
         val myName = profileDao.getProfile()?.displayName
             ?: userProfileStore.profile.value?.displayName
-            ?: "Вы"
+            ?: "You"
         refreshMyChallengeScore()
         val participation = challengeDao.getParticipation(WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID)
         val score = participation?.score ?: myMiles
@@ -891,9 +852,9 @@ class SocialRepository(
         val existing = driverStatusDao.watchActiveStatuses(now).first()
         if (existing.any { it.userId != DriverProfileEntity.LOCAL_USER_ID }) return
         listOf(
-            Triple("peer_ivan", "Иван Петров", "На I-95, RPM отличный!"),
-            Triple("peer_alexey", "Алексей С.", "Ищу груз TX → FL"),
-            Triple("peer_sergey", "Сергей К.", "Отдыхаю в Atlanta"),
+            Triple("peer_ivan", "Ivan P.", "On I-95, great RPM!"),
+            Triple("peer_alexey", "Alex S.", "Looking for load TX → FL"),
+            Triple("peer_sergey", "Sergey K.", "Resting in Atlanta"),
         ).forEach { (userId, name, text) ->
             driverStatusDao.insert(
                 DriverStatusEntity(
@@ -915,7 +876,7 @@ class SocialRepository(
                     userId = DriverProfileEntity.LOCAL_USER_ID,
                     displayName = displayName,
                     type = StatusType.TEXT.name,
-                    text = "На связи!",
+                    text = "On the air!",
                     mediaPath = null,
                     createdAt = now,
                     expiresAt = now + STATUS_TTL_MS,
@@ -933,7 +894,7 @@ class SocialRepository(
                     ChatMemberEntity(
                         chatId = groupId,
                         userId = DriverProfileEntity.LOCAL_USER_ID,
-                        displayName = displayName.ifBlank { "Вы" },
+                        displayName = displayName.ifBlank { "You" },
                         role = "MEMBER",
                         joinedAt = now,
                     ),
@@ -947,7 +908,7 @@ class SocialRepository(
         peers: List<SocialPeerEntity>,
         category: LeaderboardCategory,
     ): List<LeaderboardEntry> {
-        val localName = userProfileStore.profile.value?.displayName ?: "Вы"
+        val localName = userProfileStore.profile.value?.displayName ?: "You"
         val myScore = weekStats.leaderboardScore(category)
         val peerEntries = peers.map { peer ->
             val score = when (category) {
@@ -1066,28 +1027,6 @@ class SocialRepository(
         chatDao.watchChats().first()
             .firstOrNull { it.type == ChatType.PRIVATE.name && it.title.equals(title, ignoreCase = true) }
 
-    private fun mapChatsWithMembership(
-        chats: List<SocialChatEntity>,
-        memberChatIds: Set<String>,
-        blockedIds: Set<String>,
-    ): List<SocialChat> =
-        chats
-            .filter { chat -> chat.type != ChatType.PRIVATE.name || !isBlockedPrivateChat(chat, blockedIds) }
-            .map { chat -> chat.toDomain(isMember = resolveIsMember(chat, memberChatIds)) }
-
-    private fun resolveIsMember(chat: SocialChatEntity, memberChatIds: Set<String>): Boolean =
-        when {
-            chat.type == ChatType.PRIVATE.name -> true
-            chat.type == ChatType.GROUP.name -> memberChatIds.contains(chat.id)
-            else -> true
-        }
-
-    private fun isBlockedPrivateChat(chat: SocialChatEntity, blockedIds: Set<String>): Boolean {
-        if (chat.type != ChatType.PRIVATE.name) return false
-        val peerId = chat.id.removePrefix("dm_")
-        return peerId.startsWith("peer_") && peerId in blockedIds
-    }
-
     private suspend fun backfillGroupInviteCodes() {
         val codes = mapOf(
             "group_i95" to "I95ROAD",
@@ -1121,15 +1060,6 @@ class SocialRepository(
             ),
         )
     }
-
-    private fun summarizeReactions(reactions: List<MessageReactionEntity>): List<ReactionSummary> =
-        reactions.groupBy { it.reaction }.map { (emoji, list) ->
-            ReactionSummary(
-                reaction = emoji,
-                count = list.size,
-                includesMe = list.any { it.userId == DriverProfileEntity.LOCAL_USER_ID },
-            )
-        }
 
     private fun SocialChatEntity.toDomain(isMember: Boolean = true) = SocialChat(
         id = id,

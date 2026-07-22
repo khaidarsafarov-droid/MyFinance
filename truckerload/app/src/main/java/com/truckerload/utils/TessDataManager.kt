@@ -40,7 +40,7 @@ object TessDataManager {
                 dest.outputStream().use { out -> body.byteStream().copyTo(out) }
                 dest.exists() && dest.length() > 50_000
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             false
         }
     }

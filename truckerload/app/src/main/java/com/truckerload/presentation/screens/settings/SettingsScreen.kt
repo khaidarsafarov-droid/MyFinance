@@ -19,15 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.VolumeUp
-import android.app.Activity
-import android.widget.Toast
-import com.truckerload.data.backup.GoogleDriveBackupService
-import com.truckerload.presentation.connectivity.ConnectivityObserver
-import com.truckerload.presentation.connectivity.ConnectivityStatus
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.automirrored.outlined.Logout
@@ -51,7 +43,7 @@ import androidx.compose.runtime.Composable
 import com.truckerload.BuildConfig
 import com.truckerload.data.preferences.AppThemeMode
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -104,8 +96,8 @@ fun SettingsScreen(
     showBack: Boolean = false
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
-    val themeMode by settingsDataStore.themeMode.collectAsState(initial = AppThemeMode.SYSTEM)
-    val appLanguage by settingsDataStore.language.collectAsState(initial = com.truckerload.data.preferences.AppLanguage.RU)
+    val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
+    val appLanguage by settingsDataStore.language.collectAsStateWithLifecycle(initialValue = com.truckerload.data.preferences.AppLanguage.RU)
     val tc = LocalTruckColors.current
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
@@ -115,10 +107,10 @@ fun SettingsScreen(
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModel.factory(loadRepo, context)
     )
-    val exportState by settingsViewModel.exportState.collectAsState()
-    val restoreState by settingsViewModel.restoreState.collectAsState()
-    val sendTelegramState by settingsViewModel.sendTelegramState.collectAsState()
-    val savedTelegramChatId by settingsViewModel.telegramChatId.collectAsState()
+    val exportState by settingsViewModel.exportState.collectAsStateWithLifecycle()
+    val restoreState by settingsViewModel.restoreState.collectAsStateWithLifecycle()
+    val sendTelegramState by settingsViewModel.sendTelegramState.collectAsStateWithLifecycle()
+    val savedTelegramChatId by settingsViewModel.telegramChatId.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var backupRestoreMessage by remember { mutableStateOf<String?>(null) }
     var exportedFile by remember { mutableStateOf<java.io.File?>(null) }
@@ -148,7 +140,7 @@ fun SettingsScreen(
             android.widget.Toast.makeText(context, backupRestoreMessage, android.widget.Toast.LENGTH_LONG).show()
         }
     }
-    val thresholds by store.thresholds.collectAsState()
+    val thresholds by store.thresholds.collectAsStateWithLifecycle()
     var minInput by remember(thresholds) { mutableStateOf(thresholds.minProfit.toString()) }
     var targetInput by remember(thresholds) { mutableStateOf(thresholds.targetProfit.toString()) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -606,20 +598,20 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
-    if (showExportActions && exportedFile != null) {
-        val file = exportedFile!!
+    val exportTarget = exportedFile
+    if (showExportActions && exportTarget != null) {
         AlertDialog(
             onDismissRequest = {
                 showExportActions = false
                 exportedFile = null
             },
             title = { Text(stringResource(R.string.export_actions_title), color = tc.TextPrimary) },
-            text = { Text(stringResource(R.string.export_loads_success, file.name), color = tc.TextSecondary) },
+            text = { Text(stringResource(R.string.export_loads_success, exportTarget.name), color = tc.TextSecondary) },
             confirmButton = {
                 Button(
                     onClick = {
-                        pendingTelegramFile = file
-                        settingsViewModel.sendExportToTelegram(file)
+                        pendingTelegramFile = exportTarget
+                        settingsViewModel.sendExportToTelegram(exportTarget)
                         showExportActions = false
                     }
                 ) {
@@ -629,7 +621,7 @@ fun SettingsScreen(
             dismissButton = {
                 OutlinedButton(
                     onClick = {
-                        settingsViewModel.openExportsFolder(file)
+                        settingsViewModel.openExportsFolder(exportTarget)
                         showExportActions = false
                     }
                 ) {
@@ -812,244 +804,6 @@ private fun BatteryOptimizationContent(
             text = stringResource(R.string.settings_battery_ok),
             style = MaterialTheme.typography.bodySmall,
             color = tc.AccentProfit
-        )
-    }
-}
-
-@Composable
-private fun GoogleDriveSyncSection(tc: TruckColorPalette) {
-    val context = LocalContext.current
-    val activity = context as? Activity
-    val scope = rememberCoroutineScope()
-    val prefs = remember { GoogleDriveBackupService.prefs(context) }
-    val connectivity by ConnectivityObserver.observe(context)
-        .collectAsState(initial = ConnectivityStatus.Online)
-    var linkedEmail by remember {
-        mutableStateOf(
-            prefs.accountEmail ?: run {
-                GoogleDriveBackupService.syncLinkedAccountFromGoogle(context)
-                prefs.accountEmail
-            }
-        )
-    }
-    var autoSync by remember { mutableStateOf(prefs.autoSyncEnabled) }
-    var lastSyncAt by remember { mutableStateOf(prefs.lastSyncAt) }
-    var busy by remember { mutableStateOf(false) }
-    var showRestoreConfirm by remember { mutableStateOf(false) }
-    var restoreConflict by remember { mutableStateOf(false) }
-    val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
-
-    val driveSignInLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val ok = GoogleDriveBackupService.onSignInResult(context, result.data)
-        if (ok) {
-            linkedEmail = prefs.accountEmail
-            Toast.makeText(context, context.getString(R.string.drive_sync_connected), Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, context.getString(R.string.drive_sync_connect_failed), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun toastResult(result: Result<String>) {
-        result.fold(
-            onSuccess = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() },
-            onFailure = { err ->
-                if (activity != null && GoogleDriveBackupService.launchConsentIfNeeded(activity, err)) {
-                    return
-                }
-                Toast.makeText(
-                    context,
-                    err.message ?: context.getString(R.string.drive_sync_api_error, ""),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        )
-    }
-
-    BentoGlassSection(
-        title = stringResource(R.string.drive_sync_title),
-        subtitle = stringResource(R.string.drive_sync_desc),
-    ) {
-        Text(
-            text = if (linkedEmail.isNullOrBlank()) {
-                stringResource(R.string.drive_sync_status_off)
-            } else {
-                stringResource(R.string.drive_sync_status_on, linkedEmail!!)
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = tc.TextPrimary,
-        )
-        Text(
-            text = stringResource(
-                R.string.drive_sync_last,
-                if (lastSyncAt > 0L) dateFormat.format(Date(lastSyncAt))
-                else stringResource(R.string.drive_sync_last_never),
-            ),
-            style = MaterialTheme.typography.labelSmall,
-            color = tc.TextSecondary,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-        )
-        if (connectivity == ConnectivityStatus.Offline) {
-            Text(
-                text = stringResource(R.string.connectivity_offline_banner),
-                style = MaterialTheme.typography.labelSmall,
-                color = tc.AccentExpense,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-        }
-
-        if (busy) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
-            Text(
-                text = stringResource(R.string.drive_sync_busy),
-                style = MaterialTheme.typography.labelSmall,
-                color = tc.TextSecondary,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-        }
-
-        if (linkedEmail.isNullOrBlank()) {
-            Button(
-                onClick = {
-                    driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(context))
-                },
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) {
-                Row(
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_connect))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.drive_sync_connect))
-                }
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(
-                        text = stringResource(R.string.drive_sync_auto),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.drive_sync_auto_desc),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = tc.TextSecondary,
-                    )
-                }
-                Switch(
-                    checked = autoSync,
-                    onCheckedChange = {
-                        autoSync = it
-                        prefs.autoSyncEnabled = it
-                    },
-                    colors = AppSwitchDefaults.colors(),
-                    enabled = !busy,
-                )
-            }
-
-            Button(
-                onClick = {
-                    scope.launch {
-                        busy = true
-                        val result = withContext(Dispatchers.IO) {
-                            GoogleDriveBackupService.backupNow(context)
-                        }
-                        lastSyncAt = prefs.lastSyncAt
-                        busy = false
-                        toastResult(result)
-                    }
-                },
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-            ) {
-                Text(stringResource(R.string.drive_sync_backup_now))
-            }
-            OutlinedButton(
-                onClick = {
-                    scope.launch {
-                        busy = true
-                        val (hasRemote, localDirty) = withContext(Dispatchers.IO) {
-                            val remote = GoogleDriveBackupService.probeRemote(context)
-                            val dirty = GoogleDriveBackupService.hasLocalChangesAfterLastSync(context)
-                            remote to dirty
-                        }
-                        restoreConflict = hasRemote &&
-                            GoogleDriveBackupService.shouldWarnBeforeRestore(context, localDirty)
-                        busy = false
-                        showRestoreConfirm = true
-                    }
-                },
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(48.dp).padding(top = 8.dp),
-            ) {
-                Text(stringResource(R.string.drive_sync_restore_now))
-            }
-            OutlinedButton(
-                onClick = {
-                    scope.launch {
-                        busy = true
-                        withContext(Dispatchers.IO) {
-                            GoogleDriveBackupService.disconnect(context)
-                        }
-                        linkedEmail = null
-                        lastSyncAt = 0L
-                        busy = false
-                    }
-                },
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(48.dp).padding(top = 8.dp),
-            ) {
-                Text(stringResource(R.string.drive_sync_disconnect))
-            }
-        }
-    }
-
-    if (showRestoreConfirm) {
-        AlertDialog(
-            onDismissRequest = { showRestoreConfirm = false },
-            title = { Text(stringResource(R.string.drive_sync_restore_confirm_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        if (restoreConflict) {
-                            R.string.drive_sync_restore_conflict_body
-                        } else {
-                            R.string.drive_sync_restore_confirm_body
-                        },
-                    ),
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showRestoreConfirm = false
-                        scope.launch {
-                            busy = true
-                            val result = withContext(Dispatchers.IO) {
-                                GoogleDriveBackupService.restoreNow(context)
-                            }
-                            lastSyncAt = prefs.lastSyncAt
-                            busy = false
-                            toastResult(result)
-                        }
-                    }
-                ) {
-                    Text(stringResource(R.string.drive_sync_restore_now))
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showRestoreConfirm = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
         )
     }
 }

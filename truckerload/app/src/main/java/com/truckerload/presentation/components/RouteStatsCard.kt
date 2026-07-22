@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.RouteStats
 import com.truckerload.presentation.theme.LocalTruckColors
+import java.util.Locale
 
 @Composable
 fun RouteStatsCard(
@@ -97,7 +98,7 @@ fun RouteStatsCard(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "$${String.format("%.2f", route.ratePerMile)}/mi",
+                text = "$${String.format(Locale.US, "%.2f", route.ratePerMile)}/mi",
                 style = MaterialTheme.typography.labelMedium,
                 color = rateColor
             )

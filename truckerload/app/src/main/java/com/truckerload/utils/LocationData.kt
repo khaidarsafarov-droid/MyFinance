@@ -36,8 +36,7 @@ data class LocationData(
         fun formatCoordinates(lat: Double, lon: Double): String {
             val latDir = if (lat >= 0) "N" else "S"
             val lonDir = if (lon >= 0) "E" else "W"
-            return String.format(
-                Locale.US,
+            return String.format(Locale.US,
                 "%.3f° %s, %.3f° %s",
                 kotlin.math.abs(lat),
                 latDir,

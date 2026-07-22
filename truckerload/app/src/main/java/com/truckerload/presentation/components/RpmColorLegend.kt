@@ -11,7 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,7 +30,7 @@ fun RpmColorLegend(
 ) {
     val tc = LocalTruckColors.current
     val rpmStore = LocalRpmThresholdsStore.current
-    val thresholds by rpmStore.thresholds.collectAsState()
+    val thresholds by rpmStore.thresholds.collectAsStateWithLifecycle()
     val min = thresholds.minProfit
     val target = thresholds.targetProfit
 

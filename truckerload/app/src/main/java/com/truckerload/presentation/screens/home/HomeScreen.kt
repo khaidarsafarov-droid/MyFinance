@@ -31,8 +31,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import com.truckerload.presentation.components.LocalOpenDrawer
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Settings
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,7 +53,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -112,8 +110,8 @@ fun HomeScreen(
     val tc = LocalTruckColors.current
     val loadRepository = LocalLoadRepository.current
     val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
-        .collectAsState(initial = null)
-    val userProfile by LocalUserProfileStore.current.profile.collectAsState()
+        .collectAsStateWithLifecycle(initialValue = null)
+    val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
     val welcomeName = remember(socialProfile, userProfile) {
         socialProfile?.displayName
             ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
@@ -125,13 +123,13 @@ fun HomeScreen(
     val openDrawer = LocalOpenDrawer.current
     val isBotConfigured = remember(context) { TelegramTokenStore(context).hasToken() }
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
-    val uiState by viewModel.uiState.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val filteredResult by viewModel.filteredLoadsAndTotals.collectAsState()
-    val isInitialLoading by viewModel.isInitialLoading.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
+    val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
     val connectivity by remember(context) {
         ConnectivityObserver.observe(context)
-    }.collectAsState(initial = ConnectivityStatus.Online)
+    }.collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -141,7 +139,11 @@ fun HomeScreen(
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val datesWithLoads = filteredResult.datesWithLoads
-    val weekLabel = remember(uiState.filter, uiState.selectedWeekLabel) {
+    val weekLabel = remember(
+        uiState.filter,
+        uiState.selectedDateLabel,
+        uiState.selectedWeekLabel,
+    ) {
         when (uiState.filter) {
             LoadFilter.CALENDAR_DATE -> uiState.selectedDateLabel
             LoadFilter.CALENDAR_WEEK -> uiState.selectedWeekLabel
@@ -165,14 +167,19 @@ fun HomeScreen(
     val periodSummary = remember(
         uiState.filter,
         uiState.selectedYear,
+        uiState.selectedDate,
+        uiState.selectedWeekStart,
+        uiState.selectedWeekEnd,
         uiState.selectedDateLabel,
         uiState.selectedWeekLabel,
-        totals,
+        totals.loadCount,
+        totals.totalRate,
+        totals.totalMiles,
     ) {
         viewModel.periodSummaryHeader(totals)
     }
     val rpmStore = LocalRpmThresholdsStore.current
-    val rpmThresholds by rpmStore.thresholds.collectAsState()
+    val rpmThresholds by rpmStore.thresholds.collectAsStateWithLifecycle()
     var showCalendar by remember { mutableStateOf(false) }
     val cal = remember { java.util.Calendar.getInstance() }
     var calendarYear by remember { mutableStateOf(cal.get(java.util.Calendar.YEAR)) }
@@ -284,14 +291,22 @@ fun HomeScreen(
                             },
                             modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                         ) {
-                            Icon(Icons.Default.Sync, contentDescription = stringResource(R.string.home_cd_sync_telegram))
+                            Icon(
+                                Icons.Default.Sync,
+                                contentDescription = stringResource(R.string.home_cd_sync_telegram),
+                                tint = tc.TextPrimary,
+                            )
                         }
                     }
                     IconButton(
                         onClick = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                     ) {
-                        Icon(Icons.Default.Search, contentDescription = stringResource(R.string.home_cd_search))
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = stringResource(R.string.home_cd_search),
+                            tint = tc.TextPrimary,
+                        )
                     }
                     BotStatusBadge(active = uiState.botStatusActive)
                 }
@@ -365,9 +380,9 @@ private fun HomeScreenContent(
     var showYearSelector by remember { mutableStateOf(false) }
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsState()
-    val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsState()
-    val deleteError by viewModel.deleteError.collectAsState()
+    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsStateWithLifecycle()
+    val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
+    val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     LaunchedEffect(deleteError) {
         val msg = deleteError ?: return@LaunchedEffect
         android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
@@ -442,7 +457,7 @@ private fun HomeScreenContent(
             }
 
             periodSummary?.let { summary ->
-                item(key = "period_summary") {
+                item(key = "period_summary_${summary.label}") {
                     PeriodSummarySection(header = summary)
                 }
             }
@@ -474,7 +489,7 @@ private fun HomeScreenContent(
             }
 
             if (listItems.isEmpty()) {
-                item(key = "empty") {
+                item(key = "empty_${uiState.filter}") {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

@@ -9,6 +9,7 @@ import com.truckerload.utils.getYesterdayDate
 import com.truckerload.utils.isLoadInWeek
 import com.truckerload.utils.parseDateFromQuery
 import java.util.Calendar
+import java.util.Locale
 
 /** Фильтрация и агрегация грузов — чистая domain-логика без UI-зависимостей. */
 class LoadFilterUseCase {
@@ -91,7 +92,7 @@ class LoadFilterUseCase {
         val avgRpm: Double = 0.0,
     ) {
         val avgRpmFormatted: String
-            get() = if (totalMiles > 0) "$${String.format("%.2f", totalRate / totalMiles)} / mi" else "—"
+            get() = if (totalMiles > 0) "$${String.format(Locale.US, "%.2f", totalRate / totalMiles)} / mi" else "—"
     }
 
     fun calculateTotals(loads: List<Load>): Totals {

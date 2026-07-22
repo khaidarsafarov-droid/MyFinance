@@ -18,12 +18,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,7 +69,7 @@ fun LoadCard(
             onScanClick = onScanClick,
         )
     } else {
-        val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsState()
+        val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
         LoadCardContent(
             load = load,
             onClick = onClick,
@@ -129,26 +131,32 @@ private fun LoadCardContent(
                         style = AppTypography.CaptionMuted,
                     )
                     if (onCameraClick != null) {
+                        val photoCd = stringResource(R.string.load_card_attach_photo)
                         IconButton(
                             onClick = onCameraClick,
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier
+                                .size(36.dp)
+                                .semantics { contentDescription = photoCd },
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CameraAlt,
-                                contentDescription = stringResource(R.string.load_card_attach_photo),
+                                contentDescription = null,
                                 tint = tc.AccentPrimary,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
                     }
                     if (onScanClick != null) {
+                        val scanCd = stringResource(R.string.load_card_attach_scan)
                         IconButton(
                             onClick = onScanClick,
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier
+                                .size(36.dp)
+                                .semantics { contentDescription = scanCd },
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.DocumentScanner,
-                                contentDescription = stringResource(R.string.load_card_attach_scan),
+                                contentDescription = null,
                                 tint = tc.AccentPrimary,
                                 modifier = Modifier.size(20.dp),
                             )

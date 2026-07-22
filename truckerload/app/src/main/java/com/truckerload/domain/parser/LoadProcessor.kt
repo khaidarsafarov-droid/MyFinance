@@ -37,7 +37,7 @@ class LoadProcessor(
                 is DuplicateResult.Found -> duplicate.load
                 is DuplicateResult.Suspicious -> {
                     return ProcessingResult.Skipped(
-                        "Дубликат (${duplicate.reason}): ${duplicate.load.tripId}",
+                        "Duplicate (${duplicate.reason}): ${duplicate.load.tripId}",
                     )
                 }
                 DuplicateResult.NotFound -> null
@@ -55,11 +55,11 @@ class LoadProcessor(
         )
 
         if (comparison.isIdentical()) {
-            return ProcessingResult.Skipped("Изменений нет")
+            return ProcessingResult.Skipped("No changes")
         }
 
         if (!config.autoUpdate) {
-            return ProcessingResult.Skipped("Авто-обновление отключено")
+            return ProcessingResult.Skipped("Auto-update disabled")
         }
 
         val changes = changeDetector.detectChanges(existingLoad, incoming)

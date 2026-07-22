@@ -33,7 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -95,9 +95,9 @@ fun LoadDetailScreen(
         key = "detail_$loadId",
         factory = LoadDetailViewModel.Factory(application, loadId, loadRepository),
     )
-    val uiState by viewModel.uiState.collectAsState()
-    val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsState(initial = emptyList())
-    val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsState(initial = emptyList())
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
+    val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
     val snackbarHostState = remember { SnackbarHostState() }
     val deleteFailed = stringResource(R.string.load_delete_failed)
     val saveErrorEmpty = stringResource(R.string.common_save_error, "")
@@ -174,7 +174,7 @@ fun LoadDetailScreen(
                 CircularProgressIndicator(color = tc.AccentPrimary)
             }
             else -> {
-                val l = uiState.load!!
+                val l = uiState.load ?: return@Scaffold
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -208,12 +208,12 @@ fun LoadDetailScreen(
                     ) {
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_total_rate),
-                            value = "$${String.format("%.2f", l.totalRate)}",
+                            value = "$${String.format(Locale.US, "%.2f", l.totalRate)}",
                             modifier = Modifier.weight(1f),
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_miles),
-                            value = "${String.format("%.2f", l.totalMiles)}",
+                            value = "${String.format(Locale.US, "%.2f", l.totalMiles)}",
                             modifier = Modifier.weight(1f),
                         )
                         StatBox(

@@ -103,17 +103,17 @@ class TelegramBotSyncEngine(private val context: Context) {
             )
         }
 
-        Log.d(TAG, "📥 Получено ${result.updates.size} обновлений (rawMax=${result.rawMaxUpdateId})")
+        Log.d(TAG, "📥 Received ${result.updates.size} updates (rawMax=${result.rawMaxUpdateId})")
 
         var processed = 0
         var stoppedOnFailure = false
         for (update in result.updates) {
             if (update.updateId + 1 <= nextRequestOffset) {
-                Log.d(TAG, "⏭️ Пропуск уже обработанного updateId=${update.updateId}")
+                Log.d(TAG, "⏭️ Skipping already processed updateId=${update.updateId}")
                 continue
             }
             processed++
-            Log.d(TAG, "📥 Обработка updateId=${update.updateId}")
+            Log.d(TAG, "📥 Processing updateId=${update.updateId}")
             try {
                 handleUpdate(
                     update = update,
@@ -265,7 +265,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                     ?.let { "/$it" }
             update.callbackQueryId.let { id ->
                 telegramApi.answerCallbackQuery(id, "OK").onFailure { e ->
-                    Log.w(TAG, "answerCallbackQuery: ${e.message}")
+                    Log.w(TAG, "answerCallbackQuery: ${LogRedactor.redact(e.message)}")
                 }
             }
             if (cmd != null) {
@@ -385,7 +385,7 @@ class TelegramBotSyncEngine(private val context: Context) {
             }
             rawText.isBlank() && update.documentFileId != null -> {
                 val importSessions = ImportSessionManager(prefs)
-                val fileId = update.documentFileId!!
+                val fileId = update.documentFileId ?: return
                 val isHtml = ImportDocumentHandler.isSupportedHtml(
                     update.documentFileName,
                     update.documentMimeType,
@@ -487,7 +487,7 @@ class TelegramBotSyncEngine(private val context: Context) {
         }
 
         telegramApi.sendMessage(update.chatId, context.getString(R.string.sync_processing))
-            .onFailure { e -> Log.e(TAG, "ack failed: ${e.message}") }
+            .onFailure { e -> Log.e(TAG, "ack failed: ${LogRedactor.redact(e.message)}") }
 
         val reply = processMessage(
             text = rawText,
@@ -498,7 +498,7 @@ class TelegramBotSyncEngine(private val context: Context) {
             prefs = prefs
         )
         telegramApi.sendMessage(update.chatId, reply)
-            .onFailure { e -> Log.e(TAG, "reply failed: ${e.message}") }
+            .onFailure { e -> Log.e(TAG, "reply failed: ${LogRedactor.redact(e.message)}") }
     }
 
     private suspend fun handleCommand(
@@ -713,7 +713,7 @@ class TelegramBotSyncEngine(private val context: Context) {
 
     private suspend fun sendWithMenu(telegramApi: TelegramApi, chatId: String, text: String) {
         telegramApi.sendMessage(chatId, text, TelegramBotFeatures.mainMenuKeyboard())
-            .onFailure { e -> Log.e(TAG, "menu reply failed: ${e.message}") }
+            .onFailure { e -> Log.e(TAG, "menu reply failed: ${LogRedactor.redact(e.message)}") }
     }
 
     private fun isCommand(text: String, command: String): Boolean {
@@ -771,7 +771,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                 )
                 return context.getString(
                     R.string.sync_last_paycheck,
-                    String.format("%,.2f", r.netAmount),
+                    String.format(Locale.US, "%,.2f", r.netAmount),
                     weekNumber
                 )
             }
@@ -810,7 +810,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                 prefs.edit {putInt("last_diesel_text_hash", textHash)}
                 return context.getString(
                     R.string.sync_last_diesel,
-                    String.format("%,.2f", r.totalAmount),
+                    String.format(Locale.US, "%,.2f", r.totalAmount),
                     weekNumber
                 )
             }
@@ -827,7 +827,7 @@ class TelegramBotSyncEngine(private val context: Context) {
     ): String {
         val fileId = update.documentFileId ?: return context.getString(R.string.sync_doc_not_supported)
         val bytes = telegramApi.downloadFile(fileId).getOrElse { e ->
-            Log.e(TAG, "download export file failed: ${e.message}", e)
+            Log.e(TAG, "download export file failed: ${LogRedactor.redact(e.message)}", e)
             return context.getString(R.string.restore_error, e.message.orEmpty())
         }
         val text = bytes.toString(Charsets.UTF_8)

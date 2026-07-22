@@ -16,13 +16,13 @@ object BadgeEngine {
             badges.add(badge(BadgeType.FIRST_LOAD, now))
         }
         if (totalLoads >= 100) {
-            badges.add(badge(BadgeType.LOAD_MASTER, now, "100 грузов"))
+            badges.add(badge(BadgeType.LOAD_MASTER, now, "100 loads"))
         }
         if (totalLoads >= 1000) {
             badges.add(badge(BadgeType.LOAD_MASTER, now))
         }
         if (totalMiles >= 50_000) {
-            badges.add(Badge("miles_50k", "Покоритель дорог", "🗺️", "50 000+ миль", now))
+            badges.add(Badge("miles_50k", "Road Warrior", "🗺️", "50,000+ miles", now))
         }
         if (totalMiles >= 100_000) {
             badges.add(badge(BadgeType.MILE_KING, now))
@@ -31,10 +31,10 @@ object BadgeEngine {
             badges.add(badge(BadgeType.RPM_CHAMPION, now))
         }
         if (totalRevenue >= 100_000) {
-            badges.add(Badge("revenue_100k", "Золотой RPM", "⛽", "$100k+ гросса", now))
+            badges.add(Badge("revenue_100k", "Golden RPM", "⛽", "$100k+ gross", now))
         }
         if (totalLoads >= 500) {
-            badges.add(badge(BadgeType.LEGEND, now, "500+ грузов"))
+            badges.add(badge(BadgeType.LEGEND, now, "500+ loads"))
         }
         if (experienceYears >= 10) {
             badges.add(badge(BadgeType.LEGEND, now))

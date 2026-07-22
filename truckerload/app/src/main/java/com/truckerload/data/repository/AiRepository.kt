@@ -7,7 +7,9 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PaycheckParseResult
 import com.truckerload.domain.parser.AmazonRelayParseResult
 import com.truckerload.domain.parser.MessageParseService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 
 /**
  * Facade for parsing and local advisor logic — no external AI providers.
@@ -22,6 +24,7 @@ class AiRepository(
         userMessage: String,
         appContext: String? = null
     ): Flow<String> = advisorService.chatStream(history, userMessage, appContext)
+        .flowOn(Dispatchers.Default)
 
     suspend fun chat(
         history: List<Pair<String, String>>,

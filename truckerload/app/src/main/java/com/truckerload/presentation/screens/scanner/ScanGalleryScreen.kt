@@ -27,7 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,7 +56,7 @@ fun ScanGalleryScreen(
     onBack: () -> Unit,
 ) {
     val repository = LocalScanRepository.current
-    val scans by repository.watchScans().collectAsState(initial = emptyList())
+    val scans by repository.watchScans().collectAsStateWithLifecycle(initialValue = emptyList())
     val context = LocalContext.current
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()

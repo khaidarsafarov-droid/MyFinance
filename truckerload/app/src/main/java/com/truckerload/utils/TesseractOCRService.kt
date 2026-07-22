@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import android.util.Log
 
 class TesseractOCRService(private val context: Context) {
 
@@ -48,7 +49,9 @@ class TesseractOCRService(private val context: Context) {
                 }
                 tessBase = tess
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("TL", "swallowed", e)
+            null
             null
         }
     }

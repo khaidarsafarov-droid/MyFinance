@@ -112,7 +112,7 @@ class SupabaseAuthService(private val appContext: Context) {
             if (!response.isSuccessful) {
                 val err = try {
                     JSONObject(responseBody).optString("error_description", responseBody)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     responseBody
                 }
                 return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_error, err)))
@@ -242,7 +242,7 @@ class SupabaseAuthService(private val appContext: Context) {
                     ?: try {
                         JSONObject(responseBody).optString("error_code").takeIf { it.isNotBlank() }
                             ?: JSONObject(responseBody).optString("code").takeIf { it.isNotBlank() }
-                    } catch (_: Exception) { null }
+                    } catch (e: Exception) { android.util.Log.w("TL", "swallowed", e); null }
                 val err = try {
                     JSONObject(responseBody).optString(
                         "msg",
@@ -251,7 +251,7 @@ class SupabaseAuthService(private val appContext: Context) {
                             JSONObject(responseBody).optString("message", responseBody),
                         ),
                     )
-                } catch (_: Exception) { responseBody }
+                } catch (e: Exception) { responseBody }
                 val friendly = mapSignUpError(err, errorCode, response.code)
                 return@withContext Result.failure(
                     AuthApiException(friendly, errorCode = errorCode, httpCode = response.code),
@@ -341,7 +341,7 @@ class SupabaseAuthService(private val appContext: Context) {
                 val errorCode = response.header("x-sb-error-code")
                 val err = try {
                     JSONObject(responseBody).optString("error_description", JSONObject(responseBody).optString("msg", responseBody))
-                } catch (_: Exception) { responseBody }
+                } catch (e: Exception) { responseBody }
                 val friendly = if (errorCode == "over_email_send_rate_limit" || response.code == 429) {
                     appContext.getString(R.string.auth_error_email_rate_limit)
                 } else {

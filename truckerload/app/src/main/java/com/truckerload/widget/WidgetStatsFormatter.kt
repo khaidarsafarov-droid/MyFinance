@@ -15,7 +15,7 @@ object WidgetStatsFormatter {
         String.format(Locale.US, "%.2f$", value)
 
     fun formatMiles(value: Double): String =
-        String.format(Locale.US, "%,.0f", value) + " миль"
+        String.format(Locale.US, "%,.0f", value) + " mi"
 
     /** Compact value for bento cell (no unit suffix — label carries context). */
     fun formatMilesShort(value: Double): String =
@@ -45,14 +45,14 @@ object WidgetStatsFormatter {
         }
     }
 
-    /** Pace as gross per active day, e.g. $607/день or $607.50/день */
+    /** Pace as gross per active day, e.g. $607/day or $607.50/day */
     fun formatDailyPace(value: Double): String {
-        if (value <= 0.0) return "$0/день"
+        if (value <= 0.0) return "$0/day"
         val hasFraction = kotlin.math.abs(value - value.toLong()) > 0.009
         return if (hasFraction) {
-            String.format(Locale.US, "$%,.2f/день", value)
+            String.format(Locale.US, "$%,.2f/day", value)
         } else {
-            String.format(Locale.US, "$%,.0f/день", value)
+            String.format(Locale.US, "$%,.0f/day", value)
         }
     }
 }

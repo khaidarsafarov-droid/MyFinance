@@ -85,7 +85,7 @@ private fun decodeGoogleIdToken(idToken: String): JSONObject? {
         if (parts.size != 3) return null
         val payload = String(Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP))
         JSONObject(payload)
-    } catch (_: Exception) { null }
+    } catch (e: Exception) { android.util.Log.w("TL", "swallowed", e); null }
 }
 
 /** Prefer Supabase/metadata avatar, then Google ID-token picture, then legacy account photo. */
