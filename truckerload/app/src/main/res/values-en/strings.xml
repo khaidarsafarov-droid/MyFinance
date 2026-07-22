@@ -240,6 +240,7 @@
     <string name="camera_finish_batch">Done (%1$d)</string>
     <string name="camera_batch_count">Photos: %1$d</string>
     <string name="camera_batch_title">Session (%1$d)</string>
+    <string name="camera_photo_preview">Photo preview</string>
     <string name="camera_add_another">Add more</string>
     <string name="camera_share_all">Share all</string>
     <string name="camera_save_all">Save all</string>
