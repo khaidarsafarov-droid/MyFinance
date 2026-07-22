@@ -17,5 +17,8 @@ GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.goog
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key
 
+# Google Drive backup (Settings → Google Drive): enable Drive API in Google Cloud
+# for the same project as GOOGLE_WEB_CLIENT_ID / Android OAuth client.
+
 # Не запускайте другой long-poll/webhook с тем же TELEGRAM_BOT_TOKEN —
 # Telegram отдаёт апдейты только одному клиенту.
