@@ -8,6 +8,7 @@ import com.truckerload.domain.model.Penalty
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
 
@@ -59,7 +60,8 @@ fun Load.toEntity(): LoadEntity {
         parsedAt = metrics.parsedAt,
         updatedAt = metrics.updatedAt,
         firstPuMillis = getFirstPickUpMillis(metrics),
-        lastDelMillis = getLastDeliveryMillis(metrics),
+        lastDelMillis = LoadYieldCalculator.resolveFinishMillis(metrics)
+            ?: getLastDeliveryMillis(metrics),
         route = metrics.route,
         firstPuCityState = metrics.firstPuCityState,
         lastDelCityState = metrics.lastDelCityState,

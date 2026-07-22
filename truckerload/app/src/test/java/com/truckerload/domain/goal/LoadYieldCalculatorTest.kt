@@ -43,6 +43,21 @@ class LoadYieldCalculatorTest {
         assertTrue(early.durationDays < fromStops.durationDays)
         assertTrue(early.pace > fromStops.pace)
         assertEquals(2.0, early.durationDays, 0.001)
+        assertEquals(1509.56, early.pace, 0.01)
+    }
+
+    @Test
+    fun `resolveFinishMillis prefers actualFinishDate over last DEL`() {
+        val stops = listOf(
+            stop(StopType.PU, "2026-07-17 05:58", "Atlanta", "GA"),
+            stop(StopType.DEL, "2026-07-20 18:00", "Aurora", "CO"),
+        )
+        val load = sampleLoad(stops = stops).copy(actualFinishDate = "2026-07-18")
+        val finishMs = LoadYieldCalculator.resolveFinishMillis(load)
+        val delMs = com.truckerload.utils.getLastDeliveryMillis(load)
+        assertTrue(finishMs != null)
+        assertTrue(delMs != null)
+        assertTrue(finishMs!! < delMs!!)
     }
 
     @Test
