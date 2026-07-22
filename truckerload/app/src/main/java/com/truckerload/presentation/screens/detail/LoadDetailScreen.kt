@@ -100,6 +100,7 @@ fun LoadDetailScreen(
     var loadError by remember(loadId) { mutableStateOf<String?>(null) }
     var isLoading by remember(loadId) { mutableStateOf(true) }
     var showFinishPicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     LaunchedEffect(loadId) {
         if (loadId.isBlank()) {
             loadError = context.resources.getString(R.string.load_invalid)
@@ -134,18 +135,7 @@ fun LoadDetailScreen(
                     IconButton(onClick = onEdit, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                         Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.load_detail_cd_edit), tint = tc.TextPrimary)
                     }
-                    IconButton(onClick = {
-                        scope.launch {
-                            try {
-                                loadRepository.deleteLoad(loadId)
-                                onDelete()
-                            } catch (e: Exception) {
-                                snackbarHostState.showSnackbar(
-                                    e.message ?: context.getString(R.string.load_delete_failed)
-                                )
-                            }
-                        }
-                    }, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
+                    IconButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                         Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.load_detail_cd_delete), tint = tc.AccentExpense)
                     }
                 },
@@ -402,6 +392,35 @@ fun LoadDetailScreen(
                 }
             }
         }
+    }
+    if (showDeleteConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.load_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.load_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    scope.launch {
+                        try {
+                            loadRepository.deleteLoad(loadId)
+                            onDelete()
+                        } catch (e: Exception) {
+                            snackbarHostState.showSnackbar(
+                                e.message ?: context.getString(R.string.load_delete_failed)
+                            )
+                        }
+                    }
+                }) {
+                    Text(stringResource(R.string.common_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
     }
 }
 

@@ -3,6 +3,7 @@ package com.truckerload.utils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Builds attachment file names from a load's Trip ID and date,
@@ -10,8 +11,8 @@ import java.util.Locale
  */
 object AttachmentNaming {
 
-    private val fallbackDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    private val timeFormat = SimpleDateFormat("HHmmss", Locale.US)
+    private val fallbackDateFormatRef = AtomicReference(SimpleDateFormat("yyyy-MM-dd", Locale.US))
+    private val timeFormatRef = AtomicReference(SimpleDateFormat("HHmmss", Locale.US))
 
     fun sanitize(part: String): String =
         part.trim()
@@ -27,11 +28,15 @@ object AttachmentNaming {
         extension: String,
     ): String {
         val datePart = loadDate.trim().ifBlank {
-            fallbackDateFormat.format(Date(timestamp))
+            synchronized(fallbackDateFormatRef) {
+                fallbackDateFormatRef.get().format(Date(timestamp))
+            }
         }
         val ext = extension.trimStart('.').ifBlank { "bin" }
         val base = "${sanitize(tripId)}_${sanitize(datePart)}"
-        val time = timeFormat.format(Date(timestamp))
+        val time = synchronized(timeFormatRef) {
+            timeFormatRef.get().format(Date(timestamp))
+        }
         return "${base}_${time}.$ext"
     }
 }

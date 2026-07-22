@@ -24,12 +24,17 @@ import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.widget.WidgetDataUpdater
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
+
 /** Результат CDC-синхронизации грузов. */
 data class SyncLoadsResult(
     val addedCount: Int,
@@ -65,10 +70,46 @@ class LoadRepository(private val db: AppDatabase) {
     /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
     fun watchLoads(): Flow<List<Load>> = getAllLoads()
 
-    /** SQL «двигатель эффективности» — реактивно при каждом insert/update loads. */
-    fun watchCurrentWeekYieldSnapshot(): Flow<WeekYieldSnapshot> {
-        val (weekNumber, year) = getCurrentWeekNumberAndYear()
-        return loadDao.watchWeekYieldAgg(weekNumber, year).map { it.toSnapshot() }
+    /** SQL «двигатель эффективности» — пересчитывает неделю при смене календарной недели. */
+    fun watchCurrentWeekYieldSnapshot(): Flow<WeekYieldSnapshot> =
+        flow {
+            while (true) {
+                emit(getCurrentWeekNumberAndYear())
+                delay(60_000L)
+            }
+        }
+            .distinctUntilChanged()
+            .flatMapLatest { (weekNumber, year) -> loadDao.watchWeekYieldAgg(weekNumber, year) }
+            .map { it.toSnapshot() }
+
+    /**
+     * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
+     * Safe to call periodically after imports/restores.
+     */
+    suspend fun cleanupOrphanAttachments(): Int {
+        val loadIds = loadDao.getAllLoadsOnce().map { it.id }.toSet()
+        var removed = 0
+        db.withTransaction {
+            val orphanPhotos = photoDao.getAllPhotosOnce().filter { photo ->
+                val id = photo.loadId
+                !id.isNullOrBlank() && id !in loadIds
+            }
+            orphanPhotos.forEach { photo ->
+                photoDao.deleteById(photo.id)
+                runCatching { File(photo.filePath).delete() }
+                removed++
+            }
+            val orphanScans = scanDao.getAllScansOnce().filter { scan ->
+                val id = scan.loadId
+                !id.isNullOrBlank() && id !in loadIds
+            }
+            orphanScans.forEach { scan ->
+                scanDao.deleteById(scan.id)
+                runCatching { File(scan.filePath).delete() }
+                removed++
+            }
+        }
+        return removed
     }
 
     fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =

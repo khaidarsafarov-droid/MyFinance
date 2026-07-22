@@ -259,18 +259,18 @@ internal fun parseIsoDateParts(dateStr: String): Triple<Int, Int, Int>? {
     return Triple(year, month, day)
 }
 
-/** Epoch millis for YYYY-MM-DD at start of day (local). */
-fun dateStringToStartOfDayMillis(dateStr: String): Long {
-    val (year, month, day) = parseIsoDateParts(dateStr) ?: return System.currentTimeMillis()
+/** Epoch millis for YYYY-MM-DD at start of day (local). Null if parse fails. */
+fun dateStringToStartOfDayMillis(dateStr: String): Long? {
+    val (year, month, day) = parseIsoDateParts(dateStr) ?: return null
     val cal = Calendar.getInstance(Locale.getDefault())
     cal.set(year, month - 1, day, 0, 0, 0)
     cal.set(Calendar.MILLISECOND, 0)
     return cal.timeInMillis
 }
 
-/** Epoch millis for YYYY-MM-DD at end of day (local). */
-fun dateStringToEndOfDayMillis(dateStr: String): Long {
-    val (year, month, day) = parseIsoDateParts(dateStr) ?: return System.currentTimeMillis()
+/** Epoch millis for YYYY-MM-DD at end of day (local). Null if parse fails. */
+fun dateStringToEndOfDayMillis(dateStr: String): Long? {
+    val (year, month, day) = parseIsoDateParts(dateStr) ?: return null
     val cal = Calendar.getInstance(Locale.getDefault())
     cal.set(year, month - 1, day, 23, 59, 59)
     cal.set(Calendar.MILLISECOND, 999)

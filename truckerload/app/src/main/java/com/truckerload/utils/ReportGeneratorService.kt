@@ -95,7 +95,7 @@ class ReportGeneratorService(private val context: Context) {
     suspend fun generatePdf(params: ReportParams): Uri? = withContext(Dispatchers.IO) {
         try {
             val dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
-                ?: context.filesDir
+                ?: File(context.getExternalFilesDir(null), "exports").also { it.mkdirs() }
             val safeLabel = params.periodLabel.replace(Regex("[^\\p{L}0-9\\s-]"), "_")
             val fileName = "${BrandConstants.FILE_PREFIX}_Report_${safeLabel}_${System.currentTimeMillis()}.pdf"
             val file = File(dir, fileName)

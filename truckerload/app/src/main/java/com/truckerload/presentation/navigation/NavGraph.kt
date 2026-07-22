@@ -102,10 +102,10 @@ object Routes {
     const val PHOTO_GALLERY = "photo_gallery"
     const val PHOTO_DETAIL = "photo_detail/{photoId}"
 
-    fun loadDetail(loadId: String) = "load_detail/$loadId"
-    fun editLoad(loadId: String) = "edit_load/$loadId"
-    fun photoDetail(photoId: String) = "photo_detail/$photoId"
-    fun socialChat(chatId: String) = "social_chat/$chatId"
+    fun loadDetail(loadId: String) = "load_detail/${encodePathSegment(loadId)}"
+    fun editLoad(loadId: String) = "edit_load/${encodePathSegment(loadId)}"
+    fun photoDetail(photoId: String) = "photo_detail/${encodePathSegment(photoId)}"
+    fun socialChat(chatId: String) = "social_chat/${encodePathSegment(chatId)}"
     fun cameraForLoad(loadId: String, tripId: String, loadDate: String): String {
         return "camera_load/${encodePathSegment(loadId)}/${encodePathSegment(tripId)}/${encodePathSegment(loadDate)}"
     }
@@ -124,8 +124,8 @@ object Routes {
     const val GROUPS = "groups"
     const val GROUP_DETAIL = "group_detail/{chatId}"
 
-    fun groupDetail(chatId: String) = "group_detail/$chatId"
-    fun peerProfile(peerId: String) = "profile_peer/$peerId"
+    fun groupDetail(chatId: String) = "group_detail/${encodePathSegment(chatId)}"
+    fun peerProfile(peerId: String) = "profile_peer/${encodePathSegment(peerId)}"
 
     fun voiceRoom(roomId: String) = "voice_room/$roomId"
     fun call(callId: String) = "call/$callId"
@@ -474,7 +474,7 @@ fun NavGraph(
                 route = Routes.LOAD_DETAIL,
                 arguments = listOf(navArgument("loadId") { type = NavType.StringType })
             ) { backStackEntry ->
-                val loadId = backStackEntry.arguments?.getString("loadId").orEmpty()
+                val loadId = Uri.decode(backStackEntry.arguments?.getString("loadId").orEmpty())
                 LoadDetailScreen(
                     loadId = loadId,
                     onBack = { navController.popBackStack() },
@@ -503,7 +503,7 @@ fun NavGraph(
                 route = Routes.EDIT_LOAD,
                 arguments = listOf(navArgument("loadId") { type = NavType.StringType })
             ) { editBackStackEntry ->
-                val loadId = editBackStackEntry.arguments?.getString("loadId").orEmpty()
+                val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
                 val loadRepository = LocalLoadRepository.current
                 val isBotConfigured = TelegramTokenStore(context).hasToken()
                 val homeEntry = remember(editBackStackEntry) {
@@ -528,12 +528,7 @@ fun NavGraph(
             }
             composable(Routes.CAMERA) {
                 CameraFlowScreen(
-                    onFinished = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.HOME) { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    },
+                    onFinished = { navController.popBackStack() },
                     onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
                 )
             }
@@ -551,9 +546,13 @@ fun NavGraph(
                     .takeIf { it != "_" }.orEmpty()
                 CameraFlowScreen(
                     onFinished = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.HOME) { inclusive = false }
-                            launchSingleTop = true
+                        if (loadId.isNotBlank() && loadId != "_") {
+                            navController.popBackStack()
+                            navController.navigate(Routes.loadDetail(loadId)) {
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.popBackStack()
                         }
                     },
                     onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },

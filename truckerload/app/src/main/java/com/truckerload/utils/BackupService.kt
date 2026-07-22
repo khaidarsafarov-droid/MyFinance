@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
+import androidx.room.withTransaction
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.truckerload.R
@@ -14,18 +16,24 @@ import com.truckerload.data.local.toEntity
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
-import android.util.Log
+import com.truckerload.data.repository.PhotoRepository
+import com.truckerload.data.repository.ScanRepository
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicReference
 
 object BackupService {
 
@@ -33,10 +41,13 @@ object BackupService {
     private const val AUTO_BACKUP_SUBDIR = "backups/auto"
     private const val DEFAULT_KEEP_COUNT = 5
     private const val TAG = "BackupRestore"
+    private const val AUTO_BACKUP_DEBOUNCE_MS = 45_000L
 
     private val gson: Gson = GsonBuilder().create()
     private val autoBackupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val autoBackupTimestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+    private val autoBackupTimestampRef = AtomicReference(SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US))
+    private val autoBackupMutex = Mutex()
+    @Volatile private var pendingAutoBackupJob: Job? = null
 
     data class CreateResult(
         val save: StorageHelper.SaveResult,
@@ -44,12 +55,16 @@ object BackupService {
         val visibleText: String
     )
 
-    /** Запускает авто-бэкап в фоне (не блокирует UI). */
+    /** Debounced auto-backup (coalesces rapid load edits into one write). */
     fun scheduleCreateAutoBackup(context: Context) {
         val appContext = context.applicationContext
-        autoBackupScope.launch {
-            runCatching { createAutoBackup(appContext) }
-                .onFailure { e -> Log.e(TAG, "createAutoBackup failed", e) }
+        pendingAutoBackupJob?.cancel()
+        pendingAutoBackupJob = autoBackupScope.launch {
+            delay(AUTO_BACKUP_DEBOUNCE_MS)
+            autoBackupMutex.withLock {
+                runCatching { createAutoBackup(appContext) }
+                    .onFailure { e -> Log.e(TAG, "createAutoBackup failed", e) }
+            }
         }
     }
 
@@ -75,7 +90,7 @@ object BackupService {
         )
         val json = gson.toJson(backup)
         val dir = autoBackupDir(appContext).apply { mkdirs() }
-        val fileName = "auto_backup_${autoBackupTimestamp.format(Date())}.tlb"
+        val fileName = "auto_backup_${formatAutoBackupTimestamp()}.tlb"
         File(dir, fileName).writeText(json, Charsets.UTF_8)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
         Log.d(TAG, "createAutoBackup saved $fileName (${loads.size} loads)")
@@ -325,18 +340,27 @@ object BackupService {
         val paycheckDao = db.paycheckDao()
         val dieselDao = db.dieselDao()
 
-        dieselDao.deleteAll()
-        paycheckDao.deleteAll()
-        loadDao.deleteAll()
+        db.withTransaction {
+            PhotoRepository(db).deleteAllPhotosAndFiles()
+            ScanRepository(db).deleteAllScansAndFiles()
+            dieselDao.deleteAll()
+            paycheckDao.deleteAll()
+            loadDao.deleteAll()
 
-        backup.loads.forEach { load ->
-            loadDao.insert(load.toEntity())
-            if (load.stops.isNotEmpty()) stopDao.insertAll(load.stops.map { it.toEntity(load.id) })
-            if (load.penalties.isNotEmpty()) penaltyDao.insertAll(load.penalties.map { it.toEntity(load.id) })
+            backup.loads.forEach { load ->
+                loadDao.insert(load.toEntity())
+                if (load.stops.isNotEmpty()) stopDao.insertAll(load.stops.map { it.toEntity(load.id) })
+                if (load.penalties.isNotEmpty()) penaltyDao.insertAll(load.penalties.map { it.toEntity(load.id) })
+            }
+            if (backup.paychecks.isNotEmpty()) paycheckDao.insertAll(backup.paychecks.map { it.toEntity() })
+            if (backup.diesel.isNotEmpty()) dieselDao.insertAll(backup.diesel.map { it.toEntity() })
         }
-        if (backup.paychecks.isNotEmpty()) paycheckDao.insertAll(backup.paychecks.map { it.toEntity() })
-        if (backup.diesel.isNotEmpty()) dieselDao.insertAll(backup.diesel.map { it.toEntity() })
 
         return Result.success(backup)
     }
+
+    private fun formatAutoBackupTimestamp(): String =
+        synchronized(autoBackupTimestampRef) {
+            autoBackupTimestampRef.get().format(Date())
+        }
 }

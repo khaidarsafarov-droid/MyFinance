@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import androidx.exifinterface.media.ExifInterface
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -40,13 +41,40 @@ data class CameraUiState(
     val saveSuccess: Boolean = false,
     /** Trip ID used for watermark / filenames (from load card or latest load). */
     val watermarkTripId: String? = null,
+    val confirmDiscardAttached: Boolean = false,
 )
 
-private data class CameraAttachContext(
+/** Resolves which load a camera session should attach to (pure for unit tests). */
+data class CameraAttachContext(
     val loadId: String?,
     val tripId: String?,
     val loadDate: String?,
-)
+) {
+    companion object {
+        fun fromExplicit(
+            attachLoadId: String?,
+            attachTripId: String?,
+            attachLoadDate: String?,
+        ): CameraAttachContext? {
+            if (attachLoadId.isNullOrBlank() && attachTripId.isNullOrBlank()) return null
+            return CameraAttachContext(
+                loadId = attachLoadId?.takeIf { it.isNotBlank() },
+                tripId = attachTripId?.takeIf { it.isNotBlank() },
+                loadDate = attachLoadDate?.takeIf { it.isNotBlank() },
+            )
+        }
+
+        fun fromLatestLoad(
+            loadId: String?,
+            tripId: String?,
+            loadDate: String?,
+        ): CameraAttachContext = CameraAttachContext(
+            loadId = loadId?.takeIf { it.isNotBlank() },
+            tripId = tripId?.takeIf { it.isNotBlank() },
+            loadDate = loadDate?.takeIf { it.isNotBlank() },
+        )
+    }
+}
 
 class CameraViewModel(
     private val app: Application,
@@ -79,18 +107,12 @@ class CameraViewModel(
     }
 
     private suspend fun resolveAttachContext(): CameraAttachContext {
-        if (!attachLoadId.isNullOrBlank() || !attachTripId.isNullOrBlank()) {
-            return CameraAttachContext(
-                loadId = attachLoadId?.takeIf { it.isNotBlank() },
-                tripId = attachTripId?.takeIf { it.isNotBlank() },
-                loadDate = attachLoadDate?.takeIf { it.isNotBlank() },
-            )
-        }
+        CameraAttachContext.fromExplicit(attachLoadId, attachTripId, attachLoadDate)?.let { return it }
         // Widget / drawer camera: use the most recently added load.
         val latest = runCatching { loadRepository.getAllLoadsOnce().firstOrNull() }.getOrNull()
-        return CameraAttachContext(
-            loadId = latest?.id?.takeIf { it.isNotBlank() },
-            tripId = latest?.tripId?.takeIf { it.isNotBlank() },
+        return CameraAttachContext.fromLatestLoad(
+            loadId = latest?.id,
+            tripId = latest?.tripId,
             loadDate = latest?.effectiveFinishDate()
                 ?: latest?.date?.takeIf { it.length >= 10 },
         )
@@ -111,6 +133,7 @@ class CameraViewModel(
         }
         if (previous.isProcessing) {
             imageFile.delete()
+            _uiState.update { it.copy(errorMessage = "busy") }
             return
         }
         viewModelScope.launch {
@@ -118,19 +141,14 @@ class CameraViewModel(
             try {
                 val ctx = attachContext.await()
                 bitmap = decodeBitmap(imageFile) ?: run {
+                    Log.w(TAG, "Failed to decode captured image: ${imageFile.absolutePath}")
                     _uiState.update {
                         it.copy(isProcessing = false, errorMessage = "decode_failed")
                     }
                     return@launch
                 }
                 val timestamp = System.currentTimeMillis()
-                val location = locationHelper.getCurrentLocation() ?: LocationData(
-                    latitude = 0.0,
-                    longitude = 0.0,
-                    city = "",
-                    state = "",
-                    zipCode = "",
-                )
+                val location = locationHelper.getCurrentLocation() ?: LocationData()
                 val savedFile = photoManager.savePhoto(
                     bitmap = bitmap,
                     locationData = location,
@@ -150,8 +168,8 @@ class CameraViewModel(
                     val entity = photoRepository.savePhoto(
                         fileName = photo.file.name,
                         filePath = photo.file.absolutePath,
-                        latitude = photo.locationData.latitude,
-                        longitude = photo.locationData.longitude,
+                        latitude = photo.locationData.latitude ?: 0.0,
+                        longitude = photo.locationData.longitude ?: 0.0,
                         city = photo.locationData.city,
                         state = photo.locationData.state,
                         zipCode = photo.locationData.zipCode,
@@ -167,7 +185,8 @@ class CameraViewModel(
                         watermarkTripId = ctx.tripId,
                     )
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save captured photo", e)
                 bitmap?.recycle()
                 _uiState.update {
                     it.copy(isProcessing = false, errorMessage = "save_failed")
@@ -204,10 +223,31 @@ class CameraViewModel(
         }
     }
 
-    fun discardSession() {
+    fun requestDiscardSession() {
+        val hasAttached = _uiState.value.sessionPhotos.any { it.savedToDb }
+        if (hasAttached && isAttachedToLoad) {
+            _uiState.update { it.copy(confirmDiscardAttached = true) }
+        } else {
+            discardSession()
+        }
+    }
+
+    fun dismissDiscardConfirm() {
+        _uiState.update { it.copy(confirmDiscardAttached = false) }
+    }
+
+    fun confirmDiscardSession() {
+        _uiState.update { it.copy(confirmDiscardAttached = false) }
+        discardSession(removeAttached = true)
+    }
+
+    fun discardSession(removeAttached: Boolean = false) {
         _uiState.value.sessionPhotos.forEach { photo ->
-            if (!photo.savedToDb) {
+            if (!photo.savedToDb || removeAttached) {
                 photo.file.delete()
+                if (photo.savedToDb && photo.dbId != null) {
+                    viewModelScope.launch { photoRepository.deletePhoto(photo.dbId) }
+                }
             }
         }
         _uiState.update { CameraUiState(watermarkTripId = it.watermarkTripId) }
@@ -259,8 +299,8 @@ class CameraViewModel(
                 val entity = photoRepository.savePhoto(
                     fileName = photo.file.name,
                     filePath = photo.file.absolutePath,
-                    latitude = photo.locationData.latitude,
-                    longitude = photo.locationData.longitude,
+                    latitude = photo.locationData.latitude ?: 0.0,
+                    longitude = photo.locationData.longitude ?: 0.0,
                     city = photo.locationData.city,
                     state = photo.locationData.state,
                     zipCode = photo.locationData.zipCode,
@@ -272,7 +312,8 @@ class CameraViewModel(
             _uiState.update {
                 it.copy(sessionPhotos = updated, isProcessing = false)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to persist session photos", e)
             _uiState.update {
                 it.copy(isProcessing = false, errorMessage = "save_failed")
             }
@@ -298,7 +339,8 @@ class CameraViewModel(
             Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true).also {
                 if (it !== original) original.recycle()
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "EXIF orientation failed; using original", e)
             original
         }
     }
@@ -322,5 +364,9 @@ class CameraViewModel(
                 attachLoadDate = attachLoadDate,
             ) as T
         }
+    }
+
+    companion object {
+        private const val TAG = "CameraViewModel"
     }
 }

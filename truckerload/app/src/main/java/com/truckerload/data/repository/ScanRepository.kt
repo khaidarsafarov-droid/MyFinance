@@ -39,11 +39,24 @@ class ScanRepository(private val db: AppDatabase) {
     }
 
     suspend fun deleteScan(id: String) {
-        val existing = scanDao.getAllScansOnce().find { it.id == id }
+        val existing = scanDao.getById(id)
         scanDao.deleteById(id)
         existing?.filePath?.takeIf { it.isNotBlank() }?.let { path ->
             runCatching { File(path).delete() }
         }
+    }
+
+    /** Deletes PDF files under scans/ that are not referenced by any DB row. */
+    suspend fun cleanupOrphanScanFiles(scansDir: File): Int {
+        if (!scansDir.isDirectory) return 0
+        val known = scanDao.getAllScansOnce().map { it.filePath }.toHashSet()
+        var removed = 0
+        scansDir.listFiles()?.forEach { file ->
+            if (file.isFile && file.absolutePath !in known) {
+                if (file.delete()) removed++
+            }
+        }
+        return removed
     }
 
     suspend fun deleteScansForLoad(loadId: String) {

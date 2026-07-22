@@ -473,7 +473,7 @@ private fun HomeScreenContent(
                             onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
                             onDelete = {
                                 if (item.load.id.isNotBlank()) {
-                                    viewModel.deleteLoad(item.load.id)
+                                    viewModel.requestDeleteLoad(item.load.id)
                                 }
                             },
                             rpmThresholds = rpmThresholds,
@@ -514,6 +514,25 @@ private fun HomeScreenContent(
         }
         PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
+
+    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsState()
+    if (pendingDeleteId != null) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDeleteLoad,
+            title = { Text(stringResource(R.string.load_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.load_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmDeleteLoad) {
+                    Text(stringResource(R.string.common_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDeleteLoad) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
     }
 }
 

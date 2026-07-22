@@ -133,7 +133,7 @@ fun ScannerFlowScreen(
                 }
             }
             uiState.statusMessage?.startsWith("scan_saved_phone:") == true -> {
-                val path = uiState.statusMessage!!.removePrefix("scan_saved_phone:")
+                val path = uiState.statusMessage.orEmpty().removePrefix("scan_saved_phone:")
                 snackbarHostState.showSnackbar(context.getString(R.string.scan_saved_to_phone, path))
                 viewModel.clearStatus()
             }
@@ -152,28 +152,31 @@ fun ScannerFlowScreen(
                     )
                 }
                 uiState.pendingScan != null -> {
-                    ScanResultScreen(
-                        pending = uiState.pendingScan!!,
-                        sessionCount = uiState.sessionScans.size,
-                        onSaveToApp = viewModel::saveToApp,
-                        onSaveToPhone = viewModel::saveToPhone,
-                        onShare = {
-                            val file = viewModel.mergedShareFile()
-                            if (file != null) {
-                                ShareHelperWrapper.share(context, file)
-                            } else {
-                                viewModel.onShareUnavailable()
-                            }
-                        },
-                        onAddAnother = viewModel::requestAnotherScan,
-                        onOpenGallery = {
-                            viewModel.saveThenOpenGallery(onOpenGallery)
-                        },
-                        onClose = {
-                            viewModel.clearPendingScan()
-                            onFinished()
-                        },
-                    )
+                    val pending = uiState.pendingScan
+                    if (pending != null) {
+                        ScanResultScreen(
+                            pending = pending,
+                            sessionCount = uiState.sessionScans.size,
+                            onSaveToApp = viewModel::saveToApp,
+                            onSaveToPhone = viewModel::saveToPhone,
+                            onShare = {
+                                val file = viewModel.mergedShareFile()
+                                if (file != null) {
+                                    ShareHelperWrapper.share(context, file)
+                                } else {
+                                    viewModel.onShareUnavailable()
+                                }
+                            },
+                            onAddAnother = viewModel::requestAnotherScan,
+                            onOpenGallery = {
+                                viewModel.saveThenOpenGallery(onOpenGallery)
+                            },
+                            onClose = {
+                                viewModel.clearPendingScan()
+                                onFinished()
+                            },
+                        )
+                    }
                 }
                 activity == null || !DocumentScannerService.isAvailable(context) -> {
                     val gmsUnavailable = activity != null && !DocumentScannerService.isAvailable(context)

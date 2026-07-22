@@ -31,13 +31,19 @@ object WidgetStatsLoader {
         )
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
         val (_, _, weekLabel) = getWeekRange(weekNumber, year)
-        val allLoads = loadRepository.getAllLoadsOnce()
+        val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
         val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)
         val profitGoal = WeeklyProfitGoalStore(appContext).getGoal().takeIf { it > 0 }
             ?: DEFAULT_WEEKLY_GROSS_GOAL
-        val goalProgress = WeeklyGoalCalculator.calculateCurrentWeek(profitGoal, allLoads, sqlYield)
+        val goalProgress = WeeklyGoalCalculator.calculate(
+            profitGoal,
+            weekLoads,
+            weekNumber,
+            year,
+            sqlYield,
+        )
         val rpmTarget = appContext.getSharedPreferences("truckerload_settings", Context.MODE_PRIVATE)
             .getFloat("target_profit_threshold", 2.5f)
             .toDouble()

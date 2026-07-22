@@ -19,6 +19,9 @@ interface ScanDao {
     @Query("SELECT * FROM scans")
     suspend fun getAllScansOnce(): List<ScanEntity>
 
+    @Query("SELECT * FROM scans WHERE id = :id")
+    suspend fun getById(id: String): ScanEntity?
+
     @Query("SELECT * FROM scans WHERE loadId = :loadId ORDER BY timestamp DESC")
     fun getScansByLoadId(loadId: String): Flow<List<ScanEntity>>
 

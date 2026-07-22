@@ -216,6 +216,15 @@
     <string name="take_photo">Take photo</string>
     <string name="photo_saved">Photo saved</string>
     <string name="photo_save_error">Failed to save photo</string>
+    <string name="photo_decode_error">Could not read photo</string>
+    <string name="camera_busy">Camera is busy, please wait</string>
+    <string name="camera_bind_error">Could not start camera</string>
+    <string name="camera_continue_without_gps">You can continue without GPS — coordinates will be skipped</string>
+    <string name="camera_discard_attached_title">Remove photos from load?</string>
+    <string name="camera_discard_attached_message">Photos are already attached to this load. Cancel will delete them.</string>
+    <string name="load_delete_confirm_title">Delete load?</string>
+    <string name="load_delete_confirm_message">The load and linked photos/scans will be deleted.</string>
+    <string name="social_demo_peer_suffix"> (demo)</string>
     <string name="photo_gallery">Photo gallery</string>
     <string name="no_photos">📭 No saved photos</string>
     <string name="photo_linked">✅ Photo linked to load</string>
@@ -965,4 +974,13 @@
     <string name="social_peer_not_found">Driver not found</string>
     <string name="social_recommended_groups">Recommended groups</string>
     <string name="social_voice_status">Voice status</string>
+    <string name="dispute_section_title">Dispute</string>
+    <string name="dispute_checkbox_label">Dispute</string>
+    <string name="dispute_active">In dispute</string>
+    <string name="dispute_was_dispute">Was disputed</string>
+    <string name="dispute_response_date_title">Response date</string>
+    <string name="dispute_response_date_label">Response date: %1$s</string>
+    <string name="dispute_completed_checkbox">Completed</string>
+
+
 </resources>
