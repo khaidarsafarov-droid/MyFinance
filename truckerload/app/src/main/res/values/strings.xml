@@ -1016,4 +1016,14 @@
     <string name="notification_permission_required">Разрешите уведомления, чтобы бот Telegram работал в фоне</string>
     <string name="notification_permission_rationale">Уведомления нужны для фоновой синхронизации с Telegram (Android 13+)</string>
     <string name="home_calendar_select_week">Выбрать неделю этой даты</string>
+    <string name="social_error_empty_message">Пустое сообщение</string>
+    <string name="social_error_message_rejected">Сообщение отклонено</string>
+    <string name="social_error_chat_not_found">Чат не найден</string>
+    <string name="social_error_cannot_message_self">Нельзя написать самому себе</string>
+    <string name="social_error_new_group_title">Новая группа</string>
+    <string name="social_error_group_not_found">Группа не найдена</string>
+    <string name="social_error_group_code_not_found">Группа с таким кодом не найдена</string>
+    <string name="social_error_cannot_follow_self">Нельзя подписаться на себя</string>
+    <string name="social_challenge_king_miles_title">Король миль</string>
+    <string name="social_challenge_king_miles_desc">Кто проедет больше всех миль за неделю %1$d/%2$d</string>
 </resources>

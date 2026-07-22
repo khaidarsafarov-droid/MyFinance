@@ -206,7 +206,14 @@ class HomeViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
-    /** Windowed journal rows for large filtered sets (Paging 3). */
+    /**
+     * Windowed journal rows for large filtered sets (Paging 3).
+     *
+     * Note: [HomeScreen] still renders [flattenedListItems] so year/month section headers
+     * stay correct. This Flow pages an already-filtered in-memory list (does not reduce
+     * Room hydrate cost). Prefer Room `PagingSource` + SQL filters for true memory wins;
+     * keep this for alternate UIs / tests until that lands.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     val filteredLoadsPaging: Flow<PagingData<Load>> = filteredLoadsAndTotals
         .map { it.loads }

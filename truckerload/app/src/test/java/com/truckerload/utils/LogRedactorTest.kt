@@ -19,4 +19,12 @@ class LogRedactorTest {
         val jwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.signature"
         assertEquals("***jwt***", LogRedactor.redact(jwt))
     }
+
+    @Test
+    fun redactsBearerToken() {
+        val raw = "Authorization: Bearer supersecrettokenvalue123"
+        val redacted = LogRedactor.redact(raw)
+        assertFalse(redacted.contains("supersecrettokenvalue123"))
+        assertTrue(redacted.contains("Bearer ***"))
+    }
 }

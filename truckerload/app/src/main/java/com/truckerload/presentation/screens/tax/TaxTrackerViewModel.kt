@@ -68,7 +68,9 @@ class TaxTrackerViewModel(
             val diesel = dieselRepository.getDieselForYear(year)
             val loads = loadRepository.getLoadsByYear(year)
 
-            val totalGross = paychecks.sumOf { it.netAmount }
+            val totalGross = paychecks.sumOf { paycheck ->
+                paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
+            }
             val dieselDed = diesel.sumOf { it.totalAmount }
             // Active days per load (min 1), summed — better than counting loads as days.
             val perDiemDays = loads.sumOf {
@@ -133,18 +135,17 @@ class TaxTrackerViewModel(
     }
 
     private fun getNextQuarterlyDate(): Pair<Int, String> {
-        val cal = Calendar.getInstance()
-        val today = cal.get(Calendar.DAY_OF_YEAR)
-        val todayYear = cal.get(Calendar.YEAR)
+        val todayCal = Calendar.getInstance()
+        val todayYear = todayCal.get(Calendar.YEAR)
         for ((month, day, label) in QUARTERLY_DATES) {
             val qCal = Calendar.getInstance().apply {
+                clear()
+                set(Calendar.YEAR, if (month == 1) todayYear + 1 else todayYear)
                 set(Calendar.MONTH, month - 1)
                 set(Calendar.DAY_OF_MONTH, day)
-                set(Calendar.YEAR, if (month == 1) todayYear + 1 else todayYear)
             }
-            val qDay = qCal.get(Calendar.DAY_OF_YEAR)
-            val qYear = qCal.get(Calendar.YEAR)
-            val daysUntil = (qYear - todayYear) * 365 + (qDay - today)
+            val millisUntil = qCal.timeInMillis - todayCal.timeInMillis
+            val daysUntil = ((millisUntil + 23 * 60 * 60 * 1000L) / (24 * 60 * 60 * 1000L)).toInt()
             if (daysUntil > 0) {
                 return Pair(daysUntil, "$label ${month}/$day")
             }

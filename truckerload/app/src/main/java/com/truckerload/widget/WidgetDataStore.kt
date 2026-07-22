@@ -2,10 +2,16 @@ package com.truckerload.widget
 
 import android.content.Context
 import androidx.core.content.edit
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.DEFAULT_WEEKLY_GROSS_GOAL
 
+/**
+ * Cached widget stats, scoped per active account so account switch does not show
+ * another user's week totals.
+ */
 object WidgetDataStore {
-    private const val PREFS = "truckerload_widget"
+    private const val LEGACY_PREFS = "truckerload_widget"
     private const val KEY_LOADS = "loads_count"
     private const val KEY_CPM = "avg_cpm"
     private const val KEY_MILES = "total_miles"
@@ -24,31 +30,66 @@ object WidgetDataStore {
     private const val KEY_ACTIVE_DAYS = "total_active_days"
     private const val KEY_UPDATED = "updated_at"
 
+    private fun prefs(context: Context): android.content.SharedPreferences {
+        val userId = AuthStore(context).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV
+        val name = "truckerload_widget_${AccountIds.sanitizeFilePart(userId)}"
+        return context.applicationContext.getSharedPreferences(name, Context.MODE_PRIVATE).also { scoped ->
+            migrateFromLegacyIfEmpty(context.applicationContext, scoped)
+        }
+    }
+
+    private fun migrateFromLegacyIfEmpty(
+        context: Context,
+        scoped: android.content.SharedPreferences,
+    ) {
+        if (scoped.contains(KEY_UPDATED) || scoped.contains(KEY_LOADS)) return
+        val legacy = context.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE)
+        if (legacy.all.isEmpty()) return
+        scoped.edit {
+            putInt(KEY_LOADS, legacy.getInt(KEY_LOADS, 0))
+            putFloat(KEY_CPM, legacy.getFloat(KEY_CPM, 0f))
+            putFloat(KEY_MILES, legacy.getFloat(KEY_MILES, 0f))
+            putFloat(KEY_TOTAL, legacy.getFloat(KEY_TOTAL, 0f))
+            putFloat(KEY_NET, legacy.getFloat(KEY_NET, 0f))
+            putString(KEY_WEEK, legacy.getString(KEY_WEEK, "").orEmpty())
+            putString(KEY_STATS_LINE, legacy.getString(KEY_STATS_LINE, "").orEmpty())
+            putFloat(KEY_CPM_TARGET, legacy.getFloat(KEY_CPM_TARGET, 2.5f))
+            putFloat(KEY_PROFIT_GOAL, legacy.getFloat(KEY_PROFIT_GOAL, DEFAULT_WEEKLY_GROSS_GOAL.toFloat()))
+            putFloat(KEY_GOAL_PROGRESS, legacy.getFloat(KEY_GOAL_PROGRESS, 0f))
+            putFloat(KEY_GOAL_REMAINING, legacy.getFloat(KEY_GOAL_REMAINING, 0f))
+            putFloat(KEY_GOAL_DAILY, legacy.getFloat(KEY_GOAL_DAILY, 0f))
+            putFloat(KEY_GOAL_ACTUAL, legacy.getFloat(KEY_GOAL_ACTUAL, 0f))
+            putInt(KEY_GOAL_DAYS, legacy.getInt(KEY_GOAL_DAYS, 0))
+            putString(KEY_GOAL_PACE, legacy.getString(KEY_GOAL_PACE, "").orEmpty())
+            putFloat(KEY_ACTIVE_DAYS, legacy.getFloat(KEY_ACTIVE_DAYS, 0f))
+            putLong(KEY_UPDATED, legacy.getLong(KEY_UPDATED, 0L))
+        }
+    }
+
     fun save(context: Context, stats: WidgetStats) {
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit(commit = true) {
-                putInt(KEY_LOADS, stats.loadsCount)
-                putFloat(KEY_CPM, stats.avgCpm.toFloat())
-                putFloat(KEY_MILES, stats.totalMiles.toFloat())
-                putFloat(KEY_TOTAL, stats.totalLoadRate.toFloat())
-                putFloat(KEY_NET, stats.netProfit.toFloat())
-                putString(KEY_WEEK, stats.weekLabel)
-                putString(KEY_STATS_LINE, stats.statsLine)
-                putFloat(KEY_CPM_TARGET, stats.cpmTarget.toFloat())
-                putFloat(KEY_PROFIT_GOAL, stats.weeklyProfitGoal.toFloat())
-                putFloat(KEY_GOAL_PROGRESS, stats.goalProgressPercent)
-                putFloat(KEY_GOAL_REMAINING, stats.goalRemainingAmount.toFloat())
-                putFloat(KEY_GOAL_DAILY, stats.goalDailyNeeded.toFloat())
-                putFloat(KEY_GOAL_ACTUAL, stats.goalActualDailyYield.toFloat())
-                putInt(KEY_GOAL_DAYS, stats.goalDaysRemaining)
-                putString(KEY_GOAL_PACE, stats.goalPaceStatus)
-                putFloat(KEY_ACTIVE_DAYS, stats.totalActiveDays.toFloat())
-                putLong(KEY_UPDATED, stats.updatedAtMillis)
-            }
+        prefs(context).edit(commit = true) {
+            putInt(KEY_LOADS, stats.loadsCount)
+            putFloat(KEY_CPM, stats.avgCpm.toFloat())
+            putFloat(KEY_MILES, stats.totalMiles.toFloat())
+            putFloat(KEY_TOTAL, stats.totalLoadRate.toFloat())
+            putFloat(KEY_NET, stats.netProfit.toFloat())
+            putString(KEY_WEEK, stats.weekLabel)
+            putString(KEY_STATS_LINE, stats.statsLine)
+            putFloat(KEY_CPM_TARGET, stats.cpmTarget.toFloat())
+            putFloat(KEY_PROFIT_GOAL, stats.weeklyProfitGoal.toFloat())
+            putFloat(KEY_GOAL_PROGRESS, stats.goalProgressPercent)
+            putFloat(KEY_GOAL_REMAINING, stats.goalRemainingAmount.toFloat())
+            putFloat(KEY_GOAL_DAILY, stats.goalDailyNeeded.toFloat())
+            putFloat(KEY_GOAL_ACTUAL, stats.goalActualDailyYield.toFloat())
+            putInt(KEY_GOAL_DAYS, stats.goalDaysRemaining)
+            putString(KEY_GOAL_PACE, stats.goalPaceStatus)
+            putFloat(KEY_ACTIVE_DAYS, stats.totalActiveDays.toFloat())
+            putLong(KEY_UPDATED, stats.updatedAtMillis)
+        }
     }
 
     fun load(context: Context): WidgetStats {
-        val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val prefs = prefs(context)
         return WidgetStats(
             loadsCount = prefs.getInt(KEY_LOADS, 0),
             avgCpm = prefs.getFloat(KEY_CPM, 0f).toDouble(),

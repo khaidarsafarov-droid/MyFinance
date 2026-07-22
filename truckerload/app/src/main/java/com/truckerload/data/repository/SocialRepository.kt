@@ -447,11 +447,13 @@ class SocialRepository(
     ): SocialResult<Unit> = runCatching {
         val trimmed = text.trim()
         if (trimmed.isEmpty() && attachmentUrl.isNullOrBlank()) {
-            return SocialResult.Error("Пустое сообщение")
+            return SocialResult.Error(appContext.getString(R.string.social_error_empty_message))
         }
         val moderation = ContentModerator.moderateText(trimmed)
         if (!moderation.allowed) {
-            return SocialResult.Error(moderation.reason ?: "Сообщение отклонено")
+            return SocialResult.Error(
+                moderation.reason ?: appContext.getString(R.string.social_error_message_rejected),
+            )
         }
         val now = System.currentTimeMillis()
         val preview = when (messageType) {
@@ -475,7 +477,7 @@ class SocialRepository(
             durationMs = durationMs,
         )
         messageDao.insert(message)
-        val chat = chatDao.getChat(chatId) ?: return SocialResult.Error("Чат не найден")
+        val chat = chatDao.getChat(chatId) ?: return SocialResult.Error(appContext.getString(R.string.social_error_chat_not_found))
         chatDao.upsert(
             chat.copy(
                 lastMessage = preview,
@@ -531,7 +533,7 @@ class SocialRepository(
 
     suspend fun createPrivateChatWithPeer(peerId: String): SocialResult<String> = runCatching {
         if (peerId == DriverProfileEntity.LOCAL_USER_ID) {
-            return SocialResult.Error("Нельзя написать самому себе")
+            return SocialResult.Error(appContext.getString(R.string.social_error_cannot_message_self))
         }
         if (isBlocked(peerId)) {
             return SocialResult.Error(appContext.getString(R.string.social_user_blocked))
@@ -565,7 +567,7 @@ class SocialRepository(
         chatDao.upsert(
             SocialChatEntity(
                 id = chatId,
-                title = name.ifBlank { "Новая группа" },
+                title = name.ifBlank { appContext.getString(R.string.social_error_new_group_title) },
                 type = ChatType.GROUP.name,
                 participantCount = 1,
                 lastMessage = "",
@@ -743,7 +745,7 @@ class SocialRepository(
                 joinedAt = now,
             ),
         )
-        val chat = chatDao.getChat(chatId) ?: return SocialResult.Error("Группа не найдена")
+        val chat = chatDao.getChat(chatId) ?: return SocialResult.Error(appContext.getString(R.string.social_error_group_not_found))
         chatDao.upsert(chat.copy(participantCount = chatMemberDao.countMembers(chatId).coerceAtLeast(1)))
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_join_challenge, it), it) }
@@ -751,10 +753,10 @@ class SocialRepository(
     suspend fun joinGroupByInviteCode(code: String, displayName: String): SocialResult<String> {
         val normalized = com.truckerload.domain.social.GroupInviteCode.normalize(code)
         if (com.truckerload.domain.social.GroupInviteCode.isBlank(normalized)) {
-            return SocialResult.Error("Группа с таким кодом не найдена")
+            return SocialResult.Error(appContext.getString(R.string.social_error_group_code_not_found))
         }
         val chat = chatDao.getChatByInviteCode(normalized)
-            ?: return SocialResult.Error("Группа с таким кодом не найдена")
+            ?: return SocialResult.Error(appContext.getString(R.string.social_error_group_code_not_found))
         return when (val joined = joinGroup(chat.id, displayName)) {
             is SocialResult.Success -> SocialResult.Success(chat.id)
             is SocialResult.Error -> joined
@@ -762,7 +764,9 @@ class SocialRepository(
     }
 
     suspend fun followDriver(targetId: String): SocialResult<Unit> = runCatching {
-        if (targetId == DriverProfileEntity.LOCAL_USER_ID) return SocialResult.Error("Нельзя подписаться на себя")
+        if (targetId == DriverProfileEntity.LOCAL_USER_ID) {
+            return SocialResult.Error(appContext.getString(R.string.social_error_cannot_follow_self))
+        }
         followDao.follow(
             DriverFollowEntity(
                 followerId = DriverProfileEntity.LOCAL_USER_ID,
@@ -862,8 +866,8 @@ class SocialRepository(
         val myPosition = merged.indexOfFirst { it.isMe }.let { if (it >= 0) it + 1 else merged.size }
         return Challenge(
             id = WEEKLY_CHALLENGE_ID,
-            title = "Король миль",
-            description = "Кто проедет больше всех миль за неделю $week/$year",
+            title = appContext.getString(R.string.social_challenge_king_miles_title),
+            description = appContext.getString(R.string.social_challenge_king_miles_desc, week, year),
             type = ChallengeType.MILES,
             goal = 3000.0,
             startDate = now - 4 * 24 * 60 * 60_000L,

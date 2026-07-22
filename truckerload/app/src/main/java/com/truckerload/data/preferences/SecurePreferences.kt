@@ -26,10 +26,19 @@ object SecurePreferences {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
         } catch (e: Exception) {
-            Log.e(TAG, "EncryptedSharedPreferences unavailable for $name", e)
+            Log.e(TAG, "EncryptedSharedPreferences unavailable for $name — using plaintext fallback", e)
+            plaintextFallbackUsed = true
             appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
     }
+
+    /**
+     * True after any [open] call fell back to unencrypted MODE_PRIVATE prefs.
+     * Callers storing bot tokens / passwords should surface a user warning when set.
+     */
+    @Volatile
+    var plaintextFallbackUsed: Boolean = false
+        private set
 
     /**
      * Copies all entries from a legacy plain prefs file into [securePrefs], then clears the legacy file.

@@ -992,17 +992,6 @@
     <string name="social_peer_not_found">Driver not found</string>
     <string name="social_recommended_groups">Recommended groups</string>
     <string name="social_voice_status">Voice status</string>
-    <string name="dispute_section_title">Dispute</string>
-    <string name="dispute_checkbox_label">Dispute</string>
-    <string name="dispute_active">In dispute</string>
-    <string name="dispute_was_dispute">Was disputed</string>
-    <string name="dispute_response_date_title">Response date</string>
-    <string name="dispute_response_date_label">Response date: %1$s</string>
-    <string name="dispute_completed_checkbox">Completed</string>
-
-
-    <string name="home_filter_dispute">Dispute</string>
-    <string name="home_empty_dispute">No loads in dispute</string>
     <string name="goal_error_enter_amount">Enter a goal amount</string>
     <string name="signup_name_placeholder">John Doe</string>
     <string name="map_rating_good">Good</string>
@@ -1027,4 +1016,14 @@
     <string name="notification_permission_required">Allow notifications so the Telegram bot can run in the background</string>
     <string name="notification_permission_rationale">Notifications are required for background Telegram sync on Android 13+</string>
     <string name="home_calendar_select_week">Select week of this date</string>
+    <string name="social_error_empty_message">Empty message</string>
+    <string name="social_error_message_rejected">Message rejected</string>
+    <string name="social_error_chat_not_found">Chat not found</string>
+    <string name="social_error_cannot_message_self">Cannot message yourself</string>
+    <string name="social_error_new_group_title">New group</string>
+    <string name="social_error_group_not_found">Group not found</string>
+    <string name="social_error_group_code_not_found">No group with that invite code</string>
+    <string name="social_error_cannot_follow_self">Cannot follow yourself</string>
+    <string name="social_challenge_king_miles_title">King of Miles</string>
+    <string name="social_challenge_king_miles_desc">Who drives the most miles this week %1$d/%2$d</string>
 </resources>

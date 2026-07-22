@@ -100,6 +100,7 @@ fun LoadDetailScreen(
     val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsState(initial = emptyList())
     val snackbarHostState = remember { SnackbarHostState() }
     val deleteFailed = stringResource(R.string.load_delete_failed)
+    val saveErrorEmpty = stringResource(R.string.common_save_error, "")
     var showDeleteConfirm by remember { mutableStateOf(false) }
     LaunchedEffect(loadId) {
         viewModel.refresh()
