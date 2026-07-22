@@ -485,6 +485,12 @@
     <string name="load_detail_stat_del">DEL</string>
     <string name="load_detail_stat_duration">Duration</string>
     <string name="load_detail_stat_pace">Pace</string>
+    <string name="load_detail_finish_title">When did you finish the load?</string>
+    <string name="load_detail_finish_from_stops">From stops: %1$s</string>
+    <string name="load_detail_finish_manual">Your date: %1$s</string>
+    <string name="load_detail_finish_pick">Pick finish date</string>
+    <string name="load_detail_finish_clear">Reset to stop date</string>
+    <string name="load_detail_finish_hint">Default is the last DEL. If you finished earlier, set your date — duration and pace will update.</string>
     <string name="load_detail_route">Route</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>

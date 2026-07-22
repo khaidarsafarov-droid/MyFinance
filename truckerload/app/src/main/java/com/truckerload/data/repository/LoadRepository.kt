@@ -209,6 +209,7 @@ class LoadRepository(private val db: AppDatabase) {
             isDispute = normalized.isDispute,
             disputeResponseDate = normalized.disputeResponseDate,
             disputeCompleted = normalized.disputeCompleted,
+            actualFinishDate = normalized.actualFinishDate,
         )
         stopDao.deleteByLoadId(normalized.id)
         penaltyDao.deleteByLoadId(normalized.id)

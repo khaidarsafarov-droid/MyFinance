@@ -76,6 +76,7 @@ class LoadProcessor(
                     isDispute = existingLoad.isDispute,
                     disputeResponseDate = existingLoad.disputeResponseDate,
                     disputeCompleted = existingLoad.disputeCompleted,
+                    actualFinishDate = existingLoad.actualFinishDate,
                 )
                 loadUpdater.updateLoad(existingLoad, preserved, changes)
                 ProcessingResult.Updated(changes)

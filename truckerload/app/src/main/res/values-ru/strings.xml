@@ -485,6 +485,12 @@
     <string name="load_detail_stat_del">DEL</string>
     <string name="load_detail_stat_duration">Длительность</string>
     <string name="load_detail_stat_pace">Темп</string>
+    <string name="load_detail_finish_title">Когда закончили груз?</string>
+    <string name="load_detail_finish_from_stops">По стопам: %1$s</string>
+    <string name="load_detail_finish_manual">Своя дата: %1$s</string>
+    <string name="load_detail_finish_pick">Выбрать дату окончания</string>
+    <string name="load_detail_finish_clear">Сбросить на дату из стопов</string>
+    <string name="load_detail_finish_hint">По умолчанию — последний DEL. Если закончили раньше — укажите свою дату: длительность и темп пересчитаются.</string>
     <string name="load_detail_route">Маршрут</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
