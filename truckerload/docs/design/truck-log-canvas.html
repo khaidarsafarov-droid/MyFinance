@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Truck Log — Design Canvas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --forest-primary: #2F4F3E;
+      --forest-accent: #4A7C59;
+      --forest-muted: #557A64;
+      --forest-soft: #A3B899;
+      --sage: #E6EDE9;
+      --sage-hover: #D2E0D7;
+      --sage-border: #D2E0D7;
+      --sage-border-strong: #C5D3C9;
+      --card-border: #E1EAE4;
+      --content-bg: #F9FBFA;
+      --shell-bg: #F2F7F4;
+      --outer-bg: #D8E2DC;
+      --surface: #FFFFFF;
+      --on-primary: #FFFFFF;
+      --radius-chip: 16px;
+      --radius-button: 16px;
+      --radius-card: 24px;
+      --radius-phone: 40px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --studio-bg: #1a1f1c;
+      --studio-panel: #242a26;
+      --studio-border: #3a433d;
+      --studio-text: #e8eee9;
+      --studio-muted: #9aab9f;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--studio-bg);
+      color: var(--studio-text);
+      display: grid;
+      grid-template-columns: 300px 1fr 260px;
+      min-height: 100vh;
+    }
+
+    /* —— Studio chrome —— */
+    .panel {
+      background: var(--studio-panel);
+      border-right: 1px solid var(--studio-border);
+      display: flex;
+      flex-direction: column;
+      max-height: 100vh;
+      overflow: hidden;
+    }
+    .panel-right {
+      border-right: none;
+      border-left: 1px solid var(--studio-border);
+    }
+    .panel-header {
+      padding: 18px 16px 12px;
+      border-bottom: 1px solid var(--studio-border);
+      flex-shrink: 0;
+    }
+    .panel-header h1 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--studio-text);
+    }
+    .panel-header p {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--studio-muted);
+      line-height: 1.4;
+    }
+    .panel-body {
+      padding: 14px 16px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .token-group { margin-bottom: 20px; }
+    .token-group h2 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--studio-muted);
+    }
+    .token-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .token-row label {
+      font-size: 12px;
+      color: var(--studio-text);
+    }
+    .token-row input[type="color"] {
+      width: 36px;
+      height: 28px;
+      border: 1px solid var(--studio-border);
+      border-radius: 6px;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .token-row input[type="number"] {
+      width: 72px;
+      height: 28px;
+      border: 1px solid var(--studio-border);
+      border-radius: 6px;
+      background: #1a1f1c;
+      color: var(--studio-text);
+      padding: 0 8px;
+      font: inherit;
+      font-size: 12px;
+    }
+    .hex {
+      font-size: 10px;
+      color: var(--studio-muted);
+      font-variant-numeric: tabular-nums;
+      grid-column: 1 / -1;
+      margin-top: -4px;
+      margin-bottom: 4px;
+    }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    button.tool {
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--studio-border);
+      background: #2c342f;
+      color: var(--studio-text);
+      cursor: pointer;
+    }
+    button.tool:hover { background: #36403a; }
+    button.tool.primary {
+      background: var(--forest-accent);
+      border-color: var(--forest-accent);
+      color: #fff;
+    }
+    button.tool.danger { color: #f0b4a8; }
+
+    .screen-list { list-style: none; margin: 0; padding: 0; }
+    .screen-list li {
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--studio-muted);
+      margin-bottom: 4px;
+    }
+    .screen-list li:hover { background: #2c342f; color: var(--studio-text); }
+    .screen-list li.active {
+      background: color-mix(in srgb, var(--forest-accent) 28%, transparent);
+      color: var(--studio-text);
+      font-weight: 600;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--studio-muted);
+      line-height: 1.45;
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px dashed var(--studio-border);
+      border-radius: 10px;
+    }
+
+    /* —— Canvas —— */
+    .canvas-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      max-height: 100vh;
+    }
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--studio-border);
+      background: var(--studio-panel);
+      flex-shrink: 0;
+    }
+    .canvas-toolbar .brand {
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      color: var(--forest-soft);
+    }
+    .canvas-toolbar .spacer { flex: 1; }
+    .canvas-toolbar .status {
+      font-size: 11px;
+      color: var(--studio-muted);
+    }
+
+    .canvas {
+      flex: 1;
+      overflow: auto;
+      background:
+        radial-gradient(ellipse at 30% 20%, #2a332e 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, #1e2822 0%, transparent 45%),
+        var(--outer-bg);
+      background-attachment: local;
+      padding: 48px 40px 80px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 48px;
+      justify-content: center;
+      align-content: flex-start;
+    }
+
+    .artboard {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0.55;
+      transform: scale(0.92);
+      transition: opacity 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .artboard.active {
+      opacity: 1;
+      transform: scale(1);
+      cursor: default;
+    }
+    .artboard-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--forest-primary);
+      text-align: center;
+    }
+
+    /* —— Phone —— */
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--shell-bg);
+      border-radius: var(--radius-phone);
+      border: 1px solid var(--sage-border-strong);
+      box-shadow:
+        0 24px 64px color-mix(in srgb, var(--forest-primary) 28%, transparent),
+        0 0 0 8px color-mix(in srgb, var(--forest-primary) 8%, transparent);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      font-family: var(--font);
+      color: var(--forest-primary);
+    }
+
+    .status-bar {
+      height: 28px;
+      background: var(--sage);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--forest-primary);
+      flex-shrink: 0;
+    }
+
+    .app-header {
+      background: var(--sage);
+      padding: 10px 18px 12px;
+      border-bottom: 1px solid var(--sage-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .app-header .left { display: flex; align-items: center; gap: 12px; }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border: none; border-radius: 10px;
+      background: transparent;
+      color: var(--forest-primary);
+      display: grid; place-items: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .icon-btn:hover { background: var(--sage-hover); }
+    .app-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      margin: 0;
+    }
+    .app-sub {
+      font-size: 11px;
+      color: var(--forest-muted);
+      margin: 2px 0 0;
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--content-bg);
+      padding: 16px;
+      padding-bottom: 88px;
+    }
+
+    .hero {
+      background: var(--forest-primary);
+      color: var(--on-primary);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px color-mix(in srgb, var(--forest-primary) 35%, transparent);
+    }
+    .hero-watermark {
+      position: absolute;
+      right: -8px; top: -12px;
+      font-size: 88px;
+      opacity: 0.1;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-kicker {
+      font-size: 11px;
+      color: var(--forest-soft);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+    .hero-total {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 4px;
+    }
+    .hero-meta {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--forest-soft);
+    }
+    .hero-period {
+      margin-top: 14px;
+      background: color-mix(in srgb, #fff 10%, transparent);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hero-period span:first-child { color: var(--forest-soft); display: block; font-size: 11px; }
+    .hero-period strong { font-weight: 600; }
+
+    .btn-primary {
+      width: 100%;
+      border: none;
+      background: var(--forest-accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 14px;
+      border-radius: var(--radius-button);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--forest-accent) 40%, transparent);
+    }
+    .btn-primary:hover {
+      filter: brightness(0.95);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--forest-muted);
+      margin: 0 0 10px 4px;
+    }
+
+    .load-card {
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--forest-primary) 6%, transparent);
+    }
+    .load-card .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+    .load-id { font-weight: 800; font-size: 15px; }
+    .load-date { font-size: 12px; color: var(--forest-muted); font-weight: 500; }
+    .load-route { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .load-stats { font-size: 12px; color: var(--forest-muted); line-height: 1.45; margin-bottom: 10px; }
+    .load-stats strong { color: var(--forest-primary); }
+    .load-footer { display: flex; justify-content: space-between; align-items: center; }
+    .rpm-chip {
+      background: var(--sage);
+      color: var(--forest-primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+    .card-actions { display: flex; gap: 8px; }
+    .mini-btn {
+      width: 36px; height: 36px;
+      border: none;
+      border-radius: 14px;
+      background: var(--sage);
+      color: var(--forest-primary);
+      cursor: pointer;
+      display: grid; place-items: center;
+      font-size: 14px;
+    }
+    .mini-btn:hover { background: var(--sage-hover); }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: var(--sage);
+      border-top: 1px solid var(--sage-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 12px 14px;
+      z-index: 5;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      color: var(--forest-muted);
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      min-width: 64px;
+    }
+    .nav-item .ico { font-size: 18px; line-height: 1; }
+    .nav-item.active {
+      color: var(--forest-primary);
+      font-weight: 700;
+    }
+
+    /* Goal screen */
+    .goal-ring {
+      width: 180px; height: 180px;
+      margin: 12px auto 20px;
+      border-radius: 50%;
+      background:
+        conic-gradient(var(--forest-accent) 0 72%, color-mix(in srgb, #fff 15%, transparent) 72% 100%);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .goal-ring::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      background: var(--forest-primary);
+    }
+    .goal-ring-inner {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: var(--on-primary);
+    }
+    .goal-ring-inner .pct { font-size: 32px; font-weight: 800; }
+    .goal-ring-inner .lbl { font-size: 11px; color: var(--forest-soft); }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-tile {
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      padding: 14px;
+    }
+    .stat-tile .k { font-size: 11px; color: var(--forest-muted); margin-bottom: 4px; }
+    .stat-tile .v { font-size: 18px; font-weight: 800; }
+
+    /* Forms */
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--forest-muted);
+      margin-bottom: 6px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      border: 1px solid var(--card-border);
+      background: var(--surface);
+      border-radius: var(--radius-button);
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 14px;
+      color: var(--forest-primary);
+      resize: vertical;
+    }
+    .field textarea { min-height: 120px; }
+
+    /* Settings / profile rows */
+    .list-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .list-row .ico {
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: var(--sage);
+      display: grid; place-items: center;
+      color: var(--forest-accent);
+      flex-shrink: 0;
+    }
+    .list-row .chev { margin-left: auto; color: var(--forest-muted); }
+
+    .avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--forest-accent);
+      color: #fff;
+      display: grid; place-items: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 8px auto 12px;
+    }
+    .profile-name { text-align: center; font-size: 20px; font-weight: 800; margin: 0; }
+    .profile-meta { text-align: center; font-size: 13px; color: var(--forest-muted); margin: 4px 0 18px; }
+
+    .login-hero {
+      text-align: center;
+      padding: 48px 16px 28px;
+    }
+    .login-hero .mark {
+      width: 64px; height: 64px;
+      border-radius: 20px;
+      background: var(--forest-primary);
+      color: var(--forest-soft);
+      display: grid; place-items: center;
+      font-size: 28px;
+      margin: 0 auto 16px;
+    }
+    .login-hero h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+    .login-hero p { color: var(--forest-muted); font-size: 13px; margin: 8px 0 0; }
+
+    .btn-ghost {
+      width: 100%;
+      border: 1px solid var(--card-border);
+      background: var(--surface);
+      color: var(--forest-primary);
+      font: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 14px;
+      border-radius: var(--radius-button);
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    [contenteditable="true"] {
+      outline: none;
+      border-radius: 4px;
+    }
+    [contenteditable="true"]:focus {
+      outline: 2px solid color-mix(in srgb, var(--forest-accent) 55%, transparent);
+      outline-offset: 2px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1100px) {
+      body { grid-template-columns: 280px 1fr; }
+      .panel-right { display: none; }
+    }
+    @media (max-width: 720px) {
+      body { grid-template-columns: 1fr; }
+      .panel { display: none; }
+      .panel.mobile-open { display: flex; position: fixed; inset: 0; z-index: 40; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Left: tokens -->
+  <aside class="panel" id="tokens-panel">
+    <div class="panel-header">
+      <h1>Design tokens</h1>
+      <p>Mindwell Forest · правки применяются мгновенно к canvas</p>
+    </div>
+    <div class="panel-body">
+      <div class="token-group" id="color-tokens"></div>
+      <div class="token-group">
+        <h2>Radii (px)</h2>
+        <div class="token-row">
+          <label for="r-card">Card</label>
+          <input type="number" id="r-card" min="0" max="48" data-radius="card" />
+        </div>
+        <div class="token-row">
+          <label for="r-button">Button</label>
+          <input type="number" id="r-button" min="0" max="48" data-radius="button" />
+        </div>
+        <div class="token-row">
+          <label for="r-chip">Chip</label>
+          <input type="number" id="r-chip" min="0" max="48" data-radius="chip" />
+        </div>
+        <div class="token-row">
+          <label for="r-phone">Phone</label>
+          <input type="number" id="r-phone" min="0" max="56" data-radius="phone" />
+        </div>
+      </div>
+      <div class="token-group">
+        <h2>Actions</h2>
+        <div class="btn-row">
+          <button type="button" class="tool primary" id="btn-export">Export JSON</button>
+          <button type="button" class="tool" id="btn-import">Import JSON</button>
+          <button type="button" class="tool danger" id="btn-reset">Reset</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json,.json" class="hidden" />
+      </div>
+      <p class="hint">
+        Тексты на экранах кликабельны — редактируйте прямо в телефоне.
+        Токены автосохраняются в localStorage. Исходник: <code>tokens.json</code> +
+        <code>SoftUiTheme.kt</code>.
+      </p>
+    </div>
+  </aside>
+
+  <!-- Center: canvas -->
+  <main class="canvas-wrap">
+    <div class="canvas-toolbar">
+      <span class="brand">TRUCK LOG · CANVAS</span>
+      <span class="spacer"></span>
+      <span class="status" id="save-status">Готово к редактированию</span>
+      <button type="button" class="tool" id="btn-fit">Focus active</button>
+    </div>
+    <div class="canvas" id="canvas">
+      <!-- HOME -->
+      <div class="artboard active" data-screen="home" id="board-home">
+        <div class="artboard-label">01 · Home / Грузы</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <header class="app-header">
+            <div class="left">
+              <button class="icon-btn" type="button" aria-label="Menu">☰</button>
+              <div>
+                <h1 class="app-title" contenteditable="true">TRUCK LOG</h1>
+                <p class="app-sub" contenteditable="true">Привет, Khaidar</p>
+              </div>
+            </div>
+            <button class="icon-btn" type="button" style="color:var(--forest-accent)">◎</button>
+          </header>
+          <div class="screen-body">
+            <div class="hero">
+              <div class="hero-watermark">🚚</div>
+              <div class="hero-kicker" contenteditable="true">ЭТА НЕДЕЛЯ (4 ГРУЗА)</div>
+              <div class="hero-total">
+                <span contenteditable="true">$12,315</span>
+                <span class="hero-meta" contenteditable="true">• 4,617 mi • $2.67 / mi</span>
+              </div>
+              <div class="hero-period">
+                <div>
+                  <span contenteditable="true">Период</span>
+                  <strong contenteditable="true">📅 Эта неделя</strong>
+                </div>
+                <span style="opacity:.5">▾</span>
+              </div>
+            </div>
+            <button class="btn-primary" type="button"><span>+</span><span contenteditable="true">Добавить груз</span></button>
+            <h3 class="section-label" contenteditable="true">Недавние грузы</h3>
+            <article class="load-card">
+              <div class="row">
+                <span class="load-id" contenteditable="true">114RS221Y</span>
+                <span class="load-date" contenteditable="true">2026-07-21</span>
+              </div>
+              <div class="load-route" contenteditable="true">AURORA, CO → ARLINGTON, WA</div>
+              <div class="load-stats" contenteditable="true">2 stops • 1,369 mi • <strong>$3,815.90</strong><br>2 days • $1,907.95/day</div>
+              <div class="load-footer">
+                <span class="rpm-chip" contenteditable="true">• $2.79/ми</span>
+                <div class="card-actions">
+                  <button class="mini-btn" type="button">📷</button>
+                  <button class="mini-btn" type="button">▦</button>
+                </div>
+              </div>
+            </article>
+            <article class="load-card">
+              <div class="row">
+                <span class="load-id" contenteditable="true">112VW8VQZ</span>
+                <span class="load-date" contenteditable="true">2026-07-20</span>
+              </div>
+              <div class="load-route" contenteditable="true">WOODBURY, MN → Denver, CO</div>
+              <div class="load-stats" contenteditable="true">2 stops • 924 mi • <strong>$1,806.90</strong><br>2 days • $903.45/day</div>
+              <div class="load-footer">
+                <span class="rpm-chip" contenteditable="true">• $1.96/ми</span>
+                <div class="card-actions">
+                  <button class="mini-btn" type="button">📷</button>
+                  <button class="mini-btn" type="button">▦</button>
+                </div>
+              </div>
+            </article>
+          </div>
+          <nav class="bottom-nav" data-nav>
+            <button type="button" class="nav-item active" data-go="home"><span class="ico">🚚</span><span>Грузы</span></button>
+            <button type="button" class="nav-item" data-go="goal"><span class="ico">◎</span><span>Цель</span></button>
+            <button type="button" class="nav-item" data-go="community"><span class="ico">👥</span><span>Сообщество</span></button>
+            <button type="button" class="nav-item" data-go="profile"><span class="ico">👤</span><span>Профиль</span></button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- GOAL -->
+      <div class="artboard" data-screen="goal" id="board-goal">
+        <div class="artboard-label">02 · Weekly Goal</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <header class="app-header">
+            <div class="left">
+              <button class="icon-btn" type="button">☰</button>
+              <div>
+                <h1 class="app-title" contenteditable="true">ЦЕЛЬ НЕДЕЛИ</h1>
+                <p class="app-sub" contenteditable="true">Неделя 30 · 2026</p>
+              </div>
+            </div>
+          </header>
+          <div class="screen-body">
+            <div class="hero" style="text-align:center">
+              <div class="goal-ring">
+                <div class="goal-ring-inner">
+                  <div class="pct" contenteditable="true">72%</div>
+                  <div class="lbl" contenteditable="true">к цели</div>
+                </div>
+              </div>
+              <div class="hero-total" contenteditable="true">$12,315</div>
+              <div class="hero-meta" contenteditable="true">из $17,000 · осталось $4,685</div>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-tile">
+                <div class="k" contenteditable="true">Миль</div>
+                <div class="v" contenteditable="true">4,617</div>
+              </div>
+              <div class="stat-tile">
+                <div class="k" contenteditable="true">RPM</div>
+                <div class="v" contenteditable="true">$2.67</div>
+              </div>
+              <div class="stat-tile">
+                <div class="k" contenteditable="true">Грузов</div>
+                <div class="v" contenteditable="true">4</div>
+              </div>
+              <div class="stat-tile">
+                <div class="k" contenteditable="true">$/день</div>
+                <div class="v" contenteditable="true">$1,759</div>
+              </div>
+            </div>
+            <button class="btn-primary" type="button"><span contenteditable="true">Изменить цель</span></button>
+          </div>
+          <nav class="bottom-nav" data-nav>
+            <button type="button" class="nav-item" data-go="home"><span class="ico">🚚</span><span>Грузы</span></button>
+            <button type="button" class="nav-item active" data-go="goal"><span class="ico">◎</span><span>Цель</span></button>
+            <button type="button" class="nav-item" data-go="community"><span class="ico">👥</span><span>Сообщество</span></button>
+            <button type="button" class="nav-item" data-go="profile"><span class="ico">👤</span><span>Профиль</span></button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- ADD LOAD -->
+      <div class="artboard" data-screen="add-load" id="board-add-load">
+        <div class="artboard-label">03 · Add Load</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <header class="app-header">
+            <div class="left">
+              <button class="icon-btn" type="button">←</button>
+              <div>
+                <h1 class="app-title" contenteditable="true">ДОБАВИТЬ ГРУЗ</h1>
+                <p class="app-sub" contenteditable="true">Вставьте Relay / Telegram</p>
+              </div>
+            </div>
+          </header>
+          <div class="screen-body">
+            <div class="field">
+              <label contenteditable="true">Сообщение о грузе</label>
+              <textarea contenteditable="true">Trip ID: T-116KYL6KW
+Total Rate: 2500.00
+Total Loaded Miles: 850 mi
+Pu-address: SWF2, Garner, NC
+Del-address: DFW7, Dallas, TX</textarea>
+            </div>
+            <div class="field">
+              <label contenteditable="true">Total Rate ($)</label>
+              <input type="text" value="2500.00" />
+            </div>
+            <div class="field">
+              <label contenteditable="true">Miles</label>
+              <input type="text" value="850" />
+            </div>
+            <button class="btn-primary" type="button"><span contenteditable="true">Сохранить</span></button>
+            <button class="btn-ghost" type="button"><span contenteditable="true">Сканер документов</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMMUNITY -->
+      <div class="artboard" data-screen="community" id="board-community">
+        <div class="artboard-label">04 · Community</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <header class="app-header">
+            <div class="left">
+              <button class="icon-btn" type="button">☰</button>
+              <div>
+                <h1 class="app-title" contenteditable="true">СООБЩЕСТВО</h1>
+                <p class="app-sub" contenteditable="true">Группы и чаты</p>
+              </div>
+            </div>
+          </header>
+          <div class="screen-body">
+            <h3 class="section-label" contenteditable="true">Мои группы</h3>
+            <div class="list-row">
+              <span class="ico">🚛</span>
+              <div>
+                <div contenteditable="true" style="font-weight:700">Owner-ops Midwest</div>
+                <div style="font-size:12px;color:var(--forest-muted)" contenteditable="true">128 участников</div>
+              </div>
+              <span class="chev">›</span>
+            </div>
+            <div class="list-row">
+              <span class="ico">⛽</span>
+              <div>
+                <div contenteditable="true" style="font-weight:700">Fuel deals</div>
+                <div style="font-size:12px;color:var(--forest-muted)" contenteditable="true">42 участника</div>
+              </div>
+              <span class="chev">›</span>
+            </div>
+            <h3 class="section-label" style="margin-top:18px" contenteditable="true">Недавние чаты</h3>
+            <div class="list-row">
+              <span class="ico">💬</span>
+              <div>
+                <div contenteditable="true" style="font-weight:700">Alex · dispatcher</div>
+                <div style="font-size:12px;color:var(--forest-muted)" contenteditable="true">Rate confirmed for DFW</div>
+              </div>
+              <span class="chev">›</span>
+            </div>
+          </div>
+          <nav class="bottom-nav" data-nav>
+            <button type="button" class="nav-item" data-go="home"><span class="ico">🚚</span><span>Грузы</span></button>
+            <button type="button" class="nav-item" data-go="goal"><span class="ico">◎</span><span>Цель</span></button>
+            <button type="button" class="nav-item active" data-go="community"><span class="ico">👥</span><span>Сообщество</span></button>
+            <button type="button" class="nav-item" data-go="profile"><span class="ico">👤</span><span>Профиль</span></button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="artboard" data-screen="profile" id="board-profile">
+        <div class="artboard-label">05 · Profile</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <header class="app-header">
+            <div class="left">
+              <button class="icon-btn" type="button">☰</button>
+              <div>
+                <h1 class="app-title" contenteditable="true">ПРОФИЛЬ</h1>
+                <p class="app-sub" contenteditable="true">Водитель</p>
+              </div>
+            </div>
+          </header>
+          <div class="screen-body">
+            <div class="avatar" contenteditable="true">K</div>
+            <h2 class="profile-name" contenteditable="true">Khaidar</h2>
+            <p class="profile-meta" contenteditable="true">CDL · 3 axles · Hub sync on</p>
+            <div class="list-row"><span class="ico">⚙️</span><span contenteditable="true">Настройки</span><span class="chev">›</span></div>
+            <div class="list-row"><span class="ico">☁️</span><span contenteditable="true">Облачная синхронизация</span><span class="chev">›</span></div>
+            <div class="list-row"><span class="ico">📊</span><span contenteditable="true">Отчёты и аналитика</span><span class="chev">›</span></div>
+            <div class="list-row"><span class="ico">🔒</span><span contenteditable="true">Биометрия</span><span class="chev">›</span></div>
+          </div>
+          <nav class="bottom-nav" data-nav>
+            <button type="button" class="nav-item" data-go="home"><span class="ico">🚚</span><span>Грузы</span></button>
+            <button type="button" class="nav-item" data-go="goal"><span class="ico">◎</span><span>Цель</span></button>
+            <button type="button" class="nav-item" data-go="community"><span class="ico">👥</span><span>Сообщество</span></button>
+            <button type="button" class="nav-item active" data-go="profile"><span class="ico">👤</span><span>Профиль</span></button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="artboard" data-screen="settings" id="board-settings">
+        <div class="artboard-label">06 · Settings</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <header class="app-header">
+            <div class="left">
+              <button class="icon-btn" type="button">←</button>
+              <div>
+                <h1 class="app-title" contenteditable="true">НАСТРОЙКИ</h1>
+                <p class="app-sub" contenteditable="true">Синхронизация и парсер</p>
+              </div>
+            </div>
+          </header>
+          <div class="screen-body">
+            <h3 class="section-label" contenteditable="true">Аккаунт</h3>
+            <div class="list-row"><span class="ico">G</span><span contenteditable="true">Google Sign-In</span><span class="chev">›</span></div>
+            <div class="list-row"><span class="ico">✉</span><span contenteditable="true">Email / пароль</span><span class="chev">›</span></div>
+            <h3 class="section-label" style="margin-top:16px" contenteditable="true">Данные</h3>
+            <div class="list-row"><span class="ico">☁</span><span contenteditable="true">Google Drive backup</span><span class="chev">›</span></div>
+            <div class="list-row"><span class="ico">↻</span><span contenteditable="true">Cloud sync engine</span><span class="chev">›</span></div>
+            <div class="list-row"><span class="ico">📄</span><span contenteditable="true">Parser / Relay</span><span class="chev">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="artboard" data-screen="login" id="board-login">
+        <div class="artboard-label">07 · Login</div>
+        <div class="phone">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <div class="screen-body" style="padding-bottom:24px">
+            <div class="login-hero">
+              <div class="mark">🚚</div>
+              <h2 contenteditable="true">TRUCK LOG</h2>
+              <p contenteditable="true">Журнал грузов · offline-first</p>
+            </div>
+            <div class="field">
+              <label contenteditable="true">Email</label>
+              <input type="email" placeholder="driver@example.com" />
+            </div>
+            <div class="field">
+              <label contenteditable="true">Пароль</label>
+              <input type="password" value="••••••••" />
+            </div>
+            <button class="btn-primary" type="button"><span contenteditable="true">Войти</span></button>
+            <button class="btn-ghost" type="button"><span contenteditable="true">Продолжить с Google</span></button>
+            <button class="btn-ghost" type="button"><span contenteditable="true">Создать аккаунт</span></button>
+            <p style="text-align:center;font-size:12px;color:var(--forest-muted);margin-top:16px" contenteditable="true">
+              Локальный режим без облака доступен
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Right: screens -->
+  <aside class="panel panel-right">
+    <div class="panel-header">
+      <h1>Screens</h1>
+      <p>Выберите artboard на canvas</p>
+    </div>
+    <div class="panel-body">
+      <ul class="screen-list" id="screen-list">
+        <li class="active" data-screen="home">01 Home / Грузы</li>
+        <li data-screen="goal">02 Weekly Goal</li>
+        <li data-screen="add-load">03 Add Load</li>
+        <li data-screen="community">04 Community</li>
+        <li data-screen="profile">05 Profile</li>
+        <li data-screen="settings">06 Settings</li>
+        <li data-screen="login">07 Login</li>
+      </ul>
+      <p class="hint">
+        Figma MCP в этой среде недоступен — этот HTML-файл и есть редактируемый design canvas.
+        Откройте файл в браузере или VS Code Live Preview.
+      </p>
+    </div>
+  </aside>
+
+  <script>
+    const DEFAULTS = {
+      colors: {
+        forestPrimary: "#2F4F3E",
+        forestAccent: "#4A7C59",
+        forestMuted: "#557A64",
+        forestSoft: "#A3B899",
+        sage: "#E6EDE9",
+        sageHover: "#D2E0D7",
+        sageBorder: "#D2E0D7",
+        sageBorderStrong: "#C5D3C9",
+        cardBorder: "#E1EAE4",
+        contentBg: "#F9FBFA",
+        shellBg: "#F2F7F4",
+        outerBg: "#D8E2DC",
+        surface: "#FFFFFF",
+        onPrimary: "#FFFFFF",
+      },
+      radii: { chip: 16, button: 16, card: 24, phone: 40 },
+    };
+
+    const COLOR_META = [
+      ["forestPrimary", "Forest Primary"],
+      ["forestAccent", "Forest Accent"],
+      ["forestMuted", "Forest Muted"],
+      ["forestSoft", "Forest Soft"],
+      ["sage", "Sage"],
+      ["sageHover", "Sage Hover"],
+      ["sageBorder", "Sage Border"],
+      ["sageBorderStrong", "Sage Border Strong"],
+      ["cardBorder", "Card Border"],
+      ["contentBg", "Content BG"],
+      ["shellBg", "Shell BG"],
+      ["outerBg", "Outer BG"],
+      ["surface", "Surface"],
+      ["onPrimary", "On Primary"],
+    ];
+
+    const STORAGE_KEY = "truck-log-design-tokens-v1";
+    const root = document.documentElement;
+    const statusEl = document.getElementById("save-status");
+
+    function camelToKebab(s) {
+      return s.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
+    }
+
+    function applyTokens(tokens) {
+      Object.entries(tokens.colors).forEach(([k, v]) => {
+        root.style.setProperty("--" + camelToKebab(k), v);
+      });
+      Object.entries(tokens.radii).forEach(([k, v]) => {
+        root.style.setProperty("--radius-" + k, v + "px");
+        const input = document.querySelector(`[data-radius="${k}"]`);
+        if (input) input.value = v;
+      });
+      document.querySelectorAll("#color-tokens input[type=color]").forEach((el) => {
+        const key = el.dataset.color;
+        if (tokens.colors[key]) {
+          el.value = tokens.colors[key];
+          const hex = el.parentElement.querySelector(".hex");
+          if (hex) hex.textContent = tokens.colors[key].toUpperCase();
+        }
+      });
+    }
+
+    function readTokensFromUI() {
+      const colors = {};
+      document.querySelectorAll("#color-tokens input[type=color]").forEach((el) => {
+        colors[el.dataset.color] = el.value;
+      });
+      const radii = {};
+      document.querySelectorAll("[data-radius]").forEach((el) => {
+        radii[el.dataset.radius] = Number(el.value) || 0;
+      });
+      return { colors, radii, name: "Truck Log — Mindwell Forest", version: "1.0.0" };
+    }
+
+    function persist() {
+      const tokens = readTokensFromUI();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
+      statusEl.textContent = "Сохранено · " + new Date().toLocaleTimeString();
+      return tokens;
+    }
+
+    function buildColorControls() {
+      const host = document.getElementById("color-tokens");
+      host.innerHTML = "<h2>Colors</h2>";
+      COLOR_META.forEach(([key, label]) => {
+        const row = document.createElement("div");
+        row.className = "token-row";
+        row.innerHTML =
+          `<label>${label}</label>` +
+          `<input type="color" data-color="${key}" value="${DEFAULTS.colors[key]}" />` +
+          `<div class="hex">${DEFAULTS.colors[key]}</div>`;
+        host.appendChild(row);
+      });
+      host.querySelectorAll("input[type=color]").forEach((el) => {
+        el.addEventListener("input", () => {
+          root.style.setProperty("--" + camelToKebab(el.dataset.color), el.value);
+          el.parentElement.querySelector(".hex").textContent = el.value.toUpperCase();
+          persist();
+        });
+      });
+    }
+
+    function setActiveScreen(id) {
+      document.querySelectorAll(".artboard").forEach((b) => {
+        b.classList.toggle("active", b.dataset.screen === id);
+      });
+      document.querySelectorAll("#screen-list li").forEach((li) => {
+        li.classList.toggle("active", li.dataset.screen === id);
+      });
+      const board = document.getElementById("board-" + id);
+      if (board) board.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      statusEl.textContent = "Экран: " + id;
+    }
+
+    buildColorControls();
+
+    let initial = DEFAULTS;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) initial = { ...DEFAULTS, ...JSON.parse(saved), colors: { ...DEFAULTS.colors, ...(JSON.parse(saved).colors || {}) }, radii: { ...DEFAULTS.radii, ...(JSON.parse(saved).radii || {}) } };
+    } catch (_) {}
+    applyTokens(initial);
+
+    document.querySelectorAll("[data-radius]").forEach((el) => {
+      el.addEventListener("input", () => {
+        root.style.setProperty("--radius-" + el.dataset.radius, el.value + "px");
+        persist();
+      });
+    });
+
+    document.querySelectorAll(".artboard").forEach((b) => {
+      b.addEventListener("click", (e) => {
+        if (!b.classList.contains("active")) {
+          e.preventDefault();
+          setActiveScreen(b.dataset.screen);
+        }
+      });
+    });
+
+    document.getElementById("screen-list").addEventListener("click", (e) => {
+      const li = e.target.closest("li[data-screen]");
+      if (li) setActiveScreen(li.dataset.screen);
+    });
+
+    document.querySelectorAll("[data-nav]").forEach((nav) => {
+      nav.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-go]");
+        if (btn) {
+          e.stopPropagation();
+          setActiveScreen(btn.dataset.go);
+        }
+      });
+    });
+
+    document.getElementById("btn-fit").addEventListener("click", () => {
+      const active = document.querySelector(".artboard.active");
+      if (active) active.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    });
+
+    document.getElementById("btn-export").addEventListener("click", () => {
+      const tokens = persist();
+      const blob = new Blob([JSON.stringify(tokens, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "truck-log-tokens.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      statusEl.textContent = "Exported truck-log-tokens.json";
+    });
+
+    document.getElementById("btn-import").addEventListener("click", () => {
+      document.getElementById("import-file").click();
+    });
+
+    document.getElementById("import-file").addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const merged = {
+          colors: { ...DEFAULTS.colors, ...(data.colors || {}) },
+          radii: { ...DEFAULTS.radii, ...(data.radii || {}) },
+        };
+        applyTokens(merged);
+        persist();
+        statusEl.textContent = "Imported " + file.name;
+      } catch (err) {
+        statusEl.textContent = "Import failed: " + err.message;
+      }
+      e.target.value = "";
+    });
+
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      applyTokens(DEFAULTS);
+      localStorage.removeItem(STORAGE_KEY);
+      statusEl.textContent = "Сброшено к Mindwell Forest defaults";
+    });
+
+    // Prevent contenteditable clicks from bubbling when selecting artboard
+    document.querySelectorAll("[contenteditable]").forEach((el) => {
+      el.addEventListener("click", (e) => e.stopPropagation());
+      el.addEventListener("input", () => {
+        statusEl.textContent = "Текст изменён (только в браузере)";
+      });
+    });
+  </script>
+</body>
+</html>
