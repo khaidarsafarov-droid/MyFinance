@@ -55,13 +55,14 @@ object CloudSyncEngine {
         val localLoads = LoadRepository(db).getAllLoadsOnce()
         val remote = mirror.read(userId)
 
-        if (CloudSyncPolicy.needsFullHydration(
+        val remoteSnapshot = remote
+        if (remoteSnapshot != null && CloudSyncPolicy.needsFullHydration(
                 lastSyncedAt = cursor.lastSyncedAt(userId),
                 localEntityCount = localLoads.size,
-                remoteEntityCount = remote?.entityCount ?: 0,
+                remoteEntityCount = remoteSnapshot.entityCount,
             )
         ) {
-            val applied = applyFullHydration(app, db, remote!!)
+            val applied = applyFullHydration(app, db, remoteSnapshot)
             cursor.markFullHydration(userId)
             WidgetDataUpdater.updateWidgetData(app)
             Log.i(TAG, "Full hydration for $userId: $applied loads")

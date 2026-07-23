@@ -232,7 +232,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(suggestedQuestions) { q ->
+                    items(suggestedQuestions, key = { it }) { q ->
                         FilterChip(
                             selected = false,
                             onClick = { viewModel.sendMessage(q) },

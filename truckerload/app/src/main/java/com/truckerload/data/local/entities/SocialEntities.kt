@@ -47,7 +47,12 @@ data class DriverProfileEntity(
 
 @Entity(
     tableName = "social_chats",
-    indices = [Index(value = ["lastMessageAt"]), Index(value = ["title"])],
+    indices = [
+        Index(value = ["lastMessageAt"]),
+        Index(value = ["title"]),
+        Index(value = ["archived", "lastMessageAt"]),
+        Index(value = ["inviteCode"]),
+    ],
 )
 data class SocialChatEntity(
     @PrimaryKey val id: String,
@@ -123,7 +128,11 @@ data class DriverStatusEntity(
     val durationMs: Long = 0,
 )
 
-@Entity(tableName = "driver_follows", primaryKeys = ["followerId", "followingId"])
+@Entity(
+    tableName = "driver_follows",
+    primaryKeys = ["followerId", "followingId"],
+    indices = [Index(value = ["followingId"])],
+)
 data class DriverFollowEntity(
     val followerId: String,
     val followingId: String,
@@ -133,7 +142,7 @@ data class DriverFollowEntity(
 @Entity(
     tableName = "chat_members",
     primaryKeys = ["chatId", "userId"],
-    indices = [Index(value = ["chatId"])],
+    indices = [Index(value = ["chatId"]), Index(value = ["userId"])],
 )
 data class ChatMemberEntity(
     val chatId: String,
@@ -143,7 +152,10 @@ data class ChatMemberEntity(
     val joinedAt: Long,
 )
 
-@Entity(tableName = "social_peers")
+@Entity(
+    tableName = "social_peers",
+    indices = [Index(value = ["weeklyMiles"])],
+)
 data class SocialPeerEntity(
     @PrimaryKey val id: String,
     val displayName: String,
@@ -154,7 +166,11 @@ data class SocialPeerEntity(
     val weeklyRpm: Double,
 )
 
-@Entity(tableName = "challenge_participation", primaryKeys = ["challengeId", "userId"])
+@Entity(
+    tableName = "challenge_participation",
+    primaryKeys = ["challengeId", "userId"],
+    indices = [Index(value = ["challengeId", "score"])],
+)
 data class ChallengeParticipationEntity(
     val challengeId: String,
     val userId: String,

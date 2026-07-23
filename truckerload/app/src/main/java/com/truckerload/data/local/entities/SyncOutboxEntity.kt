@@ -13,6 +13,7 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["status", "createdAt"]),
         Index(value = ["entityType", "entityId"]),
+        Index(value = ["status", "updatedAt"]),
     ],
 )
 data class SyncOutboxEntity(

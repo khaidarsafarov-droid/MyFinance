@@ -80,7 +80,7 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         SocialPeerEntity::class,
         SyncOutboxEntity::class,
     ],
-    version = 24,
+    version = 25,
     // exportSchema=false: Room will not write schema JSON under schemas/. Migrations still
     // run from code, but CI cannot diff exported schemas — enable exportSchema=true +
     // schemas/ in VCS before shipping destructive migration changes.
@@ -172,6 +172,7 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_21_22,
                         MIGRATION_22_23,
                         MIGRATION_23_24,
+                        MIGRATION_24_25,
                     )
                     // RISK: versions 1–5 have no migrations — opening an ancient DB wipes all tables.
                     // Ship with exportSchema=true + documented upgrade path before removing this.
