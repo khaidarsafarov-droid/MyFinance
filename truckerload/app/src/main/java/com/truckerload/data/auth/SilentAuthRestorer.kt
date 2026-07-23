@@ -103,19 +103,38 @@ object SilentAuthRestorer {
         authStore: AuthStore,
     ): AuthSessionHealth {
         val session = authStore.sessionOrNull() ?: return AuthSessionHealth.VERIFIED
-        if (session.accessToken.isNullOrBlank() && session.refreshToken.isNullOrBlank()) {
+        val refresh = session.refreshToken
+        val access = session.accessToken
+        if (access.isNullOrBlank() && refresh.isNullOrBlank()) {
+            // Offline-local email account (no Supabase tokens) — treat as OK.
             authStore.markSessionHealth(AuthSessionHealth.VERIFIED)
             return AuthSessionHealth.VERIFIED
         }
-        // Without a dedicated refresh endpoint call, treat persisted tokens as OK online.
-        // If Supabase is configured and we only have blank tokens, mark unconfirmed.
         val supabase = SupabaseAuthService(context.applicationContext)
-        if (supabase.isConfigured() && session.accessToken.isNullOrBlank()) {
+        if (!supabase.isConfigured()) {
+            authStore.markSessionHealth(AuthSessionHealth.VERIFIED)
+            return AuthSessionHealth.VERIFIED
+        }
+        if (!refresh.isNullOrBlank()) {
+            val refreshed = supabase.refreshSession(refresh)
+            val tokens = refreshed.getOrNull()
+            if (tokens != null) {
+                authStore.updateTokens(tokens.accessToken, tokens.refreshToken)
+                authStore.markSessionHealth(AuthSessionHealth.VERIFIED)
+                return AuthSessionHealth.VERIFIED
+            }
+            Log.w(TAG, "Email JWT refresh failed: ${refreshed.exceptionOrNull()?.message}")
+            if (!access.isNullOrBlank()) {
+                // Keep working with the existing access token; soft banner.
+                authStore.markSessionHealth(AuthSessionHealth.SESSION_UNCONFIRMED)
+                return AuthSessionHealth.SESSION_UNCONFIRMED
+            }
             authStore.markSessionHealth(AuthSessionHealth.SESSION_UNCONFIRMED)
             return AuthSessionHealth.SESSION_UNCONFIRMED
         }
-        authStore.markSessionHealth(AuthSessionHealth.VERIFIED)
-        return AuthSessionHealth.VERIFIED
+        // Access only — cannot refresh.
+        authStore.markSessionHealth(AuthSessionHealth.SESSION_UNCONFIRMED)
+        return AuthSessionHealth.SESSION_UNCONFIRMED
     }
 
     private fun hasNetwork(context: Context): Boolean {

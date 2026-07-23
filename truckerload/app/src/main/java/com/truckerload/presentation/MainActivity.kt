@@ -150,6 +150,7 @@ class MainActivity : AppCompatActivity() {
                             userProfileStore = userProfileStore,
                         )
                         com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
+                        com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
                         if (!BuildConfig.LOCAL_ONLY_MODE) {
                             runCatching {
                                 com.truckerload.data.backup.GoogleDriveBackupService
@@ -204,6 +205,12 @@ class MainActivity : AppCompatActivity() {
                         else -> {
                             val deps = dependencies
                             if (deps != null) {
+                            val biometricStore = remember {
+                                com.truckerload.data.preferences.BiometricUnlockStore(applicationContext)
+                            }
+                            val gateEnabled = deps.authStore.authProvider() ==
+                                com.truckerload.data.preferences.AuthProvider.EMAIL &&
+                                biometricStore.isEnabled()
                             CompositionLocalProvider(
                                 LocalSettingsDataStore provides settingsDataStore,
                                 LocalAuthStore provides deps.authStore,
@@ -224,11 +231,13 @@ class MainActivity : AppCompatActivity() {
                                 LocalSocialRepository provides deps.socialRepository,
                                 LocalVoiceRepository provides deps.voiceRepository,
                             ) {
-                                NavGraph(
-                                    deepLinkRoute = deepLinkRoute,
-                                    onDeepLinkHandled = { deepLinkRoute = null },
-                                )
-                                AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
+                                    NavGraph(
+                                        deepLinkRoute = deepLinkRoute,
+                                        onDeepLinkHandled = { deepLinkRoute = null },
+                                    )
+                                    AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                }
                             }
                             }
                         }

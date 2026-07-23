@@ -275,6 +275,19 @@ class LoadRepository(private val db: AppDatabase) {
         if (playFeedback) {
             FeedbackManager.onLoadAdded()
         }
+        AppDatabase.applicationContext()?.let { ctx ->
+            runCatching {
+                com.truckerload.sync.OutboundSyncQueue.enqueueLoadUpsert(
+                    ctx,
+                    normalized.id,
+                    org.json.JSONObject()
+                        .put("totalRate", normalized.totalRate)
+                        .put("totalMiles", normalized.totalMiles)
+                        .put("pointA", normalized.pointA)
+                        .put("pointB", normalized.pointB),
+                )
+            }
+        }
     }
 
     suspend fun updateLoad(load: Load) {
@@ -317,6 +330,18 @@ class LoadRepository(private val db: AppDatabase) {
         }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
+        AppDatabase.applicationContext()?.let { ctx ->
+            runCatching {
+                com.truckerload.sync.OutboundSyncQueue.enqueueLoadUpsert(
+                    ctx,
+                    normalized.id,
+                    org.json.JSONObject()
+                        .put("op", "update")
+                        .put("totalRate", normalized.totalRate)
+                        .put("totalMiles", normalized.totalMiles),
+                )
+            }
+        }
     }
 
     suspend fun deleteLoad(loadId: String) {

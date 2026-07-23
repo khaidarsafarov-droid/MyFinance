@@ -33,6 +33,10 @@ data class EnhancedDriverProfile(
     val whatsappNumber: String?,
     val joinedDate: Long,
     val lastActive: Long,
+    val dateOfBirthEpochDay: Long? = null,
+    val cdlNumber: String = "",
+    val axleCount: Int = 0,
+    val homeHubCity: String = "",
 )
 
 enum class TruckType(val label: String, val emoji: String) {

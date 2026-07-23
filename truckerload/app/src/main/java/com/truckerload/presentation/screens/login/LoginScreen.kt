@@ -354,7 +354,6 @@ fun LoginScreen(
         when {
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
             password.isBlank() -> error = context.getString(R.string.auth_error_password_required)
-            password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
                 if (!credentialsStore.validateCredentials(emailTrimmed, password) &&
                     !credentialsStore.hasCredentialsFor(emailTrimmed)
@@ -370,6 +369,13 @@ fun LoginScreen(
                     context.getString(R.string.supabase_not_configured_local),
                     android.widget.Toast.LENGTH_LONG,
                 ).show()
+                if (com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)) {
+                    android.widget.Toast.makeText(
+                        context,
+                        context.getString(R.string.biometric_enabled_toast),
+                        android.widget.Toast.LENGTH_SHORT,
+                    ).show()
+                }
                 saveProfileAndLogin(
                     emailTrimmed, "", "", null,
                     context, userProfileStore, authStore, rememberMe,
@@ -382,6 +388,15 @@ fun LoginScreen(
                     result.fold(
                         onSuccess = { r ->
                             credentialsStore.saveCredentials(emailTrimmed, password)
+                            if (com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)) {
+                                withContext(Dispatchers.Main) {
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        context.getString(R.string.biometric_enabled_toast),
+                                        android.widget.Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
                             val profileResult = supabaseAuth.getProfile(r.accessToken, r.user.id)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
@@ -432,6 +447,13 @@ fun LoginScreen(
                                         context.getString(R.string.auth_local_login_fallback),
                                         android.widget.Toast.LENGTH_LONG,
                                     ).show()
+                                    if (com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            context.getString(R.string.biometric_enabled_toast),
+                                            android.widget.Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
                                     saveProfileAndLogin(
                                         emailTrimmed, "", "", null,
                                         context, userProfileStore, authStore, rememberMe,

@@ -24,6 +24,18 @@ class DieselRepository(private val db: AppDatabase) {
     suspend fun insertDiesel(diesel: Diesel) {
         dao.insert(diesel.toEntity())
         scheduleAutoBackup()
+        AppDatabase.applicationContext()?.let { ctx ->
+            runCatching {
+                com.truckerload.sync.OutboundSyncQueue.enqueueDieselUpsert(
+                    ctx,
+                    diesel.id.toString(),
+                    org.json.JSONObject()
+                        .put("totalAmount", diesel.totalAmount)
+                        .put("weekNumber", diesel.weekNumber)
+                        .put("year", diesel.year),
+                )
+            }
+        }
     }
 
     suspend fun deleteDiesel(id: Int) {
