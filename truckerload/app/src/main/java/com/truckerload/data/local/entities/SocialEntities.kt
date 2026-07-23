@@ -31,6 +31,14 @@ data class DriverProfileEntity(
     val status: String = "OFFLINE",
     val joinedDate: Long = System.currentTimeMillis(),
     val lastActive: Long = System.currentTimeMillis(),
+    /** Epoch day (LocalDate.toEpochDay) for HOS / age checks; null if unset. */
+    val dateOfBirthEpochDay: Long? = null,
+    /** CDL / commercial license number (optional). */
+    val cdlNumber: String = "",
+    /** Tractor axle count for weight calculations (0 = unset). */
+    val axleCount: Int = 0,
+    /** Home terminal / logistics hub city. */
+    val homeHubCity: String = "",
 ) {
     companion object {
         const val LOCAL_USER_ID = "local_user"

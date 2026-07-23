@@ -17,6 +17,8 @@ data class UserProfile(
     val familyName: String,
     val photoUrl: String?,
     val phoneNumber: String? = null,
+    /** Google OpenID `sub` — stable identity key for this Google account. */
+    val googleId: String? = null,
 ) {
     val displayName: String
         get() = listOf(givenName, familyName).filter { it.isNotBlank() }.joinToString(" ")
@@ -64,6 +66,8 @@ class UserProfileStore(context: Context) {
             putString(KEY_FAMILY_NAME, profile.familyName)
             putString(KEY_PHOTO_URL, profile.photoUrl)
             putString(KEY_PHONE, profile.phoneNumber)
+            if (profile.googleId.isNullOrBlank()) remove(KEY_GOOGLE_ID)
+            else putString(KEY_GOOGLE_ID, profile.googleId)
         }
         _profile.value = profile
     }
@@ -94,6 +98,7 @@ class UserProfileStore(context: Context) {
             familyName = prefs.getString(KEY_FAMILY_NAME, "").orEmpty(),
             photoUrl = prefs.getString(KEY_PHOTO_URL, null)?.takeIf { it.isNotBlank() },
             phoneNumber = prefs.getString(KEY_PHONE, null)?.takeIf { it.isNotBlank() },
+            googleId = prefs.getString(KEY_GOOGLE_ID, null)?.takeIf { it.isNotBlank() },
         )
     }
 
@@ -132,6 +137,7 @@ class UserProfileStore(context: Context) {
         private const val KEY_FAMILY_NAME = "family_name"
         private const val KEY_PHOTO_URL = "photo_url"
         private const val KEY_PHONE = "phone_number"
+        private const val KEY_GOOGLE_ID = "google_id"
         private const val KEY_SETUP_COMPLETE = "profile_setup_complete"
 
         fun prefsName(userId: String): String =

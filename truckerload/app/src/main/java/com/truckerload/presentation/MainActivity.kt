@@ -142,6 +142,28 @@ class MainActivity : AppCompatActivity() {
                     if (tokenStore.hasToken()) {
                         TelegramBotForegroundService.start(applicationContext)
                     }
+                    // Silent session check + schedule Drive sync (guide Parts 2–3).
+                    withContext(Dispatchers.IO) {
+                        com.truckerload.data.auth.SilentAuthRestorer.restore(
+                            context = applicationContext,
+                            authStore = authStore,
+                            userProfileStore = userProfileStore,
+                        )
+                        com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
+                        com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
+                        com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
+                        runCatching {
+                            com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                        }.onFailure { e ->
+                            android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
+                        }
+                        if (!BuildConfig.LOCAL_ONLY_MODE) {
+                            runCatching {
+                                com.truckerload.data.backup.GoogleDriveBackupService
+                                    .pushAutoBackupIfEnabled(applicationContext)
+                            }
+                        }
+                    }
                     sessionReady = true
                 } else {
                     TelegramBotForegroundService.stopForLogout(applicationContext)
@@ -189,6 +211,12 @@ class MainActivity : AppCompatActivity() {
                         else -> {
                             val deps = dependencies
                             if (deps != null) {
+                            val biometricStore = remember {
+                                com.truckerload.data.preferences.BiometricUnlockStore(applicationContext)
+                            }
+                            val gateEnabled = deps.authStore.authProvider() ==
+                                com.truckerload.data.preferences.AuthProvider.EMAIL &&
+                                biometricStore.isEnabled()
                             CompositionLocalProvider(
                                 LocalSettingsDataStore provides settingsDataStore,
                                 LocalAuthStore provides deps.authStore,
@@ -209,11 +237,13 @@ class MainActivity : AppCompatActivity() {
                                 LocalSocialRepository provides deps.socialRepository,
                                 LocalVoiceRepository provides deps.voiceRepository,
                             ) {
-                                NavGraph(
-                                    deepLinkRoute = deepLinkRoute,
-                                    onDeepLinkHandled = { deepLinkRoute = null },
-                                )
-                                AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
+                                    NavGraph(
+                                        deepLinkRoute = deepLinkRoute,
+                                        onDeepLinkHandled = { deepLinkRoute = null },
+                                    )
+                                    AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                }
                             }
                             }
                         }

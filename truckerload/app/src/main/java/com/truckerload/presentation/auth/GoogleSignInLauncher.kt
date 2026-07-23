@@ -59,6 +59,7 @@ fun rememberGoogleSignInLauncher(
         supabaseUserId: String? = null,
         accessToken: String? = null,
         refreshToken: String? = null,
+        googleId: String? = null,
     ) {
         val ok = AuthLogin.tryCompleteLogin(
             authStore = authStore,
@@ -70,6 +71,7 @@ fun rememberGoogleSignInLauncher(
                 familyName = familyName,
                 photoUrl = photoUrl,
                 phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
+                googleId = googleId?.takeIf { it.isNotBlank() },
             ),
             rememberMe = true,
             accessToken = accessToken,
@@ -114,6 +116,8 @@ fun rememberGoogleSignInLauncher(
                         account.givenName.orEmpty(),
                         account.familyName.orEmpty(),
                         resolveGooglePhotoUrl(null, idToken, account.photoUrl?.toString()),
+                        googleId = account.id
+                            ?: idToken?.let { decodeGoogleIdToken(it)?.optString("sub") },
                     )
                 }
                 if (supabaseAuth.isConfigured() && !idToken.isNullOrBlank()) {
@@ -141,6 +145,8 @@ fun rememberGoogleSignInLauncher(
                                         supabaseUserId = user.id,
                                         accessToken = signIn.accessToken,
                                         refreshToken = signIn.refreshToken,
+                                        googleId = account.id
+                                            ?: decodeGoogleIdToken(idToken)?.optString("sub"),
                                     )
                                 } else {
                                     Toast.makeText(
@@ -231,6 +237,7 @@ fun rememberGoogleSignInLauncher(
                                     supabaseUserId = user.id,
                                     accessToken = signIn.accessToken,
                                     refreshToken = signIn.refreshToken,
+                                    googleId = claims?.optString("sub"),
                                 )
                             } else {
                                 Toast.makeText(
@@ -246,6 +253,7 @@ fun rememberGoogleSignInLauncher(
                                     claims?.optString("given_name").orEmpty(),
                                     claims?.optString("family_name").orEmpty(),
                                     resolveGooglePhotoUrl(null, idToken),
+                                    googleId = claims?.optString("sub"),
                                 )
                             }
                         } catch (e: Exception) {
@@ -259,6 +267,7 @@ fun rememberGoogleSignInLauncher(
                                 claims?.optString("given_name").orEmpty(),
                                 claims?.optString("family_name").orEmpty(),
                                 resolveGooglePhotoUrl(null, idToken),
+                                googleId = claims?.optString("sub"),
                             )
                         }
                     } else {
@@ -267,6 +276,7 @@ fun rememberGoogleSignInLauncher(
                             claims?.optString("given_name").orEmpty(),
                             claims?.optString("family_name").orEmpty(),
                             resolveGooglePhotoUrl(null, idToken),
+                            googleId = claims?.optString("sub"),
                         )
                     }
                 }

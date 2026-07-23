@@ -218,22 +218,57 @@ fun NavGraph(
     val socialRepository = LocalSocialRepository.current
     val userProfileStore = LocalUserProfileStore.current
     val setupComplete by userProfileStore.setupComplete.collectAsStateWithLifecycle()
+    val authEmail by authStore.email.collectAsStateWithLifecycle()
     var needsSetup by remember { mutableStateOf<Boolean?>(null) }
-    LaunchedEffect(isLoggedIn, setupComplete) {
+    var needsEmailVerify by remember { mutableStateOf<Boolean?>(null) }
+    val emailVerifyStore = remember(context) {
+        com.truckerload.data.preferences.EmailVerificationStore(context.applicationContext)
+    }
+    LaunchedEffect(isLoggedIn, setupComplete, authEmail) {
         if (!isLoggedIn) {
             needsSetup = null
+            needsEmailVerify = null
             return@LaunchedEffect
         }
         socialRepository.ensureInitialized()
-        needsSetup = socialRepository.needsProfileSetup()
+        val setup = socialRepository.needsProfileSetup()
+        needsSetup = setup
+        if (setup) {
+            needsEmailVerify = false
+            return@LaunchedEffect
+        }
+        val provider = authStore.authProvider()
+        needsEmailVerify = provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
+            authEmail.isNotBlank() &&
+            emailVerifyStore.isPending(authEmail)
     }
     if (needsSetup == true) {
         ProfileSetupScreen(
-            onCompleted = { needsSetup = false },
+            onCompleted = {
+                needsSetup = false
+                // After wizard, start soft email verification for email accounts.
+                if (authStore.authProvider() == com.truckerload.data.preferences.AuthProvider.EMAIL &&
+                    authEmail.isNotBlank() &&
+                    !emailVerifyStore.isVerified(authEmail)
+                ) {
+                    emailVerifyStore.beginVerification(authEmail)
+                    needsEmailVerify = true
+                } else {
+                    needsEmailVerify = false
+                }
+            },
         )
         return
     }
-    if (needsSetup == null) {
+    if (needsSetup == null || needsEmailVerify == null) {
+        return
+    }
+    if (needsEmailVerify == true) {
+        com.truckerload.presentation.screens.auth.EmailVerificationScreen(
+            email = authEmail,
+            onVerified = { needsEmailVerify = false },
+            onSkip = { needsEmailVerify = false },
+        )
         return
     }
 

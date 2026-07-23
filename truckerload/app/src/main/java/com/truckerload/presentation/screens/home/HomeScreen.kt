@@ -87,6 +87,7 @@ import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
@@ -338,6 +339,7 @@ fun HomeScreen(
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                         )
                     }
+                    AuthStatusBanner()
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         uiState = uiState,

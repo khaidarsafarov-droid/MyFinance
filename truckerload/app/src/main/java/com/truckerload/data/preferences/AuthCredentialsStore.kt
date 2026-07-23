@@ -3,14 +3,14 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.truckerload.data.auth.PasswordPolicy
 
 /**
  * Local email/password store for offline login and Supabase outage / rate-limit fallback.
  * Credentials are keyed by normalized email so multiple users on one device stay isolated.
  *
- * Passwords are stored reversibly (not hashed) because [validateCredentials] must compare
- * plaintext for offline fallback when Supabase is unreachable. At rest they live in
- * [SecurePreferences] (EncryptedSharedPreferences / AES-GCM); see also [AuthStore] for tokens.
+ * Passwords are stored as PBKDF2 verifiers (see [PasswordPolicy]); legacy plaintext
+ * entries are accepted once and upgraded on successful [validateCredentials].
  */
 class AuthCredentialsStore(context: Context) {
     private val prefs: SharedPreferences = openPrefs(context)
@@ -19,10 +19,10 @@ class AuthCredentialsStore(context: Context) {
         val key = normalizeEmail(email)
         require(key.isNotBlank()) { "email required" }
         require(password.isNotBlank()) { "password required" }
+        val toStore = if (PasswordPolicy.isHashed(password)) password else PasswordPolicy.hash(password)
         prefs.edit {
-            putString(pwdKey(key), password)
+            putString(pwdKey(key), toStore)
             putString(KEY_LAST_EMAIL, key)
-            // Drop legacy single-slot keys after migrating into the map.
             remove(KEY_EMAIL)
             remove(KEY_PASSWORD)
         }
@@ -32,17 +32,13 @@ class AuthCredentialsStore(context: Context) {
         ?: prefs.getString(KEY_EMAIL, "")
         ?: ""
 
-    fun getPassword(): String {
-        val email = getEmail()
-        if (email.isBlank()) return prefs.getString(KEY_PASSWORD, "") ?: ""
-        return passwordFor(email).orEmpty()
-    }
+    /** Never returns a recoverable password — hashes are not reversible. */
+    fun getPassword(): String = ""
 
     fun passwordFor(email: String): String? {
         val key = normalizeEmail(email)
         if (key.isBlank()) return null
         prefs.getString(pwdKey(key), null)?.let { return it }
-        // Legacy single-account prefs.
         val legacyEmail = prefs.getString(KEY_EMAIL, null)?.let(::normalizeEmail)
         if (legacyEmail != null && legacyEmail == key) {
             return prefs.getString(KEY_PASSWORD, null)
@@ -53,7 +49,12 @@ class AuthCredentialsStore(context: Context) {
     fun validateCredentials(email: String, password: String): Boolean {
         if (email.isBlank() || password.isBlank()) return false
         val saved = passwordFor(email) ?: return false
-        return saved == password
+        val ok = PasswordPolicy.matches(password, saved)
+        if (ok && !PasswordPolicy.isHashed(saved)) {
+            // Upgrade legacy plaintext at rest.
+            saveCredentials(email, password)
+        }
+        return ok
     }
 
     fun hasCredentials(): Boolean =
@@ -83,15 +84,20 @@ class AuthCredentialsStore(context: Context) {
                 securePrefs = secure,
                 migrationFlagKey = MIGRATION_FLAG,
             )
-            // One-shot: lift legacy single email/password into the multi-user map.
             val legacyEmail = secure.getString(KEY_EMAIL, null)?.let(::normalizeEmail)
             val legacyPassword = secure.getString(KEY_PASSWORD, null)
             if (!legacyEmail.isNullOrBlank() && !legacyPassword.isNullOrBlank() &&
                 secure.getString(pwdKey(legacyEmail), null).isNullOrBlank()
             ) {
+                val hashed = if (PasswordPolicy.isHashed(legacyPassword)) {
+                    legacyPassword
+                } else {
+                    PasswordPolicy.hash(legacyPassword)
+                }
                 secure.edit {
-                    putString(pwdKey(legacyEmail), legacyPassword)
+                    putString(pwdKey(legacyEmail), hashed)
                     putString(KEY_LAST_EMAIL, legacyEmail)
+                    remove(KEY_PASSWORD)
                 }
             }
             return secure

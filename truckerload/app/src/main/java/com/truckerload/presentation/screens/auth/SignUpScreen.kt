@@ -118,6 +118,9 @@ fun SignUpScreen(
                 phoneNumber = phoneFormatted,
             ),
         )
+        com.truckerload.data.preferences.EmailVerificationStore(context)
+            .beginVerification(emailTrimmed)
+        com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
         completeSignUp()
     }
@@ -132,17 +135,22 @@ fun SignUpScreen(
             nameTrimmed.isBlank() -> error = context.getString(R.string.auth_error_name_required)
             phoneDigits.length < 8 -> error = context.getString(R.string.auth_error_phone_required)
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
-            password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
-            !supabaseAuth.isConfigured() -> {
-                finishLocalSignUp(
-                    emailTrimmed,
-                    password,
-                    nameTrimmed,
-                    phoneFormatted,
-                    R.string.supabase_not_configured_local,
-                )
-            }
             else -> {
+                val policy = com.truckerload.data.auth.PasswordPolicy.validate(password)
+                if (!policy.ok) {
+                    error = context.getString(policy.errorResId)
+                    return
+                }
+                if (!supabaseAuth.isConfigured()) {
+                    finishLocalSignUp(
+                        emailTrimmed,
+                        password,
+                        nameTrimmed,
+                        phoneFormatted,
+                        R.string.supabase_not_configured_local,
+                    )
+                    return
+                }
                 isLoading = true
                 scope.launch {
                     val checkResult = supabaseAuth.checkRegistration(emailTrimmed, phoneFormatted)
@@ -156,9 +164,7 @@ fun SignUpScreen(
                                 false
                             } else true
                         },
-                        onFailure = {
-                            true
-                        }
+                        onFailure = { true },
                     )
                     if (!shouldProceed) return@launch
                     val signUpResult = supabaseAuth.signUp(emailTrimmed, password, nameTrimmed, phoneFormatted)
@@ -194,6 +200,9 @@ fun SignUpScreen(
                                                         accessToken = r.accessToken,
                                                         refreshToken = r.refreshToken,
                                                     )
+                                                    com.truckerload.data.preferences.EmailVerificationStore(context)
+                                                        .beginVerification(emailTrimmed)
+                                                    com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)
                                                     completeSignUp()
                                                 },
                                                 onFailure = {
@@ -205,7 +214,6 @@ fun SignUpScreen(
                                     }
                                 } else {
                                     isLoading = false
-                                    // Confirm-email mode: keep a local account so the user can work now.
                                     finishLocalSignUp(
                                         emailTrimmed,
                                         password,
