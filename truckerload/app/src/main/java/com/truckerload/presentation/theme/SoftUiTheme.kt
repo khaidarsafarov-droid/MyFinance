@@ -37,6 +37,9 @@ object SoftUiColors {
     val BackgroundDark = Color(0xFF1A2420)
     val SurfaceDark = Color(0xFF24302A)
     val SurfaceMutedDark = Color(0xFF2E3C35)
+    val VoiceCallBg = Color(0xFF1A1B2E)
+    val VoiceSuccess = Color(0xFF34C759)
+    val VoiceDanger = Color(0xFFFF3B30)
 
     val TextPrimaryLight = ForestPrimary
     val TextSecondaryLight = ForestMuted

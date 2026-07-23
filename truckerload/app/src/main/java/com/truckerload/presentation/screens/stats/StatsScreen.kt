@@ -2,10 +2,6 @@ package com.truckerload.presentation.screens.stats
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -90,7 +86,6 @@ import com.truckerload.presentation.di.LocalWeekRepository
 import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
 import java.util.Locale
-import kotlin.math.abs
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -769,14 +764,6 @@ private fun MapPreviewCard(onOpenMap: () -> Unit) {
         }
     }
 }
-
-private fun percentChange(current: Double, previous: Double?): Double? {
-    val prev = previous ?: return null
-    if (abs(prev) < 0.0001) return null
-    return ((current - prev) / prev) * 100.0
-}
-
-private fun formatPct(value: Double): String = "${if (value > 0) "+" else ""}${"%.1f".format(value)}%"
 
 internal fun formatMoney(value: Double): String {
     return "%,.0f".format(value)

@@ -79,7 +79,7 @@ fun IncomingCallScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF1A1B2E)),
+                .background(SoftUiColors.VoiceCallBg),
         ) {
             Column(
                 modifier = Modifier
@@ -120,13 +120,13 @@ fun IncomingCallScreen(
                     CallActionButton(
                         icon = Icons.Default.CallEnd,
                         label = stringResource(R.string.reject_call),
-                        background = Color(0xFFFF3B30),
+                        background = SoftUiColors.VoiceDanger,
                         onClick = onReject,
                     )
                     CallActionButton(
                         icon = Icons.Default.Call,
                         label = stringResource(R.string.accept_call),
-                        background = Color(0xFF34C759),
+                        background = SoftUiColors.VoiceSuccess,
                         onClick = onAccept,
                     )
                 }
@@ -151,7 +151,7 @@ fun CallScreen(
     val micGranted = rememberMicPermission()
 
     Scaffold(
-            containerColor = Color(0xFF1A1B2E),
+            containerColor = SoftUiColors.VoiceCallBg,
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.audio_call), color = tc.TextPrimary) },
@@ -204,13 +204,13 @@ fun CallScreen(
                     CallActionButton(
                         icon = if (state.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                         label = if (state.isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute),
-                        background = if (state.isMuted) Color(0xFFFF3B30) else Color(0xFF2E3048),
+                        background = if (state.isMuted) SoftUiColors.VoiceDanger else Color(0xFF2E3048),
                         onClick = { viewModel.toggleMute() },
                     )
                     CallActionButton(
                         icon = Icons.Default.CallEnd,
                         label = stringResource(R.string.end_call),
-                        background = Color(0xFFFF3B30),
+                        background = SoftUiColors.VoiceDanger,
                         onClick = { viewModel.endCall(onBack) },
                     )
                 }

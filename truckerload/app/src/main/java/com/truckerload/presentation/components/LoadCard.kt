@@ -214,7 +214,7 @@ private fun LoadCardContent(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CameraAlt,
-                                contentDescription = null,
+                                contentDescription = photoCd,
                                 tint = SoftUiColors.ForestPrimary,
                                 modifier = Modifier.size(18.dp),
                             )
@@ -232,7 +232,7 @@ private fun LoadCardContent(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.DocumentScanner,
-                                contentDescription = null,
+                                contentDescription = scanCd,
                                 tint = SoftUiColors.ForestPrimary,
                                 modifier = Modifier.size(18.dp),
                             )
