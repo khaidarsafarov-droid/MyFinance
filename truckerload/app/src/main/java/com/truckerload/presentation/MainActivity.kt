@@ -151,6 +151,12 @@ class MainActivity : AppCompatActivity() {
                         )
                         com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                         com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
+                        com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
+                        runCatching {
+                            com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                        }.onFailure { e ->
+                            android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
+                        }
                         if (!BuildConfig.LOCAL_ONLY_MODE) {
                             runCatching {
                                 com.truckerload.data.backup.GoogleDriveBackupService

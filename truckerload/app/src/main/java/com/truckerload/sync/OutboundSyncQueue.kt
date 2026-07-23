@@ -69,5 +69,6 @@ object OutboundSyncQueue {
             ),
         )
         OutboundSyncWorker.enqueue(context)
+        CloudSyncWorker.enqueue(context)
     }
 }

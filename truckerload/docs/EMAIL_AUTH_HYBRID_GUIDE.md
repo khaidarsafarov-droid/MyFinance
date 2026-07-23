@@ -5,9 +5,12 @@ driver onboarding, JWT refresh, biometric unlock, and the outbound sync queue.
 
 ## Part 1 — Hybrid online mode
 
+See also **`CLOUD_DATA_SYNC.md`** for the full account-based push/pull/hydrate cycle.
+
 1. Loads, diesel expenses, and profile updates are written to **Room first**.
 2. Each mutation enqueues a row in `sync_outbox` (`OutboundSyncQueue`).
-3. `OutboundSyncWorker` (WorkManager, network required) drains pending rows when online.
+3. `OutboundSyncWorker` drains pending rows and `CloudSyncEngine` publishes an
+   `AccountCloudSnapshot` to the account mirror when online.
 4. If the network drops mid-day, the queue buffers; on reconnect the worker retries the batch.
 
 ## Part 2 — Email registration
