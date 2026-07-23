@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import com.truckerload.utils.normalizeKey
 import java.security.MessageDigest
 
 /**
@@ -15,7 +16,7 @@ object AccountIds {
     const val LOCAL_DEV = "local_dev"
 
     fun fromEmail(email: String): String {
-        val normalized = email.trim().lowercase()
+        val normalized = email.normalizeKey()
         require(normalized.isNotBlank()) { "email required for local account id" }
         val digest = MessageDigest.getInstance("SHA-256")
             .digest(normalized.toByteArray(Charsets.UTF_8))

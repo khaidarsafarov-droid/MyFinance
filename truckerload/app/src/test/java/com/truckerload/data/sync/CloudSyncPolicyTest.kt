@@ -37,16 +37,21 @@ class CloudSyncPolicyTest {
     @Test
     fun needsFullHydration_onlyWhenEmptyLocalAndRemoteHasData() {
         assertTrue(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 0, remoteEntityCount = 5))
+        assertTrue(CloudSyncPolicy.needsFullHydration(-1L, localEntityCount = 0, remoteEntityCount = 1))
         assertFalse(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 2, remoteEntityCount = 5))
         assertFalse(CloudSyncPolicy.needsFullHydration(100L, localEntityCount = 0, remoteEntityCount = 5))
         assertFalse(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 0, remoteEntityCount = 0))
+        assertFalse(CloudSyncPolicy.needsFullHydration(-1L, localEntityCount = 0, remoteEntityCount = 0))
     }
 
     @Test
     fun shouldPullIncremental() {
         assertTrue(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 10L, remoteUpdatedAt = 20L))
+        assertTrue(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 1L, remoteUpdatedAt = Long.MAX_VALUE))
         assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 20L, remoteUpdatedAt = 20L))
+        assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 20L, remoteUpdatedAt = 19L))
         assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 0L, remoteUpdatedAt = 20L))
+        assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = -1L, remoteUpdatedAt = 20L))
     }
 
     @Test

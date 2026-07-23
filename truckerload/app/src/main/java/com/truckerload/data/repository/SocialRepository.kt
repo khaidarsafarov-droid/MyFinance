@@ -59,6 +59,13 @@ import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.util.UUID
 
+/**
+ * Coordinates the local social graph, chats, statuses, profiles, media storage, and seeded demo data.
+ *
+ * The repository is Room-first: public methods expose domain models while keeping DAO access,
+ * local identity sync, moderation, recommendations, and attachment/avatar persistence behind
+ * one boundary for the Compose social screens.
+ */
 class SocialRepository(
     db: AppDatabase,
     private val loadRepository: LoadRepository,

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.truckerload.data.auth.PasswordPolicy
+import com.truckerload.utils.normalizeKey
 
 /**
  * Local email/password store for offline login and Supabase outage / rate-limit fallback.
@@ -72,7 +73,7 @@ class AuthCredentialsStore(context: Context) {
         private const val KEY_LAST_EMAIL = "last_email"
         private const val KEY_PWD_PREFIX = "pwd:"
 
-        fun normalizeEmail(email: String): String = email.trim().lowercase()
+        fun normalizeEmail(email: String): String = email.normalizeKey()
 
         private fun pwdKey(normalizedEmail: String): String = KEY_PWD_PREFIX + normalizedEmail
 

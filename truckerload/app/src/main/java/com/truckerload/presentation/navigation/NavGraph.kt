@@ -74,6 +74,10 @@ import com.truckerload.presentation.screens.voice.VoiceRoomScreen
 import com.truckerload.presentation.screens.voice.VoiceRoomsScreen
 import com.truckerload.widget.WidgetDeepLink
 
+/**
+ * Central navigation contract for Compose destinations and deep-link route builders.
+ * Constants define route patterns; helper functions URL-encode path segments before navigation.
+ */
 object Routes {
     const val HOME = "home"
     const val STATS = "stats"
