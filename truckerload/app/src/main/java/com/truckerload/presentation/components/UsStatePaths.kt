@@ -24,7 +24,7 @@ fun getUsStateCodes(): Set<String> = setOf(
     "WV", "WI", "WY", "PR"
 )
 
-/** Полное название штата для инфо-панели. */
+/** Полное название штата для инфо-панели; это статичные catalog data, а не UI copy. */
 fun getStateDisplayName(code: String): String = when (code) {
     "WA" -> "Вашингтон"
     "CA" -> "Калифорния"

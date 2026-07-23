@@ -26,7 +26,11 @@ class TelegramTokenStore(
     }
 
     fun setToken(token: String) {
-        prefs.edit { putString(KEY_TOKEN, token.trim()) }
+        val trimmed = token.trim()
+        if (trimmed.isNotBlank()) {
+            SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
+        }
+        prefs.edit { putString(KEY_TOKEN, trimmed) }
     }
 
     fun hasToken(): Boolean = getToken().isNotBlank()
@@ -44,6 +48,7 @@ class TelegramTokenStore(
         if (saved.isNotBlank()) return
         val fromBuild = BuildConfig.TELEGRAM_BOT_TOKEN.trim()
         if (fromBuild.isNotBlank()) {
+            SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
             prefs.edit { putString(KEY_TOKEN, fromBuild) }
         }
     }
@@ -66,6 +71,7 @@ class TelegramTokenStore(
         private fun openPrefs(context: Context, userId: String?): SharedPreferences {
             val name = prefsName(userId)
             val secure = SecurePreferences.open(context, name)
+            if (SecurePreferences.plaintextFallbackUsed) return secure
             if (userId.isNullOrBlank()) {
                 SecurePreferences.migratePlainToSecure(
                     context = context,
@@ -99,6 +105,8 @@ class TelegramTokenStore(
             )
             val token = legacy.getString(KEY_TOKEN, null)?.trim().orEmpty()
             if (token.isNotBlank()) {
+                if (SecurePreferences.plaintextFallbackUsed) return
+                SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
                 target.edit { putString(KEY_TOKEN, token) }
             }
             meta.edit { putBoolean(KEY_LEGACY_TOKEN_MIGRATED, true) }

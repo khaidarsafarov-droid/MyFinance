@@ -97,12 +97,13 @@ fun ProfileSetupScreen(
     var isSaving by remember { mutableStateOf(false) }
     var isUploadingAvatar by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    val defaultDriverName = stringResource(R.string.default_driver_name)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(defaultDriverName) {
         socialRepository.ensureInitialized()
         val profile = socialRepository.watchMyEnhancedProfile().first()
         if (displayName.isBlank() && profile.displayName.isNotBlank() &&
-            profile.displayName !in setOf("Водитель", "Driver", "User")
+            profile.displayName !in setOf(defaultDriverName, "Driver", "User")
         ) {
             displayName = profile.displayName
         }

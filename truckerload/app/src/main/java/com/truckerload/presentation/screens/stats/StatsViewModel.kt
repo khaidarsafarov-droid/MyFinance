@@ -61,7 +61,8 @@ data class StatsUiState(
     val routeSortBy: RouteSortBy = RouteSortBy.RATE_PER_MILE,
     val topStatesByRevenue: List<StateRevenue> = emptyList(),
     val selectedStateCode: String = "KY",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -125,22 +126,29 @@ class StatsViewModel(
             )
         }
         viewModelScope.launch {
-            val state = _uiState.value
-            val summaries = weekRepository.getWeeksInMonthSummaries(state.calendarMonth, state.calendarYear)
-            val selected = summaries.firstOrNull {
-                it.weekNumber == state.weekNumber && it.year == state.year
-            } ?: summaries.firstOrNull()
-            val selectedWeek = selected?.weekNumber ?: state.weekNumber.coerceIn(1, 53)
-            val selectedYear = selected?.year ?: state.year.coerceIn(minYear, maxYear)
-            _uiState.update {
-                it.copy(
-                    weeksInMonth = summaries,
-                    weekNumber = selectedWeek,
-                    year = selectedYear
-                )
+            runCatching {
+                val state = _uiState.value
+                val summaries = weekRepository.getWeeksInMonthSummaries(state.calendarMonth, state.calendarYear)
+                val selected = summaries.firstOrNull {
+                    it.weekNumber == state.weekNumber && it.year == state.year
+                } ?: summaries.firstOrNull()
+                val selectedWeek = selected?.weekNumber ?: state.weekNumber.coerceIn(1, 53)
+                val selectedYear = selected?.year ?: state.year.coerceIn(minYear, maxYear)
+                _uiState.update {
+                    it.copy(
+                        weeksInMonth = summaries,
+                        weekNumber = selectedWeek,
+                        year = selectedYear,
+                        errorMessage = null,
+                    )
+                }
+                persistSelection()
+                loadStatsForCurrentPeriod()
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
             }
-            persistSelection()
-            loadStatsForCurrentPeriod()
         }
     }
 
@@ -168,10 +176,11 @@ class StatsViewModel(
                     prevAvgRpm = cached.prevAvgRpm,
                     routeStats = cached.routeStats,
                     topStatesByRevenue = cached.topStatesByRevenue,
-                    isLoading = false
+                    isLoading = false,
+                    errorMessage = null,
                 )
             } else {
-                it.copy(statsPeriod = period, isLoading = true)
+                it.copy(statsPeriod = period, isLoading = true, errorMessage = null)
             }
         }
         persistSelection()
@@ -179,9 +188,13 @@ class StatsViewModel(
     }
 
     fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         loadStatsForCurrentPeriod()
         loadWeeksInMonth(_uiState.value.calendarMonth, _uiState.value.calendarYear)
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun setRouteSortBy(sortBy: RouteSortBy) {
@@ -211,51 +224,66 @@ class StatsViewModel(
                 calendarMonth = defaultMonth,
                 calendarYear = yr,
                 selectedStateCode = "KY",
-                isLoading = true
+                isLoading = true,
+                errorMessage = null,
             )
         }
         selectedStateStore.save("KY")
         persistSelection()
         periodCache.clear()
         viewModelScope.launch {
-            val summaries = weekRepository.getWeeksInMonthSummaries(defaultMonth, yr)
-            val selected = summaries.firstOrNull { it.weekNumber == currentWeek && it.year == yr } ?: summaries.firstOrNull()
-            _uiState.update {
-                it.copy(
-                    weeksInMonth = summaries,
-                    weekNumber = selected?.weekNumber ?: currentWeek.coerceIn(1, 53),
-                    year = selected?.year ?: yr
-                )
+            runCatching {
+                val summaries = weekRepository.getWeeksInMonthSummaries(defaultMonth, yr)
+                val selected = summaries.firstOrNull { it.weekNumber == currentWeek && it.year == yr } ?: summaries.firstOrNull()
+                _uiState.update {
+                    it.copy(
+                        weeksInMonth = summaries,
+                        weekNumber = selected?.weekNumber ?: currentWeek.coerceIn(1, 53),
+                        year = selected?.year ?: yr,
+                        errorMessage = null,
+                    )
+                }
+                persistSelection()
+                loadStatsForCurrentPeriod()
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
             }
-            persistSelection()
-            loadStatsForCurrentPeriod()
         }
     }
 
     fun setMonthYear(month: Int, year: Int) {
         val m = month.coerceIn(1, 12)
         val yr = year.coerceIn(minYear, maxYear)
-        _uiState.update { it.copy(calendarMonth = m, calendarYear = yr, isLoading = true) }
+        _uiState.update { it.copy(calendarMonth = m, calendarYear = yr, isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            val summaries = weekRepository.getWeeksInMonthSummaries(m, yr)
-            val state = _uiState.value
-            val selectedInList = summaries.any { it.weekNumber == state.weekNumber && it.year == state.year }
-            val selected = if (selectedInList) {
-                state.weekNumber to state.year
-            } else {
-                summaries.firstOrNull()?.let { it.weekNumber to it.year } ?: (state.weekNumber to state.year)
+            runCatching {
+                val summaries = weekRepository.getWeeksInMonthSummaries(m, yr)
+                val state = _uiState.value
+                val selectedInList = summaries.any { it.weekNumber == state.weekNumber && it.year == state.year }
+                val selected = if (selectedInList) {
+                    state.weekNumber to state.year
+                } else {
+                    summaries.firstOrNull()?.let { it.weekNumber to it.year } ?: (state.weekNumber to state.year)
+                }
+                _uiState.update {
+                    it.copy(
+                        calendarMonth = m,
+                        calendarYear = yr,
+                        weeksInMonth = summaries,
+                        weekNumber = selected.first,
+                        year = selected.second,
+                        errorMessage = null,
+                    )
+                }
+                persistSelection()
+                loadStatsForCurrentPeriod()
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
             }
-            _uiState.update {
-                it.copy(
-                    calendarMonth = m,
-                    calendarYear = yr,
-                    weeksInMonth = summaries,
-                    weekNumber = selected.first,
-                    year = selected.second
-                )
-            }
-            persistSelection()
-            loadStatsForCurrentPeriod()
         }
     }
 
@@ -290,12 +318,18 @@ class StatsViewModel(
 
     private fun loadStatsForCurrentPeriod() {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                val s = _uiState.value
-                when (s.statsPeriod) {
-                    StatsPeriod.WEEK -> loadWeekPeriod(s.weekNumber, s.year)
-                    StatsPeriod.MONTH -> loadMonthPeriod(s.calendarMonth, s.calendarYear)
-                    StatsPeriod.YEAR -> loadYearPeriod(s.calendarYear)
+            runCatching {
+                withContext(Dispatchers.Default) {
+                    val s = _uiState.value
+                    when (s.statsPeriod) {
+                        StatsPeriod.WEEK -> loadWeekPeriod(s.weekNumber, s.year)
+                        StatsPeriod.MONTH -> loadMonthPeriod(s.calendarMonth, s.calendarYear)
+                        StatsPeriod.YEAR -> loadYearPeriod(s.calendarYear)
+                    }
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.toUiMessage())
                 }
             }
         }
@@ -442,7 +476,8 @@ class StatsViewModel(
                 prevAvgRpm = prevAvgRpm,
                 routeStats = sortedRoutes,
                 topStatesByRevenue = topStates,
-                isLoading = false
+                isLoading = false,
+                errorMessage = null,
             )
         }
         periodCache[_uiState.value.statsPeriod] = CachedPeriodSnapshot(
@@ -531,10 +566,17 @@ class StatsViewModel(
 
     private fun loadWeeksInMonth(month: Int, year: Int) {
         viewModelScope.launch {
-            val summaries = weekRepository.getWeeksInMonthSummaries(month, year)
-            _uiState.update { it.copy(weeksInMonth = summaries) }
+            runCatching {
+                val summaries = weekRepository.getWeeksInMonthSummaries(month, year)
+                _uiState.update { it.copy(weeksInMonth = summaries, errorMessage = null) }
+            }.onFailure { error ->
+                _uiState.update { it.copy(errorMessage = error.toUiMessage()) }
+            }
         }
     }
+
+    private fun Throwable.toUiMessage(): String =
+        localizedMessage ?: message ?: javaClass.simpleName
 
     private fun persistSelection() {
         val s = _uiState.value

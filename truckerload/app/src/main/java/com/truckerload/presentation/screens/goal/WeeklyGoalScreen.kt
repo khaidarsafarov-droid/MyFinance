@@ -367,7 +367,7 @@ private fun GoalPaceMetrics(progress: com.truckerload.domain.goal.WeeklyGoalProg
                 Text(
                     text = stringResource(
                         R.string.goal_metric_pace_matched_hint,
-                    ) + " · " + MoneyFormat.formatCurrency(progress.actualDailyYield) + "/день",
+                    ) + " · " + MoneyFormat.formatCurrency(progress.actualDailyYield) + stringResource(R.string.per_day_suffix),
                     style = AppTypography.Subtitle,
                     modifier = Modifier.padding(top = 4.dp),
                 )

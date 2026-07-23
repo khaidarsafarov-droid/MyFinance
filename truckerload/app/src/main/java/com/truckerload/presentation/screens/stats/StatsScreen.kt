@@ -104,9 +104,10 @@ fun StatsScreen(
     val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
-    val welcomeName = remember(socialProfile, userProfile) {
+    val defaultDriverName = stringResource(R.string.default_driver_name)
+    val welcomeName = remember(socialProfile, userProfile, defaultDriverName) {
         socialProfile?.displayName
-            ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?.takeIf { it.isNotBlank() && it !in setOf(defaultDriverName, "Driver", "User") }
             ?: userProfile?.displayName
                 ?.takeIf { it.isNotBlank() && it != userProfile?.email }
             ?: ""
@@ -138,6 +139,13 @@ fun StatsScreen(
     var insightActions by remember { mutableStateOf(defaultInsightActions) }
     var showInsight by remember { mutableStateOf(false) }
     var showAiOverlay by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
 
     val chartPoints = remember(uiState.statsPeriod, uiState.totalGross, uiState.totalDiesel) {
         buildIllustrativeChart(uiState)

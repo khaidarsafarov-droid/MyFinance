@@ -157,7 +157,7 @@ fun CallScreen(
                     title = { Text(stringResource(R.string.audio_call), color = tc.TextPrimary) },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.endCall(onBack) }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = tc.AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),

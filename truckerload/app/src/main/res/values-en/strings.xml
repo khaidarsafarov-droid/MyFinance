@@ -760,6 +760,7 @@
     <string name="common_search">Search</string>
     <string name="home_welcome">Hi, %1$s</string>
     <string name="stats_header_greeting_named">Hello, %1$s!</string>
+    <string name="default_driver_name">Driver</string>
     <string name="profile_name_placeholder">No name yet</string>
     <string name="profile_photo">Profile photo</string>
     <string name="profile_change_photo">Change photo</string>
@@ -864,6 +865,7 @@
     <string name="social_recommended_groups">Recommended groups</string>
     <string name="social_voice_status">Voice status</string>
     <string name="goal_error_enter_amount">Enter a goal amount</string>
+    <string name="per_day_suffix">/day</string>
     <string name="signup_name_placeholder">John Doe</string>
     <string name="map_rating_good">Good</string>
     <string name="map_rating_avg">Average</string>

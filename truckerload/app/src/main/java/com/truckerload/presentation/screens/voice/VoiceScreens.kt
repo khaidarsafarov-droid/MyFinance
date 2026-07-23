@@ -100,7 +100,7 @@ fun VoiceRoomsScreen(
                     title = { Text(stringResource(R.string.voice_rooms), color = tc.TextPrimary) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = tc.AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
@@ -231,7 +231,7 @@ fun VoiceRoomScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = { viewModel.leave(onBack) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = tc.AccentPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                     }
                     Text(
                         text = "🎙️ ${room?.name.orEmpty()}",
@@ -343,7 +343,7 @@ private fun VoiceParticipantItem(participant: VoiceParticipant) {
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = if (participant.isMe) "${participant.displayName} (Вы)" else participant.displayName,
+            text = if (participant.isMe) "${participant.displayName} (${stringResource(R.string.social_you)})" else participant.displayName,
             color = if (participant.isMe) tc.AccentPrimary else tc.TextPrimary,
             fontSize = 11.sp,
             maxLines = 1,

@@ -130,7 +130,7 @@ fun SocialChatScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -158,7 +158,7 @@ fun SocialChatScreen(
                         Text(reply.text, style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary, maxLines = 1)
                     }
                     IconButton(onClick = viewModel::cancelReply) {
-                        Icon(Icons.Default.Close, contentDescription = null)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                     }
                 }
             }

@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -92,6 +94,7 @@ import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
 import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LoadCalendarWithDots
+import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
@@ -123,9 +126,10 @@ fun HomeScreen(
     val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
-    val welcomeName = remember(socialProfile, userProfile) {
+    val defaultDriverName = stringResource(R.string.default_driver_name)
+    val welcomeName = remember(socialProfile, userProfile, defaultDriverName) {
         socialProfile?.displayName
-            ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?.takeIf { it.isNotBlank() && it !in setOf(defaultDriverName, "Driver", "User") }
             ?: userProfile?.displayName
                 ?.takeIf { it.isNotBlank() && it != userProfile?.email }
             ?: ""
@@ -373,7 +377,21 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.7f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator(color = tc.AccentPrimary)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            repeat(3) { index ->
+                                StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+                                if (index < 2) {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            CircularProgressIndicator(color = tc.AccentPrimary)
+                        }
                     }
                 }
             }

@@ -25,6 +25,7 @@ import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.screens.home.HomeViewModel
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import android.net.Uri
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -33,6 +34,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.truckerload.R
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 import com.truckerload.presentation.components.AdaptiveScaffold
@@ -382,13 +384,14 @@ fun NavGraph(
                 val voiceRepository = LocalVoiceRepository.current
                 val socialRepository = LocalSocialRepository.current
                 val scope = rememberCoroutineScope()
+                val callerFallbackName = stringResource(R.string.social_you)
                 PeerProfileScreen(
                     peerId = peerId,
                     onBack = { navController.popBackStack() },
                     onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
                     onStartCall = { calleeId, calleeName ->
                         scope.launch {
-                            val callerName = socialRepository.watchMyProfile().first().displayName.ifBlank { "Вы" }
+                            val callerName = socialRepository.watchMyProfile().first().displayName.ifBlank { callerFallbackName }
                             voiceRepository.startCall(calleeId, calleeName, callerName)
                                 .getOrNull()
                                 ?.let { call -> navController.navigate(Routes.call(call.callId)) }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -26,23 +27,43 @@ import kotlinx.coroutines.CoroutineScope
 data class VoiceRoomsUiState(
     val rooms: List<VoiceRoom> = emptyList(),
     val isLoading: Boolean = true,
+    val errorMessage: String? = null,
 )
 
 class VoiceRoomsViewModel(
     private val voiceRepository: VoiceRepository,
 ) : ViewModel() {
-    val uiState: StateFlow<VoiceRoomsUiState> =
-        voiceRepository.watchRooms()
-            .map { rooms -> VoiceRoomsUiState(rooms = rooms, isLoading = false) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), VoiceRoomsUiState())
+    private val _uiState = MutableStateFlow(VoiceRoomsUiState())
+    val uiState: StateFlow<VoiceRoomsUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch { voiceRepository.ensureInitialized() }
+        viewModelScope.launch {
+            runCatching { voiceRepository.ensureInitialized() }
+                .onFailure { error ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
+        }
+        viewModelScope.launch {
+            voiceRepository.watchRooms()
+                .catch { error ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
+                .collect { rooms ->
+                    _uiState.value = VoiceRoomsUiState(rooms = rooms, isLoading = false)
+                }
+        }
     }
 
     fun createRoom(name: String, onCreated: (String) -> Unit) {
         viewModelScope.launch {
-            voiceRepository.createRoom(name).onSuccess { onCreated(it) }
+            voiceRepository.createRoom(name)
+                .onSuccess {
+                    _uiState.value = _uiState.value.copy(errorMessage = null)
+                    onCreated(it)
+                }
+                .onFailure { error ->
+                    _uiState.value = _uiState.value.copy(errorMessage = error.toUiMessage())
+                }
         }
     }
 
@@ -55,6 +76,8 @@ class VoiceRoomsViewModel(
 
 data class VoiceRoomUiState(
     val room: VoiceRoom? = null,
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
     val isMuted: Boolean = false,
     val isDeafened: Boolean = false,
     val durationSeconds: Long = 0,
@@ -74,16 +97,30 @@ class VoiceRoomViewModel(
     private var joined = false
 
     init {
-        viewModelScope.launch { voiceRepository.ensureInitialized() }
+        viewModelScope.launch {
+            runCatching { voiceRepository.ensureInitialized() }
+                .onFailure { error ->
+                    _local.value = _local.value.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
+        }
         viewModelScope.launch {
             combine(
                 socialRepository.watchMyEnhancedProfile(),
                 voiceRepository.watchRoom(roomId, ""),
             ) { profile, room ->
                 profile.displayName to room
+            }.catch { error ->
+                _local.value = _local.value.copy(isLoading = false, errorMessage = error.toUiMessage())
             }.collect { (displayName, room) ->
                 if (!joined) {
-                    voiceRepository.joinRoom(roomId, displayName)
+                    val joinResult = voiceRepository.joinRoom(roomId, displayName)
+                    if (joinResult.isFailure) {
+                        _local.value = _local.value.copy(
+                            isLoading = false,
+                            errorMessage = joinResult.exceptionOrNull()?.toUiMessage(),
+                        )
+                        return@collect
+                    }
                     joined = true
                     joinedAt = System.currentTimeMillis()
                     startTicker()
@@ -91,6 +128,8 @@ class VoiceRoomViewModel(
                 }
                 _local.value = _local.value.copy(
                     room = room,
+                    isLoading = false,
+                    errorMessage = null,
                     audioBitrate = voiceRepository.qualityManager.currentSettings().bitrate,
                 )
             }
@@ -120,24 +159,35 @@ class VoiceRoomViewModel(
 
     fun toggleMute() {
         viewModelScope.launch {
-            val next = !_local.value.isMuted
-            voiceRepository.setMuted(roomId, next)
-            _local.value = _local.value.copy(isMuted = next)
+            runCatching {
+                val next = !_local.value.isMuted
+                voiceRepository.setMuted(roomId, next)
+                _local.value = _local.value.copy(isMuted = next, errorMessage = null)
+            }.onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
         }
     }
 
     fun toggleDeafen() {
         viewModelScope.launch {
-            val next = !_local.value.isDeafened
-            voiceRepository.setDeafened(roomId, next)
-            _local.value = _local.value.copy(isDeafened = next)
+            runCatching {
+                val next = !_local.value.isDeafened
+                voiceRepository.setDeafened(roomId, next)
+                _local.value = _local.value.copy(isDeafened = next, errorMessage = null)
+            }.onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
         }
     }
 
     fun leave(onLeft: () -> Unit) {
         viewModelScope.launch {
             voiceRepository.leaveRoom(roomId)
-            onLeft()
+                .onSuccess { onLeft() }
+                .onFailure { error ->
+                    _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+                }
         }
     }
 
@@ -165,6 +215,9 @@ class VoiceRoomViewModel(
             VoiceRoomViewModel(roomId, voiceRepository, socialRepository) as T
     }
 }
+
+private fun Throwable.toUiMessage(): String =
+    localizedMessage ?: message ?: javaClass.simpleName
 
 data class CallUiState(
     val call: CallState? = null,

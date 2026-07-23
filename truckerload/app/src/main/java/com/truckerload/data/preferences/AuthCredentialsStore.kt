@@ -20,6 +20,7 @@ class AuthCredentialsStore(context: Context) {
         val key = normalizeEmail(email)
         require(key.isNotBlank()) { "email required" }
         require(password.isNotBlank()) { "password required" }
+        SecurePreferences.requireEncryptedForSecretWrite("auth credentials")
         val toStore = if (PasswordPolicy.isHashed(password)) password else PasswordPolicy.hash(password)
         prefs.edit {
             putString(pwdKey(key), toStore)
@@ -79,6 +80,7 @@ class AuthCredentialsStore(context: Context) {
 
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
+            if (SecurePreferences.plaintextFallbackUsed) return secure
             SecurePreferences.migratePlainToSecure(
                 context = context,
                 legacyName = LEGACY_PREFS_NAME,

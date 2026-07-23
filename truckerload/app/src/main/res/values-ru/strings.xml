@@ -760,6 +760,7 @@
     <string name="common_search">Поиск</string>
     <string name="home_welcome">Привет, %1$s</string>
     <string name="stats_header_greeting_named">Здравствуйте, %1$s!</string>
+    <string name="default_driver_name">Водитель</string>
     <string name="profile_name_placeholder">Без имени</string>
     <string name="profile_photo">Фото профиля</string>
     <string name="profile_change_photo">Изменить фото</string>
@@ -864,6 +865,7 @@
     <string name="social_recommended_groups">Рекомендуемые группы</string>
     <string name="social_voice_status">Голосовой статус</string>
     <string name="goal_error_enter_amount">Введите сумму цели</string>
+    <string name="per_day_suffix">/день</string>
     <string name="signup_name_placeholder">Иван Иванов</string>
     <string name="map_rating_good">Хорошо</string>
     <string name="map_rating_avg">Средне</string>

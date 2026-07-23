@@ -105,6 +105,13 @@ fun CommunityScreen(
         }
     }
 
+    LaunchedEffect(communityState.errorMessage) {
+        communityState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            communityViewModel.clearError()
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         containerColor = BentoGlassTheme.ScreenBackground,
