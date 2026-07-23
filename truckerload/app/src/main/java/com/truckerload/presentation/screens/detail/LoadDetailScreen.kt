@@ -18,8 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,8 +28,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -41,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -51,6 +50,8 @@ import androidx.compose.ui.draw.clip
 import com.truckerload.presentation.utils.rememberDecodedBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.model.Load
@@ -72,9 +73,6 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.utils.dateStringToUtcDatePickerMillis
-import com.truckerload.utils.utcDatePickerMillisToDateString
-import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +81,7 @@ fun LoadDetailScreen(
     loadId: String,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    onEditFinish: () -> Unit,
     onDelete: () -> Unit,
     onPhotoClick: (String) -> Unit = {},
 ) {
@@ -103,8 +102,16 @@ fun LoadDetailScreen(
     val deleteFailed = stringResource(R.string.load_delete_failed)
     val saveErrorEmpty = stringResource(R.string.common_save_error, "")
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    LaunchedEffect(loadId) {
-        viewModel.refresh()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    // Reload after returning from Edit (finish date / metrics may have changed).
+    DisposableEffect(lifecycleOwner, loadId) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -253,49 +260,11 @@ fun LoadDetailScreen(
                     }
                     ActualFinishSection(
                         load = l,
-                        onPickClick = { viewModel.setShowFinishPicker(true) },
+                        onPickClick = onEditFinish,
                         onClearClick = {
                             viewModel.setActualFinishDate(null, saveErrorEmpty)
                         },
                     )
-                    if (uiState.showFinishPicker) {
-                        val initialIso = l.actualFinishDate ?: l.effectiveFinishDate()
-                        val today = Calendar.getInstance(Locale.US)
-                        val todayIso = "%04d-%02d-%02d".format(
-                            Locale.US,
-                            today.get(Calendar.YEAR),
-                            today.get(Calendar.MONTH) + 1,
-                            today.get(Calendar.DAY_OF_MONTH),
-                        )
-                        val initialMs = dateStringToUtcDatePickerMillis(initialIso ?: todayIso)
-                            ?: System.currentTimeMillis()
-                        val yearForRange = (initialIso ?: todayIso).take(4).toIntOrNull()
-                            ?: today.get(Calendar.YEAR)
-                        val dateState = rememberDatePickerState(
-                            initialSelectedDateMillis = initialMs,
-                            yearRange = IntRange(yearForRange - 2, yearForRange + 1),
-                        )
-                        DatePickerDialog(
-                            onDismissRequest = { viewModel.setShowFinishPicker(false) },
-                            colors = androidx.compose.material3.DatePickerDefaults.colors(
-                                containerColor = tc.CardBackground,
-                            ),
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        val ms = dateState.selectedDateMillis ?: initialMs
-                                        val iso = utcDatePickerMillisToDateString(ms)
-                                        viewModel.setActualFinishDate(iso, saveErrorEmpty)
-                                    },
-                                ) { Text(stringResource(R.string.common_ok)) }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { viewModel.setShowFinishPicker(false) }) {
-                                    Text(stringResource(R.string.common_cancel))
-                                }
-                            },
-                        ) { DatePicker(state = dateState) }
-                    }
                     if (linkedPhotos.isNotEmpty()) {
                         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(20.dp)) {
