@@ -6,8 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * Mindwell Forest palette from the Gemini Truck Log prototype.
- * Sage greens, forest primary cards, soft mint page background.
+ * Shared soft-UI color tokens for the app's forest palette and legacy palette aliases.
  */
 object SoftUiColors {
     val ForestPrimary = Color(0xFF2F4F3E)
@@ -50,6 +49,9 @@ object SoftUiColors {
     val ShadowNeutral = Color(0x0D000000)
 }
 
+/**
+ * Shared soft-UI shape dimensions used by cards, buttons, chips, and navigation surfaces.
+ */
 object SoftUiDimens {
     val ChipRadius = 16.dp
     val ButtonRadius = 16.dp
@@ -57,6 +59,9 @@ object SoftUiDimens {
     val CardLargeRadius = 24.dp
 }
 
+/**
+ * Shared soft-UI shape tokens derived from [SoftUiDimens].
+ */
 object SoftUiShapes {
     val Chip = RoundedCornerShape(SoftUiDimens.ChipRadius)
     val Button = RoundedCornerShape(SoftUiDimens.ButtonRadius)
@@ -66,6 +71,9 @@ object SoftUiShapes {
     val Fab = CircleShape
 }
 
+/**
+ * Shared soft-UI elevation tokens for layered Compose surfaces.
+ */
 object SoftUiElevation {
     val Card = 2.dp
     val Button = 4.dp

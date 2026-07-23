@@ -34,6 +34,9 @@ import com.truckerload.utils.getWeekRange
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * Home-screen hero card showing current week gross, goal progress, weekday markers, and RPM.
+ */
 @Composable
 fun HomeWeekHeroCard(
     gross: Double,

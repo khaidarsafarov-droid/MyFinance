@@ -112,12 +112,12 @@ class GoalViewModel(
 
     fun onGoalInputChange(value: String) {
         _uiState.update {
-            it.copy(goalInput = value.filter { c -> c.isDigit() || c == '.' || c == ',' }, goalError = null)
+            it.copy(goalInput = WeeklyGoalInputValidator.sanitize(value), goalError = null)
         }
     }
 
     fun saveGoal() {
-        val parsed = _uiState.value.goalInput.replace(",", ".").toDoubleOrNull()
+        val parsed = WeeklyGoalInputValidator.parseGoalAmount(_uiState.value.goalInput)
         if (parsed == null) {
             _uiState.update { it.copy(goalError = appContext.getString(com.truckerload.R.string.goal_error_enter_amount)) }
             return

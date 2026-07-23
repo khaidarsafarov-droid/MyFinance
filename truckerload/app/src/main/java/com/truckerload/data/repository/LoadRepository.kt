@@ -52,6 +52,9 @@ data class SyncLoadsResult(
 
 enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
 
+/**
+ * Room-backed single source of truth for loads, route stops, history, and load-linked media.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoadRepository(private val db: AppDatabase) {
 

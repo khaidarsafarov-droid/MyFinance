@@ -53,6 +53,9 @@ import com.truckerload.data.local.entities.VoiceRoomEntity
 import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
 import com.truckerload.data.local.entities.VoiceSignalEntity
 
+/**
+ * Main Room database for account-scoped local app data and social/Telegram sync state.
+ */
 @Database(
     entities = [
         LoadEntity::class,

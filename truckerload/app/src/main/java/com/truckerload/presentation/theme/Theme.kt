@@ -87,7 +87,7 @@ private fun resolveColorScheme(
 }
 
 /**
- * Truck Log theme — Material 3 + Material You dynamic colors (One UI style on Samsung).
+ * App-level Compose theme that applies Material 3 colors, typography, and TruckLoad semantic colors.
  */
 @Composable
 fun TruckerLoadTheme(
