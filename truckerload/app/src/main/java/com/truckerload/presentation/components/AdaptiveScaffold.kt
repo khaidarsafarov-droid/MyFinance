@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -207,7 +207,7 @@ private fun SoftBottomBar(
             ) {
                 BottomNavItem(
                     route = Routes.HOME,
-                    icon = Icons.Outlined.Assignment,
+                    icon = Icons.Outlined.LocalShipping,
                     labelRes = R.string.nav_logbook,
                     currentRoute = currentRoute,
                     onNavigate = onNavigate,

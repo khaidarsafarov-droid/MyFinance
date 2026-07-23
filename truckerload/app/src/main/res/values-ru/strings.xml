@@ -145,7 +145,7 @@
     <string name="connectivity_offline_banner">Нет сети — локальные данные доступны, синхронизация Drive/Telegram отложена</string>
     <string name="nav_profile">Профиль</string>
     <string name="nav_weekly_goal">Цель</string>
-    <string name="nav_logbook">Журнал</string>
+    <string name="nav_logbook">Грузы</string>
     <string name="drawer_reports">Отчёты</string>
     <string name="drawer_documents">Документы</string>
     <string name="drawer_support">Техподдержка</string>

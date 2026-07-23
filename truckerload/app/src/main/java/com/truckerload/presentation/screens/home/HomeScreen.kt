@@ -36,8 +36,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
@@ -78,17 +81,16 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.R
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.truckerload.presentation.components.BotStatusBadge
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.components.AuthStatusBanner
-import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.connectivity.ConnectivityObserver
@@ -267,21 +269,27 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Column {
-                        DarkGlassScreenTitle(stringResource(R.string.home_brand_title))
+                        Text(
+                            text = stringResource(R.string.home_brand_title).uppercase(),
+                            style = AppTypography.ScreenTitle.copy(
+                                color = SoftUiColors.ForestPrimary,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.5.sp,
+                            ),
+                        )
                         if (welcomeName.isNotBlank()) {
                             Text(
                                 stringResource(R.string.home_welcome, welcomeName),
-                                style = AppTypography.Subtitle,
-                                color = SoftUiColors.ForestMuted,
+                                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
                             )
                         } else {
                             Text(
                                 stringResource(R.string.app_tagline),
-                                style = AppTypography.Subtitle.copy(color = SoftUiColors.ForestMuted),
+                                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
                             )
                         }
                         weekLabel.takeIf { it.isNotBlank() && uiState.filter != LoadFilter.THIS_WEEK }?.let { week ->
-                            Text(week, style = AppTypography.Subtitle)
+                            Text(week, style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted))
                         }
                     }
                 },
@@ -476,24 +484,38 @@ private fun HomeScreenContent(
 
             periodSummary?.let { summary ->
                 item(key = "period_summary_${summary.label}") {
-                    PeriodSummarySection(header = summary)
+                    PeriodSummarySection(
+                        header = summary,
+                        currentFilter = uiState.filter,
+                        selectedYear = uiState.selectedYear,
+                        selectedDateLabel = uiState.selectedDateLabel,
+                        selectedWeekLabel = uiState.selectedWeekLabel,
+                        onFilterSelected = viewModel::setFilter,
+                        onOpenCalendar = onOpenCalendar,
+                        onOpenArchive = {
+                            viewModel.setFilter(LoadFilter.ALL)
+                            showYearSelector = true
+                        },
+                    )
                 }
             }
 
-            item(key = "period_filter") {
-                HomePeriodFilterDropdown(
-                    currentFilter = uiState.filter,
-                    selectedYear = uiState.selectedYear,
-                    selectedDateLabel = uiState.selectedDateLabel,
-                    selectedWeekLabel = uiState.selectedWeekLabel,
-                    onFilterSelected = viewModel::setFilter,
-                    onOpenCalendar = onOpenCalendar,
-                    onOpenArchive = {
-                        viewModel.setFilter(LoadFilter.ALL)
-                        showYearSelector = true
-                    },
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
+            if (periodSummary == null) {
+                item(key = "period_filter") {
+                    HomePeriodFilterDropdown(
+                        currentFilter = uiState.filter,
+                        selectedYear = uiState.selectedYear,
+                        selectedDateLabel = uiState.selectedDateLabel,
+                        selectedWeekLabel = uiState.selectedWeekLabel,
+                        onFilterSelected = viewModel::setFilter,
+                        onOpenCalendar = onOpenCalendar,
+                        onOpenArchive = {
+                            viewModel.setFilter(LoadFilter.ALL)
+                            showYearSelector = true
+                        },
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
             }
 
             item(key = "add_load_button") {
@@ -660,7 +682,16 @@ private fun HomeScreenContent(
 }
 
 @Composable
-private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
+private fun PeriodSummarySection(
+    header: HomeListItem.FilteredSectionHeader,
+    currentFilter: LoadFilter,
+    selectedYear: Int?,
+    selectedDateLabel: String,
+    selectedWeekLabel: String,
+    onFilterSelected: (LoadFilter) -> Unit,
+    onOpenCalendar: () -> Unit,
+    onOpenArchive: () -> Unit,
+) {
     val totals = header.totals
     val gross = MoneyFormat.formatCurrency(totals.totalRate)
     val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
@@ -684,51 +715,50 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
             )
             .clip(SoftUiShapes.Card)
             .background(SoftUiColors.ForestPrimary)
-            .padding(20.dp)
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
-        Column {
+        Icon(
+            imageVector = Icons.Filled.LocalShipping,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.10f),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 4.dp, end = 4.dp)
+                .size(112.dp),
+        )
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = header.label.uppercase(),
                 style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
             )
-            Text(
-                text = gross,
-                style = AppTypography.NumbersSmall.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Black,
-                ),
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            Text(
-                text = "$miles • $rpm",
-                style = AppTypography.Body.copy(color = SoftUiColors.ForestSoft),
-                modifier = Modifier.padding(top = 2.dp),
-            )
             Row(
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.10f))
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.Bottom,
             ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.home_period_filter_label),
-                        style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
-                    )
-                    Text(
-                        text = header.label,
-                        style = AppTypography.Subtitle.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
-                }
+                Text(
+                    text = gross,
+                    style = AppTypography.NumbersLarge.copy(
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                    ),
+                )
+                Text(
+                    text = " • $miles • $rpm",
+                    style = AppTypography.Body.copy(color = SoftUiColors.ForestSoft),
+                    modifier = Modifier.padding(bottom = 4.dp, start = 2.dp),
+                )
             }
+            HomePeriodFilterDropdown(
+                currentFilter = currentFilter,
+                selectedYear = selectedYear,
+                selectedDateLabel = selectedDateLabel,
+                selectedWeekLabel = selectedWeekLabel,
+                onFilterSelected = onFilterSelected,
+                onOpenCalendar = onOpenCalendar,
+                onOpenArchive = onOpenArchive,
+                style = PeriodFilterStyle.HeroPill,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }

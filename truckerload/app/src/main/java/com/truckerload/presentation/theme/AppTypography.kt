@@ -22,8 +22,9 @@ object AppTypography {
 
     val ScreenTitle: TextStyle
         @Composable get() = MaterialTheme.typography.headlineSmall.copy(
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold,
+            color = SoftUiColors.ForestPrimary,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 1.4.sp,
         )
 
     val Headline: TextStyle
@@ -33,13 +34,14 @@ object AppTypography {
 
     val CardTitle: TextStyle
         @Composable get() = MaterialTheme.typography.titleMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface,
+            color = SoftUiColors.ForestPrimary,
+            fontWeight = FontWeight.ExtraBold,
         )
 
     val CardRoute: TextStyle
         @Composable get() = MaterialTheme.typography.titleSmall.copy(
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium,
+            color = SoftUiColors.ForestPrimary,
+            fontWeight = FontWeight.Bold,
         )
 
     val Body: TextStyle
@@ -64,9 +66,9 @@ object AppTypography {
 
     val SectionTitle: TextStyle
         @Composable get() = MaterialTheme.typography.labelLarge.copy(
-            color = MaterialTheme.colorScheme.onBackground,
+            color = SoftUiColors.ForestMuted,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 1.2.sp,
+            letterSpacing = 1.6.sp,
         )
 
     val NumbersLarge: TextStyle

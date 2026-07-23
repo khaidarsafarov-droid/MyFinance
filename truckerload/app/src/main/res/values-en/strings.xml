@@ -145,7 +145,7 @@
     <string name="connectivity_offline_banner">Offline — local data available; Drive/Telegram sync paused</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_weekly_goal">Goal</string>
-    <string name="nav_logbook">Logbook</string>
+    <string name="nav_logbook">Loads</string>
     <string name="drawer_reports">Reports</string>
     <string name="drawer_documents">Documents</string>
     <string name="drawer_support">Support</string>
