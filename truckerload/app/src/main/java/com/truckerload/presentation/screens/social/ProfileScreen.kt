@@ -48,10 +48,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
+import com.truckerload.data.backup.GoogleDriveBackupPrefs
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.domain.geo.CountryCatalog
 import java.util.Locale
 import com.truckerload.domain.social.EnhancedDriverProfile
+import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
@@ -146,6 +151,7 @@ fun ProfileScreen(
                     onAvatarClick = { showAvatarPicker = true },
                 )
             }
+            item { ProfileAuthSyncSection() }
             item { PremiumStatsRow(profile) }
             if (profile.badges.isNotEmpty()) {
                 item { ProfileBadgesSection(profile) }
@@ -459,4 +465,48 @@ private fun ContactRow(
             .padding(top = 8.dp)
             .clickable(onClick = onClick),
     )
+}
+
+@Composable
+private fun ProfileAuthSyncSection() {
+    val tc = LocalTruckColors.current
+    val context = LocalContext.current
+    val authStore = LocalAuthStore.current
+    val userProfileStore = LocalUserProfileStore.current
+    val profile by userProfileStore.profile.collectAsStateWithLifecycle()
+    val session = authStore.sessionOrNull()
+    val prefs = remember(session?.userId) {
+        GoogleDriveBackupPrefs(context, session?.userId ?: AccountIds.LOCAL_DEV)
+    }
+    val lastSync = prefs.lastSyncAt
+    val dateFormat = remember {
+        java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault())
+    }
+    val syncLabel = if (lastSync > 0L) {
+        stringResource(R.string.profile_last_drive_sync, dateFormat.format(java.util.Date(lastSync)))
+    } else {
+        stringResource(R.string.profile_last_drive_sync_never)
+    }
+    BentoGlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val googleLabel = profile?.email?.takeIf { !profile?.googleId.isNullOrBlank() }
+                ?: session?.email?.takeIf { session.provider == AuthProvider.GOOGLE }
+            if (!googleLabel.isNullOrBlank()) {
+                Text(
+                    text = stringResource(R.string.profile_google_linked, googleLabel),
+                    style = AppTypography.Subtitle,
+                    color = tc.TextPrimary,
+                )
+            }
+            Text(
+                text = syncLabel,
+                style = AppTypography.Caption,
+                color = tc.TextSecondary,
+            )
+        }
+    }
 }

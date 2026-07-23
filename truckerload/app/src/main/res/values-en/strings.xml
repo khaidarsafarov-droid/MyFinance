@@ -97,6 +97,12 @@
     <string name="auth_error_email_invalid">Invalid email address</string>
     <string name="auth_error_email_rate_limit">Too many confirmation emails. Account created locally on this device — you can keep working without waiting for email.</string>
     <string name="auth_local_login_fallback">Signed in locally (cloud temporarily unavailable)</string>
+    <string name="auth_session_unconfirmed_banner">Couldn’t verify session online. Working locally</string>
+    <string name="auth_session_offline_local_banner">No network — working locally; sync paused</string>
+    <string name="auth_secure_storage_fallback_banner">Secure storage unavailable — tokens stored with reduced protection</string>
+    <string name="profile_last_drive_sync">Last Drive sync: %1$s</string>
+    <string name="profile_last_drive_sync_never">Last Drive sync: never</string>
+    <string name="profile_google_linked">Google: %1$s</string>
     <string name="signup_error_profile_save">Could not save profile</string>
     <string name="signup_error_register">Registration error</string>
     <string name="signup_success_confirm_email">Registration successful. Confirm your email via the link in the message, then sign in.</string>

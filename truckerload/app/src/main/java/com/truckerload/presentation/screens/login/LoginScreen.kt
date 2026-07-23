@@ -114,6 +114,7 @@ private fun saveProfileAndLogin(
     supabaseUserId: String? = null,
     accessToken: String? = null,
     refreshToken: String? = null,
+    googleId: String? = null,
 ) {
     val profile = UserProfile(
         email = email,
@@ -121,6 +122,7 @@ private fun saveProfileAndLogin(
         familyName = familyName,
         photoUrl = photoUrl,
         phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
+        googleId = googleId?.takeIf { it.isNotBlank() },
     )
     val finish = {
         val ok = AuthLogin.tryCompleteLogin(
@@ -192,6 +194,7 @@ fun LoginScreen(
                         context,
                         userProfileStore,
                         authStore,
+                        googleId = account.id ?: decodeGoogleIdToken(idToken.orEmpty())?.optString("sub"),
                     )
                     isLoading = false
                 }
@@ -215,6 +218,7 @@ fun LoginScreen(
                                         supabaseUserId = u.id,
                                         accessToken = signInResult.accessToken,
                                         refreshToken = signInResult.refreshToken,
+                                        googleId = account.id ?: decodeGoogleIdToken(idToken)?.optString("sub"),
                                     )
                                 } else {
                                     android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
@@ -282,20 +286,48 @@ fun LoginScreen(
                                     supabaseUserId = u.id,
                                     accessToken = signInResult.accessToken,
                                     refreshToken = signInResult.refreshToken,
+                                    googleId = claims?.optString("sub"),
                                 )
                             } else {
                                 android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                                 val c = decodeGoogleIdToken(idToken)
-                                saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
+                                saveProfileAndLogin(
+                                    c?.optString("email") ?: "",
+                                    c?.optString("given_name") ?: "",
+                                    c?.optString("family_name") ?: "",
+                                    resolveGooglePhotoUrl(null, idToken),
+                                    context,
+                                    userProfileStore,
+                                    authStore,
+                                    googleId = c?.optString("sub"),
+                                )
                             }
                         } catch (e: Exception) {
                             android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, e.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                             val c = decodeGoogleIdToken(idToken)
-                            saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
+                            saveProfileAndLogin(
+                                c?.optString("email") ?: "",
+                                c?.optString("given_name") ?: "",
+                                c?.optString("family_name") ?: "",
+                                resolveGooglePhotoUrl(null, idToken),
+                                context,
+                                userProfileStore,
+                                authStore,
+                                googleId = c?.optString("sub"),
+                            )
                         }
                     } else {
                         val c = decodeGoogleIdToken(idToken)
-                        saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
+                        saveProfileAndLogin(
+                            c?.optString("email") ?: "",
+                            c?.optString("given_name") ?: "",
+                            c?.optString("family_name") ?: "",
+                            resolveGooglePhotoUrl(null, idToken),
+                            context,
+                            userProfileStore,
+                            authStore,
+                            googleId = c?.optString("sub"),
+                        )
                     }
                     isLoading = false
                 }

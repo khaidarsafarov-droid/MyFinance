@@ -27,8 +27,12 @@ object CredentialManagerGoogleSignIn {
 
     /**
      * Запрашивает Google ID token через Credential Manager.
+     * @param silent when true, only previously authorized accounts with auto-select (silent re-auth).
      */
-    suspend fun getGoogleIdToken(context: Context): Result<String> = suspendCoroutine { cont ->
+    suspend fun getGoogleIdToken(
+        context: Context,
+        silent: Boolean = false,
+    ): Result<String> = suspendCoroutine { cont ->
         val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
         if (webClientId.isBlank()) {
             cont.resume(Result.failure(Exception("GOOGLE_WEB_CLIENT_ID is not configured")))
@@ -36,9 +40,9 @@ object CredentialManagerGoogleSignIn {
         }
         val credentialManager = CredentialManager.create(context)
         val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
+            .setFilterByAuthorizedAccounts(silent)
             .setServerClientId(webClientId)
-            .setAutoSelectEnabled(false)
+            .setAutoSelectEnabled(silent)
             .build()
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(googleIdOption)

@@ -13,10 +13,14 @@ object AuthLogin {
         rememberMe: Boolean = true,
         accessToken: String? = null,
         refreshToken: String? = null,
+        provider: AuthProvider = when {
+            !profile.googleId.isNullOrBlank() -> AuthProvider.GOOGLE
+            else -> AuthProvider.EMAIL
+        },
     ) {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
-        require(profile.email.isNotBlank() || id.startsWith("local_") || id == AccountIds.LOCAL_DEV) {
+        require(profile.email.isNotBlank() || id.startsWith("local_") || id.startsWith("google_") || id == AccountIds.LOCAL_DEV) {
             "email required for account session"
         }
         userProfileStore.bindUser(id)
@@ -27,12 +31,14 @@ object AuthLogin {
             rememberMe = rememberMe,
             accessToken = accessToken,
             refreshToken = refreshToken,
+            googleSub = profile.googleId,
+            provider = provider,
         )
     }
 
     /**
      * Resolves account id and completes login, or returns false when identity is incomplete
-     * (e.g. Google token without email).
+     * (e.g. Google token without email and without `sub`).
      */
     fun tryCompleteLogin(
         authStore: AuthStore,
@@ -43,7 +49,11 @@ object AuthLogin {
         accessToken: String? = null,
         refreshToken: String? = null,
     ): Boolean {
-        val userId = AccountIds.resolveOrNull(supabaseUserId, profile.email) ?: return false
+        val userId = AccountIds.resolveOrNull(
+            supabaseUserId = supabaseUserId,
+            email = profile.email,
+            googleSub = profile.googleId,
+        ) ?: return false
         completeLogin(
             authStore = authStore,
             userProfileStore = userProfileStore,

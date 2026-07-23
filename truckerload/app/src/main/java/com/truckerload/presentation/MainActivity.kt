@@ -142,6 +142,21 @@ class MainActivity : AppCompatActivity() {
                     if (tokenStore.hasToken()) {
                         TelegramBotForegroundService.start(applicationContext)
                     }
+                    // Silent session check + schedule Drive sync (guide Parts 2–3).
+                    withContext(Dispatchers.IO) {
+                        com.truckerload.data.auth.SilentAuthRestorer.restore(
+                            context = applicationContext,
+                            authStore = authStore,
+                            userProfileStore = userProfileStore,
+                        )
+                        com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
+                        if (!BuildConfig.LOCAL_ONLY_MODE) {
+                            runCatching {
+                                com.truckerload.data.backup.GoogleDriveBackupService
+                                    .pushAutoBackupIfEnabled(applicationContext)
+                            }
+                        }
+                    }
                     sessionReady = true
                 } else {
                     TelegramBotForegroundService.stopForLogout(applicationContext)
