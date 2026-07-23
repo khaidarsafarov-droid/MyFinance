@@ -14,53 +14,51 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.truckerload.data.preferences.AppThemeMode
-import com.truckerload.presentation.theme.SoftUiColors
 
-/** Samsung One UI–inspired fallback when dynamic colors are unavailable (API &lt; 31). */
+/** Mindwell Forest static scheme (Gemini Truck Log prototype). */
 private fun staticLightColorScheme(): ColorScheme = lightColorScheme(
-    primary = SoftUiColors.PurpleStart,
+    primary = SoftUiColors.ForestAccent,
     onPrimary = Color.White,
-    primaryContainer = SoftUiColors.PurpleLight,
-    onPrimaryContainer = Color(0xFF3D3280),
-    secondary = Color(0xFF6B7280),
+    primaryContainer = SoftUiColors.Sage,
+    onPrimaryContainer = SoftUiColors.ForestPrimary,
+    secondary = SoftUiColors.ForestMuted,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE8EAF0),
-    onSecondaryContainer = Color(0xFF1A1C2E),
-    tertiary = Color(0xFF34D399),
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFD1FAE5),
-    onTertiaryContainer = Color(0xFF064E3B),
-    error = Color(0xFFDC2626),
+    secondaryContainer = SoftUiColors.ShellBg,
+    onSecondaryContainer = SoftUiColors.ForestPrimary,
+    tertiary = SoftUiColors.ForestSoft,
+    onTertiary = SoftUiColors.ForestPrimary,
+    tertiaryContainer = SoftUiColors.Sage,
+    onTertiaryContainer = SoftUiColors.ForestPrimary,
+    error = Color(0xFFB42318),
     onError = Color.White,
-    background = SoftUiColors.BackgroundLight,
-    onBackground = SoftUiColors.TextPrimaryLight,
+    background = SoftUiColors.ContentBg,
+    onBackground = SoftUiColors.ForestPrimary,
     surface = SoftUiColors.SurfaceLight,
-    onSurface = SoftUiColors.TextPrimaryLight,
-    surfaceVariant = SoftUiColors.SurfaceMuted,
-    onSurfaceVariant = SoftUiColors.TextSecondaryLight,
-    outline = Color(0xFFE5E7EB),
-    outlineVariant = Color(0xFFF0F1F6),
+    onSurface = SoftUiColors.ForestPrimary,
+    surfaceVariant = SoftUiColors.ShellBg,
+    onSurfaceVariant = SoftUiColors.ForestMuted,
+    outline = SoftUiColors.CardBorder,
+    outlineVariant = SoftUiColors.SageBorder,
 )
 
 private fun staticDarkColorScheme(): ColorScheme = darkColorScheme(
-    primary = SoftUiColors.PurpleMuted,
-    onPrimary = Color(0xFF1A1033),
-    primaryContainer = Color(0xFF3D3280),
-    onPrimaryContainer = SoftUiColors.PurpleLight,
-    secondary = Color(0xFF9CA3AF),
-    onSecondary = Color(0xFF1F2937),
+    primary = SoftUiColors.ForestAccent,
+    onPrimary = Color.White,
+    primaryContainer = SoftUiColors.SurfaceMutedDark,
+    onPrimaryContainer = SoftUiColors.Sage,
+    secondary = SoftUiColors.ForestSoft,
+    onSecondary = SoftUiColors.BackgroundDark,
     secondaryContainer = SoftUiColors.SurfaceMutedDark,
-    onSecondaryContainer = Color(0xFFE5E7EB),
-    tertiary = Color(0xFF6EE7B7),
-    onTertiary = Color(0xFF064E3B),
-    tertiaryContainer = Color(0xFF065F46),
-    onTertiaryContainer = Color(0xFFD1FAE5),
+    onSecondaryContainer = SoftUiColors.Sage,
+    tertiary = SoftUiColors.ForestSoft,
+    onTertiary = SoftUiColors.BackgroundDark,
+    tertiaryContainer = SoftUiColors.SurfaceMutedDark,
+    onTertiaryContainer = SoftUiColors.Sage,
     error = Color(0xFFF87171),
     onError = Color(0xFF450A0A),
     background = SoftUiColors.BackgroundDark,
@@ -108,11 +106,11 @@ fun TruckerLoadTheme(
             val window = activity.window
             if (Build.VERSION.SDK_INT < 35) {
                 @Suppress("DEPRECATION")
-                window.statusBarColor = colorScheme.surface.toArgb()
+                window.statusBarColor = SoftUiColors.Sage.toArgb()
                 @Suppress("DEPRECATION")
-                window.navigationBarColor = colorScheme.surface.toArgb()
+                window.navigationBarColor = SoftUiColors.Sage.toArgb()
             }
-            val lightBars = colorScheme.surface.luminance() > 0.5f
+            val lightBars = true
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = lightBars
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = lightBars
         }

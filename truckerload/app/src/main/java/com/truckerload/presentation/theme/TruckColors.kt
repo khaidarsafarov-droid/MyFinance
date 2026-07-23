@@ -98,7 +98,7 @@ object DarkGlassGradients {
 
     val cta: Brush
         @Composable get() = Brush.horizontalGradient(
-            listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+            listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestPrimary),
         )
 
     val button: Brush @Composable get() = cta
@@ -106,12 +106,12 @@ object DarkGlassGradients {
     val horizontal: Brush @Composable get() = cta
     val vertical: Brush
         @Composable get() = Brush.verticalGradient(
-            listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+            listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestPrimary),
         )
 
     val cardShine: Brush
         @Composable get() = Brush.linearGradient(
-            listOf(SoftUiColors.PurpleStart, SoftUiColors.SkyBlueEnd),
+            listOf(SoftUiColors.ForestPrimary, SoftUiColors.ForestAccent),
         )
 
     val chartFill: Brush

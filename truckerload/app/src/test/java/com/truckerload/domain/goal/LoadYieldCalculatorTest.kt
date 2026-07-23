@@ -3,6 +3,8 @@ package com.truckerload.domain.goal
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.model.effectiveFinishDate
+import com.truckerload.domain.model.lastDelDateFromStops
 import com.truckerload.domain.model.withRouteMetrics
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -70,6 +72,35 @@ class LoadYieldCalculatorTest {
         val early = base.copy(actualFinishDate = "2026-07-18").withRouteMetrics()
         val cleared = early.copy(actualFinishDate = null).withRouteMetrics()
         assertEquals(base.durationDays, cleared.durationDays, 0.001)
+    }
+
+    @Test
+    fun `lastDelDateFromStops picks latest DEL date`() {
+        val stops = listOf(
+            stop(StopType.PU, "2026-07-17 05:58", "Atlanta", "GA"),
+            stop(StopType.DEL, "2026-07-19 12:00", "Denver", "CO"),
+            stop(StopType.DEL, "2026-07-20 18:00", "Aurora", "CO"),
+        )
+        val load = sampleLoad(stops = stops)
+        assertEquals("2026-07-20", load.lastDelDateFromStops())
+        assertEquals("2026-07-20", load.effectiveFinishDate())
+        assertEquals(
+            "2026-07-18",
+            load.copy(actualFinishDate = "2026-07-18").effectiveFinishDate(),
+        )
+    }
+
+    @Test
+    fun `finish override earlier than last DEL shortens active days`() {
+        val stops = listOf(
+            stop(StopType.PU, "2026-07-17 05:58", "Atlanta", "GA"),
+            stop(StopType.DEL, "2026-07-20 18:00", "Aurora", "CO"),
+        )
+        val base = sampleLoad(totalRate = 3019.11, stops = stops).withRouteMetrics()
+        // Mimic EditLoad save: set finish date then recompute metrics.
+        val edited = base.copy(actualFinishDate = "2026-07-18").withRouteMetrics()
+        assertEquals(2.0, edited.durationDays, 0.001)
+        assertTrue(edited.pace > base.pace)
     }
 
     private fun stop(

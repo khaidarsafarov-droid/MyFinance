@@ -11,6 +11,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.lastDelDateFromStops
+import com.truckerload.domain.model.withRouteMetrics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,11 +25,15 @@ data class EditLoadUiState(
     val original: Load? = null,
     val tripId: String = "",
     val loadDate: String = "",
+    /** Дата завершения груза (YYYY-MM-DD); по умолчанию — последний DEL. */
+    val finishDate: String = "",
+    val lastDelDate: String? = null,
     val totalRate: String = "",
     val totalMiles: String = "",
     val pointA: String = "",
     val pointB: String = "",
     val disputeLoad: Load? = null,
+    val focusFinish: Boolean = false,
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val saved: Boolean = false,
@@ -38,9 +44,10 @@ class EditLoadViewModel(
     private val loadId: String,
     private val loadRepository: LoadRepository,
     private val savedStateHandle: SavedStateHandle,
+    private val focusFinish: Boolean = false,
 ) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(EditLoadUiState())
+    private val _uiState = MutableStateFlow(EditLoadUiState(focusFinish = focusFinish))
     val uiState: StateFlow<EditLoadUiState> = _uiState.asStateFlow()
 
     init {
@@ -55,6 +62,11 @@ class EditLoadViewModel(
     fun setLoadDate(value: String) {
         savedStateHandle[KEY_DATE] = value
         _uiState.update { it.copy(loadDate = value, saveError = null) }
+    }
+
+    fun setFinishDate(value: String) {
+        savedStateHandle[KEY_FINISH] = value
+        _uiState.update { it.copy(finishDate = value, saveError = null) }
     }
 
     fun setTotalRate(value: String) {
@@ -100,6 +112,15 @@ class EditLoadViewModel(
             }
             return
         }
+        val finishIso = state.finishDate.trim().takeIf { it.length >= 10 }?.take(10)
+        val lastDel = state.lastDelDate
+        // Persist override only when it differs from last DEL (or DEL unknown).
+        // Empty field clears the override and falls back to stops.
+        val actualFinish = when {
+            finishIso.isNullOrBlank() -> null
+            lastDel != null && finishIso == lastDel -> null
+            else -> finishIso
+        }
         val updated = (state.disputeLoad ?: original).copy(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
@@ -107,14 +128,26 @@ class EditLoadViewModel(
             totalMiles = parsedMiles,
             pointA = state.pointA,
             pointB = state.pointB,
+            actualFinishDate = actualFinish,
             updatedAt = System.currentTimeMillis(),
-        )
+        ).withRouteMetrics()
         _uiState.update { it.copy(isSaving = true, saveError = null) }
         viewModelScope.launch {
             try {
                 loadRepository.updateLoad(updated)
-                onOptimisticUpdate?.invoke(updated)
-                _uiState.update { it.copy(isSaving = false, saved = true, original = updated) }
+                val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: updated
+                onOptimisticUpdate?.invoke(reloaded)
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        saved = true,
+                        original = reloaded,
+                        finishDate = reloaded.actualFinishDate
+                            ?: reloaded.lastDelDateFromStops().orEmpty(),
+                        lastDelDate = reloaded.lastDelDateFromStops(),
+                        disputeLoad = reloaded,
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -136,7 +169,7 @@ class EditLoadViewModel(
         }
         viewModelScope.launch {
             try {
-                val loaded = loadRepository.getLoadById(loadId)
+                val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
                 if (loaded == null) {
                     _uiState.update {
                         it.copy(
@@ -146,8 +179,13 @@ class EditLoadViewModel(
                     }
                     return@launch
                 }
+                val lastDel = loaded.lastDelDateFromStops()
                 val tripId = savedStateHandle[KEY_TRIP] ?: loaded.tripId
                 val loadDate = savedStateHandle[KEY_DATE] ?: loaded.date
+                // Prefill finish with saved override, else last DEL (auto from stops).
+                val finishDate = savedStateHandle[KEY_FINISH]
+                    ?: loaded.actualFinishDate?.takeIf { it.length >= 10 }?.take(10)
+                    ?: lastDel.orEmpty()
                 val totalRate = savedStateHandle[KEY_RATE] ?: loaded.totalRate.toString()
                 val totalMiles = savedStateHandle[KEY_MILES] ?: loaded.totalMiles.toString()
                 val pointA = savedStateHandle[KEY_A] ?: loaded.pointA
@@ -158,11 +196,14 @@ class EditLoadViewModel(
                         original = loaded,
                         tripId = tripId,
                         loadDate = loadDate,
+                        finishDate = finishDate,
+                        lastDelDate = lastDel,
                         totalRate = totalRate,
                         totalMiles = totalMiles,
                         pointA = pointA,
                         pointB = pointB,
                         disputeLoad = loaded,
+                        focusFinish = focusFinish,
                     )
                 }
             } catch (e: Exception) {
@@ -177,6 +218,7 @@ class EditLoadViewModel(
         private val application: Application,
         private val loadId: String,
         private val loadRepository: LoadRepository,
+        private val focusFinish: Boolean = false,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
@@ -185,12 +227,14 @@ class EditLoadViewModel(
                 loadId,
                 loadRepository,
                 extras.createSavedStateHandle(),
+                focusFinish,
             ) as T
     }
 
     companion object {
         private const val KEY_TRIP = "edit_trip_id"
         private const val KEY_DATE = "edit_load_date"
+        private const val KEY_FINISH = "edit_finish_date"
         private const val KEY_RATE = "edit_total_rate"
         private const val KEY_MILES = "edit_total_miles"
         private const val KEY_A = "edit_point_a"

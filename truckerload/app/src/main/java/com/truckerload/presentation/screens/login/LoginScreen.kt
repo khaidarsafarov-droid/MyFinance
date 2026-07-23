@@ -114,6 +114,7 @@ private fun saveProfileAndLogin(
     supabaseUserId: String? = null,
     accessToken: String? = null,
     refreshToken: String? = null,
+    googleId: String? = null,
 ) {
     val profile = UserProfile(
         email = email,
@@ -121,6 +122,7 @@ private fun saveProfileAndLogin(
         familyName = familyName,
         photoUrl = photoUrl,
         phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
+        googleId = googleId?.takeIf { it.isNotBlank() },
     )
     val finish = {
         val ok = AuthLogin.tryCompleteLogin(
@@ -192,6 +194,7 @@ fun LoginScreen(
                         context,
                         userProfileStore,
                         authStore,
+                        googleId = account.id ?: decodeGoogleIdToken(idToken.orEmpty())?.optString("sub"),
                     )
                     isLoading = false
                 }
@@ -215,6 +218,7 @@ fun LoginScreen(
                                         supabaseUserId = u.id,
                                         accessToken = signInResult.accessToken,
                                         refreshToken = signInResult.refreshToken,
+                                        googleId = account.id ?: decodeGoogleIdToken(idToken)?.optString("sub"),
                                     )
                                 } else {
                                     android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
@@ -282,20 +286,48 @@ fun LoginScreen(
                                     supabaseUserId = u.id,
                                     accessToken = signInResult.accessToken,
                                     refreshToken = signInResult.refreshToken,
+                                    googleId = claims?.optString("sub"),
                                 )
                             } else {
                                 android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                                 val c = decodeGoogleIdToken(idToken)
-                                saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
+                                saveProfileAndLogin(
+                                    c?.optString("email") ?: "",
+                                    c?.optString("given_name") ?: "",
+                                    c?.optString("family_name") ?: "",
+                                    resolveGooglePhotoUrl(null, idToken),
+                                    context,
+                                    userProfileStore,
+                                    authStore,
+                                    googleId = c?.optString("sub"),
+                                )
                             }
                         } catch (e: Exception) {
                             android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, e.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                             val c = decodeGoogleIdToken(idToken)
-                            saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
+                            saveProfileAndLogin(
+                                c?.optString("email") ?: "",
+                                c?.optString("given_name") ?: "",
+                                c?.optString("family_name") ?: "",
+                                resolveGooglePhotoUrl(null, idToken),
+                                context,
+                                userProfileStore,
+                                authStore,
+                                googleId = c?.optString("sub"),
+                            )
                         }
                     } else {
                         val c = decodeGoogleIdToken(idToken)
-                        saveProfileAndLogin(c?.optString("email") ?: "", c?.optString("given_name") ?: "", c?.optString("family_name") ?: "", resolveGooglePhotoUrl(null, idToken), context, userProfileStore, authStore)
+                        saveProfileAndLogin(
+                            c?.optString("email") ?: "",
+                            c?.optString("given_name") ?: "",
+                            c?.optString("family_name") ?: "",
+                            resolveGooglePhotoUrl(null, idToken),
+                            context,
+                            userProfileStore,
+                            authStore,
+                            googleId = c?.optString("sub"),
+                        )
                     }
                     isLoading = false
                 }
@@ -322,7 +354,6 @@ fun LoginScreen(
         when {
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
             password.isBlank() -> error = context.getString(R.string.auth_error_password_required)
-            password.length < 6 -> error = context.getString(R.string.auth_error_password_short)
             !supabaseAuth.isConfigured() -> {
                 if (!credentialsStore.validateCredentials(emailTrimmed, password) &&
                     !credentialsStore.hasCredentialsFor(emailTrimmed)
@@ -338,6 +369,13 @@ fun LoginScreen(
                     context.getString(R.string.supabase_not_configured_local),
                     android.widget.Toast.LENGTH_LONG,
                 ).show()
+                if (com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)) {
+                    android.widget.Toast.makeText(
+                        context,
+                        context.getString(R.string.biometric_enabled_toast),
+                        android.widget.Toast.LENGTH_SHORT,
+                    ).show()
+                }
                 saveProfileAndLogin(
                     emailTrimmed, "", "", null,
                     context, userProfileStore, authStore, rememberMe,
@@ -350,6 +388,15 @@ fun LoginScreen(
                     result.fold(
                         onSuccess = { r ->
                             credentialsStore.saveCredentials(emailTrimmed, password)
+                            if (com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)) {
+                                withContext(Dispatchers.Main) {
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        context.getString(R.string.biometric_enabled_toast),
+                                        android.widget.Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
                             val profileResult = supabaseAuth.getProfile(r.accessToken, r.user.id)
                             withContext(Dispatchers.Main) {
                                 isLoading = false
@@ -400,6 +447,13 @@ fun LoginScreen(
                                         context.getString(R.string.auth_local_login_fallback),
                                         android.widget.Toast.LENGTH_LONG,
                                     ).show()
+                                    if (com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            context.getString(R.string.biometric_enabled_toast),
+                                            android.widget.Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
                                     saveProfileAndLogin(
                                         emailTrimmed, "", "", null,
                                         context, userProfileStore, authStore, rememberMe,

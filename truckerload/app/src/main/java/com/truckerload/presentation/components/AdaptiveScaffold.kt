@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -186,26 +186,18 @@ private fun SoftBottomBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
 ) {
-    val cs = MaterialTheme.colorScheme
     val pillShape = remember { RoundedCornerShape(16.dp) }
 
     Column(
         modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .background(SoftUiColors.Sage)
+            .navigationBarsPadding(),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = SoftUiElevation.NavBar,
-                    shape = SoftUiShapes.NavBar,
-                    ambientColor = SoftUiColors.ShadowTint,
-                    spotColor = SoftUiColors.ShadowNeutral,
-                )
-                .clip(SoftUiShapes.NavBar)
-                .background(cs.surface)
-                .padding(horizontal = 4.dp, vertical = 8.dp),
+                .background(SoftUiColors.Sage)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Row(
                 modifier = Modifier
@@ -215,7 +207,7 @@ private fun SoftBottomBar(
             ) {
                 BottomNavItem(
                     route = Routes.HOME,
-                    icon = Icons.Outlined.Assignment,
+                    icon = Icons.Outlined.LocalShipping,
                     labelRes = R.string.nav_logbook,
                     currentRoute = currentRoute,
                     onNavigate = onNavigate,
@@ -264,7 +256,6 @@ private fun BottomNavItem(
     pillShape: RoundedCornerShape,
     modifier: Modifier = Modifier,
 ) {
-    val cs = MaterialTheme.colorScheme
     val selected = isPhoneDestinationSelected(currentRoute, route)
     val label = stringResource(labelRes)
 
@@ -274,7 +265,7 @@ private fun BottomNavItem(
             .fillMaxWidth()
             .clip(pillShape)
             .then(
-                if (selected) Modifier.background(SoftUiColors.PurpleLight) else Modifier,
+                if (selected) Modifier.background(SoftUiColors.SageHover) else Modifier,
             )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -287,12 +278,12 @@ private fun BottomNavItem(
             icon,
             contentDescription = label,
             modifier = Modifier.size(UiDimens.IconNavCompact),
-            tint = if (selected) SoftUiColors.PurpleEnd else cs.onSurfaceVariant,
+            tint = if (selected) SoftUiColors.ForestPrimary else SoftUiColors.ForestMuted,
         )
         Text(
             text = label,
-            color = if (selected) SoftUiColors.PurpleEnd else cs.onSurfaceVariant,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) SoftUiColors.ForestPrimary else SoftUiColors.ForestMuted,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

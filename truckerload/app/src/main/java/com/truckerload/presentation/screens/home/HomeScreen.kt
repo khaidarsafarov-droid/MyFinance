@@ -19,11 +19,15 @@ import androidx.paging.compose.itemKey
 import androidx.paging.LoadState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.SoftUiColors
+import com.truckerload.presentation.theme.SoftUiElevation
+import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.UiDimens
@@ -32,8 +36,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
@@ -74,16 +81,16 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.R
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.truckerload.presentation.components.BotStatusBadge
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.connectivity.ConnectivityObserver
@@ -262,21 +269,27 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Column {
-                        DarkGlassScreenTitle(stringResource(R.string.home_brand_title))
+                        Text(
+                            text = stringResource(R.string.home_brand_title).uppercase(),
+                            style = AppTypography.ScreenTitle.copy(
+                                color = SoftUiColors.ForestPrimary,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.5.sp,
+                            ),
+                        )
                         if (welcomeName.isNotBlank()) {
                             Text(
                                 stringResource(R.string.home_welcome, welcomeName),
-                                style = AppTypography.Subtitle,
-                                color = tc.AccentPrimary,
+                                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
                             )
                         } else {
                             Text(
                                 stringResource(R.string.app_tagline),
-                                style = AppTypography.Subtitle,
+                                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
                             )
                         }
                         weekLabel.takeIf { it.isNotBlank() && uiState.filter != LoadFilter.THIS_WEEK }?.let { week ->
-                            Text(week, style = AppTypography.Subtitle)
+                            Text(week, style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted))
                         }
                     }
                 },
@@ -286,9 +299,10 @@ fun HomeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                    actionIconContentColor = tc.TextPrimary
+                    containerColor = SoftUiColors.Sage,
+                    titleContentColor = SoftUiColors.ForestPrimary,
+                    actionIconContentColor = SoftUiColors.ForestPrimary,
+                    navigationIconContentColor = SoftUiColors.ForestPrimary,
                 ),
                 actions = {
                     if (isBotConfigured) {
@@ -333,6 +347,7 @@ fun HomeScreen(
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                         )
                     }
+                    AuthStatusBanner()
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         uiState = uiState,
@@ -469,31 +484,63 @@ private fun HomeScreenContent(
 
             periodSummary?.let { summary ->
                 item(key = "period_summary_${summary.label}") {
-                    PeriodSummarySection(header = summary)
+                    PeriodSummarySection(
+                        header = summary,
+                        currentFilter = uiState.filter,
+                        selectedYear = uiState.selectedYear,
+                        selectedDateLabel = uiState.selectedDateLabel,
+                        selectedWeekLabel = uiState.selectedWeekLabel,
+                        onFilterSelected = viewModel::setFilter,
+                        onOpenCalendar = onOpenCalendar,
+                        onOpenArchive = {
+                            viewModel.setFilter(LoadFilter.ALL)
+                            showYearSelector = true
+                        },
+                    )
                 }
             }
 
-            item(key = "period_filter") {
-                HomePeriodFilterDropdown(
-                    currentFilter = uiState.filter,
-                    selectedYear = uiState.selectedYear,
-                    selectedDateLabel = uiState.selectedDateLabel,
-                    selectedWeekLabel = uiState.selectedWeekLabel,
-                    onFilterSelected = viewModel::setFilter,
-                    onOpenCalendar = onOpenCalendar,
-                    onOpenArchive = {
-                        viewModel.setFilter(LoadFilter.ALL)
-                        showYearSelector = true
-                    },
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+            if (periodSummary == null) {
+                item(key = "period_filter") {
+                    HomePeriodFilterDropdown(
+                        currentFilter = uiState.filter,
+                        selectedYear = uiState.selectedYear,
+                        selectedDateLabel = uiState.selectedDateLabel,
+                        selectedWeekLabel = uiState.selectedWeekLabel,
+                        onFilterSelected = viewModel::setFilter,
+                        onOpenCalendar = onOpenCalendar,
+                        onOpenArchive = {
+                            viewModel.setFilter(LoadFilter.ALL)
+                            showYearSelector = true
+                        },
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
+            }
+
+            item(key = "add_load_button") {
+                TlButton(
+                    onClick = onAddLoad,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.home_add_load_button),
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.home_add_load_button),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
 
             if ((useRoomPaging && pagedLoads.itemCount > 0) || (!useRoomPaging && listItems.isNotEmpty())) {
                 item(key = "recent_header") {
                     DarkGlassSectionTitle(
                         text = stringResource(R.string.home_recent_loads),
-                        emoji = "📋",
                         modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
                     )
                 }
@@ -610,25 +657,6 @@ private fun HomeScreenContent(
                     }
                 }
             }
-
-            item(key = "add_load_button") {
-                TlButton(
-                    onClick = onAddLoad,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
-            }
         }
         PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
@@ -654,8 +682,16 @@ private fun HomeScreenContent(
 }
 
 @Composable
-private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
-    val tc = LocalTruckColors.current
+private fun PeriodSummarySection(
+    header: HomeListItem.FilteredSectionHeader,
+    currentFilter: LoadFilter,
+    selectedYear: Int?,
+    selectedDateLabel: String,
+    selectedWeekLabel: String,
+    onFilterSelected: (LoadFilter) -> Unit,
+    onOpenCalendar: () -> Unit,
+    onOpenArchive: () -> Unit,
+) {
     val totals = header.totals
     val gross = MoneyFormat.formatCurrency(totals.totalRate)
     val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
@@ -667,49 +703,61 @@ private fun PeriodSummarySection(header: HomeListItem.FilteredSectionHeader) {
         miles,
         rpm,
     )
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
+            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp)
+            .shadow(
+                elevation = SoftUiElevation.Card,
+                shape = SoftUiShapes.Card,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            )
+            .clip(SoftUiShapes.Card)
+            .background(SoftUiColors.ForestPrimary)
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
-        Text(
-            text = header.label.uppercase(),
-            style = AppTypography.SectionTitle.copy(color = tc.TextPrimary),
+        Icon(
+            imageVector = Icons.Filled.LocalShipping,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.10f),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 4.dp, end = 4.dp)
+                .size(112.dp),
         )
-        Row(
-            modifier = Modifier.padding(top = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = gross,
-                style = AppTypography.NumbersSmall.copy(
-                    color = tc.AccentPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                ),
+                text = header.label.uppercase(),
+                style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
             )
-            Text(
-                text = "•",
-                style = AppTypography.Body.copy(color = tc.TextSecondary),
-            )
-            Text(
-                text = miles,
-                style = AppTypography.Body.copy(
-                    color = tc.TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                ),
-            )
-            Text(
-                text = "•",
-                style = AppTypography.Body.copy(color = tc.TextSecondary),
-            )
-            Text(
-                text = rpm,
-                style = AppTypography.Body.copy(
-                    color = SoftUiColors.PurpleEnd,
-                    fontWeight = FontWeight.Medium,
-                ),
+            Row(
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Text(
+                    text = gross,
+                    style = AppTypography.NumbersLarge.copy(
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                    ),
+                )
+                Text(
+                    text = " • $miles • $rpm",
+                    style = AppTypography.Body.copy(color = SoftUiColors.ForestSoft),
+                    modifier = Modifier.padding(bottom = 4.dp, start = 2.dp),
+                )
+            }
+            HomePeriodFilterDropdown(
+                currentFilter = currentFilter,
+                selectedYear = selectedYear,
+                selectedDateLabel = selectedDateLabel,
+                selectedWeekLabel = selectedWeekLabel,
+                onFilterSelected = onFilterSelected,
+                onOpenCalendar = onOpenCalendar,
+                onOpenArchive = onOpenArchive,
+                style = PeriodFilterStyle.HeroPill,
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }

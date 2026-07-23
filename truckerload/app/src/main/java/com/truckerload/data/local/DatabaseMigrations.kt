@@ -497,3 +497,37 @@ val MIGRATION_22_23 = object : Migration(22, 23) {
         db.execSQL("CREATE INDEX IF NOT EXISTS index_paychecks_addedAt ON paychecks(addedAt)")
     }
 }
+
+/** Driver professional fields + hybrid outbound sync outbox. */
+val MIGRATION_23_24 = object : Migration(23, 24) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("driver_profile", "dateOfBirthEpochDay", "INTEGER")
+        db.addColumnIfMissing("driver_profile", "cdlNumber", "TEXT NOT NULL DEFAULT ''")
+        db.addColumnIfMissing("driver_profile", "axleCount", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("driver_profile", "homeHubCity", "TEXT NOT NULL DEFAULT ''")
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS sync_outbox (
+                id TEXT NOT NULL PRIMARY KEY,
+                entityType TEXT NOT NULL,
+                entityId TEXT NOT NULL,
+                op TEXT NOT NULL,
+                payloadJson TEXT NOT NULL,
+                status TEXT NOT NULL,
+                attempts INTEGER NOT NULL,
+                lastError TEXT,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_sync_outbox_status_createdAt " +
+                "ON sync_outbox(status, createdAt)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_sync_outbox_entityType_entityId " +
+                "ON sync_outbox(entityType, entityId)",
+        )
+    }
+}

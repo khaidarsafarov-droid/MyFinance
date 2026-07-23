@@ -379,4 +379,64 @@ class SupabaseAuthService(private val appContext: Context) {
             Result.failure(Exception(mapSignInError(e.message ?: e.toString())))
         }
     }
+
+    /** Refresh access token using a refresh_token grant (email / password sessions). */
+    suspend fun refreshSession(refreshToken: String): Result<SignInResult> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
+        }
+        if (refreshToken.isBlank()) {
+            return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_no_tokens)))
+        }
+        val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/auth/v1/token?grant_type=refresh_token"
+        val body = JSONObject().apply {
+            put("refresh_token", refreshToken)
+        }.toString()
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            .addHeader("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
+            .addHeader("Content-Type", "application/json")
+            .post(body.toRequestBody("application/json".toMediaType()))
+            .build()
+        try {
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string() ?: ""
+            if (!response.isSuccessful) {
+                val err = try {
+                    JSONObject(responseBody).optString(
+                        "error_description",
+                        JSONObject(responseBody).optString("msg", responseBody),
+                    )
+                } catch (e: Exception) {
+                    responseBody
+                }
+                return@withContext Result.failure(Exception(mapSignInError(err)))
+            }
+            val json = JSONObject(responseBody)
+            val userJson = json.optJSONObject("user")
+            val userMeta = userJson?.optJSONObject("user_metadata") ?: JSONObject()
+            val user = SupabaseUser(
+                id = userJson?.optString("id").orEmpty().ifBlank { "unknown" },
+                email = userJson?.optString("email")?.takeIf { it.isNotBlank() },
+                fullName = userMeta.optString("full_name").takeIf { it.isNotBlank() },
+                avatarUrl = null,
+            )
+            val accessToken = json.optString("access_token")
+            val newRefresh = json.optString("refresh_token").ifBlank { refreshToken }
+            if (accessToken.isBlank()) {
+                return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_no_tokens)))
+            }
+            Result.success(
+                SignInResult(
+                    user = user,
+                    accessToken = accessToken,
+                    refreshToken = newRefresh,
+                    expiresIn = json.optInt("expires_in", 3600),
+                ),
+            )
+        } catch (e: Exception) {
+            Result.failure(Exception(mapSignInError(e.message ?: e.toString())))
+        }
+    }
 }

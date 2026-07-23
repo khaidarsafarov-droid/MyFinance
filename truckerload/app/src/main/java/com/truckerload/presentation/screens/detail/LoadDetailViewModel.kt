@@ -22,7 +22,6 @@ data class LoadDetailUiState(
     val isLoading: Boolean = true,
     val load: Load? = null,
     val loadError: String? = null,
-    val showFinishPicker: Boolean = false,
 )
 
 sealed class LoadDetailEvent {
@@ -44,10 +43,6 @@ class LoadDetailViewModel(
 
     init {
         refresh()
-    }
-
-    fun setShowFinishPicker(show: Boolean) {
-        _uiState.update { it.copy(showFinishPicker = show) }
     }
 
     fun refresh() {
@@ -114,7 +109,7 @@ class LoadDetailViewModel(
                 loadRepository.updateLoad(next)
                 // Reload from Room so UI reflects persisted durationDays/pace/lastDelMillis.
                 val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
-                _uiState.update { it.copy(load = reloaded, showFinishPicker = false) }
+                _uiState.update { it.copy(load = reloaded) }
             } catch (e: Exception) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
             }

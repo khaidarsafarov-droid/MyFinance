@@ -25,7 +25,7 @@ import com.truckerload.presentation.theme.SoftUiShapes
 
 private val PrimaryGradient: Brush
     @Composable get() = Brush.horizontalGradient(
-        listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+        listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestAccent),
     )
 
 private val DisabledGradient: Brush
@@ -36,7 +36,7 @@ private val DisabledGradient: Brush
         ),
     )
 
-/** Primary action — purple gradient, soft shadow, 20dp corners. */
+/** Primary action — forest accent, soft shadow, rounded-2xl. */
 @Composable
 fun TlButton(
     onClick: () -> Unit,

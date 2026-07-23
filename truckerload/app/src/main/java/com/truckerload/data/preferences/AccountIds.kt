@@ -4,12 +4,11 @@ import java.security.MessageDigest
 
 /**
  * Stable account identifiers for multi-user local isolation.
- * Supabase users keep their UUID; offline / Google-without-Supabase use a hash of email.
+ * Priority: Supabase UUID → Google `sub` → email hash → LOCAL_DEV.
  *
  * Isolation note: Room DB file name and preference/DataStore file names are keyed by
  * [sanitizeFilePart] of the resolved account id, so two device logins with different
- * emails (or Supabase UUIDs) do not share loads/settings. [LOCAL_DEV] is the single
- * shared offline id when [com.truckerload.BuildConfig.LOCAL_ONLY_MODE] is on.
+ * emails / Google accounts do not share loads/settings.
  */
 object AccountIds {
     /** Single-device offline mode ([com.truckerload.BuildConfig.LOCAL_ONLY_MODE]). */
@@ -24,20 +23,36 @@ object AccountIds {
         return "local_$hex"
     }
 
+    /** Stable Room / prefs id derived from Google OpenID `sub`. */
+    fun fromGoogleSub(googleSub: String): String {
+        val sub = googleSub.trim()
+        require(sub.isNotBlank()) { "google sub required" }
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(sub.toByteArray(Charsets.UTF_8))
+        val hex = digest.take(16).joinToString("") { b -> "%02x".format(b) }
+        return "google_$hex"
+    }
+
     /**
-     * @return account id, or null when neither Supabase id nor a usable email is available.
+     * @return account id, or null when no usable identity is available.
      */
-    fun resolveOrNull(supabaseUserId: String?, email: String?): String? {
+    fun resolveOrNull(
+        supabaseUserId: String?,
+        email: String?,
+        googleSub: String? = null,
+    ): String? {
         val remote = supabaseUserId?.trim().orEmpty()
         if (remote.isNotBlank()) return remote
+        val sub = googleSub?.trim().orEmpty()
+        if (sub.isNotBlank()) return fromGoogleSub(sub)
         val mail = email?.trim().orEmpty()
         if (mail.isBlank()) return null
         return fromEmail(mail)
     }
 
-    fun resolve(supabaseUserId: String?, email: String): String =
-        resolveOrNull(supabaseUserId, email)
-            ?: error("Cannot resolve account id without Supabase user id or email")
+    fun resolve(supabaseUserId: String?, email: String, googleSub: String? = null): String =
+        resolveOrNull(supabaseUserId, email, googleSub)
+            ?: error("Cannot resolve account id without Supabase user id, Google sub, or email")
 
     /** Safe fragment for Room database file names. */
     fun sanitizeFilePart(userId: String): String =

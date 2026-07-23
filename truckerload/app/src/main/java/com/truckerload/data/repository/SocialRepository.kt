@@ -188,6 +188,11 @@ class SocialRepository(
         phoneNumber: String,
         homeCountryIso2: String,
         truckType: String = "",
+        dateOfBirthEpochDay: Long? = null,
+        licenseClass: String = "",
+        cdlNumber: String = "",
+        axleCount: Int = 0,
+        homeHubCity: String = "",
     ): SocialResult<Unit> = runCatching {
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
         val name = displayName.trim()
@@ -206,6 +211,11 @@ class SocialRepository(
                 phoneNumber = phone,
                 homeState = country,
                 truckType = truckType.trim().ifBlank { existing.truckType },
+                dateOfBirthEpochDay = dateOfBirthEpochDay ?: existing.dateOfBirthEpochDay,
+                licenseClass = licenseClass.trim().ifBlank { existing.licenseClass },
+                cdlNumber = cdlNumber.trim().ifBlank { existing.cdlNumber },
+                axleCount = if (axleCount > 0) axleCount else existing.axleCount,
+                homeHubCity = homeHubCity.trim().ifBlank { existing.homeHubCity },
                 // Wipe leftover demo identity fields from older installs.
                 about = existing.about.takeIf { !it.contains("Дальнобойщик") && !it.contains("открытые дороги") }.orEmpty(),
                 ratingCount = 0,
@@ -216,6 +226,16 @@ class SocialRepository(
                 lastActive = System.currentTimeMillis(),
             ),
         )
+        runCatching {
+            com.truckerload.sync.OutboundSyncQueue.enqueueProfileUpsert(
+                appContext,
+                existing.id,
+                org.json.JSONObject()
+                    .put("displayName", name)
+                    .put("homeHubCity", homeHubCity.trim())
+                    .put("licenseClass", licenseClass.trim()),
+            )
+        }
         val current = userProfileStore.profile.value
         if (current != null) {
             val parts = name.split(" ", limit = 2)
@@ -256,6 +276,11 @@ class SocialRepository(
                 homeState = "",
                 truckType = "",
                 experienceYears = 0,
+                licenseClass = "",
+                cdlNumber = "",
+                axleCount = 0,
+                homeHubCity = "",
+                dateOfBirthEpochDay = null,
                 routesJson = "",
                 about = "",
                 specialtiesJson = "",
@@ -1012,6 +1037,10 @@ class SocialRepository(
             whatsappNumber = base.whatsappNumber,
             joinedDate = base.joinedDate,
             lastActive = base.lastActive.takeIf { it > 0 } ?: System.currentTimeMillis(),
+            dateOfBirthEpochDay = base.dateOfBirthEpochDay,
+            cdlNumber = base.cdlNumber,
+            axleCount = base.axleCount,
+            homeHubCity = base.homeHubCity,
         )
     }
 

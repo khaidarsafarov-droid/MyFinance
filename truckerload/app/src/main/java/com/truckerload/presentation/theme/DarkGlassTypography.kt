@@ -25,7 +25,10 @@ fun DarkGlassSectionTitle(
     modifier: Modifier = Modifier,
     emoji: String? = null,
 ) {
-    val label = if (emoji != null) "$emoji ${text.uppercase()}" else text.uppercase()
+    val label = when {
+        !emoji.isNullOrBlank() -> "$emoji ${text.uppercase()}"
+        else -> text.uppercase()
+    }
     Text(
         text = label,
         modifier = modifier,
