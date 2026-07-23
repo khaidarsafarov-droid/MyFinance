@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
