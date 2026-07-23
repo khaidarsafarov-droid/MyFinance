@@ -314,7 +314,7 @@ private fun SocialMessageBubble(
                         message.attachmentUrl?.let { path ->
                             AsyncImage(
                                 model = File(path),
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.social_attach_photo),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(max = 240.dp)
