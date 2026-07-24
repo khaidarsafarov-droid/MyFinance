@@ -52,11 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalAuthStore
@@ -75,10 +71,6 @@ import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
-import com.truckerload.presentation.theme.TruckColorPalette
-import com.truckerload.data.preferences.TelegramTokenStore
-import com.truckerload.data.remote.TelegramBotHealth
-import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.utils.BatteryOptimizationHelper
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.utils.BackupService
@@ -693,117 +685,6 @@ fun SettingsScreen(
                     Text(stringResource(R.string.common_cancel))
                 }
             }
-        )
-    }
-}
-
-@Composable
-private fun TelegramBotSettingsContent(
-    context: android.content.Context,
-    tc: TruckColorPalette
-) {
-    val tokenStore = remember { TelegramTokenStore(context) }
-    val storedToken = remember { tokenStore.getToken() }
-    var tokenInput by remember { mutableStateOf(storedToken) }
-    var tokenVisible by remember { mutableStateOf(false) }
-    var statusText by remember { mutableStateOf<String?>(null) }
-    var isChecking by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-
-    OutlinedTextField(
-        value = tokenInput,
-        onValueChange = { tokenInput = it; statusText = null },
-        label = { Text(stringResource(R.string.settings_telegram_token_label)) },
-        placeholder = { Text(stringResource(R.string.settings_telegram_token_placeholder)) },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        visualTransformation = if (tokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        trailingIcon = {
-            IconButton(onClick = { tokenVisible = !tokenVisible }) {
-                Icon(
-                    imageVector = if (tokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = stringResource(
-                        if (tokenVisible) R.string.settings_telegram_hide_token else R.string.settings_telegram_show_token,
-                    ),
-                )
-            }
-        },
-        colors = AppTextFieldDefaults.outlined(),
-    )
-    statusText?.let {
-        Text(
-            text = it,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (it.startsWith("✅")) tc.AccentProfit else tc.AccentExpense,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-    Spacer(modifier = Modifier.height(10.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        Button(
-            onClick = {
-                tokenStore.setToken(tokenInput.trim())
-                TelegramBotForegroundService.start(context)
-                android.widget.Toast.makeText(
-                    context,
-                    context.getString(R.string.settings_telegram_saved),
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            },
-            modifier = Modifier.weight(1f).height(48.dp),
-            enabled = tokenInput.isNotBlank()
-        ) {
-            Text(stringResource(R.string.common_save))
-        }
-        OutlinedButton(
-            onClick = {
-                isChecking = true
-                statusText = null
-                scope.launch {
-                    val result = withContext(Dispatchers.IO) {
-                        TelegramBotHealth.check(tokenInput.trim())
-                    }
-                    statusText = when {
-                        result.ok -> context.getString(
-                            R.string.settings_telegram_ok,
-                            result.username.orEmpty()
-                        )
-                        result.isUnauthorized -> context.getString(R.string.settings_telegram_invalid)
-                        else -> "❌ ${result.error.orEmpty()}"
-                    }
-                    isChecking = false
-                }
-            },
-            modifier = Modifier.weight(1f).height(48.dp),
-            enabled = tokenInput.isNotBlank() && !isChecking
-        ) {
-            Text(if (isChecking) stringResource(R.string.settings_telegram_checking) else stringResource(R.string.settings_telegram_test))
-        }
-    }
-}
-
-@Composable
-private fun BatteryOptimizationContent(
-    context: android.content.Context,
-    tc: TruckColorPalette
-) {
-    var ignoring by remember { mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) }
-
-    if (!ignoring) {
-        Button(
-            onClick = {
-                BatteryOptimizationHelper.requestIgnoreBatteryOptimizations(context)
-                ignoring = BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
-            },
-            modifier = Modifier.fillMaxWidth().height(48.dp)
-        ) {
-            Text(stringResource(R.string.settings_battery_button))
-        }
-    } else {
-        Text(
-            text = stringResource(R.string.settings_battery_ok),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.AccentProfit
         )
     }
 }

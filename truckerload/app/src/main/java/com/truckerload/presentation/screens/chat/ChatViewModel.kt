@@ -186,23 +186,15 @@ class ChatViewModel(
     }
 
     private fun toUserFriendlyError(error: Throwable): String {
-        val message = (error.message ?: "").lowercase(Locale.ROOT)
         val noResponseKeyword = app.getString(R.string.advisor_error_keyword_no_response)
-        return when {
-            "401" in message || "403" in message || "api key" in message ->
-                app.getString(R.string.advisor_error_api_key)
-            "429" in message || "rate" in message || "quota" in message || "limit" in message ->
-                app.getString(R.string.advisor_error_rate_limit)
-            "500" in message || "502" in message || "503" in message || "504" in message ->
-                app.getString(R.string.advisor_error_unavailable)
-            "timeout" in message || "timed out" in message ->
-                app.getString(R.string.advisor_error_timeout)
-            "unable to resolve host" in message || "network" in message || "failed to connect" in message ->
-                app.getString(R.string.advisor_error_network)
-            "empty" in message || noResponseKeyword in message ->
-                app.getString(R.string.advisor_error_empty)
-            else ->
-                app.getString(R.string.advisor_error_generic)
+        return when (ChatErrorClassifier.classify(error, noResponseKeyword)) {
+            ChatErrorClassifier.Kind.API_KEY -> app.getString(R.string.advisor_error_api_key)
+            ChatErrorClassifier.Kind.RATE_LIMIT -> app.getString(R.string.advisor_error_rate_limit)
+            ChatErrorClassifier.Kind.UNAVAILABLE -> app.getString(R.string.advisor_error_unavailable)
+            ChatErrorClassifier.Kind.TIMEOUT -> app.getString(R.string.advisor_error_timeout)
+            ChatErrorClassifier.Kind.NETWORK -> app.getString(R.string.advisor_error_network)
+            ChatErrorClassifier.Kind.EMPTY -> app.getString(R.string.advisor_error_empty)
+            ChatErrorClassifier.Kind.GENERIC -> app.getString(R.string.advisor_error_generic)
         }
     }
 

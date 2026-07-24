@@ -10,6 +10,10 @@ import androidx.room.PrimaryKey
         Index(value = ["tripId"], unique = true),
         Index(value = ["date"]),
         Index(value = ["weekNumber", "year"]),
+        Index(value = ["parsedAt"]),
+        Index(value = ["updatedAt"]),
+        Index(value = ["firstPuCityState"]),
+        Index(value = ["isDispute", "disputeCompleted"]),
     ]
 )
 data class LoadEntity(

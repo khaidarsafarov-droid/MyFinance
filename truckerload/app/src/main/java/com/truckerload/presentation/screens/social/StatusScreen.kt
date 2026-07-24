@@ -117,7 +117,7 @@ fun StatusScreen(
                 title = { Text(stringResource(R.string.social_statuses)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BentoGlassTheme.ScreenBackground),
@@ -146,7 +146,7 @@ fun StatusScreen(
                             enabled = uiState.inputText.isNotBlank(),
                             modifier = Modifier.weight(1f),
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = null)
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.social_post_status))
                             Text(stringResource(R.string.social_post_status))
                         }
                         IconButton(onClick = { photoPicker.launch("image/*") }) {
@@ -225,7 +225,7 @@ private fun StatusItem(status: DriverStatusPost, onView: () -> Unit) {
                     status.mediaPath?.let { path ->
                         AsyncImage(
                             model = File(path),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.social_attach_photo),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)

@@ -34,14 +34,12 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.LoadImporter
 import com.truckerload.utils.formatDateFromUnixSeconds
-import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.widget.WidgetUpdateWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -564,52 +562,27 @@ class TelegramBotSyncEngine(private val context: Context) {
         }
     }
 
-    private fun manualRestoreModeKey(chatId: String) = "${TelegramSyncWorker.KEY_MANUAL_RESTORE_PREFIX}$chatId"
-
-    private fun manualRestoreCountKey(chatId: String) = "${TelegramSyncWorker.KEY_MANUAL_RESTORE_COUNT_PREFIX}$chatId"
-
-    private fun manualRestoreLastActivityKey(chatId: String) =
-        "${TelegramSyncWorker.KEY_MANUAL_RESTORE_LAST_ACTIVITY_PREFIX}$chatId"
+    private fun manualRestoreModeStore(prefs: SharedPreferences): ManualRestoreModeStore =
+        ManualRestoreModeStore(prefs)
 
     private fun startManualRestoreMode(prefs: SharedPreferences, chatId: String) {
-        val now = System.currentTimeMillis()
-        prefs.edit {
-            putBoolean(manualRestoreModeKey(chatId), true)
-            putInt(manualRestoreCountKey(chatId), 0)
-            putLong(manualRestoreLastActivityKey(chatId), now)
-        }
-        Log.d("BackupRestore", "Manual restore mode ON for chat $chatId")
+        manualRestoreModeStore(prefs).start(chatId)
     }
 
     private fun touchManualRestoreActivity(prefs: SharedPreferences, chatId: String) {
-        prefs.edit {putLong(manualRestoreLastActivityKey(chatId), System.currentTimeMillis())}
+        manualRestoreModeStore(prefs).touch(chatId)
     }
 
     private fun isManualRestoreMode(prefs: SharedPreferences, chatId: String): Boolean {
-        if (!prefs.getBoolean(manualRestoreModeKey(chatId), false)) return false
-        val lastActivity = prefs.getLong(manualRestoreLastActivityKey(chatId), 0L)
-        if (lastActivity == 0L) return true
-        val expired = System.currentTimeMillis() - lastActivity > TelegramSyncWorker.MANUAL_RESTORE_TIMEOUT_MS
-        if (expired) {
-            clearManualRestoreMode(prefs, chatId)
-            return false
-        }
-        return true
+        return manualRestoreModeStore(prefs).isActive(chatId)
     }
 
     private fun clearManualRestoreMode(prefs: SharedPreferences, chatId: String) {
-        prefs.edit {
-            remove(manualRestoreModeKey(chatId))
-            remove(manualRestoreCountKey(chatId))
-            remove(manualRestoreLastActivityKey(chatId))
-        }
-        Log.d("BackupRestore", "Manual restore mode OFF for chat $chatId")
+        manualRestoreModeStore(prefs).clear(chatId)
     }
 
     private fun incrementManualRestoreCount(prefs: SharedPreferences, chatId: String): Int {
-        val next = prefs.getInt(manualRestoreCountKey(chatId), 0) + 1
-        prefs.edit {putInt(manualRestoreCountKey(chatId), next)}
-        return next
+        return manualRestoreModeStore(prefs).incrementCount(chatId)
     }
 
     private fun telegramLoadHandler(loadRepository: LoadRepository): TelegramLoadHandler =
@@ -684,20 +657,7 @@ class TelegramBotSyncEngine(private val context: Context) {
     }
 
     private suspend fun buildStatsMessage(loadRepository: LoadRepository): String {
-        val total = loadRepository.getAllLoadsOnce().size
-        val (weekNumber, year) = getCurrentWeekNumberAndYear()
-        val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
-        val weekCount = weekLoads.size
-        val weekIncome = weekLoads.sumOf { it.totalRate }
-        val weekMiles = weekLoads.sumOf { it.totalMiles }
-        Log.d("BackupRestore", "/stats total=$total week=$weekCount income=$weekIncome miles=$weekMiles")
-        return context.getString(
-            R.string.sync_stats,
-            total,
-            weekCount,
-            String.format(Locale.US, "%,.2f", weekIncome),
-            String.format(Locale.US, "%,.0f", weekMiles),
-        )
+        return TelegramStatusMessages.buildStatsMessage(context, loadRepository)
     }
 
     private suspend fun buildStatusMessage(
@@ -705,10 +665,12 @@ class TelegramBotSyncEngine(private val context: Context) {
         paycheckRepository: PaycheckRepository,
         dieselRepository: DieselRepository
     ): String {
-        val loads = loadRepository.getAllLoadsOnce().size
-        val paychecks = paycheckRepository.getAllPaychecksOnce().size
-        val diesel = dieselRepository.getAllDieselOnce().size
-        return context.getString(R.string.sync_status, loads, paychecks, diesel)
+        return TelegramStatusMessages.buildStatusMessage(
+            context = context,
+            loadRepository = loadRepository,
+            paycheckRepository = paycheckRepository,
+            dieselRepository = dieselRepository,
+        )
     }
 
     private suspend fun sendWithMenu(telegramApi: TelegramApi, chatId: String, text: String) {

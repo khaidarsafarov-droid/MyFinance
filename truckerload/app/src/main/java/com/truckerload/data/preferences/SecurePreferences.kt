@@ -40,6 +40,12 @@ object SecurePreferences {
     var plaintextFallbackUsed: Boolean = false
         private set
 
+    fun requireEncryptedForSecretWrite(secretName: String) {
+        check(!plaintextFallbackUsed) {
+            "Secure storage unavailable; refusing to persist $secretName"
+        }
+    }
+
     /**
      * Copies all entries from a legacy plain prefs file into [securePrefs], then clears the legacy file.
      */

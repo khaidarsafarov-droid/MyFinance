@@ -100,7 +100,7 @@ fun VoiceRoomsScreen(
                     title = { Text(stringResource(R.string.voice_rooms), color = tc.TextPrimary) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = tc.AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
@@ -187,7 +187,7 @@ private fun VoiceRoomListItem(room: VoiceRoom, onClick: () -> Unit) {
             if (speaking > 0) {
                 Text(
                     text = "🟢 $speaking",
-                    color = Color(0xFF34C759),
+                    color = SoftUiColors.VoiceSuccess,
                     fontSize = 12.sp,
                 )
             }
@@ -217,7 +217,7 @@ fun VoiceRoomScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF1A1B2E)),
+            .background(SoftUiColors.VoiceCallBg),
     ) {
             if (!micGranted) {
                 MicPermissionPrompt()
@@ -231,7 +231,7 @@ fun VoiceRoomScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = { viewModel.leave(onBack) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = tc.AccentPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                     }
                     Text(
                         text = "🎙️ ${room?.name.orEmpty()}",
@@ -282,19 +282,19 @@ fun VoiceRoomScreen(
                     VoiceControlButton(
                         icon = if (state.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                         label = if (state.isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute),
-                        tint = if (state.isMuted) Color(0xFFFF3B30) else tc.AccentPrimary,
+                        tint = if (state.isMuted) SoftUiColors.VoiceDanger else tc.AccentPrimary,
                         onClick = { viewModel.toggleMute() },
                     )
                     VoiceControlButton(
                         icon = if (state.isDeafened) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
                         label = if (state.isDeafened) stringResource(R.string.undeafen) else stringResource(R.string.deafen),
-                        tint = if (state.isDeafened) Color(0xFFFF3B30) else tc.TextSecondary,
+                        tint = if (state.isDeafened) SoftUiColors.VoiceDanger else tc.TextSecondary,
                         onClick = { viewModel.toggleDeafen() },
                     )
                     VoiceControlButton(
                         icon = Icons.Default.CallEnd,
                         label = stringResource(R.string.leave_room),
-                        tint = Color(0xFFFF3B30),
+                        tint = SoftUiColors.VoiceDanger,
                         onClick = { viewModel.leave(onBack) },
                     )
                 }
@@ -337,13 +337,13 @@ private fun VoiceParticipantItem(participant: VoiceParticipant) {
                 Box(
                     modifier = Modifier
                         .size(UiDimens.AvatarVoiceSpeakingRing)
-                        .border(2.dp, Color(0xFF34C759), CircleShape),
+                        .border(2.dp, SoftUiColors.VoiceSuccess, CircleShape),
                 )
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = if (participant.isMe) "${participant.displayName} (Вы)" else participant.displayName,
+            text = if (participant.isMe) "${participant.displayName} (${stringResource(R.string.social_you)})" else participant.displayName,
             color = if (participant.isMe) tc.AccentPrimary else tc.TextPrimary,
             fontSize = 11.sp,
             maxLines = 1,
@@ -354,7 +354,7 @@ private fun VoiceParticipantItem(participant: VoiceParticipant) {
             Icon(
                 Icons.Default.MicOff,
                 contentDescription = null,
-                tint = Color(0xFFFF3B30),
+                tint = SoftUiColors.VoiceDanger,
                 modifier = Modifier.size(14.dp),
             )
         }

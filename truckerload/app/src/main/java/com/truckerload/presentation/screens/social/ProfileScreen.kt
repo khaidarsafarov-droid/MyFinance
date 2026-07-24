@@ -107,7 +107,7 @@ fun ProfileScreen(
                 navigationIcon = {
                     if (showBack) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                         }
                     } else {
                         IconButton(onClick = openDrawer) {

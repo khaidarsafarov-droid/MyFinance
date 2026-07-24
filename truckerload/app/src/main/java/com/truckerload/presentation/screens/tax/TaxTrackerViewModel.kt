@@ -29,7 +29,9 @@ data class TaxTrackerUiState(
     val daysUntilNextQuarterly: Int = 0,
     val nextQuarterlyDate: String = "",
     val reservedAmount: Double = 0.0,
-    val shortfall: Double = 0.0
+    val shortfall: Double = 0.0,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
 )
 
 private val PER_DIEM_RATE = 69.0
@@ -64,50 +66,62 @@ class TaxTrackerViewModel(
 
     private fun loadTaxData(year: Int) {
         viewModelScope.launch {
-            val paychecks = paycheckRepository.getPaychecksForYear(year)
-            val diesel = dieselRepository.getDieselForYear(year)
-            val loads = loadRepository.getLoadsByYear(year)
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            runCatching {
+                val paychecks = paycheckRepository.getPaychecksForYear(year)
+                val diesel = dieselRepository.getDieselForYear(year)
+                val loads = loadRepository.getLoadsByYear(year)
 
-            val totalGross = paychecks.sumOf { paycheck ->
-                paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
-            }
-            val dieselDed = diesel.sumOf { it.totalAmount }
-            // Active days per load (min 1), summed — better than counting loads as days.
-            val perDiemDays = loads.sumOf {
-                LoadYieldCalculator.loadActiveDurationDays(it).toInt().coerceAtLeast(1)
-            }
-            val perDiemAmt = perDiemDays * PER_DIEM_RATE
-            val totalDed = dieselDed
-            val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
+                val totalGross = paychecks.sumOf { paycheck ->
+                    paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
+                }
+                val dieselDed = diesel.sumOf { it.totalAmount }
+                // Active days per load (min 1), summed — better than counting loads as days.
+                val perDiemDays = loads.sumOf {
+                    LoadYieldCalculator.loadActiveDurationDays(it).toInt().coerceAtLeast(1)
+                }
+                val perDiemAmt = perDiemDays * PER_DIEM_RATE
+                val totalDed = dieselDed
+                val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
 
-            val seTax = taxable * 0.153 * 0.9235
-            val fedTax = calculateFederalTax(taxable)
-            val totalOwed = seTax + fedTax
+                val seTax = taxable * 0.153 * 0.9235
+                val fedTax = calculateFederalTax(taxable)
+                val totalOwed = seTax + fedTax
 
-            val (daysUntil, nextDate) = getNextQuarterlyDate()
-            // Reserved for quarterly: leave 0 until user enters a savings field (UI not yet).
-            val reserved = 0.0
-            val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
+                val (daysUntil, nextDate) = getNextQuarterlyDate()
+                // Reserved for quarterly: leave 0 until user enters a savings field (UI not yet).
+                val reserved = 0.0
+                val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
 
-            _uiState.update {
-                it.copy(
-                    totalGrossIncome = totalGross,
-                    dieselDeductions = dieselDed,
-                    totalDeductions = totalDed,
-                    perDiemDays = perDiemDays,
-                    perDiemAmount = perDiemAmt,
-                    taxableIncome = taxable,
-                    selfEmploymentTax = seTax,
-                    federalTax = fedTax,
-                    totalTaxOwed = totalOwed,
-                    daysUntilNextQuarterly = daysUntil,
-                    nextQuarterlyDate = nextDate,
-                    reservedAmount = reserved,
-                    shortfall = shortfall
-                )
+                _uiState.update {
+                    it.copy(
+                        totalGrossIncome = totalGross,
+                        dieselDeductions = dieselDed,
+                        totalDeductions = totalDed,
+                        perDiemDays = perDiemDays,
+                        perDiemAmount = perDiemAmt,
+                        taxableIncome = taxable,
+                        selfEmploymentTax = seTax,
+                        federalTax = fedTax,
+                        totalTaxOwed = totalOwed,
+                        daysUntilNextQuarterly = daysUntil,
+                        nextQuarterlyDate = nextDate,
+                        reservedAmount = reserved,
+                        shortfall = shortfall,
+                        isLoading = false,
+                        errorMessage = null,
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
             }
         }
     }
+
+    private fun Throwable.toUiMessage(): String =
+        localizedMessage ?: message ?: javaClass.simpleName
 
     private fun calculateFederalTax(taxable: Double): Double {
         if (taxable <= 0) return 0.0

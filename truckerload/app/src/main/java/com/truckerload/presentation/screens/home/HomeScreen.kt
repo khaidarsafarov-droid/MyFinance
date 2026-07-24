@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -92,6 +94,7 @@ import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.DarkGlassSectionTitle
 import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LoadCalendarWithDots
+import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
@@ -123,9 +126,10 @@ fun HomeScreen(
     val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
-    val welcomeName = remember(socialProfile, userProfile) {
+    val defaultDriverName = stringResource(R.string.default_driver_name)
+    val welcomeName = remember(socialProfile, userProfile, defaultDriverName) {
         socialProfile?.displayName
-            ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?.takeIf { it.isNotBlank() && it !in setOf(defaultDriverName, "Driver", "User") }
             ?: userProfile?.displayName
                 ?.takeIf { it.isNotBlank() && it != userProfile?.email }
             ?: ""
@@ -373,14 +377,27 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.7f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator(color = tc.AccentPrimary)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            repeat(3) { index ->
+                                StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+                                if (index < 2) {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            CircularProgressIndicator(color = tc.AccentPrimary)
+                        }
                     }
                 }
             }
         }
     )
 }
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 private fun HomeScreenContent(
@@ -679,116 +696,4 @@ private fun HomeScreenContent(
         )
     }
     }
-}
-
-@Composable
-private fun PeriodSummarySection(
-    header: HomeListItem.FilteredSectionHeader,
-    currentFilter: LoadFilter,
-    selectedYear: Int?,
-    selectedDateLabel: String,
-    selectedWeekLabel: String,
-    onFilterSelected: (LoadFilter) -> Unit,
-    onOpenCalendar: () -> Unit,
-    onOpenArchive: () -> Unit,
-) {
-    val totals = header.totals
-    val gross = MoneyFormat.formatCurrency(totals.totalRate)
-    val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
-    val rpm = stringResource(R.string.home_period_avg_rpm, totals.avgRpmFormatted)
-    val summaryCd = stringResource(
-        R.string.home_period_summary_cd,
-        header.label,
-        gross,
-        miles,
-        rpm,
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp)
-            .shadow(
-                elevation = SoftUiElevation.Card,
-                shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
-            )
-            .clip(SoftUiShapes.Card)
-            .background(SoftUiColors.ForestPrimary)
-            .semantics(mergeDescendants = true) { contentDescription = summaryCd },
-    ) {
-        Icon(
-            imageVector = Icons.Filled.LocalShipping,
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.10f),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 4.dp, end = 4.dp)
-                .size(112.dp),
-        )
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = header.label.uppercase(),
-                style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
-            )
-            Row(
-                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                Text(
-                    text = gross,
-                    style = AppTypography.NumbersLarge.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                    ),
-                )
-                Text(
-                    text = " • $miles • $rpm",
-                    style = AppTypography.Body.copy(color = SoftUiColors.ForestSoft),
-                    modifier = Modifier.padding(bottom = 4.dp, start = 2.dp),
-                )
-            }
-            HomePeriodFilterDropdown(
-                currentFilter = currentFilter,
-                selectedYear = selectedYear,
-                selectedDateLabel = selectedDateLabel,
-                selectedWeekLabel = selectedWeekLabel,
-                onFilterSelected = onFilterSelected,
-                onOpenCalendar = onOpenCalendar,
-                onOpenArchive = onOpenArchive,
-                style = PeriodFilterStyle.HeroPill,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun YearSectionHeader(section: YearSection) {
-    val tc = LocalTruckColors.current
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = adaptiveHorizontalPadding())) {
-        Text(text = stringResource(R.string.home_year_section, section.year), style = MaterialTheme.typography.titleLarge, color = tc.AccentPrimary)
-        Text(
-            text = stringResource(
-                R.string.home_year_totals,
-                section.loadCount,
-                section.totalRate,
-                section.totalMiles
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = tc.TextSecondary,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-    }
-}
-
-@Composable
-private fun MonthSectionHeader(section: MonthSection) {
-    val tc = LocalTruckColors.current
-    Text(
-        text = stringResource(R.string.home_month_section, section.monthName, section.loads.size),
-        style = MaterialTheme.typography.titleSmall,
-        color = tc.TextPrimary,
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp, start = adaptiveHorizontalPadding())
-    )
 }

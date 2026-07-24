@@ -222,7 +222,10 @@ private fun AnalyticsScreenBody(
                                     modifier = Modifier.padding(top = 8.dp),
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
-                                    itemsIndexed(uiState.weeks) { index, week ->
+                                    itemsIndexed(
+                                        uiState.weeks,
+                                        key = { _, week -> week.label },
+                                    ) { index, week ->
                                         FilterChip(
                                             selected = uiState.selectedWeekIndex == index,
                                             onClick = { viewModel.selectWeek(index) },

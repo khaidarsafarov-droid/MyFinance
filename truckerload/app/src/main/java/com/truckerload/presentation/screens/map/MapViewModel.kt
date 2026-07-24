@@ -17,7 +17,8 @@ data class MapUiState(
     val metrics: List<USStateMetric> = emptyList(),
     val selectedStateCode: String = "",
     val isLoading: Boolean = true,
-    val totalLoads: Int = 0
+    val totalLoads: Int = 0,
+    val errorMessage: String? = null,
 )
 
 class MapViewModel(
@@ -36,17 +37,24 @@ class MapViewModel(
 
     fun loadStateMetrics() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val loads = loadRepository.getAllLoadsOnce()
-            val metrics = withContext(Dispatchers.Default) {
-                MapStateMetrics.computeFromLoads(loads)
-            }
-            _uiState.update {
-                it.copy(
-                    metrics = metrics,
-                    totalLoads = loads.size,
-                    isLoading = false
-                )
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            runCatching {
+                val loads = loadRepository.getAllLoadsOnce()
+                val metrics = withContext(Dispatchers.Default) {
+                    MapStateMetrics.computeFromLoads(loads)
+                }
+                _uiState.update {
+                    it.copy(
+                        metrics = metrics,
+                        totalLoads = loads.size,
+                        isLoading = false,
+                        errorMessage = null,
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.toUiMessage())
+                }
             }
         }
     }
@@ -55,6 +63,9 @@ class MapViewModel(
         selectedStateStore.save(code)
         _uiState.update { it.copy(selectedStateCode = code) }
     }
+
+    private fun Throwable.toUiMessage(): String =
+        localizedMessage ?: message ?: javaClass.simpleName
 
     class Factory(
         private val loadRepository: LoadRepository,

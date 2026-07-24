@@ -57,7 +57,9 @@ data class HomeUiState(
     val selectedDate: String? = null,
     val selectedDateLabel: String = "",
     val isSearchExpanded: Boolean = false,
-    val botStatusActive: Boolean = false
+    val botStatusActive: Boolean = false,
+    /** Surface non-fatal repository failures (delete/refresh). */
+    val errorMessage: String? = null,
 )
 
 data class YearSection(

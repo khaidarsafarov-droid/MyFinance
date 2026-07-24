@@ -23,7 +23,6 @@ import com.truckerload.data.social.SocialMediaOptimizer
 import com.truckerload.data.social.ContentModerator
 import com.truckerload.data.social.RecommendationService
 import com.truckerload.data.social.SocialPeerSeedData
-import com.truckerload.domain.social.Badge
 import com.truckerload.domain.social.Challenge
 import com.truckerload.domain.social.ChallengeType
 import com.truckerload.domain.social.ChatType
@@ -38,7 +37,6 @@ import com.truckerload.data.social.SocialSeedData
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.BadgeEngine
 import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.ReactionSummary
 import com.truckerload.domain.social.TruckType
 import com.truckerload.domain.social.toLegacyProfile
 import com.truckerload.domain.social.SocialChat
@@ -59,6 +57,13 @@ import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.util.UUID
 
+/**
+ * Coordinates the local social graph, chats, statuses, profiles, media storage, and seeded demo data.
+ *
+ * The repository is Room-first: public methods expose domain models while keeping DAO access,
+ * local identity sync, moderation, recommendations, and attachment/avatar persistence behind
+ * one boundary for the Compose social screens.
+ */
 class SocialRepository(
     db: AppDatabase,
     private val loadRepository: LoadRepository,
@@ -75,6 +80,11 @@ class SocialRepository(
     private val followDao = db.driverFollowDao()
     private val chatMemberDao = db.chatMemberDao()
     private val peerDao = db.socialPeerDao()
+    private val seedHelper = SocialSeedHelper(
+        chatDao = chatDao,
+        chatMemberDao = chatMemberDao,
+        driverStatusDao = driverStatusDao,
+    )
     private val chatStore = SocialChatStore(
         chatDao = chatDao,
         chatMemberDao = chatMemberDao,
@@ -107,9 +117,9 @@ class SocialRepository(
             syncIdentityFromUserProfile()
             maybeMarkSetupCompleteFromExistingProfile()
             SocialPeerSeedData.seedIfEmpty(peerDao)
-            seedDemoStatuses(displayName)
-            seedGroupMemberships(displayName)
-            backfillGroupInviteCodes()
+            seedHelper.seedDemoStatuses(displayName, STATUS_TTL_MS)
+            seedHelper.seedGroupMemberships(displayName)
+            seedHelper.backfillGroupInviteCodes()
             driverStatusDao.purgeExpired(System.currentTimeMillis())
             refreshMyChallengeScore()
         }
@@ -395,18 +405,18 @@ class SocialRepository(
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(R.string.social_error_upload_avatar, it), it) }
 
-    fun watchChats(): Flow<List<SocialChat>> = chatStore.watchChats()
+    fun watchChats(): Flow<List<SocialChat>> = chatStore.watchChats().flowOn(Dispatchers.IO)
 
-    fun watchPublicGroups(): Flow<List<SocialChat>> = chatStore.watchPublicGroups()
+    fun watchPublicGroups(): Flow<List<SocialChat>> = chatStore.watchPublicGroups().flowOn(Dispatchers.IO)
 
-    fun watchPeers(): Flow<List<SocialPeerProfile>> = chatStore.watchPeers()
+    fun watchPeers(): Flow<List<SocialPeerProfile>> = chatStore.watchPeers().flowOn(Dispatchers.IO)
 
-    fun watchChatsSearch(query: String): Flow<List<SocialChat>> = chatStore.watchChatsSearch(query)
+    fun watchChatsSearch(query: String): Flow<List<SocialChat>> = chatStore.watchChatsSearch(query).flowOn(Dispatchers.IO)
 
-    fun watchTotalUnread(): Flow<Int> = chatStore.watchTotalUnread()
+    fun watchTotalUnread(): Flow<Int> = chatStore.watchTotalUnread().flowOn(Dispatchers.IO)
 
     fun watchMessages(chatId: String, limit: Int = MESSAGE_PAGE_SIZE): Flow<List<SocialMessage>> =
-        chatStore.watchMessages(chatId, limit)
+        chatStore.watchMessages(chatId, limit).flowOn(Dispatchers.IO)
 
     suspend fun loadMoreMessages(
         chatId: String,
@@ -872,62 +882,6 @@ class SocialRepository(
         return buildLeaderboard(weekStats, peers.filter { it.id !in blockedIds }, category)
     }
 
-    private suspend fun seedDemoStatuses(displayName: String) {
-        val now = System.currentTimeMillis()
-        val existing = driverStatusDao.watchActiveStatuses(now).first()
-        if (existing.any { it.userId != DriverProfileEntity.LOCAL_USER_ID }) return
-        listOf(
-            Triple("peer_ivan", "Ivan P.", "On I-95, great RPM!"),
-            Triple("peer_alexey", "Alex S.", "Looking for load TX → FL"),
-            Triple("peer_sergey", "Sergey K.", "Resting in Atlanta"),
-        ).forEach { (userId, name, text) ->
-            driverStatusDao.insert(
-                DriverStatusEntity(
-                    id = "status_$userId",
-                    userId = userId,
-                    displayName = name,
-                    type = StatusType.TEXT.name,
-                    text = text,
-                    mediaPath = null,
-                    createdAt = now - 60_000,
-                    expiresAt = now + STATUS_TTL_MS,
-                ),
-            )
-        }
-        if (displayName.isNotBlank()) {
-            driverStatusDao.insert(
-                DriverStatusEntity(
-                    id = "status_me",
-                    userId = DriverProfileEntity.LOCAL_USER_ID,
-                    displayName = displayName,
-                    type = StatusType.TEXT.name,
-                    text = "On the air!",
-                    mediaPath = null,
-                    createdAt = now,
-                    expiresAt = now + STATUS_TTL_MS,
-                ),
-            )
-        }
-    }
-
-    private suspend fun seedGroupMemberships(displayName: String) {
-        val seedGroupIds = listOf("group_i95", "group_fuel", "group_help")
-        val now = System.currentTimeMillis()
-        seedGroupIds.forEach { groupId ->
-            if (!chatMemberDao.isMember(groupId, DriverProfileEntity.LOCAL_USER_ID)) {
-                chatMemberDao.upsert(
-                    ChatMemberEntity(
-                        chatId = groupId,
-                        userId = DriverProfileEntity.LOCAL_USER_ID,
-                        displayName = displayName.ifBlank { "You" },
-                        role = "MEMBER",
-                        joinedAt = now,
-                    ),
-                )
-            }
-        }
-    }
-
     private fun buildLeaderboard(
         weekStats: WeeklyLoadStatsAgg,
         peers: List<SocialPeerEntity>,
@@ -1056,30 +1010,6 @@ class SocialRepository(
         chatDao.watchChats().first()
             .firstOrNull { it.type == ChatType.PRIVATE.name && it.title.equals(title, ignoreCase = true) }
 
-    private suspend fun backfillGroupInviteCodes() {
-        val codes = mapOf(
-            "group_i95" to "I95ROAD",
-            "group_fuel" to "FUELNOW",
-            "group_help" to "ROADHELP",
-        )
-        codes.forEach { (groupId, code) ->
-            val chat = chatDao.getChat(groupId) ?: return@forEach
-            if (chat.inviteCode.isBlank()) {
-                chatDao.upsert(chat.copy(inviteCode = code))
-            }
-        }
-    }
-
-    private fun SocialPeerEntity.toPeerProfile() = SocialPeerProfile(
-        id = id,
-        displayName = displayName,
-        rating = rating,
-        weeklyMiles = weeklyMiles,
-        weeklyRevenue = weeklyRevenue,
-        weeklyLoads = weeklyLoads,
-        weeklyRpm = weeklyRpm,
-    )
-
     private suspend fun updateFollowCounts() {
         val existing = profileDao.getProfile() ?: return
         profileDao.upsert(
@@ -1089,62 +1019,6 @@ class SocialRepository(
             ),
         )
     }
-
-    private fun SocialChatEntity.toDomain(isMember: Boolean = true) = SocialChat(
-        id = id,
-        title = title,
-        type = runCatching { ChatType.valueOf(type) }.getOrDefault(ChatType.GROUP),
-        participantCount = participantCount,
-        lastMessage = lastMessage,
-        lastMessageAt = lastMessageAt,
-        unreadCount = unreadCount,
-        avatarEmoji = avatarEmoji,
-        onlineCount = onlineCount,
-        category = category,
-        archived = archived,
-        description = description,
-        rating = rating,
-        isPublic = isPublic,
-        creatorId = creatorId,
-        inviteCode = inviteCode,
-        isMember = isMember,
-    )
-
-    private fun SocialMessageEntity.toDomain(
-        isMine: Boolean,
-        reactions: List<ReactionSummary> = emptyList(),
-        replyPreview: String? = null,
-    ) = SocialMessage(
-        id = id,
-        chatId = chatId,
-        senderId = senderId,
-        senderName = senderName,
-        text = text,
-        sentAt = sentAt,
-        messageType = runCatching { MessageType.valueOf(messageType) }.getOrDefault(MessageType.TEXT),
-        attachmentUrl = attachmentUrl,
-        isMine = isMine,
-        replyToId = replyToId,
-        replyPreview = replyPreview,
-        locationLabel = locationLabel,
-        isAnnouncement = isAnnouncement,
-        reactions = reactions,
-        hashtags = ContentModerator.extractHashtags(text),
-        durationMs = durationMs,
-    )
-
-    private fun DriverStatusEntity.toDomain() = DriverStatusPost(
-        id = id,
-        userId = userId,
-        displayName = displayName,
-        type = runCatching { StatusType.valueOf(type) }.getOrDefault(StatusType.TEXT),
-        text = text,
-        mediaPath = mediaPath,
-        createdAt = createdAt,
-        expiresAt = expiresAt,
-        viewed = viewed,
-        durationMs = durationMs,
-    )
 
     companion object {
         const val MESSAGE_PAGE_SIZE = 50

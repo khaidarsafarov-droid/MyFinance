@@ -4,7 +4,10 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "voice_rooms")
+@Entity(
+    tableName = "voice_rooms",
+    indices = [Index(value = ["isActive", "updatedAt"])],
+)
 data class VoiceRoomEntity(
     @PrimaryKey val id: String,
     val name: String,
@@ -34,7 +37,11 @@ data class VoiceRoomParticipantEntity(
 
 @Entity(
     tableName = "call_sessions",
-    indices = [Index(value = ["status"]), Index(value = ["startedAt"])],
+    indices = [
+        Index(value = ["status"]),
+        Index(value = ["startedAt"]),
+        Index(value = ["status", "isIncoming", "startedAt"]),
+    ],
 )
 data class CallSessionEntity(
     @PrimaryKey val callId: String,

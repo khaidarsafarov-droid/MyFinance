@@ -2,10 +2,6 @@ package com.truckerload.presentation.screens.stats
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -90,7 +86,6 @@ import com.truckerload.presentation.di.LocalWeekRepository
 import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
 import java.util.Locale
-import kotlin.math.abs
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,9 +104,10 @@ fun StatsScreen(
     val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
-    val welcomeName = remember(socialProfile, userProfile) {
+    val defaultDriverName = stringResource(R.string.default_driver_name)
+    val welcomeName = remember(socialProfile, userProfile, defaultDriverName) {
         socialProfile?.displayName
-            ?.takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
+            ?.takeIf { it.isNotBlank() && it !in setOf(defaultDriverName, "Driver", "User") }
             ?: userProfile?.displayName
                 ?.takeIf { it.isNotBlank() && it != userProfile?.email }
             ?: ""
@@ -143,6 +139,13 @@ fun StatsScreen(
     var insightActions by remember { mutableStateOf(defaultInsightActions) }
     var showInsight by remember { mutableStateOf(false) }
     var showAiOverlay by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
 
     val chartPoints = remember(uiState.statsPeriod, uiState.totalGross, uiState.totalDiesel) {
         buildIllustrativeChart(uiState)
@@ -769,14 +772,6 @@ private fun MapPreviewCard(onOpenMap: () -> Unit) {
         }
     }
 }
-
-private fun percentChange(current: Double, previous: Double?): Double? {
-    val prev = previous ?: return null
-    if (abs(prev) < 0.0001) return null
-    return ((current - prev) / prev) * 100.0
-}
-
-private fun formatPct(value: Double): String = "${if (value > 0) "+" else ""}${"%.1f".format(value)}%"
 
 internal fun formatMoney(value: Double): String {
     return "%,.0f".format(value)

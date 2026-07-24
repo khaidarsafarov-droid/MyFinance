@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.flatMapLatest
@@ -412,6 +415,8 @@ data class CommunityUiState(
     val challenge: Challenge? = null,
     val challengeJoined: Boolean = false,
     val isJoiningChallenge: Boolean = false,
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
 )
 
 class CommunityViewModel(
@@ -429,11 +434,18 @@ class CommunityViewModel(
 
     init {
         viewModelScope.launch {
-            socialRepository.ensureInitialized()
-            _state.value = _state.value.copy(
-                challenge = socialRepository.weeklyChallenge(),
-                challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
-            )
+            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            runCatching {
+                socialRepository.ensureInitialized()
+                _state.value = _state.value.copy(
+                    challenge = socialRepository.weeklyChallenge(),
+                    challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                    isLoading = false,
+                    errorMessage = null,
+                )
+            }.onFailure { error ->
+                _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
+            }
         }
     }
 
@@ -443,26 +455,44 @@ class CommunityViewModel(
 
     fun refreshChallenge() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(
-                challenge = socialRepository.weeklyChallenge(),
-                challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
-            )
+            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            runCatching {
+                _state.value = _state.value.copy(
+                    challenge = socialRepository.weeklyChallenge(),
+                    challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                    isLoading = false,
+                    errorMessage = null,
+                )
+            }.onFailure { error ->
+                _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
+            }
         }
     }
 
     fun joinChallenge() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isJoiningChallenge = true)
-            val joined = when (socialRepository.joinWeeklyChallenge()) {
-                is SocialResult.Success -> true
-                is SocialResult.Error -> false
+            _state.value = _state.value.copy(isJoiningChallenge = true, errorMessage = null)
+            when (val result = socialRepository.joinWeeklyChallenge()) {
+                is SocialResult.Success -> {
+                    _state.value = _state.value.copy(
+                        challenge = socialRepository.weeklyChallenge(),
+                        challengeJoined = true,
+                        isJoiningChallenge = false,
+                    )
+                }
+                is SocialResult.Error -> {
+                    _state.value = _state.value.copy(
+                        challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                        isJoiningChallenge = false,
+                        errorMessage = result.message,
+                    )
+                }
             }
-            _state.value = _state.value.copy(
-                challenge = socialRepository.weeklyChallenge(),
-                challengeJoined = joined || socialRepository.hasJoinedWeeklyChallenge(),
-                isJoiningChallenge = false,
-            )
         }
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(errorMessage = null)
     }
 
     class Factory(
@@ -635,27 +665,44 @@ class GroupsViewModel(
 data class GroupDetailUiState(
     val chat: com.truckerload.domain.social.SocialChat? = null,
     val members: List<com.truckerload.domain.social.ChatMember> = emptyList(),
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
 )
 
 class GroupDetailViewModel(
     private val chatId: String,
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
+    private val _errorMessage = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<GroupDetailUiState> =
         combine(
             socialRepository.watchChats().map { chats -> chats.firstOrNull { it.id == chatId } },
             socialRepository.watchGroupMembers(chatId),
-        ) { chat, members ->
-            GroupDetailUiState(chat = chat, members = members)
+            _errorMessage,
+        ) { chat, members, errorMessage ->
+            GroupDetailUiState(
+                chat = chat,
+                members = members,
+                isLoading = false,
+                errorMessage = errorMessage,
+            )
+        }.catch { error ->
+            emit(GroupDetailUiState(isLoading = false, errorMessage = error.toUiMessage()))
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GroupDetailUiState())
 
     fun leaveGroup(onLeft: () -> Unit) {
         viewModelScope.launch {
-            when (socialRepository.leaveGroup(chatId)) {
+            _errorMessage.value = null
+            when (val result = socialRepository.leaveGroup(chatId)) {
                 is SocialResult.Success -> onLeft()
-                is SocialResult.Error -> Unit
+                is SocialResult.Error -> _errorMessage.value = result.message
             }
         }
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 
     class Factory(
@@ -667,6 +714,9 @@ class GroupDetailViewModel(
             GroupDetailViewModel(chatId, socialRepository) as T
     }
 }
+
+private fun Throwable.toUiMessage(): String =
+    localizedMessage ?: message ?: javaClass.simpleName
 
 data class PeerProfileUiState(
     val peer: com.truckerload.domain.social.SocialPeerProfile? = null,

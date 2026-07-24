@@ -124,6 +124,9 @@ class AuthStore(context: Context) {
     }
 
     fun updateTokens(accessToken: String?, refreshToken: String?) {
+        if (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) {
+            SecurePreferences.requireEncryptedForSecretWrite("auth tokens")
+        }
         synchronized(lock) {
             liveAccessToken = accessToken?.takeIf { it.isNotBlank() }
             liveRefreshToken = refreshToken?.takeIf { it.isNotBlank() }
@@ -151,6 +154,9 @@ class AuthStore(context: Context) {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
         val mail = email.trim()
+        if (rememberMe && (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank())) {
+            SecurePreferences.requireEncryptedForSecretWrite("auth tokens")
+        }
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider != AuthProvider.LOCAL -> provider
@@ -271,6 +277,7 @@ class AuthStore(context: Context) {
 
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
+            if (SecurePreferences.plaintextFallbackUsed) return secure
             SecurePreferences.migratePlainToSecure(
                 context = context,
                 legacyName = LEGACY_PREFS_NAME,

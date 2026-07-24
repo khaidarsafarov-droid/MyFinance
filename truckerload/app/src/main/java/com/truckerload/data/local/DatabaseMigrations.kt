@@ -531,3 +531,50 @@ val MIGRATION_23_24 = object : Migration(23, 24) {
         )
     }
 }
+
+/** Query indexes for loads/social/voice/outbox (QUALITY_IDEAL_1000). */
+val MIGRATION_24_25 = object : Migration(24, 25) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_loads_parsedAt ON loads(parsedAt)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_loads_updatedAt ON loads(updatedAt)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_loads_firstPuCityState ON loads(firstPuCityState)")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_loads_isDispute_disputeCompleted " +
+                "ON loads(isDispute, disputeCompleted)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_social_chats_archived_lastMessageAt " +
+                "ON social_chats(archived, lastMessageAt)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_social_chats_inviteCode " +
+                "ON social_chats(inviteCode)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_driver_follows_followingId " +
+                "ON driver_follows(followingId)",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_chat_members_userId ON chat_members(userId)")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_social_peers_weeklyMiles ON social_peers(weeklyMiles)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_challenge_participation_challengeId_score " +
+                "ON challenge_participation(challengeId, score)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_voice_rooms_isActive_updatedAt " +
+                "ON voice_rooms(isActive, updatedAt)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_call_sessions_status_isIncoming_startedAt " +
+                "ON call_sessions(status, isIncoming, startedAt)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_sync_outbox_status_updatedAt " +
+                "ON sync_outbox(status, updatedAt)",
+        )
+    }
+}
+
+
