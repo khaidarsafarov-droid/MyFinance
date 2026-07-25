@@ -21,6 +21,7 @@ data class AppConfig(
     val telegramLinkTokenTtlSeconds: Long,
     val storageKind: StorageKind,
     val uploadExpirySeconds: Long,
+    val downloadExpirySeconds: Long,
     val maxUploadBytes: Long,
     val localStoragePath: String,
     val publicBaseUrl: String,
@@ -44,6 +45,7 @@ data class AppConfig(
         require(telegramWebhookSecret.isNotBlank()) { "TELEGRAM_WEBHOOK_SECRET is required" }
         require(telegramLinkTokenTtlSeconds in 60..86_400) { "TELEGRAM_LINK_TOKEN_TTL_SECONDS is invalid" }
         require(uploadExpirySeconds in 60..86_400) { "UPLOAD_EXPIRY_SECONDS is invalid" }
+        require(downloadExpirySeconds in 60..86_400) { "DOWNLOAD_EXPIRY_SECONDS is invalid" }
         require(maxUploadBytes > 0) { "MAX_UPLOAD_BYTES must be positive" }
         require(isHttpUrl(publicBaseUrl)) {
             "PUBLIC_BASE_URL must be an absolute HTTP(S) URL"
@@ -130,6 +132,7 @@ data class AppConfig(
                 telegramLinkTokenTtlSeconds = long("TELEGRAM_LINK_TOKEN_TTL_SECONDS", 600),
                 storageKind = storageKind,
                 uploadExpirySeconds = long("UPLOAD_EXPIRY_SECONDS", 900),
+                downloadExpirySeconds = long("DOWNLOAD_EXPIRY_SECONDS", 900),
                 maxUploadBytes = long("MAX_UPLOAD_BYTES", 25L * 1024 * 1024),
                 localStoragePath = env["LOCAL_STORAGE_PATH"] ?: "./data/media",
                 publicBaseUrl = env["PUBLIC_BASE_URL"] ?: "http://localhost:8080",
@@ -161,6 +164,7 @@ data class AppConfig(
             telegramLinkTokenTtlSeconds = 600,
             storageKind = StorageKind.LOCAL,
             uploadExpirySeconds = 900,
+            downloadExpirySeconds = 900,
             maxUploadBytes = 25L * 1024 * 1024,
             localStoragePath = "./build/test-media",
             publicBaseUrl = "http://localhost",

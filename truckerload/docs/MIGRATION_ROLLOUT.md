@@ -13,12 +13,11 @@ availability.
 | `TELEGRAM_SYNC_MODE=device` | Existing foreground/device bot | Authenticated server inbox |
 | missing `app/google-services.json` | No Android FCM or Crashlytics initialization | Google Services, FCM, and Crashlytics are configured |
 | blank server `FIREBASE_PROJECT_ID` | Push notifier is a no-op | FCM data-only sync pushes |
-| media client release gate | Attachments stay local | Presigned Space upload and completion |
+| `CLOUD_MEDIA_ENABLED=false` | Attachments stay local | Durable upload/pull/delete worker |
 
-The first four are compile-time Android build configuration. Server FCM is runtime
-configuration. Media is not currently wired into the Android cloud client, which is
-the effective disabled gate; add an explicit `CLOUD_MEDIA_ENABLED` build flag before
-shipping that client path.
+The first five are compile-time Android build configuration. Server FCM is runtime
+configuration. The media implementation additionally fails closed unless the backend
+URL, non-local mode, active account, and JWT are all present.
 
 ## Phase 0: local fallback and shadow observation
 
@@ -87,20 +86,22 @@ and local operation continue.
 
 ## Phase 4: media
 
-Before enabling an Android media client, add `CLOUD_MEDIA_ENABLED=false` by default
-and test direct upload against a non-production Space. Enable in sequence:
+The Android media client, Room v26 queue/migration, backend tombstones/list/download,
+and S3/local signed URLs are implemented. `CLOUD_MEDIA_ENABLED` remains false by
+default. Test direct upload against a non-production Space, then enable in sequence:
 
 1. metadata creation and presigned upload;
 2. upload completion/size validation;
-3. cross-device metadata reads;
-4. cleanup and restore reconciliation.
+3. cross-device metadata reads and verified downloads;
+4. idempotent deletion/tombstone reconciliation.
 
 Monitor presign failures, incomplete uploads older than expiry, object/metadata size
 mismatch, Space availability, and client retry volume. Never label metrics with
 object keys or account IDs.
 
-Rollback: set the client gate false so new attachments remain local. Preserve already
-uploaded objects and metadata; do not bulk-delete during an incident. If Spaces is
+Rollback: ship/set the client build gate false so new attachments remain local.
+Existing Room rows continue to work; preserve already uploaded objects and metadata
+and do not bulk-delete during an incident. If Spaces is
 unavailable, readiness removes the backend from traffic because snapshot and Telegram
 operations share the service; restore storage or deploy a deliberately reviewed
 readiness-policy change rather than bypassing checks ad hoc.

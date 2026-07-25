@@ -17,6 +17,9 @@ class ContractsTest {
             sizeBytes = 42,
             status = "ready",
             createdAt = 100,
+            kind = MediaKind.SCAN,
+            clientId = "scan-client-1",
+            metadata = buildJsonObject { put("pageCount", 2) },
         )
 
         val encoded = ContractJson.encodeToString(metadata)
@@ -33,6 +36,17 @@ class ContractsTest {
             snapshot,
             ContractJson.decodeFromString<AccountCloudSnapshot>(ContractJson.encodeToString(snapshot)),
         )
+    }
+
+    @Test
+    fun `legacy media metadata remains decodable with safe defaults`() {
+        val legacy =
+            """{"mediaId":"f3074574-4bb1-49c1-b1b9-24e2ab530469","fileName":"bol.pdf","contentType":"application/pdf","sizeBytes":42,"status":"ready","createdAt":100}"""
+        val metadata = ContractJson.decodeFromString<MediaMetadata>(legacy)
+
+        assertEquals(MediaKind.SCAN, metadata.kind)
+        assertEquals(metadata.mediaId, metadata.clientId)
+        assertEquals(100, metadata.updatedAt)
     }
 
     @Test

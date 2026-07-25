@@ -51,6 +51,9 @@ android {
         buildConfigField("String", "TELEGRAM_SERVER_BOT_USERNAME", "\"$telegramServerBotUsername\"")
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "true").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
+        val cloudMediaEnabled = localProps.getProperty("CLOUD_MEDIA_ENABLED", "false")
+            .equals("true", ignoreCase = true)
+        buildConfigField("boolean", "CLOUD_MEDIA_ENABLED", cloudMediaEnabled.toString())
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
     }

@@ -54,20 +54,34 @@ data class SyncCursor(
 )
 
 @Serializable
+enum class MediaKind {
+    PHOTO,
+    SCAN,
+}
+
+@Serializable
 data class MediaUploadRequest(
     val fileName: String,
     val contentType: String,
     val sizeBytes: Long,
     val checksum: String? = null,
+    // Nullable defaults keep old serialized payloads decodable. The media endpoint
+    // requires both fields for new uploads.
+    val kind: MediaKind? = null,
+    val clientId: String? = null,
+    val loadId: String? = null,
+    val metadata: JsonObject = buildJsonObject { },
 )
 
 @Serializable
 data class MediaUploadResponse(
     val mediaId: String,
-    val uploadUrl: String,
+    val uploadUrl: String? = null,
     val method: String = "PUT",
     val headers: Map<String, String> = emptyMap(),
     val expiresAt: Long,
+    val alreadyComplete: Boolean = false,
+    val media: MediaMetadata? = null,
 )
 
 @Serializable
@@ -86,6 +100,21 @@ data class MediaMetadata(
     val status: String,
     val createdAt: Long,
     val completedAt: Long? = null,
+    val kind: MediaKind = MediaKind.SCAN,
+    val clientId: String = mediaId,
+    val loadId: String? = null,
+    val metadata: JsonObject = buildJsonObject { },
+    val updatedAt: Long = completedAt ?: createdAt,
+    val deletedAt: Long? = null,
+    val downloadUrl: String? = null,
+    val expiresAt: Long? = null,
+)
+
+@Serializable
+data class MediaListResponse(
+    val items: List<MediaMetadata>,
+    /** Opaque, account-scoped revision to pass back as `since`. */
+    val nextSince: Long,
 )
 
 @Serializable

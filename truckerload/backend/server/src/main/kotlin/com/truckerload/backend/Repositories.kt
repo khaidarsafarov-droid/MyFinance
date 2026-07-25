@@ -1,10 +1,12 @@
 package com.truckerload.backend
 
 import com.truckerload.contract.AccountCloudSnapshot
+import com.truckerload.contract.MediaKind
 import com.truckerload.contract.MediaMetadata
 import com.truckerload.contract.SyncCursor
 import com.truckerload.contract.TelegramInboxItem
 import java.util.UUID
+import kotlinx.serialization.json.JsonObject
 
 data class AuthenticatedUser(val id: UUID, val email: String?)
 
@@ -16,21 +18,41 @@ data class MediaRecord(
     val contentType: String,
     val sizeBytes: Long,
     val checksum: String?,
+    val kind: MediaKind,
+    val clientId: String,
+    val loadId: String?,
+    val metadata: JsonObject,
     val status: String,
     val createdAt: Long,
     val completedAt: Long?,
+    val updatedAt: Long,
+    val deletedAt: Long?,
+    val revision: Long = 0,
 ) {
-    fun toContract(): MediaMetadata = MediaMetadata(
+    fun toContract(download: PresignedDownload? = null): MediaMetadata = MediaMetadata(
         mediaId = id.toString(),
         fileName = fileName,
         contentType = contentType,
         sizeBytes = sizeBytes,
         checksum = checksum,
-        status = status,
+        status = if (deletedAt == null) status else "deleted",
         createdAt = createdAt,
         completedAt = completedAt,
+        kind = kind,
+        clientId = clientId,
+        loadId = loadId,
+        metadata = metadata,
+        updatedAt = updatedAt,
+        deletedAt = deletedAt,
+        downloadUrl = download?.url,
+        expiresAt = download?.expiresAt,
     )
 }
+
+data class MediaCreateResult(
+    val record: MediaRecord,
+    val created: Boolean,
+)
 
 data class TelegramInboxRecord(
     val updateId: Long,
@@ -98,11 +120,12 @@ interface TelegramRepository {
 }
 
 interface MediaRepository {
-    suspend fun create(record: MediaRecord)
+    suspend fun createOrGet(record: MediaRecord): MediaCreateResult
     suspend fun get(userId: UUID, mediaId: UUID): MediaRecord?
     suspend fun getById(mediaId: UUID): MediaRecord?
+    suspend fun list(userId: UUID, sinceRevision: Long, kind: MediaKind?, limit: Int): List<MediaRecord>
     suspend fun markComplete(userId: UUID, mediaId: UUID, checksum: String?, completedAt: Long): MediaRecord?
-    suspend fun delete(userId: UUID, mediaId: UUID): MediaRecord?
+    suspend fun softDelete(userId: UUID, mediaId: UUID, deletedAt: Long): MediaRecord?
 }
 
 interface PushTokenRepository {

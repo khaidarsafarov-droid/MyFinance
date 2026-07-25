@@ -7,6 +7,9 @@ import com.truckerload.contract.ApiError
 import com.truckerload.contract.ContractJson
 import com.truckerload.contract.DevicePushTokenRequest
 import com.truckerload.contract.HealthResponse
+import com.truckerload.contract.MediaKind
+import com.truckerload.contract.MediaListResponse
+import com.truckerload.contract.MediaMetadata
 import com.truckerload.contract.MediaUploadCompleteRequest
 import com.truckerload.contract.MediaUploadRequest
 import com.truckerload.contract.MediaUploadResponse
@@ -39,6 +42,7 @@ import io.ktor.server.request.path
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondOutputStream
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.delete
@@ -54,6 +58,8 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.put
 import io.ktor.utils.io.readRemaining
 import io.ktor.util.AttributeKey
@@ -227,6 +233,7 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
 
         telegramWebhook(config, dependencies.repositories, dependencies.metrics)
         localMediaUpload(config, dependencies)
+        localMediaDownload(config, dependencies)
 
         authenticate("supabase") {
             route("/v1") {
@@ -357,9 +364,26 @@ private fun io.ktor.server.routing.Route.deviceRoutes(repositories: Repositories
 
 private fun io.ktor.server.routing.Route.mediaRoutes(config: AppConfig, dependencies: AppDependencies) {
     route("/media") {
+        get {
+            val user = call.authenticatedUser(dependencies.repositories)
+            val since = call.request.queryParameters["since"]?.let(::nonNegativeLong) ?: 0L
+            val kind = call.request.queryParameters["kind"]?.let(::validMediaKind)
+            val records = dependencies.repositories.media.list(user.id, since, kind, MAX_MEDIA_LIST_ITEMS)
+            val items = records.map { record -> record.toDownloadContract(config, dependencies.objectStorage) }
+            call.respond(
+                MediaListResponse(
+                    items = items,
+                    nextSince = records.maxOfOrNull { it.revision } ?: since,
+                ),
+            )
+        }
         post("/upload-url") {
             val user = call.authenticatedUser(dependencies.repositories)
             val request = call.receiveJson<MediaUploadRequest>(MAX_SMALL_JSON_BODY_BYTES)
+            val kind = request.kind
+                ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_kind", "kind is required")
+            val clientId = validMediaClientId(request.clientId)
+            val loadId = validOptionalMediaLoadId(request.loadId)
             if (request.sizeBytes !in 1..config.maxUploadBytes) {
                 throw ApiException(HttpStatusCode.BadRequest, "invalid_size", "Upload size is outside the allowed range")
             }
@@ -369,13 +393,15 @@ private fun io.ktor.server.routing.Route.mediaRoutes(config: AppConfig, dependen
             ) {
                 throw ApiException(HttpStatusCode.BadRequest, "invalid_content_type", "contentType is invalid")
             }
+            validateMediaContentType(kind, request.contentType)
             validateChecksum(request.checksum)
+            validateMediaMetadata(request.metadata)
             val fileName = safeFileName(request.fileName)
             val mediaId = UUID.randomUUID()
             val objectKey = "${user.id}/$mediaId/$fileName"
             val now = System.currentTimeMillis()
             val expiresAt = now + config.uploadExpirySeconds * 1000
-            dependencies.repositories.media.create(
+            val createResult = dependencies.repositories.media.createOrGet(
                 MediaRecord(
                     id = mediaId,
                     userId = user.id,
@@ -384,26 +410,56 @@ private fun io.ktor.server.routing.Route.mediaRoutes(config: AppConfig, dependen
                     contentType = request.contentType,
                     sizeBytes = request.sizeBytes,
                     checksum = request.checksum,
+                    kind = kind,
+                    clientId = clientId,
+                    loadId = loadId,
+                    metadata = request.metadata,
                     status = "pending",
                     createdAt = now,
                     completedAt = null,
+                    updatedAt = now,
+                    deletedAt = null,
                 ),
             )
-            val upload = try {
-                dependencies.objectStorage.presignUpload(
-                    mediaId,
-                    objectKey,
-                    request.contentType,
-                    request.sizeBytes,
-                    expiresAt,
-                )
-            } catch (error: Throwable) {
-                dependencies.repositories.media.delete(user.id, mediaId)
-                throw error
+            val record = createResult.record
+            if (record.deletedAt != null) {
+                throw ApiException(HttpStatusCode.Conflict, "media_deleted", "This client media id was deleted")
             }
+            if (
+                record.fileName != fileName ||
+                record.contentType != request.contentType ||
+                record.sizeBytes != request.sizeBytes ||
+                (record.checksum != null && request.checksum != null && record.checksum != request.checksum)
+            ) {
+                throw ApiException(
+                    HttpStatusCode.Conflict,
+                    "media_id_conflict",
+                    "This client media id already refers to different content",
+                )
+            }
+            if (record.status == "ready") {
+                val complete = record.toDownloadContract(config, dependencies.objectStorage)
+                call.respond(
+                    HttpStatusCode.OK,
+                    MediaUploadResponse(
+                        mediaId = record.id.toString(),
+                        expiresAt = complete.expiresAt ?: now,
+                        alreadyComplete = true,
+                        media = complete,
+                    ),
+                )
+                return@post
+            }
+            val upload = dependencies.objectStorage.presignUpload(
+                record.id,
+                record.objectKey,
+                record.contentType,
+                record.sizeBytes,
+                expiresAt,
+            )
             call.respond(
-                HttpStatusCode.Created,
-                MediaUploadResponse(mediaId.toString(), upload.url, headers = upload.headers, expiresAt = expiresAt),
+                if (createResult.created) HttpStatusCode.Created else HttpStatusCode.OK,
+                MediaUploadResponse(record.id.toString(), upload.url, headers = upload.headers, expiresAt = expiresAt),
             )
         }
         post("/complete") {
@@ -413,6 +469,10 @@ private fun io.ktor.server.routing.Route.mediaRoutes(config: AppConfig, dependen
             val record = dependencies.repositories.media.get(user.id, mediaId)
                 ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
             validateChecksum(request.checksum)
+            if (record.status == "ready") {
+                call.respond(record.toDownloadContract(config, dependencies.objectStorage))
+                return@post
+            }
             if (record.checksum != null && request.checksum != null && record.checksum != request.checksum) {
                 throw ApiException(HttpStatusCode.Conflict, "checksum_mismatch", "Upload checksum does not match")
             }
@@ -427,25 +487,37 @@ private fun io.ktor.server.routing.Route.mediaRoutes(config: AppConfig, dependen
                 request.checksum ?: record.checksum,
                 System.currentTimeMillis(),
             ) ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
-            call.respond(completed.toContract())
+            call.respond(completed.toDownloadContract(config, dependencies.objectStorage))
         }
         get("/{mediaId}") {
             val user = call.authenticatedUser(dependencies.repositories)
             val mediaId = uuid(call.parameters["mediaId"], "mediaId")
             val record = dependencies.repositories.media.get(user.id, mediaId)
                 ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
-            call.respond(record.toContract())
+            call.respond(record.toDownloadContract(config, dependencies.objectStorage))
         }
         delete("/{mediaId}") {
             val user = call.authenticatedUser(dependencies.repositories)
             val mediaId = uuid(call.parameters["mediaId"], "mediaId")
             val existing = dependencies.repositories.media.get(user.id, mediaId)
-                ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+            if (existing == null) {
+                call.respond(HttpStatusCode.NoContent)
+                return@delete
+            }
             dependencies.objectStorage.delete(existing.objectKey)
-            dependencies.repositories.media.delete(user.id, mediaId)
+            dependencies.repositories.media.softDelete(user.id, mediaId, System.currentTimeMillis())
             call.respond(HttpStatusCode.NoContent)
         }
     }
+}
+
+private suspend fun MediaRecord.toDownloadContract(
+    config: AppConfig,
+    storage: ObjectStorage,
+): MediaMetadata {
+    if (status != "ready" || deletedAt != null) return toContract()
+    val expiresAt = System.currentTimeMillis() + config.downloadExpirySeconds * 1000
+    return toContract(storage.presignDownload(id, objectKey, expiresAt))
 }
 
 private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dependencies: AppDependencies) {
@@ -473,6 +545,32 @@ private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dep
             throw ApiException(HttpStatusCode.Unauthorized, "invalid_upload_token", "Upload URL is invalid or expired")
         }
         call.respond(HttpStatusCode.NoContent)
+    }
+}
+
+private fun io.ktor.server.routing.Route.localMediaDownload(config: AppConfig, dependencies: AppDependencies) {
+    get("/v1/media/local-download/{mediaId}") {
+        val receiver = dependencies.objectStorage as? LocalDownloadReceiver
+            ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
+        val mediaId = uuid(call.parameters["mediaId"], "mediaId")
+        val record = dependencies.repositories.media.getById(mediaId)
+            ?.takeIf { it.status == "ready" }
+            ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+        val expiresAt = call.request.queryParameters["expiresAt"]?.let(::nonNegativeLong)
+            ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_expiry", "expiresAt is required")
+        val token = call.request.queryParameters["token"].orEmpty()
+        val download = receiver.openDownload(mediaId, record.objectKey, expiresAt, token)
+            ?: throw ApiException(
+                HttpStatusCode.Unauthorized,
+                "invalid_download_token",
+                "Download URL is invalid or expired",
+            )
+        if (download.sizeBytes != record.sizeBytes || download.sizeBytes > config.maxUploadBytes) {
+            throw ApiException(HttpStatusCode.Conflict, "size_mismatch", "Stored object size does not match")
+        }
+        call.respondOutputStream(ContentType.parse(record.contentType), HttpStatusCode.OK) {
+            download.copyTo(this, config.maxUploadBytes)
+        }
     }
 }
 
@@ -599,6 +697,8 @@ private val START_COMMAND = Regex("""^/start(?:@\w+)?\s+([A-Za-z0-9_-]{20,128})$
 private const val MAX_SMALL_JSON_BODY_BYTES = 64L * 1024
 private const val MAX_TELEGRAM_BODY_BYTES = 1024L * 1024
 private const val MAX_SNAPSHOT_BODY_BYTES = 30L * 1024 * 1024
+private const val MAX_MEDIA_METADATA_BYTES = 32L * 1024
+private const val MAX_MEDIA_LIST_ITEMS = 200
 
 private suspend inline fun <reified T> ApplicationCall.receiveJson(maxBytes: Long): T {
     if (!request.contentType().match(ContentType.Application.Json)) {
@@ -641,8 +741,60 @@ private fun safeFileName(value: String): String {
 }
 
 private fun validateChecksum(value: String?) {
-    if (value != null && (value.length !in 1..256 || value.any { it.isISOControl() })) {
+    if (value != null && !value.matches(Regex("""[a-fA-F0-9]{64}"""))) {
         throw ApiException(HttpStatusCode.BadRequest, "invalid_checksum", "checksum is invalid")
+    }
+}
+
+private fun validMediaKind(value: String): MediaKind =
+    runCatching { MediaKind.valueOf(value.trim().uppercase()) }.getOrNull()
+        ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_kind", "kind must be PHOTO or SCAN")
+
+private fun validMediaClientId(value: String?): String {
+    val clientId = value?.trim().orEmpty()
+    if (
+        clientId.length !in 1..128 ||
+        clientId.any { it.isISOControl() || it == '/' || it == '\\' }
+    ) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_client_id", "clientId is invalid")
+    }
+    return clientId
+}
+
+private fun validOptionalMediaLoadId(value: String?): String? {
+    val loadId = value?.trim()?.takeIf(String::isNotEmpty) ?: return null
+    if (loadId.length > 256 || loadId.any { it.isISOControl() }) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_load_id", "loadId is invalid")
+    }
+    return loadId
+}
+
+private fun validateMediaContentType(kind: MediaKind, value: String) {
+    val normalized = value.substringBefore(';').trim().lowercase()
+    val valid = when (kind) {
+        MediaKind.PHOTO -> normalized in setOf("image/jpeg", "image/png", "image/webp")
+        MediaKind.SCAN -> normalized in setOf("application/pdf", "image/jpeg", "image/png")
+    }
+    if (!valid) {
+        throw ApiException(
+            HttpStatusCode.BadRequest,
+            "unsupported_media_type",
+            "contentType is not supported for this media kind",
+        )
+    }
+}
+
+private fun validateMediaMetadata(metadata: JsonObject) {
+    if (ContractJson.encodeToString(metadata).encodeToByteArray().size > MAX_MEDIA_METADATA_BYTES) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_metadata", "metadata is too large")
+    }
+    fun depth(value: kotlinx.serialization.json.JsonElement, current: Int): Int = when (value) {
+        is JsonObject -> value.values.maxOfOrNull { depth(it, current + 1) } ?: current
+        is JsonArray -> value.maxOfOrNull { depth(it, current + 1) } ?: current
+        else -> current
+    }
+    if (depth(metadata, 1) > 8) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_metadata", "metadata is too deeply nested")
     }
 }
 

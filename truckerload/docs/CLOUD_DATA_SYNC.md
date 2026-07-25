@@ -23,6 +23,26 @@ When `SYNC_BACKEND_URL` is blank, the exact same orchestration uses
 `LocalAccountCloudBackend` only. This is the supported offline/deployment rollback
 behavior, not an error mode.
 
+## Media path
+
+Phase 4 is implemented but disabled by default. It runs only when
+`CLOUD_MEDIA_ENABLED=true`, `SYNC_BACKEND_URL` is nonblank,
+`LOCAL_ONLY_MODE=false`, and the active account has a bearer JWT.
+
+Photo/scan saves and link changes commit to Room and `media_sync_queue` in the same
+local transaction. Deletion similarly records a remote tombstone operation before
+removing the local row/file, so gallery UX never waits for the network. A
+network-constrained worker requests a presigned URL, uploads the file directly,
+completes metadata, and retries transient failures with exponential backoff.
+
+Media is not embedded in `AccountCloudSnapshot`. The authenticated media list uses an
+opaque per-account revision cursor and includes soft-delete tombstones. Remote-only
+files are streamed into an account-specific external-files directory through a
+temporary file, then atomically renamed after MIME, size, and optional SHA-256
+validation. OCR and location fields remain in authenticated metadata JSON; signed
+URLs, local paths, OCR/location values, and JWTs are never emitted by the media
+client/worker logs.
+
 ## Session and hydration
 
 - On session restore, `CloudSyncCursorStore` supplies `lastSyncedAt`.
@@ -81,7 +101,8 @@ is a future schema evolution, not current behavior.
 - [x] New-device hydration from a configured backend
 - [x] Server Telegram linking, idempotent inbox, and acknowledgement
 - [x] Optional FCM sync wake-up
-- [ ] Android direct-to-S3 media client rollout
+- [x] Feature-gated Android direct-to-S3 media client and durable pull/delete queue
+- [ ] Enable `CLOUD_MEDIA_ENABLED` for a staged production cohort
 - [ ] Per-entity server conflict model if snapshot LWW proves insufficient
 
 See `TARGET_ARCHITECTURE.md` and `MIGRATION_ROLLOUT.md` for target boundaries and

@@ -68,12 +68,16 @@ LOCAL_ONLY_MODE=false
 SUPABASE_URL=https://<project>.supabase.co
 SUPABASE_ANON_KEY=<publishable-anon-key>
 SYNC_BACKEND_URL=https://api.example.com
+CLOUD_MEDIA_ENABLED=false
 TELEGRAM_SYNC_MODE=device
 TELEGRAM_SERVER_BOT_USERNAME=
 ```
 
 `SYNC_BACKEND_URL` must use HTTPS outside loopback/debug builds. When it is blank, or
 when `LOCAL_ONLY_MODE=true`, the app uses the on-device account mirror and Room only.
+Media cloud sync is separately disabled by default. Set `CLOUD_MEDIA_ENABLED=true`
+only for a staged authenticated cohort after upload, download, and deletion checks;
+the flag still has no effect without the backend URL, non-local mode, and a JWT.
 Set `TELEGRAM_SYNC_MODE=server` only after the webhook and authenticated inbox are
 healthy. The server bot token never belongs in Android configuration.
 
@@ -98,6 +102,7 @@ configuration is:
 | `S3_PATH_STYLE` | `false` for Spaces |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | encrypted restricted Space key |
 | `PUBLIC_BASE_URL` | public App Platform HTTPS origin |
+| `UPLOAD_EXPIRY_SECONDS`, `DOWNLOAD_EXPIRY_SECONDS` | short-lived signed URL TTLs (default 900) |
 | `FIREBASE_PROJECT_ID` | optional FCM project |
 | `FIREBASE_CREDENTIALS_JSON` | optional encrypted service-account JSON |
 

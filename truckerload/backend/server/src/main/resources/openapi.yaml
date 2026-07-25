@@ -53,23 +53,34 @@ components:
         updatedAt: { type: integer, format: int64, minimum: 0 }
     MediaUploadRequest:
       type: object
-      required: [fileName, contentType, sizeBytes]
+      required: [fileName, contentType, sizeBytes, kind, clientId]
       properties:
         fileName: { type: string }
         contentType: { type: string }
         sizeBytes: { type: integer, format: int64, minimum: 1 }
-        checksum: { type: [string, "null"] }
+        checksum:
+          type: [string, "null"]
+          pattern: "^[a-fA-F0-9]{64}$"
+        kind: { type: string, enum: [PHOTO, SCAN] }
+        clientId: { type: string, minLength: 1, maxLength: 128 }
+        loadId: { type: [string, "null"], maxLength: 256 }
+        metadata: { type: object, additionalProperties: true }
     MediaUploadResponse:
       type: object
-      required: [mediaId, uploadUrl, method, headers, expiresAt]
+      required: [mediaId, method, headers, expiresAt]
       properties:
         mediaId: { type: string, format: uuid }
-        uploadUrl: { type: string, format: uri }
+        uploadUrl: { type: [string, "null"], format: uri }
         method: { type: string, const: PUT }
         headers:
           type: object
           additionalProperties: { type: string }
         expiresAt: { type: integer, format: int64 }
+        alreadyComplete: { type: boolean }
+        media:
+          oneOf:
+            - { $ref: "#/components/schemas/MediaMetadata" }
+            - { type: "null" }
     MediaCompleteRequest:
       type: object
       required: [mediaId]
@@ -78,16 +89,36 @@ components:
         checksum: { type: [string, "null"] }
     MediaMetadata:
       type: object
-      required: [mediaId, fileName, contentType, sizeBytes, status, createdAt]
+      required:
+        [mediaId, fileName, contentType, sizeBytes, status, createdAt, kind, clientId, metadata, updatedAt]
       properties:
         mediaId: { type: string, format: uuid }
         fileName: { type: string }
         contentType: { type: string }
         sizeBytes: { type: integer, format: int64 }
         checksum: { type: [string, "null"] }
-        status: { type: string, enum: [pending, ready] }
+        status: { type: string, enum: [pending, ready, deleted] }
         createdAt: { type: integer, format: int64 }
         completedAt: { type: [integer, "null"], format: int64 }
+        kind: { type: string, enum: [PHOTO, SCAN] }
+        clientId: { type: string }
+        loadId: { type: [string, "null"] }
+        metadata: { type: object, additionalProperties: true }
+        updatedAt: { type: integer, format: int64 }
+        deletedAt: { type: [integer, "null"], format: int64 }
+        downloadUrl: { type: [string, "null"], format: uri }
+        expiresAt: { type: [integer, "null"], format: int64 }
+    MediaList:
+      type: object
+      required: [items, nextSince]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/MediaMetadata" }
+        nextSince:
+          type: integer
+          format: int64
+          minimum: 0
     TelegramLinkToken:
       type: object
       required: [token, expiresAt]
@@ -260,6 +291,8 @@ paths:
               schema: { $ref: "#/components/schemas/SyncCursor" }
   /v1/media/upload-url:
     post:
+      summary: Create or resume an idempotent media upload
+      operationId: createMediaUpload
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -267,6 +300,11 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/MediaUploadRequest" }
       responses:
+        "200":
+          description: Existing pending upload URL or completed idempotent media object
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MediaUploadResponse" }
         "201":
           description: Presigned upload
           content:
@@ -274,6 +312,8 @@ paths:
               schema: { $ref: "#/components/schemas/MediaUploadResponse" }
   /v1/media/complete:
     post:
+      summary: Verify and complete a media upload
+      operationId: completeMediaUpload
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -287,8 +327,31 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/MediaMetadata" }
         "409": { $ref: "#/components/responses/Error" }
+  /v1/media:
+    get:
+      summary: List account media changes
+      operationId: listMediaChanges
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: since
+          schema: { type: integer, format: int64, minimum: 0, default: 0 }
+          description: Opaque revision from the previous nextSince value.
+        - in: query
+          name: kind
+          schema: { type: string, enum: [PHOTO, SCAN] }
+      responses:
+        "200":
+          description: Account-scoped media changes, including soft-delete tombstones.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MediaList" }
+        "401": { $ref: "#/components/responses/Error" }
   /v1/media/local-upload/{mediaId}:
     put:
+      summary: Upload bytes through a local-storage signed URL
+      operationId: localMediaUpload
+      security: []
       description: Local-storage-only signed upload target returned by the upload-url endpoint.
       parameters:
         - in: path
@@ -311,6 +374,32 @@ paths:
       responses:
         "204": { description: Uploaded }
         "401": { $ref: "#/components/responses/Error" }
+  /v1/media/local-download/{mediaId}:
+    get:
+      summary: Download bytes through a local-storage signed URL
+      operationId: localMediaDownload
+      security: []
+      description: Local-storage-only signed, expiring download target.
+      parameters:
+        - in: path
+          name: mediaId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: expiresAt
+          required: true
+          schema: { type: integer, format: int64 }
+        - in: query
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Bounded media byte stream
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/Error" }
   /v1/media/{mediaId}:
     parameters:
       - in: path
@@ -318,6 +407,8 @@ paths:
         required: true
         schema: { type: string, format: uuid }
     get:
+      summary: Get owned media metadata
+      operationId: getMedia
       security: [{ bearerAuth: [] }]
       responses:
         "200":
@@ -327,10 +418,11 @@ paths:
               schema: { $ref: "#/components/schemas/MediaMetadata" }
         "404": { $ref: "#/components/responses/Error" }
     delete:
+      summary: Soft-delete owned media
+      operationId: deleteMedia
       security: [{ bearerAuth: [] }]
       responses:
-        "204": { description: Deleted }
-        "404": { $ref: "#/components/responses/Error" }
+        "204": { description: "Owned object is soft-deleted, or was already absent/deleted" }
   /v1/telegram/link-token:
     post:
       security: [{ bearerAuth: [] }]

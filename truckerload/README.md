@@ -63,6 +63,8 @@ The backend serves `/health/live`, dependency-aware `/health/ready`,
 - Google/email account flow with local-only development mode
 - Device or server Telegram ingestion
 - Optional FCM and Crashlytics only when `app/google-services.json` is present
+- Durable photo/scan cloud queue and verified cross-device download, gated off by
+  default with `CLOUD_MEDIA_ENABLED=false`
 
 ML Kit document scanning requires Google Play Services on a physical device. The
 camera flow remains the scanner fallback.

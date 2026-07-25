@@ -28,6 +28,26 @@ interface ScanDao {
     @Query("SELECT * FROM scans WHERE loadId = :loadId")
     suspend fun getScansByLoadIdOnce(loadId: String): List<ScanEntity>
 
+    @Query("UPDATE scans SET loadId = :loadId WHERE id = :id")
+    suspend fun updateLoadId(id: String, loadId: String?)
+
+    @Query(
+        """
+        UPDATE scans
+        SET cloudMediaId = :remoteMediaId, cloudSyncStatus = :status, cloudUpdatedAt = :cloudUpdatedAt
+        WHERE id = :id
+        """,
+    )
+    suspend fun updateCloudState(
+        id: String,
+        remoteMediaId: String?,
+        status: String,
+        cloudUpdatedAt: Long,
+    ): Int
+
+    @Query("UPDATE scans SET cloudSyncStatus = :status WHERE id = :id")
+    suspend fun updateCloudStatus(id: String, status: String): Int
+
     @Query("DELETE FROM scans WHERE id = :id")
     suspend fun deleteById(id: String)
 

@@ -577,4 +577,42 @@ val MIGRATION_24_25 = object : Migration(24, 25) {
     }
 }
 
+/** Durable attachment queue and per-row cloud state. */
+val MEDIA_MIGRATION_25_26_SQL = listOf(
+    "ALTER TABLE photos ADD COLUMN cloudMediaId TEXT",
+    "ALTER TABLE photos ADD COLUMN cloudSyncStatus TEXT NOT NULL DEFAULT 'LOCAL'",
+    "ALTER TABLE photos ADD COLUMN cloudUpdatedAt INTEGER NOT NULL DEFAULT 0",
+    "CREATE INDEX IF NOT EXISTS index_photos_cloudSyncStatus ON photos(cloudSyncStatus)",
+    "ALTER TABLE scans ADD COLUMN cloudMediaId TEXT",
+    "ALTER TABLE scans ADD COLUMN cloudSyncStatus TEXT NOT NULL DEFAULT 'LOCAL'",
+    "ALTER TABLE scans ADD COLUMN cloudUpdatedAt INTEGER NOT NULL DEFAULT 0",
+    "CREATE INDEX IF NOT EXISTS index_scans_cloudSyncStatus ON scans(cloudSyncStatus)",
+    """
+    CREATE TABLE IF NOT EXISTS media_sync_queue (
+        id TEXT NOT NULL PRIMARY KEY,
+        localId TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        operation TEXT NOT NULL,
+        remoteMediaId TEXT,
+        filePath TEXT,
+        metadataJson TEXT NOT NULL,
+        attempts INTEGER NOT NULL,
+        lastError TEXT,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL,
+        status TEXT NOT NULL
+    )
+    """.trimIndent(),
+    "CREATE UNIQUE INDEX IF NOT EXISTS index_media_sync_queue_kind_localId " +
+        "ON media_sync_queue(kind, localId)",
+    "CREATE INDEX IF NOT EXISTS index_media_sync_queue_status_createdAt " +
+        "ON media_sync_queue(status, createdAt)",
+    "CREATE INDEX IF NOT EXISTS index_media_sync_queue_status_updatedAt " +
+        "ON media_sync_queue(status, updatedAt)",
+)
 
+val MIGRATION_25_26 = object : Migration(25, 26) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        MEDIA_MIGRATION_25_26_SQL.forEach(db::execSQL)
+    }
+}

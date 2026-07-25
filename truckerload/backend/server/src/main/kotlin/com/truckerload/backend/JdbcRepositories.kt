@@ -2,6 +2,7 @@ package com.truckerload.backend
 
 import com.truckerload.contract.AccountCloudSnapshot
 import com.truckerload.contract.ContractJson
+import com.truckerload.contract.MediaKind
 import com.truckerload.contract.SyncCursor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -14,6 +15,7 @@ import javax.sql.DataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonObject
 import org.flywaydb.core.Flyway
 
 fun createDataSource(config: AppConfig): HikariDataSource {
@@ -316,26 +318,105 @@ private class JdbcTelegramRepository(private val dataSource: DataSource) : Teleg
 }
 
 private class JdbcMediaRepository(private val dataSource: DataSource) : MediaRepository {
-    override suspend fun create(record: MediaRecord) {
+    override suspend fun createOrGet(record: MediaRecord): MediaCreateResult =
         dataSource.query { connection ->
-            connection.prepareStatement(
+            connection.transaction {
+                val created = connection.prepareStatement(
+                    """
+                    INSERT INTO media_objects
+                        (id, user_id, object_key, file_name, content_type, size_bytes, checksum,
+                         kind, client_id, load_id, metadata, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?)
+                    ON CONFLICT (user_id, kind, client_id) DO NOTHING
+                    """.trimIndent(),
+                ).use {
+                    it.bindMedia(record)
+                    it.executeUpdate() == 1
+                }
+                if (!created) {
+                    connection.prepareStatement(
+                        """
+                        UPDATE media_objects
+                        SET load_id = ?,
+                            metadata = ?::jsonb,
+                            checksum = COALESCE(checksum, ?),
+                            updated_at = ?,
+                            revision = nextval('media_objects_revision_seq')
+                        WHERE user_id = ? AND kind = ? AND client_id = ?
+                          AND deleted_at IS NULL
+                          AND file_name = ? AND content_type = ? AND size_bytes = ?
+                          AND (checksum IS NULL OR ?::text IS NULL OR checksum = ?)
+                          AND (
+                              load_id IS DISTINCT FROM ?
+                              OR metadata IS DISTINCT FROM ?::jsonb
+                              OR (checksum IS NULL AND ?::text IS NOT NULL)
+                          )
+                        """.trimIndent(),
+                    ).use {
+                        val metadataJson = ContractJson.encodeToString(record.metadata)
+                        it.setString(1, record.loadId)
+                        it.setString(2, metadataJson)
+                        it.setString(3, record.checksum)
+                        it.setLong(4, record.updatedAt)
+                        it.setObject(5, record.userId)
+                        it.setString(6, record.kind.name)
+                        it.setString(7, record.clientId)
+                        it.setString(8, record.fileName)
+                        it.setString(9, record.contentType)
+                        it.setLong(10, record.sizeBytes)
+                        it.setString(11, record.checksum)
+                        it.setString(12, record.checksum)
+                        it.setString(13, record.loadId)
+                        it.setString(14, metadataJson)
+                        it.setString(15, record.checksum)
+                        it.executeUpdate()
+                    }
+                }
+                val stored = checkNotNull(
+                    connection.selectMediaByClient(record.userId, record.kind, record.clientId),
+                )
+                MediaCreateResult(stored, created)
+            }
+        }
+
+    override suspend fun get(userId: UUID, mediaId: UUID): MediaRecord? =
+        dataSource.query { it.selectMedia(mediaId, userId, includeDeleted = false) }
+
+    override suspend fun getById(mediaId: UUID): MediaRecord? =
+        dataSource.query { it.selectMedia(mediaId, null, includeDeleted = false) }
+
+    override suspend fun list(
+        userId: UUID,
+        sinceRevision: Long,
+        kind: MediaKind?,
+        limit: Int,
+    ): List<MediaRecord> = dataSource.query { connection ->
+        val sql = buildString {
+            append(
                 """
-                INSERT INTO media_objects
-                    (id, user_id, object_key, file_name, content_type, size_bytes, checksum, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                SELECT id, user_id, object_key, file_name, content_type, size_bytes, checksum,
+                       kind, client_id, load_id, metadata::text, status, created_at, completed_at,
+                       updated_at, deleted_at, revision
+                FROM media_objects
+                WHERE user_id = ? AND revision > ?
                 """.trimIndent(),
-            ).use {
-                it.bindMedia(record)
-                it.executeUpdate()
+            )
+            if (kind != null) append(" AND kind = ?")
+            append(" ORDER BY revision ASC LIMIT ?")
+        }
+        connection.prepareStatement(sql).use {
+            var position = 1
+            it.setObject(position++, userId)
+            it.setLong(position++, sinceRevision)
+            if (kind != null) it.setString(position++, kind.name)
+            it.setInt(position, limit)
+            it.executeQuery().use { result ->
+                buildList {
+                    while (result.next()) add(result.toMediaRecord())
+                }
             }
         }
     }
-
-    override suspend fun get(userId: UUID, mediaId: UUID): MediaRecord? =
-        dataSource.query { it.selectMedia(mediaId, userId) }
-
-    override suspend fun getById(mediaId: UUID): MediaRecord? =
-        dataSource.query { it.selectMedia(mediaId, null) }
 
     override suspend fun markComplete(
         userId: UUID,
@@ -346,42 +427,83 @@ private class JdbcMediaRepository(private val dataSource: DataSource) : MediaRep
         connection.prepareStatement(
             """
             UPDATE media_objects
-            SET status = 'ready', checksum = COALESCE(?, checksum), completed_at = ?
-            WHERE id = ? AND user_id = ?
+            SET status = 'ready',
+                checksum = COALESCE(?, checksum),
+                completed_at = COALESCE(completed_at, ?),
+                updated_at = ?,
+                revision = nextval('media_objects_revision_seq')
+            WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND status <> 'ready'
             """.trimIndent(),
         ).use {
             it.setString(1, checksum)
             it.setTimestamp(2, Timestamp.from(Instant.ofEpochMilli(completedAt)))
-            it.setObject(3, mediaId)
-            it.setObject(4, userId)
+            it.setLong(3, completedAt)
+            it.setObject(4, mediaId)
+            it.setObject(5, userId)
             it.executeUpdate()
         }
-        connection.selectMedia(mediaId, userId)
+        connection.selectMedia(mediaId, userId, includeDeleted = false)
     }
 
-    override suspend fun delete(userId: UUID, mediaId: UUID): MediaRecord? =
+    override suspend fun softDelete(userId: UUID, mediaId: UUID, deletedAt: Long): MediaRecord? =
         dataSource.query { connection ->
             connection.transaction {
-                val existing = connection.selectMedia(mediaId, userId) ?: return@transaction null
-                connection.prepareStatement("DELETE FROM media_objects WHERE id = ? AND user_id = ?").use {
-                    it.setObject(1, mediaId)
-                    it.setObject(2, userId)
+                val existing = connection.selectMedia(mediaId, userId, includeDeleted = true)
+                    ?: return@transaction null
+                if (existing.deletedAt != null) return@transaction existing
+                connection.prepareStatement(
+                    """
+                    UPDATE media_objects
+                    SET deleted_at = ?, updated_at = ?, revision = nextval('media_objects_revision_seq')
+                    WHERE id = ? AND user_id = ? AND deleted_at IS NULL
+                    """.trimIndent(),
+                ).use {
+                    it.setTimestamp(1, Timestamp.from(Instant.ofEpochMilli(deletedAt)))
+                    it.setLong(2, deletedAt)
+                    it.setObject(3, mediaId)
+                    it.setObject(4, userId)
                     it.executeUpdate()
                 }
-                existing
+                connection.selectMedia(mediaId, userId, includeDeleted = true)
             }
         }
 
-    private fun Connection.selectMedia(mediaId: UUID, userId: UUID?): MediaRecord? {
+    private fun Connection.selectMediaByClient(
+        userId: UUID,
+        kind: MediaKind,
+        clientId: String,
+    ): MediaRecord? =
+        prepareStatement(
+            """
+            SELECT id, user_id, object_key, file_name, content_type, size_bytes, checksum,
+                   kind, client_id, load_id, metadata::text, status, created_at, completed_at,
+                   updated_at, deleted_at, revision
+            FROM media_objects
+            WHERE user_id = ? AND kind = ? AND client_id = ?
+            """.trimIndent(),
+        ).use {
+            it.setObject(1, userId)
+            it.setString(2, kind.name)
+            it.setString(3, clientId)
+            it.executeQuery().use { result -> if (result.next()) result.toMediaRecord() else null }
+        }
+
+    private fun Connection.selectMedia(
+        mediaId: UUID,
+        userId: UUID?,
+        includeDeleted: Boolean,
+    ): MediaRecord? {
         val sql = buildString {
             append(
                 """
                 SELECT id, user_id, object_key, file_name, content_type, size_bytes, checksum,
-                       status, created_at, completed_at
+                       kind, client_id, load_id, metadata::text, status, created_at, completed_at,
+                       updated_at, deleted_at, revision
                 FROM media_objects WHERE id = ?
                 """.trimIndent(),
             )
             if (userId != null) append(" AND user_id = ?")
+            if (!includeDeleted) append(" AND deleted_at IS NULL")
         }
         return prepareStatement(sql).use {
             it.setObject(1, mediaId)
@@ -488,8 +610,13 @@ private fun java.sql.PreparedStatement.bindMedia(record: MediaRecord) {
     setString(5, record.contentType)
     setLong(6, record.sizeBytes)
     setString(7, record.checksum)
-    setString(8, record.status)
-    setTimestamp(9, Timestamp.from(Instant.ofEpochMilli(record.createdAt)))
+    setString(8, record.kind.name)
+    setString(9, record.clientId)
+    setString(10, record.loadId)
+    setString(11, ContractJson.encodeToString(record.metadata))
+    setString(12, record.status)
+    setTimestamp(13, Timestamp.from(Instant.ofEpochMilli(record.createdAt)))
+    setLong(14, record.updatedAt)
 }
 
 private fun ResultSet.toMediaRecord(): MediaRecord = MediaRecord(
@@ -500,9 +627,16 @@ private fun ResultSet.toMediaRecord(): MediaRecord = MediaRecord(
     contentType = getString("content_type"),
     sizeBytes = getLong("size_bytes"),
     checksum = getString("checksum"),
+    kind = MediaKind.valueOf(getString("kind")),
+    clientId = getString("client_id"),
+    loadId = getString("load_id"),
+    metadata = ContractJson.decodeFromString<JsonObject>(getString("metadata")),
     status = getString("status"),
     createdAt = getTimestamp("created_at").time,
     completedAt = getTimestamp("completed_at")?.time,
+    updatedAt = getLong("updated_at"),
+    deletedAt = getTimestamp("deleted_at")?.time,
+    revision = getLong("revision"),
 )
 
 private fun ResultSet.toTelegramInbox(): TelegramInboxRecord = TelegramInboxRecord(

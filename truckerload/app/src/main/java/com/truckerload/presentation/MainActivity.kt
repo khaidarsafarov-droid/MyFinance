@@ -145,6 +145,8 @@ class MainActivity : AppCompatActivity() {
                         com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                         com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
                         com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
+                        com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
+                        com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
                         ServerTelegramInboxWorker.enqueue(applicationContext)
                         ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
                         PushTokenRegistrationWorker.enqueue(applicationContext)

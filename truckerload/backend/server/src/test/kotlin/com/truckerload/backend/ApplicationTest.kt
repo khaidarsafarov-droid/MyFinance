@@ -6,6 +6,9 @@ import com.truckerload.contract.AccountCloudSnapshot
 import com.truckerload.contract.ContractJson
 import com.truckerload.contract.DevicePushTokenRequest
 import com.truckerload.contract.HealthResponse
+import com.truckerload.contract.MediaKind
+import com.truckerload.contract.MediaListResponse
+import com.truckerload.contract.MediaMetadata
 import com.truckerload.contract.MediaUploadRequest
 import com.truckerload.contract.MediaUploadResponse
 import com.truckerload.contract.TelegramInboxListResponse
@@ -31,10 +34,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kotlinx.coroutines.runBlocking
+import java.nio.file.Files
+import java.net.URI
 
 class ApplicationTest {
     private val userOne = UUID.fromString("11111111-1111-4111-8111-111111111111")
@@ -398,7 +405,15 @@ class ApplicationTest {
         val created = client.post("/v1/media/upload-url") {
             bearerAuth(token(userOne))
             contentType(ContentType.Application.Json)
-            setBody(MediaUploadRequest("bol.pdf", "application/pdf", 42))
+            setBody(
+                MediaUploadRequest(
+                    "bol.pdf",
+                    "application/pdf",
+                    42,
+                    kind = MediaKind.SCAN,
+                    clientId = "scan-client-1",
+                ),
+            )
         }
         assertEquals(HttpStatusCode.Created, created.status)
         val upload = created.body<MediaUploadResponse>()
@@ -408,9 +423,160 @@ class ApplicationTest {
             client.get("/v1/media/${upload.mediaId}") { bearerAuth(token(userTwo)) }.status,
         )
         assertEquals(
+            HttpStatusCode.NoContent,
+            client.delete("/v1/media/${upload.mediaId}") { bearerAuth(token(userTwo)) }.status,
+        )
+        assertEquals(
             HttpStatusCode.OK,
             client.get("/v1/media/${upload.mediaId}") { bearerAuth(token(userOne)) }.status,
         )
+    }
+
+    @Test
+    fun `media upload request is idempotent and returns an existing ready object`() = testApplication {
+        val backend = InMemoryBackend()
+        val storage = FakeObjectStorage()
+        application {
+            configureApplication(AppConfig.test(), AppDependencies(backend.repositories, storage))
+        }
+        val client = jsonClient()
+        val request = MediaUploadRequest(
+            fileName = "proof.jpg",
+            contentType = "image/jpeg",
+            sizeBytes = 4,
+            checksum = "a".repeat(64),
+            kind = MediaKind.PHOTO,
+            clientId = "photo-client-1",
+        )
+
+        val first = client.post("/v1/media/upload-url") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body<MediaUploadResponse>()
+        val second = client.post("/v1/media/upload-url") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body<MediaUploadResponse>()
+        assertEquals(first.mediaId, second.mediaId)
+        assertEquals(1, backend.media.size)
+
+        val record = backend.media.getValue(UUID.fromString(first.mediaId))
+        storage.stored[record.objectKey] = StoredObject(4, request.checksum)
+        val completed = client.post("/v1/media/complete") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(com.truckerload.contract.MediaUploadCompleteRequest(first.mediaId, request.checksum))
+        }
+        assertEquals(HttpStatusCode.OK, completed.status)
+
+        val retry = client.post("/v1/media/upload-url") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body<MediaUploadResponse>()
+        assertTrue(retry.alreadyComplete)
+        assertEquals(first.mediaId, retry.media?.mediaId)
+        assertEquals(null, retry.uploadUrl)
+
+        val relinked = client.post("/v1/media/upload-url") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(request.copy(loadId = "load-2"))
+        }.body<MediaUploadResponse>()
+        assertTrue(relinked.alreadyComplete)
+        assertEquals("load-2", relinked.media?.loadId)
+    }
+
+    @Test
+    fun `media list is account scoped filterable and carries delete tombstones`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(AppConfig.test(), AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+        val client = jsonClient()
+
+        suspend fun create(user: UUID, kind: MediaKind, clientId: String, contentType: String): String =
+            client.post("/v1/media/upload-url") {
+                bearerAuth(token(user))
+                contentType(ContentType.Application.Json)
+                setBody(MediaUploadRequest("$clientId.bin", contentType, 2, kind = kind, clientId = clientId))
+            }.body<MediaUploadResponse>().mediaId
+
+        val ownedPhoto = create(userOne, MediaKind.PHOTO, "photo-1", "image/jpeg")
+        create(userOne, MediaKind.SCAN, "scan-1", "application/pdf")
+        create(userTwo, MediaKind.PHOTO, "photo-2", "image/jpeg")
+
+        val photos = client.get("/v1/media?since=0&kind=PHOTO") {
+            bearerAuth(token(userOne))
+        }.body<MediaListResponse>()
+        assertEquals(listOf("photo-1"), photos.items.map { it.clientId })
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.delete("/v1/media/$ownedPhoto") { bearerAuth(token(userOne)) }.status,
+        )
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.delete("/v1/media/$ownedPhoto") { bearerAuth(token(userOne)) }.status,
+        )
+        val changes = client.get("/v1/media?since=${photos.nextSince}&kind=PHOTO") {
+            bearerAuth(token(userOne))
+        }.body<MediaListResponse>()
+        assertEquals("deleted", changes.items.single().status)
+        assertTrue(changes.items.single().deletedAt != null)
+    }
+
+    @Test
+    fun `local signed downloads reject expired or altered tokens`() = runBlocking {
+        val root = Files.createTempDirectory("media-download-test")
+        try {
+            val storage = LocalObjectStorage(root.toString(), "http://localhost", "test-signing-secret")
+            val mediaId = UUID.randomUUID()
+            val key = "$userOne/$mediaId/proof.jpg"
+            val uploadExpiry = System.currentTimeMillis() + 10_000
+            val upload = storage.presignUpload(mediaId, key, "image/jpeg", 4, uploadExpiry)
+            assertTrue(
+                storage.receive(
+                    mediaId,
+                    key,
+                    uploadExpiry,
+                    queryParameter(upload.url, "token"),
+                    byteArrayOf(1, 2, 3, 4),
+                ),
+            )
+
+            val valid = storage.presignDownload(mediaId, key, System.currentTimeMillis() + 10_000).url
+            assertTrue(
+                storage.openDownload(
+                    mediaId,
+                    key,
+                    queryParameter(valid, "expiresAt").toLong(),
+                    queryParameter(valid, "token"),
+                ) != null,
+            )
+            assertFalse(
+                storage.openDownload(
+                    mediaId,
+                    key,
+                    queryParameter(valid, "expiresAt").toLong(),
+                    queryParameter(valid, "token") + "x",
+                ) != null,
+            )
+            val expired = storage.presignDownload(mediaId, key, System.currentTimeMillis() - 1).url
+            assertEquals(
+                null,
+                storage.openDownload(
+                    mediaId,
+                    key,
+                    queryParameter(expired, "expiresAt").toLong(),
+                    queryParameter(expired, "token"),
+                ),
+            )
+        } finally {
+            root.toFile().deleteRecursively()
+        }
     }
 
     private fun io.ktor.server.testing.ApplicationTestBuilder.jsonClient() = createClient {
@@ -420,6 +586,14 @@ class ApplicationTest {
     }
 
     private fun token(userId: UUID): String = "test.$userId"
+
+    private fun queryParameter(url: String, name: String): String =
+        requireNotNull(
+            URI(url).rawQuery
+                ?.split('&')
+                ?.firstOrNull { it.substringBefore('=') == name }
+                ?.substringAfter('='),
+        )
 
     private fun snapshot(userId: UUID, updatedAt: Long) = AccountCloudSnapshot(
         accountId = userId.toString(),

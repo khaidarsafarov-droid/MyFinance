@@ -22,6 +22,7 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         if (message.data["type"] == "sync") {
             CloudSyncWorker.enqueue(applicationContext)
+            MediaSyncWorker.enqueue(applicationContext)
             ServerTelegramInboxWorker.enqueue(applicationContext)
             return
         }

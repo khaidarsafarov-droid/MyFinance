@@ -49,6 +49,23 @@ interface PhotoDao {
     @Query("UPDATE photos SET loadId = :loadId WHERE id = :id")
     suspend fun updateLoadId(id: String, loadId: String?)
 
+    @Query(
+        """
+        UPDATE photos
+        SET cloudMediaId = :remoteMediaId, cloudSyncStatus = :status, cloudUpdatedAt = :cloudUpdatedAt
+        WHERE id = :id
+        """,
+    )
+    suspend fun updateCloudState(
+        id: String,
+        remoteMediaId: String?,
+        status: String,
+        cloudUpdatedAt: Long,
+    ): Int
+
+    @Query("UPDATE photos SET cloudSyncStatus = :status WHERE id = :id")
+    suspend fun updateCloudStatus(id: String, status: String): Int
+
     @Query("DELETE FROM photos WHERE id = :id")
     suspend fun deleteById(id: String)
 

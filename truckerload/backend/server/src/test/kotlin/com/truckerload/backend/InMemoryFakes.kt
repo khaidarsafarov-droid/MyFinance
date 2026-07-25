@@ -1,6 +1,7 @@
 package com.truckerload.backend
 
 import com.truckerload.contract.AccountCloudSnapshot
+import com.truckerload.contract.MediaKind
 import com.truckerload.contract.SyncCursor
 import java.util.Base64
 import java.util.UUID
@@ -94,14 +95,54 @@ class InMemoryBackend {
                 links.entries.removeIf { it.value == userId }
         },
         media = object : MediaRepository {
-            override suspend fun create(record: MediaRecord) {
-                media[record.id] = record
+            override suspend fun createOrGet(record: MediaRecord): MediaCreateResult {
+                val existing = media.values.firstOrNull {
+                    it.userId == record.userId && it.kind == record.kind && it.clientId == record.clientId
+                }
+                if (existing != null) {
+                    val compatible = existing.deletedAt == null &&
+                        existing.fileName == record.fileName &&
+                        existing.contentType == record.contentType &&
+                        existing.sizeBytes == record.sizeBytes &&
+                        (existing.checksum == null || record.checksum == null || existing.checksum == record.checksum)
+                    val updated = if (compatible &&
+                        (
+                            existing.loadId != record.loadId ||
+                                existing.metadata != record.metadata ||
+                                (existing.checksum == null && record.checksum != null)
+                            )
+                    ) {
+                        existing.copy(
+                            loadId = record.loadId,
+                            metadata = record.metadata,
+                            checksum = existing.checksum ?: record.checksum,
+                            updatedAt = record.updatedAt,
+                            revision = nextMediaRevision(),
+                        ).also { media[existing.id] = it }
+                    } else {
+                        existing
+                    }
+                    return MediaCreateResult(updated, created = false)
+                }
+                media[record.id] = record.copy(revision = nextMediaRevision())
+                return MediaCreateResult(media.getValue(record.id), created = true)
             }
 
             override suspend fun get(userId: UUID, mediaId: UUID): MediaRecord? =
-                media[mediaId]?.takeIf { it.userId == userId }
+                media[mediaId]?.takeIf { it.userId == userId && it.deletedAt == null }
 
-            override suspend fun getById(mediaId: UUID): MediaRecord? = media[mediaId]
+            override suspend fun getById(mediaId: UUID): MediaRecord? =
+                media[mediaId]?.takeIf { it.deletedAt == null }
+
+            override suspend fun list(
+                userId: UUID,
+                sinceRevision: Long,
+                kind: MediaKind?,
+                limit: Int,
+            ): List<MediaRecord> = media.values
+                .filter { it.userId == userId && it.revision > sinceRevision && (kind == null || it.kind == kind) }
+                .sortedBy { it.revision }
+                .take(limit)
 
             override suspend fun markComplete(
                 userId: UUID,
@@ -114,13 +155,19 @@ class InMemoryBackend {
                     checksum = checksum ?: existing.checksum,
                     status = "ready",
                     completedAt = completedAt,
+                    updatedAt = completedAt,
+                    revision = nextMediaRevision(),
                 ).also { media[mediaId] = it }
             }
 
-            override suspend fun delete(userId: UUID, mediaId: UUID): MediaRecord? {
-                val existing = get(userId, mediaId) ?: return null
-                media.remove(mediaId)
-                return existing
+            override suspend fun softDelete(userId: UUID, mediaId: UUID, deletedAt: Long): MediaRecord? {
+                val existing = media[mediaId]?.takeIf { it.userId == userId } ?: return null
+                if (existing.deletedAt != null) return existing
+                return existing.copy(
+                    deletedAt = deletedAt,
+                    updatedAt = deletedAt,
+                    revision = nextMediaRevision(),
+                ).also { media[mediaId] = it }
             }
         },
         pushTokens = object : PushTokenRepository {
@@ -147,6 +194,9 @@ class InMemoryBackend {
         },
     )
 
+    private var mediaRevision = 0L
+    private fun nextMediaRevision(): Long = synchronized(this) { ++mediaRevision }
+
     private fun tokenKey(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 }
 
@@ -164,6 +214,15 @@ class FakeObjectStorage(
     ): PresignedUpload = PresignedUpload(
         url = "https://storage.test/upload/$mediaId",
         headers = mapOf("Content-Type" to contentType, "Content-Length" to sizeBytes.toString()),
+        expiresAt = expiresAt,
+    )
+
+    override suspend fun presignDownload(
+        mediaId: UUID,
+        objectKey: String,
+        expiresAt: Long,
+    ): PresignedDownload = PresignedDownload(
+        url = "https://storage.test/download/$mediaId",
         expiresAt = expiresAt,
     )
 

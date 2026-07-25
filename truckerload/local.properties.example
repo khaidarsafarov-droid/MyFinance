@@ -11,6 +11,9 @@ TELEGRAM_BOT_TOKEN=
 
 # Cloud snapshot/inbox API. Production URLs must use HTTPS.
 SYNC_BACKEND_URL=
+# Durable photo/scan upload and cross-device hydration. Disabled unless explicitly true;
+# also requires SYNC_BACKEND_URL, LOCAL_ONLY_MODE=false, and an authenticated JWT session.
+CLOUD_MEDIA_ENABLED=false
 # device = local foreground Telegram bot; server = authenticated backend inbox.
 TELEGRAM_SYNC_MODE=device
 # Non-secret username used to build https://t.me/<bot>?start=<link-token>.
