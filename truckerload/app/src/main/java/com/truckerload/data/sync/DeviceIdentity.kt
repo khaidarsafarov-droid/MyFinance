@@ -1,6 +1,7 @@
 package com.truckerload.data.sync
 
 import android.content.Context
+import androidx.core.content.edit
 import java.util.UUID
 
 class DeviceIdentity(context: Context) {
@@ -9,7 +10,7 @@ class DeviceIdentity(context: Context) {
     fun id(): String {
         prefs.getString(KEY_DEVICE_ID, null)?.takeIf { it.isNotBlank() }?.let { return it }
         val generated = UUID.randomUUID().toString()
-        prefs.edit().putString(KEY_DEVICE_ID, generated).apply()
+        prefs.edit { putString(KEY_DEVICE_ID, generated) }
         return generated
     }
 

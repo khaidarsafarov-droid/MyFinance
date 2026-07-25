@@ -1,6 +1,8 @@
 package com.truckerload.sync
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.room.withTransaction
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -308,7 +310,7 @@ class MediaSyncWorker(
         val canonicalRoot = accountDir.canonicalFile
         val canonicalParent = destination.canonicalFile.parentFile
             ?: throw MediaValidationException("invalid_destination")
-        if (!canonicalParent.toPath().startsWith(canonicalRoot.toPath())) {
+        if (canonicalParent != canonicalRoot) {
             throw MediaValidationException("invalid_destination")
         }
         val temporary = File.createTempFile(".download-", ".tmp", accountDir)
@@ -405,6 +407,29 @@ class MediaSyncWorker(
     private fun MediaKind.queueKind(): String = name
 
     private fun moveAtomically(source: File, destination: File) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            moveAtomicallyApi26(source, destination)
+            return
+        }
+        if (destination.exists() && !destination.delete()) {
+            throw java.io.IOException("media_destination_replace_failed")
+        }
+        if (!source.renameTo(destination)) {
+            source.inputStream().use { input ->
+                destination.outputStream().use { output ->
+                    input.copyTo(output)
+                    output.flush()
+                }
+            }
+            if (!source.delete()) {
+                destination.delete()
+                throw java.io.IOException("media_source_cleanup_failed")
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun moveAtomicallyApi26(source: File, destination: File) {
         try {
             Files.move(
                 source.toPath(),

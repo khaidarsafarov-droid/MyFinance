@@ -1,6 +1,7 @@
 package com.truckerload.data.sync
 
 import android.content.Context
+import androidx.core.content.edit
 import com.truckerload.data.preferences.AccountIds
 
 class MediaSyncCursorStore(context: Context) {
@@ -10,7 +11,7 @@ class MediaSyncCursorStore(context: Context) {
         prefs(accountId).getLong(KEY_REVISION, 0L).coerceAtLeast(0)
 
     fun set(accountId: String, revision: Long) {
-        prefs(accountId).edit().putLong(KEY_REVISION, revision.coerceAtLeast(0)).apply()
+        prefs(accountId).edit { putLong(KEY_REVISION, revision.coerceAtLeast(0)) }
     }
 
     private fun prefs(accountId: String) = appContext.getSharedPreferences(
