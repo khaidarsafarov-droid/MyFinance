@@ -34,7 +34,9 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Verify backend and contracts
-        run: sh ./gradlew :shared:contract:test :backend:server:test --no-daemon
+        run: >-
+          sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME"
+          :shared:contract:test :backend:server:test --no-daemon
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
