@@ -43,6 +43,20 @@ flowchart LR
 - Do not add Apple services until an iOS client exists. There is no APNs credential,
   iOS schema branch, or Apple sign-in surface in the current target.
 
+## Android dependency scopes
+
+- Hilt's `SingletonComponent` owns only process-wide wrappers backed by the
+  application context: auth/session credentials, the active profile wrapper, settings,
+  and push-token storage.
+- Room and repository objects remain account-scoped. `MainActivity` rebuilds that
+  graph after login and closes the active database on logout, preventing data access
+  from leaking across account switches.
+- Compose continues to receive the active account graph through `CompositionLocal`
+  while the migration proceeds incrementally.
+- Existing WorkManager workers remain framework-constructed. HiltWorker and a custom
+  worker factory are intentionally deferred until every worker can be migrated as one
+  safe change.
+
 ## Trust boundaries
 
 - Android stores local account data and bearer credentials; it never receives the

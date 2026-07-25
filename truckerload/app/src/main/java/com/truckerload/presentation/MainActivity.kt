@@ -80,10 +80,25 @@ import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.widget.WidgetDeepLink
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
+
+    @Inject
+    lateinit var authStore: AuthStore
+
+    @Inject
+    lateinit var authCredentialsStore: AuthCredentialsStore
+
+    @Inject
+    lateinit var userProfileStore: UserProfileStore
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
@@ -98,10 +113,6 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
         enableEdgeToEdge()
         FeedbackManager.init(applicationContext)
-        val settingsDataStore = SettingsDataStore(applicationContext)
-        val authStore = AuthStore(applicationContext)
-        val authCredentialsStore = AuthCredentialsStore(applicationContext)
-        val userProfileStore = UserProfileStore(applicationContext)
 
         setContent {
             var dependencies by remember { mutableStateOf<MainDependencies?>(null) }

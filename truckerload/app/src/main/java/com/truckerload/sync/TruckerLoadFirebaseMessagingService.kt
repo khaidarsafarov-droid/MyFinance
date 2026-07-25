@@ -12,10 +12,17 @@ import com.google.firebase.messaging.RemoteMessage
 import com.truckerload.R
 import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.presentation.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var pushTokenStore: PushTokenStore
+
     override fun onNewToken(token: String) {
-        PushTokenStore(applicationContext).set(token)
+        pushTokenStore.set(token)
         PushTokenRegistrationWorker.enqueue(applicationContext)
     }
 

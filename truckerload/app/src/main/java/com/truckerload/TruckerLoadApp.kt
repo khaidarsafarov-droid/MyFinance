@@ -32,7 +32,9 @@ import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetRefresh
 import com.truckerload.widget.WidgetUpdateWorker
 import com.truckerload.utils.AppLocale
+import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,7 +42,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.widget.Toast
 
+@HiltAndroidApp
 class TruckerLoadApp : Application() {
+
+    @Inject
+    lateinit var authStore: AuthStore
+
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -52,10 +61,10 @@ class TruckerLoadApp : Application() {
         super.onCreate()
         initializeCrashReporting()
         appScope.launch(Dispatchers.IO) {
-            val settings = SettingsDataStore(this@TruckerLoadApp)
-            val language = settings.getLanguageOnce()
+            val language = settingsDataStore.getLanguageOnce()
             SettingsDataStore.mirrorLanguageTag(this@TruckerLoadApp, language.tag)
-            val themeMode = runCatching { settings.getThemeModeOnce() }.getOrDefault(AppThemeMode.SYSTEM)
+            val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
+                .getOrDefault(AppThemeMode.SYSTEM)
             withContext(Dispatchers.Main) {
                 AppLocale.apply(this@TruckerLoadApp, language)
                 ThemeManager.apply(themeMode)
@@ -67,7 +76,7 @@ class TruckerLoadApp : Application() {
             ServerTelegramInboxWorker.enqueue(this)
             ServerTelegramInboxWorker.enqueuePeriodic(this)
         } else {
-            AuthStore(this).currentUserIdOrNull()?.let { userId ->
+            authStore.currentUserIdOrNull()?.let { userId ->
                 TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
             }
         }
@@ -79,7 +88,7 @@ class TruckerLoadApp : Application() {
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                val userId = AuthStore(this@TruckerLoadApp).currentUserIdOrNull()
+                val userId = authStore.currentUserIdOrNull()
                 if (userId != null) {
                     PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
                     if (TelegramSyncMode.isServer()) {

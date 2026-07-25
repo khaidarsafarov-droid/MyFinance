@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 val firebaseConfigured = file("google-services.json").isFile
@@ -114,6 +115,10 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+
+    // Hilt (KSP)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     // Room
     implementation(libs.androidx.room.runtime)

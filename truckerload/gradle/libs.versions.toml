@@ -16,7 +16,8 @@ datastore = "1.0.0"
 lifecycleViewmodelCompose = "2.7.0"
 gson = "2.10.1"
 room = "2.7.0"
-hilt = "2.56.2"
+hilt = "2.60.1"
+androidxHilt = "1.4.0"
 paging = "3.3.5"
 
 [libraries]
@@ -46,7 +47,7 @@ androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime-kt
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHilt" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 [plugins]

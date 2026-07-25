@@ -33,6 +33,19 @@ Backend unit tests use in-memory fakes and need no database, Docker daemon, Tele
 Firebase, Supabase, or DigitalOcean credentials. The debug APK is written under
 `app/build/outputs/apk/debug/`.
 
+## Dependency injection
+
+The Android app uses Dagger/Hilt 2.60.1 with KSP. `SingletonComponent` contains only
+process-safe, application-context wrappers such as auth, profile, settings, and push
+token stores. `TruckerLoadApp`, `MainActivity`, and the Firebase messaging service are
+Hilt entry points; the existing Compose `CompositionLocal` surface remains in place.
+
+Room databases and their repositories are deliberately created after the active user
+is known and are rebuilt on account changes. They are not application singletons,
+which prevents one user's database from surviving into another user's session.
+Workers remain framework-constructed; this migration does not install a custom
+WorkManager/Hilt worker factory.
+
 For local backend containers:
 
 ```bash
