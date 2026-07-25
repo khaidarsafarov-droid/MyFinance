@@ -42,8 +42,8 @@ fun GlassCard(
     val heroBrush = if (useHero) DarkGlassGradients.cardShine else null
     val containerColor = when {
         useHero -> Color.Transparent
-        useHighlight -> SoftUiColors.PurpleLight
-        useCream -> SoftUiColors.PurpleLight.copy(alpha = 0.5f)
+        useHighlight -> cs.primaryContainer
+        useCream -> cs.secondaryContainer
         else -> cs.surface
     }
     Surface(

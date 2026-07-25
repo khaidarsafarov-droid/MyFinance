@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -140,7 +141,7 @@ fun StatusScreen(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text(stringResource(R.string.social_status_hint)) },
                     )
-                    androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { viewModel.postTextStatus(displayName) },
                             enabled = uiState.inputText.isNotBlank(),
@@ -197,7 +198,7 @@ private fun StatusItem(status: DriverStatusPost, onView: () -> Unit) {
             .clickable(onClick = onView),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            androidx.compose.foundation.layout.Row(
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -237,11 +238,22 @@ private fun StatusItem(status: DriverStatusPost, onView: () -> Unit) {
                         Text(it, modifier = Modifier.padding(top = 4.dp), color = tc.TextSecondary)
                     }
                 }
-                StatusType.VOICE -> Text(
-                    text = "🎤 ${status.durationMs / 1000}s",
+                StatusType.VOICE -> Row(
                     modifier = Modifier.padding(top = 8.dp),
-                    color = tc.AccentPrimary,
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = null,
+                        tint = tc.AccentPrimary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = "${status.durationMs / 1000}s",
+                        color = tc.AccentPrimary,
+                    )
+                }
             }
         }
     }

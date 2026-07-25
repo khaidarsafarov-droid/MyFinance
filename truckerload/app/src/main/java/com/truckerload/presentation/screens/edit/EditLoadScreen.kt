@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,6 +40,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -137,19 +137,7 @@ fun EditLoadScreen(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        val fieldColors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = tc.AccentPrimary,
-                            unfocusedBorderColor = tc.Divider,
-                            focusedLabelColor = tc.AccentPrimary,
-                            unfocusedLabelColor = tc.TextSecondary,
-                            focusedTextColor = tc.TextPrimary,
-                            unfocusedTextColor = tc.TextPrimary,
-                            focusedContainerColor = BentoGlassTheme.CardFill,
-                            unfocusedContainerColor = BentoGlassTheme.CardFill,
-                            focusedSupportingTextColor = tc.TextSecondary,
-                            unfocusedSupportingTextColor = tc.TextSecondary,
-                            cursorColor = tc.AccentPrimary,
-                        )
+                        val fieldColors = AppTextFieldDefaults.outlined()
                         OutlinedTextField(
                             value = uiState.tripId,
                             onValueChange = viewModel::setTripId,

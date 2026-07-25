@@ -12,8 +12,8 @@
                 <corners android:radius="10dp" />
                 <gradient
                     android:angle="0"
-                    android:endColor="#FF5B9FFF"
-                    android:startColor="#FF8E78FF" />
+                    android:endColor="@color/widget_rpm_warn"
+                    android:startColor="@color/widget_primary" />
             </shape>
         </clip>
     </item>

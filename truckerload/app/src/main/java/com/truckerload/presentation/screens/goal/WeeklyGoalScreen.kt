@@ -62,7 +62,7 @@ import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.FinanceCockpitColors
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.UiDimens
@@ -114,7 +114,7 @@ fun WeeklyGoalScreen() {
             TopAppBar(
                 title = {
                     Column {
-                        DarkGlassScreenTitle(stringResource(R.string.goal_screen_title))
+                        ForestScreenTitle(stringResource(R.string.goal_screen_title))
                         progress?.let {
                             Text(it.weekLabel, style = AppTypography.Subtitle)
                         }

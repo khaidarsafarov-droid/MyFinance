@@ -24,9 +24,10 @@ import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
 
 private val PrimaryGradient: Brush
-    @Composable get() = Brush.horizontalGradient(
-        listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestAccent),
-    )
+    @Composable get() {
+        val primary = MaterialTheme.colorScheme.primary
+        return Brush.horizontalGradient(listOf(primary, primary))
+    }
 
 private val DisabledGradient: Brush
     @Composable get() = Brush.horizontalGradient(
@@ -92,7 +93,7 @@ fun TlButton(
     )
 }
 
-/** Text-only action — purple label, rounded hit area. */
+/** Text-only action — primary label, rounded hit area. */
 @Composable
 fun TlTextButton(
     onClick: () -> Unit,
@@ -106,7 +107,7 @@ fun TlTextButton(
         enabled = enabled,
         shape = SoftUiShapes.Chip,
         colors = ButtonDefaults.textButtonColors(
-            contentColor = SoftUiColors.PurpleStart,
+            contentColor = MaterialTheme.colorScheme.primary,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         ),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -124,7 +125,7 @@ fun TlOutlinedButton(
 ) {
     val shape = SoftUiShapes.Button
     val borderColor = if (enabled) {
-        SoftUiColors.PurpleStart.copy(alpha = 0.35f)
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
     } else {
         MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
     }
@@ -143,7 +144,7 @@ fun TlOutlinedButton(
         shape = shape,
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = SoftUiColors.PurpleEnd,
+            contentColor = MaterialTheme.colorScheme.primary,
         ),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
         content = content,

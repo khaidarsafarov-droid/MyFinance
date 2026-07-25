@@ -2,7 +2,7 @@ package com.truckerload.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** App-wide semantic colors — aligned with SoftUiTheme purple palette. */
+/** App-wide semantic colors — Mindwell Forest (legacy Orange/Teal names are aliases). */
 object AppColors {
     val White = Color(0xFFFFFFFF)
     val LightGray = SoftUiColors.BackgroundLight

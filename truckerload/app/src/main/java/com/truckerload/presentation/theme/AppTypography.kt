@@ -6,7 +6,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/** Typography mapped to [MaterialTheme] for accessibility / system font scaling. */
+/** Semantic typography — always theme-aware for light/dark. */
 object AppTypography {
     val DisplayOnDark: TextStyle
         @Composable get() = MaterialTheme.typography.displaySmall.copy(
@@ -22,7 +22,7 @@ object AppTypography {
 
     val ScreenTitle: TextStyle
         @Composable get() = MaterialTheme.typography.headlineSmall.copy(
-            color = SoftUiColors.ForestPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 1.4.sp,
         )
@@ -34,13 +34,13 @@ object AppTypography {
 
     val CardTitle: TextStyle
         @Composable get() = MaterialTheme.typography.titleMedium.copy(
-            color = SoftUiColors.ForestPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.ExtraBold,
         )
 
     val CardRoute: TextStyle
         @Composable get() = MaterialTheme.typography.titleSmall.copy(
-            color = SoftUiColors.ForestPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
         )
 
@@ -66,7 +66,7 @@ object AppTypography {
 
     val SectionTitle: TextStyle
         @Composable get() = MaterialTheme.typography.labelLarge.copy(
-            color = SoftUiColors.ForestMuted,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.6.sp,
         )

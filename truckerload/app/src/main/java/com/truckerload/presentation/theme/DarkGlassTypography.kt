@@ -6,8 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
+/** Brand screen title (uppercase + tracking). Prefer this over legacy DarkGlass* names. */
 @Composable
-fun DarkGlassScreenTitle(
+fun ForestScreenTitle(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onBackground,
@@ -19,19 +20,35 @@ fun DarkGlassScreenTitle(
     )
 }
 
+/** Brand section label (uppercase + muted tracking). */
+@Composable
+fun ForestSectionTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = text.uppercase(),
+        modifier = modifier,
+        style = AppTypography.SectionTitle,
+    )
+}
+
+@Deprecated("Use ForestScreenTitle", ReplaceWith("ForestScreenTitle(text, modifier, color)"))
+@Composable
+fun DarkGlassScreenTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onBackground,
+) {
+    ForestScreenTitle(text = text, modifier = modifier, color = color)
+}
+
+@Deprecated("Use ForestSectionTitle", ReplaceWith("ForestSectionTitle(text, modifier)"))
 @Composable
 fun DarkGlassSectionTitle(
     text: String,
     modifier: Modifier = Modifier,
-    emoji: String? = null,
+    @Suppress("UNUSED_PARAMETER") emoji: String? = null,
 ) {
-    val label = when {
-        !emoji.isNullOrBlank() -> "$emoji ${text.uppercase()}"
-        else -> text.uppercase()
-    }
-    Text(
-        text = label,
-        modifier = modifier,
-        style = AppTypography.SectionTitle,
-    )
+    ForestSectionTitle(text = text, modifier = modifier)
 }

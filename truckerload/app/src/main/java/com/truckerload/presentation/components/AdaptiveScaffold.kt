@@ -49,7 +49,6 @@ import androidx.navigation.NavHostController
 import com.truckerload.R
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
@@ -190,13 +189,13 @@ private fun SoftBottomBar(
 
     Column(
         modifier = Modifier
-            .background(SoftUiColors.Sage)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .navigationBarsPadding(),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(SoftUiColors.Sage)
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Row(
@@ -258,6 +257,10 @@ private fun BottomNavItem(
 ) {
     val selected = isPhoneDestinationSelected(currentRoute, route)
     val label = stringResource(labelRes)
+    val cs = MaterialTheme.colorScheme
+    val selectedColor = cs.onPrimaryContainer
+    val unselectedColor = cs.onSurfaceVariant
+    val selectedBg = cs.secondaryContainer
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -265,7 +268,7 @@ private fun BottomNavItem(
             .fillMaxWidth()
             .clip(pillShape)
             .then(
-                if (selected) Modifier.background(SoftUiColors.SageHover) else Modifier,
+                if (selected) Modifier.background(selectedBg) else Modifier,
             )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -278,11 +281,11 @@ private fun BottomNavItem(
             icon,
             contentDescription = label,
             modifier = Modifier.size(UiDimens.IconNavCompact),
-            tint = if (selected) SoftUiColors.ForestPrimary else SoftUiColors.ForestMuted,
+            tint = if (selected) selectedColor else unselectedColor,
         )
         Text(
             text = label,
-            color = if (selected) SoftUiColors.ForestPrimary else SoftUiColors.ForestMuted,
+            color = if (selected) selectedColor else unselectedColor,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,

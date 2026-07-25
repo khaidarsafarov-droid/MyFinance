@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -22,16 +23,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import com.truckerload.presentation.components.TlTextButton as TextButton
@@ -61,6 +67,7 @@ import com.truckerload.domain.social.MessageType
 import com.truckerload.domain.social.ReactionEmoji
 import com.truckerload.domain.social.SocialMessage
 import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.io.File
@@ -117,15 +124,47 @@ fun SocialChatScreen(
                 title = {
                     Column {
                         Text(uiState.chatTitle)
-                        Text(
-                            text = buildString {
-                                if (uiState.chatRating > 0) append("⭐ ${"%.1f".format(uiState.chatRating)} · ")
-                                append("${uiState.participantCount} ${stringResource(R.string.social_participants)}")
-                                if (uiState.onlineCount > 0) append(" · 🟢 ${uiState.onlineCount}")
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = tc.TextSecondary,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            if (uiState.chatRating > 0) {
+                                Icon(
+                                    imageVector = Icons.Filled.Star,
+                                    contentDescription = null,
+                                    tint = tc.TextSecondary,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                                Text(
+                                    text = "${"%.1f".format(uiState.chatRating)} ·",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = tc.TextSecondary,
+                                )
+                            }
+                            Text(
+                                text = "${uiState.participantCount} ${stringResource(R.string.social_participants)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                            )
+                            if (uiState.onlineCount > 0) {
+                                Text(
+                                    text = "·",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = tc.TextSecondary,
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.Circle,
+                                    contentDescription = null,
+                                    tint = tc.AccentProfit,
+                                    modifier = Modifier.size(8.dp),
+                                )
+                                Text(
+                                    text = uiState.onlineCount.toString(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = tc.TextSecondary,
+                                )
+                            }
+                        }
                     }
                 },
                 navigationIcon = {
@@ -225,13 +264,7 @@ fun SocialChatScreen(
                     onValueChange = viewModel::setInput,
                     modifier = Modifier.weight(1f),
                     placeholder = { Text(stringResource(R.string.social_message_hint)) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = tc.TextPrimary,
-                        unfocusedTextColor = tc.TextPrimary,
-                        cursorColor = tc.AccentPrimary,
-                        focusedBorderColor = tc.AccentPrimary,
-                        unfocusedBorderColor = tc.Divider,
-                    ),
+                    colors = AppTextFieldDefaults.outlined(),
                     shape = RoundedCornerShape(24.dp),
                     maxLines = 4,
                 )
@@ -287,11 +320,22 @@ private fun SocialMessageBubble(
             horizontalAlignment = if (message.isMine) Alignment.End else Alignment.Start,
         ) {
             if (!message.isMine) {
-                Text(
-                    text = "👤 ${message.senderName}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tc.TextSecondary,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = null,
+                        tint = tc.TextSecondary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = message.senderName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = tc.TextSecondary,
+                    )
+                }
             }
             message.replyPreview?.let { preview ->
                 Text(
@@ -302,7 +346,22 @@ private fun SocialMessageBubble(
                 )
             }
             if (message.isAnnouncement) {
-                Text("📌 ${stringResource(R.string.social_announcement)}", style = MaterialTheme.typography.labelSmall, color = tc.AccentPrimary)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PushPin,
+                        contentDescription = null,
+                        tint = tc.AccentPrimary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.social_announcement),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = tc.AccentPrimary,
+                    )
+                }
             }
             Column(
                 modifier = Modifier
@@ -346,7 +405,12 @@ private fun SocialMessageBubble(
                                 }
                             },
                         ) {
-                            Text("🎤", style = MaterialTheme.typography.titleMedium)
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = null,
+                                tint = tc.AccentPrimary,
+                                modifier = Modifier.size(18.dp),
+                            )
                             Text(
                                 text = "${stringResource(R.string.social_voice_message)} · ${message.durationMs / 1000}s",
                                 style = MaterialTheme.typography.bodyMedium,
@@ -364,9 +428,31 @@ private fun SocialMessageBubble(
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = "🕐 $time", style = MaterialTheme.typography.labelSmall, color = tc.TextSecondary)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Schedule,
+                        contentDescription = null,
+                        tint = tc.TextSecondary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(text = time, style = MaterialTheme.typography.labelSmall, color = tc.TextSecondary)
+                }
                 message.locationLabel?.let {
-                    Text(text = "📍 $it", style = MaterialTheme.typography.labelSmall, color = tc.TextSecondary)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(text = it, style = MaterialTheme.typography.labelSmall, color = tc.TextSecondary)
+                    }
                 }
             }
             if (message.hashtags.isNotEmpty()) {

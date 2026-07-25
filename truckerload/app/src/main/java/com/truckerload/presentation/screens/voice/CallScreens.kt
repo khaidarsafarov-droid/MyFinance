@@ -97,7 +97,7 @@ fun IncomingCallScreen(
                 ) {
                     Text(
                         text = callState.callerName.take(1).uppercase(),
-                        color = SoftUiColors.PurpleStart,
+                        color = SoftUiColors.ForestAccent,
                         fontSize = 48.sp,
                     )
                 }

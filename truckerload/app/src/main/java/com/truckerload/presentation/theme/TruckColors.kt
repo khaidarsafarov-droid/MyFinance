@@ -97,35 +97,41 @@ object DarkGlassGradients {
     val screenDark: Brush @Composable get() = screen
 
     val cta: Brush
-        @Composable get() = Brush.horizontalGradient(
-            listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestPrimary),
-        )
+        @Composable get() {
+            val cs = MaterialTheme.colorScheme
+            return Brush.horizontalGradient(listOf(cs.primary, SoftUiColors.ForestPrimary))
+        }
 
     val button: Brush @Composable get() = cta
     val ctaGold: Brush @Composable get() = cta
     val horizontal: Brush @Composable get() = cta
     val vertical: Brush
-        @Composable get() = Brush.verticalGradient(
-            listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestPrimary),
-        )
+        @Composable get() {
+            val cs = MaterialTheme.colorScheme
+            return Brush.verticalGradient(listOf(cs.primary, SoftUiColors.ForestPrimary))
+        }
 
     val cardShine: Brush
-        @Composable get() = Brush.linearGradient(
-            listOf(SoftUiColors.ForestPrimary, SoftUiColors.ForestAccent),
-        )
+        @Composable get() {
+            val cs = MaterialTheme.colorScheme
+            return Brush.linearGradient(listOf(SoftUiColors.ForestPrimary, cs.primary))
+        }
 
     val chartFill: Brush
         @Composable get() = Brush.verticalGradient(
             listOf(
-                SoftUiColors.PurpleStart.copy(alpha = 0.15f),
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                 Color.Transparent,
             ),
         )
 
     val progressRing: Brush
-        @Composable get() = Brush.sweepGradient(
-            listOf(SoftUiColors.PurpleStart, SoftUiColors.SkyBlueEnd, SoftUiColors.PurpleStart),
-        )
+        @Composable get() {
+            val cs = MaterialTheme.colorScheme
+            return Brush.sweepGradient(
+                listOf(cs.primary, SoftUiColors.ForestMuted, cs.primary),
+            )
+        }
 }
 
 object GoldGradients {

@@ -29,10 +29,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
-import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -174,7 +175,12 @@ private fun VoiceRoomListItem(room: VoiceRoom, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("🎙️", style = MaterialTheme.typography.headlineMedium)
+            Icon(
+                imageVector = Icons.Outlined.Mic,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp),
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(room.name, style = AppTypography.CardTitle, color = tc.TextPrimary)
                 Text(
@@ -185,11 +191,22 @@ private fun VoiceRoomListItem(room: VoiceRoom, onClick: () -> Unit) {
             }
             val speaking = room.participants.count { it.isSpeaking }
             if (speaking > 0) {
-                Text(
-                    text = "🟢 $speaking",
-                    color = SoftUiColors.VoiceSuccess,
-                    fontSize = 12.sp,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Circle,
+                        contentDescription = null,
+                        tint = SoftUiColors.VoiceSuccess,
+                        modifier = Modifier.size(8.dp),
+                    )
+                    Text(
+                        text = speaking.toString(),
+                        color = SoftUiColors.VoiceSuccess,
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
     }
@@ -233,12 +250,25 @@ fun VoiceRoomScreen(
                     IconButton(onClick = { viewModel.leave(onBack) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                     }
-                    Text(
-                        text = "🎙️ ${room?.name.orEmpty()}",
-                        style = AppTypography.CardTitle,
-                        color = tc.AccentPrimary,
+                    Row(
                         modifier = Modifier.weight(1f),
-                    )
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Mic,
+                            contentDescription = null,
+                            tint = tc.AccentPrimary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = room?.name.orEmpty(),
+                            style = AppTypography.CardTitle,
+                            color = tc.AccentPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     Text(
                         text = stringResource(R.string.participants_count, room?.participants?.size ?: 0),
                         color = tc.TextSecondary,
@@ -280,7 +310,7 @@ fun VoiceRoomScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     VoiceControlButton(
-                        icon = if (state.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                        icon = if (state.isMuted) Icons.Default.MicOff else Icons.Outlined.Mic,
                         label = if (state.isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute),
                         tint = if (state.isMuted) SoftUiColors.VoiceDanger else tc.AccentPrimary,
                         onClick = { viewModel.toggleMute() },

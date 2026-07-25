@@ -21,6 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.WorkspacePremium
 import com.truckerload.presentation.components.LocalOpenDrawer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -230,28 +234,75 @@ private fun PremiumProfileHeader(
                             ?.let { "${it.iso2} · ${it.displayName(isRussian)}" }
                             ?: profile.homeState
                         if (locationLabel.isNotBlank() || profile.status != com.truckerload.domain.social.DriverStatus.OFFLINE) {
-                            Text(
-                                buildString {
-                                    if (locationLabel.isNotBlank()) append("📍 $locationLabel")
-                                    if (locationLabel.isNotBlank()) append(" · ")
-                                    append(profile.status.label)
-                                },
-                                style = AppTypography.Subtitle,
-                                color = tc.TextSecondary,
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                if (locationLabel.isNotBlank()) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.LocationOn,
+                                        contentDescription = null,
+                                        tint = tc.TextSecondary,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                }
+                                Text(
+                                    text = buildString {
+                                        if (locationLabel.isNotBlank()) append(locationLabel)
+                                        if (locationLabel.isNotBlank()) append(" · ")
+                                        append(profile.status.label.substringAfter(' ', profile.status.label))
+                                    },
+                                    style = AppTypography.Subtitle,
+                                    color = tc.TextSecondary,
+                                )
+                            }
                         }
                     }
                 }
                 if (profile.ratingCount > 0) {
-                    Text(
-                        text = "⭐ ${"%.1f".format(profile.rating)} ★ (${profile.ratingCount}) · 🏅 ${profile.reputation} ${stringResource(R.string.social_reputation_short)}",
-                        style = AppTypography.Subtitle,
-                        color = tc.AccentPrimary,
+                    Row(
                         modifier = Modifier.padding(top = 12.dp),
-                    )
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = tc.AccentPrimary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "${"%.1f".format(profile.rating)} (${profile.ratingCount}) ·",
+                            style = AppTypography.Subtitle,
+                            color = tc.AccentPrimary,
+                        )
+                        Icon(
+                            imageVector = Icons.Outlined.WorkspacePremium,
+                            contentDescription = null,
+                            tint = tc.AccentPrimary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "${profile.reputation} ${stringResource(R.string.social_reputation_short)}",
+                            style = AppTypography.Subtitle,
+                            color = tc.AccentPrimary,
+                        )
+                    }
                 }
                 profile.currentRoute?.takeIf { it.isNotBlank() }?.let { route ->
-                    Text("🛣️ $route", style = AppTypography.Subtitle, color = tc.TextSecondary, modifier = Modifier.padding(top = 4.dp))
+                    Row(
+                        modifier = Modifier.padding(top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Route,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(route, style = AppTypography.Subtitle, color = tc.TextSecondary)
+                    }
                 }
             }
         }

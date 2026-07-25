@@ -66,7 +66,7 @@ import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -214,7 +214,7 @@ fun SettingsScreen(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
             TopAppBar(
-                title = { DarkGlassScreenTitle(stringResource(R.string.settings_title)) },
+                title = { ForestScreenTitle(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     if (showBack) {
                         IconButton(onClick = onBack) {
