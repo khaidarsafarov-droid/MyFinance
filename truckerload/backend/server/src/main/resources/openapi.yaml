@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: TruckerLoad Cloud API
+  version: 1.0.0
+  description: Account-scoped synchronization, media, and Telegram inbox API.
+servers:
+  - url: /
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Supabase JWT
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        requestId: { type: string }
+        details: {}
+    Health:
+      type: object
+      required: [status, service, timestamp, version]
+      properties:
+        status: { type: string }
+        service: { type: string }
+        timestamp: { type: integer, format: int64 }
+        version: { type: string }
+    Snapshot:
+      type: object
+      required: [version, accountId, updatedAt, backup]
+      properties:
+        version: { type: integer, minimum: 1 }
+        accountId: { type: string, format: uuid }
+        updatedAt: { type: integer, format: int64, minimum: 0 }
+        backup: { type: object, additionalProperties: true }
+        driverProfileJson: { type: [string, "null"] }
+        entityCount: { type: [integer, "null"], minimum: 0 }
+      additionalProperties: true
+    SyncCursor:
+      type: object
+      required: [deviceId, cursor]
+      properties:
+        deviceId: { type: string, minLength: 1, maxLength: 128 }
+        cursor: { type: integer, format: int64, minimum: 0 }
+        updatedAt: { type: integer, format: int64, minimum: 0 }
+    MediaUploadRequest:
+      type: object
+      required: [fileName, contentType, sizeBytes]
+      properties:
+        fileName: { type: string }
+        contentType: { type: string }
+        sizeBytes: { type: integer, format: int64, minimum: 1 }
+        checksum: { type: [string, "null"] }
+    MediaUploadResponse:
+      type: object
+      required: [mediaId, uploadUrl, method, headers, expiresAt]
+      properties:
+        mediaId: { type: string, format: uuid }
+        uploadUrl: { type: string, format: uri }
+        method: { type: string, const: PUT }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+        expiresAt: { type: integer, format: int64 }
+    MediaCompleteRequest:
+      type: object
+      required: [mediaId]
+      properties:
+        mediaId: { type: string, format: uuid }
+        checksum: { type: [string, "null"] }
+    MediaMetadata:
+      type: object
+      required: [mediaId, fileName, contentType, sizeBytes, status, createdAt]
+      properties:
+        mediaId: { type: string, format: uuid }
+        fileName: { type: string }
+        contentType: { type: string }
+        sizeBytes: { type: integer, format: int64 }
+        checksum: { type: [string, "null"] }
+        status: { type: string, enum: [pending, ready] }
+        createdAt: { type: integer, format: int64 }
+        completedAt: { type: [integer, "null"], format: int64 }
+    TelegramLinkToken:
+      type: object
+      required: [token, expiresAt]
+      properties:
+        token: { type: string }
+        expiresAt: { type: integer, format: int64 }
+    TelegramInboxItem:
+      type: object
+      required: [updateId, messageId, chatId, text, receivedAt]
+      properties:
+        updateId: { type: integer, format: int64 }
+        messageId: { type: integer, format: int64 }
+        chatId: { type: integer, format: int64 }
+        text: { type: string }
+        senderUsername: { type: [string, "null"] }
+        receivedAt: { type: integer, format: int64 }
+        acknowledgedAt: { type: [integer, "null"], format: int64 }
+    TelegramInboxList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/TelegramInboxItem" }
+        nextUpdateId: { type: [integer, "null"], format: int64 }
+  responses:
+    Error:
+      description: API error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+paths:
+  /openapi.yaml:
+    get:
+      operationId: openapiDocument
+      responses:
+        "200": { description: This OpenAPI YAML document }
+  /docs:
+    get:
+      operationId: apiDocs
+      responses:
+        "302": { description: Redirects to /openapi.yaml }
+  /health/live:
+    get:
+      operationId: healthLive
+      responses:
+        "200":
+          description: Process is running
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+  /health/ready:
+    get:
+      operationId: healthReady
+      responses:
+        "200":
+          description: Database is ready
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+        "503":
+          description: Dependency unavailable
+  /v1/sync/snapshot:
+    get:
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: since
+          schema: { type: integer, format: int64, minimum: 0 }
+      responses:
+        "200":
+          description: Latest account snapshot
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Snapshot" }
+        "204": { description: Missing or unchanged }
+        "401": { $ref: "#/components/responses/Error" }
+    put:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Snapshot" }
+      responses:
+        "200":
+          description: Snapshot after timestamp LWW
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Snapshot" }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/sync/cursor:
+    get:
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: deviceId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Cursor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncCursor" }
+        "204": { description: No cursor }
+    put:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SyncCursor" }
+      responses:
+        "200":
+          description: Stored cursor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncCursor" }
+  /v1/media/upload-url:
+    post:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MediaUploadRequest" }
+      responses:
+        "201":
+          description: Presigned upload
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MediaUploadResponse" }
+  /v1/media/complete:
+    post:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MediaCompleteRequest" }
+      responses:
+        "200":
+          description: Completed media object
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MediaMetadata" }
+        "409": { $ref: "#/components/responses/Error" }
+  /v1/media/local-upload/{mediaId}:
+    put:
+      description: Local-storage-only signed upload target returned by the upload-url endpoint.
+      parameters:
+        - in: path
+          name: mediaId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: expiresAt
+          required: true
+          schema: { type: integer, format: int64 }
+        - in: query
+          name: token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "204": { description: Uploaded }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/media/{mediaId}:
+    parameters:
+      - in: path
+        name: mediaId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Owned media metadata
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MediaMetadata" }
+        "404": { $ref: "#/components/responses/Error" }
+    delete:
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/telegram/link-token:
+    post:
+      security: [{ bearerAuth: [] }]
+      responses:
+        "201":
+          description: Single-use link token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TelegramLinkToken" }
+  /v1/telegram/webhook:
+    post:
+      parameters:
+        - in: header
+          name: X-Telegram-Bot-Api-Secret-Token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [update_id]
+              additionalProperties: true
+      responses:
+        "200": { description: Accepted }
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/telegram/inbox:
+    get:
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: sinceUpdateId
+          schema: { type: integer, format: int64, minimum: 0 }
+      responses:
+        "200":
+          description: Linked Telegram messages
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TelegramInboxList" }
+  /v1/telegram/inbox/{updateId}/ack:
+    post:
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: updateId
+          required: true
+          schema: { type: integer, format: int64, minimum: 0 }
+      responses:
+        "204": { description: Acknowledged }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/telegram/link:
+    delete:
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Unlinked }

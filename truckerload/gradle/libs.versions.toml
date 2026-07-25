@@ -8,6 +8,8 @@ lifecycleRuntimeKtx = "2.7.0"
 activityCompose = "1.8.2"
 kotlin = "2.2.10"
 ksp = "2.3.6"
+kotlinxSerialization = "1.11.0"
+ktor = "3.5.1"
 composeBom = "2024.02.00"
 navigationCompose = "2.7.7"
 datastore = "1.0.0"
@@ -45,9 +47,12 @@ androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", 
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

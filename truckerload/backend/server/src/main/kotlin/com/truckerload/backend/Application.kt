@@ -1,0 +1,533 @@
+package com.truckerload.backend
+
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.truckerload.contract.AccountCloudSnapshot
+import com.truckerload.contract.ApiError
+import com.truckerload.contract.ContractJson
+import com.truckerload.contract.HealthResponse
+import com.truckerload.contract.MediaUploadCompleteRequest
+import com.truckerload.contract.MediaUploadRequest
+import com.truckerload.contract.MediaUploadResponse
+import com.truckerload.contract.SyncCursor
+import com.truckerload.contract.TelegramInboxListResponse
+import com.truckerload.contract.TelegramLinkTokenResponse
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.bearer
+import io.ktor.server.auth.principal
+import io.ktor.server.netty.EngineMain
+import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.callid.callId
+import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.contentType
+import io.ktor.server.request.receiveChannel
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
+import io.ktor.serialization.kotlinx.json.json
+import java.util.UUID
+import kotlinx.io.readByteArray
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import io.ktor.utils.io.readRemaining
+import org.slf4j.event.Level
+
+fun main(args: Array<String>) = EngineMain.main(args)
+
+data class AppPrincipal(val user: AuthenticatedUser)
+
+class ApiException(
+    val status: HttpStatusCode,
+    val code: String,
+    override val message: String,
+) : RuntimeException(message)
+
+data class AppDependencies(
+    val repositories: Repositories,
+    val objectStorage: ObjectStorage,
+    val close: () -> Unit = { objectStorage.close() },
+)
+
+fun Application.module() {
+    val config = AppConfig.fromEnvironment()
+    val dataSource = createDataSource(config)
+    migrateDatabase(dataSource)
+    val storage: ObjectStorage = when (config.storageKind) {
+        StorageKind.LOCAL -> LocalObjectStorage(
+            config.localStoragePath,
+            config.publicBaseUrl,
+            config.localStorageSigningSecret,
+        )
+        StorageKind.S3 -> S3ObjectStorage(
+            bucket = requireNotNull(config.s3Bucket),
+            regionName = config.s3Region,
+            endpoint = config.s3Endpoint,
+            publicEndpoint = config.s3PublicEndpoint,
+            pathStyle = config.s3PathStyle,
+        )
+    }
+    configureApplication(
+        config,
+        AppDependencies(jdbcRepositories(dataSource), storage) {
+            storage.close()
+            dataSource.close()
+        },
+    )
+}
+
+fun Application.configureApplication(config: AppConfig, dependencies: AppDependencies) {
+    val appLog = environment.log
+    val tokenVerifier = JWT.require(Algorithm.HMAC256(config.jwtSecret))
+        .withIssuer(config.jwtIssuer)
+        .withAudience(config.jwtAudience)
+        .build()
+
+    install(ContentNegotiation) {
+        json(ContractJson)
+    }
+    install(CallId) {
+        retrieveFromHeader(HttpHeaders.XRequestId)
+        generate { UUID.randomUUID().toString() }
+        verify { it.length in 1..128 && it.all { character -> character.isLetterOrDigit() || character in "-_." } }
+        replyToHeader(HttpHeaders.XRequestId)
+    }
+    install(CallLogging) {
+        level = if (config.environment == AppEnvironment.PROD) Level.INFO else Level.DEBUG
+        mdc("requestId") { it.callId }
+    }
+    install(StatusPages) {
+        exception<ApiException> { call, error ->
+            call.respond(
+                error.status,
+                ApiError(error.code, error.message, call.callId),
+            )
+        }
+        exception<SerializationException> { call, _ ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ApiError("invalid_json", "Request JSON is invalid", call.callId),
+            )
+        }
+        exception<BadRequestException> { call, _ ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ApiError("bad_request", "Request is invalid", call.callId),
+            )
+        }
+        exception<Throwable> { call, error ->
+            appLog.error("Unhandled request error requestId={}", call.callId, error)
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                ApiError("internal_error", "Internal server error", call.callId),
+            )
+        }
+    }
+    install(Authentication) {
+        bearer("supabase") {
+            realm = "truckerload-api"
+            authenticate { credential ->
+                authenticateToken(credential.token, config, tokenVerifier)
+            }
+        }
+    }
+
+    routing {
+        get("/health/live") {
+            call.respond(
+                HealthResponse("ok", timestamp = System.currentTimeMillis(), version = config.version),
+            )
+        }
+        get("/health/ready") {
+            val ready = dependencies.repositories.health.isReady()
+            call.respond(
+                if (ready) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable,
+                HealthResponse(
+                    status = if (ready) "ok" else "unavailable",
+                    timestamp = System.currentTimeMillis(),
+                    version = config.version,
+                ),
+            )
+        }
+        get("/openapi.yaml") {
+            val bytes = checkNotNull(javaClass.classLoader.getResourceAsStream("openapi.yaml")) {
+                "openapi.yaml is missing"
+            }.use { it.readBytes() }
+            call.respondBytes(bytes, ContentType.parse("application/yaml"))
+        }
+        get("/docs") {
+            call.respondRedirect("/openapi.yaml")
+        }
+
+        telegramWebhook(config, dependencies.repositories)
+        localMediaUpload(config, dependencies)
+
+        authenticate("supabase") {
+            route("/v1") {
+                syncRoutes(dependencies.repositories)
+                mediaRoutes(config, dependencies)
+                telegramAuthenticatedRoutes(config, dependencies.repositories)
+            }
+        }
+    }
+
+    monitor.subscribe(ApplicationStopped) {
+        dependencies.close()
+    }
+}
+
+private fun authenticateToken(
+    token: String,
+    config: AppConfig,
+    verifier: com.auth0.jwt.interfaces.JWTVerifier,
+): AppPrincipal? {
+    if (config.environment == AppEnvironment.TEST && config.testAuthEnabled && token.startsWith("test.")) {
+        val id = runCatching { UUID.fromString(token.removePrefix("test.")) }.getOrNull() ?: return null
+        return AppPrincipal(AuthenticatedUser(id, null))
+    }
+    return runCatching {
+        val jwt = verifier.verify(token)
+        val id = UUID.fromString(jwt.subject)
+        val email = jwt.getClaim("email").asString()
+        AppPrincipal(AuthenticatedUser(id, email))
+    }.getOrNull()
+}
+
+private suspend fun ApplicationCall.authenticatedUser(repositories: Repositories): AuthenticatedUser {
+    val user = principal<AppPrincipal>()?.user
+        ?: throw ApiException(HttpStatusCode.Unauthorized, "unauthorized", "Authentication required")
+    repositories.users.upsert(user)
+    return user
+}
+
+private fun io.ktor.server.routing.Route.syncRoutes(repositories: Repositories) {
+    route("/sync") {
+        get("/snapshot") {
+            val user = call.authenticatedUser(repositories)
+            val since = call.request.queryParameters["since"]?.let(::nonNegativeLong)
+            val snapshot = repositories.snapshots.get(user.id)
+            if (snapshot == null || (since != null && snapshot.updatedAt <= since)) {
+                call.respond(HttpStatusCode.NoContent)
+            } else {
+                call.respond(snapshot.withResolvedEntityCount())
+            }
+        }
+        put("/snapshot") {
+            val user = call.authenticatedUser(repositories)
+            val incoming = call.receiveJson<AccountCloudSnapshot>(MAX_SNAPSHOT_BODY_BYTES)
+            if (incoming.accountId != user.id.toString()) {
+                throw ApiException(
+                    HttpStatusCode.Forbidden,
+                    "account_mismatch",
+                    "Snapshot accountId must match the authenticated user",
+                )
+            }
+            if (incoming.version < 1 || incoming.updatedAt < 0) {
+                throw ApiException(HttpStatusCode.BadRequest, "invalid_snapshot", "Snapshot metadata is invalid")
+            }
+            val normalized = incoming.copy(accountId = user.id.toString()).withResolvedEntityCount()
+            val checksum = sha256Hex(ContractJson.encodeToString(normalized))
+            call.respond(repositories.snapshots.putLww(user.id, normalized, checksum))
+        }
+        get("/cursor") {
+            val user = call.authenticatedUser(repositories)
+            val deviceId = validDeviceId(call.request.queryParameters["deviceId"])
+            val cursor = repositories.cursors.get(user.id, deviceId)
+            if (cursor == null) call.respond(HttpStatusCode.NoContent) else call.respond(cursor)
+        }
+        put("/cursor") {
+            val user = call.authenticatedUser(repositories)
+            val cursor = call.receiveJson<SyncCursor>(MAX_SMALL_JSON_BODY_BYTES)
+            validDeviceId(cursor.deviceId)
+            if (cursor.cursor < 0) {
+                throw ApiException(HttpStatusCode.BadRequest, "invalid_cursor", "cursor must be non-negative")
+            }
+            call.respond(repositories.cursors.put(user.id, cursor))
+        }
+    }
+}
+
+private fun io.ktor.server.routing.Route.mediaRoutes(config: AppConfig, dependencies: AppDependencies) {
+    route("/media") {
+        post("/upload-url") {
+            val user = call.authenticatedUser(dependencies.repositories)
+            val request = call.receiveJson<MediaUploadRequest>(MAX_SMALL_JSON_BODY_BYTES)
+            if (request.sizeBytes !in 1..config.maxUploadBytes) {
+                throw ApiException(HttpStatusCode.BadRequest, "invalid_size", "Upload size is outside the allowed range")
+            }
+            if (request.contentType.length !in 3..255 || runCatching {
+                    ContentType.parse(request.contentType)
+                }.isFailure
+            ) {
+                throw ApiException(HttpStatusCode.BadRequest, "invalid_content_type", "contentType is invalid")
+            }
+            validateChecksum(request.checksum)
+            val fileName = safeFileName(request.fileName)
+            val mediaId = UUID.randomUUID()
+            val objectKey = "${user.id}/$mediaId/$fileName"
+            val now = System.currentTimeMillis()
+            val expiresAt = now + config.uploadExpirySeconds * 1000
+            dependencies.repositories.media.create(
+                MediaRecord(
+                    id = mediaId,
+                    userId = user.id,
+                    objectKey = objectKey,
+                    fileName = fileName,
+                    contentType = request.contentType,
+                    sizeBytes = request.sizeBytes,
+                    checksum = request.checksum,
+                    status = "pending",
+                    createdAt = now,
+                    completedAt = null,
+                ),
+            )
+            val upload = try {
+                dependencies.objectStorage.presignUpload(
+                    mediaId,
+                    objectKey,
+                    request.contentType,
+                    request.sizeBytes,
+                    expiresAt,
+                )
+            } catch (error: Throwable) {
+                dependencies.repositories.media.delete(user.id, mediaId)
+                throw error
+            }
+            call.respond(
+                HttpStatusCode.Created,
+                MediaUploadResponse(mediaId.toString(), upload.url, headers = upload.headers, expiresAt = expiresAt),
+            )
+        }
+        post("/complete") {
+            val user = call.authenticatedUser(dependencies.repositories)
+            val request = call.receiveJson<MediaUploadCompleteRequest>(MAX_SMALL_JSON_BODY_BYTES)
+            val mediaId = uuid(request.mediaId, "mediaId")
+            val record = dependencies.repositories.media.get(user.id, mediaId)
+                ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+            validateChecksum(request.checksum)
+            if (record.checksum != null && request.checksum != null && record.checksum != request.checksum) {
+                throw ApiException(HttpStatusCode.Conflict, "checksum_mismatch", "Upload checksum does not match")
+            }
+            val stored = dependencies.objectStorage.stat(record.objectKey)
+                ?: throw ApiException(HttpStatusCode.Conflict, "upload_incomplete", "Uploaded object was not found")
+            if (stored.sizeBytes != record.sizeBytes) {
+                throw ApiException(HttpStatusCode.Conflict, "size_mismatch", "Uploaded object size does not match")
+            }
+            val completed = dependencies.repositories.media.markComplete(
+                user.id,
+                mediaId,
+                request.checksum ?: record.checksum,
+                System.currentTimeMillis(),
+            ) ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+            call.respond(completed.toContract())
+        }
+        get("/{mediaId}") {
+            val user = call.authenticatedUser(dependencies.repositories)
+            val mediaId = uuid(call.parameters["mediaId"], "mediaId")
+            val record = dependencies.repositories.media.get(user.id, mediaId)
+                ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+            call.respond(record.toContract())
+        }
+        delete("/{mediaId}") {
+            val user = call.authenticatedUser(dependencies.repositories)
+            val mediaId = uuid(call.parameters["mediaId"], "mediaId")
+            val existing = dependencies.repositories.media.get(user.id, mediaId)
+                ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+            dependencies.objectStorage.delete(existing.objectKey)
+            dependencies.repositories.media.delete(user.id, mediaId)
+            call.respond(HttpStatusCode.NoContent)
+        }
+    }
+}
+
+private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dependencies: AppDependencies) {
+    put("/v1/media/local-upload/{mediaId}") {
+        val receiver = dependencies.objectStorage as? LocalUploadReceiver
+            ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
+        val mediaId = uuid(call.parameters["mediaId"], "mediaId")
+        val record = dependencies.repositories.media.getById(mediaId)
+            ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+        val expiresAt = call.request.queryParameters["expiresAt"]?.let(::nonNegativeLong)
+            ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_expiry", "expiresAt is required")
+        val token = call.request.queryParameters["token"].orEmpty()
+        if (call.request.headers[HttpHeaders.ContentType] != record.contentType) {
+            throw ApiException(HttpStatusCode.BadRequest, "content_type_mismatch", "Upload content type does not match")
+        }
+        val declaredLength = call.request.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+        if (declaredLength != null && declaredLength != record.sizeBytes) {
+            throw ApiException(HttpStatusCode.BadRequest, "size_mismatch", "Upload size does not match")
+        }
+        val bytes = call.receiveChannel().readRemaining(config.maxUploadBytes + 1).readByteArray()
+        if (bytes.size.toLong() != record.sizeBytes || bytes.size.toLong() > config.maxUploadBytes) {
+            throw ApiException(HttpStatusCode.BadRequest, "size_mismatch", "Upload size does not match")
+        }
+        if (!receiver.receive(mediaId, record.objectKey, expiresAt, token, bytes)) {
+            throw ApiException(HttpStatusCode.Unauthorized, "invalid_upload_token", "Upload URL is invalid or expired")
+        }
+        call.respond(HttpStatusCode.NoContent)
+    }
+}
+
+private fun io.ktor.server.routing.Route.telegramAuthenticatedRoutes(
+    config: AppConfig,
+    repositories: Repositories,
+) {
+    route("/telegram") {
+        post("/link-token") {
+            val user = call.authenticatedUser(repositories)
+            val token = randomUrlToken()
+            val expiresAt = System.currentTimeMillis() + config.telegramLinkTokenTtlSeconds * 1000
+            repositories.telegram.createLinkToken(user.id, sha256(token), expiresAt)
+            call.respond(HttpStatusCode.Created, TelegramLinkTokenResponse(token, expiresAt))
+        }
+        get("/inbox") {
+            val user = call.authenticatedUser(repositories)
+            val since = call.request.queryParameters["sinceUpdateId"]?.let(::nonNegativeLong) ?: 0L
+            val items = repositories.telegram.listInbox(user.id, since, 200).map { it.toContract() }
+            call.respond(TelegramInboxListResponse(items))
+        }
+        post("/inbox/{updateId}/ack") {
+            val user = call.authenticatedUser(repositories)
+            val updateId = nonNegativeLong(call.parameters["updateId"])
+            if (!repositories.telegram.acknowledge(user.id, updateId, System.currentTimeMillis())) {
+                throw ApiException(HttpStatusCode.NotFound, "inbox_item_not_found", "Inbox item was not found")
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+        delete("/link") {
+            val user = call.authenticatedUser(repositories)
+            repositories.telegram.unlink(user.id)
+            call.respond(HttpStatusCode.NoContent)
+        }
+    }
+}
+
+private fun io.ktor.server.routing.Route.telegramWebhook(config: AppConfig, repositories: Repositories) {
+    post("/v1/telegram/webhook") {
+        val supplied = call.request.headers["X-Telegram-Bot-Api-Secret-Token"]
+        if (!constantTimeEquals(config.telegramWebhookSecret, supplied)) {
+            throw ApiException(HttpStatusCode.Unauthorized, "invalid_webhook_secret", "Webhook secret is invalid")
+        }
+        val update = call.receiveJson<TelegramUpdate>(MAX_TELEGRAM_BODY_BYTES)
+        val message = update.message
+        if (message != null) {
+            val text = message.text.orEmpty()
+            val startToken = START_COMMAND.matchEntire(text.trim())?.groupValues?.getOrNull(1)
+            if (!startToken.isNullOrBlank()) {
+                repositories.telegram.consumeLinkTokenAndLink(
+                    sha256(startToken),
+                    message.chat.id,
+                    message.from?.username,
+                    System.currentTimeMillis(),
+                )
+            } else if (text.isNotBlank()) {
+                repositories.telegram.linkedUser(message.chat.id)?.let { userId ->
+                    repositories.telegram.insertInbox(
+                        TelegramInboxRecord(
+                            updateId = update.updateId,
+                            userId = userId,
+                            messageId = message.messageId,
+                            chatId = message.chat.id,
+                            text = text,
+                            senderUsername = message.from?.username,
+                            receivedAt = System.currentTimeMillis(),
+                            acknowledgedAt = null,
+                        ),
+                    )
+                }
+            }
+        }
+        call.respond(buildJsonObject { put("ok", true) })
+    }
+}
+
+@Serializable
+private data class TelegramUpdate(
+    @kotlinx.serialization.SerialName("update_id") val updateId: Long,
+    val message: TelegramMessage? = null,
+)
+
+@Serializable
+private data class TelegramMessage(
+    @kotlinx.serialization.SerialName("message_id") val messageId: Long,
+    val chat: TelegramChat,
+    val from: TelegramSender? = null,
+    val text: String? = null,
+)
+
+@Serializable
+private data class TelegramChat(val id: Long)
+
+@Serializable
+private data class TelegramSender(val username: String? = null)
+
+private val START_COMMAND = Regex("""^/start(?:@\w+)?\s+([A-Za-z0-9_-]{20,128})$""")
+private const val MAX_SMALL_JSON_BODY_BYTES = 64L * 1024
+private const val MAX_TELEGRAM_BODY_BYTES = 1024L * 1024
+private const val MAX_SNAPSHOT_BODY_BYTES = 30L * 1024 * 1024
+
+private suspend inline fun <reified T> ApplicationCall.receiveJson(maxBytes: Long): T {
+    if (!request.contentType().match(ContentType.Application.Json)) {
+        throw ApiException(
+            HttpStatusCode.UnsupportedMediaType,
+            "unsupported_media_type",
+            "Content-Type must be application/json",
+        )
+    }
+    val bytes = receiveChannel().readRemaining(maxBytes + 1).readByteArray()
+    if (bytes.size.toLong() > maxBytes) {
+        throw ApiException(HttpStatusCode.PayloadTooLarge, "payload_too_large", "Request body is too large")
+    }
+    return ContractJson.decodeFromString(bytes.decodeToString())
+}
+
+private fun validDeviceId(value: String?): String {
+    val deviceId = value?.trim().orEmpty()
+    if (deviceId.length !in 1..128 || deviceId.any { it.isISOControl() }) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_device_id", "deviceId is invalid")
+    }
+    return deviceId
+}
+
+private fun safeFileName(value: String): String {
+    val fileName = value.substringAfterLast('/').substringAfterLast('\\').trim()
+        .replace(Regex("""[^A-Za-z0-9._-]"""), "_")
+    if (fileName.length !in 1..180 || fileName in setOf(".", "..")) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_file_name", "fileName is invalid")
+    }
+    return fileName
+}
+
+private fun validateChecksum(value: String?) {
+    if (value != null && (value.length !in 1..256 || value.any { it.isISOControl() })) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_checksum", "checksum is invalid")
+    }
+}
+
+private fun nonNegativeLong(value: String?): Long =
+    value?.toLongOrNull()?.takeIf { it >= 0 }
+        ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_number", "Expected a non-negative integer")
+
+private fun uuid(value: String?, name: String): UUID =
+    value?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+        ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_$name", "$name must be a UUID")
