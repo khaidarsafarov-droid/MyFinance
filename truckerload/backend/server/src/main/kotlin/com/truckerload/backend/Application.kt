@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.truckerload.contract.AccountCloudSnapshot
 import com.truckerload.contract.ApiError
 import com.truckerload.contract.ContractJson
+import com.truckerload.contract.DevicePushTokenRequest
 import com.truckerload.contract.HealthResponse
 import com.truckerload.contract.MediaUploadCompleteRequest
 import com.truckerload.contract.MediaUploadRequest
@@ -66,6 +67,7 @@ class ApiException(
 data class AppDependencies(
     val repositories: Repositories,
     val objectStorage: ObjectStorage,
+    val pushNotifier: PushNotifier = NoOpPushNotifier,
     val close: () -> Unit = { objectStorage.close() },
 )
 
@@ -87,9 +89,11 @@ fun Application.module() {
             pathStyle = config.s3PathStyle,
         )
     }
+    val notifier = FirebasePushNotifier.createOrNoOp(config.firebaseProjectId)
     configureApplication(
         config,
-        AppDependencies(jdbcRepositories(dataSource), storage) {
+        AppDependencies(jdbcRepositories(dataSource), storage, notifier) {
+            notifier.close()
             storage.close()
             dataSource.close()
         },
@@ -184,9 +188,10 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
 
         authenticate("supabase") {
             route("/v1") {
-                syncRoutes(dependencies.repositories)
+                syncRoutes(dependencies.repositories, dependencies.pushNotifier)
                 mediaRoutes(config, dependencies)
                 telegramAuthenticatedRoutes(config, dependencies.repositories)
+                deviceRoutes(dependencies.repositories)
             }
         }
     }
@@ -220,7 +225,10 @@ private suspend fun ApplicationCall.authenticatedUser(repositories: Repositories
     return user
 }
 
-private fun io.ktor.server.routing.Route.syncRoutes(repositories: Repositories) {
+private fun io.ktor.server.routing.Route.syncRoutes(
+    repositories: Repositories,
+    pushNotifier: PushNotifier = NoOpPushNotifier,
+) {
     route("/sync") {
         get("/snapshot") {
             val user = call.authenticatedUser(repositories)
@@ -234,6 +242,7 @@ private fun io.ktor.server.routing.Route.syncRoutes(repositories: Repositories) 
         }
         put("/snapshot") {
             val user = call.authenticatedUser(repositories)
+            val sourceDeviceId = call.request.headers["X-Device-Id"]?.let(::validDeviceId)
             val incoming = call.receiveJson<AccountCloudSnapshot>(MAX_SNAPSHOT_BODY_BYTES)
             if (incoming.accountId != user.id.toString()) {
                 throw ApiException(
@@ -247,7 +256,12 @@ private fun io.ktor.server.routing.Route.syncRoutes(repositories: Repositories) 
             }
             val normalized = incoming.copy(accountId = user.id.toString()).withResolvedEntityCount()
             val checksum = sha256Hex(ContractJson.encodeToString(normalized))
-            call.respond(repositories.snapshots.putLww(user.id, normalized, checksum))
+            val stored = repositories.snapshots.putLww(user.id, normalized, checksum)
+            if (stored.accepted && sourceDeviceId != null) {
+                val tokens = repositories.pushTokens.listForUser(user.id, sourceDeviceId).map { it.token }
+                pushNotifier.notifySync(tokens)
+            }
+            call.respond(stored.snapshot)
         }
         get("/cursor") {
             val user = call.authenticatedUser(repositories)
@@ -263,6 +277,36 @@ private fun io.ktor.server.routing.Route.syncRoutes(repositories: Repositories) 
                 throw ApiException(HttpStatusCode.BadRequest, "invalid_cursor", "cursor must be non-negative")
             }
             call.respond(repositories.cursors.put(user.id, cursor))
+        }
+    }
+}
+
+private fun io.ktor.server.routing.Route.deviceRoutes(repositories: Repositories) {
+    route("/devices") {
+        put("/push-token") {
+            val user = call.authenticatedUser(repositories)
+            val request = call.receiveJson<DevicePushTokenRequest>(MAX_SMALL_JSON_BODY_BYTES)
+            val deviceId = validDeviceId(request.deviceId)
+            val token = validPushToken(request.token)
+            if (request.platform != "android") {
+                throw ApiException(HttpStatusCode.BadRequest, "invalid_platform", "platform must be android")
+            }
+            repositories.pushTokens.upsert(
+                DevicePushTokenRecord(
+                    userId = user.id,
+                    deviceId = deviceId,
+                    token = token,
+                    platform = request.platform,
+                    updatedAt = System.currentTimeMillis(),
+                ),
+            )
+            call.respond(HttpStatusCode.NoContent)
+        }
+        delete("/push-token") {
+            val user = call.authenticatedUser(repositories)
+            val deviceId = validDeviceId(call.request.queryParameters["deviceId"])
+            repositories.pushTokens.delete(user.id, deviceId)
+            call.respond(HttpStatusCode.NoContent)
         }
     }
 }
@@ -507,6 +551,14 @@ private fun validDeviceId(value: String?): String {
         throw ApiException(HttpStatusCode.BadRequest, "invalid_device_id", "deviceId is invalid")
     }
     return deviceId
+}
+
+private fun validPushToken(value: String): String {
+    val token = value.trim()
+    if (token.length !in 16..4096 || token.any { it.isISOControl() }) {
+        throw ApiException(HttpStatusCode.BadRequest, "invalid_push_token", "push token is invalid")
+    }
+    return token
 }
 
 private fun safeFileName(value: String): String {

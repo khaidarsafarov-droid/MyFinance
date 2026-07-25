@@ -44,6 +44,7 @@ fun jdbcRepositories(dataSource: DataSource): Repositories = Repositories(
     cursors = JdbcCursorRepository(dataSource),
     telegram = JdbcTelegramRepository(dataSource),
     media = JdbcMediaRepository(dataSource),
+    pushTokens = JdbcPushTokenRepository(dataSource),
     health = JdbcDatabaseHealth(dataSource),
 )
 
@@ -90,10 +91,10 @@ private class JdbcSnapshotRepository(private val dataSource: DataSource) : Snaps
         userId: UUID,
         snapshot: AccountCloudSnapshot,
         checksum: String,
-    ): AccountCloudSnapshot = dataSource.query { connection ->
+    ): SnapshotPutResult = dataSource.query { connection ->
         connection.transaction {
             val normalized = snapshot.copy(accountId = userId.toString()).withResolvedEntityCount()
-            connection.prepareStatement(
+            val accepted = connection.prepareStatement(
                 """
                 INSERT INTO account_snapshots (user_id, payload, updated_at, entity_count, checksum)
                 VALUES (?, ?::jsonb, ?, ?, ?)
@@ -111,9 +112,9 @@ private class JdbcSnapshotRepository(private val dataSource: DataSource) : Snaps
                 statement.setLong(3, normalized.updatedAt)
                 statement.setInt(4, normalized.resolvedEntityCount())
                 statement.setString(5, checksum)
-                statement.executeUpdate()
+                statement.executeUpdate() == 1
             }
-            checkNotNull(connection.selectSnapshot(userId))
+            SnapshotPutResult(checkNotNull(connection.selectSnapshot(userId)), accepted)
         }
     }
 
@@ -386,6 +387,85 @@ private class JdbcMediaRepository(private val dataSource: DataSource) : MediaRep
             it.setObject(1, mediaId)
             if (userId != null) it.setObject(2, userId)
             it.executeQuery().use { result -> if (result.next()) result.toMediaRecord() else null }
+        }
+    }
+}
+
+private class JdbcPushTokenRepository(private val dataSource: DataSource) : PushTokenRepository {
+    override suspend fun upsert(record: DevicePushTokenRecord) {
+        dataSource.query { connection ->
+            connection.transaction {
+                connection.prepareStatement(
+                    """
+                    DELETE FROM device_push_tokens
+                    WHERE token = ? OR (user_id = ? AND device_id = ?)
+                    """.trimIndent(),
+                ).use {
+                    it.setString(1, record.token)
+                    it.setObject(2, record.userId)
+                    it.setString(3, record.deviceId)
+                    it.executeUpdate()
+                }
+                connection.prepareStatement(
+                    """
+                    INSERT INTO device_push_tokens (user_id, device_id, token, platform, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """.trimIndent(),
+                ).use {
+                    it.setObject(1, record.userId)
+                    it.setString(2, record.deviceId)
+                    it.setString(3, record.token)
+                    it.setString(4, record.platform)
+                    it.setTimestamp(5, Timestamp.from(Instant.ofEpochMilli(record.updatedAt)))
+                    it.executeUpdate()
+                }
+            }
+        }
+    }
+
+    override suspend fun delete(userId: UUID, deviceId: String): Boolean =
+        dataSource.query { connection ->
+            connection.prepareStatement(
+                "DELETE FROM device_push_tokens WHERE user_id = ? AND device_id = ?",
+            ).use {
+                it.setObject(1, userId)
+                it.setString(2, deviceId)
+                it.executeUpdate() > 0
+            }
+        }
+
+    override suspend fun listForUser(
+        userId: UUID,
+        excludingDeviceId: String?,
+    ): List<DevicePushTokenRecord> = dataSource.query { connection ->
+        val sql = buildString {
+            append(
+                """
+                SELECT user_id, device_id, token, platform, updated_at
+                FROM device_push_tokens
+                WHERE user_id = ?
+                """.trimIndent(),
+            )
+            if (excludingDeviceId != null) append(" AND device_id <> ?")
+        }
+        connection.prepareStatement(sql).use {
+            it.setObject(1, userId)
+            if (excludingDeviceId != null) it.setString(2, excludingDeviceId)
+            it.executeQuery().use { result ->
+                buildList {
+                    while (result.next()) {
+                        add(
+                            DevicePushTokenRecord(
+                                userId = result.getObject("user_id", UUID::class.java),
+                                deviceId = result.getString("device_id"),
+                                token = result.getString("token"),
+                                platform = result.getString("platform"),
+                                updatedAt = result.getTimestamp("updated_at").time,
+                            ),
+                        )
+                    }
+                }
+            }
         }
     }
 }

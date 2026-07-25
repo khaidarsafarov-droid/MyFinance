@@ -31,6 +31,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.13")
     implementation("org.flywaydb:flyway-core:12.11.0")
     implementation("org.flywaydb:flyway-database-postgresql:12.11.0")
+    implementation("com.google.firebase:firebase-admin:9.10.0")
 
     implementation(platform("software.amazon.awssdk:bom:2.49.3"))
     implementation("software.amazon.awssdk:s3")

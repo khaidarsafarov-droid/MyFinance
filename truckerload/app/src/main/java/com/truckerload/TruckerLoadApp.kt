@@ -20,7 +20,10 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.ServerTelegramInboxWorker
+import com.truckerload.sync.PushTokenRegistrationWorker
 import com.truckerload.sync.TelegramSyncWorker
+import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.utils.BackupService
@@ -58,8 +61,13 @@ class TruckerLoadApp : Application() {
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
-        AuthStore(this).currentUserIdOrNull()?.let { userId ->
-            TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueue(this)
+            ServerTelegramInboxWorker.enqueuePeriodic(this)
+        } else {
+            AuthStore(this).currentUserIdOrNull()?.let { userId ->
+                TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
+            }
         }
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
@@ -71,10 +79,15 @@ class TruckerLoadApp : Application() {
             override fun onStart(owner: LifecycleOwner) {
                 val userId = AuthStore(this@TruckerLoadApp).currentUserIdOrNull()
                 if (userId != null) {
-                    TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
-                    scheduleTelegramSync()
-                    if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
-                        TelegramBotForegroundService.start(this@TruckerLoadApp)
+                    PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
+                    if (TelegramSyncMode.isServer()) {
+                        ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
+                    } else {
+                        TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
+                        scheduleTelegramSync()
+                        if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
+                            TelegramBotForegroundService.start(this@TruckerLoadApp)
+                        }
                     }
                 }
                 WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
@@ -91,10 +104,18 @@ class TruckerLoadApp : Application() {
     }
 
     private fun scheduleTelegramSync() {
-        TelegramSyncWorker.enqueueEnsureService(this)
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueue(this)
+        } else {
+            TelegramSyncWorker.enqueueEnsureService(this)
+        }
     }
 
     private fun scheduleTelegramWatchdog() {
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueuePeriodic(this)
+            return
+        }
         val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val request = PeriodicWorkRequestBuilder<TelegramSyncWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)

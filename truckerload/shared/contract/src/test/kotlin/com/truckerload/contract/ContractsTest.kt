@@ -47,4 +47,14 @@ class ContractsTest {
         assertEquals(3, snapshot.resolvedEntityCount())
         assertEquals("""{"displayName":"Ivan","homeState":"NC"}""", snapshot.driverProfileJson)
     }
+
+    @Test
+    fun `push token registration contract round trips`() {
+        val request = DevicePushTokenRequest("device-1", "opaque-token")
+
+        assertEquals(
+            request,
+            ContractJson.decodeFromString<DevicePushTokenRequest>(ContractJson.encodeToString(request)),
+        )
+    }
 }

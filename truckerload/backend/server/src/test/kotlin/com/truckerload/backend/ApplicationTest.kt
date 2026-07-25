@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.truckerload.contract.AccountCloudSnapshot
 import com.truckerload.contract.ContractJson
+import com.truckerload.contract.DevicePushTokenRequest
 import com.truckerload.contract.HealthResponse
 import com.truckerload.contract.MediaUploadRequest
 import com.truckerload.contract.MediaUploadResponse
@@ -12,6 +13,7 @@ import com.truckerload.contract.TelegramLinkTokenResponse
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -140,6 +142,77 @@ class ApplicationTest {
     }
 
     @Test
+    fun `push token registration and deletion are user scoped`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(AppConfig.test(), AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+        val client = jsonClient()
+        val request = DevicePushTokenRequest("device-1", "opaque-fcm-token-123456")
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.put("/v1/devices/push-token") {
+                bearerAuth(token(userOne))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.status,
+        )
+        assertEquals(userOne, backend.pushTokens[userOne to "device-1"]?.userId)
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.delete("/v1/devices/push-token?deviceId=device-1") {
+                bearerAuth(token(userTwo))
+            }.status,
+        )
+        assertTrue(backend.pushTokens.containsKey(userOne to "device-1"))
+
+        client.delete("/v1/devices/push-token?deviceId=device-1") {
+            bearerAuth(token(userOne))
+        }
+        assertTrue(backend.pushTokens.isEmpty())
+    }
+
+    @Test
+    fun `newer snapshot notifies other registered devices only`() = testApplication {
+        val backend = InMemoryBackend()
+        val notifier = RecordingPushNotifier()
+        application {
+            configureApplication(
+                AppConfig.test(),
+                AppDependencies(backend.repositories, FakeObjectStorage(), notifier),
+            )
+        }
+        val client = jsonClient()
+        listOf(
+            DevicePushTokenRequest("device-1", "opaque-fcm-token-device-1"),
+            DevicePushTokenRequest("device-2", "opaque-fcm-token-device-2"),
+        ).forEach { request ->
+            client.put("/v1/devices/push-token") {
+                bearerAuth(token(userOne))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+        }
+
+        client.put("/v1/sync/snapshot") {
+            bearerAuth(token(userOne))
+            header("X-Device-Id", "device-1")
+            contentType(ContentType.Application.Json)
+            setBody(snapshot(userOne, updatedAt = 200))
+        }
+        client.put("/v1/sync/snapshot") {
+            bearerAuth(token(userOne))
+            header("X-Device-Id", "device-1")
+            contentType(ContentType.Application.Json)
+            setBody(snapshot(userOne, updatedAt = 100))
+        }
+
+        assertEquals(listOf(listOf("opaque-fcm-token-device-2")), notifier.deliveries)
+    }
+
+    @Test
     fun `Telegram webhook enforces secret and link tokens are one-time and inbox is idempotent`() =
         testApplication {
             val backend = InMemoryBackend()
@@ -246,4 +319,12 @@ class ApplicationTest {
           }
         }
         """.trimIndent()
+}
+
+private class RecordingPushNotifier : PushNotifier {
+    val deliveries = mutableListOf<List<String>>()
+
+    override suspend fun notifySync(tokens: List<String>) {
+        deliveries += tokens
+    }
 }

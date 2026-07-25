@@ -388,7 +388,13 @@ fun SettingsScreen(
 
             BentoGlassSection(
                 title = stringResource(R.string.settings_telegram_title),
-                subtitle = stringResource(R.string.settings_telegram_desc)
+                subtitle = stringResource(
+                    if (com.truckerload.sync.TelegramSyncMode.isServer()) {
+                        R.string.settings_telegram_server_mode
+                    } else {
+                        R.string.settings_telegram_desc
+                    },
+                ),
             ) {
                 TelegramBotSettingsContent(context = context, tc = tc)
             }

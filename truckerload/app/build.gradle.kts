@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.truckerload"
     compileSdk = 34
@@ -27,6 +31,22 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
+        val syncBackendUrl = localProps.getProperty("SYNC_BACKEND_URL", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "SYNC_BACKEND_URL", "\"$syncBackendUrl\"")
+        val telegramSyncMode = localProps.getProperty("TELEGRAM_SYNC_MODE", "device")
+            .trim()
+            .lowercase()
+            .takeIf { it == "device" || it == "server" }
+            ?: "device"
+        buildConfigField("String", "TELEGRAM_SYNC_MODE", "\"$telegramSyncMode\"")
+        val telegramServerBotUsername = localProps.getProperty("TELEGRAM_SERVER_BOT_USERNAME", "")
+            .trim()
+            .removePrefix("@")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "TELEGRAM_SERVER_BOT_USERNAME", "\"$telegramServerBotUsername\"")
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "true").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
@@ -70,6 +90,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":shared:contract"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(libs.androidx.core.ktx)
     implementation("androidx.appcompat:appcompat:1.7.0")
@@ -103,6 +124,10 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Firebase is inert without google-services.json; cloud builds still compile.
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
     // DataStore + Encrypted
     implementation(libs.androidx.datastore.preferences)
@@ -169,6 +194,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

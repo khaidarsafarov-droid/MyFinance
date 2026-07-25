@@ -14,6 +14,7 @@ class InMemoryBackend {
     val links = ConcurrentHashMap<Long, UUID>()
     val inbox = ConcurrentHashMap<Long, TelegramInboxRecord>()
     val media = ConcurrentHashMap<UUID, MediaRecord>()
+    val pushTokens = ConcurrentHashMap<Pair<UUID, String>, DevicePushTokenRecord>()
 
     val repositories = Repositories(
         users = object : UserRepository {
@@ -28,13 +29,18 @@ class InMemoryBackend {
                 userId: UUID,
                 snapshot: AccountCloudSnapshot,
                 checksum: String,
-            ): AccountCloudSnapshot = snapshots.compute(userId) { _, current ->
-                if (current == null || snapshot.updatedAt > current.updatedAt) {
-                    snapshot.copy(accountId = userId.toString()).withResolvedEntityCount()
-                } else {
-                    current
-                }
-            }!!
+            ): SnapshotPutResult {
+                var accepted = false
+                val stored = snapshots.compute(userId) { _, current ->
+                    if (current == null || snapshot.updatedAt > current.updatedAt) {
+                        accepted = true
+                        snapshot.copy(accountId = userId.toString()).withResolvedEntityCount()
+                    } else {
+                        current
+                    }
+                }!!
+                return SnapshotPutResult(stored, accepted)
+            }
         },
         cursors = object : CursorRepository {
             override suspend fun get(userId: UUID, deviceId: String): SyncCursor? =
@@ -115,6 +121,25 @@ class InMemoryBackend {
                 val existing = get(userId, mediaId) ?: return null
                 media.remove(mediaId)
                 return existing
+            }
+        },
+        pushTokens = object : PushTokenRepository {
+            override suspend fun upsert(record: DevicePushTokenRecord) {
+                pushTokens.entries.removeIf {
+                    it.value.token == record.token ||
+                        (it.value.userId == record.userId && it.value.deviceId == record.deviceId)
+                }
+                pushTokens[record.userId to record.deviceId] = record
+            }
+
+            override suspend fun delete(userId: UUID, deviceId: String): Boolean =
+                pushTokens.remove(userId to deviceId) != null
+
+            override suspend fun listForUser(
+                userId: UUID,
+                excludingDeviceId: String?,
+            ): List<DevicePushTokenRecord> = pushTokens.values.filter {
+                it.userId == userId && it.deviceId != excludingDeviceId
             }
         },
         health = object : DatabaseHealth {

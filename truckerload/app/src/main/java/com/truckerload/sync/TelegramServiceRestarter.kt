@@ -15,6 +15,7 @@ object TelegramServiceRestarter {
     private const val ACTION_RESTART = "com.truckerload.action.RESTART_TELEGRAM_BOT"
 
     fun schedule(context: Context, delayMs: Long = 3_000L) {
+        if (TelegramSyncMode.isServer()) return
         val userId = AuthStore(context).currentUserIdOrNull() ?: return
         if (!TelegramTokenStore(context, userId).hasToken()) return
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return

@@ -53,6 +53,19 @@ data class TelegramInboxRecord(
     )
 }
 
+data class SnapshotPutResult(
+    val snapshot: AccountCloudSnapshot,
+    val accepted: Boolean,
+)
+
+data class DevicePushTokenRecord(
+    val userId: UUID,
+    val deviceId: String,
+    val token: String,
+    val platform: String,
+    val updatedAt: Long,
+)
+
 interface UserRepository {
     suspend fun upsert(user: AuthenticatedUser)
 }
@@ -60,7 +73,7 @@ interface UserRepository {
 interface SnapshotRepository {
     suspend fun get(userId: UUID): AccountCloudSnapshot?
     /** Returns the row after applying strict last-write-wins semantics. */
-    suspend fun putLww(userId: UUID, snapshot: AccountCloudSnapshot, checksum: String): AccountCloudSnapshot
+    suspend fun putLww(userId: UUID, snapshot: AccountCloudSnapshot, checksum: String): SnapshotPutResult
 }
 
 interface CursorRepository {
@@ -92,6 +105,12 @@ interface MediaRepository {
     suspend fun delete(userId: UUID, mediaId: UUID): MediaRecord?
 }
 
+interface PushTokenRepository {
+    suspend fun upsert(record: DevicePushTokenRecord)
+    suspend fun delete(userId: UUID, deviceId: String): Boolean
+    suspend fun listForUser(userId: UUID, excludingDeviceId: String?): List<DevicePushTokenRecord>
+}
+
 interface DatabaseHealth {
     suspend fun isReady(): Boolean
 }
@@ -102,5 +121,6 @@ data class Repositories(
     val cursors: CursorRepository,
     val telegram: TelegramRepository,
     val media: MediaRepository,
+    val pushTokens: PushTokenRepository,
     val health: DatabaseHealth,
 )

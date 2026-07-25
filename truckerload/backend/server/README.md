@@ -1,8 +1,8 @@
 # TruckerLoad backend
 
 Ktor service for account snapshots, per-device cursors, direct object-storage uploads,
-and the durable Telegram inbox. The Android app remains local-first and is not required
-to depend on this module.
+the durable Telegram inbox, and optional FCM sync pushes. The Android app remains
+local-first.
 
 ## Run locally
 
@@ -39,6 +39,8 @@ sh ./gradlew :backend:server:run
   `S3_PUBLIC_ENDPOINT`, and `S3_PATH_STYLE`
 - AWS credentials through the standard AWS SDK provider chain
 - `PUBLIC_BASE_URL` and `LOCAL_STORAGE_SIGNING_SECRET` when `STORAGE_KIND=local`
+- Optional `FIREBASE_PROJECT_ID`; Firebase Admin is enabled only when application
+  default credentials are also available. Otherwise notification delivery is a no-op.
 
 `TEST_AUTH_ENABLED` is rejected unless `APP_ENV=test`. Production accepts only an
 HMAC Supabase JWT with matching issuer, audience, and UUID subject.
@@ -51,12 +53,27 @@ single-use token with `POST /v1/telegram/link-token`; the user then sends
 `/start <token>` to the bot. Subsequent text updates are stored idempotently by
 Telegram `update_id` and read through the authenticated inbox endpoint.
 
+For Android server mode, set `SYNC_BACKEND_URL` to the HTTPS API root,
+`TELEGRAM_SYNC_MODE=server`, and optionally `TELEGRAM_SERVER_BOT_USERNAME` for the
+clickable `https://t.me/<bot>?start=<token>` settings link. The app does not read or
+store the server bot token in this mode. Configure Telegram's webhook separately:
+
+```bash
+curl -X POST "https://api.telegram.org/bot<token>/setWebhook" \
+  -d "url=https://api.example.com/v1/telegram/webhook" \
+  -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"
+```
+
+FCM registration uses authenticated `PUT /v1/devices/push-token`. Add
+`app/google-services.json` only in credentialed Android build environments; builds
+without it compile and Firebase registration remains inactive.
+
 ## API and verification
 
 The OpenAPI document is served at `/openapi.yaml`; `/docs` redirects to it.
 
 ```bash
-sh ./gradlew :shared:contract:test :backend:server:test :app:compileDebugKotlin
+sh ./gradlew :shared:contract:test :backend:server:test :app:testDebugUnitTest :app:assembleDebug
 ```
 
 Tests use in-memory repository and storage fakes and do not require Docker.

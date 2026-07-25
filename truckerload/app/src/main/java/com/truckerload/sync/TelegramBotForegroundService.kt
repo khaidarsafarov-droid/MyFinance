@@ -40,6 +40,11 @@ class TelegramBotForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (TelegramSyncMode.isServer()) {
+            suppressRestart = true
+            stopSelf()
+            return START_NOT_STICKY
+        }
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
@@ -69,6 +74,10 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        if (TelegramSyncMode.isServer()) {
+            super.onTaskRemoved(rootIntent)
+            return
+        }
         Log.w(TAG, "Task removed — scheduling bot service restart")
         TelegramServiceRestarter.schedule(applicationContext)
         super.onTaskRemoved(rootIntent)
@@ -77,7 +86,7 @@ class TelegramBotForegroundService : Service() {
     override fun onDestroy() {
         pollJob?.cancel()
         scope.cancel()
-        if (!suppressRestart) {
+        if (!suppressRestart && !TelegramSyncMode.isServer()) {
             Log.w(TAG, "Service destroyed — scheduling restart")
             TelegramServiceRestarter.schedule(applicationContext)
         } else {
@@ -171,6 +180,7 @@ class TelegramBotForegroundService : Service() {
         private var suppressRestart = false
 
         fun start(context: Context) {
+            if (TelegramSyncMode.isServer()) return
             val userId = AuthStore(context).currentUserIdOrNull() ?: return
             if (TelegramTokenStore(context, userId).getToken().isBlank()) return
             suppressRestart = false

@@ -30,6 +30,7 @@ data class AppConfig(
     val s3Endpoint: String?,
     val s3PublicEndpoint: String?,
     val s3PathStyle: Boolean,
+    val firebaseProjectId: String?,
 ) {
     init {
         require(host.isNotBlank()) { "HOST must not be blank" }
@@ -133,6 +134,7 @@ data class AppConfig(
                 s3Endpoint = env["S3_ENDPOINT"],
                 s3PublicEndpoint = env["S3_PUBLIC_ENDPOINT"],
                 s3PathStyle = boolean("S3_PATH_STYLE"),
+                firebaseProjectId = env["FIREBASE_PROJECT_ID"]?.takeIf { it.isNotBlank() },
             )
         }
 
@@ -161,6 +163,7 @@ data class AppConfig(
             s3Endpoint = null,
             s3PublicEndpoint = null,
             s3PathStyle = false,
+            firebaseProjectId = null,
         )
 
         private fun isHttpUrl(value: String): Boolean {

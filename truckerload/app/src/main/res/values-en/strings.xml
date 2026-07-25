@@ -600,6 +600,12 @@
     <string name="settings_telegram_show_token">Show</string>
     <string name="settings_telegram_hide_token">Hide</string>
     <string name="settings_telegram_checking">Checking…</string>
+    <string name="settings_telegram_server_mode">Server inbox mode: the bot token stays on the server. Link this account to the server bot.</string>
+    <string name="settings_telegram_create_link">Create link</string>
+    <string name="settings_telegram_link_error">Could not create a link. Check your sign-in and backend URL.</string>
+    <string name="push_notification_channel_name">Truck Log updates</string>
+    <string name="push_notification_fallback_title">Truck Log</string>
+    <string name="push_notification_fallback_body">A new update is available</string>
     <string name="settings_battery_title">Background operation</string>
     <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for Truck Log.</string>
     <string name="settings_battery_button">Disable battery optimization</string>

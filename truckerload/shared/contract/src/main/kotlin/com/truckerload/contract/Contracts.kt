@@ -112,6 +112,13 @@ data class TelegramInboxListResponse(
 )
 
 @Serializable
+data class DevicePushTokenRequest(
+    val deviceId: String,
+    val token: String,
+    val platform: String = "android",
+)
+
+@Serializable
 data class ApiError(
     val code: String,
     val message: String,
