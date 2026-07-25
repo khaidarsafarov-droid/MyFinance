@@ -150,7 +150,9 @@ class InMemoryBackend {
     private fun tokenKey(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 }
 
-class FakeObjectStorage : ObjectStorage {
+class FakeObjectStorage(
+    var ready: Boolean = true,
+) : ObjectStorage {
     val stored = ConcurrentHashMap<String, StoredObject>()
 
     override suspend fun presignUpload(
@@ -170,4 +172,6 @@ class FakeObjectStorage : ObjectStorage {
     override suspend fun delete(objectKey: String) {
         stored.remove(objectKey)
     }
+
+    override suspend fun isReady(): Boolean = ready
 }

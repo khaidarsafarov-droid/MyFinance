@@ -5,25 +5,29 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 
 interface PushNotifier : AutoCloseable {
-    suspend fun notifySync(tokens: List<String>)
+    /** Returns the number of FCM messages that failed to send. */
+    suspend fun notifySync(tokens: List<String>): Int
     override fun close() = Unit
 }
 
 object NoOpPushNotifier : PushNotifier {
-    override suspend fun notifySync(tokens: List<String>) = Unit
+    override suspend fun notifySync(tokens: List<String>): Int = 0
 }
 
 class FirebasePushNotifier private constructor(
     private val app: FirebaseApp,
 ) : PushNotifier {
-    override suspend fun notifySync(tokens: List<String>) {
-        if (tokens.isEmpty()) return
-        withContext(Dispatchers.IO) {
+    override suspend fun notifySync(tokens: List<String>): Int {
+        if (tokens.isEmpty()) return 0
+        return withContext(Dispatchers.IO) {
+            var failures = 0
             tokens.distinct().chunked(MAX_MULTICAST_TOKENS).forEach { batch ->
                 val messages = batch.map { token ->
                     Message.builder()
@@ -31,12 +35,17 @@ class FirebasePushNotifier private constructor(
                         .setToken(token)
                         .build()
                 }
-                runCatching {
+                val result = runCatching {
                     FirebaseMessaging.getInstance(app).sendEach(messages)
                 }.onFailure { error ->
                     log.warn("Firebase sync notification failed: {}", error.javaClass.simpleName)
                 }
+                failures += result.fold(
+                    onSuccess = { it.failureCount },
+                    onFailure = { batch.size },
+                )
             }
+            failures
         }
     }
 
@@ -49,7 +58,7 @@ class FirebasePushNotifier private constructor(
         private const val MAX_MULTICAST_TOKENS = 500
         private val log = LoggerFactory.getLogger(FirebasePushNotifier::class.java)
 
-        fun createOrNoOp(projectId: String?): PushNotifier {
+        fun createOrNoOp(projectId: String?, credentialsJson: String? = null): PushNotifier {
             if (projectId.isNullOrBlank()) {
                 log.warn("FIREBASE_PROJECT_ID is not configured; push notifications are disabled")
                 return NoOpPushNotifier
@@ -59,15 +68,22 @@ class FirebasePushNotifier private constructor(
                 if (existing != null) {
                     FirebasePushNotifier(existing)
                 } else {
+                    val credentials = credentialsJson
+                        ?.let {
+                            GoogleCredentials.fromStream(
+                                ByteArrayInputStream(it.toByteArray(StandardCharsets.UTF_8)),
+                            )
+                        }
+                        ?: GoogleCredentials.getApplicationDefault()
                     val options = FirebaseOptions.builder()
                         .setProjectId(projectId)
-                        .setCredentials(GoogleCredentials.getApplicationDefault())
+                        .setCredentials(credentials)
                         .build()
                     FirebasePushNotifier(FirebaseApp.initializeApp(options, APP_NAME))
                 }
             }.getOrElse { error ->
                 log.warn(
-                    "Firebase application default credentials are unavailable; push notifications are disabled: {}",
+                    "Firebase credentials are unavailable; push notifications are disabled: {}",
                     error.javaClass.simpleName,
                 )
                 NoOpPushNotifier

@@ -39,8 +39,12 @@ sh ./gradlew :backend:server:run
   `S3_PUBLIC_ENDPOINT`, and `S3_PATH_STYLE`
 - AWS credentials through the standard AWS SDK provider chain
 - `PUBLIC_BASE_URL` and `LOCAL_STORAGE_SIGNING_SECRET` when `STORAGE_KIND=local`
-- Optional `FIREBASE_PROJECT_ID`; Firebase Admin is enabled only when application
-  default credentials are also available. Otherwise notification delivery is a no-op.
+- Optional `METRICS_BEARER_TOKEN` (minimum 32 characters in production). Production
+  returns 404 from `/metrics` when it is absent and requires a constant-time-checked
+  Bearer credential when it is set. Development and test expose metrics without auth.
+- Optional `FIREBASE_PROJECT_ID`; Firebase Admin uses encrypted
+  `FIREBASE_CREDENTIALS_JSON` when supplied, otherwise application default
+  credentials. Without usable credentials notification delivery is a no-op.
 
 `TEST_AUTH_ENABLED` is rejected unless `APP_ENV=test`. Production accepts only an
 HMAC Supabase JWT with matching issuer, audience, and UUID subject.
@@ -68,6 +72,30 @@ FCM registration uses authenticated `PUT /v1/devices/push-token`. Add
 `app/google-services.json` only in credentialed Android build environments; builds
 without it compile and Firebase registration remains inactive.
 
+## Health, metrics, and logs
+
+- `/health/live` checks the process only.
+- `/health/ready` checks PostgreSQL and the configured local/S3 object store.
+- `/metrics` uses the Prometheus text format. HTTP timers have only `method` and
+  `status` labels; domain counters use bounded result labels. No account, user,
+  device, token, or object identifiers are labels.
+- Metrics include accepted/stale snapshot writes, accepted/rejected/duplicate
+  Telegram webhook updates, and failed FCM sends.
+- Request logs contain method, path, response status, and request ID. They deliberately
+  omit query strings, Authorization and webhook-secret headers, and request bodies.
+
+Example production scrape:
+
+```bash
+set +x
+curl --fail --silent --show-error --config - <<EOF
+url = "https://api.example.com/metrics"
+header = "Authorization: Bearer ${METRICS_BEARER_TOKEN}"
+EOF
+```
+
+Do not pass the metrics token in a URL or enable shell tracing around this command.
+
 ## API and verification
 
 The OpenAPI document is served at `/openapi.yaml`; `/docs` redirects to it.
@@ -79,3 +107,6 @@ sh ./gradlew :shared:contract:test :backend:server:test :app:testDebugUnitTest :
 Tests use in-memory repository and storage fakes and do not require Docker.
 Production logs use `logback-prod.xml` (JSON); the default local/test config is readable
 text. The container selects the production config through `JAVA_OPTS`.
+
+The complete environment and DigitalOcean procedures are in
+`docs/BACKEND_SETUP.md` and `deploy/digitalocean/`.

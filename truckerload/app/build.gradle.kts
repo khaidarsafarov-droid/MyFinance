@@ -6,8 +6,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-if (file("google-services.json").exists()) {
+val firebaseConfigured = file("google-services.json").isFile
+if (firebaseConfigured) {
     apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 android {
@@ -49,6 +51,7 @@ android {
         buildConfigField("String", "TELEGRAM_SERVER_BOT_USERNAME", "\"$telegramServerBotUsername\"")
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "true").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
+        buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
     }
 
@@ -128,6 +131,7 @@ dependencies {
     // Firebase is inert without google-services.json; cloud builds still compile.
     implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-crashlytics")
 
     // DataStore + Encrypted
     implementation(libs.androidx.datastore.preferences)

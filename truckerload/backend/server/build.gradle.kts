@@ -25,6 +25,7 @@ dependencies {
     implementation("io.ktor:ktor-server-call-id-jvm:3.5.1")
     implementation("io.ktor:ktor-server-call-logging-jvm:3.5.1")
     implementation("io.ktor:ktor-server-auth-jvm:3.5.1")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
     implementation("com.auth0:java-jwt:4.6.0")
 
     implementation("com.zaxxer:HikariCP:7.1.0")

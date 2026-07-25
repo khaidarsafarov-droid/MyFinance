@@ -96,18 +96,6 @@ class MainActivity : AppCompatActivity() {
         handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
         WidgetDataUpdater.updateWidgetData(applicationContext)
         requestNotificationPermissionIfNeeded()
-        val defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { t, e ->
-            try {
-                android.util.Log.e(
-                    "TruckLog",
-                    "Uncaught exception in ${t.name}: ${e.javaClass.name}: ${e.message}",
-                )
-            } catch (e: Throwable) {
-                android.util.Log.e("TruckLog", "Uncaught exception in ${t.name}")
-            }
-            defaultUncaughtExceptionHandler?.uncaughtException(t, e)
-        }
         enableEdgeToEdge()
         FeedbackManager.init(applicationContext)
         val settingsDataStore = SettingsDataStore(applicationContext)

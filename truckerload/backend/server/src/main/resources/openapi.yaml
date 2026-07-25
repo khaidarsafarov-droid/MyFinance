@@ -11,6 +11,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: Supabase JWT
+    metricsBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Opaque metrics token
+      description: Required in production when METRICS_BEARER_TOKEN is configured.
   schemas:
     ApiError:
       type: object
@@ -146,12 +151,28 @@ paths:
       operationId: healthReady
       responses:
         "200":
-          description: Database is ready
+          description: Database and configured object storage are ready
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Health" }
         "503":
           description: Dependency unavailable
+  /metrics:
+    get:
+      operationId: prometheusMetrics
+      description: |
+        Prometheus exposition endpoint. Open in development and test. In production,
+        the route is unavailable unless METRICS_BEARER_TOKEN is configured and then
+        requires that token as a Bearer credential.
+      security: [{ metricsBearerAuth: [] }]
+      responses:
+        "200":
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
   /v1/sync/snapshot:
     get:
       security: [{ bearerAuth: [] }]

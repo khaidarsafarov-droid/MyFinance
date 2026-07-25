@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
@@ -38,6 +39,7 @@ interface ObjectStorage : Closeable {
 
     suspend fun stat(objectKey: String): StoredObject?
     suspend fun delete(objectKey: String)
+    suspend fun isReady(): Boolean
 
     override fun close() = Unit
 }
@@ -116,6 +118,10 @@ class LocalObjectStorage(
 
     override suspend fun delete(objectKey: String) {
         withContext(Dispatchers.IO) { Files.deleteIfExists(safePath(objectKey)) }
+    }
+
+    override suspend fun isReady(): Boolean = withContext(Dispatchers.IO) {
+        Files.isDirectory(root) && Files.isWritable(root)
     }
 
     private fun signature(mediaId: UUID, objectKey: String, expiresAt: Long): String =
@@ -197,6 +203,13 @@ class S3ObjectStorage(
         withContext(Dispatchers.IO) {
             client.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(objectKey).build())
         }
+    }
+
+    override suspend fun isReady(): Boolean = withContext(Dispatchers.IO) {
+        runCatching {
+            client.headBucket(HeadBucketRequest.builder().bucket(bucket).build())
+            true
+        }.getOrDefault(false)
     }
 
     override fun close() {

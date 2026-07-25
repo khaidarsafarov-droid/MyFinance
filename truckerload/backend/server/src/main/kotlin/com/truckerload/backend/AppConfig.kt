@@ -31,6 +31,8 @@ data class AppConfig(
     val s3PublicEndpoint: String?,
     val s3PathStyle: Boolean,
     val firebaseProjectId: String?,
+    val firebaseCredentialsJson: String?,
+    val metricsBearerToken: String?,
 ) {
     init {
         require(host.isNotBlank()) { "HOST must not be blank" }
@@ -53,6 +55,9 @@ data class AppConfig(
             require(jwtSecret.length >= 32) { "SUPABASE_JWT_SECRET must be at least 32 characters in production" }
             require(telegramWebhookSecret.length >= 16) {
                 "TELEGRAM_WEBHOOK_SECRET must be at least 16 characters in production"
+            }
+            require(metricsBearerToken == null || metricsBearerToken.length >= 32) {
+                "METRICS_BEARER_TOKEN must be at least 32 characters in production"
             }
         }
         if (storageKind == StorageKind.LOCAL) {
@@ -135,6 +140,8 @@ data class AppConfig(
                 s3PublicEndpoint = env["S3_PUBLIC_ENDPOINT"],
                 s3PathStyle = boolean("S3_PATH_STYLE"),
                 firebaseProjectId = env["FIREBASE_PROJECT_ID"]?.takeIf { it.isNotBlank() },
+                firebaseCredentialsJson = env["FIREBASE_CREDENTIALS_JSON"]?.takeIf { it.isNotBlank() },
+                metricsBearerToken = env["METRICS_BEARER_TOKEN"]?.takeIf { it.isNotBlank() },
             )
         }
 
@@ -164,6 +171,8 @@ data class AppConfig(
             s3PublicEndpoint = null,
             s3PathStyle = false,
             firebaseProjectId = null,
+            firebaseCredentialsJson = null,
+            metricsBearerToken = null,
         )
 
         private fun isHttpUrl(value: String): Boolean {

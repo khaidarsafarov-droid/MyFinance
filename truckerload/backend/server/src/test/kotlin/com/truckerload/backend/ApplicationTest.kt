@@ -19,6 +19,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -54,6 +55,129 @@ class ApplicationTest {
         val ready = client.get("/health/ready")
         assertEquals(HttpStatusCode.OK, ready.status)
         assertEquals("ok", ready.body<HealthResponse>().status)
+    }
+
+    @Test
+    fun `readiness fails when object storage is unavailable`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(
+                AppConfig.test(),
+                AppDependencies(backend.repositories, FakeObjectStorage(ready = false)),
+            )
+        }
+
+        val ready = jsonClient().get("/health/ready")
+        assertEquals(HttpStatusCode.ServiceUnavailable, ready.status)
+        assertEquals("unavailable", ready.body<HealthResponse>().status)
+    }
+
+    @Test
+    fun `production metrics require the configured bearer token`() = testApplication {
+        val backend = InMemoryBackend()
+        val metricsToken = "metrics-test-token-that-is-at-least-32-characters"
+        val config = AppConfig.test().copy(
+            environment = AppEnvironment.PROD,
+            jwtSecret = "j".repeat(32),
+            localStorageSigningSecret = "s".repeat(32),
+            testAuthEnabled = false,
+            metricsBearerToken = metricsToken,
+        )
+        application {
+            configureApplication(config, AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, client.get("/metrics").status)
+        assertEquals(
+            HttpStatusCode.Unauthorized,
+            client.get("/metrics") { bearerAuth("incorrect-metrics-token") }.status,
+        )
+        val authorized = client.get("/metrics") { bearerAuth(metricsToken) }
+        assertEquals(HttpStatusCode.OK, authorized.status)
+        assertTrue(authorized.bodyAsText().contains("truckerload_snapshot_writes_total"))
+    }
+
+    @Test
+    fun `production metrics are disabled when no token is configured`() = testApplication {
+        val backend = InMemoryBackend()
+        val config = AppConfig.test().copy(
+            environment = AppEnvironment.PROD,
+            jwtSecret = "j".repeat(32),
+            localStorageSigningSecret = "s".repeat(32),
+            testAuthEnabled = false,
+        )
+        application {
+            configureApplication(config, AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+
+        assertEquals(HttpStatusCode.NotFound, client.get("/metrics").status)
+    }
+
+    @Test
+    fun `domain counters and HTTP timer record bounded outcomes`() = testApplication {
+        val backend = InMemoryBackend()
+        val metrics = BackendMetrics()
+        val notifier = FixedFailurePushNotifier(failures = 1)
+        val config = AppConfig.test()
+        application {
+            configureApplication(
+                config,
+                AppDependencies(backend.repositories, FakeObjectStorage(), notifier, metrics),
+            )
+        }
+        val client = jsonClient()
+
+        listOf(
+            DevicePushTokenRequest("device-1", "opaque-fcm-token-device-1"),
+            DevicePushTokenRequest("device-2", "opaque-fcm-token-device-2"),
+        ).forEach { request ->
+            client.put("/v1/devices/push-token") {
+                bearerAuth(token(userOne))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+        }
+        listOf(200L, 100L).forEach { updatedAt ->
+            client.put("/v1/sync/snapshot") {
+                bearerAuth(token(userOne))
+                header("X-Device-Id", "device-1")
+                contentType(ContentType.Application.Json)
+                setBody(snapshot(userOne, updatedAt))
+            }
+        }
+
+        client.post("/v1/telegram/webhook") {
+            contentType(ContentType.Application.Json)
+            setBody(telegramMessage(1, 10, "rejected"))
+        }
+        val link = client.post("/v1/telegram/link-token") {
+            bearerAuth(token(userOne))
+        }.body<TelegramLinkTokenResponse>()
+        client.post("/v1/telegram/webhook") {
+            header("X-Telegram-Bot-Api-Secret-Token", config.telegramWebhookSecret)
+            contentType(ContentType.Application.Json)
+            setBody(telegramMessage(2, 10, "/start ${link.token}"))
+        }
+        repeat(2) {
+            client.post("/v1/telegram/webhook") {
+                header("X-Telegram-Bot-Api-Secret-Token", config.telegramWebhookSecret)
+                contentType(ContentType.Application.Json)
+                setBody(telegramMessage(50, 10, "Trip ID: T-123"))
+            }
+        }
+
+        assertEquals(1.0, metrics.resultCount(BackendMetrics.SNAPSHOT_WRITES, "accepted"))
+        assertEquals(1.0, metrics.resultCount(BackendMetrics.SNAPSHOT_WRITES, "stale"))
+        assertEquals(3.0, metrics.resultCount(BackendMetrics.TELEGRAM_WEBHOOK_UPDATES, "accepted"))
+        assertEquals(1.0, metrics.resultCount(BackendMetrics.TELEGRAM_WEBHOOK_UPDATES, "rejected"))
+        assertEquals(1.0, metrics.resultCount(BackendMetrics.TELEGRAM_WEBHOOK_UPDATES, "duplicate"))
+        assertEquals(
+            1.0,
+            metrics.registry.get(BackendMetrics.PUSH_NOTIFICATION_FAILURES).counter().count(),
+        )
+        assertTrue(
+            metrics.registry.find(BackendMetrics.HTTP_REQUESTS).timers().sumOf { it.count() } > 0,
+        )
     }
 
     @Test
@@ -319,12 +443,22 @@ class ApplicationTest {
           }
         }
         """.trimIndent()
+
+    private fun BackendMetrics.resultCount(name: String, result: String): Double =
+        registry.get(name).tag("result", result).counter().count()
 }
 
 private class RecordingPushNotifier : PushNotifier {
     val deliveries = mutableListOf<List<String>>()
 
-    override suspend fun notifySync(tokens: List<String>) {
+    override suspend fun notifySync(tokens: List<String>): Int {
         deliveries += tokens
+        return 0
     }
+}
+
+private class FixedFailurePushNotifier(
+    private val failures: Int,
+) : PushNotifier {
+    override suspend fun notifySync(tokens: List<String>): Int = failures
 }

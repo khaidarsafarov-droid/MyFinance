@@ -12,6 +12,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.truckerload.BuildConfig
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
@@ -49,6 +50,7 @@ class TruckerLoadApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        initializeCrashReporting()
         appScope.launch(Dispatchers.IO) {
             val settings = SettingsDataStore(this@TruckerLoadApp)
             val language = settings.getLanguageOnce()
@@ -101,6 +103,19 @@ class TruckerLoadApp : Application() {
                 }
             }
         })
+    }
+
+    private fun initializeCrashReporting() {
+        if (!BuildConfig.FIREBASE_CONFIGURED) return
+        runCatching {
+            FirebaseCrashlytics.getInstance().apply {
+                setCustomKey("app_version", BuildConfig.VERSION_NAME)
+                setCustomKey("sync_mode", BuildConfig.TELEGRAM_SYNC_MODE)
+                setCustomKey("local_only", BuildConfig.LOCAL_ONLY_MODE)
+            }
+        }.onFailure { error ->
+            Log.w(TAG, "Crashlytics initialization failed: ${error.javaClass.simpleName}")
+        }
     }
 
     private fun scheduleTelegramSync() {

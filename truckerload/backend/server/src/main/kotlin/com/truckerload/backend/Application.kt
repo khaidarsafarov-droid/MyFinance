@@ -20,6 +20,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.call
+import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
@@ -33,10 +34,13 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.contentType
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondRedirect
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -52,6 +56,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import io.ktor.utils.io.readRemaining
+import io.ktor.util.AttributeKey
 import org.slf4j.event.Level
 
 fun main(args: Array<String>) = EngineMain.main(args)
@@ -68,7 +73,11 @@ data class AppDependencies(
     val repositories: Repositories,
     val objectStorage: ObjectStorage,
     val pushNotifier: PushNotifier = NoOpPushNotifier,
-    val close: () -> Unit = { objectStorage.close() },
+    val metrics: BackendMetrics = BackendMetrics(),
+    val close: () -> Unit = {
+        objectStorage.close()
+        metrics.registry.close()
+    },
 )
 
 fun Application.module() {
@@ -89,13 +98,18 @@ fun Application.module() {
             pathStyle = config.s3PathStyle,
         )
     }
-    val notifier = FirebasePushNotifier.createOrNoOp(config.firebaseProjectId)
+    val metrics = BackendMetrics()
+    val notifier = FirebasePushNotifier.createOrNoOp(
+        config.firebaseProjectId,
+        config.firebaseCredentialsJson,
+    )
     configureApplication(
         config,
-        AppDependencies(jdbcRepositories(dataSource), storage, notifier) {
+        AppDependencies(jdbcRepositories(dataSource), storage, notifier, metrics) {
             notifier.close()
             storage.close()
             dataSource.close()
+            metrics.registry.close()
         },
     )
 }
@@ -119,7 +133,26 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
     install(CallLogging) {
         level = if (config.environment == AppEnvironment.PROD) Level.INFO else Level.DEBUG
         mdc("requestId") { it.callId }
+        format { call ->
+            "HTTP ${call.request.httpMethod.value} ${call.request.path()} " +
+                "status=${call.response.status()?.value ?: 0}"
+        }
     }
+    val requestStartNanos = AttributeKey<Long>("BackendRequestStartNanos")
+    install(createApplicationPlugin("BackendHttpMetrics") {
+        onCall { call ->
+            call.attributes.put(requestStartNanos, System.nanoTime())
+        }
+        onCallRespond { call, _ ->
+            val startedAt = call.attributes.getOrNull(requestStartNanos) ?: return@onCallRespond
+            dependencies.metrics.recordHttp(
+                method = call.request.httpMethod.value,
+                status = call.response.status()?.value ?: HttpStatusCode.OK.value,
+                durationNanos = System.nanoTime() - startedAt,
+            )
+        }
+    })
+    dependencies.metrics.initialize()
     install(StatusPages) {
         exception<ApiException> { call, error ->
             call.respond(
@@ -163,7 +196,9 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
             )
         }
         get("/health/ready") {
-            val ready = dependencies.repositories.health.isReady()
+            val databaseReady = dependencies.repositories.health.isReady()
+            val storageReady = dependencies.objectStorage.isReady()
+            val ready = databaseReady && storageReady
             call.respond(
                 if (ready) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable,
                 HealthResponse(
@@ -182,13 +217,20 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
         get("/docs") {
             call.respondRedirect("/openapi.yaml")
         }
+        get("/metrics") {
+            call.authorizeMetrics(config)
+            call.respondText(
+                dependencies.metrics.scrape(),
+                ContentType.parse("text/plain; version=0.0.4; charset=utf-8"),
+            )
+        }
 
-        telegramWebhook(config, dependencies.repositories)
+        telegramWebhook(config, dependencies.repositories, dependencies.metrics)
         localMediaUpload(config, dependencies)
 
         authenticate("supabase") {
             route("/v1") {
-                syncRoutes(dependencies.repositories, dependencies.pushNotifier)
+                syncRoutes(dependencies.repositories, dependencies.pushNotifier, dependencies.metrics)
                 mediaRoutes(config, dependencies)
                 telegramAuthenticatedRoutes(config, dependencies.repositories)
                 deviceRoutes(dependencies.repositories)
@@ -227,7 +269,8 @@ private suspend fun ApplicationCall.authenticatedUser(repositories: Repositories
 
 private fun io.ktor.server.routing.Route.syncRoutes(
     repositories: Repositories,
-    pushNotifier: PushNotifier = NoOpPushNotifier,
+    pushNotifier: PushNotifier,
+    metrics: BackendMetrics,
 ) {
     route("/sync") {
         get("/snapshot") {
@@ -257,9 +300,10 @@ private fun io.ktor.server.routing.Route.syncRoutes(
             val normalized = incoming.copy(accountId = user.id.toString()).withResolvedEntityCount()
             val checksum = sha256Hex(ContractJson.encodeToString(normalized))
             val stored = repositories.snapshots.putLww(user.id, normalized, checksum)
+            metrics.recordSnapshot(stored.accepted)
             if (stored.accepted && sourceDeviceId != null) {
                 val tokens = repositories.pushTokens.listForUser(user.id, sourceDeviceId).map { it.token }
-                pushNotifier.notifySync(tokens)
+                metrics.recordPushFailures(pushNotifier.notifySync(tokens))
             }
             call.respond(stored.snapshot)
         }
@@ -466,13 +510,23 @@ private fun io.ktor.server.routing.Route.telegramAuthenticatedRoutes(
     }
 }
 
-private fun io.ktor.server.routing.Route.telegramWebhook(config: AppConfig, repositories: Repositories) {
+private fun io.ktor.server.routing.Route.telegramWebhook(
+    config: AppConfig,
+    repositories: Repositories,
+    metrics: BackendMetrics,
+) {
     post("/v1/telegram/webhook") {
         val supplied = call.request.headers["X-Telegram-Bot-Api-Secret-Token"]
         if (!constantTimeEquals(config.telegramWebhookSecret, supplied)) {
+            metrics.recordTelegramRejected()
             throw ApiException(HttpStatusCode.Unauthorized, "invalid_webhook_secret", "Webhook secret is invalid")
         }
-        val update = call.receiveJson<TelegramUpdate>(MAX_TELEGRAM_BODY_BYTES)
+        val update = try {
+            call.receiveJson<TelegramUpdate>(MAX_TELEGRAM_BODY_BYTES)
+        } catch (error: Exception) {
+            metrics.recordTelegramRejected()
+            throw error
+        }
         val message = update.message
         if (message != null) {
             val text = message.text.orEmpty()
@@ -486,7 +540,7 @@ private fun io.ktor.server.routing.Route.telegramWebhook(config: AppConfig, repo
                 )
             } else if (text.isNotBlank()) {
                 repositories.telegram.linkedUser(message.chat.id)?.let { userId ->
-                    repositories.telegram.insertInbox(
+                    val inserted = repositories.telegram.insertInbox(
                         TelegramInboxRecord(
                             updateId = update.updateId,
                             userId = userId,
@@ -498,10 +552,26 @@ private fun io.ktor.server.routing.Route.telegramWebhook(config: AppConfig, repo
                             acknowledgedAt = null,
                         ),
                     )
+                    if (!inserted) metrics.recordTelegramDuplicate()
                 }
             }
         }
+        metrics.recordTelegramAccepted()
         call.respond(buildJsonObject { put("ok", true) })
+    }
+}
+
+private fun ApplicationCall.authorizeMetrics(config: AppConfig) {
+    if (config.environment != AppEnvironment.PROD) return
+    val expected = config.metricsBearerToken
+        ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
+    val authorization = request.headers[HttpHeaders.Authorization]
+    val parts = authorization?.split(' ', limit = 2)
+    val supplied = parts
+        ?.takeIf { it.size == 2 && it[0].equals("Bearer", ignoreCase = true) }
+        ?.get(1)
+    if (!constantTimeEquals(expected, supplied)) {
+        throw ApiException(HttpStatusCode.Unauthorized, "unauthorized", "Metrics authentication required")
     }
 }
 
