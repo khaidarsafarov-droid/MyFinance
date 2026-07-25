@@ -11,6 +11,11 @@ class TelegramBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
         val appContext = context.applicationContext
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueue(appContext)
+            ServerTelegramInboxWorker.enqueuePeriodic(appContext)
+            return
+        }
         val userId = AuthStore(appContext).currentUserIdOrNull() ?: return
         val tokenStore = TelegramTokenStore(appContext, userId)
         tokenStore.bootstrapFromBuildConfigIfEmpty()

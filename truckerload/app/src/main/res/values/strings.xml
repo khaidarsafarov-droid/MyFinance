@@ -600,6 +600,12 @@
     <string name="settings_telegram_show_token">Показать</string>
     <string name="settings_telegram_hide_token">Скрыть</string>
     <string name="settings_telegram_checking">Проверка…</string>
+    <string name="settings_telegram_server_mode">Серверный режим: токен бота хранится только на сервере. Привяжите этот аккаунт к серверному боту.</string>
+    <string name="settings_telegram_create_link">Создать ссылку привязки</string>
+    <string name="settings_telegram_link_error">Не удалось создать ссылку. Проверьте вход и адрес сервера.</string>
+    <string name="push_notification_channel_name">Обновления Truck Log</string>
+    <string name="push_notification_fallback_title">Truck Log</string>
+    <string name="push_notification_fallback_body">Доступно новое обновление</string>
     <string name="settings_battery_title">Фоновая работа</string>
     <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для Truck Log.</string>
     <string name="settings_battery_button">Отключить оптимизацию батареи</string>

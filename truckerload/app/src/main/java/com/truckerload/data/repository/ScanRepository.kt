@@ -1,14 +1,19 @@
 package com.truckerload.data.repository
 
+import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.ScanEntity
+import com.truckerload.data.sync.MediaSyncEnqueuer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import java.io.File
 import java.util.UUID
 
-class ScanRepository(private val db: AppDatabase) {
+class ScanRepository(
+    private val db: AppDatabase,
+    private val mediaSync: MediaSyncEnqueuer = MediaSyncEnqueuer.forDatabase(db),
+) {
 
     private val scanDao = db.scanDao()
 
@@ -27,6 +32,7 @@ class ScanRepository(private val db: AppDatabase) {
         ocrText: String,
         loadId: String? = null,
     ): ScanEntity {
+        val syncEnabled = mediaSync.enabled()
         val entity = ScanEntity(
             id = UUID.randomUUID().toString(),
             fileName = fileName,
@@ -36,17 +42,41 @@ class ScanRepository(private val db: AppDatabase) {
             pageCount = pageCount,
             ocrText = ocrText,
             loadId = loadId,
+            cloudSyncStatus = if (syncEnabled) ScanEntity.CLOUD_PENDING else ScanEntity.CLOUD_LOCAL,
         )
-        scanDao.insert(entity)
+        db.withTransaction {
+            scanDao.insert(entity)
+            if (syncEnabled) mediaSync.enqueueScanUpsert(entity)
+        }
+        if (syncEnabled) mediaSync.schedule()
         return entity
+    }
+
+    suspend fun linkScanToLoad(scanId: String, loadId: String?) {
+        val existing = scanDao.getById(scanId) ?: return
+        val syncEnabled = mediaSync.enabled()
+        val updated = existing.copy(
+            loadId = loadId,
+            cloudSyncStatus = if (syncEnabled) ScanEntity.CLOUD_PENDING else existing.cloudSyncStatus,
+        )
+        db.withTransaction {
+            scanDao.insert(updated)
+            if (syncEnabled) mediaSync.enqueueScanUpsert(updated)
+        }
+        if (syncEnabled) mediaSync.schedule()
     }
 
     suspend fun deleteScan(id: String) {
         val existing = scanDao.getById(id)
-        scanDao.deleteById(id)
+        val syncEnabled = existing != null && mediaSync.enabled()
+        db.withTransaction {
+            if (syncEnabled) mediaSync.enqueueScanDelete(requireNotNull(existing))
+            scanDao.deleteById(id)
+        }
         existing?.filePath?.takeIf { it.isNotBlank() }?.let { path ->
             runCatching { File(path).delete() }
         }
+        if (syncEnabled) mediaSync.schedule()
     }
 
     /** Deletes PDF files under scans/ that are not referenced by any DB row. */
@@ -64,17 +94,27 @@ class ScanRepository(private val db: AppDatabase) {
 
     suspend fun deleteScansForLoad(loadId: String) {
         val scans = scanDao.getScansByLoadIdOnce(loadId)
-        scanDao.deleteByLoadId(loadId)
+        val syncEnabled = scans.isNotEmpty() && mediaSync.enabled()
+        db.withTransaction {
+            if (syncEnabled) scans.forEach { mediaSync.enqueueScanDelete(it) }
+            scanDao.deleteByLoadId(loadId)
+        }
         scans.forEach { scan ->
             runCatching { File(scan.filePath).delete() }
         }
+        if (syncEnabled) mediaSync.schedule()
     }
 
     suspend fun deleteAllScansAndFiles() {
         val all = scanDao.getAllScansOnce()
-        scanDao.deleteAll()
+        val syncEnabled = all.isNotEmpty() && mediaSync.enabled()
+        db.withTransaction {
+            if (syncEnabled) all.forEach { mediaSync.enqueueScanDelete(it) }
+            scanDao.deleteAll()
+        }
         all.forEach { scan ->
             runCatching { File(scan.filePath).delete() }
         }
+        if (syncEnabled) mediaSync.schedule()
     }
 }

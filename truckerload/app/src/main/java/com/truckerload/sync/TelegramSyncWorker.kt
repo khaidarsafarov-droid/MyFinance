@@ -35,6 +35,7 @@ class TelegramSyncWorker(
         const val MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
 
         fun enqueueEnsureService(context: Context, replace: Boolean = false) {
+            if (TelegramSyncMode.isServer()) return
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -50,6 +51,7 @@ class TelegramSyncWorker(
     }
 
     override suspend fun doWork(): Result {
+        if (TelegramSyncMode.isServer()) return Result.success()
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w("TelegramSync", "No active user — skip ensuring Telegram service")

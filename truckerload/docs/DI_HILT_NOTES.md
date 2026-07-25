@@ -2,14 +2,19 @@
 
 ## Current
 
-- UI still uses `CompositionLocal` repositories from `MainActivity`.
-- `com.truckerload.di.ActiveDatabaseProvider` is the Hilt-ready seam for Room/repos.
+- Dagger/Hilt 2.60.1 is applied to the Android app with KSP.
+- `TruckerLoadApp` and `MainActivity` are Hilt entry points.
+- `ApplicationStoreModule` provides only application-context wrappers in
+  `SingletonComponent`.
+- The Firebase messaging service receives the process-wide `PushTokenStore` through
+  Hilt.
+- UI still uses `CompositionLocal` for the active account's repositories.
 
-## Hilt status
+## Intentional boundary
 
-AGP **9.3.0** currently fails applying `com.google.dagger.hilt.android` (`Android BaseExtension not found`).
-When Dagger/Hilt supports this AGP:
-
-1. Re-add `hilt` plugin + `hilt-android` / `hilt-compiler` (KSP).
-2. Annotate `TruckerLoadApp` with `@HiltAndroidApp` and `MainActivity` with `@AndroidEntryPoint`.
-3. Convert `ActiveDatabaseProvider` into `@Module` / `@Inject` and migrate ViewModels to `@HiltViewModel`.
+`AppDatabase` and repositories are not `SingletonComponent` bindings. Their identity
+depends on the active user, which can change without a process restart, so
+`MainActivity` rebuilds them after login and closes them on logout.
+`ActiveDatabaseProvider` remains an explicit account-aware factory for the same
+reason. Existing WorkManager workers also remain framework-constructed; HiltWorker
+configuration is deferred until the complete worker set can be migrated safely.

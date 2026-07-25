@@ -29,23 +29,23 @@ class OutboundSyncWorker(
         val dao = db.syncOutboxDao()
         val pending = dao.listByStatus(SyncOutboxEntity.STATUS_PENDING, limit = 40)
 
+        val uploadAcknowledged = runCatching {
+            com.truckerload.data.sync.CloudSyncEngine.pushLocalSnapshot(applicationContext)
+        }.getOrElse {
+            Log.w(TAG, "Account snapshot push failed: ${it.javaClass.simpleName}")
+            false
+        }
         pending.forEach { item ->
+            val update = OutboundSyncPolicy.afterSnapshotUpload(item.attempts, uploadAcknowledged)
             dao.updateStatus(
                 id = item.id,
-                status = SyncOutboxEntity.STATUS_SYNCED,
-                attempts = item.attempts + 1,
-                lastError = null,
+                status = update.status,
+                attempts = update.attempts,
+                lastError = update.lastError,
             )
         }
-        if (pending.isNotEmpty()) {
-            Log.i(TAG, "Marked ${pending.size} outbox rows synced; pushing account snapshot")
-        }
-        runCatching {
-            com.truckerload.data.sync.CloudSyncEngine.pushLocalSnapshot(applicationContext)
-        }.onFailure {
-            Log.w(TAG, "Account snapshot push failed", it)
-            return Result.retry()
-        }
+        if (!uploadAcknowledged) return Result.retry()
+        if (pending.isNotEmpty()) Log.i(TAG, "Snapshot acknowledged; synced ${pending.size} outbox rows")
         val weekAgo = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
         dao.deleteOlderThan(SyncOutboxEntity.STATUS_SYNCED, weekAgo)
         return Result.success()

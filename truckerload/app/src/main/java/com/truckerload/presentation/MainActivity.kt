@@ -73,14 +73,32 @@ import com.truckerload.presentation.navigation.NavGraph
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.presentation.theme.TruckerLoadTheme
 import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.ServerTelegramInboxWorker
+import com.truckerload.sync.PushTokenRegistrationWorker
+import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.widget.WidgetDeepLink
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
+
+    @Inject
+    lateinit var authStore: AuthStore
+
+    @Inject
+    lateinit var authCredentialsStore: AuthCredentialsStore
+
+    @Inject
+    lateinit var userProfileStore: UserProfileStore
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
@@ -93,24 +111,8 @@ class MainActivity : AppCompatActivity() {
         handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
         WidgetDataUpdater.updateWidgetData(applicationContext)
         requestNotificationPermissionIfNeeded()
-        val defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { t, e ->
-            try {
-                android.util.Log.e(
-                    "TruckLog",
-                    "Uncaught exception in ${t.name}: ${e.javaClass.name}: ${e.message}",
-                )
-            } catch (e: Throwable) {
-                android.util.Log.e("TruckLog", "Uncaught exception in ${t.name}")
-            }
-            defaultUncaughtExceptionHandler?.uncaughtException(t, e)
-        }
         enableEdgeToEdge()
         FeedbackManager.init(applicationContext)
-        val settingsDataStore = SettingsDataStore(applicationContext)
-        val authStore = AuthStore(applicationContext)
-        val authCredentialsStore = AuthCredentialsStore(applicationContext)
-        val userProfileStore = UserProfileStore(applicationContext)
 
         setContent {
             var dependencies by remember { mutableStateOf<MainDependencies?>(null) }
@@ -137,10 +139,12 @@ class MainActivity : AppCompatActivity() {
                         authCredentialsStore = authCredentialsStore,
                         userProfileStore = userProfileStore,
                     )
-                    val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
-                    tokenStore.bootstrapFromBuildConfigIfEmpty()
-                    if (tokenStore.hasToken()) {
-                        TelegramBotForegroundService.start(applicationContext)
+                    if (!TelegramSyncMode.isServer()) {
+                        val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
+                        tokenStore.bootstrapFromBuildConfigIfEmpty()
+                        if (tokenStore.hasToken()) {
+                            TelegramBotForegroundService.start(applicationContext)
+                        }
                     }
                     // Silent session check + schedule Drive sync (guide Parts 2–3).
                     withContext(Dispatchers.IO) {
@@ -152,6 +156,11 @@ class MainActivity : AppCompatActivity() {
                         com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                         com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
                         com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
+                        com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
+                        com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
+                        ServerTelegramInboxWorker.enqueue(applicationContext)
+                        ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
+                        PushTokenRegistrationWorker.enqueue(applicationContext)
                         runCatching {
                             com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
                         }.onFailure { e ->

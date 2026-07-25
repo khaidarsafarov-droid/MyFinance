@@ -12,6 +12,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.truckerload.BuildConfig
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
@@ -20,7 +21,10 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.ServerTelegramInboxWorker
+import com.truckerload.sync.PushTokenRegistrationWorker
 import com.truckerload.sync.TelegramSyncWorker
+import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.utils.BackupService
@@ -28,7 +32,9 @@ import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetRefresh
 import com.truckerload.widget.WidgetUpdateWorker
 import com.truckerload.utils.AppLocale
+import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,7 +42,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.widget.Toast
 
+@HiltAndroidApp
 class TruckerLoadApp : Application() {
+
+    @Inject
+    lateinit var authStore: AuthStore
+
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -46,11 +59,12 @@ class TruckerLoadApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        initializeCrashReporting()
         appScope.launch(Dispatchers.IO) {
-            val settings = SettingsDataStore(this@TruckerLoadApp)
-            val language = settings.getLanguageOnce()
+            val language = settingsDataStore.getLanguageOnce()
             SettingsDataStore.mirrorLanguageTag(this@TruckerLoadApp, language.tag)
-            val themeMode = runCatching { settings.getThemeModeOnce() }.getOrDefault(AppThemeMode.SYSTEM)
+            val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
+                .getOrDefault(AppThemeMode.SYSTEM)
             withContext(Dispatchers.Main) {
                 AppLocale.apply(this@TruckerLoadApp, language)
                 ThemeManager.apply(themeMode)
@@ -58,8 +72,13 @@ class TruckerLoadApp : Application() {
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
         ThemeManager.apply(AppThemeMode.SYSTEM)
-        AuthStore(this).currentUserIdOrNull()?.let { userId ->
-            TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueue(this)
+            ServerTelegramInboxWorker.enqueuePeriodic(this)
+        } else {
+            authStore.currentUserIdOrNull()?.let { userId ->
+                TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
+            }
         }
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
@@ -69,12 +88,17 @@ class TruckerLoadApp : Application() {
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                val userId = AuthStore(this@TruckerLoadApp).currentUserIdOrNull()
+                val userId = authStore.currentUserIdOrNull()
                 if (userId != null) {
-                    TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
-                    scheduleTelegramSync()
-                    if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
-                        TelegramBotForegroundService.start(this@TruckerLoadApp)
+                    PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
+                    if (TelegramSyncMode.isServer()) {
+                        ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
+                    } else {
+                        TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
+                        scheduleTelegramSync()
+                        if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
+                            TelegramBotForegroundService.start(this@TruckerLoadApp)
+                        }
                     }
                 }
                 WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
@@ -90,11 +114,32 @@ class TruckerLoadApp : Application() {
         })
     }
 
+    private fun initializeCrashReporting() {
+        if (!BuildConfig.FIREBASE_CONFIGURED) return
+        runCatching {
+            FirebaseCrashlytics.getInstance().apply {
+                setCustomKey("app_version", BuildConfig.VERSION_NAME)
+                setCustomKey("sync_mode", BuildConfig.TELEGRAM_SYNC_MODE)
+                setCustomKey("local_only", BuildConfig.LOCAL_ONLY_MODE)
+            }
+        }.onFailure { error ->
+            Log.w(TAG, "Crashlytics initialization failed: ${error.javaClass.simpleName}")
+        }
+    }
+
     private fun scheduleTelegramSync() {
-        TelegramSyncWorker.enqueueEnsureService(this)
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueue(this)
+        } else {
+            TelegramSyncWorker.enqueueEnsureService(this)
+        }
     }
 
     private fun scheduleTelegramWatchdog() {
+        if (TelegramSyncMode.isServer()) {
+            ServerTelegramInboxWorker.enqueuePeriodic(this)
+            return
+        }
         val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val request = PeriodicWorkRequestBuilder<TelegramSyncWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)

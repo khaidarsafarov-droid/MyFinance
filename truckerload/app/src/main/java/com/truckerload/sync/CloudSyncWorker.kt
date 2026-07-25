@@ -27,7 +27,7 @@ class CloudSyncWorker(
             OutboundSyncWorker.enqueue(applicationContext)
             val result = CloudSyncEngine.onSessionReady(applicationContext)
             Log.i(TAG, "Cloud sync: $result")
-            Result.success()
+            if (result.retryableFailure) Result.retry() else Result.success()
         }.getOrElse {
             Log.w(TAG, "Cloud sync failed", it)
             Result.retry()

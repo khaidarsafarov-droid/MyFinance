@@ -9,11 +9,11 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.WeekRepository
 
 /**
- * Lightweight DI foundation (Hilt-ready).
+ * Account-scoped database/repository factory kept outside the application Hilt graph.
  *
- * Full `com.google.dagger.hilt.android` is blocked on AGP 9.3 until Dagger ships
- * BaseExtension-compatible plugin support. This provider is the migration seam:
- * swap to `@Module` / `@Inject` when upgrading Hilt.
+ * The active user can change without the process restarting. Making these objects
+ * `SingletonComponent` bindings would retain the previous user's Room database and
+ * repositories after account switches, so callers continue to resolve them per user.
  */
 class ActiveDatabaseProvider(
     private val context: Context,

@@ -29,10 +29,14 @@ class CloudSyncCursorStore(context: Context) {
     fun lastFullHydrationAt(userId: String): Long =
         prefs(userId).getLong(KEY_LAST_HYDRATION_AT, 0L)
 
-    fun markFullHydration(userId: String, at: Long = System.currentTimeMillis()) {
+    fun markFullHydration(
+        userId: String,
+        at: Long = System.currentTimeMillis(),
+        markSynced: Boolean = true,
+    ) {
         prefs(userId).edit {
             putLong(KEY_LAST_HYDRATION_AT, at)
-            putLong(KEY_LAST_SYNCED_AT, at)
+            if (markSynced) putLong(KEY_LAST_SYNCED_AT, at)
         }
     }
 

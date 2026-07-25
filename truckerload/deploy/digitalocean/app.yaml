@@ -1,0 +1,133 @@
+name: truckerload
+region: nyc
+
+services:
+  - name: backend
+    image:
+      registry_type: DOCR
+      repository: truckerload-backend
+      tag: production
+      deploy_on_push:
+        enabled: true
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    routes:
+      - path: /
+    health_check:
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 6
+      http_path: /health/ready
+      port: 8080
+    liveness_health_check:
+      initial_delay_seconds: 60
+      period_seconds: 30
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+      http_path: /health/live
+      port: 8080
+    termination:
+      drain_seconds: 30
+      grace_period_seconds: 90
+    envs:
+      - key: APP_ENV
+        scope: RUN_TIME
+        type: GENERAL
+        value: prod
+      - key: APP_VERSION
+        scope: RUN_TIME
+        type: GENERAL
+        value: app-platform
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+        value: ${truckerload-db.JDBC_DATABASE_URL}
+      - key: DATABASE_USER
+        scope: RUN_TIME
+        type: SECRET
+        value: ${truckerload-db.USERNAME}
+      - key: DATABASE_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+        value: ${truckerload-db.PASSWORD}
+      - key: SUPABASE_JWT_ISSUER
+        scope: RUN_TIME
+        type: GENERAL
+        value: https://example.supabase.co/auth/v1
+      - key: SUPABASE_JWT_AUDIENCE
+        scope: RUN_TIME
+        type: GENERAL
+        value: authenticated
+      - key: SUPABASE_JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_BEFORE_DEPLOY_SUPABASE_JWT_SECRET
+      - key: TELEGRAM_WEBHOOK_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_BEFORE_DEPLOY_TELEGRAM_WEBHOOK_SECRET
+      - key: METRICS_BEARER_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_BEFORE_DEPLOY_METRICS_BEARER_TOKEN
+      - key: STORAGE_KIND
+        scope: RUN_TIME
+        type: GENERAL
+        value: s3
+      - key: S3_BUCKET
+        scope: RUN_TIME
+        type: GENERAL
+        value: REPLACE_WITH_SPACES_BUCKET
+      - key: S3_REGION
+        scope: RUN_TIME
+        type: GENERAL
+        value: nyc3
+      - key: S3_ENDPOINT
+        scope: RUN_TIME
+        type: GENERAL
+        value: https://nyc3.digitaloceanspaces.com
+      - key: S3_PUBLIC_ENDPOINT
+        scope: RUN_TIME
+        type: GENERAL
+        value: https://nyc3.digitaloceanspaces.com
+      - key: S3_PATH_STYLE
+        scope: RUN_TIME
+        type: GENERAL
+        value: "false"
+      - key: AWS_ACCESS_KEY_ID
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_BEFORE_DEPLOY_SPACES_ACCESS_KEY
+      - key: AWS_SECRET_ACCESS_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_BEFORE_DEPLOY_SPACES_SECRET_KEY
+      - key: PUBLIC_BASE_URL
+        scope: RUN_TIME
+        type: GENERAL
+        value: https://api.example.com
+      - key: FIREBASE_PROJECT_ID
+        scope: RUN_TIME
+        type: GENERAL
+        value: ""
+      - key: FIREBASE_CREDENTIALS_JSON
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_IF_FCM_ENABLED
+
+databases:
+  - name: truckerload-db
+    engine: PG
+    version: "18"
+    production: true
+    cluster_name: REPLACE_WITH_MANAGED_POSTGRES_CLUSTER
+    db_name: truckerload
+    db_user: truckerload_app
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED

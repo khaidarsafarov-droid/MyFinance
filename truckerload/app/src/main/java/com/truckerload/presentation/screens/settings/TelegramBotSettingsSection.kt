@@ -28,11 +28,13 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
+import com.truckerload.data.sync.AccountCloudBackendFactory
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.TruckColorPalette
 import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramSyncMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +44,10 @@ internal fun TelegramBotSettingsContent(
     context: android.content.Context,
     tc: TruckColorPalette
 ) {
+    if (TelegramSyncMode.isServer()) {
+        ServerTelegramSettingsContent(context)
+        return
+    }
     val tokenStore = remember { TelegramTokenStore(context) }
     val storedToken = remember { tokenStore.getToken() }
     var tokenInput by remember { mutableStateOf(storedToken) }
@@ -119,5 +125,52 @@ internal fun TelegramBotSettingsContent(
         ) {
             Text(if (isChecking) stringResource(R.string.settings_telegram_checking) else stringResource(R.string.settings_telegram_test))
         }
+    }
+}
+
+@Composable
+private fun ServerTelegramSettingsContent(context: android.content.Context) {
+    var linkText by remember { mutableStateOf<String?>(null) }
+    var isCreating by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Text(
+        text = stringResource(R.string.settings_telegram_server_mode),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    linkText?.let {
+        Text(
+            text = it,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+    }
+    Spacer(modifier = Modifier.height(10.dp))
+    Button(
+        onClick = {
+            isCreating = true
+            scope.launch {
+                linkText = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val client = checkNotNull(
+                            AccountCloudBackendFactory.remoteClientOrNull(context),
+                        )
+                        val token = client.createTelegramLinkToken()
+                        client.telegramLinkDeepLink(token) ?: "/start ${token.token}"
+                    }.getOrNull()
+                } ?: context.getString(R.string.settings_telegram_link_error)
+                isCreating = false
+            }
+        },
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+        enabled = !isCreating,
+    ) {
+        Text(
+            if (isCreating) {
+                stringResource(R.string.settings_telegram_checking)
+            } else {
+                stringResource(R.string.settings_telegram_create_link)
+            },
+        )
     }
 }

@@ -1,83 +1,109 @@
-# Cloud Data Synchronization — Account-Based Backend (Truck Load)
+# Cloud data synchronization
 
-How Truck Load keeps journal / finance / driver profile available across
-restarts and devices: **Local-First Room + account cloud snapshot + LWW**.
+Truck Load is local-first: screens read Room and mutations commit locally before any
+network operation. Cloud synchronization is implemented through the Ktor backend when
+`SYNC_BACKEND_URL` is configured and `LOCAL_ONLY_MODE=false`. The on-device account
+mirror remains the fallback; it is not the hosted source of truth.
 
-Companion docs: `EMAIL_AUTH_HYBRID_GUIDE.md`, `GOOGLE_AUTH_OFFLINE_GUIDE.md`.
+## Active data path
 
----
+1. Supabase Auth provides a stable UUID account and bearer JWT.
+2. A local mutation writes the account-specific Room database and enqueues
+   `sync_outbox`.
+3. `CloudSyncEngine` builds a versioned `AccountCloudSnapshot`.
+4. `HybridAccountCloudBackend` writes
+   `files/cloud_account_mirror/<accountId>.json` first, then sends the snapshot to
+   `PUT /v1/sync/snapshot` with the JWT and source device ID.
+5. Ktor verifies that `snapshot.accountId` equals the JWT subject. PostgreSQL applies
+   strict timestamp last-write-wins; an equal or older timestamp is stale.
+6. A remote pull reads `GET /v1/sync/snapshot`. If the backend is unavailable or has
+   no snapshot, the client reads the local mirror. UI remains on Room in either case.
 
-## Stage 1 — First login («from zero»)
+When `SYNC_BACKEND_URL` is blank, the exact same orchestration uses
+`LocalAccountCloudBackend` only. This is the supported offline/deployment rollback
+behavior, not an error mode.
 
-1. User signs in (Google or Email) → stable **account id**
-   (`supabase uuid` / `google_<hash>` / `local_<hash(email)>`).
-2. Driver works offline-first: Add Load / diesel / profile → **Room**.
-3. Each mutation enqueues `sync_outbox` (`OutboundSyncQueue`) with entity id + timestamp.
-4. When online, `OutboundSyncWorker` drains the queue and
-   `CloudSyncEngine.pushLocalSnapshot` writes an **AccountCloudSnapshot**
-   (loads, paychecks, diesel, driver profile JSON) into the account mirror
-   (`files/cloud_account_mirror/<accountId>.json`).
-5. Optional: Google Drive backup still ships the same journal JSON for
-   true cross-device when Drive is linked.
+## Media path
 
-Result: data is bound to the **account**, not only to the phone flash.
+Phase 4 is implemented but disabled by default. It runs only when
+`CLOUD_MEDIA_ENABLED=true`, `SYNC_BACKEND_URL` is nonblank,
+`LOCAL_ONLY_MODE=false`, and the active account has a bearer JWT.
 
----
+Photo/scan saves and link changes commit to Room and `media_sync_queue` in the same
+local transaction. Deletion similarly records a remote tombstone operation before
+removing the local row/file, so gallery UX never waits for the network. A
+network-constrained worker requests a presigned URL, uploads the file directly,
+completes metadata, and retries transient failures with exponential backoff.
 
-## Stage 2 — Return on the same device
+Media is not embedded in `AccountCloudSnapshot`. The authenticated media list uses an
+opaque per-account revision cursor and includes soft-delete tombstones. Remote-only
+files are streamed into an account-specific external-files directory through a
+temporary file, then atomically renamed after MIME, size, and optional SHA-256
+validation. OCR and location fields remain in authenticated metadata JSON; signed
+URLs, local paths, OCR/location values, and JWTs are never emitted by the media
+client/worker logs.
 
-1. Cold start restores JWT / Google session (`SilentAuthRestorer`).
-2. `CloudSyncEngine.onSessionReady` reads `CloudSyncCursorStore.lastSyncedAt`.
-3. If the account mirror `updatedAt` is newer → **pull merge** (LWW on `updatedAt`).
-4. Always best-effort **push** local Room → mirror.
-5. UI (Home / widgets) refreshes from Room — no blocking spinner for sync.
+## Session and hydration
 
----
+- On session restore, `CloudSyncCursorStore` supplies `lastSyncedAt`.
+- A newer remote/mirror snapshot is merged by the tested LWW policy.
+- An empty account Room database with no prior cursor can be fully hydrated from the
+  server snapshot.
+- After pull/merge, local state is pushed best-effort. The home screen and widgets do
+  not wait for the request.
+- On a new device, cross-device hydration requires a configured backend and a valid
+  Supabase session. The local mirror alone cannot move data between devices.
 
-## Stage 3 — New device / empty Room (cross-device hydration)
+## Server Telegram and FCM
 
-1. User signs in with the same Google / Email on a new phone.
-2. Room file for that account id is empty.
-3. If the account mirror (or a restored Drive blob written into the mirror)
-   has entities and `lastSyncedAt == 0` → **Full Hydration**:
-   wipe empty tables and insert the full snapshot (loads + stops + diesel +
-   paychecks + driver profile fields).
-4. Driver opens Home and sees the same trips / balance / CDL profile.
+With `TELEGRAM_SYNC_MODE=server`, Telegram sends secret-authenticated updates to Ktor.
+PostgreSQL stores linked text messages idempotently by `update_id`; Android fetches and
+acknowledges them through the authenticated inbox. Device mode keeps the existing
+on-phone bot service as the fallback.
 
-> True multi-device without Drive requires a hosted DB (Supabase/Postgres).
-> The mirror + `AccountCloudSnapshot` schema is the contract that backend
-> tables should implement next (`account_snapshots` or normalized rows).
+When Firebase is configured, an accepted snapshot can send a data-only `type=sync`
+notification to the user's other registered Android devices. FCM contains no account
+data and does not replace periodic WorkManager pull.
 
----
-
-## Architectural rules
+## Conflict and security rules
 
 | Rule | Implementation |
-|------|----------------|
-| **Local-First** | `LoadRepository.insertLoad` / diesel / profile write Room first |
-| **Sync Queue** | `sync_outbox` + WorkManager (`OutboundSyncWorker`, `CloudSyncWorker`) |
-| **Last Write Wins** | `CloudSyncPolicy.remoteWins(localUpdatedAt, remoteUpdatedAt)` |
-| **Stable ids** | Load `id` / `tripId`; account id from `AccountIds` |
-| **Cursor** | `CloudSyncCursorStore` per account (`last_synced_at`) |
+| --- | --- |
+| Local-first | Room commit and local mirror do not depend on cloud availability |
+| Account scope | JWT UUID subject; payload account ID must match |
+| Snapshot conflict | Strict `updatedAt` LWW in PostgreSQL |
+| Stable IDs | Entity IDs remain stable inside the snapshot |
+| Cursor | Per-account local cursor and per-device server cursor endpoint |
+| Retry | WorkManager and `sync_outbox`; remote failure leaves local state intact |
+| Push fan-out | Source device is excluded; push is only a wake-up |
 
----
+The snapshot is an account blob, so concurrent edits to different entities can still
+conflict at snapshot timestamp granularity. The rollout therefore monitors stale
+writes and retains Room/outbox data. Normalized per-entity server conflict resolution
+is a future schema evolution, not current behavior.
 
 ## Key types
 
-- `CloudSyncPolicy` — pure LWW / hydration predicates (unit-tested)
-- `AccountCloudSnapshot` — versioned account blob
-- `AccountCloudMirror` — durable local stand-in for the cloud row
-- `CloudSyncEngine` — push / pull / full hydrate orchestration
-- `CloudSyncWorker` — periodic 6h + oneshot after login
+- `AccountCloudBackendFactory` selects local-only or hybrid behavior.
+- `LocalAccountCloudBackend` and `AccountCloudMirror` provide same-device durability.
+- `RemoteAccountCloudClient` implements authenticated Ktor snapshots, Telegram inbox,
+  and FCM token registration.
+- `CloudSyncEngine` handles push, pull, merge, and full hydration.
+- `CloudSyncWorker` and `OutboundSyncWorker` provide periodic and mutation-triggered
+  execution.
 
----
+## Status
 
-## Checklist
+- [x] Local-first Room writes and outbox
+- [x] Durable local account mirror
+- [x] Hosted Ktor/PostgreSQL snapshots and cursors
+- [x] Authenticated Android remote client with local fallback
+- [x] New-device hydration from a configured backend
+- [x] Server Telegram linking, idempotent inbox, and acknowledgement
+- [x] Optional FCM sync wake-up
+- [x] Feature-gated Android direct-to-S3 media client and durable pull/delete queue
+- [ ] Enable `CLOUD_MEDIA_ENABLED` for a staged production cohort
+- [ ] Per-entity server conflict model if snapshot LWW proves insufficient
 
-- [x] Local-First writes + outbox
-- [x] Push snapshot after mutations / session ready
-- [x] Pull since last_synced (incremental merge)
-- [x] Full restore when local empty + remote has data
-- [x] LWW conflict policy
-- [ ] Hosted Postgres/Supabase table replacing file mirror (next)
-- [ ] Mirror ←→ Drive auto-seed on first Google login on a new device
+See `TARGET_ARCHITECTURE.md` and `MIGRATION_ROLLOUT.md` for target boundaries and
+safe activation/rollback.

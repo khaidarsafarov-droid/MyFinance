@@ -4,6 +4,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+}
+
+val firebaseConfigured = file("google-services.json").isFile
+if (firebaseConfigured) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 android {
@@ -27,8 +34,28 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
+        val syncBackendUrl = localProps.getProperty("SYNC_BACKEND_URL", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "SYNC_BACKEND_URL", "\"$syncBackendUrl\"")
+        val telegramSyncMode = localProps.getProperty("TELEGRAM_SYNC_MODE", "device")
+            .trim()
+            .lowercase()
+            .takeIf { it == "device" || it == "server" }
+            ?: "device"
+        buildConfigField("String", "TELEGRAM_SYNC_MODE", "\"$telegramSyncMode\"")
+        val telegramServerBotUsername = localProps.getProperty("TELEGRAM_SERVER_BOT_USERNAME", "")
+            .trim()
+            .removePrefix("@")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "TELEGRAM_SERVER_BOT_USERNAME", "\"$telegramServerBotUsername\"")
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "true").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
+        val cloudMediaEnabled = localProps.getProperty("CLOUD_MEDIA_ENABLED", "false")
+            .equals("true", ignoreCase = true)
+        buildConfigField("boolean", "CLOUD_MEDIA_ENABLED", cloudMediaEnabled.toString())
+        buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
     }
 
@@ -70,6 +97,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":shared:contract"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(libs.androidx.core.ktx)
     implementation("androidx.appcompat:appcompat:1.7.0")
@@ -88,6 +116,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
+    // Hilt (KSP)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
@@ -103,6 +135,11 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Firebase is inert without google-services.json; cloud builds still compile.
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-crashlytics")
 
     // DataStore + Encrypted
     implementation(libs.androidx.datastore.preferences)
@@ -169,6 +206,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -34,6 +34,7 @@ object CloudSyncEngine {
         val hydrated: Boolean = false,
         val loadsApplied: Int = 0,
         val message: String = "",
+        val retryableFailure: Boolean = false,
     ) {
         enum class Mode { SKIPPED, PUSH, PULL, FULL_HYDRATE, PUSH_AND_PULL }
     }
@@ -49,11 +50,11 @@ object CloudSyncEngine {
         )
         val db = AppDatabase.getInstance(app, userId)
         val cursor = CloudSyncCursorStore(app)
-        val mirror = AccountCloudMirror(app)
+        val backend = AccountCloudBackendFactory.create(app)
         cursor.markAttempt(userId)
 
         val localLoads = LoadRepository(db).getAllLoadsOnce()
-        val remote = mirror.read(userId)
+        val remote = backend.read(userId)
 
         val remoteSnapshot = remote
         if (remoteSnapshot != null && CloudSyncPolicy.needsFullHydration(
@@ -63,14 +64,17 @@ object CloudSyncEngine {
             )
         ) {
             val applied = applyFullHydration(app, db, remoteSnapshot)
-            cursor.markFullHydration(userId)
+            val pushed = pushLocalSnapshot(userId, db, backend)
+            cursor.markFullHydration(userId, markSynced = pushed || !backend.remoteConfigured)
             WidgetDataUpdater.updateWidgetData(app)
             Log.i(TAG, "Full hydration for $userId: $applied loads")
             return SyncResult(
                 mode = SyncResult.Mode.FULL_HYDRATE,
+                pushed = pushed,
                 hydrated = true,
                 loadsApplied = applied,
                 message = "restored_from_cloud",
+                retryableFailure = backend.remoteConfigured && !pushed,
             )
         }
 
@@ -82,8 +86,8 @@ object CloudSyncEngine {
             applyDriverProfileIfPresent(db, remote)
         }
 
-        val pushed = pushLocalSnapshot(app, userId, db, mirror)
-        if (pushed || pulled) {
+        val pushed = pushLocalSnapshot(userId, db, backend)
+        if (pushed) {
             cursor.markSynced(userId)
         }
         if (pulled) WidgetDataUpdater.updateWidgetData(app)
@@ -98,6 +102,7 @@ object CloudSyncEngine {
             pushed = pushed,
             pulled = pulled,
             loadsApplied = loadsApplied,
+            retryableFailure = backend.remoteConfigured && !pushed,
         )
     }
 
@@ -106,26 +111,20 @@ object CloudSyncEngine {
         val app = context.applicationContext
         val userId = AuthStore(app).currentUserIdOrNull() ?: return false
         val db = AppDatabase.getInstance(app, userId)
-        val ok = pushLocalSnapshot(app, userId, db, AccountCloudMirror(app))
+        val ok = pushLocalSnapshot(userId, db, AccountCloudBackendFactory.create(app))
         if (ok) CloudSyncCursorStore(app).markSynced(userId)
         return ok
     }
 
     private suspend fun pushLocalSnapshot(
-        context: Context,
         userId: String,
         db: AppDatabase,
-        mirror: AccountCloudMirror,
+        backend: AccountCloudBackend,
     ): Boolean {
         val loads = LoadRepository(db).getAllLoadsOnce()
         val paychecks = PaycheckRepository(db).getAllPaychecksOnce()
         val diesel = DieselRepository(db).getAllDieselOnce()
-        if (loads.isEmpty() && paychecks.isEmpty() && diesel.isEmpty()) {
-            // Still push profile-only snapshot if we have one.
-            val profile = db.driverProfileDao().getProfile()
-            if (profile == null || profile.displayName.isBlank()) return false
-        }
-        val existing = mirror.read(userId)
+        val existing = backend.read(userId)
         val localBackup = BackupData(
             loads = loads,
             paychecks = paychecks,
@@ -136,16 +135,26 @@ object CloudSyncEngine {
         } else {
             localBackup
         }
-        val now = System.currentTimeMillis()
+        // A device clock may lag behind another device. Keep the account snapshot
+        // timestamp monotonic so a successfully pulled newer snapshot can always be
+        // acknowledged by the server instead of entering a permanent stale-write loop.
+        val now = maxOf(
+            System.currentTimeMillis(),
+            (existing?.updatedAt ?: 0L).let { if (it == Long.MAX_VALUE) it else it + 1L },
+        )
         val snapshot = AccountCloudSnapshot(
             accountId = userId,
             updatedAt = now,
             backup = mergedBackup,
             driverProfileJson = serializeDriverProfile(db.driverProfileDao().getProfile()),
         )
-        mirror.write(snapshot)
-        Log.i(TAG, "Pushed snapshot for $userId (${snapshot.entityCount} entities)")
-        return true
+        val result = backend.write(snapshot)
+        if (result.successful) {
+            Log.i(TAG, "Published account snapshot (${snapshot.entityCount} entities)")
+        } else {
+            Log.w(TAG, "Account snapshot cached locally but remote acknowledgement failed")
+        }
+        return result.successful
     }
 
     private fun mergeBackupsLww(remote: BackupData, local: BackupData): BackupData {

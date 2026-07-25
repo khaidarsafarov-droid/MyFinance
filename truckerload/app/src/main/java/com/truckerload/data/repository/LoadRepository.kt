@@ -14,6 +14,7 @@ import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
+import com.truckerload.data.sync.MediaSyncEnqueuer
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
@@ -56,7 +57,10 @@ enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
  * Room-backed single source of truth for loads, route stops, history, and load-linked media.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class LoadRepository(private val db: AppDatabase) {
+class LoadRepository(
+    private val db: AppDatabase,
+    private val mediaSync: MediaSyncEnqueuer = MediaSyncEnqueuer.forDatabase(db),
+) {
 
     private val loadDao = db.loadDao()
     private val loadHistoryDao = db.loadHistoryDao()
@@ -102,12 +106,14 @@ class LoadRepository(private val db: AppDatabase) {
     suspend fun cleanupOrphanAttachments(): Int {
         val loadIds = loadDao.getAllLoadsOnce().map { it.id }.toSet()
         var removed = 0
+        val syncEnabled = mediaSync.enabled()
         db.withTransaction {
             val orphanPhotos = photoDao.getAllPhotosOnce().filter { photo ->
                 val id = photo.loadId
                 !id.isNullOrBlank() && id !in loadIds
             }
             orphanPhotos.forEach { photo ->
+                if (syncEnabled) mediaSync.enqueuePhotoDelete(photo)
                 photoDao.deleteById(photo.id)
                 runCatching { File(photo.filePath).delete() }
                 removed++
@@ -117,11 +123,13 @@ class LoadRepository(private val db: AppDatabase) {
                 !id.isNullOrBlank() && id !in loadIds
             }
             orphanScans.forEach { scan ->
+                if (syncEnabled) mediaSync.enqueueScanDelete(scan)
                 scanDao.deleteById(scan.id)
                 runCatching { File(scan.filePath).delete() }
                 removed++
             }
         }
+        if (syncEnabled && removed > 0) mediaSync.schedule()
         return removed
     }
 
@@ -348,9 +356,16 @@ class LoadRepository(private val db: AppDatabase) {
     }
 
     suspend fun deleteLoad(loadId: String) {
+        val syncEnabled = mediaSync.enabled()
+        var hadMedia = false
         db.withTransaction {
             val photos = photoDao.getPhotosByLoadIdOnce(loadId)
             val scans = scanDao.getScansByLoadIdOnce(loadId)
+            hadMedia = photos.isNotEmpty() || scans.isNotEmpty()
+            if (syncEnabled) {
+                photos.forEach { mediaSync.enqueuePhotoDelete(it) }
+                scans.forEach { mediaSync.enqueueScanDelete(it) }
+            }
             photoDao.deleteByLoadId(loadId)
             scanDao.deleteByLoadId(loadId)
             loadHistoryDao.deleteByLoadId(loadId)
@@ -358,20 +373,29 @@ class LoadRepository(private val db: AppDatabase) {
             photos.forEach { runCatching { File(it.filePath).delete() } }
             scans.forEach { runCatching { File(it.filePath).delete() } }
         }
+        if (syncEnabled && hadMedia) mediaSync.schedule()
         notifyWidgetDataChanged()
         scheduleAutoBackup()
     }
 
     suspend fun deleteAllLoads() {
+        val syncEnabled = mediaSync.enabled()
+        var hadMedia = false
         db.withTransaction {
             val photos = photoDao.getAllPhotosOnce()
             val scans = scanDao.getAllScansOnce()
+            hadMedia = photos.isNotEmpty() || scans.isNotEmpty()
+            if (syncEnabled) {
+                photos.forEach { mediaSync.enqueuePhotoDelete(it) }
+                scans.forEach { mediaSync.enqueueScanDelete(it) }
+            }
             photoDao.deleteAll()
             scanDao.deleteAll()
             loadDao.deleteAll()
             photos.forEach { runCatching { File(it.filePath).delete() } }
             scans.forEach { runCatching { File(it.filePath).delete() } }
         }
+        if (syncEnabled && hadMedia) mediaSync.schedule()
     }
 
     suspend fun refreshReportingWeeks() {
