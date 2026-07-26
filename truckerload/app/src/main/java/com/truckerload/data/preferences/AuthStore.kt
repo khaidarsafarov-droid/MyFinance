@@ -124,12 +124,16 @@ class AuthStore(context: Context) {
     }
 
     fun updateTokens(accessToken: String?, refreshToken: String?) {
-        if (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) {
-            SecurePreferences.requireEncryptedForSecretWrite("auth tokens")
-        }
+        val writeSecrets = (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
+            !SecurePreferences.plaintextFallbackUsed
         synchronized(lock) {
             liveAccessToken = accessToken?.takeIf { it.isNotBlank() }
             liveRefreshToken = refreshToken?.takeIf { it.isNotBlank() }
+            if (!writeSecrets) {
+                // Keep tokens in memory for this process; do not wipe a prior encrypted disk copy
+                // when secure storage is temporarily unavailable.
+                return
+            }
             prefs.edit {
                 if (liveAccessToken == null) remove(KEY_ACCESS_TOKEN)
                 else putString(KEY_ACCESS_TOKEN, liveAccessToken)
@@ -154,9 +158,11 @@ class AuthStore(context: Context) {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
         val mail = email.trim()
-        if (rememberMe && (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank())) {
-            SecurePreferences.requireEncryptedForSecretWrite("auth tokens")
-        }
+        // Prefer encrypted token disk writes; if secure storage is unavailable, still
+        // persist identity so Google/email users are not forced to re-login every launch.
+        val canPersistSecrets = rememberMe &&
+            (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
+            !SecurePreferences.plaintextFallbackUsed
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider != AuthProvider.LOCAL -> provider
@@ -164,6 +170,8 @@ class AuthStore(context: Context) {
             id.startsWith("local_") -> AuthProvider.EMAIL
             else -> provider
         }
+        // Google OAuth always survives process death when the user completed sign-in.
+        val persistSession = rememberMe || resolvedProvider == AuthProvider.GOOGLE
         synchronized(lock) {
             liveUserId = id
             liveEmail = mail
@@ -172,20 +180,24 @@ class AuthStore(context: Context) {
             liveGoogleSub = googleSub?.takeIf { it.isNotBlank() }
             liveProvider = resolvedProvider
             liveLoggedIn = true
-            liveSessionHealth = AuthSessionHealth.VERIFIED
+            liveSessionHealth = if (canPersistSecrets || accessToken.isNullOrBlank()) {
+                AuthSessionHealth.VERIFIED
+            } else {
+                AuthSessionHealth.SESSION_UNCONFIRMED
+            }
             _userId.value = id
             _email.value = mail
             _isLoggedIn.value = true
-            _sessionHealth.value = AuthSessionHealth.VERIFIED
-            if (rememberMe) {
+            _sessionHealth.value = liveSessionHealth
+            if (persistSession) {
                 prefs.edit {
                     putBoolean(KEY_LOGGED_IN, true)
                     putString(KEY_USER_ID, id)
                     putString(KEY_EMAIL, mail)
                     putString(KEY_PROVIDER, resolvedProvider.name)
-                    if (accessToken.isNullOrBlank()) remove(KEY_ACCESS_TOKEN)
+                    if (!canPersistSecrets || accessToken.isNullOrBlank()) remove(KEY_ACCESS_TOKEN)
                     else putString(KEY_ACCESS_TOKEN, accessToken)
-                    if (refreshToken.isNullOrBlank()) remove(KEY_REFRESH_TOKEN)
+                    if (!canPersistSecrets || refreshToken.isNullOrBlank()) remove(KEY_REFRESH_TOKEN)
                     else putString(KEY_REFRESH_TOKEN, refreshToken)
                     if (googleSub.isNullOrBlank()) remove(KEY_GOOGLE_SUB)
                     else putString(KEY_GOOGLE_SUB, googleSub)
