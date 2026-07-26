@@ -25,10 +25,12 @@ object PhotoGalleryTimeBounds {
 
     fun startOfWeek(cal: Calendar): Long {
         val c = cal.clone() as Calendar
-        // Subtract days to the configured firstDayOfWeek. Setting DAY_OF_WEEK alone can
-        // roll forward to the next week depending on Calendar lenient behavior.
+        // Trucking week is always Sunday–Saturday (same as WeekUtils / Home calendar).
+        c.firstDayOfWeek = Calendar.SUNDAY
+        c.minimalDaysInFirstWeek = 1
+        // Subtract days to Sunday. Setting DAY_OF_WEEK alone can roll forward.
         val dayOfWeek = c.get(Calendar.DAY_OF_WEEK)
-        val daysFromWeekStart = (dayOfWeek - c.firstDayOfWeek + 7) % 7
+        val daysFromWeekStart = (dayOfWeek - Calendar.SUNDAY + 7) % 7
         c.add(Calendar.DAY_OF_MONTH, -daysFromWeekStart)
         return startOfDay(c)
     }

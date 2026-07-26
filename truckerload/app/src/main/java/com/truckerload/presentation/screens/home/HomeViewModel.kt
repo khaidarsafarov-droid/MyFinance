@@ -18,8 +18,6 @@ import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
-import com.truckerload.utils.getYesterdayDate
-import com.truckerload.utils.getMonthRange
 import com.truckerload.utils.LoadDateIndex
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
@@ -113,12 +111,12 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    /** Room subscription scoped by filter — THIS/LAST week avoid full-table hydrate. */
+    /** Room subscription scoped by filter — week filters use reporting weekNumber/year. */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val loadsFromDb: StateFlow<List<Load>> = _uiState
         .map { Triple(it.filter, it.selectedWeekStart, it.selectedWeekEnd) }
         .distinctUntilChanged()
-        .flatMapLatest { (filter, weekStart, weekEnd) ->
+        .flatMapLatest { (filter, weekStart, _) ->
             when (filter) {
                 LoadFilter.THIS_WEEK -> {
                     val (w, y) = getCurrentWeekNumberAndYear()
@@ -129,8 +127,9 @@ class HomeViewModel(
                     loadRepository.getLoadsByWeek(w, y)
                 }
                 LoadFilter.CALENDAR_WEEK -> {
-                    if (!weekStart.isNullOrBlank() && !weekEnd.isNullOrBlank()) {
-                        loadRepository.getLoadsByDateRange(weekStart, weekEnd)
+                    if (!weekStart.isNullOrBlank()) {
+                        val (w, y) = getWeekNumberAndYearFromDate(weekStart)
+                        loadRepository.getLoadsByWeek(w, y)
                     } else {
                         loadRepository.watchLoads()
                     }
@@ -138,6 +137,13 @@ class HomeViewModel(
                 else -> loadRepository.watchLoads()
             }
         }
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
+
+    /**
+     * Full journal for calendar dots — must not be scoped to the active week filter,
+     * otherwise opening the calendar on "This week" hides other months' markers.
+     */
+    private val allLoadsForCalendar: StateFlow<List<Load>> = loadRepository.watchLoads()
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
@@ -201,20 +207,20 @@ class HomeViewModel(
         val datesWithLoads: Set<String>
     )
 
-    /** Фильтрованный список + итоги + индекс дат. Индекс пересчитывается только при смене merged loads. */
+    /** Фильтрованный список + итоги + индекс дат. Индекс — по всем грузам (календарь). */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
+        allLoadsForCalendar,
         _optimisticOverlay,
         _pendingDeleteIds,
         filterState,
-    ) { loads, overlay, pendingDeletes, filter ->
+    ) { loads, allLoads, overlay, pendingDeletes, filter ->
         val base = loads
             .filter { it.id !in pendingDeletes }
             .map { overlay[it.id] ?: it }
         val loadIds = loads.map { it.id }.toSet()
         val newLoads = overlay.values.filter { it.id !in loadIds && it.id !in pendingDeletes }
         val merged = base + newLoads
-        val dateIndex = LoadDateIndex.build(merged)
         val filtered = filterUseCase.filterLoads(
             loads = merged,
             filter = filter.filter,
@@ -223,27 +229,34 @@ class HomeViewModel(
             selectedWeekStart = filter.selectedWeekStart,
             selectedWeekEnd = filter.selectedWeekEnd,
             selectedYear = filter.selectedYear,
-            dateIndex = dateIndex
+            dateIndex = null,
         )
+        val calendarBase = allLoads
+            .filter { it.id !in pendingDeletes }
+            .map { overlay[it.id] ?: it }
+        val calendarIds = allLoads.map { it.id }.toSet()
+        val calendarMerged = calendarBase +
+            overlay.values.filter { it.id !in calendarIds && it.id !in pendingDeletes }
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
-            datesWithLoads = dateIndex.keys.toSet()
+            datesWithLoads = LoadDateIndex.build(calendarMerged).keys.toSet(),
         )
     }
         .flowOn(Dispatchers.Default)
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
     /**
-     * True Room SQL paging for flat journal filters (not year/month archive sections).
-     * Home list cards use denormalized entity fields; stop hydrate stays on detail.
+     * True Room SQL paging for week / dispute journal filters.
+     * Day/month filters stay in-memory so they use [getLoadDateRange] (active trip days),
+     * matching header totals and calendar day selection.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val roomPagedLoads: Flow<PagingData<Load>> = filterState
         .map { Triple(it.filter, it.searchQuery, Triple(it.selectedDate, it.selectedWeekStart, it.selectedWeekEnd)) }
         .distinctUntilChanged()
         .flatMapLatest { (filter, searchQuery, dates) ->
-            val (selectedDate, weekStart, weekEnd) = dates
+            val (_, weekStart, _) = dates
             val trimmed = searchQuery.trim()
             when {
                 trimmed.isNotEmpty() -> loadRepository.pagingLoads(searchQuery = trimmed)
@@ -256,26 +269,30 @@ class HomeViewModel(
                     val (w, y) = getPreviousWeekNumberAndYear()
                     loadRepository.pagingLoads(weekNumber = w, year = y)
                 }
-                filter == LoadFilter.CALENDAR_WEEK && !weekStart.isNullOrBlank() && !weekEnd.isNullOrBlank() ->
-                    loadRepository.pagingLoads(startDate = weekStart, endDate = weekEnd)
-                filter == LoadFilter.CALENDAR_DATE && !selectedDate.isNullOrBlank() ->
-                    loadRepository.pagingLoads(exactDate = selectedDate)
-                filter == LoadFilter.YESTERDAY ->
-                    loadRepository.pagingLoads(exactDate = getYesterdayDate())
-                filter == LoadFilter.THIS_MONTH -> {
-                    val cal = Calendar.getInstance()
-                    val (start, end) = getMonthRange(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.YEAR))
-                    loadRepository.pagingLoads(startDate = start, endDate = end)
+                filter == LoadFilter.CALENDAR_WEEK && !weekStart.isNullOrBlank() -> {
+                    val (w, y) = getWeekNumberAndYearFromDate(weekStart)
+                    loadRepository.pagingLoads(weekNumber = w, year = y)
                 }
-                else -> loadRepository.pagingLoads() // ALL / unset week → SQL page all
+                else -> loadRepository.pagingLoads()
             }
         }
         .cachedIn(viewModelScope)
 
-    /** True when the journal should render [roomPagedLoads] instead of year/month section headers. */
-    fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean =
-        selectedYear == null && filter != LoadFilter.ALL
-
+    /**
+     * Room paging only for filters that match SQL on reporting week / dispute.
+     * THIS_MONTH / YESTERDAY / CALENDAR_DATE need active-date-range logic in memory.
+     */
+    fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean {
+        if (selectedYear != null) return false
+        return when (filter) {
+            LoadFilter.THIS_WEEK,
+            LoadFilter.LAST_WEEK,
+            LoadFilter.CALENDAR_WEEK,
+            LoadFilter.DISPUTE,
+            -> true
+            else -> false
+        }
+    }
     init {
         viewModelScope.launch {
             loadsFromDb.collect { list ->

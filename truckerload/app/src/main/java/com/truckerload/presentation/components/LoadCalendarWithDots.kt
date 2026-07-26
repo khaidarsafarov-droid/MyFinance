@@ -42,13 +42,17 @@ fun LoadCalendarWithDots(
 ) {
     val tc = LocalTruckColors.current
 
-    val cal = Calendar.getInstance(Locale.getDefault())
-    cal.set(year, month - 1, 1)
-    val firstDayOfWeek = cal.firstDayOfWeek
+    // Trucking week is always Sunday–Saturday (matches WeekUtils / "Select week").
+    val firstDayOfWeek = Calendar.SUNDAY
+    val cal = Calendar.getInstance(Locale.US).apply {
+        this.firstDayOfWeek = firstDayOfWeek
+        minimalDaysInFirstWeek = 1
+        set(year, month - 1, 1)
+    }
     var offset = (cal.get(Calendar.DAY_OF_WEEK) - firstDayOfWeek + 7) % 7
     cal.add(Calendar.DAY_OF_YEAR, -offset)
 
-    val daysInMonth = Calendar.getInstance().apply {
+    val daysInMonth = Calendar.getInstance(Locale.US).apply {
         set(Calendar.YEAR, year)
         set(Calendar.MONTH, month - 1)
         set(Calendar.DAY_OF_MONTH, 1)
@@ -108,7 +112,7 @@ fun LoadCalendarWithDots(
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            weekdayHeaders(cal.firstDayOfWeek).forEach { h ->
+            weekdayHeaders(firstDayOfWeek).forEach { h ->
                 Text(
                     text = h,
                     style = MaterialTheme.typography.labelSmall,
