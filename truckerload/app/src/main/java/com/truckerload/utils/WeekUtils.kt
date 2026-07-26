@@ -199,6 +199,10 @@ fun getLoadReportingWeek(load: Load): Pair<Int, Int> {
 }
 
 fun isLoadInWeek(load: Load, weekNumber: Int, year: Int): Boolean {
+    // Prefer persisted reporting week (matches Room SQL / Stats). Recompute only when unset.
+    if (load.weekNumber > 0 && load.year > 0) {
+        return load.weekNumber == weekNumber && load.year == year
+    }
     val (w, y) = getLoadReportingWeek(load)
     return w == weekNumber && y == year
 }
@@ -375,7 +379,8 @@ fun getLastDeliveryMillis(load: Load): Long? {
 fun getLoadDateRange(load: Load): Set<String> {
     val dates = mutableSetOf<String>()
     canonicalDateString(load.date)?.let { dates.add(it) }
-    val stopDates = load.stops.mapNotNull { parseDateFromScheduledTime(it.scheduledTime) }
+    val yearHint = load.date.take(4).toIntOrNull()
+    val stopDates = load.stops.mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint) }
     if (stopDates.isNotEmpty()) {
         val sorted = stopDates.sorted()
         val start = sorted.first()
