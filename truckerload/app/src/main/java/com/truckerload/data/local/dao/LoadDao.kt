@@ -292,7 +292,19 @@ interface LoadDao {
     )
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg
 
-    /** Loaded miles from journal loads on/after [startDate] (YYYY-MM-DD). */
+    /** Loaded miles from journal loads with date on/after [startDate] (YYYY-MM-DD). */
     @Query("SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads WHERE date >= :startDate")
     suspend fun sumMilesSince(startDate: String): Double
+
+    /**
+     * Prefer this for ТО math when finish dates are denormalized on the row:
+     * end on/after service day (inclusive) — same rule as [com.truckerload.domain.maintenance.MaintenanceMileageUseCase].
+     */
+    @Query(
+        """
+        SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads
+        WHERE COALESCE(actualFinishDate, date) >= :serviceDate
+        """,
+    )
+    suspend fun sumLoadedMilesOnOrAfterService(serviceDate: String): Double
 }
