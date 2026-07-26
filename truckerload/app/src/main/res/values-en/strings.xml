@@ -620,6 +620,46 @@
     <string name="backup_restore_bad_format">Invalid file format</string>
     <string name="backup_restore_success">Restored: %1$d loads, %2$d paychecks, %3$d diesel entries</string>
 
+
+    <string name="maintenance_title">Maintenance</string>
+    <string name="maintenance_active_section">Reminders</string>
+    <string name="maintenance_completed_section">Completed</string>
+    <string name="maintenance_archive_section">Service archive</string>
+    <string name="maintenance_archive_hint">Photograph a receipt or invoice — the app will try to read the total and date.</string>
+    <string name="maintenance_empty_tasks">No maintenance tasks yet. Tap + to add one (e.g. oil change).</string>
+    <string name="maintenance_empty_archive">Archive is empty. Tap the camera icon to add a receipt.</string>
+    <string name="maintenance_add_task_title">New maintenance</string>
+    <string name="maintenance_add_archive_title">Service receipt</string>
+    <string name="maintenance_field_title">What to do</string>
+    <string name="maintenance_field_title_hint">e.g. oil change</string>
+    <string name="maintenance_field_date">Start date</string>
+    <string name="maintenance_by_miles">By miles</string>
+    <string name="maintenance_by_date">By date</string>
+    <string name="maintenance_interval_miles">Remind after (miles)</string>
+    <string name="maintenance_current_odometer">Current truck odometer (mi)</string>
+    <string name="maintenance_due_date">Remind by date</string>
+    <string name="maintenance_started_on">Since %1$s</string>
+    <string name="maintenance_miles_progress">Driven from loads: %1$s mi · %2$s mi left</string>
+    <string name="maintenance_odometer_estimate">Odometer ≈ %1$s / target %2$s mi</string>
+    <string name="maintenance_due_badge">Due</string>
+    <string name="maintenance_due_today">Due today</string>
+    <string name="maintenance_days_left">%1$d days left</string>
+    <string name="maintenance_overdue_days">%1$d days overdue</string>
+    <string name="maintenance_mark_done">Done</string>
+    <string name="maintenance_ocr_processing">Reading receipt…</string>
+    <string name="maintenance_retake_photo">Retake photo</string>
+    <string name="maintenance_archive_what">What was done</string>
+    <string name="maintenance_archive_when">When</string>
+    <string name="maintenance_archive_amount">Amount ($)</string>
+    <string name="maintenance_error_empty_title">Enter a title</string>
+    <string name="maintenance_error_interval">Enter miles interval</string>
+    <string name="maintenance_error_odometer">Enter current truck miles</string>
+    <string name="maintenance_error_due_date">Enter reminder date</string>
+    <string name="maintenance_error_description">Enter what was done</string>
+    <string name="maintenance_error_amount">Enter amount</string>
+    <string name="notify_maintenance_title">Maintenance reminder</string>
+    <string name="notify_maintenance_body">%1$s — time to service the truck</string>
+
     <string name="notify_add_paycheck_title">Add paycheck</string>
     <string name="notify_add_diesel_title">Add diesel</string>
     <string name="notify_missing_week_body">No data for week %1$d</string>

@@ -14,6 +14,7 @@ import com.truckerload.data.local.dao.DriverProfileDao
 import com.truckerload.data.local.dao.DriverStatusDao
 import com.truckerload.data.local.dao.LoadDao
 import com.truckerload.data.local.dao.LoadHistoryDao
+import com.truckerload.data.local.dao.MaintenanceDao
 import com.truckerload.data.local.dao.MessageReactionDao
 import com.truckerload.data.local.dao.MediaSyncQueueDao
 import com.truckerload.data.local.dao.PaycheckDao
@@ -39,6 +40,8 @@ import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadHistory
+import com.truckerload.data.local.entities.MaintenanceArchiveEntity
+import com.truckerload.data.local.entities.MaintenanceTaskEntity
 import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.MediaSyncQueueEntity
 import com.truckerload.data.local.entities.PaycheckEntity
@@ -85,8 +88,10 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         SocialPeerEntity::class,
         SyncOutboxEntity::class,
         MediaSyncQueueEntity::class,
+        MaintenanceTaskEntity::class,
+        MaintenanceArchiveEntity::class,
     ],
-    version = 26,
+    version = 27,
     // exportSchema=false: Room will not write schema JSON under schemas/. Migrations still
     // run from code, but CI cannot diff exported schemas — enable exportSchema=true +
     // schemas/ in VCS before shipping destructive migration changes.
@@ -118,6 +123,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun socialPeerDao(): SocialPeerDao
     abstract fun syncOutboxDao(): SyncOutboxDao
     abstract fun mediaSyncQueueDao(): MediaSyncQueueDao
+    abstract fun maintenanceDao(): MaintenanceDao
 
     companion object {
         private const val LEGACY_DB_NAME = "truckerload_db"
@@ -181,6 +187,7 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_23_24,
                         MIGRATION_24_25,
                         MIGRATION_25_26,
+                        MIGRATION_26_27,
                     )
                     // RISK: versions 1–5 have no migrations — opening an ancient DB wipes all tables.
                     // Ship with exportSchema=true + documented upgrade path before removing this.

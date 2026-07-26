@@ -44,3 +44,6 @@ val LocalSocialRepository = compositionLocalOf<com.truckerload.data.repository.S
 val LocalVoiceRepository = compositionLocalOf<com.truckerload.data.repository.VoiceRepository> {
     error("No VoiceRepository provided")
 }
+val LocalMaintenanceRepository = compositionLocalOf<com.truckerload.data.repository.MaintenanceRepository> {
+    error("No MaintenanceRepository provided")
+}

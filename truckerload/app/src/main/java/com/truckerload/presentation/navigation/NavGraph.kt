@@ -50,6 +50,7 @@ import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
+import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
 import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
@@ -98,6 +99,7 @@ object Routes {
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
     const val TAX_TRACKER = "tax_tracker"
+    const val MAINTENANCE = "maintenance"
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
     const val CAMERA = "camera"
@@ -303,6 +305,7 @@ fun NavGraph(
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
+                DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.SUPPORT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
@@ -493,6 +496,9 @@ fun NavGraph(
             composable(Routes.TAX_TRACKER) {
                 TaxTrackerScreen(onBack = { navController.popBackStack() })
             }
+            composable(Routes.MAINTENANCE) {
+                MaintenanceScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.FINANCIAL_ADVISOR) {
                 FinancialAdvisorScreen(onBack = { navController.popBackStack() })
             }
@@ -506,6 +512,7 @@ fun NavGraph(
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     onTaxTracker = { navController.navigate(Routes.TAX_TRACKER) },
+                    onMaintenance = { navController.navigate(Routes.MAINTENANCE) },
                     onAddPaycheck = { navController.navigate(Routes.ADD_PAYCHECK) },
                     onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) },
                     showBack = !tablet

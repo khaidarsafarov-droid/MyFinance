@@ -83,6 +83,7 @@ import kotlinx.coroutines.withContext
 fun SettingsScreen(
     onBack: () -> Unit,
     onTaxTracker: () -> Unit = {},
+    onMaintenance: () -> Unit = {},
     onAddPaycheck: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
     showBack: Boolean = false
@@ -369,6 +370,13 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.tax_title))
                     }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onMaintenance,
+                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                ) {
+                    Text(stringResource(R.string.maintenance_title))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedButton(

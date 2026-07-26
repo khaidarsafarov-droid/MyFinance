@@ -291,4 +291,8 @@ interface LoadDao {
         """
     )
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg
+
+    /** Loaded miles from journal loads on/after [startDate] (YYYY-MM-DD). */
+    @Query("SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads WHERE date >= :startDate")
+    suspend fun sumMilesSince(startDate: String): Double
 }

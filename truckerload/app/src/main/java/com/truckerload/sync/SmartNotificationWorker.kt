@@ -9,9 +9,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.DieselRepository
+import com.truckerload.data.repository.MaintenanceRepository
+import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
@@ -24,6 +24,7 @@ class SmartNotificationWorker(
     companion object {
         const val CHANNEL_MISSING = "truckerload_missing"
         const val CHANNEL_ALERTS = "truckerload_alerts"
+        private const val MAINTENANCE_NOTIFY_BASE_ID = 100
     }
 
     override suspend fun doWork(): Result {
@@ -31,18 +32,20 @@ class SmartNotificationWorker(
             ?: return Result.success()
         val paycheckRepo = PaycheckRepository(db)
         val dieselRepo = DieselRepository(db)
+        val maintenanceRepo = MaintenanceRepository(db)
 
         createChannels()
         val (currentWeek, year) = getCurrentWeekNumberAndYear()
         val (lastWeek, lastYear) = shiftWeekNumberAndYear(currentWeek, year, -1)
 
         return try {
-            // Zero loads is fine — planner only looks at paycheck/diesel for last week.
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
             val diesel = dieselRepo.getDieselForWeek(lastWeek, lastYear).first()
+            val dueMaintenance = maintenanceRepo.getDueProgressForNotifications()
             val plan = SmartNotificationPlanner.plan(
                 hasPaycheckForLastWeek = paycheck != null,
                 dieselEntriesLastWeek = diesel.size,
+                maintenanceDueTitles = dueMaintenance.map { it.task.title },
             )
             if (plan.notifyMissingPaycheck) {
                 notify(
@@ -61,6 +64,18 @@ class SmartNotificationWorker(
                     applicationContext.getString(R.string.notify_add_diesel_title),
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
                 )
+            }
+            plan.maintenanceDueTitles.forEachIndexed { index, title ->
+                notify(
+                    applicationContext,
+                    MAINTENANCE_NOTIFY_BASE_ID + index,
+                    CHANNEL_ALERTS,
+                    applicationContext.getString(R.string.notify_maintenance_title),
+                    applicationContext.getString(R.string.notify_maintenance_body, title),
+                )
+            }
+            dueMaintenance.forEach { progress ->
+                maintenanceRepo.markNotified(progress.task.id)
             }
             Result.success()
         } catch (e: Exception) {

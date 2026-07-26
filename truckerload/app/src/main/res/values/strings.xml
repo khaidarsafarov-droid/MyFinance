@@ -620,6 +620,46 @@
     <string name="backup_restore_bad_format">Неверный формат файла</string>
     <string name="backup_restore_success">Восстановлено: %1$d грузов, %2$d зарплат, %3$d записей дизеля</string>
 
+
+    <string name="maintenance_title">ТО</string>
+    <string name="maintenance_active_section">Напоминания</string>
+    <string name="maintenance_completed_section">Выполнено</string>
+    <string name="maintenance_archive_section">Архив сервиса</string>
+    <string name="maintenance_archive_hint">Сфотографируйте чек или инвойс — приложение попробует распознать сумму и дату.</string>
+    <string name="maintenance_empty_tasks">Пока нет задач ТО. Нажмите +, чтобы добавить (например, замена масла).</string>
+    <string name="maintenance_empty_archive">Архив пуст. Нажмите значок камеры, чтобы добавить чек.</string>
+    <string name="maintenance_add_task_title">Новое ТО</string>
+    <string name="maintenance_add_archive_title">Чек сервиса</string>
+    <string name="maintenance_field_title">Что сделать</string>
+    <string name="maintenance_field_title_hint">Например: замена масла</string>
+    <string name="maintenance_field_date">Дата начала</string>
+    <string name="maintenance_by_miles">По милям</string>
+    <string name="maintenance_by_date">По сроку</string>
+    <string name="maintenance_interval_miles">Напомнить через (мили)</string>
+    <string name="maintenance_current_odometer">Сейчас на одометре (мили)</string>
+    <string name="maintenance_due_date">Напомнить к дате</string>
+    <string name="maintenance_started_on">С %1$s</string>
+    <string name="maintenance_miles_progress">Проехано по лоудам: %1$s mi · осталось %2$s mi</string>
+    <string name="maintenance_odometer_estimate">Одометр ≈ %1$s / цель %2$s mi</string>
+    <string name="maintenance_due_badge">Пора</string>
+    <string name="maintenance_due_today">Срок сегодня</string>
+    <string name="maintenance_days_left">Осталось %1$d дн.</string>
+    <string name="maintenance_overdue_days">Просрочено на %1$d дн.</string>
+    <string name="maintenance_mark_done">Сделано</string>
+    <string name="maintenance_ocr_processing">Распознаём чек…</string>
+    <string name="maintenance_retake_photo">Переснять</string>
+    <string name="maintenance_archive_what">Что сделали</string>
+    <string name="maintenance_archive_when">Когда</string>
+    <string name="maintenance_archive_amount">Сумма ($)</string>
+    <string name="maintenance_error_empty_title">Укажите название</string>
+    <string name="maintenance_error_interval">Укажите интервал в милях</string>
+    <string name="maintenance_error_odometer">Укажите текущие мили трака</string>
+    <string name="maintenance_error_due_date">Укажите дату напоминания</string>
+    <string name="maintenance_error_description">Укажите, что было сделано</string>
+    <string name="maintenance_error_amount">Укажите сумму</string>
+    <string name="notify_maintenance_title">Напоминание ТО</string>
+    <string name="notify_maintenance_body">%1$s — пора обслуживать трак</string>
+
     <string name="notify_add_paycheck_title">Добавьте зарплату</string>
     <string name="notify_add_diesel_title">Добавьте дизель</string>
     <string name="notify_missing_week_body">Нет данных за неделю %1$d</string>

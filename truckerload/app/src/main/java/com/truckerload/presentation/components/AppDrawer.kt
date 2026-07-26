@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.DocumentScanner
@@ -54,6 +55,7 @@ enum class DrawerDestination {
     SETTINGS,
     REPORTS,
     DOCUMENTS,
+    MAINTENANCE,
     SCANNER,
     CAMERA,
     SUPPORT,
@@ -111,6 +113,11 @@ fun AppDrawerContent(
                 icon = Icons.Outlined.Description,
                 label = stringResource(R.string.drawer_documents),
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.Build,
+                label = stringResource(R.string.maintenance_title),
+                onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
             )
             drawerItem(
                 icon = Icons.Outlined.DocumentScanner,

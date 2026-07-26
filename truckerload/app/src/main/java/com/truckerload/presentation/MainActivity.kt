@@ -43,6 +43,7 @@ import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
@@ -56,6 +57,7 @@ import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalDieselRepository
 import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
@@ -252,6 +254,7 @@ class MainActivity : AppCompatActivity() {
                                 LocalScanRepository provides deps.scanRepository,
                                 LocalSocialRepository provides deps.socialRepository,
                                 LocalVoiceRepository provides deps.voiceRepository,
+                                LocalMaintenanceRepository provides deps.maintenanceRepository,
                             ) {
                                 com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
                                     NavGraph(
@@ -300,6 +303,7 @@ class MainActivity : AppCompatActivity() {
         val socialRepository: SocialRepository,
         val voiceRepository: VoiceRepository,
         val aiRepository: AiRepository,
+        val maintenanceRepository: MaintenanceRepository,
     )
 
     private suspend fun createDependencies(
@@ -333,6 +337,7 @@ class MainActivity : AppCompatActivity() {
             socialRepository = SocialRepository(db, loadRepository, userProfileStore, context),
             voiceRepository = VoiceRepository(db, context),
             aiRepository = AiRepository(),
+            maintenanceRepository = MaintenanceRepository(db),
         )
     }
 

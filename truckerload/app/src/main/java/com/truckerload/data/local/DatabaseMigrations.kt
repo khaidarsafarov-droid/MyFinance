@@ -616,3 +616,60 @@ val MIGRATION_25_26 = object : Migration(25, 26) {
         MEDIA_MIGRATION_25_26_SQL.forEach(db::execSQL)
     }
 }
+
+/** ТО (maintenance) reminders + service receipt archive. */
+val MIGRATION_26_27 = object : Migration(26, 27) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                title TEXT NOT NULL,
+                startDate TEXT NOT NULL,
+                reminderType TEXT NOT NULL,
+                intervalMiles REAL,
+                odometerAtStart REAL,
+                dueDate TEXT,
+                isCompleted INTEGER NOT NULL,
+                completedAt INTEGER,
+                notifiedAt INTEGER,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_maintenance_tasks_isCompleted " +
+                "ON maintenance_tasks(isCompleted)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_maintenance_tasks_startDate " +
+                "ON maintenance_tasks(startDate)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_maintenance_tasks_dueDate " +
+                "ON maintenance_tasks(dueDate)",
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_archive (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                serviceDate TEXT NOT NULL,
+                description TEXT NOT NULL,
+                amount REAL NOT NULL,
+                photoPath TEXT,
+                ocrText TEXT,
+                createdAt INTEGER NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_maintenance_archive_serviceDate " +
+                "ON maintenance_archive(serviceDate)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_maintenance_archive_createdAt " +
+                "ON maintenance_archive(createdAt)",
+        )
+    }
+}
