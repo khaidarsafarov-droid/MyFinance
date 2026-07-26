@@ -72,7 +72,6 @@ import com.truckerload.presentation.di.LocalWeekRepository
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
-import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.presentation.theme.TruckerLoadTheme
 import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.sync.ServerTelegramInboxWorker
@@ -149,8 +148,8 @@ class MainActivity : AppCompatActivity() {
                             TelegramBotForegroundService.start(applicationContext)
                         }
                     }
-                    // Silent session check + background sync. In LOCAL_ONLY_MODE skip
-                    // cloud/Drive/push workers so cold start stays responsive on slow devices.
+                    // Show UI before network/IO so theme recreates don't hang on the spinner.
+                    sessionReady = true
                     withContext(Dispatchers.IO) {
                         com.truckerload.data.auth.SilentAuthRestorer.restore(
                             context = applicationContext,
@@ -182,7 +181,6 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    sessionReady = true
                 } else {
                     TelegramBotForegroundService.stopForLogout(applicationContext)
                     kotlinx.coroutines.delay(300)
@@ -193,14 +191,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            // Compose colors follow DataStore; night mode is applied only from
+            // ThemeSettingsSection / TruckerLoadApp — never from the SYSTEM initialValue
+            // (that caused an Activity recreate loop when Light was saved).
             val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
             val darkTheme = when (themeMode) {
                 AppThemeMode.DARK -> true
                 AppThemeMode.LIGHT -> false
                 AppThemeMode.SYSTEM -> isSystemInDarkTheme()
-            }
-            LaunchedEffect(themeMode) {
-                ThemeManager.apply(themeMode)
             }
             TruckerLoadTheme(darkTheme = darkTheme, themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

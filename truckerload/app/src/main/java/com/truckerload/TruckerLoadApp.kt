@@ -71,7 +71,8 @@ class TruckerLoadApp : Application() {
             }
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
-        ThemeManager.apply(AppThemeMode.SYSTEM)
+        // Do not force SYSTEM here — that races the saved Light/Dark preference and can
+        // recreate MainActivity in a loop with Compose's themeMode initialValue.
         if (TelegramSyncMode.isServer()) {
             ServerTelegramInboxWorker.enqueue(this)
             ServerTelegramInboxWorker.enqueuePeriodic(this)
