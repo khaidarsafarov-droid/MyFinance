@@ -18,6 +18,10 @@ import java.util.concurrent.Executors
 /**
  * Credential Manager (One Tap replacement) — современный Sign-in with Google.
  * Показывает bottom sheet вместо отдельного Activity.
+ *
+ * Use only for **explicit** user sign-in / reconnect (Login screen).
+ * Do **not** call from cold-start [com.truckerload.data.auth.SilentAuthRestorer]:
+ * even `silent=true` can show the Google account UI on every launch.
  */
 object CredentialManagerGoogleSignIn {
 
@@ -27,7 +31,8 @@ object CredentialManagerGoogleSignIn {
 
     /**
      * Запрашивает Google ID token через Credential Manager.
-     * @param silent when true, only previously authorized accounts with auto-select (silent re-auth).
+     * @param silent when true, only previously authorized accounts with auto-select.
+     *   Still may show UI — never use for automatic cold-start restore.
      */
     suspend fun getGoogleIdToken(
         context: Context,
