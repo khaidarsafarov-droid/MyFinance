@@ -630,6 +630,9 @@
     <string name="maintenance_empty_archive">Архив пуст. Нажмите камеру, чтобы отсканировать чек.</string>
     <string name="maintenance_add_task_title">Новое ТО</string>
     <string name="maintenance_add_archive_title">Чек сервиса</string>
+    <string name="maintenance_edit_receipt_title">Проверьте чек</string>
+    <string name="maintenance_edit_receipt_hint">Проверьте распознанные поля и исправьте, если OCR ошибся.</string>
+    <string name="maintenance_has_receipt">Есть чек</string>
     <string name="maintenance_field_title">Что сделать</string>
     <string name="maintenance_field_title_hint">Например: замена масла</string>
     <string name="maintenance_field_date">Дата начала</string>

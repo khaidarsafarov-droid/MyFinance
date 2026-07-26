@@ -630,6 +630,9 @@
     <string name="maintenance_empty_archive">Archive is empty. Tap the camera icon to scan a receipt.</string>
     <string name="maintenance_add_task_title">New maintenance</string>
     <string name="maintenance_add_archive_title">Service receipt</string>
+    <string name="maintenance_edit_receipt_title">Review receipt</string>
+    <string name="maintenance_edit_receipt_hint">Check the recognized fields and fix anything OCR got wrong.</string>
+    <string name="maintenance_has_receipt">Receipt on file</string>
     <string name="maintenance_field_title">What to do</string>
     <string name="maintenance_field_title_hint">e.g. oil change</string>
     <string name="maintenance_field_date">Start date</string>

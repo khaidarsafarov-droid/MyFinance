@@ -35,6 +35,26 @@ internal object ParseUtils {
             return "$y-$m-$d"
         }
 
+        // DD-MM-YY or DD-MM-YYYY with dashes/slashes (day-first when day > 12).
+        val dashed = Regex("""(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})""")
+        dashed.find(trimmed)?.let {
+            val a = it.groupValues[1].toIntOrNull() ?: return@let
+            val b = it.groupValues[2].toIntOrNull() ?: return@let
+            val yearRaw = it.groupValues[3]
+            val year = when (yearRaw.length) {
+                4 -> yearRaw.toIntOrNull() ?: defaultYear
+                2 -> 2000 + (yearRaw.toIntOrNull() ?: (defaultYear % 100))
+                else -> defaultYear
+            }
+            val (month, day) = when {
+                a > 12 && b in 1..12 -> b to a // DD/MM
+                b > 12 && a in 1..12 -> a to b // MM/DD
+                else -> a to b // default US MM/DD
+            }
+            if (month !in 1..12 || day !in 1..31) return@let
+            return "%04d-%02d-%02d".format(year, month, day)
+        }
+
         val us = Regex("""(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?""")
         us.find(trimmed)?.let {
             val monthNum = it.groupValues[1].toIntOrNull() ?: return@let
@@ -47,6 +67,56 @@ internal object ParseUtils {
                 else -> com.truckerload.utils.LoadDateRepair.resolveRelayYear(monthNum, dayNum, defaultYear)
             }
             return "$year-$month-$day"
+        }
+
+        normalizeTextMonthDate(trimmed, defaultYear).takeIf { it.isNotBlank() }?.let { return it }
+        return ""
+    }
+
+    /** Parses `Jul 15, 2026` / `July 15 2026` / `15 Jul 2026`. */
+    fun normalizeTextMonthDate(
+        raw: String?,
+        defaultYear: Int = Calendar.getInstance().get(Calendar.YEAR),
+    ): String {
+        if (raw.isNullOrBlank()) return ""
+        val trimmed = raw.trim()
+        val monthMap = mapOf(
+            "jan" to 1, "january" to 1,
+            "feb" to 2, "february" to 2,
+            "mar" to 3, "march" to 3,
+            "apr" to 4, "april" to 4,
+            "may" to 5,
+            "jun" to 6, "june" to 6,
+            "jul" to 7, "july" to 7,
+            "aug" to 8, "august" to 8,
+            "sep" to 9, "sept" to 9, "september" to 9,
+            "oct" to 10, "october" to 10,
+            "nov" to 11, "november" to 11,
+            "dec" to 12, "december" to 12,
+        )
+
+        val mdY = Regex(
+            """(?i)\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:,)?\s+(\d{2,4})\b""",
+        ).find(trimmed)
+        if (mdY != null) {
+            val month = monthMap[mdY.groupValues[1].lowercase(Locale.US)] ?: return ""
+            val day = mdY.groupValues[2].toIntOrNull() ?: return ""
+            val yearRaw = mdY.groupValues[3]
+            val year = if (yearRaw.length == 2) 2000 + yearRaw.toInt() else yearRaw.toInt()
+            if (day !in 1..31) return ""
+            return "%04d-%02d-%02d".format(year, month, day)
+        }
+
+        val dMY = Regex(
+            """(?i)\b(\d{1,2})\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{2,4})\b""",
+        ).find(trimmed)
+        if (dMY != null) {
+            val day = dMY.groupValues[1].toIntOrNull() ?: return ""
+            val month = monthMap[dMY.groupValues[2].lowercase(Locale.US)] ?: return ""
+            val yearRaw = dMY.groupValues[3]
+            val year = if (yearRaw.length == 2) 2000 + yearRaw.toInt() else yearRaw.toInt()
+            if (day !in 1..31) return ""
+            return "%04d-%02d-%02d".format(year, month, day)
         }
         return ""
     }

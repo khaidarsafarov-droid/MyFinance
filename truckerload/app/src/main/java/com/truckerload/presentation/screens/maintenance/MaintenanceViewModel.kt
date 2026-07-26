@@ -249,8 +249,10 @@ class MaintenanceViewModel(
                     val receipt = ReceiptData(
                         imageUri = saved.absolutePath,
                         serviceName = parsed.serviceName.orEmpty(),
-                        date = parsed.date?.let { ReceiptData.isoDateToEpochMillis(it) }
-                            ?: System.currentTimeMillis(),
+                        date = ReceiptData.isoDateToEpochMillis(
+                            parsed.date ?: java.time.LocalDate.now()
+                                .format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE),
+                        ),
                         totalAmount = parsed.amount ?: 0.0,
                         description = parsed.descriptionHint.orEmpty(),
                         rawText = rawText,

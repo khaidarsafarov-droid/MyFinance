@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,11 +26,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -54,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -74,6 +78,7 @@ import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalMaintenanceRepository
+import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -531,6 +536,7 @@ private fun ArchiveCard(
     onOpenPhoto: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val hasReceipt = !entry.photoPath.isNullOrBlank()
     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -538,25 +544,47 @@ private fun ArchiveCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (!entry.photoPath.isNullOrBlank()) {
-                AsyncImage(
-                    model = File(entry.photoPath),
-                    contentDescription = stringResource(R.string.maintenance_receipt_photo),
+            if (hasReceipt) {
+                Box(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(MaterialTheme.shapes.medium)
-                        .clickable { onOpenPhoto(entry.photoPath) },
-                    contentScale = ContentScale.Crop,
-                )
+                        .clickable { onOpenPhoto(entry.photoPath!!) },
+                ) {
+                    AsyncImage(
+                        model = File(entry.photoPath),
+                        contentDescription = stringResource(R.string.maintenance_receipt_photo),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Icon(
+                        imageVector = Icons.Default.AttachFile,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(4.dp)
+                            .size(16.dp),
+                    )
+                }
                 Spacer(modifier = Modifier.width(12.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                if (entry.serviceName.isNotBlank()) {
-                    Text(
-                        entry.serviceName,
-                        color = tc.TextPrimary,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    if (entry.serviceName.isNotBlank()) {
+                        Text(
+                            entry.serviceName,
+                            color = tc.TextPrimary,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                    }
+                    if (hasReceipt) {
+                        ReceiptAttachedBadge(onClick = { onOpenPhoto(entry.photoPath!!) })
+                    }
                 }
                 Text(
                     entry.description,
@@ -574,10 +602,43 @@ private fun ArchiveCard(
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
+            if (hasReceipt) {
+                IconButton(onClick = { onOpenPhoto(entry.photoPath!!) }) {
+                    Icon(
+                        Icons.Default.Photo,
+                        contentDescription = stringResource(R.string.maintenance_receipt_photo),
+                        tint = AppColors.RpmGreen,
+                    )
+                }
+            }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
             }
         }
+    }
+}
+
+@Composable
+private fun ReceiptAttachedBadge(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(AppColors.RpmGreen),
+        )
+        Text(
+            text = stringResource(R.string.maintenance_has_receipt),
+            color = AppColors.RpmGreen,
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
 
@@ -735,12 +796,17 @@ private fun AddArchiveDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = tc.CardBackground,
-        title = { Text(stringResource(R.string.maintenance_add_archive_title), color = tc.TextPrimary) },
+        title = { Text(stringResource(R.string.maintenance_edit_receipt_title), color = tc.TextPrimary) },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
+                Text(
+                    text = stringResource(R.string.maintenance_edit_receipt_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                )
                 if (!draft.photoPath.isNullOrBlank()) {
                     AsyncImage(
                         model = File(draft.photoPath),
