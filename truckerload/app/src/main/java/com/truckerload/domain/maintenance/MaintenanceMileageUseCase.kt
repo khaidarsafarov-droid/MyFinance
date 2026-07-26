@@ -3,6 +3,8 @@ package com.truckerload.domain.maintenance
 import com.truckerload.domain.model.MaintenanceProgress
 import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.domain.model.MaintenanceTask
+import com.truckerload.utils.getWeekNumberAndYearFromDate
+import com.truckerload.utils.getWeekRange
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -15,8 +17,8 @@ import kotlin.math.roundToLong
  *
  * Formulas (all [Long] arithmetic — never string concat):
  * - targetOdometer = baseOdometer + targetInterval
- * - milesSinceService = Σ load.miles where endDate >= serviceDate
- *   AND the load was recorded after the reminder (so baseline odometer is not double-counted)
+ * - milesSinceService = Σ load.miles where **endDate >= serviceDate**
+ *   (same-day finish after oil change counts; start/PU date is not used for the cutoff)
  * - currentOdometer = baseOdometer + milesSinceService
  * - remainingMiles = targetOdometer - currentOdometer
  *
@@ -24,6 +26,9 @@ import kotlin.math.roundToLong
  * - serviceDate → startDate
  * - baseOdometer → odometerAtStart
  * - targetInterval → intervalMiles
+ *
+ * [baseOdometer] is the reading **at service time**, so every trip that finished on/after
+ * that day must count — even if it was already in the journal when the reminder was created.
  */
 object MaintenanceMileageUseCase {
 
@@ -39,7 +44,7 @@ object MaintenanceMileageUseCase {
         val date: String,
         val actualFinishDate: String? = null,
         val lastDelMillis: Long? = null,
-        /** When the load row entered the journal (ms). */
+        /** When the load row entered the journal (ms). Kept for diagnostics; not a cutoff. */
         val parsedAt: Long = 0L,
     )
 
@@ -54,6 +59,10 @@ object MaintenanceMileageUseCase {
         val progressFraction: Float,
     )
 
+    /**
+     * Trip end date for ТО math: actualFinishDate → lastDelMillis → load.date.
+     * Prefer finish/DEL so a multi-day trip that ends on/after service still counts.
+     */
     fun resolveEndDate(load: LoadInput, zoneId: ZoneId = ZoneId.systemDefault()): String? {
         load.actualFinishDate
             ?.trim()
@@ -74,21 +83,31 @@ object MaintenanceMileageUseCase {
     }
 
     /**
+     * Inclusive upper bound for end dates: Saturday of the trucking week that contains [today]
+     * (Sun–Sat). Lets same-week finishes count even if slightly ahead of the device clock.
+     */
+    fun inclusiveEndDateCap(today: LocalDate = LocalDate.now()): String {
+        val (week, year) = getWeekNumberAndYearFromDate(today.format(iso))
+        val (_, weekEnd, _) = getWeekRange(week, year)
+        return weekEnd
+    }
+
+    /**
      * @param serviceDate YYYY-MM-DD of the ТО / odometer snapshot
-     * @param baselineRecordedAtMs when the reminder was saved — loads already in the journal
-     *   before this moment are excluded (their miles are already inside [baseOdometer])
-     * @param today caps end dates so future-misdated history cannot inflate the sum
+     * @param today used to resolve the current trucking-week end cap (far-future misdates still drop)
      */
     fun calculate(
         baseOdometer: Long,
         targetInterval: Long,
         serviceDate: String,
         loads: List<LoadInput>,
-        baselineRecordedAtMs: Long = 0L,
         today: LocalDate = LocalDate.now(),
+        @Suppress("UNUSED_PARAMETER")
+        baselineRecordedAtMs: Long = 0L,
     ): MileageSnapshot {
         val service = serviceDate.take(10)
-        val todayIso = today.format(iso)
+        // endDate >= serviceDate AND endDate <= end of current trucking week
+        val endCapIso = inclusiveEndDateCap(today)
         val seen = LinkedHashSet<String>()
         var totalDrivenMiles = 0L
         var loadCount = 0
@@ -97,16 +116,11 @@ object MaintenanceMileageUseCase {
             val miles = milesAsLong(load.miles)
             if (miles <= 0L) continue
 
-            // Baseline odometer already includes driving done before the ТО was logged.
-            if (baselineRecordedAtMs > 0L && load.parsedAt > 0L && load.parsedAt < baselineRecordedAtMs) {
-                continue
-            }
-
             val endDate = resolveEndDate(load) ?: continue
-            // Only trips that finished on/after the service day.
+            // Same calendar day as ТО (or later) counts — not strict greater-than.
             if (endDate < service) continue
-            // Drop absurd future end dates (common with year-misdated history).
-            if (endDate > todayIso) continue
+            // Drop absurd future / year-misdated ends beyond this trucking week.
+            if (endDate > endCapIso) continue
 
             val key = load.tripId.ifBlank { load.id }
             if (!seen.add(key)) continue
@@ -153,8 +167,8 @@ object MaintenanceMileageUseCase {
                     targetInterval = interval,
                     serviceDate = task.startDate,
                     loads = loads,
-                    baselineRecordedAtMs = task.createdAt,
                     today = today,
+                    baselineRecordedAtMs = task.createdAt,
                 )
                 MaintenanceProgress(
                     task = task,
