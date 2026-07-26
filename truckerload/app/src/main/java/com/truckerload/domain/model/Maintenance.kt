@@ -39,4 +39,5 @@ data class MaintenanceProgress(
     val milesRemaining: Double?,
     val daysRemaining: Long?,
     val isDue: Boolean,
+    val loadsCounted: Int = 0,
 )

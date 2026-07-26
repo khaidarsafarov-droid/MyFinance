@@ -19,6 +19,7 @@ object MaintenanceProgressCalculator {
         task: MaintenanceTask,
         milesDrivenSinceStart: Double,
         today: LocalDate = LocalDate.now(),
+        loadsCounted: Int = 0,
     ): MaintenanceProgress {
         val miles = milesDrivenSinceStart.coerceAtLeast(0.0)
         return when (task.reminderType) {
@@ -36,6 +37,7 @@ object MaintenanceProgressCalculator {
                     milesRemaining = remaining,
                     daysRemaining = null,
                     isDue = interval > 0 && estimated >= target,
+                    loadsCounted = loadsCounted,
                 )
             }
             MaintenanceReminderType.DATE -> {
@@ -49,6 +51,7 @@ object MaintenanceProgressCalculator {
                     milesRemaining = null,
                     daysRemaining = daysLeft,
                     isDue = due != null && !today.isBefore(due),
+                    loadsCounted = loadsCounted,
                 )
             }
         }

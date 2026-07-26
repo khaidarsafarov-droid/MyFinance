@@ -343,10 +343,15 @@ private fun ActiveTaskCard(
                     val remaining = String.format(Locale.US, "%,.0f", progress.milesRemaining ?: 0.0)
                     val estimated = String.format(Locale.US, "%,.0f", progress.estimatedOdometer ?: 0.0)
                     val target = String.format(Locale.US, "%,.0f", progress.targetOdometer ?: 0.0)
-                    Text(
-                        stringResource(R.string.maintenance_miles_progress, driven, remaining),
-                        color = tc.TextPrimary,
-                    )
+                        Text(
+                            stringResource(
+                                R.string.maintenance_miles_progress,
+                                driven,
+                                remaining,
+                                progress.loadsCounted,
+                            ),
+                            color = tc.TextPrimary,
+                        )
                     Text(
                         stringResource(R.string.maintenance_odometer_estimate, estimated, target),
                         style = MaterialTheme.typography.bodySmall,
