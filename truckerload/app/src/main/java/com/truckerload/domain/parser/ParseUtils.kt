@@ -92,24 +92,77 @@ internal object ParseUtils {
             return AddressParts(facility, full, city, state, zip)
         }
 
+        // Relay one-liner: "SWF2, Garner, NC" / "TOL3, Perrysburg, OH 43551"
+        parseFacilityCityState(line)?.let { return it }
+
         val (city, state, zip) = parseCityStateZip(line)
         return AddressParts(null, line, city, state, zip)
     }
 
+    /**
+     * `FACILITY, City, ST[ ZIP]` where facility is a Relay warehouse code (no spaces).
+     * Requires at least two commas so plain `City, ST` stays a city/state pair.
+     */
+    private fun parseFacilityCityState(line: String): AddressParts? {
+        val m = Regex(
+            """^([A-Za-z0-9][A-Za-z0-9\-]{0,23}),\s*(.+),\s*([A-Za-z]{2}|[A-Za-z][A-Za-z .]+[A-Za-z])\s*(\d{5}(?:-\d{4})?)?\s*$""",
+        ).find(line) ?: return null
+        val facility = m.groupValues[1].trim()
+        val city = m.groupValues[2].trim()
+        val stateRaw = m.groupValues[3].trim()
+        val state = normalizeUsState(stateRaw)
+        val zip = m.groupValues.getOrNull(4).orEmpty()
+        if (city.isBlank() || state.isBlank()) return null
+        // Reject accidental "City, County, ST" where first token looks like a multi-word city fragment.
+        if (facility.contains(' ')) return null
+        val looksLikeState = state.length == 2 || US_STATE_NAMES.containsKey(stateRaw.lowercase(Locale.US))
+        if (!looksLikeState) return null
+        return AddressParts(
+            facilityCode = facility,
+            fullAddress = line,
+            city = city,
+            state = state,
+            zip = zip,
+        )
+    }
+
     private fun parseCityStateZip(part: String): Triple<String, String, String> {
-        val csz = Regex("""(.+?),\s*([A-Za-z]{2,})\s*(\d{5}(?:-\d{4})?)?""", RegexOption.IGNORE_CASE)
-        val m = csz.find(part)
-        if (m != null) {
-            val city = m.groupValues[1].trim()
-            val stateRaw = m.groupValues[2].trim()
-            val state = normalizeUsState(stateRaw)
+        val trimmed = part.trim()
+        if (trimmed.isBlank()) return Triple("", "", "")
+
+        // Prefer trailing 2-letter state so "SWF2, Garner, NC" does not treat Garner as state.
+        Regex("""^(.+),\s*([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)\s*$""").find(trimmed)?.let { m ->
             return Triple(
-                city,
-                state,
-                m.groupValues.getOrNull(3).orEmpty()
+                cityFromLeft(m.groupValues[1]),
+                m.groupValues[2].uppercase(Locale.US),
+                m.groupValues[3],
             )
         }
-        return Triple(part.trim(), "", "")
+        Regex("""^(.+),\s*([A-Za-z]{2})\s*$""").find(trimmed)?.let { m ->
+            return Triple(
+                cityFromLeft(m.groupValues[1]),
+                m.groupValues[2].uppercase(Locale.US),
+                "",
+            )
+        }
+        // Full state name: "PERRYSBURG, Ohio 43551"
+        Regex("""^(.+),\s*([A-Za-z][A-Za-z .]+[A-Za-z])\s*(\d{5}(?:-\d{4})?)?\s*$""").find(trimmed)?.let { m ->
+            val stateRaw = m.groupValues[2].trim()
+            val state = normalizeUsState(stateRaw)
+            if (state.length == 2 || US_STATE_NAMES.containsKey(stateRaw.lowercase(Locale.US))) {
+                return Triple(
+                    cityFromLeft(m.groupValues[1]),
+                    state,
+                    m.groupValues.getOrNull(3).orEmpty(),
+                )
+            }
+        }
+        return Triple(trimmed, "", "")
+    }
+
+    private fun cityFromLeft(left: String): String {
+        val trimmed = left.trim()
+        return trimmed.substringAfterLast(',').trim().ifBlank { trimmed }
     }
 
     /** Parses multi-line Relay address block (facility, street, city/state/zip). */
@@ -118,9 +171,12 @@ internal object ParseUtils {
         if (cleaned.isEmpty()) {
             return AddressParts(null, "", "", "", "")
         }
+        // One-liner Relay labels: "SWF2, Garner, NC"
+        if (cleaned.size == 1) return parseAddressLine(cleaned[0])
 
         val cityStateIndex = cleaned.indexOfLast { line ->
-            parseCityStateZip(line).second.isNotBlank() || parseCityStateZip(line).third.isNotBlank()
+            val parsed = parseCityStateZip(line)
+            parsed.second.isNotBlank() || parsed.third.isNotBlank()
         }
         val (city, state, zip) = if (cityStateIndex >= 0) {
             parseCityStateZip(cleaned[cityStateIndex])
@@ -131,7 +187,7 @@ internal object ParseUtils {
         val facility = if (cityStateIndex > 0) cleaned.first() else cleaned.firstOrNull()
         val streetLines = when {
             cityStateIndex > 1 -> cleaned.subList(1, cityStateIndex)
-            cityStateIndex == 1 -> listOf(cleaned[0])
+            cityStateIndex == 1 -> emptyList()
             cleaned.size > 1 -> cleaned.drop(1)
             else -> emptyList()
         }
@@ -141,7 +197,7 @@ internal object ParseUtils {
             .joinToString(", ")
 
         return AddressParts(
-            facilityCode = facility?.takeIf { it.length <= 24 && cityStateIndex > 0 },
+            facilityCode = facility?.takeIf { it.length <= 24 && !it.contains(',') && cityStateIndex > 0 },
             fullAddress = full.ifBlank { cleaned.joinToString(", ") },
             city = city,
             state = state,

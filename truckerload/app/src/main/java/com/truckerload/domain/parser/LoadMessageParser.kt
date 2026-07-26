@@ -212,40 +212,80 @@ object LoadMessageParser {
             line.startsWith("PU#", ignoreCase = true)
 
     private fun parseLabelPairStops(block: String, tripId: String): List<Stop> {
-        val sections = parseRelaySections(block)
-        if (!sections.containsKey("pu-address")) return emptyList()
+        data class PendingStop(
+            val type: StopType,
+            val lines: MutableList<String>,
+            val scheduledTime: String,
+            val note: String?,
+        )
 
-        val stops = mutableListOf<Stop>()
-        sections["pu-address"]?.let { lines ->
-            val addr = ParseUtils.parseMultiLineAddress(lines)
-            val firstPuNumber = puHeaderPattern.find(block)?.groupValues?.get(1)?.trim()
-            stops.add(
-                buildStop(
-                    tripId = tripId,
-                    stopNumber = stops.size + 1,
-                    type = StopType.PU,
-                    puNumber = firstPuNumber,
-                    note = sections["note"]?.firstOrNull(),
-                    scheduledTime = sections["pu-time"]?.firstOrNull().orEmpty(),
-                    addr = addr,
-                )
+        val pending = mutableListOf<PendingStop>()
+        var current: PendingStop? = null
+        var lastPuTime = ""
+        var lastDelTime = ""
+        var lastNote: String? = null
+
+        fun flush() {
+            val active = current ?: return
+            if (active.lines.isNotEmpty()) pending.add(active)
+            current = null
+        }
+
+        for (rawLine in block.lines()) {
+            val line = rawLine.trim()
+            if (line.isBlank()) continue
+            if (line.startsWith("PU#", ignoreCase = true)) continue
+
+            val sectionMatch = sectionStopPattern.find(line)
+            if (sectionMatch != null) {
+                val kind = sectionMatch.groupValues[1].lowercase(Locale.US)
+                val field = sectionMatch.groupValues[2].lowercase(Locale.US)
+                val remainder = sectionMatch.groupValues[3].trim()
+                when (field) {
+                    "time" -> {
+                        if (kind == "pu") lastPuTime = remainder else lastDelTime = remainder
+                    }
+                    "address" -> {
+                        flush()
+                        current = PendingStop(
+                            type = if (kind == "pu") StopType.PU else StopType.DEL,
+                            lines = mutableListOf<String>().apply {
+                                if (remainder.isNotBlank()) add(remainder)
+                            },
+                            scheduledTime = if (kind == "pu") lastPuTime else lastDelTime,
+                            note = if (kind == "pu") lastNote else null,
+                        )
+                    }
+                }
+                continue
+            }
+
+            if (line.startsWith("Note", ignoreCase = true)) {
+                val noteText = line.substringAfter(":", line.substringAfter("Note", line)).trim()
+                lastNote = noteText.takeIf { it.isNotBlank() }
+                continue
+            }
+
+            if (current != null && !isTripLevelLine(line)) {
+                current!!.lines.add(line)
+            }
+        }
+        flush()
+
+        if (pending.isEmpty()) return emptyList()
+
+        return pending.mapIndexed { index, item ->
+            val addr = ParseUtils.parseMultiLineAddress(item.lines)
+            buildStop(
+                tripId = tripId,
+                stopNumber = index + 1,
+                type = item.type,
+                puNumber = null,
+                note = item.note,
+                scheduledTime = item.scheduledTime,
+                addr = addr,
             )
         }
-        sections["del-address"]?.let { lines ->
-            val addr = ParseUtils.parseMultiLineAddress(lines)
-            stops.add(
-                buildStop(
-                    tripId = tripId,
-                    stopNumber = stops.size + 1,
-                    type = StopType.DEL,
-                    puNumber = null,
-                    note = null,
-                    scheduledTime = sections["del-time"]?.firstOrNull().orEmpty(),
-                    addr = addr,
-                )
-            )
-        }
-        return stops
     }
 
     private fun parsePipeStops(block: String, tripId: String): List<Stop> {
