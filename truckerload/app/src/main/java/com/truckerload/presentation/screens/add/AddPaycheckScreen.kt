@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
@@ -49,6 +48,7 @@ import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalPaycheckRepository
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -227,17 +227,7 @@ fun AddPaycheckScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = tc.AccentPrimary,
-                            unfocusedBorderColor = tc.Divider,
-                            focusedLabelColor = tc.AccentPrimary,
-                            unfocusedLabelColor = tc.TextSecondary,
-                            focusedTextColor = tc.TextPrimary,
-                            unfocusedTextColor = tc.TextPrimary,
-                            focusedContainerColor = BentoGlassTheme.CardFill,
-                            unfocusedContainerColor = BentoGlassTheme.CardFill,
-                            cursorColor = tc.AccentPrimary,
-                        ),
+                        colors = AppTextFieldDefaults.outlined(),
                     )
                 }
             }

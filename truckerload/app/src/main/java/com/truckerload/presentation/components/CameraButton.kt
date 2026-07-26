@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -34,8 +33,9 @@ fun CameraButton(
     size: Dp = UiDimens.FabSize,
     iconSize: Dp = UiDimens.IconFab,
 ) {
+    val cs = MaterialTheme.colorScheme
     val gradient = Brush.horizontalGradient(
-        listOf(SoftUiColors.PurpleStart, SoftUiColors.PurpleEnd),
+        listOf(cs.primary, cs.primary),
     )
     Box(
         modifier = modifier
@@ -64,7 +64,7 @@ fun CameraButton(
         Icon(
             imageVector = Icons.Default.CameraAlt,
             contentDescription = stringResource(R.string.camera),
-            tint = Color.White,
+            tint = cs.onPrimary,
             modifier = Modifier.size(iconSize),
         )
     }

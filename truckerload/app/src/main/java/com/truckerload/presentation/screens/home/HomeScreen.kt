@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -91,7 +90,7 @@ import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
-import com.truckerload.presentation.theme.DarkGlassSectionTitle
+import com.truckerload.presentation.theme.ForestSectionTitle
 import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.StatsCardSkeleton
@@ -276,7 +275,7 @@ fun HomeScreen(
                         Text(
                             text = stringResource(R.string.home_brand_title).uppercase(),
                             style = AppTypography.ScreenTitle.copy(
-                                color = SoftUiColors.ForestPrimary,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 1.5.sp,
                             ),
@@ -284,29 +283,33 @@ fun HomeScreen(
                         if (welcomeName.isNotBlank()) {
                             Text(
                                 stringResource(R.string.home_welcome, welcomeName),
-                                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
+                                style = AppTypography.Caption.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                             )
                         } else {
                             Text(
                                 stringResource(R.string.app_tagline),
-                                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
+                                style = AppTypography.Caption.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                             )
                         }
                         weekLabel.takeIf { it.isNotBlank() && uiState.filter != LoadFilter.THIS_WEEK }?.let { week ->
-                            Text(week, style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted))
+                            Text(week, style = AppTypography.Caption.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
                         }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = stringResource(R.string.common_menu),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SoftUiColors.Sage,
-                    titleContentColor = SoftUiColors.ForestPrimary,
-                    actionIconContentColor = SoftUiColors.ForestPrimary,
-                    navigationIconContentColor = SoftUiColors.ForestPrimary,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
                 actions = {
                     if (isBotConfigured) {
@@ -319,7 +322,7 @@ fun HomeScreen(
                             Icon(
                                 Icons.Default.Sync,
                                 contentDescription = stringResource(R.string.home_cd_sync_telegram),
-                                tint = tc.TextPrimary,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
                     }
@@ -330,7 +333,7 @@ fun HomeScreen(
                         Icon(
                             Icons.Default.Search,
                             contentDescription = stringResource(R.string.home_cd_search),
-                            tint = tc.TextPrimary,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
                     BotStatusBadge(active = uiState.botStatusActive)
@@ -556,7 +559,7 @@ private fun HomeScreenContent(
 
             if ((useRoomPaging && pagedLoads.itemCount > 0) || (!useRoomPaging && listItems.isNotEmpty())) {
                 item(key = "recent_header") {
-                    DarkGlassSectionTitle(
+                    ForestSectionTitle(
                         text = stringResource(R.string.home_recent_loads),
                         modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
                     )

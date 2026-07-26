@@ -76,8 +76,8 @@ fun BentoGlassCard(
     val cs = MaterialTheme.colorScheme
     val containerColor = when {
         solidBackground -> cs.surface
-        useHeroGradient -> SoftUiColors.ForestPrimary
-        useHighlight -> SoftUiColors.Sage
+        useHeroGradient -> cs.primary
+        useHighlight -> cs.primaryContainer
         useCream -> cs.secondaryContainer
         else -> cs.surface
     }
@@ -94,7 +94,7 @@ fun BentoGlassCard(
         color = containerColor,
         border = androidx.compose.foundation.BorderStroke(
             width = if (useHeroGradient) 0.dp else BentoGlassTheme.BorderWidth,
-            color = if (useHeroGradient) Color.Transparent else SoftUiColors.CardBorder,
+            color = if (useHeroGradient) Color.Transparent else cs.outline,
         ),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
@@ -201,7 +201,7 @@ fun BentoGlassMetricCell(
                 spotColor = SoftUiColors.ShadowNeutral,
             ),
         shape = shape,
-        color = if (highlight) SoftUiColors.PurpleLight else cs.surface,
+        color = if (highlight) cs.primaryContainer else cs.surface,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {

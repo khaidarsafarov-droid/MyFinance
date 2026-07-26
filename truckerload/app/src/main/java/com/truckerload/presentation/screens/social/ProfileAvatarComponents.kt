@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -94,11 +95,21 @@ fun ProfileAvatar(
                     )
                 },
                 error = {
-                    Text("👤", style = MaterialTheme.typography.headlineMedium)
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 },
             )
         } else {
-            Text("👤", style = MaterialTheme.typography.headlineMedium)
+            Icon(
+                imageVector = Icons.Outlined.Person,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         if (onClick != null) {

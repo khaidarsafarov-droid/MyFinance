@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,7 +44,6 @@ import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
@@ -98,6 +98,7 @@ private fun LoadCardContent(
     onScanClick: (() -> Unit)?,
 ) {
     val tc = LocalTruckColors.current
+    val cs = MaterialTheme.colorScheme
     val route = formatLoadRoute(load)
     val stopLabel = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
     val rpm = computeRpm(load.totalRate, load.totalMiles)
@@ -122,7 +123,7 @@ private fun LoadCardContent(
                         style = AppTypography.CardTitle.copy(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 14.sp,
-                            color = SoftUiColors.ForestPrimary,
+                            color = cs.onSurface,
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -136,14 +137,14 @@ private fun LoadCardContent(
                 }
                 Text(
                     text = load.effectiveFinishDate() ?: load.date,
-                    style = AppTypography.CaptionMuted.copy(color = SoftUiColors.ForestMuted),
+                    style = AppTypography.CaptionMuted.copy(color = cs.onSurfaceVariant),
                     maxLines = 1,
                     softWrap = false,
                 )
             }
             Text(
                 text = route,
-                style = AppTypography.CardRoute.copy(color = SoftUiColors.ForestPrimary),
+                style = AppTypography.CardRoute.copy(color = cs.onSurface),
                 modifier = Modifier.padding(top = 8.dp),
             )
             Text(
@@ -153,7 +154,7 @@ private fun LoadCardContent(
                     String.format(Locale.US, "%,.0f", load.totalMiles),
                     String.format(Locale.US, "$%,.2f", load.totalRate),
                 ),
-                style = AppTypography.Caption.copy(color = SoftUiColors.ForestMuted),
+                style = AppTypography.Caption.copy(color = cs.onSurfaceVariant),
                 modifier = Modifier.padding(top = 6.dp),
             )
             if (load.durationDays > 0.0) {
@@ -163,7 +164,7 @@ private fun LoadCardContent(
                         formatDurationDays(load.durationDays),
                         formatPacePerDay(load.pace),
                     ),
-                    style = AppTypography.Subtitle.copy(color = SoftUiColors.ForestMuted),
+                    style = AppTypography.Subtitle.copy(color = cs.onSurfaceVariant),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -178,7 +179,7 @@ private fun LoadCardContent(
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(SoftUiColors.Sage)
+                            .background(cs.primaryContainer)
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -195,7 +196,7 @@ private fun LoadCardContent(
                                 load.totalMiles,
                                 stringResource(R.string.rpm_per_mile_format),
                             ),
-                            style = AppTypography.NumbersSmall.copy(color = SoftUiColors.ForestPrimary),
+                            style = AppTypography.NumbersSmall.copy(color = cs.onSurface),
                         )
                     }
                 } else {
@@ -209,13 +210,13 @@ private fun LoadCardContent(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(SoftUiColors.Sage)
+                                .background(cs.primaryContainer)
                                 .semantics { contentDescription = photoCd },
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CameraAlt,
                                 contentDescription = photoCd,
-                                tint = SoftUiColors.ForestPrimary,
+                                tint = cs.onPrimaryContainer,
                                 modifier = Modifier.size(18.dp),
                             )
                         }
@@ -227,13 +228,13 @@ private fun LoadCardContent(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(SoftUiColors.Sage)
+                                .background(cs.primaryContainer)
                                 .semantics { contentDescription = scanCd },
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.DocumentScanner,
                                 contentDescription = scanCd,
-                                tint = SoftUiColors.ForestPrimary,
+                                tint = cs.onPrimaryContainer,
                                 modifier = Modifier.size(18.dp),
                             )
                         }

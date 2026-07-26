@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="widget_bg">#FF8E78FF</color>
-    <color name="widget_bg_bottom">#FF5B9FFF</color>
+    <!-- Mindwell Forest — synced with SoftUiColors -->
+    <color name="widget_bg">#FF2F4F3E</color>
+    <color name="widget_bg_bottom">#FF4A7C59</color>
     <color name="widget_glass_fill">#33FFFFFF</color>
     <color name="widget_bg_stroke">#33FFFFFF</color>
-    <color name="widget_loading_bg">#FF8E78FF</color>
+    <color name="widget_loading_bg">#FF2F4F3E</color>
     <color name="widget_loading_text">#FFFFFFFF</color>
     <color name="widget_loading_text_secondary">#CCFFFFFF</color>
     <color name="widget_text_primary">#FFFFFFFF</color>
     <color name="widget_text_secondary">#CCFFFFFF</color>
     <color name="widget_accent">#FFFFFFFF</color>
-    <color name="widget_primary">#FF8E78FF</color>
-    <color name="widget_secondary">#FF5B9FFF</color>
+    <color name="widget_primary">#FF4A7C59</color>
+    <color name="widget_secondary">#FF2F4F3E</color>
     <color name="widget_green">#FF34D399</color>
     <color name="widget_value_emerald">#FF34D399</color>
     <color name="widget_value_gold">#FFFFFFFF</color>
@@ -29,11 +30,12 @@
     <color name="widget_day_future">#33FFFFFF</color>
     <color name="widget_day_border">#66FFFFFF</color>
     <color name="widget_text_hint">#99FFFFFF</color>
-    <color name="widget_surface">#008E78FF</color>
-    <color name="widget_cyan">#FF5B9FFF</color>
+    <color name="widget_surface">#002F4F3E</color>
+    <color name="widget_cyan">#FFA3B899</color>
     <color name="widget_outline_variant">#33FFFFFF</color>
     <color name="widget_hero_number">#FFFFFFFF</color>
-    <color name="widget_hero_bg">#FF8E78FF</color>
+    <color name="widget_hero_bg">#FF2F4F3E</color>
+    <color name="widget_chip_bg">#FFE6EDE9</color>
     <dimen name="widget_padding">16dp</dimen>
     <dimen name="widget_progress_bar_height">8dp</dimen>
     <dimen name="widget_days_badge_min_width">36dp</dimen>

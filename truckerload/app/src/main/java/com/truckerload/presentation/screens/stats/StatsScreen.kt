@@ -71,7 +71,7 @@ import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.SoftUiDimens
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
@@ -196,7 +196,7 @@ fun StatsScreen(
             TopAppBar(
                 title = {
                     Column {
-                        DarkGlassScreenTitle(stringResource(R.string.stats_title))
+                        ForestScreenTitle(stringResource(R.string.stats_title))
                         Text(
                             text = stringResource(R.string.stats_subtitle_rpm, uiState.avgRpm),
                             style = AppTypography.Subtitle,

@@ -65,11 +65,9 @@ fun BentoGrid(
 fun BentoSectionTitle(
     title: String,
     modifier: Modifier = Modifier,
-    emoji: String? = null,
 ) {
-    val label = if (emoji != null) "$emoji ${title.uppercase()}" else title.uppercase()
     Text(
-        text = label,
+        text = title.uppercase(),
         modifier = modifier.padding(horizontal = 4.dp, vertical = 4.dp),
         style = AppTypography.SectionTitle,
     )

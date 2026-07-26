@@ -9,11 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,6 +42,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
@@ -133,9 +138,42 @@ fun PhotoDetailScreen(
                 )
             }
 
-            Text("📍 ${p.city}, ${p.state} ${p.zipCode}".trim(), color = tc.TextPrimary)
-            Text("📅 ${PhotoManager.formatDateTime(p.timestamp)}", color = tc.TextSecondary, style = MaterialTheme.typography.bodySmall)
-            Text("📌 ${p.latitude}, ${p.longitude}", color = tc.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    tint = tc.TextPrimary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text("${p.city}, ${p.state} ${p.zipCode}".trim(), color = tc.TextPrimary)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.CalendarMonth,
+                    contentDescription = null,
+                    tint = tc.TextSecondary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(PhotoManager.formatDateTime(p.timestamp), color = tc.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PushPin,
+                    contentDescription = null,
+                    tint = tc.TextSecondary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text("${p.latitude}, ${p.longitude}", color = tc.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
 
             Text(stringResource(R.string.link_to_load), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
             ExposedDropdownMenuBox(

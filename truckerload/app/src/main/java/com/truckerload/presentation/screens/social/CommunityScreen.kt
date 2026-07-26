@@ -7,21 +7,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.MarkChatUnread
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import com.truckerload.presentation.components.LocalOpenDrawer
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -48,9 +53,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
+import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.LeaderboardCategory
 import com.truckerload.domain.social.SocialChat
 import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -285,13 +292,7 @@ private fun ChatsTabContent(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(stringResource(R.string.social_search_chats)) },
                 singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = tc.TextPrimary,
-                    unfocusedTextColor = tc.TextPrimary,
-                    cursorColor = tc.AccentPrimary,
-                    focusedBorderColor = tc.AccentPrimary,
-                    unfocusedBorderColor = tc.Divider,
-                ),
+                colors = AppTextFieldDefaults.outlined(),
             )
         }
         item {
@@ -347,7 +348,12 @@ private fun ChatsTabContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text("🎙️", style = MaterialTheme.typography.headlineMedium)
+                    Icon(
+                        imageVector = Icons.Outlined.Mic,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp),
+                    )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.voice_rooms),
@@ -384,16 +390,51 @@ private fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(chat.avatarEmoji, style = MaterialTheme.typography.headlineMedium)
+            Icon(
+                imageVector = if (chat.type == ChatType.PRIVATE) Icons.Default.Person else Icons.Default.Groups,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp),
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(chat.title, style = AppTypography.CardTitle, color = tc.TextPrimary)
-                Text(
-                    text = "⭐ ${"%.1f".format(chat.rating)} · 📍 ${chat.participantCount} · ${chat.lastMessage}",
-                    style = AppTypography.Subtitle,
-                    color = tc.TextSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = null,
+                        tint = tc.TextSecondary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = "%.1f".format(chat.rating),
+                        style = AppTypography.Subtitle,
+                        color = tc.TextSecondary,
+                    )
+                    Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
+                    Icon(
+                        imageVector = Icons.Filled.People,
+                        contentDescription = null,
+                        tint = tc.TextSecondary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = chat.participantCount.toString(),
+                        style = AppTypography.Subtitle,
+                        color = tc.TextSecondary,
+                    )
+                    Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
+                    Text(
+                        text = chat.lastMessage,
+                        style = AppTypography.Subtitle,
+                        color = tc.TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 if (chat.description.isNotBlank()) {
                     Text(
                         text = chat.description,
@@ -407,9 +448,31 @@ private fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(time, style = AppTypography.Subtitle, color = tc.TextSecondary)
                 if (chat.unreadCount > 0) {
-                    Text("🔴 ${chat.unreadCount}", style = AppTypography.Subtitle)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MarkChatUnread,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(chat.unreadCount.toString(), style = AppTypography.Subtitle)
+                    }
                 } else if (chat.onlineCount > 0) {
-                    Text("🟢 ${chat.onlineCount}", style = AppTypography.Subtitle)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Circle,
+                            contentDescription = null,
+                            tint = tc.AccentProfit,
+                            modifier = Modifier.size(8.dp),
+                        )
+                        Text(chat.onlineCount.toString(), style = AppTypography.Subtitle)
+                    }
                 }
             }
         }
@@ -459,21 +522,50 @@ private fun LeaderboardTabContent(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = when (entry.rank) {
-                            1 -> "🥇"
-                            2 -> "🥈"
-                            3 -> "🥉"
-                            else -> "${entry.rank}."
-                        } + " ${entry.displayName}",
-                        style = AppTypography.CardTitle,
-                        color = if (entry.isMe) tc.AccentPrimary else tc.TextPrimary,
-                    )
-                    Text(
-                        text = "⭐ ${"%.1f".format(entry.rating)}  ${MoneyFormat.formatNumber(entry.score)} ${entry.trend}",
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        if (entry.rank <= 3) {
+                            Icon(
+                                imageVector = Icons.Outlined.EmojiEvents,
+                                contentDescription = null,
+                                tint = when (entry.rank) {
+                                    1 -> tc.AccentPrimary
+                                    2 -> MaterialTheme.colorScheme.secondary
+                                    else -> MaterialTheme.colorScheme.tertiary
+                                },
+                                modifier = Modifier.size(20.dp),
+                            )
+                        } else {
+                            Text(
+                                text = "#${entry.rank}",
+                                style = AppTypography.CardTitle,
+                                color = if (entry.isMe) tc.AccentPrimary else tc.TextPrimary,
+                            )
+                        }
+                        Text(
+                            text = entry.displayName,
+                            style = AppTypography.CardTitle,
+                            color = if (entry.isMe) tc.AccentPrimary else tc.TextPrimary,
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "${"%.1f".format(entry.rating)}  ${MoneyFormat.formatNumber(entry.score)} ${entry.trend}",
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
                 }
             }
         }
@@ -497,7 +589,19 @@ private fun ChallengesTabContent(
         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(stringResource(R.string.weekly_challenge), style = AppTypography.CardTitle, color = tc.TextPrimary)
-                Text("🏆 ${challenge.title}", style = AppTypography.Subtitle, modifier = Modifier.padding(top = 8.dp))
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.EmojiEvents,
+                        contentDescription = null,
+                        tint = tc.AccentPrimary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(challenge.title, style = AppTypography.Subtitle)
+                }
                 Text(challenge.description, style = AppTypography.Subtitle, color = tc.TextSecondary)
                 Text(
                     text = stringResource(R.string.my_position) + ": #${challenge.myPosition} (${MoneyFormat.formatNumber(challenge.myScore)} mi)",

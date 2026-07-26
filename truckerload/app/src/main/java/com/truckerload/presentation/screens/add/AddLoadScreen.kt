@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -105,17 +105,7 @@ fun AddLoadScreen(
                     label = { Text(stringResource(R.string.add_load_input_label)) },
                     placeholder = { Text(stringResource(R.string.add_load_input_placeholder)) },
                     shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = tc.AccentPrimary,
-                        unfocusedBorderColor = tc.Divider,
-                        focusedLabelColor = tc.AccentPrimary,
-                        unfocusedLabelColor = tc.TextSecondary,
-                        focusedTextColor = tc.TextPrimary,
-                        unfocusedTextColor = tc.TextPrimary,
-                        focusedContainerColor = BentoGlassTheme.CardFill,
-                        unfocusedContainerColor = BentoGlassTheme.CardFill,
-                        cursorColor = tc.AccentPrimary,
-                    ),
+                    colors = AppTextFieldDefaults.outlined(),
                 )
             }
             Button(

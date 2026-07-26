@@ -3,68 +3,36 @@ package com.truckerload.presentation.components
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.components.TlButton
-import com.truckerload.presentation.theme.DarkGlassGradients
-import com.truckerload.presentation.theme.SoftUiColors
-import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.SoftUiElevation
+import androidx.compose.ui.text.font.FontWeight
 import java.util.Locale
 
+/**
+ * Legacy Gold* API — thin aliases over SoftCard / TlButton.
+ * Prefer SoftCard / TlButton / ForestScreenTitle directly in new code.
+ */
+@Deprecated("Use SoftCard", ReplaceWith("SoftCard(modifier = modifier, content = content)"))
 @Composable
 fun GoldCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val tc = LocalTruckColors.current
-    val shape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = SoftUiElevation.Card,
-                shape = shape,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
-            )
-            .clip(shape)
-            .background(DarkGlassGradients.cardShine)
-            .border(BentoGlassTheme.BorderWidth, tc.GlassBorder, shape)
-            .padding(24.dp),
-        content = content,
-    )
+    SoftCard(modifier = modifier, content = content)
 }
 
+@Deprecated("Use TlButton", ReplaceWith("TlButton(onClick = onClick, modifier = modifier, enabled = enabled) { Text(text) }"))
 @Composable
 fun GoldButton(
     onClick: () -> Unit,
@@ -81,59 +49,51 @@ fun GoldButton(
     }
 }
 
+@Deprecated("Use Material Divider / HorizontalDivider")
 @Composable
 fun GoldDivider(modifier: Modifier = Modifier) {
-    val tc = LocalTruckColors.current
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        tc.AccentPrimary.copy(alpha = 0.25f),
-                        tc.AccentSecondary.copy(alpha = 0.35f),
-                        tc.AccentPrimary.copy(alpha = 0.25f),
-                        Color.Transparent,
-                    ),
-                ),
-            ),
+    androidx.compose.material3.HorizontalDivider(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
     )
 }
 
+@Deprecated("Use Icon with MaterialTheme.colorScheme.primary")
 @Composable
 fun GoldIcon(
     imageVector: ImageVector,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
     size: Dp = 24.dp,
 ) {
-    val tc = LocalTruckColors.current
     Icon(
         imageVector = imageVector,
-        contentDescription = null,
+        contentDescription = contentDescription,
         modifier = modifier.size(size),
-        tint = SoftUiColors.PurpleStart,
+        tint = MaterialTheme.colorScheme.primary,
     )
 }
 
+@Deprecated("Use AnimatedNumber")
 @Composable
 fun GoldAnimatedNumber(
-    target: Double,
+    value: Double,
     modifier: Modifier = Modifier,
     prefix: String = "$",
-    format: String = "%,.0f",
+    decimals: Int = 0,
 ) {
-    val tc = LocalTruckColors.current
-    val animatedValue by animateFloatAsState(
-        targetValue = target.toFloat(),
-        animationSpec = tween(800, easing = EaseOutCubic),
-        label = "softNumber",
+    val animated by animateFloatAsState(
+        targetValue = value.toFloat(),
+        animationSpec = tween(durationMillis = 700, easing = EaseOutCubic),
+        label = "goldNumber",
     )
     Text(
-        text = prefix + String.format(Locale.US, format, animatedValue.toDouble()),
-        modifier = modifier,
-        style = MaterialTheme.typography.displayMedium,
-        color = tc.TextPrimary,
+        text = prefix + String.format(Locale.US, "%,.${decimals}f", animated),
+        modifier = modifier.defaultMinSize(minHeight = 24.dp),
+        style = MaterialTheme.typography.titleLarge.copy(
+            fontWeight = FontWeight.Bold,
+            fontFeatureSettings = "tnum",
+            color = MaterialTheme.colorScheme.primary,
+        ),
     )
 }

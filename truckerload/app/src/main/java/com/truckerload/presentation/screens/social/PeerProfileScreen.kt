@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -98,11 +101,22 @@ fun PeerProfileScreen(
             BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(peer.displayName, style = AppTypography.CardTitle, color = tc.TextPrimary)
-                    Text(
-                        "⭐ ${"%.1f".format(peer.rating)}",
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            "%.1f".format(peer.rating),
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
                     Button(
                         onClick = viewModel::toggleFollow,
                         enabled = !uiState.isUpdatingFollow && !uiState.isBlocked,

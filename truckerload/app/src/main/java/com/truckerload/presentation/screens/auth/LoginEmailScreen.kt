@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,6 +33,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,15 +88,7 @@ fun LoginEmailScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = tc.AccentPrimary,
-                    unfocusedBorderColor = tc.Divider,
-                    focusedLabelColor = tc.AccentPrimary,
-                    unfocusedLabelColor = tc.TextSecondary,
-                    focusedTextColor = tc.TextPrimary,
-                    unfocusedTextColor = tc.TextPrimary,
-                    cursorColor = tc.AccentPrimary
-                )
+                colors = AppTextFieldDefaults.outlined()
             )
 
             OutlinedTextField(
@@ -107,15 +99,7 @@ fun LoginEmailScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = tc.AccentPrimary,
-                    unfocusedBorderColor = tc.Divider,
-                    focusedLabelColor = tc.AccentPrimary,
-                    unfocusedLabelColor = tc.TextSecondary,
-                    focusedTextColor = tc.TextPrimary,
-                    unfocusedTextColor = tc.TextPrimary,
-                    cursorColor = tc.AccentPrimary
-                )
+                colors = AppTextFieldDefaults.outlined()
             )
 
             error?.let { err ->

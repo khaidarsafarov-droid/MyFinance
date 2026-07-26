@@ -104,13 +104,19 @@ fun TruckerLoadTheme(
         SideEffect {
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
+            val barColor = if (darkTheme) {
+                SoftUiColors.BackgroundDark
+            } else {
+                SoftUiColors.Sage
+            }
             if (Build.VERSION.SDK_INT < 35) {
                 @Suppress("DEPRECATION")
-                window.statusBarColor = SoftUiColors.Sage.toArgb()
+                window.statusBarColor = barColor.toArgb()
                 @Suppress("DEPRECATION")
-                window.navigationBarColor = SoftUiColors.Sage.toArgb()
+                window.navigationBarColor = barColor.toArgb()
             }
-            val lightBars = true
+            // Light icons on dark bars; dark icons on sage/light bars.
+            val lightBars = !darkTheme
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = lightBars
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = lightBars
         }

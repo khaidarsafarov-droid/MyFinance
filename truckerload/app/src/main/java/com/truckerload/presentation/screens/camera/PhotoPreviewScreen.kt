@@ -8,12 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.truckerload.presentation.components.TlButton as Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.ButtonDefaults
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -27,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -105,11 +112,22 @@ fun PhotoPreviewScreen(
                 )
             }
 
-            Text(
-                text = "📍 ${photo.locationData.cityStateLine}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextPrimary,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    tint = tc.TextPrimary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = photo.locationData.cityStateLine,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextPrimary,
+                )
+            }
             if (photo.locationData.zipCode.isNotBlank()) {
                 Text(
                     text = photo.locationData.zipCode,
@@ -117,16 +135,38 @@ fun PhotoPreviewScreen(
                     color = tc.TextSecondary,
                 )
             }
-            Text(
-                text = "📅 ${PhotoManager.formatDateTime(photo.timestamp)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextPrimary,
-            )
-            Text(
-                text = "📌 ${photo.locationData.coordinatesLine}",
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.CalendarMonth,
+                    contentDescription = null,
+                    tint = tc.TextPrimary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = PhotoManager.formatDateTime(photo.timestamp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextPrimary,
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PushPin,
+                    contentDescription = null,
+                    tint = tc.TextSecondary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = photo.locationData.coordinatesLine,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

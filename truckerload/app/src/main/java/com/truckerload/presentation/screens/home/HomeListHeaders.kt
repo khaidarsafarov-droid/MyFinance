@@ -68,7 +68,7 @@ internal fun PeriodSummarySection(
                 spotColor = SoftUiColors.ShadowNeutral,
             )
             .clip(SoftUiShapes.Card)
-            .background(SoftUiColors.ForestPrimary)
+            .background(MaterialTheme.colorScheme.primary)
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
         Icon(

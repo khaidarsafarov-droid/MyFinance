@@ -37,21 +37,21 @@ object AppFilterChipDefaults {
 
     @Composable
     fun colors() = FilterChipDefaults.filterChipColors(
-        selectedContainerColor = SoftUiColors.PurpleLight,
-        selectedLabelColor = SoftUiColors.PurpleEnd,
+        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
         containerColor = MaterialTheme.colorScheme.surface,
         labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        selectedLeadingIconColor = SoftUiColors.PurpleEnd,
-        selectedTrailingIconColor = SoftUiColors.PurpleEnd,
+        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
     )
 
     @Composable
     fun stateColors() = FilterChipDefaults.filterChipColors(
-        selectedContainerColor = SoftUiColors.PurpleLight,
-        selectedLabelColor = SoftUiColors.PurpleEnd,
+        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        labelColor = SoftUiColors.TextSecondaryLight,
+        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -59,9 +59,9 @@ object AppSwitchDefaults {
     @Composable
     fun colors() = SwitchDefaults.colors(
         checkedThumbColor = Color.White,
-        checkedTrackColor = SoftUiColors.PurpleStart,
+        checkedTrackColor = MaterialTheme.colorScheme.primary,
         uncheckedThumbColor = Color.White,
-        uncheckedTrackColor = SoftUiColors.SurfaceMuted,
+        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
         uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
     )
 }
@@ -70,8 +70,8 @@ object AppSliderDefaults {
     @Composable
     fun colors() = SliderDefaults.colors(
         thumbColor = Color.White,
-        activeTrackColor = SoftUiColors.PurpleStart,
-        inactiveTrackColor = SoftUiColors.SurfaceMuted,
+        activeTrackColor = MaterialTheme.colorScheme.primary,
+        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
         activeTickColor = Color.Transparent,
         inactiveTickColor = Color.Transparent,
     )

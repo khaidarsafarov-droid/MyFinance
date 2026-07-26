@@ -30,7 +30,7 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 
@@ -61,7 +61,7 @@ fun MapScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            DarkGlassScreenTitle(stringResource(R.string.map_title))
+                            ForestScreenTitle(stringResource(R.string.map_title))
                             Text(
                                 text = stringResource(R.string.map_subtitle_all_loads, uiState.totalLoads),
                                 style = AppTypography.Subtitle,

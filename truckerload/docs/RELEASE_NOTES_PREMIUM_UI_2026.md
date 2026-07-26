@@ -1,73 +1,53 @@
 # TruckerLoad Release Notes
 
-## Premium UI & Date Engine (2026)
+## Mindwell Forest Design System Unification (2026)
 
-This release completes a major UX and architecture refresh focused on driver ergonomics, visual consistency, and date correctness.
+This release completes the design-system migration to **Truck Log — Mindwell Forest**
+across app UI, widgets, dark mode, typography, and forms.
 
 ## Highlights
 
-- Fixed legacy date behavior and removed hardcoded 2024 logic from Finance/Stats flows.
-- Implemented dynamic date handling based on current device date.
-- Defaulted Finance/Stats to March of the current year and synced week selection logic.
-- Replaced heavy date controls with a modern horizontal week strip.
-- Introduced active-week highlighting (Indigo-600) and improved visual state clarity.
-- Rolled out premium light design language across core screens.
+- Canonical forest/sage palette end-to-end (`SoftUiColors` + Material 3 schemes).
+- **DM Sans** bundled and applied as the app typography family.
+- Home-screen widget recolored from purple/blue glass to Forest gradients
+  (light + night resources).
+- Dark mode system bars and semantic text/surfaces fixed (no more forced sage bars
+  with light icons in dark theme).
+- Forms unified on `AppTextFieldDefaults.outlined()`.
+- Decorative emoji replaced with Material Icons in social/voice/gallery/camera flows.
+- Legacy Gold / NeoGlass / DarkGlass APIs deprecated in favor of SoftCard / TlButton /
+  ForestScreenTitle.
 
-## Finance & Stats Improvements
+## Navigation & IA
 
-- Added cockpit-style KPI hierarchy with Net Profit as centerpiece.
-- Added gradient emphasis for Net Profit values (Emerald -> Teal).
-- Added glass card styling and layered depth effects.
-- Implemented speed-dial FAB with backdrop for quick one-hand actions:
-  - Add Diesel Entry
-  - Add Salary Entry
-- Added FAB micro-interactions:
-  - plus-to-close rotation
-  - soft glow pulse
-- Added subtle shimmer on active week chip for visual feedback.
+Phone bottom navigation:
 
-## Navigation & Ergonomics
+- Logbook
+- Weekly Goal
+- Community
+- Profile
 
-- Updated bottom navigation to four key destinations:
-  - Finance
-  - Logs
-  - Profile
-  - Statistics
-- Improved selected tab visibility and premium indicator styling.
-- Standardized touch target sizing across key controls.
+Tablet uses the navigation rail; drawer covers settings, scanner, camera, reports,
+tax tracker, and advisor.
 
-## Form & Detail Screen Consistency
+## Component canon
 
-Applied premium styling and typography consistency to:
+| Prefer | Instead of |
+|--------|------------|
+| `BentoGlassCard` / `SoftCard` | `GoldCard`, raw glass APIs |
+| `TlButton` | `NeoGlassPrimaryButton`, `GoldButton` |
+| `ForestScreenTitle` | `DarkGlassScreenTitle` |
+| `AppTextFieldDefaults.outlined()` | local `OutlinedTextFieldDefaults.colors` |
+| Material Icons | inline emoji prefixes |
 
-- Add Load
-- Add Diesel
-- Add Paycheck
-- Edit Load
-- Load Detail
-- Settings
-- Tax Tracker
-- Financial Advisor
+## Design tokens
 
-Includes:
+See `docs/design/tokens.json` (v1.1.0) and `docs/design/README.md`.
 
-- unified backgrounds and app bars
-- consistent outlined text field colors
-- consistent CTA sizing for major actions
-- consistent error and supporting text color hierarchy
-- dialog styling alignment (AlertDialog / DatePickerDialog)
+## QA checklist
 
-## Technical Quality
-
-- Build status: successful (`:truckerload:assembleDebug`).
-- Lint status: no new lint issues on modified files.
-- Deprecated icon usages migrated where updated in this cycle (AutoMirrored variants).
-
-## QA Checklist (Recommended Final Pass)
-
-- Verify readability under bright sunlight and night mode conditions.
-- Verify week/month switching updates all Finance aggregates immediately.
-- Verify speed-dial open/close flow on smaller devices.
-- Verify bottom bar labels and icon alignment on low-density screens.
-- Verify dialogs and text input focus states across Add/Edit flows.
-
+- Light/dark theme: status bar contrast, bottom nav, Home top app bar.
+- Widget light/night: forest gradient, readable white text, RPM colors.
+- Add Load / Paycheck / Diesel / Edit Load fields in both themes.
+- Social/voice/gallery: icons render (no emoji fallbacks).
+- Unit tests: `:app:testDebugUnitTest`.

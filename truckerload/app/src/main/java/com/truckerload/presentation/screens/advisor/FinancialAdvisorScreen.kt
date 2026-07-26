@@ -33,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -69,6 +68,7 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.screens.chat.ChatMessage
 import com.truckerload.presentation.screens.chat.ChatViewModel
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import kotlinx.coroutines.delay
@@ -279,15 +279,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                     onValueChange = viewModel::setInputText,
                     modifier = Modifier.weight(1f),
                     placeholder = { Text(stringResource(R.string.advisor_placeholder_question), color = tc.TextSecondary) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = tc.TextPrimary,
-                        unfocusedTextColor = tc.TextPrimary,
-                        cursorColor = tc.AccentPrimary,
-                        focusedBorderColor = tc.AccentPrimary,
-                        unfocusedBorderColor = tc.Divider,
-                        focusedContainerColor = tc.SurfaceSecondary,
-                        unfocusedContainerColor = tc.SurfaceSecondary
-                    ),
+                    colors = AppTextFieldDefaults.outlined(),
                     shape = RoundedCornerShape(24.dp),
                     maxLines = 4
                 )

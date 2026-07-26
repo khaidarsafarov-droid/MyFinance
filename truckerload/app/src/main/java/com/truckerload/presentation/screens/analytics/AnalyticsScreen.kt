@@ -56,7 +56,7 @@ import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.DarkGlassScreenTitle
+import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
@@ -103,7 +103,7 @@ fun AnalyticsScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            DarkGlassScreenTitle(stringResource(R.string.analytics_title))
+                            ForestScreenTitle(stringResource(R.string.analytics_title))
                             Text(
                                 stringResource(R.string.analytics_subtitle),
                                 style = AppTypography.Subtitle,

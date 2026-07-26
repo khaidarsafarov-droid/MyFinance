@@ -146,27 +146,28 @@ class MainActivity : AppCompatActivity() {
                             TelegramBotForegroundService.start(applicationContext)
                         }
                     }
-                    // Silent session check + schedule Drive sync (guide Parts 2–3).
+                    // Silent session check + background sync. In LOCAL_ONLY_MODE skip
+                    // cloud/Drive/push workers so cold start stays responsive on slow devices.
                     withContext(Dispatchers.IO) {
                         com.truckerload.data.auth.SilentAuthRestorer.restore(
                             context = applicationContext,
                             authStore = authStore,
                             userProfileStore = userProfileStore,
                         )
-                        com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
-                        com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
-                        com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
-                        com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
-                        com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
-                        ServerTelegramInboxWorker.enqueue(applicationContext)
-                        ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
-                        PushTokenRegistrationWorker.enqueue(applicationContext)
-                        runCatching {
-                            com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
-                        }.onFailure { e ->
-                            android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
-                        }
                         if (!BuildConfig.LOCAL_ONLY_MODE) {
+                            com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
+                            com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
+                            com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
+                            com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
+                            com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
+                            ServerTelegramInboxWorker.enqueue(applicationContext)
+                            ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
+                            PushTokenRegistrationWorker.enqueue(applicationContext)
+                            runCatching {
+                                com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                            }.onFailure { e ->
+                                android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
+                            }
                             runCatching {
                                 com.truckerload.data.backup.GoogleDriveBackupService
                                     .pushAutoBackupIfEnabled(applicationContext)

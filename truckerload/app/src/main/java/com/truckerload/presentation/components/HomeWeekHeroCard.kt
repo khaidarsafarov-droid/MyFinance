@@ -118,7 +118,7 @@ private fun WeekDayDotsRow(modifier: Modifier = Modifier) {
                 isPast -> Color.White.copy(alpha = 0.85f)
                 else -> Color.White.copy(alpha = 0.2f)
             }
-            val labelColor = if (isToday) SoftUiColors.PurpleEnd else Color.White.copy(alpha = 0.75f)
+            val labelColor = if (isToday) Color.White else Color.White.copy(alpha = 0.75f)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = label, style = AppTypography.CaptionMuted.copy(color = labelColor))
                 Box(

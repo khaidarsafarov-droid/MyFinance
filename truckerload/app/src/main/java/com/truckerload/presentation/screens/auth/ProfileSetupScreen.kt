@@ -216,8 +216,8 @@ fun ProfileSetupScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.profile_setup_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
             )
         },
@@ -232,7 +232,11 @@ fun ProfileSetupScreen(
         ) {
             LinearProgressIndicator(
                 progress = { (step + 1) / 3f },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
             Text(
                 text = stringResource(
@@ -345,6 +349,7 @@ fun ProfileSetupScreen(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (step > 0) {
                     TextButton(
@@ -354,7 +359,6 @@ fun ProfileSetupScreen(
                         Text(stringResource(R.string.common_back))
                     }
                 }
-                Spacer(modifier = Modifier.weight(1f))
                 Button(
                     onClick = {
                         if (!validateStep()) return@Button
@@ -388,11 +392,17 @@ fun ProfileSetupScreen(
                             }
                         }
                     },
-                    modifier = Modifier.width(160.dp).height(52.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
                     enabled = !isSaving && !isUploadingAvatar,
                 ) {
                     if (isSaving) {
-                        CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
                     }
                     Text(

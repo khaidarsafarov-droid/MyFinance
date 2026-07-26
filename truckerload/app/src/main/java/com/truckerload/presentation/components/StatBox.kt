@@ -1,9 +1,9 @@
 package com.truckerload.presentation.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.truckerload.presentation.theme.BentoGlassMetricCell
-import com.truckerload.presentation.theme.SoftUiColors
 
 @Composable
 fun StatBox(
@@ -15,6 +15,6 @@ fun StatBox(
         modifier = modifier,
         label = title,
         value = value,
-        accent = SoftUiColors.PurpleEnd
+        accent = MaterialTheme.colorScheme.primary,
     )
 }
