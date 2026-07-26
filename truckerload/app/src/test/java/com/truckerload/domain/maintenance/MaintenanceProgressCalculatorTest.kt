@@ -18,6 +18,7 @@ class MaintenanceProgressCalculatorTest {
             reminderType = MaintenanceReminderType.MILES,
             intervalMiles = 5000.0,
             odometerAtStart = 100_000.0,
+            createdAt = 1L,
         )
         val mid = MaintenanceProgressCalculator.progress(task, milesDrivenSinceStart = 2000.0)
         assertFalse(mid.isDue)
@@ -63,6 +64,7 @@ class MaintenanceProgressCalculatorTest {
             intervalMiles = 100.0,
             odometerAtStart = 0.0,
             isCompleted = true,
+            createdAt = 1L,
         )
         val progress = MaintenanceProgressCalculator.progress(task, 200.0)
         assertTrue(progress.isDue)

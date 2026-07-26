@@ -26,6 +26,7 @@ object MaintenanceProgressCalculator {
                     miles = milesDrivenSinceStart,
                     date = task.startDate,
                     actualFinishDate = task.startDate,
+                    parsedAt = task.createdAt.coerceAtLeast(1L),
                 ),
             )
         } else {

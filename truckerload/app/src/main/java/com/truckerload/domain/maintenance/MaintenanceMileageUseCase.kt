@@ -8,46 +8,52 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.math.roundToLong
 
 /**
- * Smart ТО mileage: baseline odometer + sum of load miles whose trip **end date**
- * is on/after the service date.
+ * ТО mileage from journal loads.
  *
- * Mapping to stored [MaintenanceTask]:
- * - serviceDate → [MaintenanceTask.startDate]
- * - baseOdometer → [MaintenanceTask.odometerAtStart]
- * - targetInterval → [MaintenanceTask.intervalMiles]
+ * Formulas (all [Long] arithmetic — never string concat):
+ * - targetOdometer = baseOdometer + targetInterval
+ * - milesSinceService = Σ load.miles where endDate >= serviceDate
+ *   AND the load was recorded after the reminder (so baseline odometer is not double-counted)
+ * - currentOdometer = baseOdometer + milesSinceService
+ * - remainingMiles = targetOdometer - currentOdometer
+ *
+ * Field mapping on [MaintenanceTask]:
+ * - serviceDate → startDate
+ * - baseOdometer → odometerAtStart
+ * - targetInterval → intervalMiles
  */
 object MaintenanceMileageUseCase {
 
     private val iso = DateTimeFormatter.ISO_LOCAL_DATE
 
+    /** Ignore single-load outliers (corrupt / non-mile values). */
+    private const val MAX_PLAUSIBLE_LOAD_MILES = 15_000L
+
     data class LoadInput(
         val tripId: String,
         val id: String,
         val miles: Double,
-        /** Load start / PU date (YYYY-MM-DD), fallback when end is unknown. */
         val date: String,
-        /** Driver override finish date (YYYY-MM-DD). */
         val actualFinishDate: String? = null,
-        /** Denormalized last DEL millis from Room. */
         val lastDelMillis: Long? = null,
+        /** When the load row entered the journal (ms). */
+        val parsedAt: Long = 0L,
     )
 
     data class MileageSnapshot(
-        val targetOdometer: Double,
-        val totalDrivenMiles: Double,
-        val currentOdometer: Double,
-        val remainingMiles: Double,
-        val milesSinceService: Double,
+        val targetOdometer: Long,
+        val totalDrivenMiles: Long,
+        val currentOdometer: Long,
+        val remainingMiles: Long,
+        val milesSinceService: Long,
         val loadCount: Int,
         val isUrgent: Boolean,
         val progressFraction: Float,
     )
 
-    /**
-     * Resolve trip end date: actualFinishDate → lastDelMillis → load.date.
-     */
     fun resolveEndDate(load: LoadInput, zoneId: ZoneId = ZoneId.systemDefault()): String? {
         load.actualFinishDate
             ?.trim()
@@ -62,41 +68,71 @@ object MaintenanceMileageUseCase {
         return load.date.takeIf { it.length >= 10 }?.take(10)
     }
 
+    fun milesAsLong(raw: Double): Long {
+        if (!raw.isFinite() || raw <= 0.0) return 0L
+        return raw.roundToLong().coerceAtMost(MAX_PLAUSIBLE_LOAD_MILES)
+    }
+
+    /**
+     * @param serviceDate YYYY-MM-DD of the ТО / odometer snapshot
+     * @param baselineRecordedAtMs when the reminder was saved — loads already in the journal
+     *   before this moment are excluded (their miles are already inside [baseOdometer])
+     * @param today caps end dates so future-misdated history cannot inflate the sum
+     */
     fun calculate(
-        baseOdometer: Double,
-        targetInterval: Double,
+        baseOdometer: Long,
+        targetInterval: Long,
         serviceDate: String,
         loads: List<LoadInput>,
+        baselineRecordedAtMs: Long = 0L,
+        today: LocalDate = LocalDate.now(),
     ): MileageSnapshot {
         val service = serviceDate.take(10)
+        val todayIso = today.format(iso)
         val seen = LinkedHashSet<String>()
-        var totalDrivenMiles = 0.0
+        var totalDrivenMiles = 0L
         var loadCount = 0
+
         for (load in loads) {
-            if (load.miles <= 0.0) continue
+            val miles = milesAsLong(load.miles)
+            if (miles <= 0L) continue
+
+            // Baseline odometer already includes driving done before the ТО was logged.
+            if (baselineRecordedAtMs > 0L && load.parsedAt > 0L && load.parsedAt < baselineRecordedAtMs) {
+                continue
+            }
+
             val endDate = resolveEndDate(load) ?: continue
+            // Only trips that finished on/after the service day.
             if (endDate < service) continue
+            // Drop absurd future end dates (common with year-misdated history).
+            if (endDate > todayIso) continue
+
             val key = load.tripId.ifBlank { load.id }
             if (!seen.add(key)) continue
-            totalDrivenMiles += load.miles
+
+            totalDrivenMiles += miles
             loadCount++
         }
-        val targetOdometer = baseOdometer + targetInterval
-        val currentOdometer = baseOdometer + totalDrivenMiles
+
+        val safeBase = baseOdometer.coerceAtLeast(0L)
+        val safeInterval = targetInterval.coerceAtLeast(0L)
+        val targetOdometer = safeBase + safeInterval
+        val currentOdometer = safeBase + totalDrivenMiles
         val remainingMiles = targetOdometer - currentOdometer
-        val milesSinceService = totalDrivenMiles
-        val isUrgent = targetInterval > 0 && remainingMiles <= 0
-        val progressFraction = if (targetInterval > 0) {
-            (milesSinceService / targetInterval).toFloat().coerceIn(0f, 1f)
+        val isUrgent = safeInterval > 0L && remainingMiles <= 0L
+        val progressFraction = if (safeInterval > 0L) {
+            (totalDrivenMiles.toDouble() / safeInterval.toDouble()).toFloat().coerceIn(0f, 1f)
         } else {
             0f
         }
+
         return MileageSnapshot(
             targetOdometer = targetOdometer,
             totalDrivenMiles = totalDrivenMiles,
             currentOdometer = currentOdometer,
             remainingMiles = remainingMiles,
-            milesSinceService = milesSinceService,
+            milesSinceService = totalDrivenMiles,
             loadCount = loadCount,
             isUrgent = isUrgent,
             progressFraction = progressFraction,
@@ -110,20 +146,22 @@ object MaintenanceMileageUseCase {
     ): MaintenanceProgress {
         return when (task.reminderType) {
             MaintenanceReminderType.MILES -> {
-                val base = task.odometerAtStart ?: 0.0
-                val interval = task.intervalMiles ?: 0.0
+                val base = (task.odometerAtStart ?: 0.0).roundToLong().coerceAtLeast(0L)
+                val interval = (task.intervalMiles ?: 0.0).roundToLong().coerceAtLeast(0L)
                 val snap = calculate(
                     baseOdometer = base,
                     targetInterval = interval,
                     serviceDate = task.startDate,
                     loads = loads,
+                    baselineRecordedAtMs = task.createdAt,
+                    today = today,
                 )
                 MaintenanceProgress(
                     task = task,
-                    milesDrivenSinceStart = snap.milesSinceService,
-                    estimatedOdometer = snap.currentOdometer,
-                    targetOdometer = snap.targetOdometer,
-                    milesRemaining = snap.remainingMiles.coerceAtLeast(0.0),
+                    milesDrivenSinceStart = snap.milesSinceService.toDouble(),
+                    estimatedOdometer = snap.currentOdometer.toDouble(),
+                    targetOdometer = snap.targetOdometer.toDouble(),
+                    milesRemaining = snap.remainingMiles.coerceAtLeast(0L).toDouble(),
                     daysRemaining = null,
                     isDue = snap.isUrgent,
                     loadsCounted = snap.loadCount,
