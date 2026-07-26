@@ -25,7 +25,11 @@ object PhotoGalleryTimeBounds {
 
     fun startOfWeek(cal: Calendar): Long {
         val c = cal.clone() as Calendar
-        c.set(Calendar.DAY_OF_WEEK, c.firstDayOfWeek)
+        // Subtract days to the configured firstDayOfWeek. Setting DAY_OF_WEEK alone can
+        // roll forward to the next week depending on Calendar lenient behavior.
+        val dayOfWeek = c.get(Calendar.DAY_OF_WEEK)
+        val daysFromWeekStart = (dayOfWeek - c.firstDayOfWeek + 7) % 7
+        c.add(Calendar.DAY_OF_MONTH, -daysFromWeekStart)
         return startOfDay(c)
     }
 
