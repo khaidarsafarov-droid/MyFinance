@@ -243,7 +243,8 @@ fun parseDateFromScheduledTime(s: String, defaultYear: Int? = null): String? {
     if (us != null) {
         val month = us.groupValues[1].toIntOrNull() ?: return null
         val day = us.groupValues[2].toIntOrNull() ?: return null
-        val year = defaultYear ?: Calendar.getInstance().get(Calendar.YEAR)
+        val anchor = defaultYear ?: Calendar.getInstance().get(Calendar.YEAR)
+        val year = LoadDateRepair.resolveRelayYear(month, day, anchor)
         if (month in 1..12 && day in 1..31 && year in 1970..2100) {
             return "%04d-%02d-%02d".format(year, month, day)
         }

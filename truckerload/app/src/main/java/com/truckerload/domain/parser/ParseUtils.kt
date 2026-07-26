@@ -37,12 +37,14 @@ internal object ParseUtils {
 
         val us = Regex("""(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?""")
         us.find(trimmed)?.let {
+            val monthNum = it.groupValues[1].toIntOrNull() ?: return@let
+            val dayNum = it.groupValues[2].toIntOrNull() ?: return@let
             val month = it.groupValues[1].padStart(2, '0')
             val day = it.groupValues[2].padStart(2, '0')
             val year = when {
                 it.groupValues[3].length == 4 -> it.groupValues[3].toIntOrNull() ?: defaultYear
                 it.groupValues[3].length == 2 -> 2000 + (it.groupValues[3].toIntOrNull() ?: (defaultYear % 100))
-                else -> defaultYear
+                else -> com.truckerload.utils.LoadDateRepair.resolveRelayYear(monthNum, dayNum, defaultYear)
             }
             return "$year-$month-$day"
         }

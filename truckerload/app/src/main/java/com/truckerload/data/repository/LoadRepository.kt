@@ -29,6 +29,7 @@ import com.truckerload.utils.withReportingWeek
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
+import com.truckerload.utils.LoadDateRepair
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -466,17 +467,18 @@ class LoadRepository(
 
         val now = System.currentTimeMillis()
         val parsedAt = messageDateSeconds?.times(1000) ?: now
+        val messageYear = messageDateSeconds
+            ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
         val loadEntities = mutableListOf<LoadEntity>()
         val stopEntities = mutableListOf<StopEntity>()
 
         for (load in toInsert) {
-            val dated = if (messageDateSeconds != null && load.date.isBlank()) {
-                load.copy(
-                    tripId = normalizeTripId(load.tripId),
-                    date = formatDateFromUnixSeconds(messageDateSeconds),
-                )
-            } else {
-                load.copy(tripId = normalizeTripId(load.tripId))
+            val normalized = load.copy(tripId = normalizeTripId(load.tripId))
+            val repaired = LoadDateRepair.repair(normalized, anchorYearHint = messageYear)
+            val dated = when {
+                repaired.date.isBlank() && messageDateSeconds != null ->
+                    repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
+                else -> repaired
             }
             val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
                 parsedAt = parsedAt,
@@ -520,11 +522,34 @@ class LoadRepository(
             .flatMap { chunk -> penaltyDao.getPenaltiesByLoadIds(chunk) }
             .groupBy { it.loadId }
         return entities.map { entity ->
-            entity.toDomain(
+            val load = entity.toDomain(
                 stops = stopsByLoadId[entity.id].orEmpty(),
                 penalties = penaltiesByLoadId[entity.id].orEmpty(),
             )
+            // Fix MM/DD dates that were anchored to the wrong calendar year.
+            LoadDateRepair.repair(load)
         }
+    }
+
+    /**
+     * Persists [LoadDateRepair] corrections so SQL week/year filters match the journal.
+     * Safe to call on session start; only writes rows that actually change.
+     */
+    suspend fun repairMislabeledLoadDates(): Int {
+        val entities = loadDao.getAllLoadsOnce()
+        if (entities.isEmpty()) return 0
+        val hydrated = hydrateLoads(entities)
+        var fixed = 0
+        for ((entity, repaired) in entities.zip(hydrated)) {
+            if (entity.date != repaired.date ||
+                entity.weekNumber != repaired.weekNumber ||
+                entity.year != repaired.year
+            ) {
+                updateLoad(repaired)
+                fixed++
+            }
+        }
+        return fixed
     }
 
     private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot =

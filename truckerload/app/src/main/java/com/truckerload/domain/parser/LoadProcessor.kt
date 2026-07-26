@@ -3,8 +3,10 @@ package com.truckerload.domain.parser
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.utils.LoadDateRepair
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.withReportingWeek
+import java.time.LocalDate
 
 data class ParserConfig(
     val autoUpdate: Boolean = true,
@@ -104,10 +106,12 @@ class LoadProcessor(
         }
 
     private fun normalizeIncoming(parsedLoad: Load, messageDateSeconds: Long?): Load {
-        val dated = if (messageDateSeconds != null && parsedLoad.date.isBlank()) {
-            parsedLoad.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
-        } else {
-            parsedLoad
+        val messageIso = messageDateSeconds?.let { formatDateFromUnixSeconds(it) }
+        val messageYear = messageIso?.take(4)?.toIntOrNull()
+        val repaired = LoadDateRepair.repair(parsedLoad, anchorYearHint = messageYear)
+        val dated = when {
+            repaired.date.isBlank() && messageIso != null -> repaired.copy(date = messageIso)
+            else -> repaired
         }
         val now = System.currentTimeMillis()
         val parsedAt = messageDateSeconds?.times(1000) ?: now

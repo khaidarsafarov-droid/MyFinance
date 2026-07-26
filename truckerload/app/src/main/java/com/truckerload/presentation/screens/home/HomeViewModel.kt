@@ -502,11 +502,10 @@ class HomeViewModel(
         }
 
         if (state.selectedYear != null) {
-            val yearLoads = filteredLoads
-            val sections = buildYearMonthSections(yearLoads)
+            // Period summary already shows year totals — avoid a second "Всего N • $ • mi" block.
+            val sections = buildYearMonthSections(dedupeByTripId(filteredLoads))
             val result = mutableListOf<HomeListItem>()
             for (ys in sections) {
-                result.add(HomeListItem.YearHeader(ys))
                 for (ms in ys.months) {
                     result.add(HomeListItem.MonthHeader(ms))
                     result.addAll(ms.loads.map { HomeListItem.LoadItem(it) })
@@ -515,7 +514,7 @@ class HomeViewModel(
             return result
         }
 
-        val sections = groupedLoadsByYearMonth(filteredLoads)
+        val sections = groupedLoadsByYearMonth(dedupeByTripId(filteredLoads))
         val result = mutableListOf<HomeListItem>()
         for (yearSection in sections) {
             result.add(HomeListItem.YearHeader(yearSection))
@@ -525,6 +524,15 @@ class HomeViewModel(
             }
         }
         return result
+    }
+
+    private fun dedupeByTripId(loads: List<Load>): List<Load> {
+        if (loads.isEmpty()) return loads
+        val seen = LinkedHashSet<String>()
+        return loads.filter { load ->
+            val key = load.tripId.ifBlank { load.id }
+            seen.add(key)
+        }
     }
 
     private fun loadWord(n: Int): String = when {
@@ -546,7 +554,8 @@ class HomeViewModel(
 
     private fun groupedLoadsByYearMonth(loads: List<Load>): List<YearSection> {
         if (loads.isEmpty()) return emptyList()
-        val byYear = loads.groupBy { load ->
+        val unique = dedupeByTripId(loads)
+        val byYear = unique.groupBy { load ->
             if (load.date.length >= 4) load.date.substring(0, 4).toIntOrNull() ?: 0 else 0
         }.filterKeys { it > 0 }
 
@@ -561,7 +570,13 @@ class HomeViewModel(
                     .sortedWith(compareByDescending<Load> { it.date }.thenByDescending { it.parsedAt })
                 MonthSection(year, month, monthName(month), monthLoads)
             }
-            YearSection(year, yearLoads.size, yearLoads.sumOf { it.totalRate }, yearLoads.sumOf { it.totalMiles }, monthSections)
+            YearSection(
+                year,
+                yearLoads.size,
+                yearLoads.sumOf { it.totalRate },
+                yearLoads.sumOf { it.totalMiles },
+                monthSections,
+            )
         }
     }
 

@@ -132,13 +132,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (isLoggedIn && !userId.isNullOrBlank()) {
                     val activeUserId = userId as String
-                    dependencies = createDependencies(
+                    val deps = createDependencies(
                         context = applicationContext,
                         userId = activeUserId,
                         authStore = authStore,
                         authCredentialsStore = authCredentialsStore,
                         userProfileStore = userProfileStore,
                     )
+                    dependencies = deps
                     if (!TelegramSyncMode.isServer()) {
                         val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
                         tokenStore.bootstrapFromBuildConfigIfEmpty()
@@ -154,6 +155,11 @@ class MainActivity : AppCompatActivity() {
                             authStore = authStore,
                             userProfileStore = userProfileStore,
                         )
+                        runCatching {
+                            deps.loadRepository.repairMislabeledLoadDates()
+                        }.onFailure { e ->
+                            android.util.Log.w("MainActivity", "Load date repair failed", e)
+                        }
                         if (!BuildConfig.LOCAL_ONLY_MODE) {
                             com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                             com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)

@@ -81,7 +81,9 @@ class HomeViewModelPeriodSummaryTest {
         val items = viewModel.flattenedListItems(loads, totals)
 
         assertTrue(items.none { it is HomeListItem.FilteredSectionHeader })
-        assertTrue(items.any { it is HomeListItem.YearHeader })
+        // Year totals live in PeriodSummarySection — list only shows months + loads.
+        assertTrue(items.none { it is HomeListItem.YearHeader })
+        assertTrue(items.any { it is HomeListItem.MonthHeader })
         assertTrue(items.any { it is HomeListItem.LoadItem })
     }
 
