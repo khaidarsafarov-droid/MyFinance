@@ -3,7 +3,7 @@ package com.truckerload.data.repository
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
-import com.truckerload.domain.maintenance.MaintenanceMilesFromLoads
+import com.truckerload.domain.maintenance.MaintenanceMileageUseCase
 import com.truckerload.domain.maintenance.MaintenanceProgressCalculator
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceProgress
@@ -31,26 +31,18 @@ class MaintenanceRepository(
     fun watchActiveProgress(): Flow<List<MaintenanceProgress>> =
         combine(dao.watchTasks(), loadDao.getAllLoads()) { taskEntities, loadEntities ->
             val tasks = taskEntities.map { it.toDomain() }.filter { !it.isCompleted }
-            val loadMiles = loadEntities.map { entity ->
-                MaintenanceMilesFromLoads.LoadMiles(
+            val loads = loadEntities.map { entity ->
+                MaintenanceMileageUseCase.LoadInput(
                     tripId = entity.tripId,
                     id = entity.id,
+                    miles = entity.totalMiles,
                     date = entity.date,
-                    totalMiles = entity.totalMiles,
-                    parsedAt = entity.parsedAt,
+                    actualFinishDate = entity.actualFinishDate,
+                    lastDelMillis = entity.lastDelMillis,
                 )
             }
             tasks.map { task ->
-                val summed = MaintenanceMilesFromLoads.sumForTask(
-                    taskCreatedAt = task.createdAt,
-                    startDate = task.startDate,
-                    loads = loadMiles,
-                )
-                MaintenanceProgressCalculator.progress(
-                    task = task,
-                    milesDrivenSinceStart = summed.miles,
-                    loadsCounted = summed.loadCount,
-                )
+                MaintenanceMileageUseCase.progressForTask(task, loads)
             }
         }.flowOn(Dispatchers.IO)
 
@@ -96,31 +88,20 @@ class MaintenanceRepository(
         scheduleAutoBackup()
     }
 
-    suspend fun sumMilesSince(startDate: String): Double = loadDao.sumMilesSince(startDate)
-
     suspend fun getDueProgressForNotifications(today: LocalDate = LocalDate.now()): List<MaintenanceProgress> {
         val active = dao.getActiveTasksOnce().map { it.toDomain() }
-        val loadMiles = loadDao.getAllLoadsOnce().map { entity ->
-            MaintenanceMilesFromLoads.LoadMiles(
+        val loads = loadDao.getAllLoadsOnce().map { entity ->
+            MaintenanceMileageUseCase.LoadInput(
                 tripId = entity.tripId,
                 id = entity.id,
+                miles = entity.totalMiles,
                 date = entity.date,
-                totalMiles = entity.totalMiles,
-                parsedAt = entity.parsedAt,
+                actualFinishDate = entity.actualFinishDate,
+                lastDelMillis = entity.lastDelMillis,
             )
         }
         return active.map { task ->
-            val summed = MaintenanceMilesFromLoads.sumForTask(
-                taskCreatedAt = task.createdAt,
-                startDate = task.startDate,
-                loads = loadMiles,
-            )
-            MaintenanceProgressCalculator.progress(
-                task = task,
-                milesDrivenSinceStart = summed.miles,
-                today = today,
-                loadsCounted = summed.loadCount,
-            )
+            MaintenanceMileageUseCase.progressForTask(task, loads, today)
         }.filter { MaintenanceProgressCalculator.shouldNotify(it) }
     }
 

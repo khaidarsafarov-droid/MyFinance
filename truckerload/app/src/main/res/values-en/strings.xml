@@ -639,7 +639,10 @@
     <string name="maintenance_current_odometer">Current truck odometer (mi)</string>
     <string name="maintenance_due_date">Remind by date</string>
     <string name="maintenance_started_on">Since %1$s</string>
-    <string name="maintenance_miles_progress">Since reminder: %1$s mi (%3$d loads) · %2$s mi left</string>
+    <string name="maintenance_service_date">Service date: %1$s</string>
+    <string name="maintenance_urgent_badge">Urgent</string>
+    <string name="maintenance_urgent_message">Service required now!</string>
+    <string name="maintenance_miles_progress">Driven since service: %1$s mi (%3$d loads) · %2$s mi left</string>
     <string name="maintenance_odometer_estimate">Odometer ≈ %1$s / target %2$s mi</string>
     <string name="maintenance_due_badge">Due</string>
     <string name="maintenance_due_today">Due today</string>

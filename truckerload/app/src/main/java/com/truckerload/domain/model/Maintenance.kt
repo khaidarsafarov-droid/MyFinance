@@ -40,4 +40,5 @@ data class MaintenanceProgress(
     val daysRemaining: Long?,
     val isDue: Boolean,
     val loadsCounted: Int = 0,
+    val progressFraction: Float = 0f,
 )

@@ -639,7 +639,10 @@
     <string name="maintenance_current_odometer">Сейчас на одометре (мили)</string>
     <string name="maintenance_due_date">Напомнить к дате</string>
     <string name="maintenance_started_on">С %1$s</string>
-    <string name="maintenance_miles_progress">После напоминания: %1$s mi (%3$d лоуд.) · осталось %2$s mi</string>
+    <string name="maintenance_service_date">Дата ТО: %1$s</string>
+    <string name="maintenance_urgent_badge">Срочно</string>
+    <string name="maintenance_urgent_message">Срочно требуется замена!</string>
+    <string name="maintenance_miles_progress">Проехано после ТО: %1$s mi (%3$d лоуд.) · осталось %2$s mi</string>
     <string name="maintenance_odometer_estimate">Одометр ≈ %1$s / цель %2$s mi</string>
     <string name="maintenance_due_badge">Пора</string>
     <string name="maintenance_due_today">Срок сегодня</string>

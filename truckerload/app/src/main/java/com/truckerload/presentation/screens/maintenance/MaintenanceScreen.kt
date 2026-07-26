@@ -313,10 +313,18 @@ private fun ActiveTaskCard(
 ) {
     val tc = LocalTruckColors.current
     val task = progress.task
-    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+    val urgent = progress.isDue && task.reminderType == MaintenanceReminderType.MILES
+    BentoGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        borderColor = if (urgent) tc.AccentExpense.copy(alpha = 0.55f) else null,
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Build, contentDescription = null, tint = tc.AccentPrimary)
+                Icon(
+                    Icons.Default.Build,
+                    contentDescription = null,
+                    tint = if (urgent) tc.AccentExpense else tc.AccentPrimary,
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = task.title,
@@ -326,14 +334,16 @@ private fun ActiveTaskCard(
                 )
                 if (progress.isDue) {
                     Text(
-                        text = stringResource(R.string.maintenance_due_badge),
+                        text = stringResource(
+                            if (urgent) R.string.maintenance_urgent_badge else R.string.maintenance_due_badge,
+                        ),
                         color = tc.AccentExpense,
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
             }
             Text(
-                text = stringResource(R.string.maintenance_started_on, task.startDate),
+                text = stringResource(R.string.maintenance_service_date, task.startDate),
                 style = MaterialTheme.typography.bodySmall,
                 color = tc.TextSecondary,
             )
@@ -343,30 +353,31 @@ private fun ActiveTaskCard(
                     val remaining = String.format(Locale.US, "%,.0f", progress.milesRemaining ?: 0.0)
                     val estimated = String.format(Locale.US, "%,.0f", progress.estimatedOdometer ?: 0.0)
                     val target = String.format(Locale.US, "%,.0f", progress.targetOdometer ?: 0.0)
+                    Text(
+                        stringResource(
+                            R.string.maintenance_miles_progress,
+                            driven,
+                            remaining,
+                            progress.loadsCounted,
+                        ),
+                        color = if (urgent) tc.AccentExpense else tc.TextPrimary,
+                    )
+                    if (urgent) {
                         Text(
-                            stringResource(
-                                R.string.maintenance_miles_progress,
-                                driven,
-                                remaining,
-                                progress.loadsCounted,
-                            ),
-                            color = tc.TextPrimary,
+                            stringResource(R.string.maintenance_urgent_message),
+                            color = tc.AccentExpense,
+                            style = MaterialTheme.typography.titleSmall,
                         )
+                    }
                     Text(
                         stringResource(R.string.maintenance_odometer_estimate, estimated, target),
                         style = MaterialTheme.typography.bodySmall,
                         color = tc.TextSecondary,
                     )
-                    val fraction = if ((task.intervalMiles ?: 0.0) > 0) {
-                        (progress.milesDrivenSinceStart / (task.intervalMiles ?: 1.0))
-                            .toFloat()
-                            .coerceIn(0f, 1f)
-                    } else {
-                        0f
-                    }
                     LinearProgressIndicator(
-                        progress = { fraction },
+                        progress = { progress.progressFraction },
                         modifier = Modifier.fillMaxWidth(),
+                        color = if (urgent) tc.AccentExpense else tc.AccentPrimary,
                     )
                 }
                 MaintenanceReminderType.DATE -> {
