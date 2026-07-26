@@ -176,6 +176,8 @@ dependencies {
 
     // ML Kit Document Scanner + OCR
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+    // ML Kit on-device Latin text recognition (model bundled with the dependency).
+    // Artifact name is text-recognition (not *-bundled); used by OCRService for receipt OCR.
     implementation("com.google.mlkit:text-recognition:16.0.1")
 
     // PDF generation (fallback when scanner returns JPEG pages only)

@@ -625,9 +625,9 @@
     <string name="maintenance_active_section">Напоминания</string>
     <string name="maintenance_completed_section">Выполнено</string>
     <string name="maintenance_archive_section">Архив сервиса</string>
-    <string name="maintenance_archive_hint">Сфотографируйте чек или инвойс — приложение попробует распознать сумму и дату.</string>
+    <string name="maintenance_archive_hint">Сфотографируйте чек или выберите из галереи — приложение распознает сервис, сумму и дату.</string>
     <string name="maintenance_empty_tasks">Пока нет задач ТО. Нажмите +, чтобы добавить (например, замена масла).</string>
-    <string name="maintenance_empty_archive">Архив пуст. Нажмите значок камеры, чтобы добавить чек.</string>
+    <string name="maintenance_empty_archive">Архив пуст. Нажмите камеру, чтобы отсканировать чек.</string>
     <string name="maintenance_add_task_title">Новое ТО</string>
     <string name="maintenance_add_archive_title">Чек сервиса</string>
     <string name="maintenance_field_title">Что сделать</string>
@@ -650,7 +650,12 @@
     <string name="maintenance_overdue_days">Просрочено на %1$d дн.</string>
     <string name="maintenance_mark_done">Сделано</string>
     <string name="maintenance_ocr_processing">Распознаём чек…</string>
-    <string name="maintenance_retake_photo">Переснять</string>
+    <string name="maintenance_retake_photo">Другое фото</string>
+    <string name="maintenance_scan_source_title">Скан чека</string>
+    <string name="maintenance_scan_source_hint">Камера или фото из галереи. Текст распознаётся через ML Kit.</string>
+    <string name="maintenance_receipt_photo">Фото чека</string>
+    <string name="maintenance_archive_service">Сервис / компания</string>
+    <string name="maintenance_archive_service_hint">Love\'s, TA Truck Service…</string>
     <string name="maintenance_archive_what">Что сделали</string>
     <string name="maintenance_archive_when">Когда</string>
     <string name="maintenance_archive_amount">Сумма ($)</string>

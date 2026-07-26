@@ -42,6 +42,7 @@ fun MaintenanceTask.toEntity(): MaintenanceTaskEntity =
 fun MaintenanceArchiveEntity.toDomain(): MaintenanceArchiveEntry =
     MaintenanceArchiveEntry(
         id = id,
+        serviceName = serviceName,
         serviceDate = serviceDate,
         description = description,
         amount = amount,
@@ -53,6 +54,7 @@ fun MaintenanceArchiveEntity.toDomain(): MaintenanceArchiveEntry =
 fun MaintenanceArchiveEntry.toEntity(): MaintenanceArchiveEntity =
     MaintenanceArchiveEntity(
         id = id,
+        serviceName = serviceName,
         serviceDate = serviceDate,
         description = description,
         amount = amount,

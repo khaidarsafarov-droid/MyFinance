@@ -625,9 +625,9 @@
     <string name="maintenance_active_section">Reminders</string>
     <string name="maintenance_completed_section">Completed</string>
     <string name="maintenance_archive_section">Service archive</string>
-    <string name="maintenance_archive_hint">Photograph a receipt or invoice — the app will try to read the total and date.</string>
+    <string name="maintenance_archive_hint">Photograph a receipt or pick one from the gallery — the app reads the shop, total, and date.</string>
     <string name="maintenance_empty_tasks">No maintenance tasks yet. Tap + to add one (e.g. oil change).</string>
-    <string name="maintenance_empty_archive">Archive is empty. Tap the camera icon to add a receipt.</string>
+    <string name="maintenance_empty_archive">Archive is empty. Tap the camera icon to scan a receipt.</string>
     <string name="maintenance_add_task_title">New maintenance</string>
     <string name="maintenance_add_archive_title">Service receipt</string>
     <string name="maintenance_field_title">What to do</string>
@@ -650,7 +650,12 @@
     <string name="maintenance_overdue_days">%1$d days overdue</string>
     <string name="maintenance_mark_done">Done</string>
     <string name="maintenance_ocr_processing">Reading receipt…</string>
-    <string name="maintenance_retake_photo">Retake photo</string>
+    <string name="maintenance_retake_photo">Choose another photo</string>
+    <string name="maintenance_scan_source_title">Scan receipt</string>
+    <string name="maintenance_scan_source_hint">Use the camera or a gallery photo. Text is recognized with ML Kit.</string>
+    <string name="maintenance_receipt_photo">Receipt photo</string>
+    <string name="maintenance_archive_service">Shop / company</string>
+    <string name="maintenance_archive_service_hint">Love\'s, TA Truck Service…</string>
     <string name="maintenance_archive_what">What was done</string>
     <string name="maintenance_archive_when">When</string>
     <string name="maintenance_archive_amount">Amount ($)</string>

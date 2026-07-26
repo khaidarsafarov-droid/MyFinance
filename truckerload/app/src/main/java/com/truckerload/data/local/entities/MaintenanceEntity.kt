@@ -36,6 +36,7 @@ data class MaintenanceTaskEntity(
 )
 data class MaintenanceArchiveEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val serviceName: String = "",
     val serviceDate: String,
     val description: String,
     val amount: Double,

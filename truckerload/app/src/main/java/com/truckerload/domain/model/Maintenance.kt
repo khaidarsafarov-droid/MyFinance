@@ -22,13 +22,16 @@ data class MaintenanceTask(
 
 data class MaintenanceArchiveEntry(
     val id: Long = 0,
+    val serviceName: String = "",
     val serviceDate: String,
     val description: String,
     val amount: Double,
     val photoPath: String? = null,
     val ocrText: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
-)
+) {
+    fun toReceiptData(): ReceiptData = ReceiptData.fromArchive(this)
+}
 
 /** Progress snapshot for a miles-based or date-based ТО task. */
 data class MaintenanceProgress(

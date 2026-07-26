@@ -673,3 +673,12 @@ val MIGRATION_26_27 = object : Migration(26, 27) {
         )
     }
 }
+
+/** Add serviceName to maintenance receipt archive (OCR company / shop name). */
+val MIGRATION_27_28 = object : Migration(27, 28) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE maintenance_archive ADD COLUMN serviceName TEXT NOT NULL DEFAULT ''",
+        )
+    }
+}

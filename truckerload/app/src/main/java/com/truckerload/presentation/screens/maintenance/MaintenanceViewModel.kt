@@ -12,6 +12,7 @@ import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceProgress
 import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.domain.model.MaintenanceTask
+import com.truckerload.domain.model.ReceiptData
 import com.truckerload.domain.parser.ServiceReceiptTextParser
 import com.truckerload.utils.OCRService
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,8 @@ data class MaintenanceUiState(
     val archive: List<MaintenanceArchiveEntry> = emptyList(),
     val showAddTask: Boolean = false,
     val showAddArchive: Boolean = false,
+    val showReceiptSourcePicker: Boolean = false,
+    val viewingReceiptPath: String? = null,
     val taskDraft: TaskDraft = TaskDraft(),
     val archiveDraft: ArchiveDraft = ArchiveDraft(),
     val isSaving: Boolean = false,
@@ -52,12 +55,23 @@ data class TaskDraft(
 )
 
 data class ArchiveDraft(
+    val serviceName: String = "",
     val serviceDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
     val description: String = "",
     val amount: String = "",
     val photoPath: String? = null,
     val ocrText: String? = null,
-)
+) {
+    fun toReceiptData(): ReceiptData =
+        ReceiptData(
+            imageUri = photoPath.orEmpty(),
+            serviceName = serviceName,
+            date = ReceiptData.isoDateToEpochMillis(serviceDate),
+            totalAmount = amount.replace(',', '.').toDoubleOrNull() ?: 0.0,
+            description = description,
+            rawText = ocrText,
+        )
+}
 
 class MaintenanceViewModel(
     app: Application,
@@ -177,6 +191,16 @@ class MaintenanceViewModel(
         viewModelScope.launch { repository.deleteTask(id) }
     }
 
+    fun openReceiptSourcePicker() {
+        _formState.update {
+            it.copy(showReceiptSourcePicker = true, errorMessage = null)
+        }
+    }
+
+    fun dismissReceiptSourcePicker() {
+        _formState.update { it.copy(showReceiptSourcePicker = false) }
+    }
+
     fun openAddArchive() {
         _formState.update {
             it.copy(
@@ -195,32 +219,62 @@ class MaintenanceViewModel(
         _formState.update { it.copy(archiveDraft = transform(it.archiveDraft), errorMessage = null) }
     }
 
+    fun openReceiptViewer(path: String) {
+        _formState.update { it.copy(viewingReceiptPath = path) }
+    }
+
+    fun dismissReceiptViewer() {
+        _formState.update { it.copy(viewingReceiptPath = null) }
+    }
+
+    /**
+     * Runs ML Kit (via [OCRService]) on the receipt image, parses key fields, and opens the
+     * editable preview dialog. Photo is copied into protected app storage (`filesDir/receipts`).
+     */
     fun processReceiptPhoto(uri: Uri) {
         viewModelScope.launch {
-            _formState.update { it.copy(isProcessingPhoto = true, errorMessage = null) }
+            _formState.update {
+                it.copy(
+                    isProcessingPhoto = true,
+                    showReceiptSourcePicker = false,
+                    errorMessage = null,
+                )
+            }
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val saved = copyPhotoToMaintenanceDir(uri)
+                    val saved = copyPhotoToProtectedStorage(uri)
                     val ocr = ocrService.recognizeFromUri(getApplication(), uri)
-                    val parsed = ServiceReceiptTextParser.parse(ocr.text)
-                    Triple(saved.absolutePath, ocr.text, parsed)
+                    val rawText = ocr.text
+                    val parsed = ServiceReceiptTextParser.parse(rawText)
+                    val receipt = ReceiptData(
+                        imageUri = saved.absolutePath,
+                        serviceName = parsed.serviceName.orEmpty(),
+                        date = parsed.date?.let { ReceiptData.isoDateToEpochMillis(it) }
+                            ?: System.currentTimeMillis(),
+                        totalAmount = parsed.amount ?: 0.0,
+                        description = parsed.descriptionHint.orEmpty(),
+                        rawText = rawText,
+                    )
+                    receipt
                 }
             }
             result
-                .onSuccess { (path, ocrText, parsed) ->
+                .onSuccess { receipt ->
                     _formState.update { state ->
                         state.copy(
                             isProcessingPhoto = false,
                             showAddArchive = true,
-                            archiveDraft = state.archiveDraft.copy(
-                                photoPath = path,
-                                ocrText = ocrText,
-                                amount = parsed.amount?.let { "%.2f".format(it) }
-                                    ?: state.archiveDraft.amount,
-                                serviceDate = parsed.date?.takeIf { it.isNotBlank() }
-                                    ?: state.archiveDraft.serviceDate,
-                                description = parsed.descriptionHint
-                                    ?: state.archiveDraft.description,
+                            archiveDraft = ArchiveDraft(
+                                serviceName = receipt.serviceName,
+                                serviceDate = ReceiptData.epochMillisToIsoDate(receipt.date),
+                                description = receipt.description,
+                                amount = if (receipt.totalAmount > 0) {
+                                    "%.2f".format(receipt.totalAmount)
+                                } else {
+                                    ""
+                                },
+                                photoPath = receipt.imageUri,
+                                ocrText = receipt.rawText,
                             ),
                         )
                     }
@@ -238,13 +292,13 @@ class MaintenanceViewModel(
 
     fun saveArchive() {
         val draft = _formState.value.archiveDraft
-        val description = draft.description.trim()
-        val amount = draft.amount.replace(',', '.').toDoubleOrNull()
+        val receipt = draft.toReceiptData()
+        val description = receipt.description.trim().ifBlank { receipt.serviceName.trim() }
         if (description.isBlank()) {
             _formState.update { it.copy(errorMessage = "empty_description") }
             return
         }
-        if (amount == null || amount < 0) {
+        if (receipt.totalAmount < 0 || draft.amount.isBlank()) {
             _formState.update { it.copy(errorMessage = "invalid_amount") }
             return
         }
@@ -252,13 +306,7 @@ class MaintenanceViewModel(
             _formState.update { it.copy(isSaving = true) }
             runCatching {
                 repository.insertArchive(
-                    MaintenanceArchiveEntry(
-                        serviceDate = draft.serviceDate,
-                        description = description,
-                        amount = amount,
-                        photoPath = draft.photoPath,
-                        ocrText = draft.ocrText,
-                    ),
+                    receipt.copy(description = description).toArchiveEntry(),
                 )
             }
                 .onSuccess {
@@ -278,14 +326,14 @@ class MaintenanceViewModel(
         viewModelScope.launch { repository.deleteArchive(id) }
     }
 
-    private fun copyPhotoToMaintenanceDir(uri: Uri): File {
+    /** Saves receipt photo under [Application.getFilesDir]/receipts — app-private storage. */
+    private fun copyPhotoToProtectedStorage(uri: Uri): File {
         val context = getApplication<Application>()
-        val dir = File(context.getExternalFilesDir(null), "maintenance").apply { mkdirs() }
+        val dir = File(context.filesDir, "receipts").apply { mkdirs() }
         val dest = File(dir, "receipt_${System.currentTimeMillis()}.jpg")
         context.contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(dest).use { output -> input.copyTo(output) }
         } ?: error("Cannot open photo")
-        // Validate image
         BitmapFactory.decodeFile(dest.absolutePath)
             ?: error("Invalid image")
         return dest

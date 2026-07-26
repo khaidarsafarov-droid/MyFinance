@@ -1,6 +1,14 @@
 package com.truckerload.presentation.screens.maintenance
 
+import android.Manifest
+import android.app.Application
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +28,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -48,6 +58,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -72,12 +84,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import android.Manifest
-import android.app.Application
-import android.content.pm.PackageManager
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,6 +113,14 @@ fun MaintenanceScreen(onBack: () -> Unit) {
         pendingCameraFile = null
     }
 
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent(),
+    ) { uri ->
+        if (uri != null) {
+            viewModel.processReceiptPhoto(uri)
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -124,6 +138,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
     }
 
     fun launchCamera() {
+        viewModel.dismissReceiptSourcePicker()
         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
         if (granted) {
@@ -139,6 +154,11 @@ fun MaintenanceScreen(onBack: () -> Unit) {
         } else {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    fun launchGallery() {
+        viewModel.dismissReceiptSourcePicker()
+        galleryLauncher.launch("image/*")
     }
 
     Scaffold(
@@ -217,7 +237,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
 
             SectionHeader(
                 title = stringResource(R.string.maintenance_archive_section),
-                onAdd = { launchCamera() },
+                onAdd = viewModel::openReceiptSourcePicker,
                 addIcon = Icons.Default.CameraAlt,
             )
             Text(
@@ -237,11 +257,23 @@ fun MaintenanceScreen(onBack: () -> Unit) {
                 EmptyHint(stringResource(R.string.maintenance_empty_archive))
             } else {
                 uiState.archive.forEach { entry ->
-                    ArchiveCard(entry = entry, onDelete = { viewModel.deleteArchive(entry.id) })
+                    ArchiveCard(
+                        entry = entry,
+                        onDelete = { viewModel.deleteArchive(entry.id) },
+                        onOpenPhoto = { path -> viewModel.openReceiptViewer(path) },
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    if (uiState.showReceiptSourcePicker) {
+        ReceiptSourceDialog(
+            onDismiss = viewModel::dismissReceiptSourcePicker,
+            onCamera = { launchCamera() },
+            onGallery = { launchGallery() },
+        )
     }
 
     if (uiState.showAddTask) {
@@ -263,8 +295,95 @@ fun MaintenanceScreen(onBack: () -> Unit) {
             onDismiss = viewModel::dismissAddArchive,
             onChange = viewModel::updateArchiveDraft,
             onSave = viewModel::saveArchive,
-            onRetakePhoto = { launchCamera() },
+            onRetakePhoto = viewModel::openReceiptSourcePicker,
         )
+    }
+
+    uiState.viewingReceiptPath?.let { path ->
+        ReceiptPhotoViewerDialog(
+            path = path,
+            onDismiss = viewModel::dismissReceiptViewer,
+        )
+    }
+}
+
+@Composable
+private fun ReceiptSourceDialog(
+    onDismiss: () -> Unit,
+    onCamera: () -> Unit,
+    onGallery: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = tc.CardBackground,
+        title = {
+            Text(stringResource(R.string.maintenance_scan_source_title), color = tc.TextPrimary)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.maintenance_scan_source_hint),
+                    color = tc.TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedButton(onClick = onCamera, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.camera))
+                }
+                OutlinedButton(onClick = onGallery, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.profile_photo_from_gallery))
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun ReceiptPhotoViewerDialog(
+    path: String,
+    onDismiss: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+        ) {
+            AsyncImage(
+                model = File(path),
+                contentDescription = stringResource(R.string.maintenance_receipt_photo),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center),
+                contentScale = ContentScale.Fit,
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = stringResource(R.string.common_cancel),
+                    tint = tc.TextPrimary,
+                )
+            }
+        }
     }
 }
 
@@ -409,6 +528,7 @@ private fun ActiveTaskCard(
 private fun ArchiveCard(
     entry: MaintenanceArchiveEntry,
     onDelete: () -> Unit,
+    onOpenPhoto: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -421,16 +541,32 @@ private fun ArchiveCard(
             if (!entry.photoPath.isNullOrBlank()) {
                 AsyncImage(
                     model = File(entry.photoPath),
-                    contentDescription = entry.description,
+                    contentDescription = stringResource(R.string.maintenance_receipt_photo),
                     modifier = Modifier
                         .size(56.dp)
-                        .clip(MaterialTheme.shapes.medium),
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable { onOpenPhoto(entry.photoPath) },
                     contentScale = ContentScale.Crop,
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(entry.description, color = tc.TextPrimary, style = MaterialTheme.typography.titleSmall)
+                if (entry.serviceName.isNotBlank()) {
+                    Text(
+                        entry.serviceName,
+                        color = tc.TextPrimary,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+                Text(
+                    entry.description,
+                    color = if (entry.serviceName.isBlank()) tc.TextPrimary else tc.TextSecondary,
+                    style = if (entry.serviceName.isBlank()) {
+                        MaterialTheme.typography.titleSmall
+                    } else {
+                        MaterialTheme.typography.bodySmall
+                    },
+                )
                 Text(entry.serviceDate, style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
                 Text(
                     "$${String.format(Locale.US, "%,.2f", entry.amount)}",
@@ -601,11 +737,14 @@ private fun AddArchiveDialog(
         containerColor = tc.CardBackground,
         title = { Text(stringResource(R.string.maintenance_add_archive_title), color = tc.TextPrimary) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 if (!draft.photoPath.isNullOrBlank()) {
                     AsyncImage(
                         model = File(draft.photoPath),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.maintenance_receipt_photo),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(140.dp)
@@ -618,6 +757,15 @@ private fun AddArchiveDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.maintenance_retake_photo))
                 }
+                OutlinedTextField(
+                    value = draft.serviceName,
+                    onValueChange = { value -> onChange { it.copy(serviceName = value) } },
+                    label = { Text(stringResource(R.string.maintenance_archive_service)) },
+                    placeholder = { Text(stringResource(R.string.maintenance_archive_service_hint)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = fieldColors,
+                )
                 OutlinedTextField(
                     value = draft.description,
                     onValueChange = { value -> onChange { it.copy(description = value) } },

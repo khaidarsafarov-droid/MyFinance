@@ -36,6 +36,9 @@ interface MaintenanceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArchive(entry: MaintenanceArchiveEntity): Long
 
+    @Query("SELECT * FROM maintenance_archive WHERE id = :id LIMIT 1")
+    suspend fun getArchiveById(id: Long): MaintenanceArchiveEntity?
+
     @Query("DELETE FROM maintenance_archive WHERE id = :id")
     suspend fun deleteArchive(id: Long)
 }

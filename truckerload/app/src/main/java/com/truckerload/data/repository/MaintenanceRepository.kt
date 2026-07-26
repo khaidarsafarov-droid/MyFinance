@@ -85,7 +85,11 @@ class MaintenanceRepository(
     }
 
     suspend fun deleteArchive(id: Long) {
+        val photoPath = dao.getArchiveById(id)?.photoPath
         dao.deleteArchive(id)
+        photoPath?.takeIf { it.isNotBlank() }?.let { path ->
+            runCatching { java.io.File(path).delete() }
+        }
         scheduleAutoBackup()
     }
 
