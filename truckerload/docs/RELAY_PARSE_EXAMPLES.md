@@ -1,6 +1,14 @@
 # Relay parse examples
 
-These Relay-style messages include the fields the local parser needs: a trip id, a positive total rate, loaded miles, and pickup/delivery address lines.
+These Relay-style messages include the fields the local parser needs: a trip id,
+a positive total rate, and at least one `Pu-address:` / `Del-address:` line.
+Loaded miles improve RPM/stats but are optional for acceptance.
+
+**Address one-liner form:** `FACILITY, City, ST` (facility code is kept separately;
+route points use `City, ST`).
+
+**Multi-stop without `PU#`:** each `Pu-address:` / `Del-address:` line becomes its
+own stop. Real Amazon Relay multi-leg trips usually use `PU#` blocks instead.
 
 ## Basic single pickup / delivery
 
