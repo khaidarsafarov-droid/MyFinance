@@ -62,6 +62,7 @@ fun AvatarCropScreen(
     var cropLayout by remember(preparedBitmap) { mutableStateOf<AvatarCropLayout?>(null) }
     var userScale by remember(preparedBitmap) { mutableFloatStateOf(1f) }
     var offset by remember(preparedBitmap) { mutableStateOf(Offset.Zero) }
+    var initializedForBitmap by remember(preparedBitmap) { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.Black,
@@ -119,31 +120,52 @@ fun AvatarCropScreen(
                     )
                 }
 
-                LaunchedEffect(layout) {
+                LaunchedEffect(layout, preparedBitmap) {
                     cropLayout = layout
-                    userScale = layout.minScale
-                    offset = Offset.Zero
-                }
-
-                fun clampCurrentOffset(): Offset {
-                    val currentLayout = layout
-                    return AvatarCropUtils.clampOffset(
-                        offset = offset,
-                        userScale = userScale,
-                        fitScale = currentLayout.fitScale,
-                        bitmapWidth = preparedBitmap.width,
-                        bitmapHeight = preparedBitmap.height,
-                        containerWidth = currentLayout.containerWidth,
-                        containerHeight = currentLayout.containerHeight,
-                        cropDiameter = currentLayout.cropDiameter,
-                    )
+                    if (!initializedForBitmap) {
+                        userScale = layout.minScale
+                        offset = Offset.Zero
+                        initializedForBitmap = true
+                    } else {
+                        // Keep the user's framing across incidental size changes; only reclamps.
+                        userScale = userScale.coerceIn(layout.minScale, layout.minScale * 4f)
+                        offset = AvatarCropUtils.clampOffset(
+                            offset = offset,
+                            userScale = userScale,
+                            fitScale = layout.fitScale,
+                            bitmapWidth = preparedBitmap.width,
+                            bitmapHeight = preparedBitmap.height,
+                            containerWidth = layout.containerWidth,
+                            containerHeight = layout.containerHeight,
+                            cropDiameter = layout.cropDiameter,
+                        )
+                    }
                 }
 
                 val displayWidthDp = with(density) { (preparedBitmap.width * fitScale).toDp() }
                 val displayHeightDp = with(density) { (preparedBitmap.height * fitScale).toDp() }
 
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        // Gestures on the full viewport so pan deltas stay in screen pixels
+                        // (matching graphicsLayer translation and cropSquare math).
+                        .pointerInput(layout, minScale) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                val nextScale = (userScale * zoom).coerceIn(minScale, minScale * 4f)
+                                userScale = nextScale
+                                offset = AvatarCropUtils.clampOffset(
+                                    offset = offset + pan,
+                                    userScale = nextScale,
+                                    fitScale = layout.fitScale,
+                                    bitmapWidth = preparedBitmap.width,
+                                    bitmapHeight = preparedBitmap.height,
+                                    containerWidth = layout.containerWidth,
+                                    containerHeight = layout.containerHeight,
+                                    cropDiameter = layout.cropDiameter,
+                                )
+                            }
+                        },
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
@@ -157,13 +179,6 @@ fun AvatarCropScreen(
                                 scaleY = userScale
                                 translationX = offset.x
                                 translationY = offset.y
-                            }
-                            .pointerInput(layout, minScale) {
-                                detectTransformGestures { _, pan, zoom, _ ->
-                                    userScale = (userScale * zoom).coerceIn(minScale, minScale * 4f)
-                                    offset = clampCurrentOffset() + pan
-                                    offset = clampCurrentOffset()
-                                }
                             },
                     )
 

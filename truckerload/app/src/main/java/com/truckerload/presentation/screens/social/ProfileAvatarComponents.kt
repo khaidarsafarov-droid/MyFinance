@@ -86,7 +86,8 @@ fun ProfileAvatar(
                 model = imageRequest,
                 contentDescription = stringResource(R.string.profile_photo),
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
+                // Avatars are saved as an already-framed square; FillBounds keeps that framing.
+                contentScale = ContentScale.FillBounds,
                 loading = {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
