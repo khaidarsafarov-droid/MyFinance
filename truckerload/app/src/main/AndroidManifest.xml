@@ -100,10 +100,10 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".sync.LoadAlarmReceiver"
+            android:name=".sync.PickupAlarmReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.truckerload.action.LOAD_PICKUP_ALARM" />
+                <action android:name="com.truckerload.action.PICKUP_ALARM" />
             </intent-filter>
         </receiver>
         <receiver
