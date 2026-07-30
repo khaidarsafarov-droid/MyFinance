@@ -121,6 +121,34 @@ fun FriendsLiveMapScreen(
         hasLocationPermission = result.values.any { it }
     }
 
+    var myLocation by remember { mutableStateOf<LatLng?>(null) }
+    val locationHelper = remember(context) { com.truckerload.utils.LocationHelper(context) }
+
+    // Ask for location once so we can show "me" on the map (independent of share toggle).
+    LaunchedEffect(Unit) {
+        if (!hasLocationPermission) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        }
+    }
+
+    LaunchedEffect(hasLocationPermission) {
+        if (!hasLocationPermission) {
+            myLocation = null
+            return@LaunchedEffect
+        }
+        val loc = locationHelper.getCurrentLocation()
+        val lat = loc?.latitude
+        val lng = loc?.longitude
+        if (lat != null && lng != null) {
+            myLocation = LatLng(lat, lng)
+        }
+    }
+
     LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
         if (uiState.sharePathEnabled && uiState.supabaseReady && hasLocationPermission) {
             FriendsLocationShareService.start(context)
@@ -204,6 +232,35 @@ fun FriendsLiveMapScreen(
                         },
                         colors = AppSwitchDefaults.colors(),
                     )
+                }
+                if (!uiState.sharePathEnabled) {
+                    Text(
+                        text = stringResource(R.string.friends_share_off_map_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+                if (!hasLocationPermission) {
+                    Text(
+                        text = stringResource(R.string.friends_need_location_permission),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.AccentPrimary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            permissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                ),
+                            )
+                        },
+                        modifier = Modifier.padding(top = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.friends_grant_location))
+                    }
                 }
             }
 
@@ -365,21 +422,28 @@ fun FriendsLiveMapScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(260.dp),
+                        .height(280.dp),
                 ) {
-                    if (uiState.isLoading && uiState.friends.isEmpty()) {
+                    FriendsGoogleMap(
+                        overlays = uiState.friends,
+                        selectedFriendId = uiState.selectedFriendId,
+                        myLocation = myLocation,
+                        showMyLocationLayer = hasLocationPermission,
+                        onMarkerClick = viewModel::selectFriend,
+                    )
+                    if (uiState.isLoading && uiState.friends.isEmpty() && myLocation == null) {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
                             color = tc.AccentPrimary,
                         )
-                    } else {
-                        FriendsGoogleMap(
-                            overlays = uiState.friends,
-                            selectedFriendId = uiState.selectedFriendId,
-                            onMarkerClick = viewModel::selectFriend,
-                        )
                     }
                 }
+                Text(
+                    text = stringResource(R.string.friends_map_legend),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
             }
 
             item {
@@ -614,9 +678,12 @@ private fun FriendShareRow(
 private fun FriendsGoogleMap(
     overlays: List<FriendMapOverlay>,
     selectedFriendId: String?,
+    myLocation: LatLng?,
+    showMyLocationLayer: Boolean,
     onMarkerClick: (String) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val meLabel = stringResource(R.string.friends_me_marker)
     var mapView by remember { mutableStateOf<MapView?>(null) }
 
     DisposableEffect(lifecycleOwner) {
@@ -639,11 +706,23 @@ private fun FriendsGoogleMap(
         }
     }
 
-    LaunchedEffect(overlays, selectedFriendId, mapView) {
+    LaunchedEffect(overlays, selectedFriendId, myLocation, showMyLocationLayer, mapView) {
         val map = mapView ?: return@LaunchedEffect
         map.getMapAsync { googleMap ->
             googleMap.clear()
             googleMap.uiSettings.isZoomControlsEnabled = true
+            googleMap.uiSettings.isMyLocationButtonEnabled = showMyLocationLayer
+            runCatching {
+                googleMap.isMyLocationEnabled = showMyLocationLayer
+            }
+            myLocation?.let { me ->
+                googleMap.addMarker(
+                    MarkerOptions()
+                        .position(me)
+                        .title(meLabel)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)),
+                )
+            }
             overlays.forEach { friend ->
                 val pos = LatLng(friend.presence.latitude, friend.presence.longitude)
                 val marker = googleMap.addMarker(
@@ -684,15 +763,28 @@ private fun FriendsGoogleMap(
                 (marker.tag as? String)?.let(onMarkerClick)
                 false
             }
-            val focus = overlays.firstOrNull { it.presence.userId == selectedFriendId }
-                ?: overlays.firstOrNull()
-            focus?.let {
-                googleMap.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(it.presence.latitude, it.presence.longitude),
-                        6f,
-                    ),
-                )
+            val selected = overlays.firstOrNull { it.presence.userId == selectedFriendId }
+            when {
+                selected != null -> {
+                    googleMap.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(selected.presence.latitude, selected.presence.longitude),
+                            8f,
+                        ),
+                    )
+                }
+                myLocation != null -> {
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12f))
+                }
+                overlays.isNotEmpty() -> {
+                    val f = overlays.first()
+                    googleMap.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(f.presence.latitude, f.presence.longitude),
+                            6f,
+                        ),
+                    )
+                }
             }
         }
     }

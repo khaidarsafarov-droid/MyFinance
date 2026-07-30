@@ -440,6 +440,11 @@
     <string name="friends_pref_show_me">Show myself to them</string>
     <string name="friends_pref_show_route">Show my route to them</string>
     <string name="friends_prefs_save">Save settings</string>
+    <string name="friends_share_off_map_hint">Your spot is shown to you on the map. To let friends see you, turn the toggle on and add them by nickname.</string>
+    <string name="friends_need_location_permission">Location permission is needed to show you on the map</string>
+    <string name="friends_grant_location">Allow location</string>
+    <string name="friends_map_legend">Green — you · orange — friends online</string>
+    <string name="friends_me_marker">Me</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>

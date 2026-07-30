@@ -440,6 +440,11 @@
     <string name="friends_pref_show_me">Показывать себя ему</string>
     <string name="friends_pref_show_route">Показывать мой маршрут ему</string>
     <string name="friends_prefs_save">Сохранить настройки</string>
+    <string name="friends_share_off_map_hint">Ваша точка на карте видна вам. Чтобы друзья видели вас — включите переключатель и добавьте их по нику.</string>
+    <string name="friends_need_location_permission">Нужен доступ к геолокации, чтобы показать ваше место на карте</string>
+    <string name="friends_grant_location">Разрешить геолокацию</string>
+    <string name="friends_map_legend">Зелёный — вы · оранжевый — друзья онлайн</string>
+    <string name="friends_me_marker">Я</string>
     <string name="stats_ai_keyword_diesel">дизел</string>
     <string name="stats_ai_keyword_profit">прибыл</string>
     <string name="calendar_prev_month_cd">Предыдущий месяц</string>
