@@ -85,9 +85,7 @@ class MapViewModel(
                 totalReports = scoped.size,
                 stateSummary = summary,
                 topLanes = CrowdMapAggregator.topLanes(scoped),
-                usingCommunitySample = allReports.any { r ->
-                    r.id.startsWith("net:") || r.id.startsWith("friend:")
-                },
+                usingCommunitySample = allReports.any { r -> r.id.startsWith("net:") },
                 isLoading = false,
                 errorMessage = null,
             )
