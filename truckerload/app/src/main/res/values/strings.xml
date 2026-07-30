@@ -852,7 +852,7 @@
     <string name="profile">Профиль</string>
     <string name="edit_profile">Редактировать профиль</string>
     <string name="profile_setup_title">Настройка профиля</string>
-    <string name="profile_setup_subtitle">Укажите данные водителя для работы в рейсах Truck Load. Можно дополнить позже в профиле.</string>
+    <string name="profile_setup_subtitle">Данные водителя для рейсов. Можно дополнить позже в профиле.</string>
     <string name="profile_setup_continue">Готово</string>
     <string name="profile_setup_next">Далее</string>
     <string name="profile_setup_name_required">Введите имя</string>
@@ -1020,7 +1020,7 @@
     <string name="map_rating_format">Рейтинг: %1$s</string>
     <string name="notification_permission_required">Разрешите уведомления, чтобы бот Telegram работал в фоне</string>
     <string name="notification_permission_rationale">Уведомления нужны для фоновой синхронизации с Telegram (Android 13+)</string>
-    <string name="home_calendar_select_week">Выбрать неделю этой даты</string>
+    <string name="home_calendar_select_week">Выбрать неделю</string>
     <string name="social_error_empty_message">Пустое сообщение</string>
     <string name="social_error_message_rejected">Сообщение отклонено</string>
     <string name="social_error_chat_not_found">Чат не найден</string>
