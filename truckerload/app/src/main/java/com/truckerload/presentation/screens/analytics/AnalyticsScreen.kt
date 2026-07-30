@@ -19,7 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Map
 import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -69,6 +71,7 @@ fun AnalyticsScreen(
     onBack: () -> Unit = {},
     onLoadClick: (String) -> Unit = {},
     onAdvancedStats: () -> Unit = {},
+    onOpenMap: () -> Unit = {},
     embedded: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
@@ -145,6 +148,7 @@ fun AnalyticsScreen(
             viewModel = viewModel,
             onLoadClick = onLoadClick,
             onAdvancedStats = onAdvancedStats,
+            onOpenMap = onOpenMap,
         )
     }
 }
@@ -156,6 +160,7 @@ private fun AnalyticsScreenBody(
     viewModel: AnalyticsViewModel,
     onLoadClick: (String) -> Unit,
     onAdvancedStats: () -> Unit,
+    onOpenMap: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
     BentoGlassScreenBackground {
@@ -193,6 +198,18 @@ private fun AnalyticsScreenBody(
                             modifier = Modifier.padding(end = 8.dp),
                         )
                         Text(stringResource(R.string.analytics_advanced_stats))
+                    }
+
+                    OutlinedButton(
+                        onClick = onOpenMap,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            Icons.Default.Map,
+                            contentDescription = stringResource(R.string.stats_map_open),
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                        Text(stringResource(R.string.stats_map_open))
                     }
 
                     uiState.summary?.let { summary ->

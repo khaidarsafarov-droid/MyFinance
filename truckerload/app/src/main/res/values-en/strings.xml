@@ -147,6 +147,7 @@
     <string name="nav_weekly_goal">Goal</string>
     <string name="nav_logbook">Loads</string>
     <string name="drawer_reports">Reports</string>
+    <string name="drawer_map">Map</string>
     <string name="drawer_documents">Documents</string>
     <string name="drawer_tools">Tools</string>
     <string name="drawer_about">About app</string>
@@ -165,8 +166,8 @@
     <string name="about_guide_tools_body">Menu → Tools: Maintenance (mileage reminders), Scanner (documents/OCR), and Camera (trip photos). From Home or the widget you can attach a shot to a load from this week.</string>
     <string name="about_guide_docs_title">5. Documents</string>
     <string name="about_guide_docs_body">Documents opens the scan gallery — open, share, or delete saved documents.</string>
-    <string name="about_guide_reports_title">6. Reports</string>
-    <string name="about_guide_reports_body">Reports shows load analytics: revenue, miles, RPM, and deeper stats for the period.</string>
+    <string name="about_guide_reports_title">6. Reports and map</string>
+    <string name="about_guide_reports_body">Reports shows load analytics. Map in the menu shows activity and RPM by US state. You can also open the map from Reports.</string>
     <string name="about_guide_backup_title">7. Backup</string>
     <string name="about_guide_backup_body">In Settings create a backup file on the phone or save to Google Drive and restore when you change devices.</string>
     <string name="about_guide_settings_title">8. Settings and profile</string>
