@@ -28,6 +28,10 @@ GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.goog
 # Нужен для общего аккаунта между устройствами / friends live sync.
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+# Optional: apply cloud SQL from CI/agent (never commit real values)
+# SUPABASE_DB_URL=postgresql://postgres.…@db.<ref>.supabase.co:5432/postgres
+# SUPABASE_ACCESS_TOKEN=
+# SUPABASE_PROJECT_REF=jsptulbjtesnphrbxsil
 
 # Google Drive backup (Settings → Google Drive): enable Drive API in Google Cloud
 # for the same project as GOOGLE_WEB_CLIENT_ID / Android OAuth client.
