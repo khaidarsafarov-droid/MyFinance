@@ -376,6 +376,21 @@ fun getLastDeliveryMillis(load: Load): Long? {
     return load.date.takeIf { it.length >= 10 }?.let { dateStringToStartOfDayMillis(it) }
 }
 
+/**
+ * Exact event dates for calendar markers: load.date, each stop date, and actualFinishDate.
+ * Unlike [getLoadDateRange], does not fill every in-transit day between PU and DEL.
+ */
+fun getLoadMarkerDates(load: Load): Set<String> {
+    val dates = mutableSetOf<String>()
+    canonicalDateString(load.date)?.let { dates.add(it) }
+    val yearHint = load.date.take(4).toIntOrNull()
+    for (stop in load.stops) {
+        parseDateFromScheduledTime(stop.scheduledTime, yearHint)?.let { dates.add(it) }
+    }
+    load.actualFinishDate?.takeIf { it.length >= 10 }?.let { dates.add(it.take(10)) }
+    return dates
+}
+
 /** Для груза возвращает множество дат (YYYY-MM-DD), когда груз активен: от первой до последней остановки включительно. */
 fun getLoadDateRange(load: Load): Set<String> {
     val dates = mutableSetOf<String>()

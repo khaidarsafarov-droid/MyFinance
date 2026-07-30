@@ -5,6 +5,7 @@ import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import com.truckerload.domain.parser.LoadMessageParser
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -46,6 +47,22 @@ class WeekUtilsTest {
             delTime = "07/03 09:00 EDT",
         )
         assertEquals(getWeekNumberAndYearFromDate("2025-07-01"), getLoadReportingWeek(load))
+    }
+
+    @Test
+    fun `getLoadMarkerDates only includes event days not in-transit fill`() {
+        val load = sampleLoad(
+            date = "2025-07-30",
+            puTime = "2025-07-30 08:00",
+            delTime = "2025-08-02 18:00",
+        )
+        val markers = getLoadMarkerDates(load)
+        val range = getLoadDateRange(load)
+        assertEquals(setOf("2025-07-30", "2025-08-02"), markers)
+        assertTrue(range.contains("2025-07-31"))
+        assertTrue(range.contains("2025-08-01"))
+        assertFalse(markers.contains("2025-07-31"))
+        assertFalse(markers.contains("2025-08-01"))
     }
 
     @Test
