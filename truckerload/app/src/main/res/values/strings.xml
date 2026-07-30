@@ -429,7 +429,10 @@
     <string name="friends_my_nickname_title">Мой никнейм</string>
     <string name="friends_my_nickname_hint">По этому нику друзья найдут вас в Truck Log</string>
     <string name="friends_nickname_label">Никнейм</string>
+    <string name="friends_nickname_placeholder">например DriverPro</string>
     <string name="friends_nickname_save">Сохранить</string>
+    <string name="friends_add_nickname_button">Добавить никнейм</string>
+    <string name="friends_change_nickname_button">Изменить никнейм</string>
     <string name="friends_nickname_invalid">Ник: 3–24 символа, буква в начале, только латиница, цифры и _</string>
     <string name="friends_nickname_saved">Никнейм сохранён</string>
     <string name="friends_my_nickname_current">Ваш ник: @%1$s</string>
