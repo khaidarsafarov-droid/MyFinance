@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +43,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,6 +84,7 @@ import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.sync.FriendsLocationShareService
+import kotlinx.coroutines.launch
 
 private val COLOR_PAST = 0xFF9CA3AF.toInt()
 private val COLOR_REMAINING = 0xFF2563EB.toInt()
@@ -122,7 +127,18 @@ fun FriendsLiveMapScreen(
     }
 
     var myLocation by remember { mutableStateOf<LatLng?>(null) }
+    var centerOnMeNonce by remember { mutableIntStateOf(0) }
     val locationHelper = remember(context) { com.truckerload.utils.LocationHelper(context) }
+    val scope = rememberCoroutineScope()
+
+    suspend fun refreshMyLocation(): LatLng? {
+        if (!hasLocationPermission) return null
+        val loc = locationHelper.getCurrentLocation()
+        val lat = loc?.latitude
+        val lng = loc?.longitude
+        if (lat == null || lng == null) return null
+        return LatLng(lat, lng).also { myLocation = it }
+    }
 
     // Ask for location once so we can show "me" on the map (independent of share toggle).
     LaunchedEffect(Unit) {
@@ -141,12 +157,7 @@ fun FriendsLiveMapScreen(
             myLocation = null
             return@LaunchedEffect
         }
-        val loc = locationHelper.getCurrentLocation()
-        val lat = loc?.latitude
-        val lng = loc?.longitude
-        if (lat != null && lng != null) {
-            myLocation = LatLng(lat, lng)
-        }
+        refreshMyLocation()
     }
 
     LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
@@ -429,8 +440,36 @@ fun FriendsLiveMapScreen(
                         selectedFriendId = uiState.selectedFriendId,
                         myLocation = myLocation,
                         showMyLocationLayer = hasLocationPermission,
+                        centerOnMeNonce = centerOnMeNonce,
                         onMarkerClick = viewModel::selectFriend,
                     )
+                    FloatingActionButton(
+                        onClick = {
+                            if (!hasLocationPermission) {
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    ),
+                                )
+                                return@FloatingActionButton
+                            }
+                            scope.launch {
+                                refreshMyLocation()
+                                centerOnMeNonce += 1
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(12.dp),
+                        containerColor = tc.AccentPrimary,
+                        contentColor = tc.Background,
+                    ) {
+                        Icon(
+                            Icons.Default.MyLocation,
+                            contentDescription = stringResource(R.string.friends_center_on_me),
+                        )
+                    }
                     if (uiState.isLoading && uiState.friends.isEmpty() && myLocation == null) {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
@@ -680,6 +719,7 @@ private fun FriendsGoogleMap(
     selectedFriendId: String?,
     myLocation: LatLng?,
     showMyLocationLayer: Boolean,
+    centerOnMeNonce: Int,
     onMarkerClick: (String) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -711,7 +751,7 @@ private fun FriendsGoogleMap(
         map.getMapAsync { googleMap ->
             googleMap.clear()
             googleMap.uiSettings.isZoomControlsEnabled = true
-            googleMap.uiSettings.isMyLocationButtonEnabled = showMyLocationLayer
+            googleMap.uiSettings.isMyLocationButtonEnabled = false
             runCatching {
                 googleMap.isMyLocationEnabled = showMyLocationLayer
             }
@@ -773,10 +813,10 @@ private fun FriendsGoogleMap(
                         ),
                     )
                 }
-                myLocation != null -> {
+                myLocation != null && centerOnMeNonce == 0 -> {
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12f))
                 }
-                overlays.isNotEmpty() -> {
+                overlays.isNotEmpty() && centerOnMeNonce == 0 -> {
                     val f = overlays.first()
                     googleMap.moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
@@ -786,6 +826,15 @@ private fun FriendsGoogleMap(
                     )
                 }
             }
+        }
+    }
+
+    LaunchedEffect(centerOnMeNonce, myLocation, mapView) {
+        if (centerOnMeNonce == 0) return@LaunchedEffect
+        val target = myLocation ?: return@LaunchedEffect
+        val map = mapView ?: return@LaunchedEffect
+        map.getMapAsync { googleMap ->
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, 14f))
         }
     }
 

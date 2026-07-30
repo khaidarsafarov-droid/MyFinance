@@ -445,6 +445,7 @@
     <string name="friends_grant_location">Allow location</string>
     <string name="friends_map_legend">Green — you · orange — friends online</string>
     <string name="friends_me_marker">Me</string>
+    <string name="friends_center_on_me">Center on me</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>
