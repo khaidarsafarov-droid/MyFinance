@@ -196,6 +196,10 @@
     <string name="photo_unlinked">Фото отвязано от груза</string>
     <string name="link_to_load">Привязать к грузу</string>
     <string name="select_load">Выберите груз</string>
+    <string name="attach_pick_camera_hint">Выберите груз — фото сохранится в него.</string>
+    <string name="attach_pick_scanner_hint">Выберите груз — скан сохранится в него.</string>
+    <string name="attach_pick_empty">Нет грузов</string>
+    <string name="attach_pick_empty_hint">Сначала добавьте груз в журнал, затем снова откройте камеру или сканер из виджета.</string>
     <string name="photo_delete_confirm">Удалить это фото?</string>
     <string name="photo_file_missing">Файл фото не найден</string>
     <string name="filter_all">Все</string>

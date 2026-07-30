@@ -196,6 +196,10 @@
     <string name="photo_unlinked">Photo unlinked from load</string>
     <string name="link_to_load">Link to load</string>
     <string name="select_load">Select load</string>
+    <string name="attach_pick_camera_hint">Choose a load — the photo will be saved to it.</string>
+    <string name="attach_pick_scanner_hint">Choose a load — the scan will be saved to it.</string>
+    <string name="attach_pick_empty">No loads yet</string>
+    <string name="attach_pick_empty_hint">Add a load to the journal first, then open camera or scanner from the widget again.</string>
     <string name="photo_delete_confirm">Delete this photo?</string>
     <string name="photo_file_missing">Photo file not found</string>
     <string name="filter_all">All</string>

@@ -61,6 +61,8 @@ import com.truckerload.presentation.screens.stats.StatsScreen
 import com.truckerload.presentation.screens.camera.CameraFlowScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
+import com.truckerload.presentation.screens.attach.AttachLoadPickScreen
+import com.truckerload.presentation.screens.attach.AttachPickMode
 import com.truckerload.presentation.screens.gallery.PhotoDetailScreen
 import com.truckerload.presentation.screens.gallery.PhotoGalleryScreen
 import com.truckerload.presentation.screens.social.CommunityScreen
@@ -106,6 +108,8 @@ object Routes {
     const val CAMERA_FOR_LOAD = "camera_load/{loadId}/{tripId}/{loadDate}"
     const val SCANNER = "scanner"
     const val SCANNER_FOR_LOAD = "scanner_load/{loadId}/{tripId}/{loadDate}"
+    /** Widget camera/scan: pick one of the last loads, then open attached capture. */
+    const val ATTACH_PICK = "attach_pick/{mode}"
     const val SCAN_GALLERY = "scan_gallery"
     const val PHOTO_GALLERY = "photo_gallery"
     const val PHOTO_DETAIL = "photo_detail/{photoId}"
@@ -122,6 +126,8 @@ object Routes {
     fun scannerForLoad(loadId: String, tripId: String, loadDate: String): String {
         return "scanner_load/${encodePathSegment(loadId)}/${encodePathSegment(tripId)}/${encodePathSegment(loadDate)}"
     }
+
+    fun attachPick(mode: String): String = "attach_pick/${encodePathSegment(mode)}"
 
     private fun encodePathSegment(value: String): String =
         Uri.encode(value.ifBlank { "_" }) ?: "_"
@@ -166,54 +172,6 @@ fun NavGraph(
     val context = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
     val tablet = isTablet()
-
-    LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent) {
-        if (!isLoggedIn || !showMainContent) return@LaunchedEffect
-        val route = deepLinkRoute ?: return@LaunchedEffect
-        val destination = WidgetDeepLink.resolveNavRoute(route) ?: return@LaunchedEffect
-        when (destination) {
-            Routes.HOME -> {
-                navController.navigate(Routes.HOME) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-                onDeepLinkHandled()
-            }
-            Routes.ADD_LOAD -> {
-                navController.navigate(Routes.ADD_LOAD)
-                onDeepLinkHandled()
-            }
-            Routes.ANALYTICS -> {
-                // Widget RPM / "stats" intent → Analytics (not WeeklyGoal; that is Routes.STATS)
-                navController.navigate(Routes.ANALYTICS) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
-            Routes.STATS -> {
-                // Widget weekly-goal taps + Routes.STATS → WeeklyGoalScreen
-                navController.navigate(Routes.STATS) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
-            Routes.CAMERA -> {
-                navController.navigate(Routes.CAMERA) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
-            Routes.SCANNER -> {
-                navController.navigate(Routes.SCANNER) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
-        }
-    }
 
     if (!isLoggedIn) {
         // Auth UI is hosted by MainActivity (account switch recreates user-scoped deps).
@@ -280,6 +238,64 @@ fun NavGraph(
         return
     }
 
+    // Handle widget deep links only after NavHost is about to be composed (setup gates passed).
+    LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent, needsSetup, needsEmailVerify) {
+        if (!isLoggedIn || !showMainContent) return@LaunchedEffect
+        if (needsSetup != false || needsEmailVerify != false) return@LaunchedEffect
+        val route = deepLinkRoute ?: return@LaunchedEffect
+        val destination = WidgetDeepLink.resolveNavRoute(route) ?: return@LaunchedEffect
+        when (destination) {
+            Routes.HOME -> {
+                navController.navigate(Routes.HOME) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+                onDeepLinkHandled()
+            }
+            Routes.ADD_LOAD -> {
+                navController.navigate(Routes.ADD_LOAD)
+                onDeepLinkHandled()
+            }
+            Routes.ANALYTICS -> {
+                navController.navigate(Routes.ANALYTICS) {
+                    launchSingleTop = true
+                }
+                onDeepLinkHandled()
+            }
+            Routes.STATS -> {
+                navController.navigate(Routes.STATS) {
+                    launchSingleTop = true
+                }
+                onDeepLinkHandled()
+            }
+            WidgetDeepLink.ROUTE_ATTACH_CAMERA,
+            Routes.CAMERA,
+            -> {
+                navController.navigate(Routes.attachPick("camera")) {
+                    launchSingleTop = true
+                }
+                onDeepLinkHandled()
+            }
+            WidgetDeepLink.ROUTE_ATTACH_SCANNER,
+            Routes.SCANNER,
+            -> {
+                navController.navigate(Routes.attachPick("scanner")) {
+                    launchSingleTop = true
+                }
+                onDeepLinkHandled()
+            }
+            else -> {
+                if (destination.startsWith("attach_pick/")) {
+                    navController.navigate(destination) { launchSingleTop = true }
+                    onDeepLinkHandled()
+                }
+            }
+        }
+    }
+
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
     val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.PROFILE)
@@ -288,6 +304,7 @@ fun NavGraph(
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
             currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
+            !currentRoute.orEmpty().startsWith("attach_pick") &&
             !currentRoute.orEmpty().startsWith("photo_detail") &&
             !currentRoute.orEmpty().startsWith("profile_peer") &&
             !currentRoute.orEmpty().startsWith("social_chat")
@@ -582,6 +599,34 @@ fun NavGraph(
             }
             composable(Routes.ADD_DIESEL) {
                 AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+            }
+            composable(
+                route = Routes.ATTACH_PICK,
+                arguments = listOf(
+                    navArgument("mode") { type = NavType.StringType },
+                ),
+            ) { entry ->
+                val modeArg = Uri.decode(entry.arguments?.getString("mode").orEmpty())
+                val mode = when (modeArg) {
+                    "scanner" -> AttachPickMode.SCANNER
+                    else -> AttachPickMode.CAMERA
+                }
+                AttachLoadPickScreen(
+                    mode = mode,
+                    onCancel = { navController.popBackStack() },
+                    onAddLoad = {
+                        navController.popBackStack()
+                        navController.navigate(Routes.ADD_LOAD) { launchSingleTop = true }
+                    },
+                    onLoadSelected = { load ->
+                        navController.popBackStack()
+                        val dest = when (mode) {
+                            AttachPickMode.CAMERA -> Routes.cameraForLoad(load.id, load.tripId, load.date)
+                            AttachPickMode.SCANNER -> Routes.scannerForLoad(load.id, load.tripId, load.date)
+                        }
+                        navController.navigate(dest) { launchSingleTop = true }
+                    },
+                )
             }
             composable(Routes.CAMERA) {
                 CameraFlowScreen(

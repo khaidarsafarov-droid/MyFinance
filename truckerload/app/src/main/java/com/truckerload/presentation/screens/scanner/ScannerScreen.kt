@@ -125,11 +125,15 @@ fun ScannerFlowScreen(
                         else R.string.scan_success,
                     ),
                 )
-                viewModel.clearStatus()
+                // clearPendingScan() already clears statusMessage — do not clearStatus()
+                // first or this effect restarts and cancels clearPendingScan/onFinished
+                // (infinite "scan_attaching" spinner).
                 if (uiState.autoAttachedAndDone) {
                     delay(700)
                     viewModel.clearPendingScan()
                     onFinished()
+                } else {
+                    viewModel.clearStatus()
                 }
             }
             uiState.statusMessage?.startsWith("scan_saved_phone:") == true -> {

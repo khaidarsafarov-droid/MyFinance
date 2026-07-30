@@ -25,8 +25,21 @@ class WidgetDeepLinkRoutingTest {
         assertEquals("home", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_HOME))
         assertEquals("home", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_JOURNAL_THIS_WEEK))
         assertEquals("add_load", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_ADD_LOAD))
-        assertEquals("camera", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_CAMERA))
-        assertEquals("scanner", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_SCANNER))
+    }
+
+    @Test
+    fun resolveNavRoute_cameraAndScanner_openAttachPick() {
+        // Widget camera/scan must pick a load before capture so media is attached.
+        assertEquals(
+            WidgetDeepLink.ROUTE_ATTACH_CAMERA,
+            WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_CAMERA),
+        )
+        assertEquals(
+            WidgetDeepLink.ROUTE_ATTACH_SCANNER,
+            WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_SCANNER),
+        )
+        assertEquals("attach_pick/camera", WidgetDeepLink.resolveNavRoute("camera"))
+        assertEquals("attach_pick/scanner", WidgetDeepLink.resolveNavRoute("scanner"))
     }
 
     @Test

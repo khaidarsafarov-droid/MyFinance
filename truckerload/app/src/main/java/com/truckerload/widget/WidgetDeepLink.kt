@@ -16,12 +16,18 @@ object WidgetDeepLink {
     const val ROUTE_WEEKLY_GOAL = "weekly_goal"
     const val ROUTE_CAMERA = "camera"
     const val ROUTE_SCANNER = "scanner"
+    /** Pick a recent load, then open camera attached to it. */
+    const val ROUTE_ATTACH_CAMERA = "attach_pick/camera"
+    /** Pick a recent load, then open scanner attached to it. */
+    const val ROUTE_ATTACH_SCANNER = "attach_pick/scanner"
     private const val PREFS = "truckerload_widget"
     private const val KEY_OPEN_THIS_WEEK = "open_this_week"
 
     /**
      * Maps a widget / MainActivity EXTRA_ROUTE value to a NavGraph route string.
      * Pure helper for unit tests and to keep NavGraph branches consistent.
+     *
+     * Widget Camera/Scan open the load picker first so media is attached to a trip.
      */
     fun resolveNavRoute(deepLinkRoute: String): String? = when (deepLinkRoute) {
         ROUTE_HOME, "home" -> "home"
@@ -30,8 +36,8 @@ object WidgetDeepLink {
         ROUTE_STATS, "analytics", "stats" -> "analytics"
         ROUTE_JOURNAL_THIS_WEEK -> "home"
         ROUTE_WEEKLY_GOAL -> "stats" // WeeklyGoalScreen lives at Routes.STATS
-        ROUTE_CAMERA, "camera" -> "camera"
-        ROUTE_SCANNER, "scanner" -> "scanner"
+        ROUTE_CAMERA, "camera", ROUTE_ATTACH_CAMERA -> ROUTE_ATTACH_CAMERA
+        ROUTE_SCANNER, "scanner", ROUTE_ATTACH_SCANNER -> ROUTE_ATTACH_SCANNER
         else -> null
     }
 
