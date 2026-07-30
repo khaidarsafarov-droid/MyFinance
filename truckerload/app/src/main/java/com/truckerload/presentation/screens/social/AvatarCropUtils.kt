@@ -2,9 +2,7 @@ package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.graphics.Matrix
-import android.graphics.Paint
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
@@ -16,8 +14,6 @@ import kotlin.math.roundToInt
 internal object AvatarCropUtils {
     private const val MAX_SOURCE_DIMENSION = 2048
     const val OUTPUT_SIZE = 512
-
-    private val bitmapPaint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
 
     fun decodeSampledBitmap(stream: java.io.InputStream, maxDimension: Int = MAX_SOURCE_DIMENSION): Bitmap? {
         val bytes = stream.readBytes()
@@ -85,8 +81,8 @@ internal object AvatarCropUtils {
      * Crops the square that matches the on-screen circular frame after [fitScale],
      * [userScale], and [offset] are applied around the container center.
      *
-     * Uses a Canvas/Matrix draw so the saved pixels match the preview framing
-     * even when the crop window sits on a bitmap edge (no non-square stretch).
+     * The crop window is forced square and clamped as a unit so edge clamping
+     * cannot stretch/skew the framed subject.
      */
     fun cropSquare(
         source: Bitmap,
@@ -99,26 +95,28 @@ internal object AvatarCropUtils {
         outputSize: Int = OUTPUT_SIZE,
     ): Bitmap {
         require(outputSize > 0) { "outputSize must be positive" }
-        if (cropDiameter <= 0f || fitScale <= 0f || userScale <= 0f) {
-            return source.scale(outputSize, outputSize)
+        val window = cropWindowInBitmap(
+            bitmapWidth = source.width,
+            bitmapHeight = source.height,
+            containerWidth = containerWidth,
+            containerHeight = containerHeight,
+            cropDiameter = cropDiameter,
+            fitScale = fitScale,
+            userScale = userScale,
+            offset = offset,
+        )
+        val left = window[0]
+        val top = window[1]
+        val width = window[2] - left
+        val height = window[3] - top
+        val cropped = Bitmap.createBitmap(source, left, top, width, height)
+        return if (width == outputSize && height == outputSize) {
+            cropped
+        } else {
+            cropped.scale(outputSize, outputSize).also {
+                if (it !== cropped) cropped.recycle()
+            }
         }
-
-        val totalScale = fitScale * userScale
-        val halfCrop = cropDiameter / 2f
-        val outScale = outputSize / cropDiameter
-
-        // screen = containerCenter + offset + (bitmap - bitmapCenter) * totalScale
-        // Invert that mapping onto the output canvas whose (0,0) is the crop top-left.
-        val matrix = Matrix().apply {
-            setTranslate(-source.width / 2f, -source.height / 2f)
-            postScale(totalScale, totalScale)
-            postTranslate(halfCrop + offset.x, halfCrop + offset.y)
-            postScale(outScale, outScale)
-        }
-
-        val output = Bitmap.createBitmap(outputSize, outputSize, Bitmap.Config.ARGB_8888)
-        Canvas(output).drawBitmap(source, matrix, bitmapPaint)
-        return output
     }
 
     /**
@@ -134,6 +132,9 @@ internal object AvatarCropUtils {
         userScale: Float,
         offset: Offset,
     ): IntArray {
+        if (bitmapWidth <= 0 || bitmapHeight <= 0 || cropDiameter <= 0f || fitScale <= 0f || userScale <= 0f) {
+            return intArrayOf(0, 0, 1, 1)
+        }
         val centerX = containerWidth / 2f
         val centerY = containerHeight / 2f
         val halfCrop = cropDiameter / 2f
@@ -150,12 +151,40 @@ internal object AvatarCropUtils {
         val (rawLeft, rawTop) = screenToBitmap(centerX - halfCrop, centerY - halfCrop)
         val (rawRight, rawBottom) = screenToBitmap(centerX + halfCrop, centerY + halfCrop)
 
-        val leftF = min(rawLeft, rawRight)
-        val topF = min(rawTop, rawBottom)
-        val rightF = max(rawLeft, rawRight)
-        val bottomF = max(rawTop, rawBottom)
-        // Keep a square window; clamp as a unit so framing does not skew at edges.
-        val side = min(rightF - leftF, bottomF - topF)
+        var leftF = min(rawLeft, rawRight)
+        var topF = min(rawTop, rawBottom)
+        var rightF = max(rawLeft, rawRight)
+        var bottomF = max(rawTop, rawBottom)
+        // Keep a square window; shift as a unit so framing does not skew at edges.
+        val side = min(rightF - leftF, bottomF - topF).coerceAtLeast(1f)
+        val midX = (leftF + rightF) / 2f
+        val midY = (topF + bottomF) / 2f
+        leftF = midX - side / 2f
+        topF = midY - side / 2f
+        rightF = leftF + side
+        bottomF = topF + side
+
+        if (leftF < 0f) {
+            rightF -= leftF
+            leftF = 0f
+        }
+        if (topF < 0f) {
+            bottomF -= topF
+            topF = 0f
+        }
+        if (rightF > bitmapWidth) {
+            val overflow = rightF - bitmapWidth
+            leftF -= overflow
+            rightF = bitmapWidth.toFloat()
+        }
+        if (bottomF > bitmapHeight) {
+            val overflow = bottomF - bitmapHeight
+            topF -= overflow
+            bottomF = bitmapHeight.toFloat()
+        }
+        leftF = leftF.coerceAtLeast(0f)
+        topF = topF.coerceAtLeast(0f)
+
         val left = leftF.roundToInt().coerceIn(0, (bitmapWidth - 1).coerceAtLeast(0))
         val top = topF.roundToInt().coerceIn(0, (bitmapHeight - 1).coerceAtLeast(0))
         val maxSide = min(bitmapWidth - left, bitmapHeight - top).coerceAtLeast(1)

@@ -40,8 +40,7 @@ class AvatarCropUtilsTest {
 
     @Test
     fun cropSquare_withHorizontalOffset_preservesFramingTowardOffsetSide() {
-        // Left half green, right half blue — panning the image right (positive offset)
-        // should reveal more of the left (green) side in the crop.
+        // Left half green, right half blue — zoom + pan right should keep only green in frame.
         val source = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888).apply {
             for (x in 0 until width) {
                 val color = if (x < width / 2) Color.GREEN else Color.BLUE
@@ -53,9 +52,10 @@ class AvatarCropUtilsTest {
         val container = 1080f
         val cropDiameter = 720f
         val fitScale = AvatarCropUtils.fitScale(source.width, source.height, container, container)
-        val userScale = AvatarCropUtils.minUserScale(cropDiameter, source.width, source.height, fitScale)
+        val minScale = AvatarCropUtils.minUserScale(cropDiameter, source.width, source.height, fitScale)
+        val userScale = minScale * 2f
         val offset = AvatarCropUtils.clampOffset(
-            offset = Offset(220f, 0f),
+            offset = Offset(500f, 0f),
             userScale = userScale,
             fitScale = fitScale,
             bitmapWidth = source.width,
@@ -89,7 +89,6 @@ class AvatarCropUtilsTest {
         assertNotEquals(Offset.Zero, offset)
         assertEquals(Color.GREEN, centered.getPixel(0, 32))
         assertEquals(Color.BLUE, centered.getPixel(63, 32))
-        // After panning right, the whole frame should be green (left side of source).
         assertEquals(Color.GREEN, panned.getPixel(0, 32))
         assertEquals(Color.GREEN, panned.getPixel(32, 32))
         assertEquals(Color.GREEN, panned.getPixel(63, 32))
@@ -108,9 +107,10 @@ class AvatarCropUtilsTest {
         val container = 1080f
         val cropDiameter = 720f
         val fitScale = AvatarCropUtils.fitScale(source.width, source.height, container, container)
-        val userScale = AvatarCropUtils.minUserScale(cropDiameter, source.width, source.height, fitScale)
+        val minScale = AvatarCropUtils.minUserScale(cropDiameter, source.width, source.height, fitScale)
+        val userScale = minScale * 2f
         val offset = AvatarCropUtils.clampOffset(
-            offset = Offset(0f, 220f),
+            offset = Offset(0f, 500f),
             userScale = userScale,
             fitScale = fitScale,
             bitmapWidth = source.width,
@@ -141,7 +141,6 @@ class AvatarCropUtilsTest {
     fun cropSquare_zoomedAndPanned_matchesBitmapWindowCenterColor() {
         val source = Bitmap.createBitmap(1200, 800, Bitmap.Config.ARGB_8888).apply {
             eraseColor(Color.BLACK)
-            // Distinct marker on the right half.
             for (x in 850 until 1150) {
                 for (y in 300 until 500) {
                     setPixel(x, y, Color.CYAN)
@@ -155,7 +154,6 @@ class AvatarCropUtilsTest {
         val minScale = AvatarCropUtils.minUserScale(cropDiameter, source.width, source.height, fitScale)
         val userScale = minScale * 1.6f
         val totalScale = fitScale * userScale
-        // Choose an offset that centers bitmap (1000, 400) in the crop frame.
         val desired = Offset(
             x = (source.width / 2f - 1000f) * totalScale,
             y = (source.height / 2f - 400f) * totalScale,
@@ -183,8 +181,8 @@ class AvatarCropUtilsTest {
         )
         val midX = (window[0] + window[2]) / 2
         val midY = (window[1] + window[3]) / 2
-        assertTrue("expected cyan marker in crop window, mid=($midX,$midY)", midX in 850 until 1150)
-        assertTrue(midY in 300 until 500)
+        assertTrue("expected cyan marker in crop window, mid=($midX,$midY) offset=$offset", midX in 850 until 1150)
+        assertTrue("expected cyan marker Y in crop window, mid=($midX,$midY)", midY in 300 until 500)
 
         val cropped = AvatarCropUtils.cropSquare(
             source = source,
@@ -198,7 +196,12 @@ class AvatarCropUtilsTest {
         )
         assertEquals(128, cropped.width)
         assertEquals(128, cropped.height)
-        assertEquals(Color.CYAN, cropped.getPixel(64, 64))
+        val centerColor = cropped.getPixel(64, 64)
+        assertEquals(
+            "center pixel should be cyan, was #${Integer.toHexString(centerColor)} window=$window offset=$offset",
+            Color.CYAN,
+            centerColor,
+        )
     }
 
     @Test
