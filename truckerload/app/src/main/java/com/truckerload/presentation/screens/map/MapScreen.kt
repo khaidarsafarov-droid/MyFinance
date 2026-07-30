@@ -172,11 +172,6 @@ private fun MapScreenBody(
                 onClick = { viewModel.setScope(CrowdScope.ME) },
             )
             ScopeChip(
-                selected = uiState.scope == CrowdScope.FRIENDS,
-                label = stringResource(R.string.map_scope_friends),
-                onClick = { viewModel.setScope(CrowdScope.FRIENDS) },
-            )
-            ScopeChip(
                 selected = uiState.scope == CrowdScope.ALL,
                 label = stringResource(R.string.map_scope_all),
                 onClick = { viewModel.setScope(CrowdScope.ALL) },
@@ -283,9 +278,9 @@ private fun CrowdRecentRow(report: CrowdRateReport) {
     val age = formatCrowdAge(now - report.reportedAtMillis)
     val sourceLabel = when (report.source) {
         CrowdRateSource.ME -> stringResource(R.string.map_scope_me)
-        CrowdRateSource.FRIEND -> report.peerLabel
-            ?: stringResource(R.string.map_scope_friends)
-        CrowdRateSource.NETWORK -> stringResource(R.string.map_crowd_source_network)
+        CrowdRateSource.FRIEND,
+        CrowdRateSource.NETWORK,
+        -> stringResource(R.string.map_crowd_source_network)
     }
     Text(
         text = stringResource(

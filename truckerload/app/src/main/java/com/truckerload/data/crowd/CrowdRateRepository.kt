@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 /**
- * Combines local load-derived "me" rates with cached friend/network crowd rates.
- * When the network cache is empty, seeds a small anonymized community sample so the
- * All / Friends map UX is usable offline (clearly tagged as NETWORK / FRIEND).
+ * Combines local load-derived "me" rates with cached network crowd rates.
+ * When the network cache is empty, seeds a small anonymized community sample so
+ * the All map UX is usable offline (tagged as NETWORK).
  */
 class CrowdRateRepository(
     private val db: AppDatabase,
@@ -34,14 +34,14 @@ class CrowdRateRepository(
             windowMs = windowMs,
         )
         val cached = dao.listSince(cutoff).map { it.toDomain() }
-        // Prefer live "me" over any stale ME rows in cache.
-        val nonMeCached = cached.filter { it.source != CrowdRateSource.ME }
-        return (me + nonMeCached).distinctBy { it.id }
+            // Friends scope is paused — only community network + live Me.
+            .filter { it.source == CrowdRateSource.NETWORK }
+        return (me + cached).distinctBy { it.id }
     }
 
     suspend fun replaceNetworkRates(reports: List<CrowdRateReport>) {
         val entities = reports
-            .filter { it.source == CrowdRateSource.NETWORK || it.source == CrowdRateSource.FRIEND }
+            .filter { it.source == CrowdRateSource.NETWORK }
             .map { it.toEntity() }
         if (entities.isEmpty()) return
         dao.upsertAll(entities)
@@ -49,7 +49,6 @@ class CrowdRateRepository(
 
     private suspend fun ensureCommunitySample(nowMillis: Long) {
         if (dao.countBySource(CrowdRateSource.NETWORK.name) > 0) return
-        if (dao.countBySource(CrowdRateSource.FRIEND.name) > 0) return
         dao.upsertAll(buildCommunitySample(nowMillis))
     }
 
@@ -70,11 +69,9 @@ class CrowdRateRepository(
                 Triple("AZ", "NV", 2.20),
                 Triple("CO", "UT", 2.90),
             )
-            val friendNames = listOf("Ivan", "Alexey", "Sergey", "Maria")
             val rnd = Random(30_07_2026L)
             val out = mutableListOf<CrowdRateEntity>()
             corridors.forEachIndexed { idx, (from, to, baseRpm) ->
-                // Network: a few ages across the week
                 listOf(2L, 14L, 36L, 60L, 90L).forEachIndexed { j, hoursAgo ->
                     val rpm = baseRpm + (rnd.nextDouble() - 0.5) * 0.35
                     val miles = 400.0 + rnd.nextDouble() * 500.0
@@ -90,24 +87,6 @@ class CrowdRateRepository(
                         reportedAtMillis = at,
                         source = CrowdRateSource.NETWORK.name,
                         peerLabel = null,
-                        syncedAtMillis = nowMillis,
-                    )
-                }
-                // Friends: fewer, tagged
-                if (idx < friendNames.size) {
-                    val hoursAgo = 3L + idx * 11L
-                    val rpm = baseRpm + 0.12
-                    val miles = 520.0 + idx * 40.0
-                    out += CrowdRateEntity(
-                        id = "friend:$from-$to",
-                        fromState = from,
-                        toState = to,
-                        rpm = rpm,
-                        rate = rpm * miles,
-                        miles = miles,
-                        reportedAtMillis = nowMillis - TimeUnit.HOURS.toMillis(hoursAgo),
-                        source = CrowdRateSource.FRIEND.name,
-                        peerLabel = friendNames[idx],
                         syncedAtMillis = nowMillis,
                     )
                 }

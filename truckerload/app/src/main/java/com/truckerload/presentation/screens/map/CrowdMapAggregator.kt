@@ -53,7 +53,6 @@ object CrowdMapAggregator {
     fun filterByScope(reports: List<CrowdRateReport>, scope: CrowdScope): List<CrowdRateReport> =
         when (scope) {
             CrowdScope.ME -> reports.filter { it.source == CrowdRateSource.ME }
-            CrowdScope.FRIENDS -> reports.filter { it.source == CrowdRateSource.FRIEND }
             CrowdScope.ALL -> reports
         }
 

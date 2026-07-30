@@ -5,7 +5,6 @@ package com.truckerload.domain.crowd
  */
 enum class CrowdScope {
     ME,
-    FRIENDS,
     ALL,
 }
 
