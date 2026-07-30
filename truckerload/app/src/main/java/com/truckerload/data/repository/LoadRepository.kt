@@ -44,9 +44,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.withContext
-import com.truckerload.data.local.entities.LoadDateRow
-import com.truckerload.data.local.entities.LoadMileageRow
 import java.io.File
 import java.util.Locale
 
@@ -88,9 +85,7 @@ class LoadRepository(
         loadDao.watchWeeklyLoadStats(weekNumber, year).flowOn(Dispatchers.IO)
 
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg =
-        withContext(Dispatchers.IO) {
-            loadDao.getWeeklyLoadStatsOnce(weekNumber, year)
-        }
+        loadDao.getWeeklyLoadStatsOnce(weekNumber, year)
 
     /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
     fun watchLoads(): Flow<List<Load>> = getAllLoads()
@@ -106,6 +101,13 @@ class LoadRepository(
             .distinctUntilChanged()
             .flatMapLatest { (weekNumber, year) -> loadDao.watchWeekYieldAgg(weekNumber, year) }
             .map { it.toSnapshot() }
+            .flowOn(Dispatchers.IO)
+
+    /** Distinct load dates for calendar dots — no stop hydrate. */
+    fun watchDistinctLoadDates(): Flow<Set<String>> =
+        loadDao.watchDistinctLoadDates()
+            .map { dates -> dates.filter { it.length >= 10 }.toSet() }
+            .flowOn(Dispatchers.IO)
 
     /**
      * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
@@ -142,7 +144,7 @@ class LoadRepository(
     }
 
     fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =
-        loadDao.watchActualDailyYield(weekNumber, year)
+        loadDao.watchActualDailyYield(weekNumber, year).flowOn(Dispatchers.IO)
 
     fun getLoadsByMonth(monthPrefix: String): Flow<List<Load>> =
         loadDao.getLoadsByMonth(monthPrefix)
@@ -170,32 +172,6 @@ class LoadRepository(
         loadDao.getLoadsByDateRange(startDate, endDate)
             .mapLatest { hydrateLoads(it) }
             .flowOn(Dispatchers.IO)
-
-    /**
-     * Calendar markers only — id + date, no stop/penalty hydrate.
-     * Collect on IO so Room + map never touch Main.
-     */
-    fun watchLoadDateRows(): Flow<List<LoadDateRow>> =
-        loadDao.watchLoadDateRows().flowOn(Dispatchers.IO)
-
-    fun watchLoadsForMileage(
-        minServiceDate: String,
-        minServiceEpochMs: Long,
-    ): Flow<List<LoadMileageRow>> =
-        loadDao.watchLoadsForMileage(minServiceDate, minServiceEpochMs).flowOn(Dispatchers.IO)
-
-    suspend fun getLoadsForMileageOnce(
-        minServiceDate: String,
-        minServiceEpochMs: Long,
-    ): List<LoadMileageRow> =
-        withContext(Dispatchers.IO) {
-            loadDao.getLoadsForMileageOnce(minServiceDate, minServiceEpochMs)
-        }
-
-    suspend fun getLoadStatsForDateRange(startDate: String, endDate: String) =
-        withContext(Dispatchers.IO) {
-            loadDao.getLoadStatsForDateRange(startDate, endDate)
-        }
 
     /**
      * True Room [PagingSource] journal rows (entity → domain without stop hydrate —
@@ -230,7 +206,7 @@ class LoadRepository(
             },
         ).flow.map { pagingData ->
             pagingData.mapPaging { entity -> entity.toDomain() }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     suspend fun getLoadsByYear(year: Int): List<Load> =
@@ -242,9 +218,7 @@ class LoadRepository(
     suspend fun getAllLoadsOnce(): List<Load> = hydrateLoads(loadDao.getAllLoadsOnce())
 
     suspend fun getLoadsForLinking(limit: Int = 50): List<Load> =
-        withContext(Dispatchers.IO) {
-            hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
-        }
+        hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
 
     /**
      * Up to [limit] loads from the current trucking week (Sun–Sat), newest by date then

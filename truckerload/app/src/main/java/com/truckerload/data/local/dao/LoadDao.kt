@@ -4,9 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.truckerload.data.local.entities.LoadDateRow
 import com.truckerload.data.local.entities.LoadEntity
-import com.truckerload.data.local.entities.LoadMileageRow
+import com.truckerload.data.local.entities.LoadMileageInput
 import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
@@ -299,106 +298,54 @@ interface LoadDao {
     suspend fun sumMilesSince(startDate: String): Double
 
     /**
-     * Prefer this for ТО math when finish dates are denormalized on the row:
-     * end on/after service day (inclusive) — same rule as [com.truckerload.domain.maintenance.MaintenanceMileageUseCase].
-     * Caps single-load outliers at 15000 mi (mirrors Kotlin MAX_PLAUSIBLE_LOAD_MILES).
+     * SQL-side ТО miles: end date = COALESCE(actualFinishDate, lastDel local date, date),
+     * inclusive range [serviceDate, endCap]. Does not dedupe tripId — use
+     * [watchMileageInputs] + MaintenanceMileageUseCase when duplicates matter.
      */
     @Query(
         """
-        SELECT COALESCE(SUM(
-            CASE
-                WHEN totalMiles IS NULL OR totalMiles <= 0 THEN 0.0
-                WHEN totalMiles > 15000.0 THEN 15000.0
-                ELSE totalMiles
-            END
-        ), 0.0) FROM loads
+        SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads
         WHERE COALESCE(
-            NULLIF(substr(TRIM(COALESCE(actualFinishDate, '')), 1, 10), ''),
-            date
-        ) >= :serviceDate
-          AND COALESCE(
-            NULLIF(substr(TRIM(COALESCE(actualFinishDate, '')), 1, 10), ''),
-            date
-          ) <= :endCapDate
+            NULLIF(TRIM(actualFinishDate), ''),
+            CASE
+                WHEN lastDelMillis IS NOT NULL AND lastDelMillis > 0
+                THEN date(lastDelMillis / 1000, 'unixepoch', 'localtime')
+                ELSE date
+            END
+        ) BETWEEN :serviceDate AND :endCap
         """,
     )
-    suspend fun sumLoadedMilesOnOrAfterService(serviceDate: String, endCapDate: String): Double
-
-    @Query(
-        """
-        SELECT COALESCE(SUM(
-            CASE
-                WHEN totalMiles IS NULL OR totalMiles <= 0 THEN 0.0
-                WHEN totalMiles > 15000.0 THEN 15000.0
-                ELSE totalMiles
-            END
-        ), 0.0) FROM loads
-        WHERE COALESCE(
-            NULLIF(substr(TRIM(COALESCE(actualFinishDate, '')), 1, 10), ''),
-            date
-        ) >= :serviceDate
-          AND COALESCE(
-            NULLIF(substr(TRIM(COALESCE(actualFinishDate, '')), 1, 10), ''),
-            date
-          ) <= :endCapDate
-        """,
-    )
-    fun watchSumLoadedMilesOnOrAfterService(serviceDate: String, endCapDate: String): Flow<Double>
+    suspend fun sumLoadedMilesOnOrAfterService(serviceDate: String, endCap: String): Double
 
     /**
-     * Narrow rows for ТО progress (dedupe / lastDelMillis still applied in Kotlin).
-     * [minServiceDate] = oldest active task startDate; [minServiceEpochMs] = that day 00:00 local
-     * as epoch ms so lastDel-only finishes still enter the candidate set.
+     * Lean columns for ТО progress — no stops/penalties hydrate.
+     * Room emits on any loads table change.
      */
     @Query(
         """
         SELECT id, tripId, totalMiles, date, actualFinishDate, lastDelMillis
         FROM loads
-        WHERE COALESCE(
-                NULLIF(substr(TRIM(COALESCE(actualFinishDate, '')), 1, 10), ''),
-                date
-              ) >= :minServiceDate
-           OR date >= :minServiceDate
-           OR (lastDelMillis IS NOT NULL AND lastDelMillis >= :minServiceEpochMs)
         ORDER BY date ASC
         """,
     )
-    fun watchLoadsForMileage(
-        minServiceDate: String,
-        minServiceEpochMs: Long,
-    ): Flow<List<LoadMileageRow>>
+    fun watchMileageInputs(): Flow<List<LoadMileageInput>>
 
     @Query(
         """
         SELECT id, tripId, totalMiles, date, actualFinishDate, lastDelMillis
         FROM loads
-        WHERE COALESCE(
-                NULLIF(substr(TRIM(COALESCE(actualFinishDate, '')), 1, 10), ''),
-                date
-              ) >= :minServiceDate
-           OR date >= :minServiceDate
-           OR (lastDelMillis IS NOT NULL AND lastDelMillis >= :minServiceEpochMs)
         ORDER BY date ASC
         """,
     )
-    suspend fun getLoadsForMileageOnce(
-        minServiceDate: String,
-        minServiceEpochMs: Long,
-    ): List<LoadMileageRow>
+    suspend fun getMileageInputsOnce(): List<LoadMileageInput>
 
-    /** Lightweight calendar markers — no stop/penalty hydrate. */
-    @Query("SELECT id, date FROM loads WHERE length(date) >= 10")
-    fun watchLoadDateRows(): Flow<List<LoadDateRow>>
-
+    /** Distinct journal dates for calendar dots (no full-row hydrate). */
     @Query(
         """
-        SELECT
-            COUNT(*) AS loadCount,
-            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
-            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
-        FROM loads
-        WHERE date >= :startDate AND date <= :endDate
+        SELECT DISTINCT date FROM loads
+        WHERE length(date) >= 10
+        ORDER BY date ASC
         """,
     )
-    suspend fun getLoadStatsForDateRange(startDate: String, endDate: String): WeeklyLoadStatsAgg
+    fun watchDistinctLoadDates(): Flow<List<String>>
 }

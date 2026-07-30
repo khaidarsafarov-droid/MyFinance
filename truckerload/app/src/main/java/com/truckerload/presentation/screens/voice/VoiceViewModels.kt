@@ -1,18 +1,14 @@
 package com.truckerload.presentation.screens.voice
 
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.SocialRepository
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.VoiceRoom
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +20,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+
+/** Process-scoped IO for work that must outlive a cleared ViewModel (e.g. leave room). */
+private val voiceLeaveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 data class VoiceRoomsUiState(
     val rooms: List<VoiceRoom> = emptyList(),
@@ -199,15 +202,15 @@ class VoiceRoomViewModel(
         val shouldLeave = joined
         val id = roomId
         val repo = voiceRepository
+        super.onCleared()
         if (shouldLeave) {
-            // Process-scoped leave so it outlives viewModelScope cancellation without an orphan root Job.
-            ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {
+            // Process-scoped: leaveRoom must not be cancelled with the ViewModel.
+            voiceLeaveScope.launch {
                 withContext(NonCancellable) {
                     runCatching { repo.leaveRoom(id) }
                 }
             }
         }
-        super.onCleared()
     }
 
     class Factory(

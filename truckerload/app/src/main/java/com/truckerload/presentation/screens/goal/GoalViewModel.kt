@@ -10,6 +10,7 @@ import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.domain.goal.WeeklyGoalProgress
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.widget.WidgetDataUpdater
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -45,16 +47,14 @@ class GoalViewModel(
     private val appContext: Context
 ) : ViewModel() {
 
-    /** Re-emit current reporting week; rolls over without a full-journal subscription. */
-    private val currentWeekKey = flow {
+    /** Current trucking week only — avoids hydrating the full journal for goal math. */
+    private val weekLoadsFlow = flow {
         while (true) {
             emit(getCurrentWeekNumberAndYear())
             delay(60_000L)
         }
-    }.distinctUntilChanged()
-
-    /** Only the current week's loads — not the entire journal. */
-    private val weekLoadsFlow = currentWeekKey
+    }
+        .distinctUntilChanged()
         .flatMapLatest { (week, year) -> loadRepository.getLoadsByWeek(week, year) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -62,13 +62,15 @@ class GoalViewModel(
     val weeklyGoal: StateFlow<Double> = goalStore.goalAmount
 
     private val progressFlow = combine(
-        currentWeekKey,
         weekLoadsFlow,
         goalStore.goalAmount,
-        loadRepository.watchCurrentWeekYieldSnapshot(),
-    ) { (week, year), loads, goal, sqlYield ->
-        WeeklyGoalCalculator.calculate(goal, loads, week, year, sqlYield)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+        loadRepository.watchCurrentWeekYieldSnapshot()
+    ) { weekLoads, goal, sqlYield ->
+        val (weekNumber, year) = getCurrentWeekNumberAndYear()
+        WeeklyGoalCalculator.calculate(goal, weekLoads, weekNumber, year, sqlYield)
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Текущий гросс за неделю из Room. */
     val currentGross: StateFlow<Double> = progressFlow

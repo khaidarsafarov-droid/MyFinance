@@ -36,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -242,7 +241,7 @@ private fun AnalyticsScreenBody(
                                 ) {
                                     itemsIndexed(
                                         uiState.weeks,
-                                        key = { _, week -> week.label },
+                                        key = { _, week -> "${week.year}_${week.weekNumber}" },
                                     ) { index, week ->
                                         FilterChip(
                                             selected = uiState.selectedWeekIndex == index,
@@ -267,7 +266,8 @@ private fun AnalyticsScreenBody(
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     uiState.selectedWeekLoads.forEach { load ->
-                                        key(load.id) {
+                                        // key via remember identity — LoadCard is recomposed by load.id content
+                                        androidx.compose.runtime.key(load.id) {
                                             LoadCard(
                                                 load = load,
                                                 onClick = { onLoadClick(load.id) },

@@ -70,7 +70,7 @@ class TaxTrackerViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
-                withContext(Dispatchers.IO) {
+                val computed = withContext(Dispatchers.IO) {
                     val paychecks = paycheckRepository.getPaychecksForYear(year)
                     val diesel = dieselRepository.getDieselForYear(year)
                     val loads = loadRepository.getLoadsByYear(year)
@@ -96,42 +96,26 @@ class TaxTrackerViewModel(
                     val reserved = 0.0
                     val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
 
-                    TaxComputeResult(
-                        totalGross = totalGross,
-                        dieselDed = dieselDed,
-                        totalDed = totalDed,
+                    TaxTrackerUiState(
+                        year = year,
+                        totalGrossIncome = totalGross,
+                        dieselDeductions = dieselDed,
+                        totalDeductions = totalDed,
                         perDiemDays = perDiemDays,
-                        perDiemAmt = perDiemAmt,
-                        taxable = taxable,
-                        seTax = seTax,
-                        fedTax = fedTax,
-                        totalOwed = totalOwed,
-                        daysUntil = daysUntil,
-                        nextDate = nextDate,
-                        reserved = reserved,
+                        perDiemAmount = perDiemAmt,
+                        taxableIncome = taxable,
+                        selfEmploymentTax = seTax,
+                        federalTax = fedTax,
+                        totalTaxOwed = totalOwed,
+                        daysUntilNextQuarterly = daysUntil,
+                        nextQuarterlyDate = nextDate,
+                        reservedAmount = reserved,
                         shortfall = shortfall,
-                    )
-                }
-            }.onSuccess { result ->
-                _uiState.update {
-                    it.copy(
-                        totalGrossIncome = result.totalGross,
-                        dieselDeductions = result.dieselDed,
-                        totalDeductions = result.totalDed,
-                        perDiemDays = result.perDiemDays,
-                        perDiemAmount = result.perDiemAmt,
-                        taxableIncome = result.taxable,
-                        selfEmploymentTax = result.seTax,
-                        federalTax = result.fedTax,
-                        totalTaxOwed = result.totalOwed,
-                        daysUntilNextQuarterly = result.daysUntil,
-                        nextQuarterlyDate = result.nextDate,
-                        reservedAmount = result.reserved,
-                        shortfall = result.shortfall,
                         isLoading = false,
                         errorMessage = null,
                     )
                 }
+                _uiState.value = computed
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = error.toUiMessage())
@@ -139,22 +123,6 @@ class TaxTrackerViewModel(
             }
         }
     }
-
-    private data class TaxComputeResult(
-        val totalGross: Double,
-        val dieselDed: Double,
-        val totalDed: Double,
-        val perDiemDays: Int,
-        val perDiemAmt: Double,
-        val taxable: Double,
-        val seTax: Double,
-        val fedTax: Double,
-        val totalOwed: Double,
-        val daysUntil: Int,
-        val nextDate: String,
-        val reserved: Double,
-        val shortfall: Double,
-    )
 
     private fun Throwable.toUiMessage(): String =
         localizedMessage ?: message ?: javaClass.simpleName

@@ -15,20 +15,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
-data class ChatMessage(
-    val role: String,
-    val text: String,
-    val id: String = UUID.randomUUID().toString(),
-)
+data class ChatMessage(val role: String, val text: String)
 
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -89,7 +83,7 @@ class ChatViewModel(
                         _uiState.update {
                             val last = it.messages.lastOrNull()
                             val updated = if (last != null && last.role == "model") {
-                                it.messages.dropLast(1) + last.copy(text = last.text + toAppend)
+                                it.messages.dropLast(1) + ChatMessage("model", last.text + toAppend)
                             } else it.messages + ChatMessage("model", toAppend)
                             it.copy(messages = updated)
                         }
@@ -108,7 +102,7 @@ class ChatViewModel(
                 _uiState.update {
                     val last = it.messages.lastOrNull()
                     val updated = if (last != null && last.role == "model") {
-                        it.messages.dropLast(1) + last.copy(text = resolvedText)
+                        it.messages.dropLast(1) + ChatMessage("model", resolvedText)
                     } else it.messages + ChatMessage("model", resolvedText)
                     it.copy(messages = updated, streamingText = "", isLoading = false, error = null)
                 }
@@ -117,12 +111,7 @@ class ChatViewModel(
                 val friendly = toUserFriendlyError(e)
                 _uiState.update {
                     val errMsg = if (received.isNotEmpty()) "$received\n\n⚠ $friendly" else "⚠ $friendly"
-                    val last = it.messages.lastOrNull()
-                    val updated = if (last != null && last.role == "model") {
-                        it.messages.dropLast(1) + last.copy(text = errMsg)
-                    } else {
-                        it.messages + ChatMessage("model", errMsg)
-                    }
+                    val updated = it.messages.dropLast(1) + ChatMessage("model", errMsg)
                     it.copy(messages = updated, streamingText = "", isLoading = false, error = friendly)
                 }
             }
@@ -176,8 +165,8 @@ class ChatViewModel(
         return try {
             withContext(Dispatchers.IO) {
                 val loads = loadRepository.getLoadsForLinking(25)
-                val paychecks = paycheckRepository.getAllPaychecks().first().takeLast(12)
-                val diesels = dieselRepository.getAllDiesel().first().takeLast(15)
+                val paychecks = paycheckRepository.getAllPaychecksOnce().takeLast(12)
+                val diesels = dieselRepository.getAllDieselOnce().takeLast(15)
                 buildString {
                     append("LOADS (last ${loads.size}):\n")
                     loads.forEach { l ->

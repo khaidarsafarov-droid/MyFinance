@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -94,11 +95,13 @@ class MaintenanceViewModel(
             completedTasks = tasks.filter { it.isCompleted },
             archive = archive,
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = MaintenanceUiState(),
-    )
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = MaintenanceUiState(),
+        )
 
     fun openAddTask() {
         _formState.update {
@@ -167,7 +170,7 @@ class MaintenanceViewModel(
     }
 
     private fun persistTask(task: MaintenanceTask) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _formState.update { it.copy(isSaving = true) }
             runCatching { repository.insertTask(task) }
                 .onSuccess {
@@ -184,11 +187,11 @@ class MaintenanceViewModel(
     }
 
     fun completeTask(id: Long) {
-        viewModelScope.launch { repository.markCompleted(id) }
+        viewModelScope.launch(Dispatchers.IO) { repository.markCompleted(id) }
     }
 
     fun deleteTask(id: Long) {
-        viewModelScope.launch { repository.deleteTask(id) }
+        viewModelScope.launch(Dispatchers.IO) { repository.deleteTask(id) }
     }
 
     fun openReceiptSourcePicker() {
@@ -315,7 +318,7 @@ class MaintenanceViewModel(
             _formState.update { it.copy(errorMessage = "invalid_amount") }
             return
         }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _formState.update { it.copy(isSaving = true) }
             runCatching {
                 repository.insertArchive(
@@ -336,7 +339,7 @@ class MaintenanceViewModel(
     }
 
     fun deleteArchive(id: Long) {
-        viewModelScope.launch { repository.deleteArchive(id) }
+        viewModelScope.launch(Dispatchers.IO) { repository.deleteArchive(id) }
     }
 
     /** Saves receipt photo under [Application.getFilesDir]/receipts — app-private storage. */

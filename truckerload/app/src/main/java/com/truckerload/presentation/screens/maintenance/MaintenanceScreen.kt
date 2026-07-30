@@ -8,9 +8,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -196,7 +195,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp),
         ) {
             item(key = "active_header") {
                 SectionHeader(
@@ -256,18 +255,22 @@ fun MaintenanceScreen(onBack: () -> Unit) {
             }
 
             item(key = "archive_header") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SectionHeader(
-                        title = stringResource(R.string.maintenance_archive_section),
-                        onAdd = viewModel::openReceiptSourcePicker,
-                        addIcon = Icons.Default.CameraAlt,
-                    )
-                    Text(
-                        text = stringResource(R.string.maintenance_archive_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextSecondary,
-                    )
-                    if (uiState.isProcessingPhoto) {
+                SectionHeader(
+                    title = stringResource(R.string.maintenance_archive_section),
+                    onAdd = viewModel::openReceiptSourcePicker,
+                    addIcon = Icons.Default.CameraAlt,
+                )
+            }
+            item(key = "archive_hint") {
+                Text(
+                    text = stringResource(R.string.maintenance_archive_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                )
+            }
+            if (uiState.isProcessingPhoto) {
+                item(key = "ocr_progress") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                         Text(
                             text = stringResource(R.string.maintenance_ocr_processing),
@@ -275,15 +278,16 @@ fun MaintenanceScreen(onBack: () -> Unit) {
                             color = tc.TextSecondary,
                         )
                     }
-                    if (uiState.archive.isEmpty()) {
-                        EmptyHint(stringResource(R.string.maintenance_empty_archive))
-                    }
                 }
             }
-            if (uiState.archive.isNotEmpty()) {
+            if (uiState.archive.isEmpty()) {
+                item(key = "archive_empty") {
+                    EmptyHint(stringResource(R.string.maintenance_empty_archive))
+                }
+            } else {
                 items(
                     items = uiState.archive,
-                    key = { "archive_${it.id}" },
+                    key = { it.id },
                 ) { entry ->
                     ArchiveCard(
                         entry = entry,
