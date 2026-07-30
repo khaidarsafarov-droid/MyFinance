@@ -6,8 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,35 +18,19 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 
 fun tabEnterTransition() =
-    fadeIn(animationSpec = tween(200, easing = EaseOutCubic)) +
-        slideInHorizontally(
-            animationSpec = tween(200, easing = EaseOutCubic),
-            initialOffsetX = { it / 6 },
-        )
+    fadeIn(animationSpec = tween(120, easing = EaseOutCubic))
 
 fun tabExitTransition() =
-    androidx.compose.animation.fadeOut(animationSpec = tween(200, easing = EaseOutCubic)) +
-        androidx.compose.animation.slideOutHorizontally(
-            animationSpec = tween(200, easing = EaseOutCubic),
-            targetOffsetX = { -it / 6 },
-        )
+    androidx.compose.animation.fadeOut(animationSpec = tween(90, easing = EaseOutCubic))
 
 fun screenEnterAnimation() =
-    fadeIn(animationSpec = tween(400, easing = EaseOutCubic)) +
-        slideInVertically(
-            animationSpec = tween(400, easing = EaseOutCubic),
-            initialOffsetY = { it / 8 }
-        )
+    fadeIn(animationSpec = tween(160, easing = EaseOutCubic))
 
 fun staggeredListEnter(index: Int) =
-    fadeIn(animationSpec = tween(350, delayMillis = index * 50, easing = EaseOutCubic)) +
-        slideInHorizontally(
-            animationSpec = tween(350, delayMillis = index * 50, easing = EaseOutCubic),
-            initialOffsetX = { it / 12 }
-        ) +
+    fadeIn(animationSpec = tween(180, delayMillis = (index * 20).coerceAtMost(120), easing = EaseOutCubic)) +
         scaleIn(
-            animationSpec = tween(350, delayMillis = index * 50, easing = EaseOutCubic),
-            initialScale = 0.96f
+            animationSpec = tween(180, delayMillis = (index * 20).coerceAtMost(120), easing = EaseOutCubic),
+            initialScale = 0.98f
         )
 
 @Composable
