@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Handyman
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalGasStation
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Receipt
@@ -60,6 +61,7 @@ enum class DrawerDestination {
     PROFILE,
     SETTINGS,
     REPORTS,
+    MAP,
     DOCUMENTS,
     MAINTENANCE,
     TAX_TRACKER,
@@ -117,6 +119,11 @@ fun AppDrawerContent(
                 icon = Icons.Outlined.BarChart,
                 label = stringResource(R.string.drawer_reports),
                 onClick = { onNavigate(DrawerDestination.REPORTS); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.Map,
+                label = stringResource(R.string.drawer_map),
+                onClick = { onNavigate(DrawerDestination.MAP); onClose() },
             )
             drawerItem(
                 icon = Icons.Outlined.Description,

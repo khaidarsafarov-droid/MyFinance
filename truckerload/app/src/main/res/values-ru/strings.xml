@@ -147,6 +147,7 @@
     <string name="nav_weekly_goal">Цель</string>
     <string name="nav_logbook">Грузы</string>
     <string name="drawer_reports">Отчёты</string>
+    <string name="drawer_map">Карта</string>
     <string name="drawer_documents">Документы</string>
     <string name="drawer_tools">Инструменты</string>
     <string name="drawer_about">О приложении</string>
@@ -165,8 +166,8 @@
     <string name="about_guide_tools_body">В меню → Инструменты: ТО (пробег и напоминания обслуживания), Сканер (документы/OCR) и Камера (фото рейса). С главного экрана или виджета можно сразу привязать снимок к грузу этой недели.</string>
     <string name="about_guide_docs_title">5. Документы</string>
     <string name="about_guide_docs_body">Пункт «Документы» открывает галерею сканов. Там можно открыть, поделиться или удалить сохранённые документы.</string>
-    <string name="about_guide_reports_title">6. Отчёты</string>
-    <string name="about_guide_reports_body">«Отчёты» показывают аналитику по грузам: доход, мили, RPM и детальную статистику за период.</string>
+    <string name="about_guide_reports_title">6. Отчёты и карта</string>
+    <string name="about_guide_reports_body">«Отчёты» — аналитика по грузам. «Карта» в меню показывает активность и RPM по штатам США. Карту также можно открыть из отчётов.</string>
     <string name="about_guide_backup_title">7. Резервная копия</string>
     <string name="about_guide_backup_body">В Настройках создайте файл-бэкап на телефоне или сохраните данные в Google Drive и восстановите их при смене устройства.</string>
     <string name="about_guide_settings_title">8. Настройки и профиль</string>

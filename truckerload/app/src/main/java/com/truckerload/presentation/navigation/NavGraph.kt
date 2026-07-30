@@ -309,6 +309,7 @@ fun NavGraph(
                 DrawerDestination.PROFILE -> navigateToMainRoute(Routes.PROFILE, navController)
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
+                DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
@@ -475,6 +476,7 @@ fun NavGraph(
                     onBack = { navController.popBackStack() },
                     onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
                     onAdvancedStats = { navController.navigate(Routes.ADVANCED_STATS) },
+                    onOpenMap = { navController.navigate(Routes.MAP) },
                 )
             }
             composable(Routes.ADVANCED_STATS) {

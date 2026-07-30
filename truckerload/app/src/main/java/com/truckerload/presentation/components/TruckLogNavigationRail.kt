@@ -120,7 +120,9 @@ fun TruckLogNavigationRail(
             ),
         )
         NavigationRailItem(
-            selected = currentRoute == Routes.ANALYTICS || currentRoute == Routes.ADVANCED_STATS,
+            selected = currentRoute == Routes.ANALYTICS ||
+                currentRoute == Routes.ADVANCED_STATS ||
+                currentRoute == Routes.MAP,
             onClick = { onDrawerNavigate(DrawerDestination.REPORTS) },
             icon = {
                 Icon(
@@ -189,11 +191,11 @@ private fun isRailDestinationSelected(currentRoute: String?, targetRoute: String
         Routes.PROFILE -> currentRoute == Routes.PROFILE ||
             currentRoute == Routes.PROFILE_EDIT ||
             currentRoute.startsWith("profile_peer")
-        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS
+        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS ||
+            currentRoute == Routes.ADVANCED_STATS ||
+            currentRoute == Routes.MAP
         Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
             currentRoute == Routes.TAX_TRACKER ||
-            currentRoute == Routes.ADVANCED_STATS ||
-            currentRoute == Routes.MAP ||
             currentRoute == Routes.FINANCIAL_ADVISOR
         else -> currentRoute == targetRoute
     }
