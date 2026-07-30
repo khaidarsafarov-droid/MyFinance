@@ -58,16 +58,22 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val safeTitle = title.safeText(getString(R.string.push_notification_fallback_title))
+        val safeBody = body.safeText(getString(R.string.push_notification_fallback_body))
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle(title.safeText(getString(R.string.push_notification_fallback_title)))
-            .setContentText(body.safeText(getString(R.string.push_notification_fallback_body)))
+            .setContentTitle(safeTitle)
+            .setContentText(safeBody)
             .setContentIntent(openApp)
             .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(safeBody))
             .build()
+        // Stable ID: replace the previous update instead of stacking shade entries.
+        val notificationId = (safeTitle.hashCode() xor safeBody.hashCode()) and 0x7fffffff
         runCatching {
             NotificationManagerCompat.from(this).notify(
-                (System.currentTimeMillis() and 0x7fffffff).toInt(),
+                if (notificationId == 0) UPDATE_NOTIFICATION_ID else notificationId,
                 notification,
             )
         }
@@ -90,6 +96,7 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {
         private const val CHANNEL_ID = "truckerload_updates"
+        private const val UPDATE_NOTIFICATION_ID = 5001
         private const val MAX_NOTIFICATION_TEXT = 240
     }
 }

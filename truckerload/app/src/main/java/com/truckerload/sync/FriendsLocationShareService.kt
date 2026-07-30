@@ -152,13 +152,19 @@ class FriendsLocationShareService : Service() {
 
     private fun ensureNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val mgr = getSystemService(NotificationManager::class.java)
+        val mgr = getSystemService(NotificationManager::class.java) ?: return
+        runCatching { mgr.deleteNotificationChannel(LEGACY_CHANNEL_ID) }
         mgr.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.friends_share_location_channel),
-                NotificationManager.IMPORTANCE_LOW,
-            ),
+                NotificationManager.IMPORTANCE_MIN,
+            ).apply {
+                setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
+                setSound(null, null)
+            },
         )
     }
 
@@ -175,12 +181,19 @@ class FriendsLocationShareService : Service() {
             .setContentText(getString(R.string.friends_share_location_text))
             .setContentIntent(open)
             .setOngoing(true)
+            .setSilent(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(false)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
 
     companion object {
         const val ACTION_STOP = "com.truckerload.STOP_FRIENDS_LOCATION_SHARE"
-        private const val CHANNEL_ID = "friends_location_share"
+        private const val CHANNEL_ID = "friends_location_share_quiet"
+        private const val LEGACY_CHANNEL_ID = "friends_location_share"
         private const val NOTIFICATION_ID = 4721
 
         fun start(context: Context) {

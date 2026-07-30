@@ -863,10 +863,10 @@
     <string name="auto_restore_success">✅ Data restored. Loads: %1$d</string>
     <string name="auto_restore_failed">Could not restore: %1$s</string>
     <string name="auto_restore_no_file">Auto-backup not found</string>
-    <string name="telegram_bot_channel_name">Telegram bot</string>
-    <string name="telegram_bot_channel_desc">Background sync of messages from Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log — bot active</string>
-    <string name="telegram_bot_notification_text">Listening for Telegram messages</string>
+    <string name="telegram_bot_channel_name">Telegram sync</string>
+    <string name="telegram_bot_channel_desc">Quiet background sync required while the Telegram bot is enabled</string>
+    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_text">Telegram sync running</string>
 
     <string name="export_share_chooser">Share</string>
     <string name="export_saved_to_folder">Report saved to %1$s folder</string>

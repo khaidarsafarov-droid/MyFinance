@@ -142,15 +142,21 @@ class TelegramBotForegroundService : Service() {
 
     private fun createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService(NotificationManager::class.java) ?: return
+        // Drop the old louder channel so upgrades do not keep a second bot entry.
+        runCatching { manager.deleteNotificationChannel(LEGACY_CHANNEL_ID) }
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.telegram_bot_channel_name),
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_MIN,
         ).apply {
             description = getString(R.string.telegram_bot_channel_desc)
+            setShowBadge(false)
+            enableLights(false)
+            enableVibration(false)
+            setSound(null, null)
         }
-        val manager = getSystemService(NotificationManager::class.java)
-        manager?.createNotificationChannel(channel)
+        manager.createNotificationChannel(channel)
     }
 
     private fun buildNotification(): Notification {
@@ -167,12 +173,19 @@ class TelegramBotForegroundService : Service() {
             .setContentIntent(openApp)
             .setOngoing(true)
             .setSilent(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(false)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
 
     companion object {
         private const val TAG = "TelegramBotFgService"
-        private const val CHANNEL_ID = "telegram_bot_sync"
+        /** New min-importance channel; Android ignores importance changes on existing IDs. */
+        private const val CHANNEL_ID = "telegram_bot_sync_quiet"
+        private const val LEGACY_CHANNEL_ID = "telegram_bot_sync"
         private const val NOTIFICATION_ID = 4101
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
 

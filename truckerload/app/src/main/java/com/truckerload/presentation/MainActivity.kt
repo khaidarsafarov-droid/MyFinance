@@ -146,16 +146,19 @@ class MainActivity : AppCompatActivity() {
                         userProfileStore = userProfileStore,
                     )
                     dependencies = deps
-                    if (!TelegramSyncMode.isServer()) {
-                        val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
-                        tokenStore.bootstrapFromBuildConfigIfEmpty()
-                        if (tokenStore.hasToken()) {
-                            TelegramBotForegroundService.start(applicationContext)
-                        }
-                    }
                     // Show UI before network/IO so theme recreates don't hang on the spinner.
                     sessionReady = true
+                    // Defer FG service + WorkManager until after first frames so cold start
+                    // is not starved by SystemJobService / startForegroundService.
                     withContext(Dispatchers.IO) {
+                        kotlinx.coroutines.delay(1_500)
+                        if (!TelegramSyncMode.isServer()) {
+                            val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
+                            tokenStore.bootstrapFromBuildConfigIfEmpty()
+                            if (tokenStore.hasToken()) {
+                                TelegramBotForegroundService.start(applicationContext)
+                            }
+                        }
                         com.truckerload.data.auth.SilentAuthRestorer.restore(
                             context = applicationContext,
                             authStore = authStore,
@@ -167,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                         }.onFailure { e ->
                             android.util.Log.w("MainActivity", "Load repair failed", e)
                         }
+                        kotlinx.coroutines.delay(1_000)
                         if (!BuildConfig.LOCAL_ONLY_MODE) {
                             com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                             com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)

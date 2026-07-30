@@ -16,11 +16,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -51,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
@@ -101,25 +95,6 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
     )
     var healthFlashColor by remember { mutableStateOf<Color?>(null) }
     var healthCooldown by remember { mutableStateOf(false) }
-    val pulseTransition = rememberInfiniteTransition(label = "advisorHealthPulse")
-    val healthButtonScale by pulseTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 700),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "advisorHealthPulseScale"
-    )
-    val healthDotAlpha by pulseTransition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 700),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "advisorHealthDotAlpha"
-    )
 
     LaunchedEffect(uiState.messages.size, uiState.messages.lastOrNull()?.text) {
         if (uiState.messages.isNotEmpty()) {
@@ -168,13 +143,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                             viewModel.runAiHealthCheck()
                         },
                         enabled = !uiState.isLoading && !healthCooldown,
-                        modifier = Modifier
-                            .size(44.dp)
-                            .graphicsLayer {
-                                val scale = if (uiState.isLoading) healthButtonScale else 1f
-                                scaleX = scale
-                                scaleY = scale
-                            }
+                        modifier = Modifier.size(44.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -187,11 +156,12 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                                 style = MaterialTheme.typography.labelLarge
                             )
                             if (uiState.isLoading) {
-                                Text(
-                                    text = "•",
-                                    modifier = Modifier.padding(start = 3.dp),
-                                    color = tc.AccentPrimary.copy(alpha = healthDotAlpha),
-                                    style = MaterialTheme.typography.labelLarge
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(start = 6.dp)
+                                        .size(14.dp),
+                                    strokeWidth = 2.dp,
+                                    color = tc.AccentPrimary,
                                 )
                             }
                         }

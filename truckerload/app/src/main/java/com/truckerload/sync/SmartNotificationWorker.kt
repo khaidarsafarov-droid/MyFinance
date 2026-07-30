@@ -10,6 +10,7 @@ import androidx.work.WorkerParameters
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.repository.DieselRepository
+import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.utils.getCurrentWeekNumberAndYear
@@ -33,6 +34,7 @@ class SmartNotificationWorker(
         val paycheckRepo = PaycheckRepository(db)
         val dieselRepo = DieselRepository(db)
         val maintenanceRepo = MaintenanceRepository(db)
+        val loadRepo = LoadRepository(db)
 
         createChannels()
         val (currentWeek, year) = getCurrentWeekNumberAndYear()
@@ -41,11 +43,13 @@ class SmartNotificationWorker(
         return try {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
             val diesel = dieselRepo.getDieselForWeek(lastWeek, lastYear).first()
+            val loadsLastWeek = loadRepo.getLoadsByWeek(lastWeek, lastYear).first()
             val dueMaintenance = maintenanceRepo.getDueProgressForNotifications()
             val plan = SmartNotificationPlanner.plan(
                 hasPaycheckForLastWeek = paycheck != null,
                 dieselEntriesLastWeek = diesel.size,
                 maintenanceDueTitles = dueMaintenance.map { it.task.title },
+                hadLoadsLastWeek = loadsLastWeek.isNotEmpty(),
             )
             if (plan.notifyMissingPaycheck) {
                 notify(
@@ -92,14 +96,14 @@ class SmartNotificationWorker(
                     CHANNEL_MISSING,
                     applicationContext.getString(R.string.notify_channel_missing_name),
                     NotificationManager.IMPORTANCE_DEFAULT
-                )
+                ).apply { setShowBadge(true) }
             )
             nm.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_ALERTS,
                     applicationContext.getString(R.string.notify_channel_alerts_name),
                     NotificationManager.IMPORTANCE_DEFAULT
-                )
+                ).apply { setShowBadge(true) }
             )
         }
     }
@@ -111,6 +115,7 @@ class SmartNotificationWorker(
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
             .build()
         nm.notify(id, notification)

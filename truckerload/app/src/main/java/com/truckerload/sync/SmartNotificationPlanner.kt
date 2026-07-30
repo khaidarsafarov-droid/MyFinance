@@ -2,7 +2,8 @@ package com.truckerload.sync
 
 /**
  * Pure decisions for [SmartNotificationWorker].
- * Safe with zero loads — paycheck/diesel for last week; maintenance due list is precomputed.
+ * Paycheck/diesel reminders only when the user actually hauled last week —
+ * empty weeks must not spam the shade every 24h.
  */
 object SmartNotificationPlanner {
 
@@ -16,10 +17,11 @@ object SmartNotificationPlanner {
         hasPaycheckForLastWeek: Boolean,
         dieselEntriesLastWeek: Int,
         maintenanceDueTitles: List<String> = emptyList(),
+        hadLoadsLastWeek: Boolean = true,
     ): Plan =
         Plan(
-            notifyMissingPaycheck = !hasPaycheckForLastWeek,
-            notifyMissingDiesel = dieselEntriesLastWeek <= 0,
+            notifyMissingPaycheck = hadLoadsLastWeek && !hasPaycheckForLastWeek,
+            notifyMissingDiesel = hadLoadsLastWeek && dieselEntriesLastWeek <= 0,
             maintenanceDueTitles = maintenanceDueTitles,
         )
 }
