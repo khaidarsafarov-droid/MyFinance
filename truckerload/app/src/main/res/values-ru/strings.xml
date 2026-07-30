@@ -815,6 +815,7 @@
     <string name="maintenance_error_amount">Укажите сумму</string>
     <string name="notify_maintenance_title">Напоминание ТО</string>
     <string name="notify_maintenance_body">%1$s — пора обслуживать трак</string>
+    <string name="notify_maintenance_body_multi">%1$d задач: %2$s</string>
 
     <string name="notify_add_paycheck_title">Добавьте зарплату</string>
     <string name="notify_add_diesel_title">Добавьте дизель</string>
@@ -901,10 +902,10 @@
     <string name="auto_restore_success">✅ Данные восстановлены. Грузов: %1$d</string>
     <string name="auto_restore_failed">Не удалось восстановить: %1$s</string>
     <string name="auto_restore_no_file">Авто-бэкап не найден</string>
-    <string name="telegram_bot_channel_name">Telegram бот</string>
-    <string name="telegram_bot_channel_desc">Фоновая синхронизация сообщений из Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log — бот активен</string>
-    <string name="telegram_bot_notification_text">Слушаю сообщения в Telegram</string>
+    <string name="telegram_bot_channel_name">Фоновая синхронизация</string>
+    <string name="telegram_bot_channel_desc">Тихий статус синхронизации Telegram</string>
+    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_text">Синхронизация Telegram</string>
 
     <string name="export_share_chooser">Поделиться</string>
     <string name="export_saved_to_folder">Отчёт сохранён в папку %1$s</string>

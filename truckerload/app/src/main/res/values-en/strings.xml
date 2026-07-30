@@ -815,6 +815,7 @@
     <string name="maintenance_error_amount">Enter amount</string>
     <string name="notify_maintenance_title">Maintenance reminder</string>
     <string name="notify_maintenance_body">%1$s — time to service the truck</string>
+    <string name="notify_maintenance_body_multi">%1$d tasks: %2$s</string>
 
     <string name="notify_add_paycheck_title">Add paycheck</string>
     <string name="notify_add_diesel_title">Add diesel</string>
@@ -901,10 +902,10 @@
     <string name="auto_restore_success">✅ Data restored. Loads: %1$d</string>
     <string name="auto_restore_failed">Could not restore: %1$s</string>
     <string name="auto_restore_no_file">Auto-backup not found</string>
-    <string name="telegram_bot_channel_name">Telegram bot</string>
-    <string name="telegram_bot_channel_desc">Background sync of messages from Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log — bot active</string>
-    <string name="telegram_bot_notification_text">Listening for Telegram messages</string>
+    <string name="telegram_bot_channel_name">Background sync</string>
+    <string name="telegram_bot_channel_desc">Quiet Telegram sync status</string>
+    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_text">Telegram sync</string>
 
     <string name="export_share_chooser">Share</string>
     <string name="export_saved_to_folder">Report saved to %1$s folder</string>

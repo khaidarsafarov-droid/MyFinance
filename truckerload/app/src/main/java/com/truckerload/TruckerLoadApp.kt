@@ -85,6 +85,7 @@ class TruckerLoadApp : Application() {
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
         WidgetUpdateWorker.schedule(this)
+        // One deferred widget paint at cold start; periodic worker keeps it fresh.
         WidgetUpdateWorker.refreshNow(this)
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -96,13 +97,13 @@ class TruckerLoadApp : Application() {
                         ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
                     } else {
                         TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
-                        scheduleTelegramSync()
+                        // Ensure service once; start() is a no-op if already polling.
                         if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
                             TelegramBotForegroundService.start(this@TruckerLoadApp)
                         }
                     }
                 }
-                WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
+                // Widget refresh is periodic — avoid Room+bitmap work on every resume.
             }
 
             override fun onStop(owner: LifecycleOwner) {

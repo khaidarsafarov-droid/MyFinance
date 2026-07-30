@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.presentation.di.LocalAuthStore
@@ -22,9 +21,11 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.screens.home.HomeViewModel
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import android.net.Uri
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -156,18 +157,8 @@ fun NavGraph(
     val authStore = LocalAuthStore.current
     val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
     var showMainContent by remember { mutableStateOf(true) }
-    var hasShownAuth by remember { mutableStateOf(false) }
     LaunchedEffect(isLoggedIn) {
-        if (!isLoggedIn) {
-            hasShownAuth = true
-            showMainContent = false
-        } else {
-            if (hasShownAuth) {
-                showMainContent = false
-                delay(200)
-            }
-            showMainContent = true
-        }
+        showMainContent = isLoggedIn
     }
     val context = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -194,6 +185,19 @@ fun NavGraph(
         if (!isLoggedIn) {
             needsSetup = null
             needsEmailVerify = null
+            return@LaunchedEffect
+        }
+        // Fast path for returning users: show journal first, seed social data in background.
+        if (setupComplete) {
+            needsSetup = false
+            val provider = authStore.authProvider()
+            val supabaseConfigured = com.truckerload.data.remote.SupabaseAuthService(context.applicationContext)
+                .isConfigured()
+            needsEmailVerify = supabaseConfigured &&
+                provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
+                authEmail.isNotBlank() &&
+                emailVerifyStore.isPending(authEmail)
+            launch { socialRepository.ensureInitialized() }
             return@LaunchedEffect
         }
         socialRepository.ensureInitialized()
@@ -230,6 +234,13 @@ fun NavGraph(
         return
     }
     if (needsSetup == null || needsEmailVerify == null) {
+        // Lightweight placeholder instead of a blank frame (reads as a freeze).
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
         return
     }
     if (needsEmailVerify == true) {
