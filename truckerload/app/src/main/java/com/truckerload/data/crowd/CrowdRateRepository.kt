@@ -142,7 +142,3 @@ private fun CrowdRateReport.toEntity(): CrowdRateEntity =
         source = source.name,
         peerLabel = peerLabel,
     )
-
-/** Relative age helper for UI tests. */
-fun crowdReportAgeBucket(reportedAtMillis: Long, nowMillis: Long): Long =
-    abs(nowMillis - reportedAtMillis)
