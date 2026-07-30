@@ -53,7 +53,9 @@ fun TelegramSettingsSection() {
     var showToken by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
-    var botActive by remember { mutableStateOf(TelegramBotForegroundService.isRunning()) }
+    var botActive by remember {
+        mutableStateOf<Boolean>(TelegramBotForegroundService.isRunning())
+    }
 
     LaunchedEffect(Unit) {
         botActive = TelegramBotForegroundService.isRunning()
