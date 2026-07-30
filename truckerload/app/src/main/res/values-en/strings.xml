@@ -594,6 +594,8 @@
     <string name="load_card_pace_line">%1$s • %2$s</string>
     <string name="load_card_attach_photo">Take photo for load</string>
     <string name="load_card_attach_scan">Scan document for load</string>
+    <string name="load_card_mark_finished">Mark load finished</string>
+    <string name="load_card_mark_unfinished">Clear finished mark</string>
     <string name="load_detail_stops">Stops</string>
 
     <!-- Parsing -->

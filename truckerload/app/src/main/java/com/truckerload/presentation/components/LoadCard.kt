@@ -1,6 +1,7 @@
 package com.truckerload.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -40,6 +43,7 @@ import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
+import com.truckerload.domain.model.isMarkedFinished
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTypography
@@ -58,6 +62,7 @@ fun LoadCard(
     rpmThresholds: RpmThresholds? = null,
     onCameraClick: (() -> Unit)? = null,
     onScanClick: (() -> Unit)? = null,
+    onToggleFinished: (() -> Unit)? = null,
 ) {
     // Разные ветки — единственный корректный способ избежать collectAsState в каждой карточке списка.
     if (rpmThresholds != null) {
@@ -70,6 +75,7 @@ fun LoadCard(
             rpmThresholds = rpmThresholds,
             onCameraClick = onCameraClick,
             onScanClick = onScanClick,
+            onToggleFinished = onToggleFinished,
         )
     } else {
         val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
@@ -82,6 +88,7 @@ fun LoadCard(
             rpmThresholds = thresholds,
             onCameraClick = onCameraClick,
             onScanClick = onScanClick,
+            onToggleFinished = onToggleFinished,
         )
     }
 }
@@ -96,6 +103,7 @@ private fun LoadCardContent(
     rpmThresholds: RpmThresholds,
     onCameraClick: (() -> Unit)?,
     onScanClick: (() -> Unit)?,
+    onToggleFinished: (() -> Unit)?,
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
@@ -135,12 +143,23 @@ private fun LoadCardContent(
                         )
                     }
                 }
-                Text(
-                    text = load.effectiveFinishDate() ?: load.date,
-                    style = AppTypography.CaptionMuted.copy(color = cs.onSurfaceVariant),
-                    maxLines = 1,
-                    softWrap = false,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = load.effectiveFinishDate() ?: load.date,
+                        style = AppTypography.CaptionMuted.copy(color = cs.onSurfaceVariant),
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                    if (onToggleFinished != null) {
+                        LoadFinishedToggle(
+                            finished = load.isMarkedFinished(),
+                            onToggle = onToggleFinished,
+                        )
+                    }
+                }
             }
             Text(
                 text = route,
@@ -252,6 +271,45 @@ private fun LoadCardContent(
 /** Computes RPM. Returns null when miles are zero. */
 fun computeRpm(totalRate: Double, totalMiles: Double): Double? =
     if (totalMiles > 0) totalRate / totalMiles else null
+
+/** Empty square → green check when the load is marked finished. */
+@Composable
+private fun LoadFinishedToggle(
+    finished: Boolean,
+    onToggle: () -> Unit,
+) {
+    val finishedCd = stringResource(
+        if (finished) R.string.load_card_mark_unfinished
+        else R.string.load_card_mark_finished,
+    )
+    val green = AppColors.RpmGreen
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .then(
+                if (finished) {
+                    Modifier.background(green)
+                } else {
+                    Modifier
+                        .background(Color.Transparent)
+                        .border(2.dp, LocalTruckColors.current.TextSecondary.copy(alpha = 0.55f), RoundedCornerShape(6.dp))
+                },
+            )
+            .clickable(onClick = onToggle)
+            .semantics { contentDescription = finishedCd },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (finished) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = finishedCd,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
 
 /**
  * Camera / scan chip on a load card. Fixed visual size (not Material IconButton's

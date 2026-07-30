@@ -166,8 +166,9 @@ interface LoadDao {
     suspend fun deleteAll()
 
     /**
-     * Темп ($/день): SUM(totalRate) / SUM(active days per load).
-     * Active days = ceil((lastDel − firstPu) / 86_400_000), min 1; без PU/DEL → 1 день.
+     * Темп ($/день): SUM(totalRate) / trip-span days.
+     * Span = ceil((MAX(finish) − MIN(firstPu)) / day), min 1.
+     * [lastDelMillis] stores finish override or last DEL (see LoadMapper).
      */
     @Query(
         """
@@ -178,15 +179,13 @@ interface LoadDao {
         FROM (
             SELECT
                 COALESCE(SUM(totalRate), 0.0) AS totalGross,
-                COALESCE(SUM(
-                    CASE
-                        WHEN durationDays > 0 THEN durationDays
-                        WHEN firstPuMillis IS NOT NULL AND lastDelMillis IS NOT NULL
-                             AND lastDelMillis > firstPuMillis
-                        THEN MAX(1.0, CAST((lastDelMillis - firstPuMillis + 86399999) / 86400000 AS REAL))
-                        ELSE 1.0
-                    END
-                ), 0.0) AS totalActiveDays
+                CASE
+                    WHEN MIN(firstPuMillis) IS NOT NULL AND MAX(lastDelMillis) IS NOT NULL
+                         AND MAX(lastDelMillis) > MIN(firstPuMillis)
+                    THEN MAX(1.0, CAST((MAX(lastDelMillis) - MIN(firstPuMillis) + 86399999) / 86400000 AS REAL))
+                    WHEN COUNT(*) > 0 THEN 1.0
+                    ELSE 0.0
+                END AS totalActiveDays
             FROM loads
             WHERE weekNumber = :weekNumber AND year = :year
         ) AS agg
@@ -198,15 +197,13 @@ interface LoadDao {
         """
         SELECT
             COALESCE(SUM(totalRate), 0.0) AS totalGross,
-            COALESCE(SUM(
-                CASE
-                    WHEN durationDays > 0 THEN durationDays
-                    WHEN firstPuMillis IS NOT NULL AND lastDelMillis IS NOT NULL
-                         AND lastDelMillis > firstPuMillis
-                    THEN MAX(1.0, CAST((lastDelMillis - firstPuMillis + 86399999) / 86400000 AS REAL))
-                    ELSE 1.0
-                END
-            ), 0.0) AS totalActiveDays
+            CASE
+                WHEN MIN(firstPuMillis) IS NOT NULL AND MAX(lastDelMillis) IS NOT NULL
+                     AND MAX(lastDelMillis) > MIN(firstPuMillis)
+                THEN MAX(1.0, CAST((MAX(lastDelMillis) - MIN(firstPuMillis) + 86399999) / 86400000 AS REAL))
+                WHEN COUNT(*) > 0 THEN 1.0
+                ELSE 0.0
+            END AS totalActiveDays
         FROM loads
         WHERE weekNumber = :weekNumber AND year = :year
         """

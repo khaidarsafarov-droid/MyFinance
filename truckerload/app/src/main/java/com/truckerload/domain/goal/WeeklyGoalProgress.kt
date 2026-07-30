@@ -15,7 +15,7 @@ data class WeeklyGoalProgress(
     /** Calendar days Sun…today (for progress ring marker). */
     val daysActiveCalendar: Int,
     val daysRemainingInWeek: Int,
-    /** Sum of PU→DEL durations across week loads (fractional days). */
+    /** Trip span for the week: first PU → last finish (override or last DEL). */
     val totalActiveDays: Double,
     /** totalGross / totalActiveDays — fact $/day in transit. */
     val actualDailyYield: Double,

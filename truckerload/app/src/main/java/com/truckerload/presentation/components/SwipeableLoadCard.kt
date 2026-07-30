@@ -45,6 +45,7 @@ fun SwipeableLoadCard(
     modifier: Modifier = Modifier,
     onCameraClick: (() -> Unit)? = null,
     onScanClick: (() -> Unit)? = null,
+    onToggleFinished: (() -> Unit)? = null,
     /** Bump to snap the card back to settled (e.g. after canceling delete confirm). */
     settleKey: Any = Unit,
 ) {
@@ -119,6 +120,7 @@ fun SwipeableLoadCard(
                 rpmThresholds = rpmThresholds,
                 onCameraClick = onCameraClick,
                 onScanClick = onScanClick,
+                onToggleFinished = onToggleFinished,
             )
         }
     }

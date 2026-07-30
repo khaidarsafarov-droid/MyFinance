@@ -594,6 +594,8 @@
     <string name="load_card_pace_line">%1$s • %2$s</string>
     <string name="load_card_attach_photo">Сфотографировать для груза</string>
     <string name="load_card_attach_scan">Сканировать для груза</string>
+    <string name="load_card_mark_finished">Отметить груз законченным</string>
+    <string name="load_card_mark_unfinished">Снять отметку окончания</string>
     <string name="load_detail_stops">Стопы</string>
 
     <!-- Парсинг -->

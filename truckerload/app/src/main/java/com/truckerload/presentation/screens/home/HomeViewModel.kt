@@ -14,6 +14,8 @@ import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.isMarkedFinished
+import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -393,6 +395,43 @@ class HomeViewModel(
                 _swipeSettleGeneration.update { it + 1 }
                 _deleteError.value = e.message?.takeIf { it.isNotBlank() }
                     ?: app.getString(R.string.home_delete_failed)
+            }
+        }
+    }
+
+    /**
+     * Toggle finished mark on a load card.
+     * Checked → set [Load.actualFinishDate] to today (used as trip end for goal/yield).
+     * Unchecked → clear override so last DEL is used again.
+     */
+    fun toggleLoadFinished(loadId: String) {
+        if (loadId.isBlank()) return
+        viewModelScope.launch {
+            try {
+                val current = loadRepository.getLoadById(loadId) ?: return@launch
+                val nextDate = if (current.isMarkedFinished()) {
+                    null
+                } else {
+                    val cal = Calendar.getInstance()
+                    "%04d-%02d-%02d".format(
+                        cal.get(Calendar.YEAR),
+                        cal.get(Calendar.MONTH) + 1,
+                        cal.get(Calendar.DAY_OF_MONTH),
+                    )
+                }
+                val next = current.copy(
+                    actualFinishDate = nextDate,
+                    updatedAt = System.currentTimeMillis(),
+                ).withRouteMetrics()
+                loadRepository.updateLoad(next)
+                WidgetDataUpdater.updateWidgetData(app.applicationContext)
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = e.message?.takeIf { msg -> msg.isNotBlank() }
+                            ?: app.getString(R.string.common_save_failed),
+                    )
+                }
             }
         }
     }

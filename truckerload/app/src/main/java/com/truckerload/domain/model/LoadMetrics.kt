@@ -74,3 +74,7 @@ fun Load.effectiveFinishDate(): String? {
     lastDelDateFromStops()?.let { return it }
     return date.takeIf { it.length >= 10 }?.take(10)
 }
+
+/** True when the driver marked the load finished (manual end date set). */
+fun Load.isMarkedFinished(): Boolean =
+    !actualFinishDate.isNullOrBlank() && actualFinishDate.trim().length >= 10

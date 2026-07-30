@@ -25,12 +25,55 @@ class LoadYieldCalculatorTest {
     }
 
     @Test
-    fun `actualDailyYield divides gross by summed active days`() {
+    fun `actualDailyYield divides gross by week trip span not sum of loads`() {
+        // Two overlapping loads Jul 17→20 and Jul 18→20 → span 4 days, not 3+3=6.
         val loads = listOf(
-            sampleLoad(durationDays = 2.0, totalRate = 1000.0),
-            sampleLoad(durationDays = 2.0, totalRate = 600.0),
+            sampleLoad(
+                id = "a",
+                totalRate = 1000.0,
+                stops = listOf(
+                    stop(StopType.PU, "2026-07-17 08:00", "Atlanta", "GA"),
+                    stop(StopType.DEL, "2026-07-20 18:00", "Dallas", "TX"),
+                ),
+            ),
+            sampleLoad(
+                id = "b",
+                totalRate = 600.0,
+                date = "2026-07-18",
+                stops = listOf(
+                    stop(StopType.PU, "2026-07-18 09:00", "Dallas", "TX"),
+                    stop(StopType.DEL, "2026-07-20 12:00", "Houston", "TX"),
+                ),
+            ),
         )
+        assertEquals(4.0, LoadYieldCalculator.totalActiveDays(loads), 0.001)
         assertEquals(400.0, LoadYieldCalculator.actualDailyYield(loads), 0.001)
+    }
+
+    @Test
+    fun `totalActiveDays uses earliest PU and latest finish across week`() {
+        val loads = listOf(
+            sampleLoad(
+                id = "early",
+                totalRate = 500.0,
+                stops = listOf(
+                    stop(StopType.PU, "2026-07-17 05:58", "Atlanta", "GA"),
+                    stop(StopType.DEL, "2026-07-18 18:00", "Nashville", "TN"),
+                ),
+            ),
+            sampleLoad(
+                id = "late",
+                totalRate = 700.0,
+                date = "2026-07-19",
+                stops = listOf(
+                    stop(StopType.PU, "2026-07-19 10:00", "Nashville", "TN"),
+                    stop(StopType.DEL, "2026-07-22 16:00", "Chicago", "IL"),
+                ),
+                actualFinishDate = "2026-07-21",
+            ),
+        )
+        // Jul 17 PU → Jul 21 finish override → 5 days
+        assertEquals(5.0, LoadYieldCalculator.totalActiveDays(loads), 0.001)
     }
 
     @Test
@@ -125,13 +168,16 @@ class LoadYieldCalculatorTest {
     )
 
     private fun sampleLoad(
+        id: String = "id-1",
         durationDays: Double = 0.0,
         totalRate: Double = 500.0,
+        date: String = "2026-07-17",
         stops: List<Stop> = emptyList(),
+        actualFinishDate: String? = null,
     ): Load = Load(
-        id = "id-1",
-        tripId = "T-1",
-        date = "2026-07-17",
+        id = id,
+        tripId = "T-$id",
+        date = date,
         totalRate = totalRate,
         totalMiles = 100.0,
         pointA = "A",
@@ -144,6 +190,7 @@ class LoadYieldCalculatorTest {
         parsedAt = 1L,
         updatedAt = 1L,
         durationDays = durationDays,
+        actualFinishDate = actualFinishDate,
         stops = stops,
     )
 }

@@ -575,6 +575,11 @@ private fun HomeScreenContent(
                                 onLoadScan(load.id, load.tripId, load.date)
                             }
                         },
+                        onToggleFinished = {
+                            if (load.id.isNotBlank()) {
+                                viewModel.toggleLoadFinished(load.id)
+                            }
+                        },
                         settleKey = swipeSettleGeneration,
                     )
                 }
@@ -612,6 +617,11 @@ private fun HomeScreenContent(
                             onScanClick = {
                                 if (item.load.id.isNotBlank()) {
                                     onLoadScan(item.load.id, item.load.tripId, item.load.date)
+                                }
+                            },
+                            onToggleFinished = {
+                                if (item.load.id.isNotBlank()) {
+                                    viewModel.toggleLoadFinished(item.load.id)
                                 }
                             },
                             settleKey = swipeSettleGeneration,

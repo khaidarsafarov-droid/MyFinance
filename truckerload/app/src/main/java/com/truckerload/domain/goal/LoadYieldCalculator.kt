@@ -48,17 +48,31 @@ object LoadYieldCalculator {
     }
 
     /**
-     * Week pace: sum(gross) / sum(PU→DEL duration per load).
+     * Week pace: sum(gross) / trip span (first PU → last finish of the week).
      */
     fun actualDailyYield(weekLoads: List<Load>): Double {
         if (weekLoads.isEmpty()) return 0.0
         val totalGross = weekLoads.sumOf { it.totalRate }
         if (totalGross <= 0.0) return 0.0
-        val totalActiveDays = weekLoads.sumOf { loadActiveDurationDays(it) }
+        val totalActiveDays = totalActiveDays(weekLoads)
         if (totalActiveDays <= 0.0) return 0.0
         return GoalMoneyMath.roundMoney(totalGross / totalActiveDays)
     }
 
-    fun totalActiveDays(weekLoads: List<Load>): Double =
-        weekLoads.sumOf { loadActiveDurationDays(it) }
+    /**
+     * Days on the road for the week: from the earliest first PU among week loads
+     * to the latest finish (manual [Load.actualFinishDate] or last DEL).
+     * Minimum 1 day when any load is present.
+     */
+    fun totalActiveDays(weekLoads: List<Load>): Double {
+        if (weekLoads.isEmpty()) return 0.0
+        val startMs = weekLoads.mapNotNull { getFirstPickUpMillis(it) }.minOrNull()
+        val endMs = weekLoads.mapNotNull { resolveFinishMillis(it) }.maxOrNull()
+        if (startMs == null || endMs == null) {
+            return weekLoads.sumOf { loadActiveDurationDays(it) }.coerceAtLeast(1.0)
+        }
+        if (endMs <= startMs) return 1.0
+        val days = ceil((endMs - startMs) / MS_PER_DAY).toInt()
+        return days.coerceAtLeast(1).toDouble()
+    }
 }

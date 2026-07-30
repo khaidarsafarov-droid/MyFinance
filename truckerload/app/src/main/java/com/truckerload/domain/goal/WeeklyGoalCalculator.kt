@@ -11,7 +11,7 @@ import kotlin.math.min
 
 object WeeklyGoalCalculator {
 
-    /** Gross per active day (PU → DEL durations, ceil, min 1 day per load). */
+    /** Gross per active day (week trip span: first PU → last finish). */
     fun calculateDailyPace(weekLoads: List<Load>): Double =
         LoadYieldCalculator.actualDailyYield(weekLoads)
 
