@@ -19,6 +19,7 @@ import kotlinx.coroutines.withContext
 data class MapUiState(
     val metrics: List<USStateMetric> = emptyList(),
     val selectedStateCode: String = "",
+    val period: MapPeriod = MapPeriod.WEEK,
     val isLoading: Boolean = true,
     val totalReports: Int = 0,
     val stateSummary: CrowdStateSummary? = null,
@@ -36,7 +37,7 @@ class MapViewModel(
     )
     val uiState = _uiState.asStateFlow()
 
-    private var reports: List<CrowdRateReport> = emptyList()
+    private var allLoadsReports: List<CrowdRateReport> = emptyList()
 
     init {
         refresh()
@@ -47,10 +48,14 @@ class MapViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
                 val loads = withContext(Dispatchers.IO) { loadRepository.getAllLoadsOnce() }
-                reports = withContext(Dispatchers.Default) {
-                    CrowdMapAggregator.reportsFromLoads(loads)
+                // Keep a wide cache, then slice by the selected period in applySelection.
+                allLoadsReports = withContext(Dispatchers.Default) {
+                    CrowdMapAggregator.reportsFromLoads(
+                        loads,
+                        windowMs = MapPeriod.YEAR.windowMs,
+                    )
                 }
-                applySelection(_uiState.value.selectedStateCode)
+                applySelection(_uiState.value.selectedStateCode, _uiState.value.period)
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = error.toUiMessage())
@@ -61,10 +66,18 @@ class MapViewModel(
 
     fun setSelectedState(code: String) {
         selectedStateStore.save(code)
-        applySelection(code)
+        applySelection(code, _uiState.value.period)
     }
 
-    private fun applySelection(selectedCode: String) {
+    fun setPeriod(period: MapPeriod) {
+        if (period == _uiState.value.period) return
+        applySelection(_uiState.value.selectedStateCode, period)
+    }
+
+    private fun applySelection(selectedCode: String, period: MapPeriod) {
+        val now = System.currentTimeMillis()
+        val cutoff = now - period.windowMs
+        val reports = allLoadsReports.filter { it.reportedAtMillis >= cutoff }
         val metrics = CrowdMapAggregator.heatmapFromOutbound(reports)
         val summary = selectedCode.takeIf { it.isNotBlank() }?.let {
             CrowdMapAggregator.stateSummary(reports, it)
@@ -73,6 +86,7 @@ class MapViewModel(
             it.copy(
                 metrics = metrics,
                 selectedStateCode = selectedCode,
+                period = period,
                 totalReports = reports.size,
                 stateSummary = summary,
                 topLanes = CrowdMapAggregator.topLanes(reports),
