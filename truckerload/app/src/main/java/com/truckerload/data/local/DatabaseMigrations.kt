@@ -682,3 +682,34 @@ val MIGRATION_27_28 = object : Migration(27, 28) {
         )
     }
 }
+
+/** Add anonymized crowd rate cache for map Me/Friends/All scopes. */
+val MIGRATION_28_29 = object : Migration(28, 29) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS crowd_rates (
+                id TEXT NOT NULL PRIMARY KEY,
+                fromState TEXT NOT NULL,
+                toState TEXT NOT NULL,
+                rpm REAL NOT NULL,
+                rate REAL NOT NULL,
+                miles REAL NOT NULL,
+                reportedAtMillis INTEGER NOT NULL,
+                source TEXT NOT NULL,
+                peerLabel TEXT,
+                syncedAtMillis INTEGER NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_crowd_rates_fromState_reportedAtMillis " +
+                "ON crowd_rates(fromState, reportedAtMillis)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_crowd_rates_source_reportedAtMillis " +
+                "ON crowd_rates(source, reportedAtMillis)",
+        )
+    }
+}
+
