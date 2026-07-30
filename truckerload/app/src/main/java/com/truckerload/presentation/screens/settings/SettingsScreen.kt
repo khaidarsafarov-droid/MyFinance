@@ -199,6 +199,7 @@ fun SettingsScreen(
         ) {
             ThemeSettingsSection(selected = themeMode)
             LanguageSettingsSection(selected = appLanguage)
+            TelegramSettingsSection()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
             var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }

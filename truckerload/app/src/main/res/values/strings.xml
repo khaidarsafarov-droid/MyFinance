@@ -429,6 +429,9 @@
     <string name="friends_my_nickname_title">Мой никнейм</string>
     <string name="friends_my_nickname_hint">По этому нику друзья найдут вас в Truck Log</string>
     <string name="friends_nickname_label">Никнейм</string>
+    <string name="friends_nickname_placeholder">например DriverPro</string>
+    <string name="friends_add_nickname_button">Добавить никнейм</string>
+    <string name="friends_change_nickname_button">Изменить никнейм</string>
     <string name="friends_nickname_save">Сохранить</string>
     <string name="friends_nickname_invalid">Ник: 3–24 символа, буква в начале, только латиница, цифры и _</string>
     <string name="friends_nickname_saved">Никнейм сохранён</string>
@@ -732,6 +735,8 @@
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
     <string name="settings_telegram_test">Проверить</string>
     <string name="settings_telegram_saved">Токен сохранён, бот перезапущен</string>
+    <string name="settings_telegram_status_active">Бот отслеживает сообщения</string>
+    <string name="settings_telegram_status_inactive">Бот не запущен</string>
     <string name="settings_telegram_ok">✅ Бот @%1$s — токен рабочий</string>
     <string name="settings_telegram_invalid">❌ Токен недействителен (401). @BotFather → /mybots → API Token → Revoke → скопируйте новый</string>
     <string name="settings_telegram_token_missing">Укажите токен бота в настройках Telegram</string>

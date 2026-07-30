@@ -429,6 +429,9 @@
     <string name="friends_my_nickname_title">My nickname</string>
     <string name="friends_my_nickname_hint">Friends find you in Truck Log by this handle</string>
     <string name="friends_nickname_label">Nickname</string>
+    <string name="friends_nickname_placeholder">e.g. DriverPro</string>
+    <string name="friends_add_nickname_button">Add nickname</string>
+    <string name="friends_change_nickname_button">Change nickname</string>
     <string name="friends_nickname_save">Save</string>
     <string name="friends_nickname_invalid">Nickname: 3–24 chars, start with a letter, letters/digits/_ only</string>
     <string name="friends_nickname_saved">Nickname saved</string>
@@ -732,6 +735,8 @@
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
     <string name="settings_telegram_test">Test</string>
     <string name="settings_telegram_saved">Token saved, bot restarted</string>
+    <string name="settings_telegram_status_active">Bot is listening for messages</string>
+    <string name="settings_telegram_status_inactive">Bot is not running</string>
     <string name="settings_telegram_ok">✅ Bot @%1$s — token is valid</string>
     <string name="settings_telegram_invalid">❌ Invalid token (401). @BotFather → /mybots → API Token → Revoke → copy the new one</string>
     <string name="settings_telegram_token_missing">Enter the bot token in Telegram settings</string>
