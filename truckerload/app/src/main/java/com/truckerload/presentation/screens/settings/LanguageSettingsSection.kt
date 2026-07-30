@@ -19,7 +19,6 @@ import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.AppLocale
-import com.truckerload.widget.WidgetUpdateWorker
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -49,8 +48,7 @@ fun LanguageSettingsSection(
                         if (language == selected) return@FilterChip
                         scope.launch {
                             settingsDataStore.saveLanguage(language)
-                            AppLocale.applyAndRecreate(context, language)
-                            WidgetUpdateWorker.refreshNow(context.applicationContext)
+                            AppLocale.apply(context, language)
                         }
                     },
                     label = {
