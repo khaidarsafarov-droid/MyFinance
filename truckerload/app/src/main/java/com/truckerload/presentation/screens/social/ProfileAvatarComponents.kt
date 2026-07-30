@@ -58,10 +58,13 @@ fun ProfileAvatar(
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val model = remember(avatarUrl) { resolveAvatarModel(avatarUrl) }
-    val imageRequest = remember(model) {
+    val imageRequest = remember(avatarUrl, model) {
         model?.let {
             ImageRequest.Builder(context)
                 .data(it)
+                // Bust Coil caches when a new cropped file path is saved.
+                .memoryCacheKey(avatarUrl)
+                .diskCacheKey(avatarUrl)
                 .crossfade(true)
                 .build()
         }

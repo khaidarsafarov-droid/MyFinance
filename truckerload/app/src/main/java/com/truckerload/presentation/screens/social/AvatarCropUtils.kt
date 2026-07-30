@@ -2,10 +2,14 @@ package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
+import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 internal object AvatarCropUtils {
     private const val MAX_SOURCE_DIMENSION = 2048
@@ -22,7 +26,8 @@ internal object AvatarCropUtils {
             .takeWhile { largest / it > maxDimension }
             .lastOrNull()?.let { it * 2 } ?: 1
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions) ?: return null
+        return applyExifOrientation(bytes, decoded)
     }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
@@ -71,6 +76,11 @@ internal object AvatarCropUtils {
         )
     }
 
+    /**
+     * Crops the on-screen circular window into a square bitmap using the same
+     * transform as [AvatarCropScreen] (fitScale × userScale + pan offset).
+     * Keeps a true square extract so framing from pan/zoom is not stretched.
+     */
     fun cropSquare(
         source: Bitmap,
         containerWidth: Float,
@@ -81,36 +91,72 @@ internal object AvatarCropUtils {
         offset: Offset,
         outputSize: Int = OUTPUT_SIZE,
     ): Bitmap {
+        val totalScale = (fitScale * userScale).coerceAtLeast(1e-6f)
         val centerX = containerWidth / 2f
         val centerY = containerHeight / 2f
-        val halfCrop = cropDiameter / 2f
-        val totalScale = fitScale * userScale
+        val halfCrop = cropDiameter.coerceAtLeast(1f) / 2f
 
-        fun screenToBitmap(x: Float, y: Float): Pair<Float, Float> {
-            val imageCenterX = centerX + offset.x
-            val imageCenterY = centerY + offset.y
-            val bitmapX = source.width / 2f + (x - imageCenterX) / totalScale
-            val bitmapY = source.height / 2f + (y - imageCenterY) / totalScale
-            return bitmapX to bitmapY
-        }
+        val imageCenterX = centerX + offset.x
+        val imageCenterY = centerY + offset.y
 
-        val (rawLeft, rawTop) = screenToBitmap(centerX - halfCrop, centerY - halfCrop)
-        val (rawRight, rawBottom) = screenToBitmap(centerX + halfCrop, centerY + halfCrop)
+        fun screenToBitmapX(x: Float): Float =
+            source.width / 2f + (x - imageCenterX) / totalScale
 
-        val left = min(rawLeft, rawRight).toInt().coerceIn(0, source.width - 1)
-        val top = min(rawTop, rawBottom).toInt().coerceIn(0, source.height - 1)
-        val right = max(rawLeft, rawRight).toInt().coerceIn(left + 1, source.width)
-        val bottom = max(rawTop, rawBottom).toInt().coerceIn(top + 1, source.height)
+        fun screenToBitmapY(y: Float): Float =
+            source.height / 2f + (y - imageCenterY) / totalScale
 
-        val width = right - left
-        val height = bottom - top
-        val cropped = Bitmap.createBitmap(source, left, top, width, height)
-        return if (width == outputSize && height == outputSize) {
+        val rawLeft = screenToBitmapX(centerX - halfCrop)
+        val rawTop = screenToBitmapY(centerY - halfCrop)
+        val rawRight = screenToBitmapX(centerX + halfCrop)
+        val rawBottom = screenToBitmapY(centerY + halfCrop)
+
+        val cropCenterX = (rawLeft + rawRight) / 2f
+        val cropCenterY = (rawTop + rawBottom) / 2f
+        val idealSize = ((rawRight - rawLeft) + (rawBottom - rawTop)) / 2f
+
+        var size = idealSize.roundToInt().coerceAtLeast(1)
+        size = min(size, min(source.width, source.height))
+
+        var left = (cropCenterX - size / 2f).roundToInt()
+        var top = (cropCenterY - size / 2f).roundToInt()
+        left = left.coerceIn(0, source.width - size)
+        top = top.coerceIn(0, source.height - size)
+
+        val cropped = Bitmap.createBitmap(source, left, top, size, size)
+        return if (size == outputSize) {
             cropped
         } else {
             cropped.scale(outputSize, outputSize).also {
                 if (it !== cropped) cropped.recycle()
             }
+        }
+    }
+
+    internal fun applyExifOrientation(jpegBytes: ByteArray, bitmap: Bitmap): Bitmap {
+        val orientation = runCatching {
+            ExifInterface(ByteArrayInputStream(jpegBytes))
+                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.postRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.postRotate(270f)
+                matrix.postScale(-1f, 1f)
+            }
+            else -> return bitmap
+        }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true).also {
+            if (it !== bitmap) bitmap.recycle()
         }
     }
 }
