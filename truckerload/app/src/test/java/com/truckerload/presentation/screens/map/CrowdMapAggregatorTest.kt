@@ -83,6 +83,60 @@ class CrowdMapAggregatorTest {
         assertEquals(0, or.trips)
     }
 
+    @Test
+    fun reportsFromLoads_keepsMonthWindow() {
+        val load = sampleLoad(
+            id = "month",
+            pointA = "Dallas, TX",
+            pointB = "Austin, TX",
+            rate = 800.0,
+            miles = 200.0,
+            parsedAt = now - TimeUnit.DAYS.toMillis(20),
+        )
+        assertEquals(
+            1,
+            CrowdMapAggregator.reportsFromLoads(
+                listOf(load),
+                nowMillis = now,
+                windowMs = MapPeriod.MONTH.windowMs,
+            ).size,
+        )
+        assertTrue(
+            CrowdMapAggregator.reportsFromLoads(
+                listOf(load),
+                nowMillis = now,
+                windowMs = MapPeriod.WEEK.windowMs,
+            ).isEmpty(),
+        )
+    }
+
+    @Test
+    fun reportsFromLoads_yearIncludesOlderTrips() {
+        val load = sampleLoad(
+            id = "year",
+            pointA = "Miami, FL",
+            pointB = "Orlando, FL",
+            rate = 900.0,
+            miles = 250.0,
+            parsedAt = now - TimeUnit.DAYS.toMillis(200),
+        )
+        assertEquals(
+            1,
+            CrowdMapAggregator.reportsFromLoads(
+                listOf(load),
+                nowMillis = now,
+                windowMs = MapPeriod.YEAR.windowMs,
+            ).size,
+        )
+        assertTrue(
+            CrowdMapAggregator.reportsFromLoads(
+                listOf(load),
+                nowMillis = now,
+                windowMs = MapPeriod.MONTH.windowMs,
+            ).isEmpty(),
+        )
+    }
+
     private fun sampleLoad(
         id: String,
         pointA: String,

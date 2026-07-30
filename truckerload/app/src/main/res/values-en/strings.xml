@@ -385,17 +385,29 @@
     <string name="map_title">Geographic efficiency</string>
     <string name="map_subtitle_all_loads">Across all driver loads (%1$d trips)</string>
     <string name="map_subtitle_my_week">My RPM · last 7 days · %1$d trip(s)</string>
-    <string name="map_my_rates_hint">Heatmap = your average $/mile outbound from each state this week. Tap a state to see recent rates — an hour ago, yesterday, 2 days ago…</string>
+    <string name="map_period_week">Week</string>
+    <string name="map_period_month">Month</string>
+    <string name="map_period_year">Year</string>
+    <string name="map_subtitle_period_week">My RPM · week · %1$d trip(s)</string>
+    <string name="map_subtitle_period_month">My RPM · month · %1$d trip(s)</string>
+    <string name="map_subtitle_period_year">My RPM · year · %1$d trip(s)</string>
+    <string name="map_my_rates_hint">Map: avg $/mi outbound by state. Tap a state for recent rates.</string>
     <string name="map_crowd_source_network">community</string>
-    <string name="map_crowd_state_header">%1$s (%2$s) — your outbound this week</string>
-    <string name="map_crowd_state_avg">Avg outbound RPM: $%1$s/mi · %2$d trip(s)</string>
-    <string name="map_crowd_recent_title">Your recent rates from this state</string>
+    <string name="map_crowd_state_header">%1$s (%2$s) — your outbound</string>
+    <string name="map_crowd_state_avg">Avg RPM: $%1$s/mi · %2$d trip(s)</string>
+    <string name="map_crowd_recent_title">Recent rates from this state</string>
     <string name="map_crowd_recent_empty">No loads from this state in the last week.</string>
+    <string name="map_crowd_recent_empty_week">No loads from this state this week.</string>
+    <string name="map_crowd_recent_empty_month">No loads from this state this month.</string>
+    <string name="map_crowd_recent_empty_year">No loads from this state this year.</string>
     <string name="map_my_recent_row">%1$s → %2$s · $%3$s/mi · %4$s</string>
     <string name="map_crowd_age_minutes">%1$d min ago</string>
     <string name="map_crowd_age_hours">%1$d h ago</string>
     <string name="map_crowd_age_days">%1$d d ago</string>
     <string name="map_crowd_top_lanes">Your top lanes this week</string>
+    <string name="map_crowd_top_lanes_week">Top lanes · week</string>
+    <string name="map_crowd_top_lanes_month">Top lanes · month</string>
+    <string name="map_crowd_top_lanes_year">Top lanes · year</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
 
     <string name="friends_live_map_title">Friends on map</string>
