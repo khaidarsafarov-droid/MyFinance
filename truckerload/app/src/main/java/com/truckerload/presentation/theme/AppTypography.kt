@@ -61,7 +61,10 @@ object AppTypography {
 
     val CaptionMuted: TextStyle
         @Composable get() = MaterialTheme.typography.labelSmall.copy(
-            color = MaterialTheme.colorScheme.outline,
+            // Never use outline/outlineVariant here — those are border tokens (~#E1EAE4)
+            // and wash out labels on white cards.
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
         )
 
     val SectionTitle: TextStyle
