@@ -163,8 +163,9 @@ class MainActivity : AppCompatActivity() {
                         )
                         runCatching {
                             deps.loadRepository.repairMislabeledLoadDates()
+                            deps.loadRepository.repairInflatedLoadedMiles()
                         }.onFailure { e ->
-                            android.util.Log.w("MainActivity", "Load date repair failed", e)
+                            android.util.Log.w("MainActivity", "Load repair failed", e)
                         }
                         if (!BuildConfig.LOCAL_ONLY_MODE) {
                             com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)

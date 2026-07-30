@@ -70,9 +70,10 @@ object LoadMessageParser {
         val totalRate = totalRatePattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMoney(it) }
             ?: inlineRatePattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMoney(it) }
             ?: 0.0
-        val totalMiles = totalMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
+        val rawMiles = totalMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
             ?: inlineMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
             ?: 0.0
+        val totalMiles = ParseUtils.sanitizeLoadedMiles(rawMiles, totalRate)
 
         val stops = parseAllStops(block, tripId)
         val firstPuTime = stops.firstOrNull { it.type == StopType.PU }?.scheduledTime
