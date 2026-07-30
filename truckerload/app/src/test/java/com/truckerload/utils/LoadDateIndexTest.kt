@@ -3,7 +3,6 @@ package com.truckerload.utils
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
-import com.truckerload.domain.model.withReportingWeek
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -23,8 +22,8 @@ class LoadDateIndexTest {
             pointB = "B",
             puCount = 1,
             delCount = 1,
-            weekNumber = 0,
-            year = 0,
+            weekNumber = 31,
+            year = 2025,
             rawMessage = "",
             parsedAt = 1L,
             updatedAt = 1L,
@@ -32,7 +31,7 @@ class LoadDateIndexTest {
                 Stop(1, "cross-month", 1, StopType.PU, "PU1", null, "2025-07-30 08:00", "EDT", null, "A", "Garner", "NC", ""),
                 Stop(2, "cross-month", 2, StopType.DEL, null, null, "2025-08-02 18:00", "EDT", null, "B", "Dallas", "TX", ""),
             ),
-        ).withReportingWeek()
+        )
 
         // Active range still spans into August for day filters…
         assertTrue("2025-08-01" in getLoadDateRange(load))
