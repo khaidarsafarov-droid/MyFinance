@@ -87,6 +87,9 @@ class LoadRepository(
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg =
         loadDao.getWeeklyLoadStatsOnce(weekNumber, year)
 
+    suspend fun getLoadStatsForDateRange(startDate: String, endDate: String): WeeklyLoadStatsAgg =
+        loadDao.getLoadStatsForDateRange(startDate, endDate)
+
     /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
     fun watchLoads(): Flow<List<Load>> = getAllLoads()
 

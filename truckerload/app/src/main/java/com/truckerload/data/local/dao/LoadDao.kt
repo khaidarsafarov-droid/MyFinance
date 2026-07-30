@@ -348,4 +348,16 @@ interface LoadDao {
         """,
     )
     fun watchDistinctLoadDates(): Flow<List<String>>
+
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS loadCount,
+            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
+        FROM loads
+        WHERE date >= :startDate AND date <= :endDate
+        """,
+    )
+    suspend fun getLoadStatsForDateRange(startDate: String, endDate: String): WeeklyLoadStatsAgg
 }
