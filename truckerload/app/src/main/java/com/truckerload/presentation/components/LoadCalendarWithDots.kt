@@ -65,7 +65,7 @@ fun LoadCalendarWithDots(
         val y = cal.get(Calendar.YEAR)
         val m = cal.get(Calendar.MONTH) + 1
         val d = cal.get(Calendar.DAY_OF_MONTH)
-        val dateStr = "%04d-%02d-%02d".format(y, m, d)
+        val dateStr = String.format(Locale.US, "%04d-%02d-%02d", y, m, d)
         dayCells.add(Triple(d, if (m == month) 1 else 0, dateStr))
         cal.add(Calendar.DAY_OF_YEAR, 1)
     }
@@ -170,6 +170,9 @@ fun LoadCalendarWithDots(
                                         .clip(CircleShape)
                                         .background(tc.AccentPrimary)
                                 )
+                            } else {
+                                // Reserve space so day numbers stay aligned whether or not a pear is shown.
+                                Box(modifier = Modifier.padding(top = 2.dp).size(6.dp))
                             }
                         }
                     }
