@@ -59,9 +59,9 @@ fun AvatarCropScreen(
     val preparedBitmap = remember(source) { AvatarCropUtils.prepareBitmapForCrop(source) }
     val tc = LocalTruckColors.current
     val density = LocalDensity.current
-    var cropLayout by remember(preparedBitmap) { mutableStateOf<AvatarCropLayout?>(null) }
     var userScale by remember(preparedBitmap) { mutableFloatStateOf(1f) }
     var offset by remember(preparedBitmap) { mutableStateOf(Offset.Zero) }
+    var cropInitialized by remember(preparedBitmap) { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.Black,
@@ -119,14 +119,27 @@ fun AvatarCropScreen(
                     )
                 }
 
-                LaunchedEffect(layout) {
-                    cropLayout = layout
-                    userScale = layout.minScale
-                    offset = Offset.Zero
+                LaunchedEffect(layout, cropInitialized) {
+                    if (!cropInitialized) {
+                        userScale = layout.minScale
+                        offset = Offset.Zero
+                        cropInitialized = true
+                    } else {
+                        userScale = userScale.coerceIn(layout.minScale, layout.minScale * 4f)
+                        offset = AvatarCropUtils.clampOffset(
+                            offset = offset,
+                            userScale = userScale,
+                            fitScale = layout.fitScale,
+                            bitmapWidth = preparedBitmap.width,
+                            bitmapHeight = preparedBitmap.height,
+                            containerWidth = layout.containerWidth,
+                            containerHeight = layout.containerHeight,
+                            cropDiameter = layout.cropDiameter,
+                        )
+                    }
                 }
 
-                fun clampCurrentOffset(): Offset {
-                    val currentLayout = layout
+                fun clampCurrentOffset(currentLayout: AvatarCropLayout = layout): Offset {
                     return AvatarCropUtils.clampOffset(
                         offset = offset,
                         userScale = userScale,
@@ -159,8 +172,18 @@ fun AvatarCropScreen(
                                 translationY = offset.y
                             }
                             .pointerInput(layout, minScale) {
-                                detectTransformGestures { _, pan, zoom, _ ->
-                                    userScale = (userScale * zoom).coerceIn(minScale, minScale * 4f)
+                                detectTransformGestures { centroid, pan, zoom, _ ->
+                                    val oldScale = userScale
+                                    val newScale = (userScale * zoom).coerceIn(minScale, minScale * 4f)
+                                    val scaleFactor = if (oldScale == 0f) 1f else newScale / oldScale
+                                    if (scaleFactor != 1f) {
+                                        val center = Offset(
+                                            x = layout.containerWidth / 2f,
+                                            y = layout.containerHeight / 2f,
+                                        )
+                                        offset += (centroid - center - offset) * (1f - scaleFactor)
+                                    }
+                                    userScale = newScale
                                     offset = clampCurrentOffset() + pan
                                     offset = clampCurrentOffset()
                                 }
@@ -189,7 +212,6 @@ fun AvatarCropScreen(
                 )
                 Button(
                     onClick = {
-                        val layout = cropLayout ?: return@Button
                         val cropped = AvatarCropUtils.cropSquare(
                             source = preparedBitmap,
                             containerWidth = layout.containerWidth,
@@ -202,7 +224,7 @@ fun AvatarCropScreen(
                         onConfirm(cropped)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = cropLayout != null,
+                    enabled = cropInitialized,
                 ) {
                     Text(stringResource(R.string.common_save))
                 }
