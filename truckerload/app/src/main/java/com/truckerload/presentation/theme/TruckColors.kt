@@ -47,7 +47,8 @@ fun truckPaletteFrom(colorScheme: ColorScheme): TruckColorPalette = TruckColorPa
     AccentProfit = colorScheme.tertiary,
     TextPrimary = colorScheme.onBackground,
     TextSecondary = colorScheme.onSurfaceVariant,
-    TextLabel = colorScheme.outlineVariant,
+    // Labels must stay readable on white cards — not outlineVariant (border mint).
+    TextLabel = colorScheme.onSurface,
     TextNumbers = colorScheme.onSurface,
     TextGold = colorScheme.primary,
     OnAccent = colorScheme.onPrimary,

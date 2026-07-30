@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -211,7 +212,10 @@ fun BentoGlassMetricCell(
                 .heightIn(min = 40.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
         ) {
-            Text(text = label, style = AppTypography.CaptionMuted)
+            Text(text = label, style = AppTypography.CaptionMuted.copy(
+                color = cs.onSurface,
+                fontWeight = FontWeight.SemiBold,
+            ))
             Text(
                 text = value,
                 style = if (highlight) {

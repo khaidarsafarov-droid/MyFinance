@@ -171,8 +171,9 @@ fun WeeklyGoalScreen() {
                         R.string.goal_pace_period_hint,
                         formatActiveDays(progress.totalActiveDays)
                     ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = FinanceCockpitColors.TextMuted,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LocalTruckColors.current.TextPrimary,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
