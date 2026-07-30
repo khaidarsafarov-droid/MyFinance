@@ -1020,7 +1020,7 @@
     <string name="map_rating_format">Rating: %1$s</string>
     <string name="notification_permission_required">Allow notifications so the Telegram bot can run in the background</string>
     <string name="notification_permission_rationale">Notifications are required for background Telegram sync on Android 13+</string>
-    <string name="home_calendar_select_week">Select week of this date</string>
+    <string name="home_calendar_select_week">Select week</string>
     <string name="social_error_empty_message">Empty message</string>
     <string name="social_error_message_rejected">Message rejected</string>
     <string name="social_error_chat_not_found">Chat not found</string>
