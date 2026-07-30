@@ -292,6 +292,15 @@ fun FriendsLiveMapScreen(
             }
 
             item {
+                val hasNick = uiState.myNickname.isNotBlank()
+                var editingNickname by remember { mutableStateOf(!hasNick) }
+                LaunchedEffect(uiState.myNickname, uiState.nicknameMessage) {
+                    if (uiState.myNickname.isBlank()) {
+                        editingNickname = true
+                    } else if (uiState.nicknameMessage == "saved" || uiState.nicknameMessage == "saved_local") {
+                        editingNickname = false
+                    }
+                }
                 Text(
                     text = stringResource(R.string.friends_my_nickname_title),
                     style = MaterialTheme.typography.titleSmall,
@@ -302,21 +311,52 @@ fun FriendsLiveMapScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = tc.TextSecondary,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                if (!editingNickname && hasNick) {
+                    Text(
+                        text = stringResource(R.string.friends_my_nickname_current, uiState.myNickname),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = tc.AccentPrimary,
+                        modifier = Modifier.padding(vertical = 6.dp),
+                    )
+                    OutlinedButton(
+                        onClick = { editingNickname = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.friends_change_nickname_button))
+                    }
+                } else {
                     OutlinedTextField(
                         value = uiState.nicknameDraft,
                         onValueChange = viewModel::setNicknameDraft,
                         label = { Text(stringResource(R.string.friends_nickname_label)) },
+                        placeholder = { Text(stringResource(R.string.friends_nickname_placeholder)) },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
                         colors = AppTextFieldDefaults.outlined(),
                     )
-                    Button(onClick = { viewModel.saveNickname() }) {
-                        Text(stringResource(R.string.friends_nickname_save))
+                    Button(
+                        onClick = { viewModel.saveNickname() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                    ) {
+                        Text(
+                            if (hasNick) {
+                                stringResource(R.string.friends_nickname_save)
+                            } else {
+                                stringResource(R.string.friends_add_nickname_button)
+                            },
+                        )
+                    }
+                    if (hasNick) {
+                        OutlinedButton(
+                            onClick = { editingNickname = false },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.common_cancel))
+                        }
                     }
                 }
                 when (uiState.nicknameMessage) {
@@ -324,18 +364,13 @@ fun FriendsLiveMapScreen(
                         stringResource(R.string.friends_nickname_invalid),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                     "saved", "saved_local" -> Text(
                         stringResource(R.string.friends_nickname_saved),
                         color = tc.AccentPrimary,
                         style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                if (uiState.myNickname.isNotBlank()) {
-                    Text(
-                        text = stringResource(R.string.friends_my_nickname_current, uiState.myNickname),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
             }

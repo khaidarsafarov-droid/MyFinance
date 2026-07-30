@@ -417,7 +417,10 @@
     <string name="friends_my_nickname_title">My nickname</string>
     <string name="friends_my_nickname_hint">Friends find you in Truck Log by this handle</string>
     <string name="friends_nickname_label">Nickname</string>
+    <string name="friends_nickname_placeholder">e.g. DriverPro</string>
     <string name="friends_nickname_save">Save</string>
+    <string name="friends_add_nickname_button">Add nickname</string>
+    <string name="friends_change_nickname_button">Change nickname</string>
     <string name="friends_nickname_invalid">Nickname: 3–24 chars, start with a letter, letters/digits/_ only</string>
     <string name="friends_nickname_saved">Nickname saved</string>
     <string name="friends_my_nickname_current">Your handle: @%1$s</string>
