@@ -262,16 +262,27 @@ private fun ProfileNicknameSection() {
                                 Result.success(Unit)
                             }
                             busy = false
-                            if (result.isFailure) {
-                                message = result.exceptionOrNull()?.message ?: "error"
+                            val err = result.exceptionOrNull()?.message
+                            if (result.isFailure &&
+                                err != SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
+                            ) {
+                                message = err ?: "error"
                                 return@launch
                             }
+                            // Persist locally even when cloud schema is missing so the
+                            // nickname still shows on this device until SQL is applied.
                             val current = userProfileStore.profile.value
                             if (current != null) {
                                 userProfileStore.saveProfile(current.copy(nickname = handle))
                             }
-                            message = "saved"
-                            editing = false
+                            message = if (
+                                err == SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
+                            ) {
+                                SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
+                            } else {
+                                "saved"
+                            }
+                            editing = err != SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
                         }
                     },
                     enabled = !busy,
@@ -308,6 +319,11 @@ private fun ProfileNicknameSection() {
                 "saved" -> Text(
                     stringResource(R.string.friends_nickname_saved),
                     color = tc.AccentPrimary,
+                    style = AppTypography.Subtitle,
+                )
+                SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING -> Text(
+                    stringResource(R.string.friends_nickname_schema_missing),
+                    color = MaterialTheme.colorScheme.error,
                     style = AppTypography.Subtitle,
                 )
                 null -> Unit

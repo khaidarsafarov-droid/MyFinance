@@ -1060,6 +1060,7 @@
 <string name="friends_nickname_placeholder">например DriverPro</string>
 <string name="friends_nickname_save">Сохранить</string>
 <string name="friends_nickname_saved">Никнейм сохранён</string>
+    <string name="friends_nickname_schema_missing">На сервере нет колонки nickname. Откройте Supabase → SQL → выполните supabase/migrations/20260731_friend_nicknames.sql (и Notify reload schema).</string>
 <string name="friends_not_in_app">Ваш друг ещё не использует Truck Log. Поделитесь приложением, чтобы видеть местоположение друг друга.</string>
 <string name="friends_online_count">Онлайн: %1$d</string>
 <string name="friends_pref_show_me">Показывать себя ему</string>

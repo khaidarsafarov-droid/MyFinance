@@ -1060,6 +1060,7 @@
 <string name="friends_nickname_placeholder">e.g. DriverPro</string>
 <string name="friends_nickname_save">Save</string>
 <string name="friends_nickname_saved">Nickname saved</string>
+    <string name="friends_nickname_schema_missing">Server is missing the profiles.nickname column. In Supabase SQL Editor run supabase/migrations/20260731_friend_nicknames.sql (includes schema reload).</string>
 <string name="friends_not_in_app">Your friend is not on Truck Log yet. Share the app so you can see each other on the map.</string>
 <string name="friends_online_count">Online: %1$d</string>
 <string name="friends_pref_show_me">Show myself to them</string>
