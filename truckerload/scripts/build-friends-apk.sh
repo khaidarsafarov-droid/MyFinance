@@ -60,7 +60,7 @@ if [[ ! -f "$APK" ]]; then
 fi
 
 mkdir -p "$ROOT/dist"
-OUT="$ROOT/dist/TruckerLoad-1.5.5-friends.apk"
+OUT="$ROOT/dist/TruckerLoad-1.5.6-friends.apk"
 cp -f "$APK" "$OUT"
 echo "OK: $OUT"
 ls -lh "$OUT"

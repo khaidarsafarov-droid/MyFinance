@@ -7,7 +7,7 @@
 
 ## Что отдать друзьям
 
-1. Файл APK: `dist/TruckerLoad-1.5.5-friends.apk` (после сборки)
+1. Файл APK: `dist/TruckerLoad-1.5.6-friends.apk` (после сборки)
 2. Короткую инструкцию ниже (можно переслать текстом в Telegram)
 
 ## Установка на Android
@@ -60,7 +60,7 @@ chmod +x scripts/build-friends-apk.sh
 ./scripts/build-friends-apk.sh
 ```
 
-APK path after build: `dist/TruckerLoad-1.5.5-friends.apk`.
+APK path after build: `dist/TruckerLoad-1.5.6-friends.apk`.
 
 Скрипт выставляет для дружеской сборки:
 
@@ -94,5 +94,5 @@ GOOGLE_WEB_CLIENT_ID=<из local.properties или default Web client>
 
 ## Версия
 
-Friends APK: **1.5.5** (`versionCode` 10) — phone ABIs only (`arm64-v8a` + `armeabi-v7a`),
+Friends APK: **1.5.6** (`versionCode` 11) — phone ABIs only (`arm64-v8a` + `armeabi-v7a`),
 вход Google / email+пароль включён.
