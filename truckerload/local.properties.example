@@ -1,8 +1,8 @@
 # Copy to local.properties and fill in your keys
 # sdk.dir is auto-added by Android Studio
 #
-# true = skip login (Room + Telegram long-poll + Cerebras only; no Supabase screen).
-# false = email/Google login via Supabase.
+# true = skip login (auto local_dev). For friends APK with Google/email login use false.
+# false = show Google + email/password (local on-device without Supabase; optional Supabase).
 LOCAL_ONLY_MODE=false
 
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
@@ -23,9 +23,10 @@ TELEGRAM_SERVER_BOT_USERNAME=
 GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
 GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.googleusercontent.com
 
-# Supabase — нужны только если LOCAL_ONLY_MODE=false
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_supabase_anon_key
+# Supabase — опционально. Пусто = локальные аккаунты Google/email на устройстве.
+# Нужны только для общего аккаунта между устройствами / реальной почты.
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
 
 # Google Drive backup (Settings → Google Drive): enable Drive API in Google Cloud
 # for the same project as GOOGLE_WEB_CLIENT_ID / Android OAuth client.
