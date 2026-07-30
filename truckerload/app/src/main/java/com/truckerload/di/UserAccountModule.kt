@@ -13,7 +13,6 @@ import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
-import com.truckerload.data.repository.SocialRepository
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
 import dagger.Module
@@ -84,9 +83,7 @@ object UserAccountModule {
     fun provideScanRepository(manager: UserComponentManager): ScanRepository =
         manager.require().scanRepository
 
-    @Provides
-    fun provideSocialRepository(manager: UserComponentManager): SocialRepository =
-        manager.require().socialRepository
+    // Social repositories are provided by [SocialRepositoryModule].
 
     @Provides
     fun provideVoiceRepository(manager: UserComponentManager): VoiceRepository =

@@ -1,4 +1,4 @@
-package com.truckerload.data.repository
+package com.truckerload.data.repository.social
 
 import com.truckerload.data.local.dao.ChatMemberDao
 import com.truckerload.data.local.dao.DriverStatusDao

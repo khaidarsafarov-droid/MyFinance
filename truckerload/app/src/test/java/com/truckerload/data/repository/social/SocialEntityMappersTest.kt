@@ -1,4 +1,4 @@
-package com.truckerload.data.repository
+package com.truckerload.data.repository.social
 
 import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.data.local.entities.SocialChatEntity
