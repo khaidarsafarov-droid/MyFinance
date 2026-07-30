@@ -102,9 +102,16 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // Dev-only secrets may come from local.properties via defaultConfig.
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Never bake server/bot secrets into release APKs.
+            // Public client IDs (Supabase anon, Google Web client) stay in defaultConfig.
+            buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
+            buildConfigField("String", "CEREBRAS_API_KEY", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -260,4 +267,41 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+/**
+ * Phase 0: fail the build if release BuildConfig still embeds bot/API secrets.
+ * Run: ./gradlew :app:verifyReleaseSecretsEmpty
+ */
+tasks.register("verifyReleaseSecretsEmpty") {
+    group = "verification"
+    description = "Ensures TELEGRAM_BOT_TOKEN and CEREBRAS_API_KEY are empty in release BuildConfig"
+    dependsOn("generateReleaseBuildConfig")
+    doLast {
+        val buildConfig = layout.buildDirectory.file(
+            "generated/source/buildConfig/release/com/truckerload/BuildConfig.java",
+        ).get().asFile
+        require(buildConfig.exists()) {
+            "Release BuildConfig not found at ${buildConfig.path}"
+        }
+        val text = buildConfig.readText()
+        fun fieldValue(name: String): String {
+            val regex = Regex("""String\s+$name\s*=\s*"([^"]*)";""")
+            return regex.find(text)?.groupValues?.get(1)
+                ?: error("BuildConfig field $name not found")
+        }
+        val telegram = fieldValue("TELEGRAM_BOT_TOKEN")
+        val cerebras = fieldValue("CEREBRAS_API_KEY")
+        check(telegram.isEmpty()) {
+            "Release BuildConfig must not embed TELEGRAM_BOT_TOKEN (found non-empty value)"
+        }
+        check(cerebras.isEmpty()) {
+            "Release BuildConfig must not embed CEREBRAS_API_KEY (found non-empty value)"
+        }
+        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram/cerebras empty in release)")
+    }
+}
+
+tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+    dependsOn("verifyReleaseSecretsEmpty")
 }
