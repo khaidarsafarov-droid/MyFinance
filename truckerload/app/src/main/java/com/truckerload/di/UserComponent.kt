@@ -18,13 +18,20 @@ import com.truckerload.data.repository.ScanRepository
 import com.truckerload.data.repository.SocialRepository
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.GroupRepository
+import com.truckerload.data.repository.social.MediaRepository
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.data.repository.social.StatusRepository
 
 /**
  * Account-scoped object graph for one [userId].
  *
  * Not a Hilt `@DefineComponent`: ViewModelComponent cannot parent a custom user
- * component, so [UserComponentManager] owns this graph and [UserAccountModule]
- * bridges repositories into SingletonComponent for `@HiltViewModel` injection.
+ * component, so [UserComponentManager] owns this graph and [UserAccountModule] /
+ * [SocialRepositoryModule] bridge repositories into SingletonComponent for
+ * `@HiltViewModel` injection.
  */
 @UserScope
 class UserComponent private constructor(
@@ -41,12 +48,20 @@ class UserComponent private constructor(
     val analyticsRepository: AnalyticsRepository,
     val photoRepository: PhotoRepository,
     val scanRepository: ScanRepository,
+    val profileRepository: ProfileRepository,
+    val chatRepository: ChatRepository,
+    val groupRepository: GroupRepository,
+    val statusRepository: StatusRepository,
+    val mediaRepository: MediaRepository,
+    val socialSyncCoordinator: SocialSyncCoordinator,
+    @Suppress("DEPRECATION")
     val socialRepository: SocialRepository,
     val voiceRepository: VoiceRepository,
     val aiRepository: AiRepository,
     val maintenanceRepository: MaintenanceRepository,
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun create(
             context: Context,
             userId: String,
@@ -59,6 +74,12 @@ class UserComponent private constructor(
             val loadRepository = LoadRepository(db)
             val paycheckRepository = PaycheckRepository(db)
             val dieselRepository = DieselRepository(db)
+            val socialRepository = SocialRepository.create(
+                db = db,
+                loadRepository = loadRepository,
+                userProfileStore = userProfileStore,
+                context = context,
+            )
             return UserComponent(
                 userId = id,
                 database = db,
@@ -73,7 +94,13 @@ class UserComponent private constructor(
                 analyticsRepository = AnalyticsRepository(db),
                 photoRepository = PhotoRepository(db),
                 scanRepository = ScanRepository(db),
-                socialRepository = SocialRepository(db, loadRepository, userProfileStore, context),
+                profileRepository = socialRepository.profileRepository,
+                chatRepository = socialRepository.chatRepository,
+                groupRepository = socialRepository.groupRepository,
+                statusRepository = socialRepository.statusRepository,
+                mediaRepository = socialRepository.mediaRepository,
+                socialSyncCoordinator = socialRepository.syncCoordinator,
+                socialRepository = socialRepository,
                 voiceRepository = VoiceRepository(db, context),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),

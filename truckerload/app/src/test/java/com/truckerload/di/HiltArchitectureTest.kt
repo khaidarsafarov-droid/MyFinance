@@ -44,8 +44,38 @@ class HiltArchitectureTest {
             codeOnly.contains("@Singleton"),
         )
         assertTrue(source.contains("fun provideLoadRepository"))
-        assertTrue(source.contains("fun provideSocialRepository"))
         assertTrue(source.contains("fun provideAppDatabase"))
+        assertFalse(
+            "Social repos moved to SocialRepositoryModule",
+            source.contains("fun provideSocialRepository"),
+        )
+    }
+
+    @Test
+    fun socialRepositoryModule_bridgesFocusedReposWithoutSingletonScope() {
+        val source = readMainSource("com/truckerload/di/SocialRepositoryModule.kt")
+
+        assertTrue(source.contains("@InstallIn(SingletonComponent::class)"))
+        assertTrue(source.contains("UserComponentManager"))
+        assertTrue(source.contains("manager.require()"))
+        val codeOnly = source
+            .replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
+            .replace(Regex("//.*"), "")
+        assertFalse(
+            "Account social repos must not be cached as @Singleton",
+            codeOnly.contains("@Singleton"),
+        )
+        listOf(
+            "fun provideProfileRepository",
+            "fun provideChatRepository",
+            "fun provideGroupRepository",
+            "fun provideStatusRepository",
+            "fun provideMediaRepository",
+            "fun provideSocialSyncCoordinator",
+            "fun provideSocialRepository",
+        ).forEach { binding ->
+            assertTrue("$binding must exist", source.contains(binding))
+        }
     }
 
     @Test

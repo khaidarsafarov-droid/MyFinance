@@ -48,6 +48,8 @@ class UserComponentManagerTest {
         verify(profileStore).bindUser("user-a")
         assertNotNull(component.database)
         assertNotNull(component.loadRepository)
+        assertNotNull(component.profileRepository)
+        assertNotNull(component.socialRepository)
     }
 
     @Test

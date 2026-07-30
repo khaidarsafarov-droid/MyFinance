@@ -13,7 +13,6 @@ import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
-import com.truckerload.data.repository.SocialRepository
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
 import dagger.Module
@@ -27,6 +26,8 @@ import dagger.hilt.components.SingletonComponent
  *
  * Bindings are **unscoped**: each injection resolves the current session from
  * [UserComponentManager] (never cache a previous user's repository as `@Singleton`).
+ *
+ * Social repositories are provided by [SocialRepositoryModule].
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -83,10 +84,6 @@ object UserAccountModule {
     @Provides
     fun provideScanRepository(manager: UserComponentManager): ScanRepository =
         manager.require().scanRepository
-
-    @Provides
-    fun provideSocialRepository(manager: UserComponentManager): SocialRepository =
-        manager.require().socialRepository
 
     @Provides
     fun provideVoiceRepository(manager: UserComponentManager): VoiceRepository =
