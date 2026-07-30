@@ -15,6 +15,7 @@ class SmartNotificationPlannerTest {
         )
         assertTrue(plan.notifyMissingPaycheck)
         assertTrue(plan.notifyMissingDiesel)
+        assertTrue(plan.hasAny)
     }
 
     @Test
@@ -26,15 +27,29 @@ class SmartNotificationPlannerTest {
         assertFalse(plan.notifyMissingPaycheck)
         assertFalse(plan.notifyMissingDiesel)
         assertTrue(plan.maintenanceDueTitles.isEmpty())
+        assertFalse(plan.hasAny)
     }
 
     @Test
-    fun maintenanceDueTitles_passThrough() {
+    fun alreadyNotifiedMissingWeek_suppressesPaycheckAndDiesel() {
+        val plan = SmartNotificationPlanner.plan(
+            hasPaycheckForLastWeek = false,
+            dieselEntriesLastWeek = 0,
+            alreadyNotifiedMissingWeek = true,
+        )
+        assertFalse(plan.notifyMissingPaycheck)
+        assertFalse(plan.notifyMissingDiesel)
+    }
+
+    @Test
+    fun maintenanceDueTitles_passThroughAndSummarize() {
         val plan = SmartNotificationPlanner.plan(
             hasPaycheckForLastWeek = true,
             dieselEntriesLastWeek = 1,
-            maintenanceDueTitles = listOf("Oil change"),
+            maintenanceDueTitles = listOf("Oil change", "Tires"),
         )
-        assertEquals(listOf("Oil change"), plan.maintenanceDueTitles)
+        assertEquals(listOf("Oil change", "Tires"), plan.maintenanceDueTitles)
+        assertEquals("Oil change, Tires", plan.maintenanceSummaryBody())
+        assertTrue(plan.hasAny)
     }
 }

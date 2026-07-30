@@ -40,10 +40,13 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
         showNotification(
             title = message.notification?.title ?: message.data["title"],
             body = message.notification?.body ?: message.data["body"],
+            collapseKey = message.collapseKey
+                ?: message.data["type"]
+                ?: message.data["collapse_key"],
         )
     }
 
-    private fun showNotification(title: String?, body: String?) {
+    private fun showNotification(title: String?, body: String?, collapseKey: String?) {
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -58,18 +61,22 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val safeTitle = title.safeText(getString(R.string.push_notification_fallback_title))
+        val safeBody = body.safeText(getString(R.string.push_notification_fallback_body))
+        // Stable id: same type/title replaces the previous shade entry instead of stacking.
+        val notificationId = stableNotificationId(collapseKey, safeTitle)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle(title.safeText(getString(R.string.push_notification_fallback_title)))
-            .setContentText(body.safeText(getString(R.string.push_notification_fallback_body)))
+            .setContentTitle(safeTitle)
+            .setContentText(safeBody)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(safeBody))
             .setContentIntent(openApp)
+            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
+            .setGroup(GROUP_KEY)
             .build()
         runCatching {
-            NotificationManagerCompat.from(this).notify(
-                (System.currentTimeMillis() and 0x7fffffff).toInt(),
-                notification,
-            )
+            NotificationManagerCompat.from(this).notify(notificationId, notification)
         }
     }
 
@@ -81,15 +88,22 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
                 CHANNEL_ID,
                 getString(R.string.push_notification_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
-            ),
+            ).apply { setShowBadge(true) },
         )
     }
 
     private fun String?.safeText(fallback: String): String =
         this?.trim()?.takeIf { it.isNotBlank() }?.take(MAX_NOTIFICATION_TEXT) ?: fallback
 
+    private fun stableNotificationId(collapseKey: String?, title: String): Int {
+        val seed = collapseKey?.takeIf { it.isNotBlank() } ?: title
+        return (PUSH_ID_BASE + (seed.hashCode() and 0xffff)).coerceIn(PUSH_ID_BASE, PUSH_ID_BASE + 0xffff)
+    }
+
     companion object {
         private const val CHANNEL_ID = "truckerload_updates"
+        private const val GROUP_KEY = "truckerload_updates_group"
         private const val MAX_NOTIFICATION_TEXT = 240
+        private const val PUSH_ID_BASE = 5000
     }
 }

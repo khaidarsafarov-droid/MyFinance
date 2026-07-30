@@ -118,12 +118,12 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             var dependencies by remember { mutableStateOf<MainDependencies?>(null) }
+            var boundUserId by remember { mutableStateOf<String?>(null) }
             var sessionReady by remember { mutableStateOf(false) }
             val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
             val userId by authStore.userId.collectAsStateWithLifecycle()
 
             LaunchedEffect(isLoggedIn, userId) {
-                sessionReady = false
                 // Auth-only entry: Google or email/password (Apple planned for iOS).
                 // Never auto-login as local_dev. Real sessions are restored from disk silently.
                 val provider = authStore.authProvider()
@@ -133,59 +133,69 @@ class MainActivity : AppCompatActivity() {
                     authStore.logout()
                     userProfileStore.unbind()
                     dependencies = null
+                    boundUserId = null
                     sessionReady = true
                     return@LaunchedEffect
                 }
                 if (isLoggedIn && !userId.isNullOrBlank()) {
                     val activeUserId = userId as String
-                    val deps = createDependencies(
-                        context = applicationContext,
-                        userId = activeUserId,
-                        authStore = authStore,
-                        authCredentialsStore = authCredentialsStore,
-                        userProfileStore = userProfileStore,
-                    )
-                    dependencies = deps
-                    if (!TelegramSyncMode.isServer()) {
-                        val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
-                        tokenStore.bootstrapFromBuildConfigIfEmpty()
-                        if (tokenStore.hasToken()) {
-                            TelegramBotForegroundService.start(applicationContext)
+                    val needsRebuild = dependencies == null || boundUserId != activeUserId
+                    if (needsRebuild) {
+                        // Only blank the UI on cold session bind — keep current frame on recreate.
+                        if (dependencies == null) {
+                            sessionReady = false
                         }
-                    }
-                    // Show UI before network/IO so theme recreates don't hang on the spinner.
-                    sessionReady = true
-                    withContext(Dispatchers.IO) {
-                        com.truckerload.data.auth.SilentAuthRestorer.restore(
+                        val deps = createDependencies(
                             context = applicationContext,
+                            userId = activeUserId,
                             authStore = authStore,
+                            authCredentialsStore = authCredentialsStore,
                             userProfileStore = userProfileStore,
                         )
-                        runCatching {
-                            deps.loadRepository.repairMislabeledLoadDates()
-                            deps.loadRepository.repairInflatedLoadedMiles()
-                        }.onFailure { e ->
-                            android.util.Log.w("MainActivity", "Load repair failed", e)
+                        dependencies = deps
+                        boundUserId = activeUserId
+                        if (!TelegramSyncMode.isServer()) {
+                            val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
+                            tokenStore.bootstrapFromBuildConfigIfEmpty()
+                            if (tokenStore.hasToken()) {
+                                TelegramBotForegroundService.start(applicationContext)
+                            }
                         }
-                        if (!BuildConfig.LOCAL_ONLY_MODE) {
-                            com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
-                            com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
-                            com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
-                            com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
-                            com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
-                            ServerTelegramInboxWorker.enqueue(applicationContext)
-                            ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
-                            PushTokenRegistrationWorker.enqueue(applicationContext)
+                        sessionReady = true
+                        withContext(Dispatchers.IO) {
+                            com.truckerload.data.auth.SilentAuthRestorer.restore(
+                                context = applicationContext,
+                                authStore = authStore,
+                                userProfileStore = userProfileStore,
+                            )
                             runCatching {
-                                com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                                deps.loadRepository.repairMislabeledLoadDates()
+                                deps.loadRepository.repairInflatedLoadedMiles()
                             }.onFailure { e ->
-                                android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
+                                android.util.Log.w("MainActivity", "Load repair failed", e)
                             }
-                            runCatching {
-                                com.truckerload.data.backup.GoogleDriveBackupService
-                                    .pushAutoBackupIfEnabled(applicationContext)
+                            if (!BuildConfig.LOCAL_ONLY_MODE) {
+                                com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
+                                com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
+                                com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
+                                com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
+                                com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
+                                ServerTelegramInboxWorker.enqueue(applicationContext)
+                                ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
+                                PushTokenRegistrationWorker.enqueue(applicationContext)
+                                runCatching {
+                                    com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                                }.onFailure { e ->
+                                    android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
+                                }
+                                runCatching {
+                                    com.truckerload.data.backup.GoogleDriveBackupService
+                                        .pushAutoBackupIfEnabled(applicationContext)
+                                }
                             }
                         }
+                    } else {
+                        sessionReady = true
                     }
                 } else {
                     TelegramBotForegroundService.stopForLogout(applicationContext)
@@ -193,6 +203,7 @@ class MainActivity : AppCompatActivity() {
                     AppDatabase.closeCurrent()
                     userProfileStore.unbind()
                     dependencies = null
+                    boundUserId = null
                     sessionReady = true
                 }
             }

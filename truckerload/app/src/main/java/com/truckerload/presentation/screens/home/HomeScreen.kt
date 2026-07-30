@@ -139,7 +139,6 @@ fun HomeScreen(
     }.collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
-    val datesWithLoads = filteredResult.datesWithLoads
     val useRoomPaging = viewModel.usesRoomPaging(uiState.filter, uiState.selectedYear) ||
         searchQuery.isNotBlank()
     val pagedLoads = viewModel.roomPagedLoads.collectAsLazyPagingItems()
@@ -200,82 +199,25 @@ fun HomeScreen(
     }
 
     if (showCalendar) {
-        Dialog(onDismissRequest = { showCalendar = false }) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = tc.CardBackground,
-                modifier = Modifier.fillMaxWidth(0.96f),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    Text(
-                        stringResource(R.string.home_calendar_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                    LoadCalendarWithDots(
-                        year = calendarYear,
-                        month = calendarMonth,
-                        datesWithLoads = datesWithLoads,
-                        selectedDate = uiState.selectedDate,
-                        onDateSelect = { date ->
-                            viewModel.selectDate(date)
-                            showCalendar = false
-                        },
-                        onMonthChange = { y, m ->
-                            calendarYear = y
-                            calendarMonth = m
-                        },
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextButton(
-                            onClick = {
-                                val date = uiState.selectedDate
-                                    ?: java.time.LocalDate.of(
-                                        calendarYear,
-                                        calendarMonth,
-                                        1,
-                                    ).toString()
-                                val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
-                                val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
-                                viewModel.selectWeek(start, end, label)
-                                showCalendar = false
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.home_calendar_select_week),
-                                color = tc.TextPrimary,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                            )
-                        }
-                        TlButton(
-                            onClick = { showCalendar = false },
-                            modifier = Modifier.defaultMinSize(minWidth = 96.dp),
-                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.common_close),
-                                maxLines = 1,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        HomeCalendarDialog(
+            viewModel = viewModel,
+            calendarYear = calendarYear,
+            calendarMonth = calendarMonth,
+            selectedDate = uiState.selectedDate,
+            onYearMonthChange = { y, m ->
+                calendarYear = y
+                calendarMonth = m
+            },
+            onDateSelect = { date ->
+                viewModel.selectDate(date)
+                showCalendar = false
+            },
+            onWeekSelect = { start, end, label ->
+                viewModel.selectWeek(start, end, label)
+                showCalendar = false
+            },
+            onDismiss = { showCalendar = false },
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -365,7 +307,6 @@ fun HomeScreen(
                         listItems = listItems,
                         periodSummary = periodSummary,
                         rpmThresholds = rpmThresholds,
-                        datesWithLoads = datesWithLoads,
                         viewModel = viewModel,
                         filteredLoads = filteredLoads,
                         useRoomPaging = useRoomPaging,
@@ -413,7 +354,6 @@ private fun HomeScreenContent(
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
     rpmThresholds: RpmThresholds,
-    datesWithLoads: Set<String>,
     viewModel: HomeViewModel,
     filteredLoads: List<com.truckerload.domain.model.Load>,
     useRoomPaging: Boolean,
@@ -700,5 +640,86 @@ private fun HomeScreenContent(
             },
         )
     }
+    }
+}
+
+/** Calendar dialog collects [HomeViewModel.calendarDatesWithLoads] only while visible. */
+@Composable
+private fun HomeCalendarDialog(
+    viewModel: HomeViewModel,
+    calendarYear: Int,
+    calendarMonth: Int,
+    selectedDate: String?,
+    onYearMonthChange: (Int, Int) -> Unit,
+    onDateSelect: (String) -> Unit,
+    onWeekSelect: (start: String, end: String, label: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    val datesWithLoads by viewModel.calendarDatesWithLoads.collectAsStateWithLifecycle()
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = tc.CardBackground,
+            modifier = Modifier.fillMaxWidth(0.96f),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                Text(
+                    stringResource(R.string.home_calendar_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = tc.TextPrimary,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                LoadCalendarWithDots(
+                    year = calendarYear,
+                    month = calendarMonth,
+                    datesWithLoads = datesWithLoads,
+                    selectedDate = selectedDate,
+                    onDateSelect = onDateSelect,
+                    onMonthChange = onYearMonthChange,
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(
+                        onClick = {
+                            val date = selectedDate
+                                ?: java.time.LocalDate.of(calendarYear, calendarMonth, 1).toString()
+                            val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
+                            val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
+                            onWeekSelect(start, end, label)
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.home_calendar_select_week),
+                            color = tc.TextPrimary,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                        )
+                    }
+                    TlButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.defaultMinSize(minWidth = 96.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.common_close),
+                            maxLines = 1,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
+        }
     }
 }

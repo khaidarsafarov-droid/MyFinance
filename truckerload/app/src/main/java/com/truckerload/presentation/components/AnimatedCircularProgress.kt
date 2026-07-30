@@ -49,12 +49,12 @@ fun AnimatedCircularProgress(
     val cs = MaterialTheme.colorScheme
     val animatedProgress by animateFloatAsState(
         targetValue = progressPercent.coerceIn(0f, 100f),
-        animationSpec = tween(1000, easing = EaseOutCubic),
+        animationSpec = tween(450, easing = EaseOutCubic),
         label = "ringProgress",
     )
     val animatedGross by animateFloatAsState(
         targetValue = gross.toFloat(),
-        animationSpec = tween(800, easing = EaseOutCubic),
+        animationSpec = tween(350, easing = EaseOutCubic),
         label = "ringGross",
     )
 

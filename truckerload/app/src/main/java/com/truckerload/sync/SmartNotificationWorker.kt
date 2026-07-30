@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.truckerload.R
@@ -16,6 +17,10 @@ import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
 
+/**
+ * At most one paycheck + one diesel reminder per ISO week, and one bundled maintenance alert
+ * (not one shade entry per task). Stable notification IDs prevent stacking duplicates.
+ */
 class SmartNotificationWorker(
     context: Context,
     params: WorkerParameters
@@ -24,7 +29,13 @@ class SmartNotificationWorker(
     companion object {
         const val CHANNEL_MISSING = "truckerload_missing"
         const val CHANNEL_ALERTS = "truckerload_alerts"
-        private const val MAINTENANCE_NOTIFY_BASE_ID = 100
+        private const val PREFS = "smart_notifications"
+        private const val KEY_MISSING_WEEK = "missing_notified_week"
+        private const val ID_PAYCHECK = 1
+        private const val ID_DIESEL = 2
+        private const val ID_MAINTENANCE_BUNDLE = 100
+        private const val LEGACY_MAINTENANCE_ID_START = 100
+        private const val LEGACY_MAINTENANCE_ID_END = 130
     }
 
     override suspend fun doWork(): Result {
@@ -35,8 +46,12 @@ class SmartNotificationWorker(
         val maintenanceRepo = MaintenanceRepository(db)
 
         createChannels()
+        cancelLegacyPerTaskMaintenanceAlerts()
         val (currentWeek, year) = getCurrentWeekNumberAndYear()
         val (lastWeek, lastYear) = shiftWeekNumberAndYear(currentWeek, year, -1)
+        val weekKey = "$lastYear-W$lastWeek"
+        val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val alreadyNotifiedMissing = prefs.getString(KEY_MISSING_WEEK, null) == weekKey
 
         return try {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
@@ -46,11 +61,12 @@ class SmartNotificationWorker(
                 hasPaycheckForLastWeek = paycheck != null,
                 dieselEntriesLastWeek = diesel.size,
                 maintenanceDueTitles = dueMaintenance.map { it.task.title },
+                alreadyNotifiedMissingWeek = alreadyNotifiedMissing,
             )
             if (plan.notifyMissingPaycheck) {
                 notify(
                     applicationContext,
-                    1,
+                    ID_PAYCHECK,
                     CHANNEL_MISSING,
                     applicationContext.getString(R.string.notify_add_paycheck_title),
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
@@ -59,19 +75,34 @@ class SmartNotificationWorker(
             if (plan.notifyMissingDiesel) {
                 notify(
                     applicationContext,
-                    2,
+                    ID_DIESEL,
                     CHANNEL_MISSING,
                     applicationContext.getString(R.string.notify_add_diesel_title),
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
                 )
             }
-            plan.maintenanceDueTitles.forEachIndexed { index, title ->
+            if (plan.notifyMissingPaycheck || plan.notifyMissingDiesel) {
+                prefs.edit { putString(KEY_MISSING_WEEK, weekKey) }
+            }
+            if (plan.maintenanceDueTitles.isNotEmpty()) {
+                val body = if (plan.maintenanceDueTitles.size == 1) {
+                    applicationContext.getString(
+                        R.string.notify_maintenance_body,
+                        plan.maintenanceDueTitles.first(),
+                    )
+                } else {
+                    applicationContext.getString(
+                        R.string.notify_maintenance_body_multi,
+                        plan.maintenanceDueTitles.size,
+                        plan.maintenanceSummaryBody(),
+                    )
+                }
                 notify(
                     applicationContext,
-                    MAINTENANCE_NOTIFY_BASE_ID + index,
+                    ID_MAINTENANCE_BUNDLE,
                     CHANNEL_ALERTS,
                     applicationContext.getString(R.string.notify_maintenance_title),
-                    applicationContext.getString(R.string.notify_maintenance_body, title),
+                    body,
                 )
             }
             dueMaintenance.forEach { progress ->
@@ -84,6 +115,14 @@ class SmartNotificationWorker(
         }
     }
 
+    private fun cancelLegacyPerTaskMaintenanceAlerts() {
+        val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // Older builds posted one notification per due task (ids 100..N). Keep id 100 for the bundle.
+        for (id in (LEGACY_MAINTENANCE_ID_START + 1)..LEGACY_MAINTENANCE_ID_END) {
+            nm.cancel(id)
+        }
+    }
+
     private fun createChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -92,14 +131,14 @@ class SmartNotificationWorker(
                     CHANNEL_MISSING,
                     applicationContext.getString(R.string.notify_channel_missing_name),
                     NotificationManager.IMPORTANCE_DEFAULT
-                )
+                ).apply { setShowBadge(true) }
             )
             nm.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_ALERTS,
                     applicationContext.getString(R.string.notify_channel_alerts_name),
                     NotificationManager.IMPORTANCE_DEFAULT
-                )
+                ).apply { setShowBadge(true) }
             )
         }
     }
@@ -110,7 +149,9 @@ class SmartNotificationWorker(
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
             .build()
         nm.notify(id, notification)
