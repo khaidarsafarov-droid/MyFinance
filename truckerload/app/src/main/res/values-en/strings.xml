@@ -399,7 +399,7 @@
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
 
     <string name="friends_live_map_title">Friends on map</string>
-    <string name="friends_live_map_subtitle">Live markers · path on demand</string>
+    <string name="friends_live_map_subtitle">Where you are now</string>
     <string name="friends_share_path_toggle">Show my path to friends</string>
     <string name="friends_share_path_hint">Off = do not send GPS or path history to Supabase</string>
     <string name="friends_live_need_supabase">Requires Supabase sign-in (LOCAL_ONLY_MODE=false + URL/key). Apply the friends live SQL migration.</string>
@@ -446,6 +446,10 @@
     <string name="friends_map_legend">Green — you · orange — friends online</string>
     <string name="friends_me_marker">Me</string>
     <string name="friends_center_on_me">Center on me</string>
+    <string name="friends_map_tap_open">Tap to open the full map</string>
+    <string name="friends_map_close">Close map</string>
+    <string name="friends_manage_section">Friends &amp; sharing</string>
+    <string name="friends_online_count">Online: %1$d</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>

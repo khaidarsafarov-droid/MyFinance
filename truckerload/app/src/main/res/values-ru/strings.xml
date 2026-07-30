@@ -399,7 +399,7 @@
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/миля · %4$d рейс(ов)</string>
 
     <string name="friends_live_map_title">Друзья на карте</string>
-    <string name="friends_live_map_subtitle">Маркеры сейчас · путь по запросу</string>
+    <string name="friends_live_map_subtitle">Где вы сейчас</string>
     <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
     <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
     <string name="friends_live_need_supabase">Нужен вход через Supabase (LOCAL_ONLY_MODE=false + URL/ключ). Примените SQL миграцию friends live.</string>
@@ -446,6 +446,10 @@
     <string name="friends_map_legend">Зелёный — вы · оранжевый — друзья онлайн</string>
     <string name="friends_me_marker">Я</string>
     <string name="friends_center_on_me">К моему местоположению</string>
+    <string name="friends_map_tap_open">Нажмите, чтобы открыть карту</string>
+    <string name="friends_map_close">Закрыть карту</string>
+    <string name="friends_manage_section">Друзья и доступ</string>
+    <string name="friends_online_count">Онлайн: %1$d</string>
     <string name="stats_ai_keyword_diesel">дизел</string>
     <string name="stats_ai_keyword_profit">прибыл</string>
     <string name="calendar_prev_month_cd">Предыдущий месяц</string>
