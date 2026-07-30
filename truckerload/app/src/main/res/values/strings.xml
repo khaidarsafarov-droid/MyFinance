@@ -288,6 +288,7 @@
     <string name="home_empty_filtered_body">Смените фильтр или потяните вниз для обновления.</string>
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
     <string name="home_period_avg_rpm">%1$s ср. RPM</string>
+    <string name="home_period_avg_rpm_label">ср. RPM</string>
     <string name="home_period_summary_cd">%1$s: %2$s, %3$s, %4$s</string>
     <string name="home_year_section">%1$d год</string>
     <string name="home_year_totals">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi</string>
