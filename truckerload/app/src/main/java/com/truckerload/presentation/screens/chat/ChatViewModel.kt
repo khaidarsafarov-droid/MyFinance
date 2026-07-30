@@ -10,13 +10,14 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -162,21 +163,23 @@ class ChatViewModel(
 
     private suspend fun buildAppContext(): String {
         return try {
-            val loads = loadRepository.getAllLoads().first().takeLast(25)
-            val paychecks = paycheckRepository.getAllPaychecks().first().takeLast(12)
-            val diesels = dieselRepository.getAllDiesel().first().takeLast(15)
-            buildString {
-                append("LOADS (last ${loads.size}):\n")
-                loads.forEach { l ->
-                    append("- ${l.tripId} | ${l.date} | ${l.pointA} → ${l.pointB} | $${String.format(Locale.US, "%,.2f", l.totalRate)} | ${String.format(Locale.US, "%,.0f", l.totalMiles)} mi\n")
-                }
-                append("PAYCHECKS (last ${paychecks.size}):\n")
-                paychecks.forEach { p ->
-                    append("- Week ${p.weekNumber} ${p.year} | $${String.format(Locale.US, "%,.2f", p.netAmount)}\n")
-                }
-                append("DIESEL (last ${diesels.size}):\n")
-                diesels.forEach { d ->
-                    append("- Week ${d.weekNumber} ${d.year} | $${String.format(Locale.US, "%,.2f", d.totalAmount)}\n")
+            withContext(Dispatchers.IO) {
+                val loads = loadRepository.getLoadsForLinking(25)
+                val paychecks = paycheckRepository.getAllPaychecksOnce().takeLast(12)
+                val diesels = dieselRepository.getAllDieselOnce().takeLast(15)
+                buildString {
+                    append("LOADS (last ${loads.size}):\n")
+                    loads.forEach { l ->
+                        append("- ${l.tripId} | ${l.date} | ${l.pointA} → ${l.pointB} | $${String.format(Locale.US, "%,.2f", l.totalRate)} | ${String.format(Locale.US, "%,.0f", l.totalMiles)} mi\n")
+                    }
+                    append("PAYCHECKS (last ${paychecks.size}):\n")
+                    paychecks.forEach { p ->
+                        append("- Week ${p.weekNumber} ${p.year} | $${String.format(Locale.US, "%,.2f", p.netAmount)}\n")
+                    }
+                    append("DIESEL (last ${diesels.size}):\n")
+                    diesels.forEach { d ->
+                        append("- Week ${d.weekNumber} ${d.year} | $${String.format(Locale.US, "%,.2f", d.totalAmount)}\n")
+                    }
                 }
             }
         } catch (e: Exception) {

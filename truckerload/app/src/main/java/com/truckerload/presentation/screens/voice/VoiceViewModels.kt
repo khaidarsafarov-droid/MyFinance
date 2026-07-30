@@ -23,6 +23,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+
+/** Process-scoped IO for work that must outlive a cleared ViewModel (e.g. leave room). */
+private val voiceLeaveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 data class VoiceRoomsUiState(
     val rooms: List<VoiceRoom> = emptyList(),
@@ -199,8 +204,11 @@ class VoiceRoomViewModel(
         val repo = voiceRepository
         super.onCleared()
         if (shouldLeave) {
-            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-                repo.leaveRoom(id)
+            // Process-scoped: leaveRoom must not be cancelled with the ViewModel.
+            voiceLeaveScope.launch {
+                withContext(NonCancellable) {
+                    runCatching { repo.leaveRoom(id) }
+                }
             }
         }
     }

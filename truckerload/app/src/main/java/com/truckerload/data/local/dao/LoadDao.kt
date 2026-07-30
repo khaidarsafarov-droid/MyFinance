@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.truckerload.data.local.entities.LoadEntity
+import com.truckerload.data.local.entities.LoadMileageInput
 import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
@@ -297,14 +298,54 @@ interface LoadDao {
     suspend fun sumMilesSince(startDate: String): Double
 
     /**
-     * Prefer this for ТО math when finish dates are denormalized on the row:
-     * end on/after service day (inclusive) — same rule as [com.truckerload.domain.maintenance.MaintenanceMileageUseCase].
+     * SQL-side ТО miles: end date = COALESCE(actualFinishDate, lastDel local date, date),
+     * inclusive range [serviceDate, endCap]. Does not dedupe tripId — use
+     * [watchMileageInputs] + MaintenanceMileageUseCase when duplicates matter.
      */
     @Query(
         """
         SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads
-        WHERE COALESCE(actualFinishDate, date) >= :serviceDate
+        WHERE COALESCE(
+            NULLIF(TRIM(actualFinishDate), ''),
+            CASE
+                WHEN lastDelMillis IS NOT NULL AND lastDelMillis > 0
+                THEN date(lastDelMillis / 1000, 'unixepoch', 'localtime')
+                ELSE date
+            END
+        ) BETWEEN :serviceDate AND :endCap
         """,
     )
-    suspend fun sumLoadedMilesOnOrAfterService(serviceDate: String): Double
+    suspend fun sumLoadedMilesOnOrAfterService(serviceDate: String, endCap: String): Double
+
+    /**
+     * Lean columns for ТО progress — no stops/penalties hydrate.
+     * Room emits on any loads table change.
+     */
+    @Query(
+        """
+        SELECT id, tripId, totalMiles, date, actualFinishDate, lastDelMillis
+        FROM loads
+        ORDER BY date ASC
+        """,
+    )
+    fun watchMileageInputs(): Flow<List<LoadMileageInput>>
+
+    @Query(
+        """
+        SELECT id, tripId, totalMiles, date, actualFinishDate, lastDelMillis
+        FROM loads
+        ORDER BY date ASC
+        """,
+    )
+    suspend fun getMileageInputsOnce(): List<LoadMileageInput>
+
+    /** Distinct journal dates for calendar dots (no full-row hydrate). */
+    @Query(
+        """
+        SELECT DISTINCT date FROM loads
+        WHERE length(date) >= 10
+        ORDER BY date ASC
+        """,
+    )
+    fun watchDistinctLoadDates(): Flow<List<String>>
 }

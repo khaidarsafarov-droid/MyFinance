@@ -7,12 +7,14 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.goal.LoadYieldCalculator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 data class TaxTrackerUiState(
@@ -68,33 +70,34 @@ class TaxTrackerViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
-                val paychecks = paycheckRepository.getPaychecksForYear(year)
-                val diesel = dieselRepository.getDieselForYear(year)
-                val loads = loadRepository.getLoadsByYear(year)
+                val computed = withContext(Dispatchers.IO) {
+                    val paychecks = paycheckRepository.getPaychecksForYear(year)
+                    val diesel = dieselRepository.getDieselForYear(year)
+                    val loads = loadRepository.getLoadsByYear(year)
 
-                val totalGross = paychecks.sumOf { paycheck ->
-                    paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
-                }
-                val dieselDed = diesel.sumOf { it.totalAmount }
-                // Active days per load (min 1), summed — better than counting loads as days.
-                val perDiemDays = loads.sumOf {
-                    LoadYieldCalculator.loadActiveDurationDays(it).toInt().coerceAtLeast(1)
-                }
-                val perDiemAmt = perDiemDays * PER_DIEM_RATE
-                val totalDed = dieselDed
-                val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
+                    val totalGross = paychecks.sumOf { paycheck ->
+                        paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
+                    }
+                    val dieselDed = diesel.sumOf { it.totalAmount }
+                    // Active days per load (min 1), summed — better than counting loads as days.
+                    val perDiemDays = loads.sumOf {
+                        LoadYieldCalculator.loadActiveDurationDays(it).toInt().coerceAtLeast(1)
+                    }
+                    val perDiemAmt = perDiemDays * PER_DIEM_RATE
+                    val totalDed = dieselDed
+                    val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
 
-                val seTax = taxable * 0.153 * 0.9235
-                val fedTax = calculateFederalTax(taxable)
-                val totalOwed = seTax + fedTax
+                    val seTax = taxable * 0.153 * 0.9235
+                    val fedTax = calculateFederalTax(taxable)
+                    val totalOwed = seTax + fedTax
 
-                val (daysUntil, nextDate) = getNextQuarterlyDate()
-                // Reserved for quarterly: leave 0 until user enters a savings field (UI not yet).
-                val reserved = 0.0
-                val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
+                    val (daysUntil, nextDate) = getNextQuarterlyDate()
+                    // Reserved for quarterly: leave 0 until user enters a savings field (UI not yet).
+                    val reserved = 0.0
+                    val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
 
-                _uiState.update {
-                    it.copy(
+                    TaxTrackerUiState(
+                        year = year,
                         totalGrossIncome = totalGross,
                         dieselDeductions = dieselDed,
                         totalDeductions = totalDed,
@@ -112,6 +115,7 @@ class TaxTrackerViewModel(
                         errorMessage = null,
                     )
                 }
+                _uiState.value = computed
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = error.toUiMessage())

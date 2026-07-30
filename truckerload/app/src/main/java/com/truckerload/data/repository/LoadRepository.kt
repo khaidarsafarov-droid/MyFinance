@@ -101,6 +101,13 @@ class LoadRepository(
             .distinctUntilChanged()
             .flatMapLatest { (weekNumber, year) -> loadDao.watchWeekYieldAgg(weekNumber, year) }
             .map { it.toSnapshot() }
+            .flowOn(Dispatchers.IO)
+
+    /** Distinct load dates for calendar dots — no stop hydrate. */
+    fun watchDistinctLoadDates(): Flow<Set<String>> =
+        loadDao.watchDistinctLoadDates()
+            .map { dates -> dates.filter { it.length >= 10 }.toSet() }
+            .flowOn(Dispatchers.IO)
 
     /**
      * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
@@ -137,24 +144,34 @@ class LoadRepository(
     }
 
     fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =
-        loadDao.watchActualDailyYield(weekNumber, year)
+        loadDao.watchActualDailyYield(weekNumber, year).flowOn(Dispatchers.IO)
 
     fun getLoadsByMonth(monthPrefix: String): Flow<List<Load>> =
-        loadDao.getLoadsByMonth(monthPrefix).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByMonth(monthPrefix)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     fun searchLoads(query: String): Flow<List<Load>> =
-        loadDao.searchLoads(query).mapLatest { hydrateLoads(it) }
+        loadDao.searchLoads(query)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     fun getLoadsByWeek(weekNumber: Int, year: Int): Flow<List<Load>> =
-        loadDao.getLoadsByWeek(weekNumber, year).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByWeek(weekNumber, year)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     /** Точная дата (load_date). */
     fun getLoadsByDate(loadDate: String): Flow<List<Load>> =
-        loadDao.getLoadsByDate(loadDate).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByDate(loadDate)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     /** Диапазон дат (включительно). */
     fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<Load>> =
-        loadDao.getLoadsByDateRange(startDate, endDate).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByDateRange(startDate, endDate)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     /**
      * True Room [PagingSource] journal rows (entity → domain without stop hydrate —
@@ -189,7 +206,7 @@ class LoadRepository(
             },
         ).flow.map { pagingData ->
             pagingData.mapPaging { entity -> entity.toDomain() }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     suspend fun getLoadsByYear(year: Int): List<Load> =

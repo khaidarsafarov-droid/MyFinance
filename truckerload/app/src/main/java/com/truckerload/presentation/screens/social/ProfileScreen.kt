@@ -148,29 +148,29 @@ fun ProfileScreen(
                 .padding(padding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item {
+            item(key = "profile_header") {
                 PremiumProfileHeader(
                     profile = profile,
                     isUploadingAvatar = uiState.isUploadingAvatar,
                     onAvatarClick = { showAvatarPicker = true },
                 )
             }
-            item { ProfileAuthSyncSection() }
-            item { PremiumStatsRow(profile) }
+            item(key = "profile_auth") { ProfileAuthSyncSection() }
+            item(key = "profile_stats") { PremiumStatsRow(profile) }
             if (profile.badges.isNotEmpty()) {
-                item { ProfileBadgesSection(profile) }
+                item(key = "profile_badges") { ProfileBadgesSection(profile) }
             }
             if (profile.about.isNotBlank()) {
-                item { ProfileAboutSection(profile.about) }
+                item(key = "profile_about") { ProfileAboutSection(profile.about) }
             }
             if (profile.preferredRoutes.isNotEmpty() || profile.homeState.isNotBlank()) {
-                item { ProfileTerritorySection(profile) }
+                item(key = "profile_territory") { ProfileTerritorySection(profile) }
             }
             if (profile.followers > 0 || profile.following > 0) {
-                item { ProfileSocialSection(profile) }
+                item(key = "profile_social") { ProfileSocialSection(profile) }
             }
             if (profile.phoneNumber != null || profile.telegramUsername != null) {
-                item { ProfileContactsSection(profile) }
+                item(key = "profile_contacts") { ProfileContactsSection(profile) }
             }
         }
     }

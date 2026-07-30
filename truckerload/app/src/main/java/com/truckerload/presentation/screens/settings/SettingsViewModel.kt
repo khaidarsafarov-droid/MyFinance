@@ -73,13 +73,16 @@ class SettingsViewModel(
         viewModelScope.launch {
             _exportState.value = ExportState.Loading
             try {
-                val loads = loadRepository.getAll()
-                if (loads.isEmpty()) {
-                    _exportState.value = ExportState.Error(ERROR_NO_LOADS)
-                    return@launch
+                val file = withContext(Dispatchers.IO) {
+                    val loads = loadRepository.getAll()
+                    if (loads.isEmpty()) null
+                    else LoadExporter.exportAllLoads(appContext, loads)
                 }
-                val file = LoadExporter.exportAllLoads(appContext, loads)
-                _exportState.value = ExportState.Success(file)
+                _exportState.value = if (file == null) {
+                    ExportState.Error(ERROR_NO_LOADS)
+                } else {
+                    ExportState.Success(file)
+                }
             } catch (e: Exception) {
                 _exportState.value = ExportState.Error(e.message.orEmpty().ifBlank { ERROR_GENERIC })
             }
@@ -90,13 +93,16 @@ class SettingsViewModel(
         viewModelScope.launch {
             _exportState.value = ExportState.Loading
             try {
-                val loads = loadRepository.getAll()
-                if (loads.isEmpty()) {
-                    _exportState.value = ExportState.Error(ERROR_NO_LOADS)
-                    return@launch
+                val file = withContext(Dispatchers.IO) {
+                    val loads = loadRepository.getAll()
+                    if (loads.isEmpty()) null
+                    else CsvExporter.exportAllLoads(appContext, loads)
                 }
-                val file = CsvExporter.exportAllLoads(appContext, loads)
-                _exportState.value = ExportState.Success(file)
+                _exportState.value = if (file == null) {
+                    ExportState.Error(ERROR_NO_LOADS)
+                } else {
+                    ExportState.Success(file)
+                }
             } catch (e: Exception) {
                 _exportState.value = ExportState.Error(e.message.orEmpty().ifBlank { ERROR_GENERIC })
             }

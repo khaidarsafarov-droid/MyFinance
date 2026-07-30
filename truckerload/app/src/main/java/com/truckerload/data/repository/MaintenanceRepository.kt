@@ -29,16 +29,16 @@ class MaintenanceRepository(
         dao.watchArchive().map { list -> list.map { it.toDomain() } }.flowOn(Dispatchers.IO)
 
     fun watchActiveProgress(): Flow<List<MaintenanceProgress>> =
-        combine(dao.watchTasks(), loadDao.getAllLoads()) { taskEntities, loadEntities ->
+        combine(dao.watchTasks(), loadDao.watchMileageInputs()) { taskEntities, mileageRows ->
             val tasks = taskEntities.map { it.toDomain() }.filter { !it.isCompleted }
-            val loads = loadEntities.map { entity ->
+            val loads = mileageRows.map { row ->
                 MaintenanceMileageUseCase.LoadInput(
-                    tripId = entity.tripId,
-                    id = entity.id,
-                    miles = entity.totalMiles,
-                    date = entity.date,
-                    actualFinishDate = entity.actualFinishDate,
-                    lastDelMillis = entity.lastDelMillis,
+                    tripId = row.tripId,
+                    id = row.id,
+                    miles = row.totalMiles,
+                    date = row.date,
+                    actualFinishDate = row.actualFinishDate,
+                    lastDelMillis = row.lastDelMillis,
                 )
             }
             tasks.map { task ->
@@ -94,14 +94,14 @@ class MaintenanceRepository(
 
     suspend fun getDueProgressForNotifications(today: LocalDate = LocalDate.now()): List<MaintenanceProgress> {
         val active = dao.getActiveTasksOnce().map { it.toDomain() }
-        val loads = loadDao.getAllLoadsOnce().map { entity ->
+        val loads = loadDao.getMileageInputsOnce().map { row ->
             MaintenanceMileageUseCase.LoadInput(
-                tripId = entity.tripId,
-                id = entity.id,
-                miles = entity.totalMiles,
-                date = entity.date,
-                actualFinishDate = entity.actualFinishDate,
-                lastDelMillis = entity.lastDelMillis,
+                tripId = row.tripId,
+                id = row.id,
+                miles = row.totalMiles,
+                date = row.date,
+                actualFinishDate = row.actualFinishDate,
+                lastDelMillis = row.lastDelMillis,
             )
         }
         return active.map { task ->

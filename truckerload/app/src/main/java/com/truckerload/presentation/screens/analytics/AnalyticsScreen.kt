@@ -241,7 +241,7 @@ private fun AnalyticsScreenBody(
                                 ) {
                                     itemsIndexed(
                                         uiState.weeks,
-                                        key = { _, week -> week.label },
+                                        key = { _, week -> "${week.year}_${week.weekNumber}" },
                                     ) { index, week ->
                                         FilterChip(
                                             selected = uiState.selectedWeekIndex == index,
@@ -266,10 +266,13 @@ private fun AnalyticsScreenBody(
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     uiState.selectedWeekLoads.forEach { load ->
-                                        LoadCard(
-                                            load = load,
-                                            onClick = { onLoadClick(load.id) },
-                                        )
+                                        // key via remember identity — LoadCard is recomposed by load.id content
+                                        androidx.compose.runtime.key(load.id) {
+                                            LoadCard(
+                                                load = load,
+                                                onClick = { onLoadClick(load.id) },
+                                            )
+                                        }
                                     }
                                 }
                             }

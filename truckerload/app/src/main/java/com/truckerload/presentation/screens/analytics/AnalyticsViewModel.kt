@@ -15,11 +15,13 @@ import com.truckerload.domain.model.analytics.DailyData
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.utils.AnalyticsExporter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class AnalyticsUiState(
     val isLoading: Boolean = true,
@@ -59,7 +61,9 @@ class AnalyticsViewModel(
         _uiState.update { it.copy(selectedWeekIndex = index) }
         viewModelScope.launch {
             runCatching {
-                repository.getLoadsForWeek(week.weekNumber, week.year)
+                withContext(Dispatchers.IO) {
+                    repository.getLoadsForWeek(week.weekNumber, week.year)
+                }
             }.onSuccess { loads ->
                 _uiState.update { it.copy(selectedWeekLoads = loads) }
             }
@@ -70,7 +74,9 @@ class AnalyticsViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
-                repository.loadDashboard(_uiState.value.period)
+                withContext(Dispatchers.IO) {
+                    repository.loadDashboard(_uiState.value.period)
+                }
             }.onSuccess { dashboard ->
                 lastDashboard = dashboard
                 val defaultIndex = dashboard.weeks.lastIndex.takeIf { idx -> idx >= 0 }
@@ -97,18 +103,18 @@ class AnalyticsViewModel(
     fun exportAnalytics() {
         val dashboard = lastDashboard ?: return
         viewModelScope.launch {
-            AnalyticsExporter.exportToCsv(app, dashboard, _uiState.value.period)
-                .onSuccess { file ->
-                    _uiState.update { it.copy(exportPath = file.absolutePath, error = null) }
+            withContext(Dispatchers.IO) {
+                AnalyticsExporter.exportToCsv(app, dashboard, _uiState.value.period)
+            }.onSuccess { file ->
+                _uiState.update { it.copy(exportPath = file.absolutePath, error = null) }
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        exportPath = null,
+                        error = app.getString(R.string.export_csv_error),
+                    )
                 }
-                .onFailure {
-                    _uiState.update {
-                        it.copy(
-                            exportPath = null,
-                            error = app.getString(R.string.export_csv_error),
-                        )
-                    }
-                }
+            }
         }
     }
 
