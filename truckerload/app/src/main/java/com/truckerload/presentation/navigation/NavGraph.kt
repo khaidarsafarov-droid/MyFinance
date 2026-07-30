@@ -48,7 +48,6 @@ import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
-import com.truckerload.presentation.screens.tax.TaxTrackerScreen
 import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
 import com.truckerload.presentation.screens.map.FriendsLiveMapScreen
@@ -100,7 +99,6 @@ object Routes {
     const val EDIT_LOAD = "edit_load/{loadId}?focusFinish={focusFinish}"
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
-    const val TAX_TRACKER = "tax_tracker"
     const val MAINTENANCE = "maintenance"
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
@@ -315,7 +313,6 @@ fun NavGraph(
                 DrawerDestination.FRIENDS_LIVE -> navController.navigate(Routes.FRIENDS_LIVE) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
-                DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
                 DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
@@ -509,9 +506,6 @@ fun NavGraph(
                 FriendsLiveMapScreen(
                     onBack = { navController.popBackStack() },
                 )
-            }
-            composable(Routes.TAX_TRACKER) {
-                TaxTrackerScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.MAINTENANCE) {
                 MaintenanceScreen(onBack = { navController.popBackStack() })

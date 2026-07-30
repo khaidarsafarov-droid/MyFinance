@@ -318,8 +318,7 @@ private fun isPhoneDestinationSelected(currentRoute: String?, targetRoute: Strin
             currentRoute == Routes.PROFILE_EDIT ||
             currentRoute.startsWith("profile_peer")
         Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS
-        Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
-            currentRoute == Routes.TAX_TRACKER
+        Routes.SETTINGS -> currentRoute == Routes.SETTINGS
         else -> currentRoute == targetRoute
     }
 }
