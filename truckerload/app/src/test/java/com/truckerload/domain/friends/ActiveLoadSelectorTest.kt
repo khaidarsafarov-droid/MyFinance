@@ -41,6 +41,18 @@ class ActiveLoadSelectorTest {
         assertEquals(SharedLoadStatus.FUTURE, ActiveLoadSelector.statusFor(load, today))
     }
 
+    @Test
+    fun selectForMapRoutePrefersActiveThenUpcoming() {
+        val active = sample(date = "2026-07-19", plannedEnd = "2026-07-22").copy(id = "active", updatedAt = 1L)
+        val upcoming = sample(date = "2026-07-25", plannedEnd = "2026-07-28").copy(
+            id = "future",
+            updatedAt = 99L,
+            actualFinishDate = null,
+        )
+        assertEquals("active", ActiveLoadSelector.selectForMapRoute(listOf(upcoming, active), today)?.id)
+        assertEquals("future", ActiveLoadSelector.selectForMapRoute(listOf(upcoming), today)?.id)
+    }
+
     private fun sample(
         date: String,
         plannedEnd: String,

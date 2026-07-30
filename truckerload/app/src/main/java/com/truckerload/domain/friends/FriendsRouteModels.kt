@@ -98,6 +98,26 @@ object ActiveLoadSelector {
         loads.filter { statusFor(it, today) == SharedLoadStatus.ACTIVE }
             .sortedByDescending { it.updatedAt }
 
+    /**
+     * Load used to draw "my path" on the friends map:
+     * 1) active today, else 2) nearest upcoming, else 3) most recently updated unfinished.
+     */
+    fun selectForMapRoute(
+        loads: List<Load>,
+        today: LocalDate = LocalDate.now(),
+    ): Load? {
+        selectActive(loads, today)?.let { return it }
+        val upcoming = loads
+            .filter { statusFor(it, today) == SharedLoadStatus.FUTURE }
+            .minWithOrNull(
+                compareBy<Load> { startDateIso(it) }.thenByDescending { it.updatedAt },
+            )
+        if (upcoming != null) return upcoming
+        return loads
+            .filter { statusFor(it, today) != SharedLoadStatus.COMPLETED }
+            .maxByOrNull { it.updatedAt }
+    }
+
     private fun parseDate(iso: String): LocalDate? =
         try {
             LocalDate.parse(iso.take(10))
