@@ -219,11 +219,11 @@ fun HomeScreen(
                             calendarMonth = m
                         },
                     )
-                    // Stack actions vertically: the old SpaceBetween row squeezed «Закрыть»
-                    // into a single-character-wide column (letters stacked) beside the long week label.
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         TextButton(
                             onClick = {
@@ -241,16 +241,25 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                stringResource(R.string.home_calendar_select_week),
+                                text = stringResource(R.string.home_calendar_select_week),
                                 color = tc.AccentPrimary,
-                                maxLines = 1,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 2,
                             )
                         }
+                        // Solid close control — avoids squeezed vertical letter wrap of
+                        // "Закрыть" next to the long week action in a SpaceBetween Row.
                         TlButton(
                             onClick = { showCalendar = false },
                             modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                         ) {
-                            Text(stringResource(R.string.common_close))
+                            Text(
+                                text = stringResource(R.string.common_close),
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                            )
                         }
                     }
                 }
