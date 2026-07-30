@@ -35,6 +35,7 @@ import com.truckerload.presentation.theme.UiDimens
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocalShipping
@@ -43,6 +44,7 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.TlButton
+import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.ExperimentalMaterialApi
@@ -199,12 +201,25 @@ fun HomeScreen(
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState()),
                 ) {
-                    Text(
-                        stringResource(R.string.home_calendar_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            stringResource(R.string.home_calendar_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = tc.TextPrimary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(onClick = { showCalendar = false }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = stringResource(R.string.common_close),
+                                tint = tc.TextPrimary,
+                            )
+                        }
+                    }
                     LoadCalendarWithDots(
                         year = calendarYear,
                         month = calendarMonth,
@@ -219,11 +234,8 @@ fun HomeScreen(
                             calendarMonth = m
                         },
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        TextButton(onClick = {
+                    TlOutlinedButton(
+                        onClick = {
                             val date = uiState.selectedDate
                                 ?: java.time.LocalDate.of(
                                     calendarYear,
@@ -234,12 +246,16 @@ fun HomeScreen(
                             val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
                             viewModel.selectWeek(start, end, label)
                             showCalendar = false
-                        }) {
-                            Text(stringResource(R.string.home_calendar_select_week), color = tc.AccentPrimary)
-                        }
-                        TextButton(onClick = { showCalendar = false }) {
-                            Text(stringResource(R.string.common_close), color = tc.AccentPrimary)
-                        }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.home_calendar_select_week),
+                            maxLines = 1,
+                            softWrap = false,
+                        )
                     }
                 }
             }

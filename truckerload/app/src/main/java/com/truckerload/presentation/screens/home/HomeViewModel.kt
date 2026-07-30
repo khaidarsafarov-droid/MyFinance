@@ -200,14 +200,14 @@ class HomeViewModel(
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
-    /** Результат фильтрации: список, итоги, даты с грузами (для индикаторов календаря). */
+    /** Результат фильтрации: список, итоги, даты с грузами (точки календаря = дата журнала). */
     data class FilteredResult(
         val loads: List<Load>,
         val totals: LoadFilterUseCase.Totals,
         val datesWithLoads: Set<String>
     )
 
-    /** Фильтрованный список + итоги + индекс дат. Индекс — по всем грузам (календарь). */
+    /** Фильтрованный список + итоги + индекс дат. Индекс — точные даты журнала по всем грузам. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
         allLoadsForCalendar,
@@ -240,7 +240,7 @@ class HomeViewModel(
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
-            datesWithLoads = LoadDateIndex.build(calendarMerged).keys.toSet(),
+            datesWithLoads = LoadDateIndex.markerDates(calendarMerged),
         )
     }
         .flowOn(Dispatchers.Default)
