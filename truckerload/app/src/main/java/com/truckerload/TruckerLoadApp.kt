@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import com.truckerload.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.preferences.StartupRepairStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
 import com.truckerload.data.preferences.AppThemeMode
@@ -28,6 +29,7 @@ import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.utils.BackupService
+import com.truckerload.utils.CrashReporting
 import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetRefresh
 import com.truckerload.widget.WidgetUpdateWorker
@@ -166,11 +168,15 @@ class TruckerLoadApp : Application() {
     /**
      * QUALITY_100 #76: startup backfill + orphan cleanup run on [Dispatchers.IO]
      * (never on the main thread from [onCreate]).
+     *
+     * Backfill success is per-user and recorded only when every step succeeds.
      */
     private fun refreshLoadReportingWeeks() {
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+        appScope.launch(Dispatchers.IO) {
+            val userId = authStore.currentUserIdOrNull() ?: return@launch
             val db = AppDatabase.getInstanceForActiveUser(this@TruckerLoadApp) ?: return@launch
             val repo = LoadRepository(db)
+            val repairStore = StartupRepairStore(this@TruckerLoadApp)
             BackupService.restoreLatestCompanionBackupIfEmpty(this@TruckerLoadApp)
                 ?.onSuccess { message ->
                     withContext(Dispatchers.Main) {
@@ -178,15 +184,25 @@ class TruckerLoadApp : Application() {
                     }
                     WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
                 }
-            val prefs = getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
-            val backfillDone = prefs.getBoolean(KEY_STARTUP_BACKFILL_DONE, false)
-            if (!backfillDone) {
-                runCatching { repo.backfillPuDelMillisFromStops() }
-                    .onFailure { e -> Log.e(TAG, "PU/DEL backfill failed", e) }
-                runCatching { repo.refreshReportingWeeks() }
-                    .onFailure { e -> Log.e(TAG, "Reporting weeks refresh failed", e) }
-                    .onSuccess { WidgetUpdateWorker.refreshNow(this@TruckerLoadApp) }
-                prefs.edit().putBoolean(KEY_STARTUP_BACKFILL_DONE, true).apply()
+            if (!repairStore.isBackfillDone(userId)) {
+                val puDel = runCatching { repo.backfillPuDelMillisFromStops() }
+                    .onFailure { e ->
+                        Log.e(TAG, "PU/DEL backfill failed", e)
+                        CrashReporting.recordException(e)
+                    }
+                val weeks = runCatching { repo.refreshReportingWeeks() }
+                    .onFailure { e ->
+                        Log.e(TAG, "Reporting weeks refresh failed", e)
+                        CrashReporting.recordException(e)
+                    }
+                if (puDel.isSuccess && weeks.isSuccess) {
+                    repairStore.markBackfillDone(userId)
+                    WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
+                } else {
+                    repairStore.markBackfillNeedsRetry(userId)
+                    CrashReporting.setCustomKey("startup_backfill_user", userId)
+                    CrashReporting.setCustomKey("startup_backfill_failed", true)
+                }
             }
             runCatching { repo.cleanupOrphanAttachments() }
                 .onFailure { e -> Log.e(TAG, "Orphan attachment cleanup failed", e) }
@@ -195,7 +211,5 @@ class TruckerLoadApp : Application() {
 
     companion object {
         private const val TAG = "TruckerLoadApp"
-        private const val META_PREFS = "truckerload_app_meta"
-        private const val KEY_STARTUP_BACKFILL_DONE = "startup_backfill_done_v1"
     }
 }

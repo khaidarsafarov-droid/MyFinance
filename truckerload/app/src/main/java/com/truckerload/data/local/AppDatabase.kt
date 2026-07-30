@@ -1,9 +1,11 @@
 package com.truckerload.data.local
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.truckerload.utils.CrashReporting
 import com.truckerload.data.local.dao.BlockedUserDao
 import com.truckerload.data.local.dao.CallSessionDao
 import com.truckerload.data.local.dao.ChallengeParticipationDao
@@ -251,29 +253,30 @@ abstract class AppDatabase : RoomDatabase() {
                 return
             }
             val target = context.getDatabasePath(databaseNameFor(userId))
-            if (target.exists()) {
+            if (target.exists() && DatabaseFileCopy.isHealthyDatabase(target)) {
                 meta.edit()
                     .putBoolean(KEY_LEGACY_DB_MIGRATED, true)
                     .putString(KEY_LEGACY_DB_OWNER, userId)
                     .apply()
                 return
             }
-            runCatching {
-                legacy.copyTo(target, overwrite = false)
-                copySidecar(legacy, target, "-wal")
-                copySidecar(legacy, target, "-shm")
-                copySidecar(legacy, target, "-journal")
+            // Broken leftover from a previous failed copy — remove and retry.
+            if (target.exists()) {
+                DatabaseFileCopy.deleteDbTree(target)
             }
-            meta.edit()
-                .putBoolean(KEY_LEGACY_DB_MIGRATED, true)
-                .putString(KEY_LEGACY_DB_OWNER, userId)
-                .apply()
-        }
-
-        private fun copySidecar(legacy: java.io.File, target: java.io.File, suffix: String) {
-            val src = java.io.File(legacy.path + suffix)
-            if (!src.exists()) return
-            src.copyTo(java.io.File(target.path + suffix), overwrite = false)
+            val copied = copyDatabaseOrReport(
+                source = legacy,
+                target = target,
+                userId = userId,
+                op = "legacy_copy",
+            )
+            if (copied) {
+                meta.edit()
+                    .putBoolean(KEY_LEGACY_DB_MIGRATED, true)
+                    .putString(KEY_LEGACY_DB_OWNER, userId)
+                    .apply()
+            }
+            // On failure: do NOT set the migrated flag so the next open retries.
         }
 
         /**
@@ -286,9 +289,12 @@ abstract class AppDatabase : RoomDatabase() {
             val meta = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
             if (meta.getBoolean(KEY_LEGACY_DB_CLAIMED, false)) return
             val target = context.getDatabasePath(databaseNameFor(userId))
-            if (target.exists()) {
+            if (target.exists() && DatabaseFileCopy.isHealthyDatabase(target)) {
                 meta.edit().putBoolean(KEY_LEGACY_DB_CLAIMED, true).apply()
                 return
+            }
+            if (target.exists()) {
+                DatabaseFileCopy.deleteDbTree(target)
             }
             val email = com.truckerload.data.preferences.AuthStore(context).email.value
             val candidates = buildList {
@@ -301,16 +307,38 @@ abstract class AppDatabase : RoomDatabase() {
                 candidate != userId && context.getDatabasePath(databaseNameFor(candidate)).exists()
             } ?: return
             val source = context.getDatabasePath(databaseNameFor(sourceId))
-            runCatching {
-                source.copyTo(target, overwrite = false)
-                copySidecar(source, target, "-wal")
-                copySidecar(source, target, "-shm")
-                copySidecar(source, target, "-journal")
+            val copied = copyDatabaseOrReport(
+                source = source,
+                target = target,
+                userId = userId,
+                op = "absorb_previous",
+            )
+            if (copied) {
+                meta.edit()
+                    .putBoolean(KEY_LEGACY_DB_CLAIMED, true)
+                    .putString(KEY_LEGACY_DB_OWNER, userId)
+                    .apply()
             }
-            meta.edit()
-                .putBoolean(KEY_LEGACY_DB_CLAIMED, true)
-                .putString(KEY_LEGACY_DB_OWNER, userId)
-                .apply()
         }
+
+        private fun copyDatabaseOrReport(
+            source: java.io.File,
+            target: java.io.File,
+            userId: String,
+            op: String,
+        ): Boolean {
+            val result = DatabaseFileCopy.copyWithSidecars(source, target)
+            if (result.isSuccess) return true
+            val error = result.exceptionOrNull()
+                ?: IllegalStateException("$op failed without exception")
+            Log.e(TAG, "$op failed for user=$userId", error)
+            CrashReporting.setCustomKey("db_copy_op", op)
+            CrashReporting.setCustomKey("legacy_copy_user", userId)
+            CrashReporting.setCustomKey("legacy_db_size", source.length())
+            CrashReporting.recordException(error)
+            return false
+        }
+
+        private const val TAG = "AppDatabase"
     }
 }

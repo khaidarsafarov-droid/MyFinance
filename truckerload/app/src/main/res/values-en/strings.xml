@@ -103,7 +103,8 @@
     <string name="auth_local_login_fallback">Signed in locally (cloud temporarily unavailable)</string>
     <string name="auth_session_unconfirmed_banner">Couldn’t verify session online. Working locally</string>
     <string name="auth_session_offline_local_banner">No network — working locally; sync paused</string>
-    <string name="auth_secure_storage_fallback_banner">Secure storage unavailable — tokens stored with reduced protection</string>
+    <string name="auth_secure_storage_fallback_banner">Secure storage unavailable — secrets are not saved to disk; sign in again</string>
+    <string name="auth_startup_backfill_retry_banner">Data sync needed. Tap to retry.</string>
     <string name="profile_last_drive_sync">Last Drive sync: %1$s</string>
     <string name="profile_last_drive_sync_never">Last Drive sync: never</string>
     <string name="profile_google_linked">Google: %1$s</string>

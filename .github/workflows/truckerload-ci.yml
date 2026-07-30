@@ -116,6 +116,8 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
       - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleDebug --no-daemon
+      - name: Verify release BuildConfig has no bot/API secrets
+        run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:verifyReleaseSecretsEmpty --no-daemon
       - name: Upload debug APK
         if: success()
         uses: actions/upload-artifact@v4
