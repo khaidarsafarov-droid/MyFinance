@@ -489,10 +489,12 @@
     <string name="rpm_legend_yellow">%1$.2f–%2$.2f/ми</string>
     <string name="rpm_legend_green">&gt; %1$.2f/ми</string>
     <string name="analytics_week_loads_title">Грузы за %1$s</string>
-    <string name="settings_rpm_thresholds_title">Пороги прибыльности RPM</string>
+    <string name="settings_rpm_thresholds_title">Пороги RPM</string>
     <string name="settings_rpm_thresholds_desc">Ниже красного порога — убыточно. Между порогами — средний RPM (жёлтый). Выше зелёного — высокая прибыль.</string>
     <string name="settings_red_threshold_label">Красный порог ($/миля)</string>
     <string name="settings_green_threshold_label">Зелёный порог ($/миля)</string>
+    <string name="settings_red_threshold_short">Красный $/ми</string>
+    <string name="settings_green_threshold_short">Зелёный $/ми</string>
     <string name="settings_red_threshold_error">Введите число для красного порога</string>
     <string name="settings_green_threshold_error">Введите число для зелёного порога</string>
     <string name="settings_rpm_threshold_negative">Пороги не могут быть отрицательными</string>

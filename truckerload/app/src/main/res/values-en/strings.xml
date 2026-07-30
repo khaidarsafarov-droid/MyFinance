@@ -489,10 +489,12 @@
     <string name="rpm_legend_yellow">%1$.2f–%2$.2f/mi</string>
     <string name="rpm_legend_green">&gt; %1$.2f/mi</string>
     <string name="analytics_week_loads_title">Loads for %1$s</string>
-    <string name="settings_rpm_thresholds_title">RPM profitability thresholds</string>
+    <string name="settings_rpm_thresholds_title">RPM thresholds</string>
     <string name="settings_rpm_thresholds_desc">Below red threshold — unprofitable. Between thresholds — average RPM (yellow). Above green — high profit.</string>
     <string name="settings_red_threshold_label">Red threshold ($/mile)</string>
     <string name="settings_green_threshold_label">Green threshold ($/mile)</string>
+    <string name="settings_red_threshold_short">Red $/mi</string>
+    <string name="settings_green_threshold_short">Green $/mi</string>
     <string name="settings_red_threshold_error">Enter a number for the red threshold</string>
     <string name="settings_green_threshold_error">Enter a number for the green threshold</string>
     <string name="settings_rpm_threshold_negative">Thresholds cannot be negative</string>

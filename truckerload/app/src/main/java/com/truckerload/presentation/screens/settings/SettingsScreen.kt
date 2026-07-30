@@ -65,7 +65,6 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -239,7 +238,6 @@ fun SettingsScreen(
         ) {
             ThemeSettingsSection(selected = themeMode)
             LanguageSettingsSection(selected = appLanguage)
-            ParserSettings()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
             var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
@@ -302,43 +300,43 @@ fun SettingsScreen(
             }
 
             BentoGlassSection(title = stringResource(R.string.settings_rpm_thresholds_title)) {
-                        Text(
-                            text = stringResource(R.string.settings_rpm_thresholds_desc),
-                            style = AppTypography.Caption,
-                            modifier = Modifier.padding(bottom = 12.dp),
-                        )
                 RpmColorLegend(
-                    modifier = Modifier.padding(bottom = 16.dp),
+                    compact = true,
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
                 val fieldColors = AppTextFieldDefaults.outlined()
-                OutlinedTextField(
-                    value = minInput,
-                    onValueChange = { minInput = it; error = null },
-                    label = { Text(stringResource(R.string.settings_red_threshold_label)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = fieldColors
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = targetInput,
-                    onValueChange = { targetInput = it; error = null },
-                    label = { Text(stringResource(R.string.settings_green_threshold_label)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = fieldColors
-                )
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedTextField(
+                        value = minInput,
+                        onValueChange = { minInput = it; error = null },
+                        label = { Text(stringResource(R.string.settings_red_threshold_short)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        colors = fieldColors,
+                    )
+                    OutlinedTextField(
+                        value = targetInput,
+                        onValueChange = { targetInput = it; error = null },
+                        label = { Text(stringResource(R.string.settings_green_threshold_short)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        colors = fieldColors,
+                    )
+                }
                 error?.let { err ->
                     Text(
                         text = err,
                         color = tc.AccentExpense,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 6.dp),
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
                         val min = minInput.replace(",", ".").toDoubleOrNull()
@@ -354,7 +352,7 @@ fun SettingsScreen(
                                 .onFailure { error = it.message }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
                 ) {
                     Text(stringResource(R.string.settings_rpm_save))
                 }
