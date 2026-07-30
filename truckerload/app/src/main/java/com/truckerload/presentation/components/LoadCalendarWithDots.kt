@@ -29,6 +29,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Calendar
 import java.text.DateFormatSymbols
 import java.util.Locale
+import java.text.SimpleDateFormat
 
 @Composable
 fun LoadCalendarWithDots(
@@ -141,7 +142,7 @@ fun LoadCalendarWithDots(
                             .background(
                                 when {
                                     isSelected -> tc.AccentPrimary.copy(alpha = 0.3f)
-                                    hasLoad && isCurrentMonth -> tc.AccentProfit.copy(alpha = 0.15f)
+                                    hasLoad && isCurrentMonth -> tc.AccentPrimary.copy(alpha = 0.15f)
                                     else -> Color.Transparent
                                 }
                             )
@@ -161,13 +162,13 @@ fun LoadCalendarWithDots(
                                     else -> tc.TextPrimary
                                 }
                             )
-                            if (hasLoad) {
+                            if (hasLoad && isCurrentMonth) {
                                 Box(
                                     modifier = Modifier
                                         .padding(top = 2.dp)
                                         .size(6.dp)
                                         .clip(CircleShape)
-                                        .background(tc.AccentProfit)
+                                        .background(tc.AccentPrimary)
                                 )
                             }
                         }
@@ -178,12 +179,15 @@ fun LoadCalendarWithDots(
     }
 }
 
+/** Stand-alone month name (nominative in Russian: «Август», not genitive «Августа»). */
 private fun monthLongLabel(month: Int): String {
-    val value = DateFormatSymbols(Locale.getDefault())
-        .months
-        .getOrNull((month - 1).coerceIn(0, 11))
-        .orEmpty()
-    return value.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    val locale = Locale.getDefault()
+    val cal = Calendar.getInstance(locale).apply {
+        set(Calendar.MONTH, (month - 1).coerceIn(0, 11))
+        set(Calendar.DAY_OF_MONTH, 1)
+    }
+    val raw = SimpleDateFormat("LLLL", locale).format(cal.time)
+    return raw.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 }
 
 private fun weekdayHeaders(firstDayOfWeek: Int): List<String> {

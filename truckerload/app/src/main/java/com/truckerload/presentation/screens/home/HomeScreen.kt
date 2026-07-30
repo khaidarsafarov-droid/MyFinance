@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -188,11 +189,22 @@ fun HomeScreen(
     var calendarYear by remember { mutableStateOf(cal.get(java.util.Calendar.YEAR)) }
     var calendarMonth by remember { mutableStateOf(cal.get(java.util.Calendar.MONTH) + 1) }
 
+    fun openCalendarDialog() {
+        // Always open on the current month (or selected day), not a stale future month.
+        val anchor = uiState.selectedDate
+            ?.let { runCatching { java.time.LocalDate.parse(it.take(10)) }.getOrNull() }
+            ?: java.time.LocalDate.now()
+        calendarYear = anchor.year
+        calendarMonth = anchor.monthValue
+        showCalendar = true
+    }
+
     if (showCalendar) {
         Dialog(onDismissRequest = { showCalendar = false }) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = tc.CardBackground,
+                modifier = Modifier.fillMaxWidth(0.96f),
             ) {
                 Column(
                     modifier = Modifier
@@ -220,25 +232,45 @@ fun HomeScreen(
                         },
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        TextButton(onClick = {
-                            val date = uiState.selectedDate
-                                ?: java.time.LocalDate.of(
-                                    calendarYear,
-                                    calendarMonth,
-                                    1,
-                                ).toString()
-                            val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
-                            val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
-                            viewModel.selectWeek(start, end, label)
-                            showCalendar = false
-                        }) {
-                            Text(stringResource(R.string.home_calendar_select_week), color = tc.AccentPrimary)
+                        TextButton(
+                            onClick = {
+                                val date = uiState.selectedDate
+                                    ?: java.time.LocalDate.of(
+                                        calendarYear,
+                                        calendarMonth,
+                                        1,
+                                    ).toString()
+                                val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
+                                val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
+                                viewModel.selectWeek(start, end, label)
+                                showCalendar = false
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_calendar_select_week),
+                                color = tc.TextPrimary,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                            )
                         }
-                        TextButton(onClick = { showCalendar = false }) {
-                            Text(stringResource(R.string.common_close), color = tc.AccentPrimary)
+                        TlButton(
+                            onClick = { showCalendar = false },
+                            modifier = Modifier.defaultMinSize(minWidth = 96.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.common_close),
+                                maxLines = 1,
+                                fontWeight = FontWeight.SemiBold,
+                            )
                         }
                     }
                 }
@@ -341,7 +373,7 @@ fun HomeScreen(
                         onLoadClick = onLoadClick,
                         onAddLoad = onAddLoad,
                         context = context,
-                        onOpenCalendar = { showCalendar = true },
+                        onOpenCalendar = { openCalendarDialog() },
                         onLoadCamera = onLoadCamera,
                         onLoadScan = onLoadScan,
                     )

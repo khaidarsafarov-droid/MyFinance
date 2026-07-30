@@ -884,7 +884,7 @@
     <string name="profile">Profile</string>
     <string name="edit_profile">Edit profile</string>
     <string name="profile_setup_title">Profile setup</string>
-    <string name="profile_setup_subtitle">Enter driver details for Truck Load trips. You can finish later in Profile.</string>
+    <string name="profile_setup_subtitle">Driver details for trips. You can finish later in Profile.</string>
     <string name="profile_setup_continue">Done</string>
     <string name="profile_setup_next">Next</string>
     <string name="profile_setup_name_required">Enter your name</string>
@@ -1052,7 +1052,7 @@
     <string name="map_rating_format">Rating: %1$s</string>
     <string name="notification_permission_required">Allow notifications so the Telegram bot can run in the background</string>
     <string name="notification_permission_rationale">Notifications are required for background Telegram sync on Android 13+</string>
-    <string name="home_calendar_select_week">Select week of this date</string>
+    <string name="home_calendar_select_week">Select week</string>
     <string name="social_error_empty_message">Empty message</string>
     <string name="social_error_message_rejected">Message rejected</string>
     <string name="social_error_chat_not_found">Chat not found</string>
