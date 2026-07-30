@@ -1103,6 +1103,8 @@
     <string name="social_challenge_king_miles_title">King of Miles</string>
     <string name="social_challenge_king_miles_desc">Who drives the most miles this week %1$d/%2$d</string>
 <string name="friends_nickname_schema_missing">Server is missing the profiles.nickname column. In Supabase SQL Editor run supabase/migrations/20260731_friend_nicknames.sql (includes schema reload).</string>
+<string name="friends_my_route_label">My route: %1$s</string>
+    <string name="friends_my_destination_marker">Delivery</string>
 <string name="load_alarm_ask_message">Pickup has not started yet (%1$s). Set an alarm?</string>
 <string name="load_alarm_ask_no">No</string>
 <string name="load_alarm_ask_title">Load alarm</string>

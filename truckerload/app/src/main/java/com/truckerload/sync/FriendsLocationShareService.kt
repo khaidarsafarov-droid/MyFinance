@@ -22,7 +22,6 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.LatLngPoint
-import com.truckerload.domain.friends.SharedLoadStatus
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.CoroutineScope
@@ -120,11 +119,14 @@ class FriendsLocationShareService : Service() {
     ) {
         val db = AppDatabase.getInstanceForActiveUser(this) ?: return
         val loads = LoadRepository(db).getAllLoadsOnce()
-        val active = ActiveLoadSelector.selectActive(loads) ?: return
+        val active = ActiveLoadSelector.selectForMapRoute(loads) ?: return
         val originLabel = active.pointA.ifBlank { active.firstPuCityState }
         val destLabel = active.pointB.ifBlank { active.lastDelCityState }
-        // Approximate endpoints via last known crumbs / null — Geocoder is heavy in FGS.
-        val origin = track.firstOrNull()
+        val helper = LocationHelper(this)
+        val geocodedOrigin = helper.geocodeAddress(originLabel)
+        val geocodedDest = helper.geocodeAddress(destLabel)
+        val origin = geocodedOrigin ?: track.firstOrNull()
+        val destination = geocodedDest
         api.upsertActiveRoute(
             FriendActiveRoute(
                 userId = AuthStore(this).currentUserIdOrNull().orEmpty(),
@@ -133,10 +135,10 @@ class FriendsLocationShareService : Service() {
                 originLabel = originLabel,
                 destinationLabel = destLabel,
                 origin = origin,
-                destination = null,
+                destination = destination,
                 startDate = ActiveLoadSelector.startDateIso(active),
                 endDate = ActiveLoadSelector.endDateIso(active),
-                status = SharedLoadStatus.ACTIVE,
+                status = ActiveLoadSelector.statusFor(active),
                 trackPoints = track.toList(),
             ),
             sharePathEnabled = true,
