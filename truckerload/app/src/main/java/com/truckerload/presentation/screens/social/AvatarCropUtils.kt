@@ -2,10 +2,14 @@ package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
+import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 internal object AvatarCropUtils {
     private const val MAX_SOURCE_DIMENSION = 2048
@@ -22,7 +26,37 @@ internal object AvatarCropUtils {
             .takeWhile { largest / it > maxDimension }
             .lastOrNull()?.let { it * 2 } ?: 1
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions) ?: return null
+        return applyExifOrientation(bytes, decoded)
+    }
+
+    /** Applies JPEG EXIF orientation so gallery/camera photos match what the user saw in the picker. */
+    internal fun applyExifOrientation(jpegBytes: ByteArray, bitmap: Bitmap): Bitmap {
+        val orientation = runCatching {
+            ExifInterface(ByteArrayInputStream(jpegBytes))
+                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.postRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.postRotate(270f)
+                matrix.postScale(-1f, 1f)
+            }
+            else -> return bitmap
+        }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true).also {
+            if (it !== bitmap) bitmap.recycle()
+        }
     }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
@@ -36,14 +70,14 @@ internal object AvatarCropUtils {
     }
 
     fun fitScale(bitmapWidth: Int, bitmapHeight: Int, containerWidth: Float, containerHeight: Float): Float {
-        if (bitmapWidth <= 0 || bitmapHeight <= 0) return 1f
+        if (bitmapWidth <= 0 || bitmapHeight <= 0 || containerWidth <= 0f || containerHeight <= 0f) return 1f
         return min(containerWidth / bitmapWidth, containerHeight / bitmapHeight)
     }
 
     fun minUserScale(cropDiameter: Float, bitmapWidth: Int, bitmapHeight: Int, fitScale: Float): Float {
         val displayWidth = bitmapWidth * fitScale
         val displayHeight = bitmapHeight * fitScale
-        if (displayWidth <= 0f || displayHeight <= 0f) return 1f
+        if (displayWidth <= 0f || displayHeight <= 0f || cropDiameter <= 0f) return 1f
         return max(cropDiameter / displayWidth, cropDiameter / displayHeight).coerceAtLeast(1f)
     }
 
@@ -71,6 +105,14 @@ internal object AvatarCropUtils {
         )
     }
 
+    /**
+     * Crops the circular viewport to a square bitmap using the same transform as the crop UI
+     * (fitScale × userScale + pan offset).
+     *
+     * Uses the mapped crop **center** and a forced square side so framing follows the user's
+     * pan/zoom. Avoids independently clamping left/right/top/bottom (which could produce a
+     * non-square patch that then stretched and looked recentered).
+     */
     fun cropSquare(
         source: Bitmap,
         containerWidth: Float,
@@ -81,10 +123,11 @@ internal object AvatarCropUtils {
         offset: Offset,
         outputSize: Int = OUTPUT_SIZE,
     ): Bitmap {
+        require(outputSize > 0) { "outputSize must be positive" }
+        val safeDiameter = cropDiameter.coerceAtLeast(1f)
+        val totalScale = (fitScale * userScale).coerceAtLeast(1e-6f)
         val centerX = containerWidth / 2f
         val centerY = containerHeight / 2f
-        val halfCrop = cropDiameter / 2f
-        val totalScale = fitScale * userScale
 
         fun screenToBitmap(x: Float, y: Float): Pair<Float, Float> {
             val imageCenterX = centerX + offset.x
@@ -94,18 +137,24 @@ internal object AvatarCropUtils {
             return bitmapX to bitmapY
         }
 
-        val (rawLeft, rawTop) = screenToBitmap(centerX - halfCrop, centerY - halfCrop)
-        val (rawRight, rawBottom) = screenToBitmap(centerX + halfCrop, centerY + halfCrop)
+        val (cropCenterX, cropCenterY) = screenToBitmap(centerX, centerY)
+        val side = safeDiameter / totalScale
 
-        val left = min(rawLeft, rawRight).toInt().coerceIn(0, source.width - 1)
-        val top = min(rawTop, rawBottom).toInt().coerceIn(0, source.height - 1)
-        val right = max(rawLeft, rawRight).toInt().coerceIn(left + 1, source.width)
-        val bottom = max(rawTop, rawBottom).toInt().coerceIn(top + 1, source.height)
+        var left = cropCenterX - side / 2f
+        var top = cropCenterY - side / 2f
+        // Keep a square inside the source when float error pushes past an edge.
+        if (left < 0f) left = 0f
+        if (top < 0f) top = 0f
+        if (left + side > source.width) left = (source.width - side).coerceAtLeast(0f)
+        if (top + side > source.height) top = (source.height - side).coerceAtLeast(0f)
 
-        val width = right - left
-        val height = bottom - top
-        val cropped = Bitmap.createBitmap(source, left, top, width, height)
-        return if (width == outputSize && height == outputSize) {
+        val leftInt = left.roundToInt().coerceIn(0, source.width - 1)
+        val topInt = top.roundToInt().coerceIn(0, source.height - 1)
+        val idealSize = side.roundToInt().coerceAtLeast(1)
+        val size = min(idealSize, min(source.width - leftInt, source.height - topInt)).coerceAtLeast(1)
+
+        val cropped = Bitmap.createBitmap(source, leftInt, topInt, size, size)
+        return if (size == outputSize) {
             cropped
         } else {
             cropped.scale(outputSize, outputSize).also {
