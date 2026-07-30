@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -202,42 +202,25 @@ private fun LoadCardContent(
                 } else {
                     Box(modifier = Modifier.size(1.dp))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     if (onCameraClick != null) {
                         val photoCd = stringResource(R.string.load_card_attach_photo)
-                        IconButton(
+                        LoadCardActionChip(
                             onClick = onCameraClick,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(cs.primaryContainer)
-                                .semantics { contentDescription = photoCd },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = photoCd,
-                                tint = cs.onPrimaryContainer,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
+                            contentDescription = photoCd,
+                            imageVector = Icons.Default.CameraAlt,
+                        )
                     }
                     if (onScanClick != null) {
                         val scanCd = stringResource(R.string.load_card_attach_scan)
-                        IconButton(
+                        LoadCardActionChip(
                             onClick = onScanClick,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(cs.primaryContainer)
-                                .semantics { contentDescription = scanCd },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.DocumentScanner,
-                                contentDescription = scanCd,
-                                tint = cs.onPrimaryContainer,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
+                            contentDescription = scanCd,
+                            imageVector = Icons.Outlined.DocumentScanner,
+                        )
                     }
                 }
             }
@@ -269,6 +252,35 @@ private fun LoadCardContent(
 /** Computes RPM. Returns null when miles are zero. */
 fun computeRpm(totalRate: Double, totalMiles: Double): Double? =
     if (totalMiles > 0) totalRate / totalMiles else null
+
+/**
+ * Camera / scan chip on a load card. Fixed visual size (not Material IconButton's
+ * 48dp min target) so [Arrangement.spacedBy] actually separates the green pills.
+ */
+@Composable
+private fun LoadCardActionChip(
+    onClick: () -> Unit,
+    contentDescription: String,
+    imageVector: ImageVector,
+) {
+    val cs = MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(cs.primaryContainer)
+            .clickable(onClick = onClick)
+            .semantics { this.contentDescription = contentDescription },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = cs.onPrimaryContainer,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
 
 /** RPM = Total Amount / Total Miles. */
 fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String {
