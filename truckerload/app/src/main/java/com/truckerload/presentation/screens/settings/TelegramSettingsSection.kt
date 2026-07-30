@@ -53,16 +53,13 @@ fun TelegramSettingsSection() {
     var showToken by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
-    // Explicit Boolean — TelegramBotForegroundService.isRunning() must return Boolean
-    // (not the private AtomicBoolean field), or Compose cannot infer mutableStateOf's type.
-    var botActive by remember {
-        val running: Boolean = TelegramBotForegroundService.isRunning()
-        mutableStateOf(running)
+    // Must be Boolean: companion exposes fun isRunning(), not the private AtomicBoolean.
+    var botActive: Boolean by remember {
+        mutableStateOf(TelegramBotForegroundService.isRunning())
     }
 
     LaunchedEffect(Unit) {
-        val running: Boolean = TelegramBotForegroundService.isRunning()
-        botActive = running
+        botActive = TelegramBotForegroundService.isRunning()
     }
 
     BentoGlassSection(
