@@ -56,9 +56,11 @@ object LoadDateRepair {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val fortyDaysMs = 40L * 24 * 60 * 60 * 1000
-        // Far in the future vs "now" → almost certainly previous calendar year.
-        return if (candidate.timeInMillis - nowMillis > fortyDaysMs) anchorYear - 1 else anchorYear
+        // Near-term bookings (about two weeks) keep the anchor year; farther "future"
+        // MM/DD from Telegram history is almost always the previous calendar year
+        // (e.g. viewing August while still in late July must not paint 2025 loads as 2026).
+        val bookingHorizonMs = 14L * 24 * 60 * 60 * 1000
+        return if (candidate.timeInMillis - nowMillis > bookingHorizonMs) anchorYear - 1 else anchorYear
     }
 
     private fun yearFromMillis(millis: Long): Int? {

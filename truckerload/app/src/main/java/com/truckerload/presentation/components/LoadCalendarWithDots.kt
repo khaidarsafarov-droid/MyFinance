@@ -161,13 +161,14 @@ fun LoadCalendarWithDots(
                                     else -> tc.TextPrimary
                                 }
                             )
-                            if (hasLoad) {
+                            // Only mark days of the displayed month — spillover cells stay quiet.
+                            if (hasLoad && isCurrentMonth) {
                                 Box(
                                     modifier = Modifier
                                         .padding(top = 2.dp)
                                         .size(6.dp)
                                         .clip(CircleShape)
-                                        .background(tc.AccentProfit)
+                                        .background(tc.AccentPrimary)
                                 )
                             }
                         }

@@ -43,6 +43,7 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.TlButton
+import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.ExperimentalMaterialApi
@@ -220,25 +221,44 @@ fun HomeScreen(
                         },
                     )
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        TextButton(onClick = {
-                            val date = uiState.selectedDate
-                                ?: java.time.LocalDate.of(
-                                    calendarYear,
-                                    calendarMonth,
-                                    1,
-                                ).toString()
-                            val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
-                            val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
-                            viewModel.selectWeek(start, end, label)
-                            showCalendar = false
-                        }) {
-                            Text(stringResource(R.string.home_calendar_select_week), color = tc.AccentPrimary)
+                        TextButton(
+                            onClick = {
+                                val date = uiState.selectedDate
+                                    ?: java.time.LocalDate.of(
+                                        calendarYear,
+                                        calendarMonth,
+                                        1,
+                                    ).toString()
+                                val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
+                                val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
+                                viewModel.selectWeek(start, end, label)
+                                showCalendar = false
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_calendar_select_week),
+                                color = tc.TextPrimary,
+                                maxLines = 1,
+                                softWrap = false,
+                            )
                         }
-                        TextButton(onClick = { showCalendar = false }) {
-                            Text(stringResource(R.string.common_close), color = tc.AccentPrimary)
+                        TlOutlinedButton(
+                            onClick = { showCalendar = false },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.common_close),
+                                color = tc.TextPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                softWrap = false,
+                            )
                         }
                     }
                 }
