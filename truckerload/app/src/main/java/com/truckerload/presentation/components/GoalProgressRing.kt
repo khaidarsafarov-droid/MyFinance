@@ -43,12 +43,12 @@ fun GoalProgressRing(
     val cs = MaterialTheme.colorScheme
     val animatedProgress by animateFloatAsState(
         targetValue = if (animate) progressPercent.coerceIn(0f, 100f) else progressPercent,
-        animationSpec = tween(durationMillis = 900),
+        animationSpec = tween(durationMillis = 300),
         label = "goalProgress"
     )
     val animatedExpected by animateFloatAsState(
         targetValue = if (animate) expectedProgressPercent.coerceIn(0f, 100f) else expectedProgressPercent,
-        animationSpec = tween(durationMillis = 900),
+        animationSpec = tween(durationMillis = 300),
         label = "expectedProgress"
     )
 

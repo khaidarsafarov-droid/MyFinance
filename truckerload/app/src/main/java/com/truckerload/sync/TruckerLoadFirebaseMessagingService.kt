@@ -67,7 +67,7 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
             .build()
         runCatching {
             NotificationManagerCompat.from(this).notify(
-                (System.currentTimeMillis() and 0x7fffffff).toInt(),
+                GENERAL_UPDATE_NOTIFICATION_ID,
                 notification,
             )
         }
@@ -91,5 +91,6 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         private const val CHANNEL_ID = "truckerload_updates"
         private const val MAX_NOTIFICATION_TEXT = 240
+        private const val GENERAL_UPDATE_NOTIFICATION_ID = 5001
     }
 }

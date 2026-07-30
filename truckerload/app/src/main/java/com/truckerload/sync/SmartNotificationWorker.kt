@@ -24,7 +24,8 @@ class SmartNotificationWorker(
     companion object {
         const val CHANNEL_MISSING = "truckerload_missing"
         const val CHANNEL_ALERTS = "truckerload_alerts"
-        private const val MAINTENANCE_NOTIFY_BASE_ID = 100
+        private const val MISSING_DATA_NOTIFICATION_ID = 1
+        private const val MAINTENANCE_NOTIFICATION_ID = 2
     }
 
     override suspend fun doWork(): Result {
@@ -47,31 +48,30 @@ class SmartNotificationWorker(
                 dieselEntriesLastWeek = diesel.size,
                 maintenanceDueTitles = dueMaintenance.map { it.task.title },
             )
-            if (plan.notifyMissingPaycheck) {
+            val missingParts = buildList {
+                if (plan.notifyMissingPaycheck) add(applicationContext.getString(R.string.notify_add_paycheck_title))
+                if (plan.notifyMissingDiesel) add(applicationContext.getString(R.string.notify_add_diesel_title))
+            }
+            if (missingParts.isNotEmpty()) {
                 notify(
                     applicationContext,
-                    1,
+                    MISSING_DATA_NOTIFICATION_ID,
                     CHANNEL_MISSING,
-                    applicationContext.getString(R.string.notify_add_paycheck_title),
-                    applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
+                    applicationContext.getString(R.string.notify_missing_data_title),
+                    applicationContext.getString(
+                        R.string.notify_missing_data_body,
+                        lastWeek,
+                        missingParts.joinToString(", "),
+                    ),
                 )
             }
-            if (plan.notifyMissingDiesel) {
+            if (plan.maintenanceDueTitles.isNotEmpty()) {
                 notify(
                     applicationContext,
-                    2,
-                    CHANNEL_MISSING,
-                    applicationContext.getString(R.string.notify_add_diesel_title),
-                    applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
-                )
-            }
-            plan.maintenanceDueTitles.forEachIndexed { index, title ->
-                notify(
-                    applicationContext,
-                    MAINTENANCE_NOTIFY_BASE_ID + index,
+                    MAINTENANCE_NOTIFICATION_ID,
                     CHANNEL_ALERTS,
                     applicationContext.getString(R.string.notify_maintenance_title),
-                    applicationContext.getString(R.string.notify_maintenance_body, title),
+                    plan.maintenanceDueTitles.joinToString("\n") { "• $it" },
                 )
             }
             dueMaintenance.forEach { progress ->
@@ -91,14 +91,14 @@ class SmartNotificationWorker(
                 NotificationChannel(
                     CHANNEL_MISSING,
                     applicationContext.getString(R.string.notify_channel_missing_name),
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_LOW
                 )
             )
             nm.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_ALERTS,
                     applicationContext.getString(R.string.notify_channel_alerts_name),
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_LOW
                 )
             )
         }
@@ -110,7 +110,9 @@ class SmartNotificationWorker(
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
             .build()
         nm.notify(id, notification)

@@ -4,6 +4,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -14,7 +16,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.presentation.di.LocalAuthStore
@@ -158,16 +161,10 @@ fun NavGraph(
     val authStore = LocalAuthStore.current
     val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
     var showMainContent by remember { mutableStateOf(true) }
-    var hasShownAuth by remember { mutableStateOf(false) }
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
-            hasShownAuth = true
             showMainContent = false
         } else {
-            if (hasShownAuth) {
-                showMainContent = false
-                delay(200)
-            }
             showMainContent = true
         }
     }
@@ -198,7 +195,9 @@ fun NavGraph(
             needsEmailVerify = null
             return@LaunchedEffect
         }
-        socialRepository.ensureInitialized()
+        withContext(Dispatchers.IO) {
+            socialRepository.ensureInitialized()
+        }
         val setup = socialRepository.needsProfileSetup()
         needsSetup = setup
         if (setup) {
@@ -232,6 +231,12 @@ fun NavGraph(
         return
     }
     if (needsSetup == null || needsEmailVerify == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
         return
     }
     if (needsEmailVerify == true) {

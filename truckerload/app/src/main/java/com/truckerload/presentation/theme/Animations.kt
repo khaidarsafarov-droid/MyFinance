@@ -1,6 +1,8 @@
 package com.truckerload.presentation.theme
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -19,19 +21,10 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 
-fun tabEnterTransition() =
-    fadeIn(animationSpec = tween(200, easing = EaseOutCubic)) +
-        slideInHorizontally(
-            animationSpec = tween(200, easing = EaseOutCubic),
-            initialOffsetX = { it / 6 },
-        )
+/** Instant tab switches — avoids jank while heavy screens compose. */
+fun tabEnterTransition(): EnterTransition = EnterTransition.None
 
-fun tabExitTransition() =
-    androidx.compose.animation.fadeOut(animationSpec = tween(200, easing = EaseOutCubic)) +
-        androidx.compose.animation.slideOutHorizontally(
-            animationSpec = tween(200, easing = EaseOutCubic),
-            targetOffsetX = { -it / 6 },
-        )
+fun tabExitTransition(): ExitTransition = ExitTransition.None
 
 fun screenEnterAnimation() =
     fadeIn(animationSpec = tween(400, easing = EaseOutCubic)) +
