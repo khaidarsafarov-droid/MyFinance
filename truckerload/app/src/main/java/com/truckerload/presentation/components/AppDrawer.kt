@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonAdd
-import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -65,7 +64,6 @@ enum class DrawerDestination {
     FRIENDS_LIVE,
     DOCUMENTS,
     MAINTENANCE,
-    TAX_TRACKER,
     ADD_PAYCHECK,
     ADD_DIESEL,
     SCANNER,
@@ -152,12 +150,6 @@ fun AppDrawerContent(
                         icon = Icons.Outlined.Build,
                         label = stringResource(R.string.maintenance_title),
                         onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = Icons.Outlined.Receipt,
-                        label = stringResource(R.string.tax_title),
-                        onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
                         indented = true,
                     )
                     drawerItem(
