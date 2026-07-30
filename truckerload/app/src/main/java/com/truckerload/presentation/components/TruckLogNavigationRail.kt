@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Assignment
+import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
@@ -41,7 +41,7 @@ private data class RailDestination(
 )
 
 private val tabletDestinations = listOf(
-    RailDestination(Routes.HOME, Icons.Outlined.Assignment, R.string.nav_logbook),
+    RailDestination(Routes.HOME, Icons.AutoMirrored.Outlined.Assignment, R.string.nav_logbook),
     RailDestination(Routes.STATS, Icons.Outlined.Flag, R.string.nav_weekly_goal),
     RailDestination(Routes.COMMUNITY, Icons.Outlined.Groups, R.string.nav_community),
     RailDestination(Routes.PROFILE, Icons.Outlined.Person, R.string.nav_profile),

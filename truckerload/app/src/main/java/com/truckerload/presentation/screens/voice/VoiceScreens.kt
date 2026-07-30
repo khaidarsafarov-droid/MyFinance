@@ -32,8 +32,8 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -306,7 +306,11 @@ fun VoiceRoomScreen(
                         onClick = { viewModel.toggleMute() },
                     )
                     VoiceControlButton(
-                        icon = if (state.isDeafened) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                        icon = if (state.isDeafened) {
+                            Icons.AutoMirrored.Filled.VolumeOff
+                        } else {
+                            Icons.AutoMirrored.Filled.VolumeUp
+                        },
                         label = if (state.isDeafened) stringResource(R.string.undeafen) else stringResource(R.string.deafen),
                         tint = if (state.isDeafened) SoftUiColors.VoiceDanger else tc.TextSecondary,
                         onClick = { viewModel.toggleDeafen() },

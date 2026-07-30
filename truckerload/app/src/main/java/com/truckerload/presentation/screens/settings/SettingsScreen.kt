@@ -20,7 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import java.util.Locale
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.automirrored.outlined.Logout
@@ -212,7 +212,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Icon(
-                            Icons.Default.VolumeUp,
+                            Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = stringResource(R.string.settings_sound_title),
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(22.dp),

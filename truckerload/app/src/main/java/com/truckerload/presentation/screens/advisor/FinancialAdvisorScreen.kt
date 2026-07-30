@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -53,11 +54,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalClipboardManager
+import android.content.ClipData
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
@@ -290,7 +292,7 @@ private fun MessageBubble(
     onCopyDiagnostics: () -> Unit = {}
 ) {
     val tc = LocalTruckColors.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val isHealthSuccess = !isUser && text.startsWith("✅") && text.contains("AI health:")
@@ -316,7 +318,10 @@ private fun MessageBubble(
                 .animateContentSize()
                 .then(
                     if (isHealthMessage) {
-                        Modifier.clickable { expanded = !expanded }
+                        Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) { expanded = !expanded }
                     } else {
                         Modifier
                     }
@@ -342,15 +347,17 @@ private fun MessageBubble(
                         )
                         TextButton(
                             onClick = {
-                                clipboardManager.setText(AnnotatedString(text))
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onCopyDiagnostics()
-                                copiedFlash = true
                                 scope.launch {
+                                    clipboard.setClipEntry(
+                                        ClipEntry(ClipData.newPlainText("diagnostics", text)),
+                                    )
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onCopyDiagnostics()
+                                    copiedFlash = true
                                     delay(1200)
                                     copiedFlash = false
+                                    expanded = false
                                 }
-                                expanded = false
                             },
                             modifier = Modifier.align(Alignment.End)
                         ) {

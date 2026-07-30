@@ -13,6 +13,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -563,7 +564,13 @@ fun LoginScreen(
                     withStyle(SpanStyle(color = tc.AccentPrimary, fontWeight = FontWeight.Medium)) { append(stringResource(R.string.login_create_account)) }
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 32.dp).clickable(enabled = !isLoading) { onCreateAccount() }
+                modifier = Modifier
+                    .padding(bottom = 32.dp)
+                    .clickable(
+                        enabled = !isLoading,
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { onCreateAccount() },
             )
         }
         if (isLoading && !showEmailFields) {

@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -190,7 +191,11 @@ private fun StatusItem(status: DriverStatusPost, onView: () -> Unit) {
     BentoGlassCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onView),
+            .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onView,
+                ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
