@@ -44,4 +44,20 @@ class StartupRepairStoreTest {
         assertFalse(key.contains(".."))
         assertTrue(key.startsWith("startup_backfill_v2_"))
     }
+
+    @Test
+    fun `session repair is per user one-shot`() {
+        val store = StartupRepairStore(context)
+        val a = "user-a"
+        val b = "user-b"
+
+        assertFalse(store.isSessionRepairDone(a))
+        store.markSessionRepairDone(a)
+        assertTrue(store.isSessionRepairDone(a))
+        assertFalse(store.isSessionRepairDone(b))
+
+        val key = StartupRepairStore.sessionRepairKey("ab/../cd")
+        assertFalse(key.contains(".."))
+        assertTrue(key.startsWith("session_repair_v1_done_"))
+    }
 }

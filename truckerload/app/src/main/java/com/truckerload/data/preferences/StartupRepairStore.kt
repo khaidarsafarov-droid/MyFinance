@@ -44,6 +44,18 @@ class StartupRepairStore(context: Context) {
         return prefs.getBoolean(needsRetryKey(id), false)
     }
 
+    fun isSessionRepairDone(userId: String): Boolean {
+        val id = userId.trim()
+        if (id.isBlank()) return false
+        return prefs.getBoolean(sessionRepairKey(id), false)
+    }
+
+    fun markSessionRepairDone(userId: String) {
+        val id = userId.trim()
+        if (id.isBlank()) return
+        prefs.edit { putBoolean(sessionRepairKey(id), true) }
+    }
+
     companion object {
         private const val META_PREFS = "truckerload_app_meta"
 
@@ -52,5 +64,8 @@ class StartupRepairStore(context: Context) {
 
         fun needsRetryKey(userId: String): String =
             "startup_backfill_needs_retry_v2_${AccountIds.sanitizeFilePart(userId)}"
+
+        fun sessionRepairKey(userId: String): String =
+            "session_repair_v1_done_${AccountIds.sanitizeFilePart(userId)}"
     }
 }

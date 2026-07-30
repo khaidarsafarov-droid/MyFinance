@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
+import android.os.Trace
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -36,10 +38,12 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.data.preferences.StartupRepairStore
 import com.truckerload.data.preferences.StatsSelectionStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
+import com.truckerload.utils.CrashReporting
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
@@ -169,8 +173,7 @@ class MainActivity : AppCompatActivity() {
                                 userProfileStore = userProfileStore,
                             )
                             runCatching {
-                                deps.loadRepository.repairMislabeledLoadDates()
-                                deps.loadRepository.repairInflatedLoadedMiles()
+                                runSessionRepairsIfNeeded(activeUserId, deps.loadRepository)
                             }.onFailure { e ->
                                 android.util.Log.w("MainActivity", "Load repair failed", e)
                             }
@@ -374,6 +377,32 @@ class MainActivity : AppCompatActivity() {
             arrayOf(Manifest.permission.POST_NOTIFICATIONS),
             REQ_POST_NOTIFICATIONS,
         )
+    }
+
+    /**
+     * One-shot per account: date + inflated-miles repairs.
+     * Traced; slow runs (>500ms) reported to Crashlytics as slow_session_repair.
+     */
+    private suspend fun runSessionRepairsIfNeeded(userId: String, loadRepository: LoadRepository) {
+        val store = StartupRepairStore(this)
+        if (store.isSessionRepairDone(userId)) return
+        Trace.beginSection("session_repair")
+        val started = SystemClock.elapsedRealtime()
+        try {
+            loadRepository.repairMislabeledLoadDates()
+            loadRepository.repairInflatedLoadedMiles()
+            store.markSessionRepairDone(userId)
+        } finally {
+            Trace.endSection()
+            val elapsed = SystemClock.elapsedRealtime() - started
+            if (elapsed > 500L) {
+                CrashReporting.setCustomKey("slow_session_repair_ms", elapsed)
+                CrashReporting.setCustomKey("slow_session_repair_user", userId)
+                CrashReporting.recordException(
+                    RuntimeException("slow_session_repair elapsedMs=$elapsed"),
+                )
+            }
+        }
     }
 
     companion object {

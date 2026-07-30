@@ -146,6 +146,13 @@ android {
         baseline = file("lint-baseline.xml")
         checkDependencies = false
     }
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -177,6 +184,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
     ksp(libs.androidx.room.compiler)
+    androidTestImplementation("androidx.room:room-testing:2.7.0")
 
     // Paging
     implementation(libs.androidx.paging.runtime)

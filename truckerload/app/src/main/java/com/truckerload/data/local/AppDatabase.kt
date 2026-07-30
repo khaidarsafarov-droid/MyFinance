@@ -96,10 +96,7 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         CrowdRateEntity::class,
     ],
     version = 29,
-    // exportSchema=false: Room will not write schema JSON under schemas/. Migrations still
-    // run from code, but CI cannot diff exported schemas — enable exportSchema=true +
-    // schemas/ in VCS before shipping destructive migration changes.
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun loadDao(): LoadDao
@@ -171,34 +168,9 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     dbName,
                 )
-                    .addMigrations(
-                        MIGRATION_6_7,
-                        MIGRATION_7_8,
-                        MIGRATION_8_9,
-                        MIGRATION_9_10,
-                        MIGRATION_10_11,
-                        MIGRATION_11_12,
-                        MIGRATION_12_13,
-                        MIGRATION_13_14,
-                        MIGRATION_14_15,
-                        MIGRATION_15_16,
-                        MIGRATION_16_17,
-                        MIGRATION_17_18,
-                        MIGRATION_18_19,
-                        MIGRATION_19_20,
-                        MIGRATION_20_21,
-                        MIGRATION_21_22,
-                        MIGRATION_22_23,
-                        MIGRATION_23_24,
-                        MIGRATION_24_25,
-                        MIGRATION_25_26,
-                        MIGRATION_26_27,
-                        MIGRATION_27_28,
-                        MIGRATION_28_29,
-                    )
-                    // RISK: versions 1–5 have no migrations — opening an ancient DB wipes all tables.
-                    // Ship with exportSchema=true + documented upgrade path before removing this.
-                    .fallbackToDestructiveMigrationFrom(dropAllTables = true, 1, 2, 3, 4, 5)
+                    .addMigrations(*ALL_ROOM_MIGRATIONS)
+                    // Pre-v6: blocked migrations throw UnsupportedDatabaseUpgradeException
+                    // (no destructive wipe — restore from backup / reinstall).
                     .build()
                 INSTANCE = db
                 currentUserId = id
