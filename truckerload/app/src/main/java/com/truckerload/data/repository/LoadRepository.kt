@@ -31,6 +31,7 @@ import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.LoadDateRepair
+import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -565,6 +566,28 @@ class LoadRepository(
                 fixed++
             }
         }
+        return fixed
+    }
+
+    /**
+     * Fixes Relay Total Loaded Miles typos that dropped the decimal
+     * (e.g. 182781 → 1827.81). Safe on session start; only rewrites absurd rows.
+     */
+    suspend fun repairInflatedLoadedMiles(): Int {
+        val entities = loadDao.getAllLoadsOnce()
+        if (entities.isEmpty()) return 0
+        var fixed = 0
+        for (entity in entities) {
+            val sanitized = ParseUtils.sanitizeLoadedMiles(entity.totalMiles, entity.totalRate)
+            if (kotlin.math.abs(sanitized - entity.totalMiles) > 0.009) {
+                val stops = stopDao.getStopsByLoadId(entity.id)
+                val penalties = penaltyDao.getPenaltiesByLoadId(entity.id)
+                val load = entity.toDomain(stops, penalties).copy(totalMiles = sanitized)
+                updateLoad(load)
+                fixed++
+            }
+        }
+        if (fixed > 0) notifyWidgetDataChanged()
         return fixed
     }
 

@@ -9,6 +9,7 @@ import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.domain.goal.LoadYieldCalculator
+import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
 
@@ -18,7 +19,7 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
         tripId = tripId,
         date = date,
         totalRate = totalRate,
-        totalMiles = totalMiles,
+        totalMiles = ParseUtils.sanitizeLoadedMiles(totalMiles, totalRate),
         pointA = pointA,
         pointB = pointB,
         puCount = puCount,
@@ -44,12 +45,13 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
 
 fun Load.toEntity(): LoadEntity {
     val metrics = withRouteMetrics()
+    val miles = ParseUtils.sanitizeLoadedMiles(metrics.totalMiles, metrics.totalRate)
     return LoadEntity(
         id = metrics.id,
         tripId = metrics.tripId,
         date = metrics.date,
         totalRate = metrics.totalRate,
-        totalMiles = metrics.totalMiles,
+        totalMiles = miles,
         pointA = metrics.pointA,
         pointB = metrics.pointB,
         puCount = metrics.puCount,
