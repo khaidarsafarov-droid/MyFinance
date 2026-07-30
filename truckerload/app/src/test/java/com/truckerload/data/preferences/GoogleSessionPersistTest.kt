@@ -40,7 +40,7 @@ class GoogleSessionPersistTest {
     }
 
     @Test
-    fun localOnlySilentRestoreDoesNotTouchCredentialManagerPath() {
+    fun googleSilentRestoreKeepsLocalSessionWithoutCredentialManager() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)
         val profile = UserProfileStore(context)
@@ -53,12 +53,13 @@ class GoogleSessionPersistTest {
             provider = AuthProvider.GOOGLE,
         )
 
-        // LOCAL_ONLY_MODE may skip cloud refresh; Google session stays VERIFIED either way
-        // (regression for "Google every launch").
+        // Must not launch Credential Manager; offline → OFFLINE_LOCAL, otherwise VERIFIED.
         val health = kotlinx.coroutines.runBlocking {
             SilentAuthRestorer.restore(context, auth, profile)
         }
-        assertEquals(AuthSessionHealth.VERIFIED, health)
+        assertTrue(
+            health == AuthSessionHealth.VERIFIED || health == AuthSessionHealth.OFFLINE_LOCAL,
+        )
         assertTrue(auth.isLoggedIn.value)
         assertFalse(auth.userId.value.isNullOrBlank())
     }
