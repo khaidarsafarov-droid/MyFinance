@@ -1,7 +1,6 @@
 package com.truckerload.presentation.auth
 
 import android.app.Activity
-import android.util.Base64
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,17 +15,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.truckerload.BuildConfig
 import com.truckerload.R
-import com.truckerload.data.preferences.AuthLogin
-import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
-import com.truckerload.data.remote.SupabaseAuthService
-import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalUserProfileStore
-import kotlinx.coroutines.Dispatchers
+import com.truckerload.data.repository.AuthActionResult
+import com.truckerload.data.repository.AuthRepository
+import com.truckerload.data.repository.GoogleAccountInfo
+import com.truckerload.di.AuthRepositoryEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import android.util.Log
 
 data class GoogleAuthCallbacks(
     val onBusy: (Boolean) -> Unit,
@@ -44,49 +39,41 @@ fun rememberGoogleSignInLauncher(
     callbacks: GoogleAuthCallbacks,
 ): GoogleSignInLauncher {
     val context = LocalContext.current
-    val authStore = LocalAuthStore.current
-    val userProfileStore = LocalUserProfileStore.current
     val scope = rememberCoroutineScope()
-    val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val callbacksState = rememberUpdatedState(callbacks)
+    val authRepository = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            AuthRepositoryEntryPoint::class.java,
+        ).authRepository()
+    }
 
-    fun saveAndFinish(
-        email: String,
-        givenName: String,
-        familyName: String,
-        photoUrl: String?,
-        phoneNumber: String? = null,
-        supabaseUserId: String? = null,
-        accessToken: String? = null,
-        refreshToken: String? = null,
-        googleId: String? = null,
-    ) {
-        val ok = AuthLogin.tryCompleteLogin(
-            authStore = authStore,
-            userProfileStore = userProfileStore,
-            supabaseUserId = supabaseUserId,
-            profile = UserProfile(
-                email = email,
-                givenName = givenName,
-                familyName = familyName,
-                photoUrl = photoUrl,
-                phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
-                googleId = googleId?.takeIf { it.isNotBlank() },
-            ),
-            rememberMe = true,
-            accessToken = accessToken,
-            refreshToken = refreshToken,
-        )
-        callbacksState.value.onBusy(false)
-        if (ok) {
-            callbacksState.value.onSignedIn()
-        } else {
-            Toast.makeText(
-                context,
-                context.getString(R.string.auth_error_email_required),
-                Toast.LENGTH_LONG,
-            ).show()
+    fun applyGoogleResult(result: AuthActionResult) {
+        result.toastMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
+        callbacksState.value.onBusy(false)
+        if (result.succeeded) {
+            callbacksState.value.onSignedIn()
+        } else if (result.fieldError != null && result.toastMessage == null) {
+            Toast.makeText(context, result.fieldError, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun launchLegacy(launcher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>) {
+        val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                .build()
+        } else {
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .build()
+        }
+        launcher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
     }
 
     val legacyLauncher = rememberLauncherForActivityResult(
@@ -108,79 +95,18 @@ fun rememberGoogleSignInLauncher(
         }
         val task = GoogleSignIn.getSignedInAccountFromIntent(data)
         task.addOnSuccessListener { account ->
-            try {
-                val idToken = account.idToken
-                fun finishLocal() {
-                    saveAndFinish(
-                        account.email.orEmpty(),
-                        account.givenName.orEmpty(),
-                        account.familyName.orEmpty(),
-                        resolveGooglePhotoUrl(null, idToken, account.photoUrl?.toString()),
-                        googleId = account.id
-                            ?: idToken?.let { decodeGoogleIdToken(it)?.optString("sub") },
-                    )
-                }
-                if (supabaseAuth.isConfigured() && !idToken.isNullOrBlank()) {
-                    scope.launch {
-                        try {
-                            val authResult = supabaseAuth.signInWithIdToken(idToken)
-                            withContext(Dispatchers.Main) {
-                                val signIn = authResult.getOrNull()
-                                val user = signIn?.user
-                                if (user != null) {
-                                    val parts = (user.fullName ?: account.email?.take(10) ?: "User")
-                                        .trim()
-                                        .split(" ")
-                                    saveAndFinish(
-                                        user.email ?: account.email.orEmpty(),
-                                        parts.firstOrNull() ?: account.givenName.orEmpty(),
-                                        parts.drop(1).joinToString(" ").ifBlank {
-                                            account.familyName.orEmpty()
-                                        },
-                                        resolveGooglePhotoUrl(
-                                            user.avatarUrl,
-                                            idToken,
-                                            account.photoUrl?.toString(),
-                                        ),
-                                        supabaseUserId = user.id,
-                                        accessToken = signIn.accessToken,
-                                        refreshToken = signIn.refreshToken,
-                                        googleId = account.id
-                                            ?: decodeGoogleIdToken(idToken)?.optString("sub"),
-                                    )
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(
-                                            R.string.login_google_fallback,
-                                            authResult.exceptionOrNull()?.message.orEmpty(),
-                                        ),
-                                        Toast.LENGTH_LONG,
-                                    ).show()
-                                    finishLocal()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.login_google_fallback, e.message.orEmpty()),
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                                finishLocal()
-                            }
-                        }
-                    }
-                } else {
-                    finishLocal()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.login_google_error, e.message ?: e.toString()),
-                    Toast.LENGTH_LONG,
-                ).show()
-                callbacksState.value.onBusy(false)
+            scope.launch {
+                val authResult = authRepository.signInWithGoogleAccount(
+                    GoogleAccountInfo(
+                        idToken = account.idToken,
+                        email = account.email,
+                        givenName = account.givenName,
+                        familyName = account.familyName,
+                        photoUrl = account.photoUrl?.toString(),
+                        id = account.id,
+                    ),
+                )
+                applyGoogleResult(authResult)
             }
         }
         task.addOnFailureListener {
@@ -197,145 +123,28 @@ fun rememberGoogleSignInLauncher(
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
         if (!CredentialManagerGoogleSignIn.isAvailable()) {
-            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                    .build()
-            } else {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .build()
-            }
-            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+            launchLegacy(legacyLauncher)
             return@GoogleSignInLauncher
         }
         scope.launch {
             val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(context)
             val idToken = tokenResult.getOrNull()
             if (idToken != null) {
-                withContext(Dispatchers.Main) {
-                    val claims = decodeGoogleIdToken(idToken)
-                    if (supabaseAuth.isConfigured()) {
-                        try {
-                            val authResult = supabaseAuth.signInWithIdToken(idToken)
-                            val signIn = authResult.getOrNull()
-                            val user = signIn?.user
-                            if (user != null) {
-                                val parts = (user.fullName ?: user.email?.take(10) ?: "User")
-                                    .trim()
-                                    .split(" ")
-                                saveAndFinish(
-                                    user.email ?: claims?.optString("email").orEmpty(),
-                                    parts.firstOrNull() ?: claims?.optString("given_name").orEmpty(),
-                                    parts.drop(1).joinToString(" ").ifBlank {
-                                        claims?.optString("family_name").orEmpty()
-                                    },
-                                    resolveGooglePhotoUrl(user.avatarUrl, idToken),
-                                    supabaseUserId = user.id,
-                                    accessToken = signIn.accessToken,
-                                    refreshToken = signIn.refreshToken,
-                                    googleId = claims?.optString("sub"),
-                                )
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    context.getString(
-                                        R.string.login_google_fallback,
-                                        authResult.exceptionOrNull()?.message.orEmpty(),
-                                    ),
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                                saveAndFinish(
-                                    claims?.optString("email").orEmpty(),
-                                    claims?.optString("given_name").orEmpty(),
-                                    claims?.optString("family_name").orEmpty(),
-                                    resolveGooglePhotoUrl(null, idToken),
-                                    googleId = claims?.optString("sub"),
-                                )
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.login_google_fallback, e.message.orEmpty()),
-                                Toast.LENGTH_LONG,
-                            ).show()
-                            saveAndFinish(
-                                claims?.optString("email").orEmpty(),
-                                claims?.optString("given_name").orEmpty(),
-                                claims?.optString("family_name").orEmpty(),
-                                resolveGooglePhotoUrl(null, idToken),
-                                googleId = claims?.optString("sub"),
-                            )
-                        }
-                    } else {
-                        saveAndFinish(
-                            claims?.optString("email").orEmpty(),
-                            claims?.optString("given_name").orEmpty(),
-                            claims?.optString("family_name").orEmpty(),
-                            resolveGooglePhotoUrl(null, idToken),
-                            googleId = claims?.optString("sub"),
-                        )
-                    }
-                }
+                val authResult = authRepository.signInWithGoogleIdToken(idToken)
+                applyGoogleResult(authResult)
             } else {
-                withContext(Dispatchers.Main) {
-                    when (tokenResult.exceptionOrNull()) {
-                        is GetCredentialCancellationException -> {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.login_google_cancelled),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            callbacksState.value.onBusy(false)
-                        }
-                        else -> {
-                            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                                    .build()
-                            } else {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .build()
-                            }
-                            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
-                        }
+                when (tokenResult.exceptionOrNull()) {
+                    is GetCredentialCancellationException -> {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.login_google_cancelled),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        callbacksState.value.onBusy(false)
                     }
+                    else -> launchLegacy(legacyLauncher)
                 }
             }
         }
     }
-}
-
-internal fun decodeGoogleIdToken(idToken: String): JSONObject? {
-    return try {
-        val parts = idToken.split(".")
-        if (parts.size != 3) return null
-        val payload = String(
-            Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP),
-        )
-        JSONObject(payload)
-    } catch (e: Exception) {
-        Log.w("TL", "swallowed", e)
-        null
-        null
-    }
-}
-
-internal fun resolveGooglePhotoUrl(
-    primary: String?,
-    idToken: String? = null,
-    accountPhotoUrl: String? = null,
-): String? {
-    primary?.takeIf { it.isNotBlank() }?.let { return it }
-    idToken?.let { token ->
-        decodeGoogleIdToken(token)?.optString("picture")?.takeIf { it.isNotBlank() }?.let { return it }
-    }
-    return accountPhotoUrl?.takeIf { it.isNotBlank() }
 }
