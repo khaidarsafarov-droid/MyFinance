@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalSocialRepository
@@ -307,6 +306,9 @@ fun NavGraph(
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
+                DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
+                DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
+                DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.SUPPORT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
@@ -512,10 +514,6 @@ fun NavGraph(
             ) {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
-                    onTaxTracker = { navController.navigate(Routes.TAX_TRACKER) },
-                    onMaintenance = { navController.navigate(Routes.MAINTENANCE) },
-                    onAddPaycheck = { navController.navigate(Routes.ADD_PAYCHECK) },
-                    onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) },
                     showBack = !tablet
                 )
             }
@@ -535,12 +533,11 @@ fun NavGraph(
             }
             composable(Routes.ADD_LOAD) { addLoadEntry ->
                 val loadRepository = LocalLoadRepository.current
-                val isBotConfigured = TelegramTokenStore(context).hasToken()
                 val homeEntry = remember(addLoadEntry) {
                     runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
                 }
                 val homeViewModel: HomeViewModel? = homeEntry?.let {
-                    viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
+                    viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured = false, context))
                 }
                 AddLoadScreen(
                     onSaved = { navController.popBackStack() },
@@ -562,12 +559,11 @@ fun NavGraph(
                 val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
                 val focusFinish = editBackStackEntry.arguments?.getBoolean("focusFinish") == true
                 val loadRepository = LocalLoadRepository.current
-                val isBotConfigured = TelegramTokenStore(context).hasToken()
                 val homeEntry = remember(editBackStackEntry) {
                     runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
                 }
                 val homeViewModel: HomeViewModel? = homeEntry?.let {
-                    viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
+                    viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured = false, context))
                 }
                 EditLoadScreen(
                     loadId = loadId,
