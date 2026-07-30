@@ -1,6 +1,7 @@
 package com.truckerload.presentation.components
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -14,6 +15,9 @@ import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.DocumentScanner
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Handyman
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
@@ -74,6 +78,7 @@ fun AppDrawerContent(
     val userProfileStore = LocalUserProfileStore.current
     val scope = rememberCoroutineScope()
     var showLogoutConfirm by remember { mutableStateOf(false) }
+    var toolsExpanded by remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
         modifier = modifier,
@@ -115,20 +120,37 @@ fun AppDrawerContent(
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
             )
             drawerItem(
-                icon = Icons.Outlined.Build,
-                label = stringResource(R.string.maintenance_title),
-                onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
+                icon = Icons.Outlined.Handyman,
+                label = stringResource(R.string.drawer_tools),
+                onClick = { toolsExpanded = !toolsExpanded },
+                trailingIcon = if (toolsExpanded) {
+                    Icons.Outlined.ExpandLess
+                } else {
+                    Icons.Outlined.ExpandMore
+                },
             )
-            drawerItem(
-                icon = Icons.Outlined.DocumentScanner,
-                label = stringResource(R.string.scanner),
-                onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
-            )
-            drawerItem(
-                icon = Icons.Outlined.CameraAlt,
-                label = stringResource(R.string.camera),
-                onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
-            )
+            AnimatedVisibility(visible = toolsExpanded) {
+                Column {
+                    drawerItem(
+                        icon = Icons.Outlined.Build,
+                        label = stringResource(R.string.maintenance_title),
+                        onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
+                        indented = true,
+                    )
+                    drawerItem(
+                        icon = Icons.Outlined.DocumentScanner,
+                        label = stringResource(R.string.scanner),
+                        onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
+                        indented = true,
+                    )
+                    drawerItem(
+                        icon = Icons.Outlined.CameraAlt,
+                        label = stringResource(R.string.camera),
+                        onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
+                        indented = true,
+                    )
+                }
+            }
             drawerItem(
                 icon = Icons.Outlined.SupportAgent,
                 label = stringResource(R.string.drawer_support),
@@ -209,6 +231,8 @@ private fun drawerItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     onClick: () -> Unit,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    indented: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
     NavigationDrawerItem(
@@ -216,6 +240,13 @@ private fun drawerItem(
         label = { Text(label, color = tc.TextPrimary) },
         selected = false,
         onClick = onClick,
-        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+        badge = trailingIcon?.let {
+            {
+                Icon(it, contentDescription = null, tint = tc.TextSecondary)
+            }
+        },
+        modifier = Modifier
+            .padding(NavigationDrawerItemDefaults.ItemPadding)
+            .then(if (indented) Modifier.padding(start = 16.dp) else Modifier),
     )
 }

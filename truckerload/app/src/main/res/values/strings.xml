@@ -148,6 +148,7 @@
     <string name="nav_logbook">Грузы</string>
     <string name="drawer_reports">Отчёты</string>
     <string name="drawer_documents">Документы</string>
+    <string name="drawer_tools">Инструменты</string>
     <string name="drawer_support">Техподдержка</string>
     <string name="drawer_about">О приложении</string>
     <string name="drawer_logout">Выход</string>
