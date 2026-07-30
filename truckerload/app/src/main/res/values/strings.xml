@@ -385,33 +385,21 @@
     <string name="map_title">Географическая эффективность</string>
     <string name="map_subtitle_all_loads">По всем грузам драйвера (%1$d рейсов)</string>
     <string name="map_subtitle_my_week">Мои RPM за 7 дней · %1$d рейс(ов)</string>
-    <string name="map_period_week">Неделя</string>
-    <string name="map_period_month">Месяц</string>
-    <string name="map_period_year">Год</string>
-    <string name="map_subtitle_period_week">Мои RPM · неделя · %1$d рейс(ов)</string>
-    <string name="map_subtitle_period_month">Мои RPM · месяц · %1$d рейс(ов)</string>
-    <string name="map_subtitle_period_year">Мои RPM · год · %1$d рейс(ов)</string>
-    <string name="map_my_rates_hint">Карта: средний $/миля из штата. Нажмите штат — свежие ставки.</string>
+    <string name="map_my_rates_hint">Тепловая карта — средний RPM из штата по вашим грузам за неделю. Выберите штат, чтобы увидеть свежие ставки: час назад, вчера, 2 дня назад…</string>
     <string name="map_crowd_source_network">сообщество</string>
-    <string name="map_crowd_state_header">%1$s (%2$s) — ваши отправления</string>
-    <string name="map_crowd_state_avg">Средний RPM: $%1$s/миля · %2$d рейс(ов)</string>
-    <string name="map_crowd_recent_title">Недавние ставки из штата</string>
+    <string name="map_crowd_state_header">%1$s (%2$s) — ваши отправления за неделю</string>
+    <string name="map_crowd_state_avg">Средний RPM из штата: $%1$s/миля · %2$d рейс(ов)</string>
+    <string name="map_crowd_recent_title">Недавние ваши ставки из штата</string>
     <string name="map_crowd_recent_empty">За эту неделю из этого штата у вас нет грузов.</string>
-    <string name="map_crowd_recent_empty_week">За неделю из этого штата грузов нет.</string>
-    <string name="map_crowd_recent_empty_month">За месяц из этого штата грузов нет.</string>
-    <string name="map_crowd_recent_empty_year">За год из этого штата грузов нет.</string>
     <string name="map_my_recent_row">%1$s → %2$s · $%3$s/миля · %4$s</string>
     <string name="map_crowd_age_minutes">%1$d мин назад</string>
     <string name="map_crowd_age_hours">%1$d ч назад</string>
     <string name="map_crowd_age_days">%1$d дн. назад</string>
     <string name="map_crowd_top_lanes">Ваши топ-направления за неделю</string>
-    <string name="map_crowd_top_lanes_week">Топ-направления · неделя</string>
-    <string name="map_crowd_top_lanes_month">Топ-направления · месяц</string>
-    <string name="map_crowd_top_lanes_year">Топ-направления · год</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/миля · %4$d рейс(ов)</string>
 
     <string name="friends_live_map_title">Друзья на карте</string>
-    <string name="friends_live_map_subtitle">Где вы сейчас</string>
+    <string name="friends_live_map_subtitle">Маркеры сейчас · путь по запросу</string>
     <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
     <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
     <string name="friends_live_need_supabase">Нужен вход через Supabase (LOCAL_ONLY_MODE=false + URL/ключ). Примените SQL миграцию friends live.</string>
@@ -430,9 +418,9 @@
     <string name="friends_my_nickname_hint">По этому нику друзья найдут вас в Truck Log</string>
     <string name="friends_nickname_label">Никнейм</string>
     <string name="friends_nickname_placeholder">например DriverPro</string>
+    <string name="friends_nickname_save">Сохранить</string>
     <string name="friends_add_nickname_button">Добавить никнейм</string>
     <string name="friends_change_nickname_button">Изменить никнейм</string>
-    <string name="friends_nickname_save">Сохранить</string>
     <string name="friends_nickname_invalid">Ник: 3–24 символа, буква в начале, только латиница, цифры и _</string>
     <string name="friends_nickname_saved">Никнейм сохранён</string>
     <string name="friends_my_nickname_current">Ваш ник: @%1$s</string>
@@ -461,10 +449,6 @@
     <string name="friends_map_legend">Зелёный — вы · оранжевый — друзья онлайн</string>
     <string name="friends_me_marker">Я</string>
     <string name="friends_center_on_me">К моему местоположению</string>
-    <string name="friends_map_tap_open">Нажмите, чтобы открыть карту</string>
-    <string name="friends_map_close">Закрыть карту</string>
-    <string name="friends_manage_section">Друзья и доступ</string>
-    <string name="friends_online_count">Онлайн: %1$d</string>
     <string name="stats_ai_keyword_diesel">дизел</string>
     <string name="stats_ai_keyword_profit">прибыл</string>
     <string name="calendar_prev_month_cd">Предыдущий месяц</string>
@@ -533,23 +517,6 @@
     <string name="add_load_saving">Сохранение…</string>
     <string name="add_load_save_offline">Сохранить в приложении (офлайн)</string>
     <string name="add_load_hint_online">Вставьте сообщение и нажмите «Сохранить» — данные сразу попадут в локальную БД.</string>
-    <string name="load_alarm_offer_title">Будильник на загрузку?</string>
-    <string name="load_alarm_offer_message">Груз %1$s ещё не начался. Старт: %2$s.\nПоставить напоминание?</string>
-    <string name="load_alarm_offer_message_no_trip">Груз ещё не начался. Старт: %1$s.\nПоставить напоминание?</string>
-    <string name="load_alarm_option_2h">За 2 часа до старта</string>
-    <string name="load_alarm_option_1h">За 1 час до старта</string>
-    <string name="load_alarm_option_custom">Своё время…</string>
-    <string name="load_alarm_skip">Не нужно</string>
-    <string name="load_alarm_set">Поставить</string>
-    <string name="load_alarm_set_toast">Будильник поставлен</string>
-    <string name="load_alarm_custom_date_title">Дата будильника</string>
-    <string name="load_alarm_custom_time_title">Время будильника</string>
-    <string name="load_alarm_invalid_custom_time">Выберите время в будущем и до старта груза</string>
-    <string name="load_alarm_notify_title">Пора готовиться к загрузке</string>
-    <string name="load_alarm_notify_body">Груз %1$s — старт %2$s</string>
-    <string name="load_alarm_notify_body_no_trip">Старт груза: %1$s</string>
-    <string name="load_alarm_channel_name">Будильники на грузы</string>
-    <string name="load_alarm_channel_desc">Напоминания перед началом загрузки</string>
     <string name="edit_load_title">Редактировать груз</string>
     <string name="edit_load_save_changes">Сохранить изменения</string>
     <string name="edit_load_added_at">Добавлено: %1$s</string>
@@ -735,8 +702,6 @@
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
     <string name="settings_telegram_test">Проверить</string>
     <string name="settings_telegram_saved">Токен сохранён, бот перезапущен</string>
-    <string name="settings_telegram_status_active">Бот отслеживает сообщения</string>
-    <string name="settings_telegram_status_inactive">Бот не запущен</string>
     <string name="settings_telegram_ok">✅ Бот @%1$s — токен рабочий</string>
     <string name="settings_telegram_invalid">❌ Токен недействителен (401). @BotFather → /mybots → API Token → Revoke → скопируйте новый</string>
     <string name="settings_telegram_token_missing">Укажите токен бота в настройках Telegram</string>
@@ -815,7 +780,6 @@
     <string name="maintenance_error_amount">Укажите сумму</string>
     <string name="notify_maintenance_title">Напоминание ТО</string>
     <string name="notify_maintenance_body">%1$s — пора обслуживать трак</string>
-    <string name="notify_maintenance_body_multi">%1$d задач: %2$s</string>
 
     <string name="notify_add_paycheck_title">Добавьте зарплату</string>
     <string name="notify_add_diesel_title">Добавьте дизель</string>
@@ -902,10 +866,10 @@
     <string name="auto_restore_success">✅ Данные восстановлены. Грузов: %1$d</string>
     <string name="auto_restore_failed">Не удалось восстановить: %1$s</string>
     <string name="auto_restore_no_file">Авто-бэкап не найден</string>
-    <string name="telegram_bot_channel_name">Фоновая синхронизация</string>
-    <string name="telegram_bot_channel_desc">Тихий статус синхронизации Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log</string>
-    <string name="telegram_bot_notification_text">Синхронизация Telegram</string>
+    <string name="telegram_bot_channel_name">Telegram бот</string>
+    <string name="telegram_bot_channel_desc">Фоновая синхронизация сообщений из Telegram</string>
+    <string name="telegram_bot_notification_title">Truck Log — бот активен</string>
+    <string name="telegram_bot_notification_text">Слушаю сообщения в Telegram</string>
 
     <string name="export_share_chooser">Поделиться</string>
     <string name="export_saved_to_folder">Отчёт сохранён в папку %1$s</string>

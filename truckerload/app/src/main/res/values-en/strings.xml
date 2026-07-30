@@ -385,33 +385,21 @@
     <string name="map_title">Geographic efficiency</string>
     <string name="map_subtitle_all_loads">Across all driver loads (%1$d trips)</string>
     <string name="map_subtitle_my_week">My RPM · last 7 days · %1$d trip(s)</string>
-    <string name="map_period_week">Week</string>
-    <string name="map_period_month">Month</string>
-    <string name="map_period_year">Year</string>
-    <string name="map_subtitle_period_week">My RPM · week · %1$d trip(s)</string>
-    <string name="map_subtitle_period_month">My RPM · month · %1$d trip(s)</string>
-    <string name="map_subtitle_period_year">My RPM · year · %1$d trip(s)</string>
-    <string name="map_my_rates_hint">Map: avg $/mi outbound by state. Tap a state for recent rates.</string>
+    <string name="map_my_rates_hint">Heatmap = your average $/mile outbound from each state this week. Tap a state to see recent rates — an hour ago, yesterday, 2 days ago…</string>
     <string name="map_crowd_source_network">community</string>
-    <string name="map_crowd_state_header">%1$s (%2$s) — your outbound</string>
-    <string name="map_crowd_state_avg">Avg RPM: $%1$s/mi · %2$d trip(s)</string>
-    <string name="map_crowd_recent_title">Recent rates from this state</string>
+    <string name="map_crowd_state_header">%1$s (%2$s) — your outbound this week</string>
+    <string name="map_crowd_state_avg">Avg outbound RPM: $%1$s/mi · %2$d trip(s)</string>
+    <string name="map_crowd_recent_title">Your recent rates from this state</string>
     <string name="map_crowd_recent_empty">No loads from this state in the last week.</string>
-    <string name="map_crowd_recent_empty_week">No loads from this state this week.</string>
-    <string name="map_crowd_recent_empty_month">No loads from this state this month.</string>
-    <string name="map_crowd_recent_empty_year">No loads from this state this year.</string>
     <string name="map_my_recent_row">%1$s → %2$s · $%3$s/mi · %4$s</string>
     <string name="map_crowd_age_minutes">%1$d min ago</string>
     <string name="map_crowd_age_hours">%1$d h ago</string>
     <string name="map_crowd_age_days">%1$d d ago</string>
     <string name="map_crowd_top_lanes">Your top lanes this week</string>
-    <string name="map_crowd_top_lanes_week">Top lanes · week</string>
-    <string name="map_crowd_top_lanes_month">Top lanes · month</string>
-    <string name="map_crowd_top_lanes_year">Top lanes · year</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
 
     <string name="friends_live_map_title">Friends on map</string>
-    <string name="friends_live_map_subtitle">Where you are now</string>
+    <string name="friends_live_map_subtitle">Live markers · path on demand</string>
     <string name="friends_share_path_toggle">Show my path to friends</string>
     <string name="friends_share_path_hint">Off = do not send GPS or path history to Supabase</string>
     <string name="friends_live_need_supabase">Requires Supabase sign-in (LOCAL_ONLY_MODE=false + URL/key). Apply the friends live SQL migration.</string>
@@ -430,9 +418,9 @@
     <string name="friends_my_nickname_hint">Friends find you in Truck Log by this handle</string>
     <string name="friends_nickname_label">Nickname</string>
     <string name="friends_nickname_placeholder">e.g. DriverPro</string>
+    <string name="friends_nickname_save">Save</string>
     <string name="friends_add_nickname_button">Add nickname</string>
     <string name="friends_change_nickname_button">Change nickname</string>
-    <string name="friends_nickname_save">Save</string>
     <string name="friends_nickname_invalid">Nickname: 3–24 chars, start with a letter, letters/digits/_ only</string>
     <string name="friends_nickname_saved">Nickname saved</string>
     <string name="friends_my_nickname_current">Your handle: @%1$s</string>
@@ -461,10 +449,6 @@
     <string name="friends_map_legend">Green — you · orange — friends online</string>
     <string name="friends_me_marker">Me</string>
     <string name="friends_center_on_me">Center on me</string>
-    <string name="friends_map_tap_open">Tap to open the full map</string>
-    <string name="friends_map_close">Close map</string>
-    <string name="friends_manage_section">Friends &amp; sharing</string>
-    <string name="friends_online_count">Online: %1$d</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>
@@ -533,23 +517,6 @@
     <string name="add_load_saving">Saving…</string>
     <string name="add_load_save_offline">Save in app (offline)</string>
     <string name="add_load_hint_online">Paste a message and tap Save — data goes straight to the local database.</string>
-    <string name="load_alarm_offer_title">Set a load alarm?</string>
-    <string name="load_alarm_offer_message">Load %1$s has not started yet. Start: %2$s.\nWant a reminder?</string>
-    <string name="load_alarm_offer_message_no_trip">The load has not started yet. Start: %1$s.\nWant a reminder?</string>
-    <string name="load_alarm_option_2h">2 hours before start</string>
-    <string name="load_alarm_option_1h">1 hour before start</string>
-    <string name="load_alarm_option_custom">Custom time…</string>
-    <string name="load_alarm_skip">No thanks</string>
-    <string name="load_alarm_set">Set alarm</string>
-    <string name="load_alarm_set_toast">Alarm set</string>
-    <string name="load_alarm_custom_date_title">Alarm date</string>
-    <string name="load_alarm_custom_time_title">Alarm time</string>
-    <string name="load_alarm_invalid_custom_time">Pick a time in the future and before load start</string>
-    <string name="load_alarm_notify_title">Time to prepare for pickup</string>
-    <string name="load_alarm_notify_body">Load %1$s — starts %2$s</string>
-    <string name="load_alarm_notify_body_no_trip">Load starts: %1$s</string>
-    <string name="load_alarm_channel_name">Load alarms</string>
-    <string name="load_alarm_channel_desc">Reminders before pickup</string>
     <string name="edit_load_title">Edit load</string>
     <string name="edit_load_save_changes">Save changes</string>
     <string name="edit_load_added_at">Added: %1$s</string>
@@ -735,8 +702,6 @@
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
     <string name="settings_telegram_test">Test</string>
     <string name="settings_telegram_saved">Token saved, bot restarted</string>
-    <string name="settings_telegram_status_active">Bot is listening for messages</string>
-    <string name="settings_telegram_status_inactive">Bot is not running</string>
     <string name="settings_telegram_ok">✅ Bot @%1$s — token is valid</string>
     <string name="settings_telegram_invalid">❌ Invalid token (401). @BotFather → /mybots → API Token → Revoke → copy the new one</string>
     <string name="settings_telegram_token_missing">Enter the bot token in Telegram settings</string>
@@ -815,7 +780,6 @@
     <string name="maintenance_error_amount">Enter amount</string>
     <string name="notify_maintenance_title">Maintenance reminder</string>
     <string name="notify_maintenance_body">%1$s — time to service the truck</string>
-    <string name="notify_maintenance_body_multi">%1$d tasks: %2$s</string>
 
     <string name="notify_add_paycheck_title">Add paycheck</string>
     <string name="notify_add_diesel_title">Add diesel</string>
@@ -902,10 +866,10 @@
     <string name="auto_restore_success">✅ Data restored. Loads: %1$d</string>
     <string name="auto_restore_failed">Could not restore: %1$s</string>
     <string name="auto_restore_no_file">Auto-backup not found</string>
-    <string name="telegram_bot_channel_name">Background sync</string>
-    <string name="telegram_bot_channel_desc">Quiet Telegram sync status</string>
-    <string name="telegram_bot_notification_title">Truck Log</string>
-    <string name="telegram_bot_notification_text">Telegram sync</string>
+    <string name="telegram_bot_channel_name">Telegram bot</string>
+    <string name="telegram_bot_channel_desc">Background sync of messages from Telegram</string>
+    <string name="telegram_bot_notification_title">Truck Log — bot active</string>
+    <string name="telegram_bot_notification_text">Listening for Telegram messages</string>
 
     <string name="export_share_chooser">Share</string>
     <string name="export_saved_to_folder">Report saved to %1$s folder</string>

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,12 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PersonAdd
@@ -40,7 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -56,14 +50,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -88,7 +79,6 @@ import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
-import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -138,8 +128,6 @@ fun FriendsLiveMapScreen(
 
     var myLocation by remember { mutableStateOf<LatLng?>(null) }
     var centerOnMeNonce by remember { mutableIntStateOf(0) }
-    var mapExpanded by remember { mutableStateOf(false) }
-    var manageExpanded by remember { mutableStateOf(false) }
     val locationHelper = remember(context) { com.truckerload.utils.LocationHelper(context) }
     val scope = rememberCoroutineScope()
 
@@ -152,6 +140,7 @@ fun FriendsLiveMapScreen(
         return LatLng(lat, lng).also { myLocation = it }
     }
 
+    // Ask for location once so we can show "me" on the map (independent of share toggle).
     LaunchedEffect(Unit) {
         if (!hasLocationPermission) {
             permissionLauncher.launch(
@@ -177,34 +166,6 @@ fun FriendsLiveMapScreen(
         } else {
             FriendsLocationShareService.stop(context)
         }
-    }
-
-    if (mapExpanded) {
-        FullscreenFriendsMapDialog(
-            overlays = uiState.friends,
-            selectedFriendId = uiState.selectedFriendId,
-            myLocation = myLocation,
-            showMyLocationLayer = hasLocationPermission,
-            centerOnMeNonce = centerOnMeNonce,
-            isLoading = uiState.isLoading && uiState.friends.isEmpty() && myLocation == null,
-            onDismiss = { mapExpanded = false },
-            onMarkerClick = viewModel::selectFriend,
-            onCenterMe = {
-                if (!hasLocationPermission) {
-                    permissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                        ),
-                    )
-                    return@FullscreenFriendsMapDialog
-                }
-                scope.launch {
-                    refreshMyLocation()
-                    centerOnMeNonce += 1
-                }
-            },
-        )
     }
 
     Scaffold(
@@ -247,7 +208,7 @@ fun FriendsLiveMapScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item {
                 Row(
@@ -255,12 +216,18 @@ fun FriendsLiveMapScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(
-                        text = stringResource(R.string.friends_share_path_toggle),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.friends_share_path_toggle),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = tc.TextPrimary,
+                        )
+                        Text(
+                            text = stringResource(R.string.friends_share_path_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                        )
+                    }
                     Switch(
                         checked = uiState.sharePathEnabled,
                         onCheckedChange = { enabled ->
@@ -277,12 +244,43 @@ fun FriendsLiveMapScreen(
                         colors = AppSwitchDefaults.colors(),
                     )
                 }
+                if (!uiState.sharePathEnabled) {
+                    Text(
+                        text = stringResource(R.string.friends_share_off_map_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
                 if (!hasLocationPermission) {
                     Text(
                         text = stringResource(R.string.friends_need_location_permission),
                         style = MaterialTheme.typography.bodySmall,
                         color = tc.AccentPrimary,
                         modifier = Modifier.padding(top = 4.dp),
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            permissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                ),
+                            )
+                        },
+                        modifier = Modifier.padding(top = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.friends_grant_location))
+                    }
+                }
+            }
+
+            if (!uiState.supabaseReady) {
+                item {
+                    Text(
+                        text = stringResource(R.string.friends_live_need_supabase),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.AccentPrimary,
                     )
                 }
             }
@@ -293,397 +291,371 @@ fun FriendsLiveMapScreen(
                 }
             }
 
-            // Compact preview: only "me". Tap opens the full map.
             item {
-                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(16.dp)),
-                        ) {
-                            // Avoid two live MapViews at once (preview + fullscreen).
-                            if (!mapExpanded) {
-                                FriendsGoogleMap(
-                                    overlays = emptyList(),
-                                    selectedFriendId = null,
-                                    myLocation = myLocation,
-                                    showMyLocationLayer = hasLocationPermission,
-                                    centerOnMeNonce = 0,
-                                    interactive = false,
-                                    onMarkerClick = {},
-                                )
-                            }
-                            // Overlay captures the tap; MapView would otherwise eat it.
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable { mapExpanded = true },
-                            )
-                            if (uiState.isLoading && myLocation == null && !mapExpanded) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center),
-                                    color = tc.AccentPrimary,
-                                )
-                            }
-                        }
-                        Text(
-                            text = stringResource(R.string.friends_map_tap_open),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = tc.TextSecondary,
-                            modifier = Modifier.padding(top = 8.dp),
-                        )
-                        if (uiState.friends.isNotEmpty()) {
-                            Text(
-                                text = stringResource(R.string.friends_online_count, uiState.friends.size),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = tc.TextSecondary,
-                                modifier = Modifier.padding(top = 2.dp),
-                            )
-                        }
+                val hasNick = uiState.myNickname.isNotBlank()
+                var editingNickname by remember { mutableStateOf(!hasNick) }
+                LaunchedEffect(uiState.myNickname, uiState.nicknameMessage) {
+                    if (uiState.myNickname.isBlank()) {
+                        editingNickname = true
+                    } else if (uiState.nicknameMessage == "saved" || uiState.nicknameMessage == "saved_local") {
+                        editingNickname = false
                     }
                 }
-            }
-
-            item {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { manageExpanded = !manageExpanded },
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(14.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.friends_manage_section),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = tc.TextPrimary,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Icon(
-                            if (manageExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = null,
-                            tint = tc.TextSecondary,
-                        )
-                    }
-                }
-            }
-
-            if (manageExpanded) {
-                item {
-                    FriendsManageSection(
-                        uiState = uiState,
-                        viewModel = viewModel,
-                        context = context,
-                    )
-                }
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
-        }
-    }
-}
-
-@Composable
-private fun FriendsManageSection(
-    uiState: FriendsLiveMapUiState,
-    viewModel: FriendsLiveMapViewModel,
-    context: android.content.Context,
-) {
-    val tc = LocalTruckColors.current
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (!uiState.supabaseReady) {
-            Text(
-                text = stringResource(R.string.friends_live_need_supabase),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.AccentPrimary,
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.friends_my_nickname_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = uiState.nicknameDraft,
-                onValueChange = viewModel::setNicknameDraft,
-                label = { Text(stringResource(R.string.friends_nickname_label)) },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                colors = AppTextFieldDefaults.outlined(),
-            )
-            Button(onClick = { viewModel.saveNickname() }) {
-                Text(stringResource(R.string.friends_nickname_save))
-            }
-        }
-        when (uiState.nicknameMessage) {
-            "invalid" -> Text(
-                stringResource(R.string.friends_nickname_invalid),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            "saved", "saved_local" -> Text(
-                stringResource(R.string.friends_nickname_saved),
-                color = tc.AccentPrimary,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.friends_add_by_nickname_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = viewModel::setSearchQuery,
-                label = { Text(stringResource(R.string.friends_search_nickname_label)) },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                colors = AppTextFieldDefaults.outlined(),
-            )
-            Button(
-                onClick = { viewModel.searchFriend() },
-                enabled = !uiState.searchBusy,
-            ) {
-                if (uiState.searchBusy) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Icon(Icons.Default.PersonAdd, contentDescription = null)
-                }
-            }
-        }
-        uiState.searchHit?.let { hit ->
-            Text(
-                text = stringResource(R.string.friends_found, hit.displayName, hit.nickname),
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextPrimary,
-            )
-            Button(onClick = { viewModel.addSearchedFriend() }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.friends_add_button))
-            }
-        }
-        if (uiState.searchNotFound || uiState.statusMessage == "not_found") {
-            Text(
-                text = stringResource(R.string.friends_not_in_app),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-            OutlinedButton(
-                onClick = {
-                    val share = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.friends_invite_share_text))
-                    }
-                    context.startActivity(
-                        Intent.createChooser(share, context.getString(R.string.friends_invite_share_title)),
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
-                Text(stringResource(R.string.friends_invite_share_button))
-            }
-        }
-
-        OutlinedButton(onClick = { viewModel.setShowOverlapsPanel(!uiState.showOverlapsPanel) }) {
-            Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
-            Text(stringResource(R.string.friends_overlap_button))
-        }
-        if (uiState.showOverlapsPanel) {
-            if (uiState.overlaps.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.friends_overlap_empty),
+                    text = stringResource(R.string.friends_my_nickname_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                )
+                Text(
+                    text = stringResource(R.string.friends_my_nickname_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = tc.TextSecondary,
                 )
-            } else {
-                uiState.overlaps.forEach { match ->
+                if (!editingNickname && hasNick) {
                     Text(
-                        text = "${match.friendDisplayName}: ${match.reason}",
+                        text = stringResource(R.string.friends_my_nickname_current, uiState.myNickname),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = tc.AccentPrimary,
+                        modifier = Modifier.padding(vertical = 6.dp),
+                    )
+                    OutlinedButton(
+                        onClick = { editingNickname = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.friends_change_nickname_button))
+                    }
+                } else {
+                    OutlinedTextField(
+                        value = uiState.nicknameDraft,
+                        onValueChange = viewModel::setNicknameDraft,
+                        label = { Text(stringResource(R.string.friends_nickname_label)) },
+                        placeholder = { Text(stringResource(R.string.friends_nickname_placeholder)) },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        colors = AppTextFieldDefaults.outlined(),
+                    )
+                    Button(
+                        onClick = { viewModel.saveNickname() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                    ) {
+                        Text(
+                            if (hasNick) {
+                                stringResource(R.string.friends_nickname_save)
+                            } else {
+                                stringResource(R.string.friends_add_nickname_button)
+                            },
+                        )
+                    }
+                    if (hasNick) {
+                        OutlinedButton(
+                            onClick = { editingNickname = false },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.common_cancel))
+                        }
+                    }
+                }
+                when (uiState.nicknameMessage) {
+                    "invalid" -> Text(
+                        stringResource(R.string.friends_nickname_invalid),
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    "saved", "saved_local" -> Text(
+                        stringResource(R.string.friends_nickname_saved),
+                        color = tc.AccentPrimary,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
             }
-        }
 
-        Text(
-            text = stringResource(R.string.friends_sharing_list_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        if (uiState.shareLinks.isEmpty()) {
-            Text(
-                text = stringResource(R.string.friends_sharing_list_empty),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-        }
-        uiState.shareLinks.forEach { link ->
-            FriendShareRow(
-                link = link,
-                editing = uiState.editingFriendId == link.friendUserId,
-                onEdit = { viewModel.setEditingFriend(link.friendUserId) },
-                onCloseEdit = { viewModel.setEditingFriend(null) },
-                onSavePrefs = { loc, route ->
-                    viewModel.updateSharePrefs(link.friendUserId, loc, route)
-                },
-                onDelete = { viewModel.removeFriend(link.friendUserId) },
-                onFocusMap = {
-                    viewModel.selectFriend(link.friendUserId)
-                    viewModel.toggleShowPath(link.friendUserId)
-                },
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.friends_list_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        if (uiState.friends.isEmpty()) {
-            Text(
-                text = stringResource(R.string.friends_list_empty),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-        }
-        uiState.friends.forEach { friend ->
-            val selected = friend.presence.userId == uiState.selectedFriendId
-            Column(modifier = Modifier.fillMaxWidth()) {
+            item {
                 Text(
-                    text = friend.presence.displayName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (selected) tc.AccentPrimary else tc.TextPrimary,
+                    text = stringResource(R.string.friends_add_by_nickname_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
                 )
-                friend.route?.let { route ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = viewModel::setSearchQuery,
+                        label = { Text(stringResource(R.string.friends_search_nickname_label)) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        colors = AppTextFieldDefaults.outlined(),
+                    )
+                    Button(
+                        onClick = { viewModel.searchFriend() },
+                        enabled = !uiState.searchBusy,
+                    ) {
+                        if (uiState.searchBusy) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.PersonAdd, contentDescription = null)
+                        }
+                    }
+                }
+                uiState.searchHit?.let { hit ->
                     Text(
-                        text = "${route.originLabel} → ${route.destinationLabel}",
+                        text = stringResource(R.string.friends_found, hit.displayName, hit.nickname),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextPrimary,
+                    )
+                    Button(onClick = { viewModel.addSearchedFriend() }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.friends_add_button))
+                    }
+                }
+                if (uiState.searchNotFound || uiState.statusMessage == "not_found") {
+                    Text(
+                        text = stringResource(R.string.friends_not_in_app),
                         style = MaterialTheme.typography.bodySmall,
                         color = tc.TextSecondary,
                     )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = friend.showPath,
-                        onClick = { viewModel.toggleShowPath(friend.presence.userId) },
-                        label = {
-                            Text(
-                                if (friend.showPath) {
-                                    stringResource(R.string.friends_hide_path)
-                                } else {
-                                    stringResource(R.string.friends_show_path)
-                                },
+                    OutlinedButton(
+                        onClick = {
+                            val share = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    context.getString(R.string.friends_invite_share_text),
+                                )
+                            }
+                            context.startActivity(
+                                Intent.createChooser(share, context.getString(R.string.friends_invite_share_title)),
                             )
                         },
-                        colors = AppFilterChipDefaults.colors(),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                        Text(stringResource(R.string.friends_invite_share_button))
+                    }
+                }
+                when (uiState.statusMessage) {
+                    "added" -> Text(
+                        stringResource(R.string.friends_added_ok),
+                        color = tc.AccentPrimary,
+                        style = MaterialTheme.typography.bodySmall,
                     )
-                    FilterChip(
-                        selected = selected,
-                        onClick = { viewModel.selectFriend(friend.presence.userId) },
-                        label = { Text(stringResource(R.string.friends_focus)) },
-                        colors = AppFilterChipDefaults.colors(),
+                    "invalid_search" -> Text(
+                        stringResource(R.string.friends_nickname_invalid),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    "need_supabase" -> Text(
+                        stringResource(R.string.friends_live_need_supabase),
+                        color = tc.AccentPrimary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    "self" -> Text(
+                        stringResource(R.string.friends_cannot_add_self),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
-        }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FullscreenFriendsMapDialog(
-    overlays: List<FriendMapOverlay>,
-    selectedFriendId: String?,
-    myLocation: LatLng?,
-    showMyLocationLayer: Boolean,
-    centerOnMeNonce: Int,
-    isLoading: Boolean,
-    onDismiss: () -> Unit,
-    onMarkerClick: (String) -> Unit,
-    onCenterMe: () -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false,
-        ),
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = BentoGlassTheme.ScreenBackground,
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                FriendsGoogleMap(
-                    overlays = overlays,
-                    selectedFriendId = selectedFriendId,
-                    myLocation = myLocation,
-                    showMyLocationLayer = showMyLocationLayer,
-                    centerOnMeNonce = centerOnMeNonce,
-                    interactive = true,
-                    onMarkerClick = onMarkerClick,
-                )
-                IconButton(
-                    onClick = onDismiss,
+            item {
+                Box(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(12.dp)
-                        .size(UiDimens.ToolbarTouchTarget),
+                        .fillMaxWidth()
+                        .height(280.dp),
                 ) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = stringResource(R.string.friends_map_close),
-                        tint = tc.TextPrimary,
+                    FriendsGoogleMap(
+                        overlays = uiState.friends,
+                        selectedFriendId = uiState.selectedFriendId,
+                        myLocation = myLocation,
+                        showMyLocationLayer = hasLocationPermission,
+                        centerOnMeNonce = centerOnMeNonce,
+                        onMarkerClick = viewModel::selectFriend,
                     )
-                }
-                FloatingActionButton(
-                    onClick = onCenterMe,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(20.dp),
-                    containerColor = tc.AccentPrimary,
-                    contentColor = tc.Background,
-                ) {
-                    Icon(
-                        Icons.Default.MyLocation,
-                        contentDescription = stringResource(R.string.friends_center_on_me),
-                    )
+                    FloatingActionButton(
+                        onClick = {
+                            if (!hasLocationPermission) {
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    ),
+                                )
+                                return@FloatingActionButton
+                            }
+                            scope.launch {
+                                refreshMyLocation()
+                                centerOnMeNonce += 1
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(12.dp),
+                        containerColor = tc.AccentPrimary,
+                        contentColor = tc.Background,
+                    ) {
+                        Icon(
+                            Icons.Default.MyLocation,
+                            contentDescription = stringResource(R.string.friends_center_on_me),
+                        )
+                    }
+                    if (uiState.isLoading && uiState.friends.isEmpty() && myLocation == null) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = tc.AccentPrimary,
+                        )
+                    }
                 }
                 Text(
                     text = stringResource(R.string.friends_map_legend),
                     style = MaterialTheme.typography.labelSmall,
                     color = tc.TextSecondary,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = tc.AccentPrimary,
+            }
+
+            item {
+                OutlinedButton(onClick = { viewModel.setShowOverlapsPanel(!uiState.showOverlapsPanel) }) {
+                    Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                    Text(stringResource(R.string.friends_overlap_button))
+                }
+            }
+
+            if (uiState.showOverlapsPanel) {
+                item {
+                    Text(
+                        text = stringResource(R.string.friends_overlap_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = tc.TextPrimary,
+                    )
+                    if (uiState.overlaps.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.friends_overlap_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                }
+                items(uiState.overlaps, key = { it.friendUserId }) { match ->
+                    Text(
+                        text = "${match.friendDisplayName}: ${match.reason}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                    )
+                    OutlinedButton(onClick = {
+                        viewModel.selectFriend(match.friendUserId)
+                        viewModel.toggleShowPath(match.friendUserId)
+                    }) {
+                        Text(stringResource(R.string.friends_show_path))
+                    }
+                }
+            }
+
+            item {
+                Text(
+                    text = stringResource(R.string.friends_sharing_list_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                )
+                Text(
+                    text = stringResource(R.string.friends_sharing_list_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                )
+            }
+
+            if (uiState.shareLinks.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.friends_sharing_list_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
                     )
                 }
             }
+
+            items(uiState.shareLinks, key = { it.friendUserId }) { link ->
+                FriendShareRow(
+                    link = link,
+                    editing = uiState.editingFriendId == link.friendUserId,
+                    onEdit = { viewModel.setEditingFriend(link.friendUserId) },
+                    onCloseEdit = { viewModel.setEditingFriend(null) },
+                    onSavePrefs = { loc, route ->
+                        viewModel.updateSharePrefs(link.friendUserId, loc, route)
+                    },
+                    onDelete = { viewModel.removeFriend(link.friendUserId) },
+                    onFocusMap = {
+                        viewModel.selectFriend(link.friendUserId)
+                        viewModel.toggleShowPath(link.friendUserId)
+                    },
+                )
+            }
+
+            item {
+                Text(
+                    text = stringResource(R.string.friends_list_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                )
+            }
+
+            if (uiState.friends.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.friends_list_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                    )
+                }
+            }
+
+            items(uiState.friends, key = { "live_${it.presence.userId}" }) { friend ->
+                val selected = friend.presence.userId == uiState.selectedFriendId
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = friend.presence.displayName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (selected) tc.AccentPrimary else tc.TextPrimary,
+                    )
+                    friend.route?.let { route ->
+                        Text(
+                            text = "${route.originLabel} → ${route.destinationLabel}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = friend.showPath,
+                            onClick = { viewModel.toggleShowPath(friend.presence.userId) },
+                            label = {
+                                Text(
+                                    if (friend.showPath) {
+                                        stringResource(R.string.friends_hide_path)
+                                    } else {
+                                        stringResource(R.string.friends_show_path)
+                                    },
+                                )
+                            },
+                            colors = AppFilterChipDefaults.colors(),
+                        )
+                        FilterChip(
+                            selected = selected,
+                            onClick = { viewModel.selectFriend(friend.presence.userId) },
+                            label = { Text(stringResource(R.string.friends_focus)) },
+                            colors = AppFilterChipDefaults.colors(),
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 }
@@ -784,7 +756,6 @@ private fun FriendsGoogleMap(
     showMyLocationLayer: Boolean,
     centerOnMeNonce: Int,
     onMarkerClick: (String) -> Unit,
-    interactive: Boolean = true,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val meLabel = stringResource(R.string.friends_me_marker)
@@ -810,18 +781,14 @@ private fun FriendsGoogleMap(
         }
     }
 
-    LaunchedEffect(overlays, selectedFriendId, myLocation, showMyLocationLayer, interactive, mapView) {
+    LaunchedEffect(overlays, selectedFriendId, myLocation, showMyLocationLayer, mapView) {
         val map = mapView ?: return@LaunchedEffect
         map.getMapAsync { googleMap ->
             googleMap.clear()
-            googleMap.uiSettings.isZoomControlsEnabled = interactive
-            googleMap.uiSettings.isScrollGesturesEnabled = interactive
-            googleMap.uiSettings.isZoomGesturesEnabled = interactive
-            googleMap.uiSettings.isRotateGesturesEnabled = interactive
-            googleMap.uiSettings.isTiltGesturesEnabled = interactive
+            googleMap.uiSettings.isZoomControlsEnabled = true
             googleMap.uiSettings.isMyLocationButtonEnabled = false
             runCatching {
-                googleMap.isMyLocationEnabled = showMyLocationLayer && interactive
+                googleMap.isMyLocationEnabled = showMyLocationLayer
             }
             myLocation?.let { me ->
                 googleMap.addMarker(
@@ -868,7 +835,6 @@ private fun FriendsGoogleMap(
                 }
             }
             googleMap.setOnMarkerClickListener { marker ->
-                if (!interactive) return@setOnMarkerClickListener true
                 (marker.tag as? String)?.let(onMarkerClick)
                 false
             }

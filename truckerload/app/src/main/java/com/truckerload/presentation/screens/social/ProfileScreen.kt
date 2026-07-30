@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,18 +56,25 @@ import com.truckerload.R
 import com.truckerload.data.backup.GoogleDriveBackupPrefs
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthProvider
+import com.truckerload.data.remote.SupabaseFriendsRealtimeService
+import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.geo.CountryCatalog
 import java.util.Locale
 import com.truckerload.domain.social.EnhancedDriverProfile
+import com.truckerload.presentation.components.TlButton
+import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import kotlinx.coroutines.launch
+import androidx.compose.material3.OutlinedTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,29 +156,162 @@ fun ProfileScreen(
                 .padding(padding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item(key = "profile_header") {
+            item {
                 PremiumProfileHeader(
                     profile = profile,
                     isUploadingAvatar = uiState.isUploadingAvatar,
                     onAvatarClick = { showAvatarPicker = true },
                 )
             }
-            item(key = "profile_auth") { ProfileAuthSyncSection() }
-            item(key = "profile_stats") { PremiumStatsRow(profile) }
+            item { ProfileNicknameSection() }
+            item { ProfileAuthSyncSection() }
+            item { PremiumStatsRow(profile) }
             if (profile.badges.isNotEmpty()) {
-                item(key = "profile_badges") { ProfileBadgesSection(profile) }
+                item { ProfileBadgesSection(profile) }
             }
             if (profile.about.isNotBlank()) {
-                item(key = "profile_about") { ProfileAboutSection(profile.about) }
+                item { ProfileAboutSection(profile.about) }
             }
             if (profile.preferredRoutes.isNotEmpty() || profile.homeState.isNotBlank()) {
-                item(key = "profile_territory") { ProfileTerritorySection(profile) }
+                item { ProfileTerritorySection(profile) }
             }
             if (profile.followers > 0 || profile.following > 0) {
-                item(key = "profile_social") { ProfileSocialSection(profile) }
+                item { ProfileSocialSection(profile) }
             }
             if (profile.phoneNumber != null || profile.telegramUsername != null) {
-                item(key = "profile_contacts") { ProfileContactsSection(profile) }
+                item { ProfileContactsSection(profile) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileNicknameSection() {
+    val tc = LocalTruckColors.current
+    val userProfileStore = LocalUserProfileStore.current
+    val authStore = LocalAuthStore.current
+    val authProfile by userProfileStore.profile.collectAsStateWithLifecycle()
+    val friendsApi = remember(authStore) { SupabaseFriendsRealtimeService(authStore) }
+    var draft by remember(authProfile?.nickname) { mutableStateOf(authProfile?.nickname.orEmpty()) }
+    var editing by remember { mutableStateOf(authProfile?.nickname.isNullOrBlank()) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val currentNick = authProfile?.nickname.orEmpty()
+
+    BentoGlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.friends_my_nickname_title),
+                style = AppTypography.CardTitle,
+                color = tc.TextPrimary,
+            )
+            Text(
+                text = stringResource(R.string.friends_my_nickname_hint),
+                style = AppTypography.Subtitle,
+                color = tc.TextSecondary,
+            )
+            if (!editing && currentNick.isNotBlank()) {
+                Text(
+                    text = stringResource(R.string.friends_my_nickname_current, currentNick),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = tc.AccentPrimary,
+                )
+                TlOutlinedButton(
+                    onClick = {
+                        draft = currentNick
+                        editing = true
+                        message = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.friends_change_nickname_button))
+                }
+            } else {
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = {
+                        draft = it
+                        message = null
+                    },
+                    label = { Text(stringResource(R.string.friends_nickname_label)) },
+                    placeholder = { Text(stringResource(R.string.friends_nickname_placeholder)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = AppTextFieldDefaults.outlined(),
+                )
+                TlButton(
+                    onClick = {
+                        val handle = NicknameValidator.sanitizeOrNull(draft)
+                        if (handle == null) {
+                            message = "invalid"
+                            return@TlButton
+                        }
+                        busy = true
+                        scope.launch {
+                            val result = if (friendsApi.isConfigured()) {
+                                friendsApi.upsertMyNickname(handle, authProfile?.displayName)
+                            } else {
+                                Result.success(Unit)
+                            }
+                            busy = false
+                            if (result.isFailure) {
+                                message = result.exceptionOrNull()?.message ?: "error"
+                                return@launch
+                            }
+                            val current = userProfileStore.profile.value
+                            if (current != null) {
+                                userProfileStore.saveProfile(current.copy(nickname = handle))
+                            }
+                            message = "saved"
+                            editing = false
+                        }
+                    },
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        if (currentNick.isBlank()) {
+                            stringResource(R.string.friends_add_nickname_button)
+                        } else {
+                            stringResource(R.string.friends_nickname_save)
+                        },
+                    )
+                }
+                if (currentNick.isNotBlank()) {
+                    TlOutlinedButton(
+                        onClick = {
+                            draft = currentNick
+                            editing = false
+                            message = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.common_cancel))
+                    }
+                }
+            }
+            val feedback = message
+            when (feedback) {
+                "invalid" -> Text(
+                    stringResource(R.string.friends_nickname_invalid),
+                    color = MaterialTheme.colorScheme.error,
+                    style = AppTypography.Subtitle,
+                )
+                "saved" -> Text(
+                    stringResource(R.string.friends_nickname_saved),
+                    color = tc.AccentPrimary,
+                    style = AppTypography.Subtitle,
+                )
+                null -> Unit
+                else -> Text(feedback, color = MaterialTheme.colorScheme.error, style = AppTypography.Subtitle)
             }
         }
     }
