@@ -731,7 +731,9 @@
     <string name="widget_loading_hint">Загрузка KPI…</string>
     <string name="widget_metric_cpm">Цена за милю</string>
     <string name="settings_restore_error">Ошибка: %1$s</string>
-    <string name="settings_telegram_title">Telegram бот</string>
+        <string name="settings_telegram_status_active">Бот отслеживает сообщения</string>
+    <string name="settings_telegram_status_inactive">Бот не запущен</string>
+<string name="settings_telegram_title">Telegram бот</string>
     <string name="settings_telegram_desc">Токен от @BotFather (/newbot или /token). Если бот не отвечает — токен, скорее всего, отозван: выпустите новый и нажмите «Проверить».</string>
     <string name="settings_telegram_token_label">BOT TOKEN</string>
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
