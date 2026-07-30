@@ -8,6 +8,11 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.presentation.screens.auth.SignUpScreen
 import com.truckerload.presentation.screens.login.LoginScreen
 
+/**
+ * Auth gate before the main app.
+ * Android: Google or email/password. Sessions persist across launches.
+ * iOS (planned): Sign in with Apple / iCloud.
+ */
 @Composable
 fun AuthNavHost(
     authStore: AuthStore,

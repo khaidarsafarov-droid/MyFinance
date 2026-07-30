@@ -40,7 +40,25 @@ class GoogleSessionPersistTest {
     }
 
     @Test
-    fun localOnlySilentRestoreDoesNotTouchCredentialManagerPath() {
+    fun emailLoginPersistsEvenWhenRememberMeFalse() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+
+        auth.login(
+            userId = "local_email_persist_1",
+            email = "driver@example.com",
+            rememberMe = false,
+            provider = AuthProvider.EMAIL,
+        )
+
+        assertTrue(auth.isLoggedIn.value)
+        assertEquals(AuthProvider.EMAIL, auth.authProvider())
+        assertEquals("local_email_persist_1", auth.currentUserIdOrNull())
+        assertTrue(auth.sessionOrNull() != null)
+    }
+
+    @Test
+    fun googleSilentRestoreKeepsLocalSessionWithoutCredentialManager() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)
         val profile = UserProfileStore(context)
@@ -53,12 +71,13 @@ class GoogleSessionPersistTest {
             provider = AuthProvider.GOOGLE,
         )
 
-        // LOCAL_ONLY_MODE is true in this workspace build — restore must stay VERIFIED
-        // without launching Credential Manager (regression for "Google every launch").
+        // Must not launch Credential Manager; offline → OFFLINE_LOCAL, otherwise VERIFIED.
         val health = kotlinx.coroutines.runBlocking {
             SilentAuthRestorer.restore(context, auth, profile)
         }
-        assertEquals(AuthSessionHealth.VERIFIED, health)
+        assertTrue(
+            health == AuthSessionHealth.VERIFIED || health == AuthSessionHealth.OFFLINE_LOCAL,
+        )
         assertTrue(auth.isLoggedIn.value)
         assertFalse(auth.userId.value.isNullOrBlank())
     }

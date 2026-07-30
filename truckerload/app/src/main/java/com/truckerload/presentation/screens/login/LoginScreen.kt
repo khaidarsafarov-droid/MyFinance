@@ -26,8 +26,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.GoogleSignInButton
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -169,7 +167,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    var rememberMe by remember { mutableStateOf(true) }
+    val rememberMe = true
     val emailFocus = remember { FocusRequester() }
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
@@ -537,17 +535,12 @@ fun LoginScreen(
                                 colors = AppTextFieldDefaults.outlined()
                             )
                             error?.let { Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = rememberMe,
-                                    onCheckedChange = { rememberMe = it },
-                                    colors = CheckboxDefaults.colors(checkedColor = tc.AccentPrimary)
-                                )
-                                Text(stringResource(R.string.auth_remember_me), style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary, modifier = Modifier.clickable { rememberMe = !rememberMe })
-                            }
+                            Text(
+                                text = stringResource(R.string.login_auth_only_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(vertical = 8.dp),
+                            )
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
                                 onClick = { if (!isLoading) performEmailLogin() },

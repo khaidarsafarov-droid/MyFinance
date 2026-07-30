@@ -145,6 +145,9 @@ class AuthStore(context: Context) {
 
     /**
      * Starts a multi-user session. Each [userId] gets its own Room DB and preference namespaces.
+     *
+     * Google and email sessions always survive app restarts (normal app behavior).
+     * Only [AuthProvider.LOCAL] / ephemeral debug sessions can skip disk when [rememberMe] is false.
      */
     fun login(
         userId: String,
@@ -158,20 +161,23 @@ class AuthStore(context: Context) {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
         val mail = email.trim()
-        // Prefer encrypted token disk writes; if secure storage is unavailable, still
-        // persist identity so Google/email users are not forced to re-login every launch.
-        val canPersistSecrets = rememberMe &&
-            (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
-            !SecurePreferences.plaintextFallbackUsed
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider != AuthProvider.LOCAL -> provider
             id == AccountIds.LOCAL_DEV -> AuthProvider.LOCAL
             id.startsWith("local_") -> AuthProvider.EMAIL
+            id.startsWith("google_") -> AuthProvider.GOOGLE
+            // Supabase UUID without googleSub still counts as email/cloud auth
             else -> provider
         }
-        // Google OAuth always survives process death when the user completed sign-in.
-        val persistSession = rememberMe || resolvedProvider == AuthProvider.GOOGLE
+        // Real auth (Google / email) always persists identity across cold starts.
+        val isPersistentAuth = resolvedProvider == AuthProvider.GOOGLE ||
+            resolvedProvider == AuthProvider.EMAIL ||
+            !googleSub.isNullOrBlank()
+        val persistSession = rememberMe || isPersistentAuth
+        val canPersistSecrets = persistSession &&
+            (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
+            !SecurePreferences.plaintextFallbackUsed
         synchronized(lock) {
             liveUserId = id
             liveEmail = mail
@@ -203,7 +209,7 @@ class AuthStore(context: Context) {
                     else putString(KEY_GOOGLE_SUB, googleSub)
                 }
             } else {
-                // Ephemeral session: keep process-wide memory, clear disk so next cold start logs out.
+                // Ephemeral local-only session: memory for this process, cleared on next cold start.
                 prefs.edit {
                     remove(KEY_LOGGED_IN)
                     remove(KEY_USER_ID)

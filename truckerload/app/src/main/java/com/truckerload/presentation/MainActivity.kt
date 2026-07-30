@@ -31,6 +31,7 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
+import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
@@ -123,12 +124,16 @@ class MainActivity : AppCompatActivity() {
 
             LaunchedEffect(isLoggedIn, userId) {
                 sessionReady = false
-                if (BuildConfig.LOCAL_ONLY_MODE && (!isLoggedIn || userId.isNullOrBlank())) {
-                    authStore.login(
-                        userId = AccountIds.LOCAL_DEV,
-                        email = "local@device",
-                        rememberMe = true,
-                    )
+                // Auth-only entry: Google or email/password (Apple planned for iOS).
+                // Never auto-login as local_dev. Real sessions are restored from disk silently.
+                val provider = authStore.authProvider()
+                val isGuestLocal = provider == AuthProvider.LOCAL ||
+                    userId == AccountIds.LOCAL_DEV
+                if (isLoggedIn && isGuestLocal) {
+                    authStore.logout()
+                    userProfileStore.unbind()
+                    dependencies = null
+                    sessionReady = true
                     return@LaunchedEffect
                 }
                 if (isLoggedIn && !userId.isNullOrBlank()) {
