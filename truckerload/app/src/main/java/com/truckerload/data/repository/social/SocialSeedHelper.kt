@@ -1,4 +1,4 @@
-package com.truckerload.data.repository
+package com.truckerload.data.repository.social
 
 import com.truckerload.data.local.dao.ChatMemberDao
 import com.truckerload.data.local.dao.DriverStatusDao
@@ -9,7 +9,7 @@ import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.domain.social.StatusType
 import kotlinx.coroutines.flow.first
 
-internal class SocialSeedHelper(
+class SocialSeedHelper(
     private val chatDao: SocialChatDao,
     private val chatMemberDao: ChatMemberDao,
     private val driverStatusDao: DriverStatusDao,
