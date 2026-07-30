@@ -44,6 +44,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.withContext
+import com.truckerload.data.local.entities.LoadDateRow
+import com.truckerload.data.local.entities.LoadMileageRow
 import java.io.File
 import java.util.Locale
 
@@ -85,7 +88,9 @@ class LoadRepository(
         loadDao.watchWeeklyLoadStats(weekNumber, year).flowOn(Dispatchers.IO)
 
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg =
-        loadDao.getWeeklyLoadStatsOnce(weekNumber, year)
+        withContext(Dispatchers.IO) {
+            loadDao.getWeeklyLoadStatsOnce(weekNumber, year)
+        }
 
     /** Алиас для явной подписки (watch). Используй вместо разового getData(). */
     fun watchLoads(): Flow<List<Load>> = getAllLoads()
@@ -140,21 +145,57 @@ class LoadRepository(
         loadDao.watchActualDailyYield(weekNumber, year)
 
     fun getLoadsByMonth(monthPrefix: String): Flow<List<Load>> =
-        loadDao.getLoadsByMonth(monthPrefix).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByMonth(monthPrefix)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     fun searchLoads(query: String): Flow<List<Load>> =
-        loadDao.searchLoads(query).mapLatest { hydrateLoads(it) }
+        loadDao.searchLoads(query)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     fun getLoadsByWeek(weekNumber: Int, year: Int): Flow<List<Load>> =
-        loadDao.getLoadsByWeek(weekNumber, year).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByWeek(weekNumber, year)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     /** Точная дата (load_date). */
     fun getLoadsByDate(loadDate: String): Flow<List<Load>> =
-        loadDao.getLoadsByDate(loadDate).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByDate(loadDate)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
 
     /** Диапазон дат (включительно). */
     fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<Load>> =
-        loadDao.getLoadsByDateRange(startDate, endDate).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByDateRange(startDate, endDate)
+            .mapLatest { hydrateLoads(it) }
+            .flowOn(Dispatchers.IO)
+
+    /**
+     * Calendar markers only — id + date, no stop/penalty hydrate.
+     * Collect on IO so Room + map never touch Main.
+     */
+    fun watchLoadDateRows(): Flow<List<LoadDateRow>> =
+        loadDao.watchLoadDateRows().flowOn(Dispatchers.IO)
+
+    fun watchLoadsForMileage(
+        minServiceDate: String,
+        minServiceEpochMs: Long,
+    ): Flow<List<LoadMileageRow>> =
+        loadDao.watchLoadsForMileage(minServiceDate, minServiceEpochMs).flowOn(Dispatchers.IO)
+
+    suspend fun getLoadsForMileageOnce(
+        minServiceDate: String,
+        minServiceEpochMs: Long,
+    ): List<LoadMileageRow> =
+        withContext(Dispatchers.IO) {
+            loadDao.getLoadsForMileageOnce(minServiceDate, minServiceEpochMs)
+        }
+
+    suspend fun getLoadStatsForDateRange(startDate: String, endDate: String) =
+        withContext(Dispatchers.IO) {
+            loadDao.getLoadStatsForDateRange(startDate, endDate)
+        }
 
     /**
      * True Room [PagingSource] journal rows (entity → domain without stop hydrate —
@@ -201,7 +242,9 @@ class LoadRepository(
     suspend fun getAllLoadsOnce(): List<Load> = hydrateLoads(loadDao.getAllLoadsOnce())
 
     suspend fun getLoadsForLinking(limit: Int = 50): List<Load> =
-        hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
+        withContext(Dispatchers.IO) {
+            hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
+        }
 
     /**
      * Up to [limit] loads from the current trucking week (Sun–Sat), newest by date then

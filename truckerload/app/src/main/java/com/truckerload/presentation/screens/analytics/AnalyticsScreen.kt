@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -266,10 +267,12 @@ private fun AnalyticsScreenBody(
                                 )
                                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     uiState.selectedWeekLoads.forEach { load ->
-                                        LoadCard(
-                                            load = load,
-                                            onClick = { onLoadClick(load.id) },
-                                        )
+                                        key(load.id) {
+                                            LoadCard(
+                                                load = load,
+                                                onClick = { onLoadClick(load.id) },
+                                            )
+                                        }
                                     }
                                 }
                             }

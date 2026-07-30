@@ -6,9 +6,10 @@ import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getWeeksInMonth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 
 class WeekRepository(
     private val loadRepository: LoadRepository,
@@ -18,12 +19,10 @@ class WeekRepository(
 
     fun getWeekSummary(weekNumber: Int, year: Int): Flow<WeekSummary> {
         val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
-        val loads = loadRepository.getLoadsByWeek(weekNumber, year)
+        val loadStats = loadRepository.watchWeeklyLoadStats(weekNumber, year)
         val paychecks = paycheckRepository.getPaychecksForWeek(weekNumber, year)
         val diesel = dieselRepository.getDieselForWeek(weekNumber, year)
-        return combine(loads, paychecks, diesel) { loadList, paycheckList, dieselList ->
-            val totalLoadRate = loadList.sumOf { it.totalRate }
-            val totalMiles = loadList.sumOf { it.totalMiles }
+        return combine(loadStats, paychecks, diesel) { stats, paycheckList, dieselList ->
             // Paycheck amount comes only from Paycheck.netAmount.
             val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
             val hasPaycheck = paycheckList.isNotEmpty()
@@ -35,9 +34,9 @@ class WeekRepository(
                 weekLabel = weekLabel,
                 weekStartDate = weekStartDate,
                 weekEndDate = weekEndDate,
-                loadsCount = loadList.size,
-                totalLoadRate = totalLoadRate,
-                totalMiles = totalMiles,
+                loadsCount = stats.loadCount,
+                totalLoadRate = stats.totalRevenue,
+                totalMiles = stats.totalMiles,
                 paycheckAmount = paycheckAmount,
                 hasPaycheck = hasPaycheck,
                 dieselAmount = dieselAmount,
@@ -47,32 +46,31 @@ class WeekRepository(
         }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun getWeekSummaryOnce(weekNumber: Int, year: Int): WeekSummary {
-        val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
-        val loadList = loadRepository.getLoadsByWeek(weekNumber, year).first()
-        val paycheckList = paycheckRepository.getPaychecksForWeek(weekNumber, year).first()
-        val dieselList = dieselRepository.getDieselForWeek(weekNumber, year).first()
-        val totalLoadRate = loadList.sumOf { it.totalRate }
-        val totalMiles = loadList.sumOf { it.totalMiles }
-        // Paycheck amount comes only from Paycheck.netAmount.
-        val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
-        val dieselAmount = dieselList.sumOf { it.totalAmount }
-        return WeekSummary(
-            weekNumber = weekNumber,
-            year = year,
-            weekLabel = weekLabel,
-            weekStartDate = weekStartDate,
-            weekEndDate = weekEndDate,
-            loadsCount = loadList.size,
-            totalLoadRate = totalLoadRate,
-            totalMiles = totalMiles,
-            paycheckAmount = paycheckAmount,
-            hasPaycheck = paycheckList.isNotEmpty(),
-            dieselAmount = dieselAmount,
-            hasDiesel = dieselList.isNotEmpty(),
-            netProfit = paycheckAmount - dieselAmount
-        )
-    }
+    suspend fun getWeekSummaryOnce(weekNumber: Int, year: Int): WeekSummary =
+        withContext(Dispatchers.IO) {
+            val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
+            val stats = loadRepository.getWeeklyLoadStatsOnce(weekNumber, year)
+            val paycheckList = paycheckRepository.getPaychecksForWeek(weekNumber, year).first()
+            val dieselList = dieselRepository.getDieselForWeek(weekNumber, year).first()
+            // Paycheck amount comes only from Paycheck.netAmount.
+            val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
+            val dieselAmount = dieselList.sumOf { it.totalAmount }
+            WeekSummary(
+                weekNumber = weekNumber,
+                year = year,
+                weekLabel = weekLabel,
+                weekStartDate = weekStartDate,
+                weekEndDate = weekEndDate,
+                loadsCount = stats.loadCount,
+                totalLoadRate = stats.totalRevenue,
+                totalMiles = stats.totalMiles,
+                paycheckAmount = paycheckAmount,
+                hasPaycheck = paycheckList.isNotEmpty(),
+                dieselAmount = dieselAmount,
+                hasDiesel = dieselList.isNotEmpty(),
+                netProfit = paycheckAmount - dieselAmount
+            )
+        }
 
     /** Summaries for all weeks in the selected month. */
     suspend fun getWeeksInMonthSummaries(month: Int, year: Int): List<WeekSummary> {
@@ -85,23 +83,21 @@ class WeekRepository(
         startDate: String,
         endDate: String,
         periodLabel: String
-    ): PeriodSummary {
-        val loadList = loadRepository.getLoadsByDateRangeOnce(startDate, endDate)
+    ): PeriodSummary = withContext(Dispatchers.IO) {
+        val stats = loadRepository.getLoadStatsForDateRange(startDate, endDate)
         val allPaychecks = paycheckRepository.getAllPaychecksOnce()
         val allDiesel = dieselRepository.getAllDieselOnce()
         val paychecksInRange = allPaychecks.filter { it.weekEndDate >= startDate && it.weekStartDate <= endDate }
         val dieselInRange = allDiesel.filter { it.weekEndDate >= startDate && it.weekStartDate <= endDate }
-        val totalLoadRate = loadList.sumOf { it.totalRate }
-        val totalMiles = loadList.sumOf { it.totalMiles }
         val paycheckAmount = paychecksInRange.sumOf { it.netAmount }
         val dieselAmount = dieselInRange.sumOf { it.totalAmount }
-        return PeriodSummary(
+        PeriodSummary(
             periodLabel = periodLabel,
             startDate = startDate,
             endDate = endDate,
-            loadsCount = loadList.size,
-            totalLoadRate = totalLoadRate,
-            totalMiles = totalMiles,
+            loadsCount = stats.loadCount,
+            totalLoadRate = stats.totalRevenue,
+            totalMiles = stats.totalMiles,
             paycheckAmount = paycheckAmount,
             dieselAmount = dieselAmount,
             netProfit = paycheckAmount - dieselAmount

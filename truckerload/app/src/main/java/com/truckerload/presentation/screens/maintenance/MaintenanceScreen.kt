@@ -8,6 +8,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -187,22 +190,29 @@ fun MaintenanceScreen(onBack: () -> Unit) {
             )
         },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 16.dp),
         ) {
-            SectionHeader(
-                title = stringResource(R.string.maintenance_active_section),
-                onAdd = viewModel::openAddTask,
-            )
+            item(key = "active_header") {
+                SectionHeader(
+                    title = stringResource(R.string.maintenance_active_section),
+                    onAdd = viewModel::openAddTask,
+                )
+            }
             if (uiState.activeProgress.isEmpty()) {
-                EmptyHint(stringResource(R.string.maintenance_empty_tasks))
+                item(key = "active_empty") {
+                    EmptyHint(stringResource(R.string.maintenance_empty_tasks))
+                }
             } else {
-                uiState.activeProgress.forEach { progress ->
+                items(
+                    items = uiState.activeProgress,
+                    key = { it.task.id },
+                ) { progress ->
                     ActiveTaskCard(
                         progress = progress,
                         onComplete = { viewModel.completeTask(progress.task.id) },
@@ -212,13 +222,18 @@ fun MaintenanceScreen(onBack: () -> Unit) {
             }
 
             if (uiState.completedTasks.isNotEmpty()) {
-                Text(
-                    text = stringResource(R.string.maintenance_completed_section),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                uiState.completedTasks.take(10).forEach { task ->
+                item(key = "completed_header") {
+                    Text(
+                        text = stringResource(R.string.maintenance_completed_section),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+                items(
+                    items = uiState.completedTasks.take(10),
+                    key = { "done_${it.id}" },
+                ) { task ->
                     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier
@@ -240,28 +255,36 @@ fun MaintenanceScreen(onBack: () -> Unit) {
                 }
             }
 
-            SectionHeader(
-                title = stringResource(R.string.maintenance_archive_section),
-                onAdd = viewModel::openReceiptSourcePicker,
-                addIcon = Icons.Default.CameraAlt,
-            )
-            Text(
-                text = stringResource(R.string.maintenance_archive_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-            if (uiState.isProcessingPhoto) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                Text(
-                    text = stringResource(R.string.maintenance_ocr_processing),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tc.TextSecondary,
-                )
+            item(key = "archive_header") {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SectionHeader(
+                        title = stringResource(R.string.maintenance_archive_section),
+                        onAdd = viewModel::openReceiptSourcePicker,
+                        addIcon = Icons.Default.CameraAlt,
+                    )
+                    Text(
+                        text = stringResource(R.string.maintenance_archive_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                    )
+                    if (uiState.isProcessingPhoto) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Text(
+                            text = stringResource(R.string.maintenance_ocr_processing),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                    if (uiState.archive.isEmpty()) {
+                        EmptyHint(stringResource(R.string.maintenance_empty_archive))
+                    }
+                }
             }
-            if (uiState.archive.isEmpty()) {
-                EmptyHint(stringResource(R.string.maintenance_empty_archive))
-            } else {
-                uiState.archive.forEach { entry ->
+            if (uiState.archive.isNotEmpty()) {
+                items(
+                    items = uiState.archive,
+                    key = { "archive_${it.id}" },
+                ) { entry ->
                     ArchiveCard(
                         entry = entry,
                         onDelete = { viewModel.deleteArchive(entry.id) },
@@ -269,7 +292,9 @@ fun MaintenanceScreen(onBack: () -> Unit) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            item(key = "bottom_spacer") {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 

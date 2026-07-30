@@ -47,6 +47,7 @@ class HomeViewModelPendingDeleteTest {
         loadRepository = mock()
         app = RuntimeEnvironment.getApplication()
         whenever(loadRepository.watchLoads()).thenReturn(loadsFlow)
+        whenever(loadRepository.watchLoadDateRows()).thenReturn(MutableStateFlow(emptyList()))
         whenever(loadRepository.getLoadsByWeek(any(), any())).thenReturn(loadsFlow)
         whenever(loadRepository.getLoadsByDateRange(any(), any())).thenReturn(loadsFlow)
         loadRepository.stub {

@@ -38,9 +38,6 @@ import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.widget.WidgetUpdateWorker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -819,11 +816,9 @@ class TelegramBotSyncEngine(private val context: Context) {
             name.contains("truckerload_export")
     }
 
-    private fun rememberTelegramChatId(chatId: String) {
+    private suspend fun rememberTelegramChatId(chatId: String) {
         val id = chatId.toLongOrNull() ?: return
-        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-            runCatching { SettingsDataStore(context).saveTelegramChatId(id) }
-        }
+        runCatching { settingsDataStore.saveTelegramChatId(id) }
     }
 
     data class SyncRunResult(

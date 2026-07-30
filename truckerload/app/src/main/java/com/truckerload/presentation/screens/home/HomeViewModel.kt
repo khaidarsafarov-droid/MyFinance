@@ -137,35 +137,29 @@ class HomeViewModel(
                 else -> loadRepository.watchLoads()
             }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList(),
-        )
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
     /**
-     * Full journal for calendar dots — subscribed only while the calendar dialog is open
-     * (see [calendarDatesWithLoads]), so Home does not load every load on cold start.
+     * Full journal for calendar dots — must not be scoped to the active week filter,
+     * otherwise opening the calendar on "This week" hides other months' markers.
+     * Uses a lightweight id+date projection (no stop/penalty hydrate).
      */
-    private val allLoadsForCalendar: Flow<List<Load>> = loadRepository.watchLoads()
+    private val loadDateRowsForCalendar = loadRepository.watchLoadDateRows()
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
 
     /** true до первого эмита из Room. */
     val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
         .map { done -> !done }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = true,
-        )
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = true)
 
     /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
     private val debouncedSearchQuery: StateFlow<String> = _searchQuery
         .debounce(250)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     /** Только поля фильтра — не пересчитываем список при isSearchExpanded и прочих UI-флагах. */
     private val filterState: StateFlow<HomeFilterState> = combine(
@@ -187,7 +181,7 @@ class HomeViewModel(
     ) { base, query -> base.copy(searchQuery = query) }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = HomeFilterState(),
         )
 
@@ -207,20 +201,21 @@ class HomeViewModel(
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
-    /** Результат фильтрации: список, итоги (без полного journal для календаря). */
+    /** Результат фильтрации: список, итоги, даты с грузами (для индикаторов календаря). */
     data class FilteredResult(
         val loads: List<Load>,
         val totals: LoadFilterUseCase.Totals,
-        val datesWithLoads: Set<String> = emptySet(),
+        val datesWithLoads: Set<String>
     )
 
-    /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
+    /** Фильтрованный список + итоги + индекс дат. Индекс — по всем грузам (календарь). */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
+        loadDateRowsForCalendar,
         _optimisticOverlay,
         _pendingDeleteIds,
         filterState,
-    ) { loads, overlay, pendingDeletes, filter ->
+    ) { loads, dateRows, overlay, pendingDeletes, filter ->
         val base = loads
             .filter { it.id !in pendingDeletes }
             .map { overlay[it.id] ?: it }
@@ -237,41 +232,29 @@ class HomeViewModel(
             selectedYear = filter.selectedYear,
             dateIndex = null,
         )
+        val dbDates = dateRows
+            .asSequence()
+            .filter { it.id !in pendingDeletes }
+            .mapNotNull { row -> row.date.take(10).takeIf { it.length == 10 } }
+            .toSet()
+        val overlayDates = overlay.values
+            .asSequence()
+            .filter { it.id !in pendingDeletes }
+            .mapNotNull { LoadDateIndex.exactLoadDate(it) }
+            .toSet()
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
+            datesWithLoads = dbDates + overlayDates,
         )
     }
         .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0)),
+            initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()),
         )
 
-    /**
-     * Dates that have loads — collected only while the calendar dialog is composed so
-     * opening Home does not hydrate the full journal into memory.
-     */
-    val calendarDatesWithLoads: StateFlow<Set<String>> = combine(
-        allLoadsForCalendar,
-        _optimisticOverlay,
-        _pendingDeleteIds,
-    ) { allLoads, overlay, pendingDeletes ->
-        val calendarBase = allLoads
-            .filter { it.id !in pendingDeletes }
-            .map { overlay[it.id] ?: it }
-        val calendarIds = allLoads.map { it.id }.toSet()
-        val calendarMerged = calendarBase +
-            overlay.values.filter { it.id !in calendarIds && it.id !in pendingDeletes }
-        LoadDateIndex.build(calendarMerged).keys.toSet()
-    }
-        .flowOn(Dispatchers.Default)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptySet(),
-        )
     /**
      * True Room SQL paging for week / dispute journal filters.
      * Day/month filters stay in-memory so they use [getLoadDateRange] (active trip days),
