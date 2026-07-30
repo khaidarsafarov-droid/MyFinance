@@ -22,9 +22,15 @@ class HiltArchitectureTest {
             assertTrue("$type must remain an application-scoped binding", source.contains("): $type ="))
         }
         assertFalse("Room databases must remain account-scoped", source.contains("AppDatabase"))
+        // AuthRepository is process-scoped (AuthStore / credentials / profile only).
+        // Account Room repositories must not appear here.
+        assertTrue(
+            "AuthRepository belongs in SingletonComponent",
+            source.contains("fun provideAuthRepository"),
+        )
         assertFalse(
-            "Repositories must remain account-scoped",
-            source.contains("com.truckerload.data.repository"),
+            "Account Room repositories must remain user-scoped",
+            Regex("""com\.truckerload\.data\.repository\.(?!AuthRepository)""").containsMatchIn(source),
         )
     }
 

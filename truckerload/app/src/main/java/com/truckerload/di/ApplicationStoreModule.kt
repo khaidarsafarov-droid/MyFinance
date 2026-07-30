@@ -6,6 +6,7 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.UserProfileStore
+import com.truckerload.data.repository.AuthRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -50,4 +51,22 @@ object ApplicationStoreModule {
     fun providePushTokenStore(
         @ApplicationContext context: Context,
     ): PushTokenStore = PushTokenStore(context)
+
+    /**
+     * Process-scoped auth orchestration (Supabase / Google / local credentials).
+     * Not account-Room scoped — uses [AuthStore] / profile / credentials only.
+     */
+    @Provides
+    @Singleton
+    fun provideAuthRepository(
+        @ApplicationContext context: Context,
+        authStore: AuthStore,
+        userProfileStore: UserProfileStore,
+        credentialsStore: AuthCredentialsStore,
+    ): AuthRepository = AuthRepository(
+        appContext = context,
+        authStore = authStore,
+        userProfileStore = userProfileStore,
+        credentialsStore = credentialsStore,
+    )
 }
