@@ -26,6 +26,7 @@ private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
 private val KEY_LANGUAGE = intPreferencesKey("app_language")
 private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
 private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
+private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
 
 class SettingsDataStore(context: Context) {
 
@@ -73,6 +74,10 @@ class SettingsDataStore(context: Context) {
 
     val parserPriceThreshold: Flow<Double> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_PARSER_PRICE_THRESHOLD]?.toDouble() ?: 1.0
+    }
+
+    val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
     }
 
     suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
@@ -161,6 +166,14 @@ class SettingsDataStore(context: Context) {
     suspend fun saveParserPriceThreshold(percent: Double) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_PARSER_PRICE_THRESHOLD] = percent.toFloat()
+        }
+    }
+
+    suspend fun getSharePathWithFriendsOnce(): Boolean = sharePathWithFriends.first()
+
+    suspend fun saveSharePathWithFriends(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
         }
     }
 }

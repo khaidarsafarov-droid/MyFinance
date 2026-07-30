@@ -51,6 +51,7 @@ import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
 import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
+import com.truckerload.presentation.screens.map.FriendsLiveMapScreen
 import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -104,6 +105,7 @@ object Routes {
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
     const val ABOUT = "about"
+    const val FRIENDS_LIVE = "friends_live"
     const val CAMERA = "camera"
     const val CAMERA_FOR_LOAD = "camera_load/{loadId}/{tripId}/{loadDate}"
     const val SCANNER = "scanner"
@@ -310,6 +312,7 @@ fun NavGraph(
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
+                DrawerDestination.FRIENDS_LIVE -> navController.navigate(Routes.FRIENDS_LIVE) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
@@ -501,6 +504,11 @@ fun NavGraph(
             }
             composable(Routes.MAP) {
                 MapScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.FRIENDS_LIVE) {
+                FriendsLiveMapScreen(
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(Routes.TAX_TRACKER) {
                 TaxTrackerScreen(onBack = { navController.popBackStack() })

@@ -21,6 +21,7 @@
     <string name="common_delete">Delete</string>
     <string name="common_done">Done</string>
     <string name="common_loading">Loading…</string>
+    <string name="common_refresh">Refresh</string>
 
 
     <string name="nav_community">Community</string>
@@ -148,6 +149,7 @@
     <string name="nav_logbook">Loads</string>
     <string name="drawer_reports">Reports</string>
     <string name="drawer_map">Map</string>
+    <string name="drawer_friends_live">Friends live</string>
     <string name="drawer_documents">Documents</string>
     <string name="drawer_tools">Tools</string>
     <string name="drawer_about">About app</string>
@@ -394,6 +396,23 @@
     <string name="map_crowd_age_days">%1$d d ago</string>
     <string name="map_crowd_top_lanes">Your top lanes this week</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
+
+    <string name="friends_live_map_title">Friends on map</string>
+    <string name="friends_live_map_subtitle">Live markers · path on demand</string>
+    <string name="friends_share_path_toggle">Show my path to friends</string>
+    <string name="friends_share_path_hint">Off = do not send GPS or path history to Supabase</string>
+    <string name="friends_live_need_supabase">Requires Supabase sign-in (LOCAL_ONLY_MODE=false + URL/key). Apply the friends live SQL migration.</string>
+    <string name="friends_share_location_channel">Location sharing</string>
+    <string name="friends_share_location_title">Truck Log is sharing your path</string>
+    <string name="friends_share_location_text">Friends can see your position while the toggle is on</string>
+    <string name="friends_overlap_button">Who intersects my route</string>
+    <string name="friends_overlap_title">Route overlaps</string>
+    <string name="friends_overlap_empty">No friends with an overlapping active load yet</string>
+    <string name="friends_list_title">Friends online</string>
+    <string name="friends_list_empty">No friends currently sharing</string>
+    <string name="friends_show_path">Show their path</string>
+    <string name="friends_hide_path">Hide path</string>
+    <string name="friends_focus">Focus</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>

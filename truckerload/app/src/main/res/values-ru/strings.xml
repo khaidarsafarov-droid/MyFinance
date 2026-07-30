@@ -21,6 +21,7 @@
     <string name="common_delete">Удалить</string>
     <string name="common_done">Готово</string>
     <string name="common_loading">Загрузка…</string>
+    <string name="common_refresh">Обновить</string>
 
 
     <string name="nav_community">Сообщество</string>
@@ -148,6 +149,7 @@
     <string name="nav_logbook">Грузы</string>
     <string name="drawer_reports">Отчёты</string>
     <string name="drawer_map">Карта</string>
+    <string name="drawer_friends_live">Друзья на карте</string>
     <string name="drawer_documents">Документы</string>
     <string name="drawer_tools">Инструменты</string>
     <string name="drawer_about">О приложении</string>
@@ -394,6 +396,23 @@
     <string name="map_crowd_age_days">%1$d дн. назад</string>
     <string name="map_crowd_top_lanes">Ваши топ-направления за неделю</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/миля · %4$d рейс(ов)</string>
+
+    <string name="friends_live_map_title">Друзья на карте</string>
+    <string name="friends_live_map_subtitle">Маркеры сейчас · путь по запросу</string>
+    <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
+    <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
+    <string name="friends_live_need_supabase">Нужен вход через Supabase (LOCAL_ONLY_MODE=false + URL/ключ). Примените SQL миграцию friends live.</string>
+    <string name="friends_share_location_channel">Шаринг локации</string>
+    <string name="friends_share_location_title">Truck Log делится путём</string>
+    <string name="friends_share_location_text">Друзья видят вашу позицию, пока переключатель включён</string>
+    <string name="friends_overlap_button">С кем пересекается мой путь</string>
+    <string name="friends_overlap_title">Совпадения маршрутов</string>
+    <string name="friends_overlap_empty">Пока нет друзей с пересекающимся активным грузом</string>
+    <string name="friends_list_title">Друзья онлайн</string>
+    <string name="friends_list_empty">Нет друзей с включённым шарингом</string>
+    <string name="friends_show_path">Показать его путь</string>
+    <string name="friends_hide_path">Скрыть путь</string>
+    <string name="friends_focus">Фокус</string>
     <string name="stats_ai_keyword_diesel">дизел</string>
     <string name="stats_ai_keyword_profit">прибыл</string>
     <string name="calendar_prev_month_cd">Предыдущий месяц</string>
