@@ -28,6 +28,9 @@ the "Telegram bot" runs inside the app as a foreground service. General project 
   parsers, weekly-goal math, CSV export — this is the app's core domain logic)
 - Lint: `sh ./gradlew :app:lintDebug` — **currently fails with ~663 pre-existing lint errors**
   (no `lint-baseline.xml`). This is a property of the existing code, not the environment.
+- File-size gate: `sh ./gradlew :app:checkKotlinFileSize` — fails if a production `.kt` file
+  exceeds **600 lines** (or grows past a cap in `truckerload/config/kotlin-file-size-baseline.txt`).
+  Ideal target is **350** (warnings only). Wired into `:app:check` and CI.
 - First `assembleDebug` downloads the Gradle 9.4.1 distribution + deps (~3 min); later builds are fast.
 
 ### Running the app on the emulator (important caveats)
