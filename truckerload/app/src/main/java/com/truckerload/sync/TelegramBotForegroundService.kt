@@ -86,7 +86,6 @@ class TelegramBotForegroundService : Service() {
     override fun onDestroy() {
         pollJob?.cancel()
         scope.cancel()
-        isInForeground = false
         if (!suppressRestart && !TelegramSyncMode.isServer()) {
             Log.w(TAG, "Service destroyed — scheduling restart")
             TelegramServiceRestarter.schedule(applicationContext)
@@ -127,7 +126,6 @@ class TelegramBotForegroundService : Service() {
     }
 
     private fun startForegroundCompat() {
-        if (isInForeground) return
         createChannel()
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -140,21 +138,25 @@ class TelegramBotForegroundService : Service() {
             @Suppress("DEPRECATION")
             startForeground(NOTIFICATION_ID, notification)
         }
-        isInForeground = true
     }
 
     private fun createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService(NotificationManager::class.java) ?: return
+        // Drop the old louder channel so upgrades do not keep a second bot entry.
+        runCatching { manager.deleteNotificationChannel(LEGACY_CHANNEL_ID) }
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.telegram_bot_channel_name),
-            NotificationManager.IMPORTANCE_MIN
+            NotificationManager.IMPORTANCE_MIN,
         ).apply {
             description = getString(R.string.telegram_bot_channel_desc)
             setShowBadge(false)
+            enableLights(false)
+            enableVibration(false)
+            setSound(null, null)
         }
-        val manager = getSystemService(NotificationManager::class.java)
-        manager?.createNotificationChannel(channel)
+        manager.createNotificationChannel(channel)
     }
 
     private fun buildNotification(): Notification {
@@ -165,32 +167,33 @@ class TelegramBotForegroundService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(android.R.drawable.ic_menu_upload)
             .setContentTitle(getString(R.string.telegram_bot_notification_title))
+            .setContentText(getString(R.string.telegram_bot_notification_text))
             .setContentIntent(openApp)
             .setOngoing(true)
             .setSilent(true)
             .setOnlyAlertOnce(true)
+            .setShowWhen(false)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
 
     companion object {
         private const val TAG = "TelegramBotFgService"
-        private const val CHANNEL_ID = "telegram_bot_sync_v2"
+        /** New min-importance channel; Android ignores importance changes on existing IDs. */
+        private const val CHANNEL_ID = "telegram_bot_sync_quiet"
+        private const val LEGACY_CHANNEL_ID = "telegram_bot_sync"
         private const val NOTIFICATION_ID = 4101
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
 
         @Volatile
         private var suppressRestart = false
 
-        @Volatile
-        private var isInForeground = false
-
         fun start(context: Context) {
             if (TelegramSyncMode.isServer()) return
-            if (isInForeground || TelegramPollCoordinator.isForegroundPolling()) return
             val userId = AuthStore(context).currentUserIdOrNull() ?: return
             if (TelegramTokenStore(context, userId).getToken().isBlank()) return
             suppressRestart = false
@@ -209,13 +212,10 @@ class TelegramBotForegroundService : Service() {
         fun stop(context: Context) {
             suppressRestart = true
             TelegramPollCoordinator.markForegroundPolling(false)
-            isInForeground = false
             context.stopService(Intent(context, TelegramBotForegroundService::class.java))
         }
 
         /** Stop for logout: do not schedule AlarmManager restart. */
         fun stopForLogout(context: Context) = stop(context)
-
-        fun isRunning(): Boolean = isInForeground || TelegramPollCoordinator.isForegroundPolling()
     }
 }

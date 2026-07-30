@@ -417,10 +417,7 @@
     <string name="friends_my_nickname_title">Мой никнейм</string>
     <string name="friends_my_nickname_hint">По этому нику друзья найдут вас в Truck Log</string>
     <string name="friends_nickname_label">Никнейм</string>
-    <string name="friends_nickname_placeholder">например DriverPro</string>
     <string name="friends_nickname_save">Сохранить</string>
-    <string name="friends_add_nickname_button">Добавить никнейм</string>
-    <string name="friends_change_nickname_button">Изменить никнейм</string>
     <string name="friends_nickname_invalid">Ник: 3–24 символа, буква в начале, только латиница, цифры и _</string>
     <string name="friends_nickname_saved">Никнейм сохранён</string>
     <string name="friends_my_nickname_current">Ваш ник: @%1$s</string>
@@ -713,8 +710,6 @@
     <string name="settings_telegram_server_mode">Серверный режим: токен бота хранится только на сервере. Привяжите этот аккаунт к серверному боту.</string>
     <string name="settings_telegram_create_link">Создать ссылку привязки</string>
     <string name="settings_telegram_link_error">Не удалось создать ссылку. Проверьте вход и адрес сервера.</string>
-    <string name="settings_telegram_status_active">Бот отслеживает сообщения</string>
-    <string name="settings_telegram_status_inactive">Бот не запущен</string>
     <string name="push_notification_channel_name">Обновления Truck Log</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">Доступно новое обновление</string>
@@ -786,8 +781,6 @@
     <string name="notify_add_paycheck_title">Добавьте зарплату</string>
     <string name="notify_add_diesel_title">Добавьте дизель</string>
     <string name="notify_missing_week_body">Нет данных за неделю %1$d</string>
-    <string name="notify_missing_data_title">Недостающие данные</string>
-    <string name="notify_missing_data_body">Неделя %1$d: %2$s</string>
     <string name="notify_channel_missing_name">Отсутствующие данные</string>
     <string name="notify_channel_alerts_name">Напоминания</string>
 
@@ -870,10 +863,10 @@
     <string name="auto_restore_success">✅ Данные восстановлены. Грузов: %1$d</string>
     <string name="auto_restore_failed">Не удалось восстановить: %1$s</string>
     <string name="auto_restore_no_file">Авто-бэкап не найден</string>
-    <string name="telegram_bot_channel_name">Фоновая синхронизация</string>
-    <string name="telegram_bot_channel_desc">Тихое уведомление, пока бот слушает Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log — синхронизация</string>
-    <string name="telegram_bot_notification_text">Слушаю Telegram</string>
+    <string name="telegram_bot_channel_name">Синхронизация Telegram</string>
+    <string name="telegram_bot_channel_desc">Тихая фоновая синхронизация, пока включён Telegram-бот</string>
+    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_text">Синхронизация Telegram</string>
 
     <string name="export_share_chooser">Поделиться</string>
     <string name="export_saved_to_folder">Отчёт сохранён в папку %1$s</string>

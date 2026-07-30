@@ -417,10 +417,7 @@
     <string name="friends_my_nickname_title">My nickname</string>
     <string name="friends_my_nickname_hint">Friends find you in Truck Log by this handle</string>
     <string name="friends_nickname_label">Nickname</string>
-    <string name="friends_nickname_placeholder">e.g. DriverPro</string>
     <string name="friends_nickname_save">Save</string>
-    <string name="friends_add_nickname_button">Add nickname</string>
-    <string name="friends_change_nickname_button">Change nickname</string>
     <string name="friends_nickname_invalid">Nickname: 3–24 chars, start with a letter, letters/digits/_ only</string>
     <string name="friends_nickname_saved">Nickname saved</string>
     <string name="friends_my_nickname_current">Your handle: @%1$s</string>
@@ -713,8 +710,6 @@
     <string name="settings_telegram_server_mode">Server inbox mode: the bot token stays on the server. Link this account to the server bot.</string>
     <string name="settings_telegram_create_link">Create link</string>
     <string name="settings_telegram_link_error">Could not create a link. Check your sign-in and backend URL.</string>
-    <string name="settings_telegram_status_active">Bot is listening for messages</string>
-    <string name="settings_telegram_status_inactive">Bot is not running</string>
     <string name="push_notification_channel_name">Truck Log updates</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">A new update is available</string>
@@ -786,8 +781,6 @@
     <string name="notify_add_paycheck_title">Add paycheck</string>
     <string name="notify_add_diesel_title">Add diesel</string>
     <string name="notify_missing_week_body">No data for week %1$d</string>
-    <string name="notify_missing_data_title">Missing data</string>
-    <string name="notify_missing_data_body">Week %1$d: %2$s</string>
     <string name="notify_channel_missing_name">Missing data</string>
     <string name="notify_channel_alerts_name">Reminders</string>
 
@@ -870,10 +863,10 @@
     <string name="auto_restore_success">✅ Data restored. Loads: %1$d</string>
     <string name="auto_restore_failed">Could not restore: %1$s</string>
     <string name="auto_restore_no_file">Auto-backup not found</string>
-    <string name="telegram_bot_channel_name">Background sync</string>
-    <string name="telegram_bot_channel_desc">Quiet notification while the bot listens to Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log — syncing</string>
-    <string name="telegram_bot_notification_text">Listening to Telegram</string>
+    <string name="telegram_bot_channel_name">Telegram sync</string>
+    <string name="telegram_bot_channel_desc">Quiet background sync required while the Telegram bot is enabled</string>
+    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_text">Telegram sync running</string>
 
     <string name="export_share_chooser">Share</string>
     <string name="export_saved_to_folder">Report saved to %1$s folder</string>

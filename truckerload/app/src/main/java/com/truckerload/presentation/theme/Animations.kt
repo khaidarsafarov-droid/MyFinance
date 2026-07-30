@@ -21,27 +21,30 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 
-/** Instant tab switches — avoids jank while heavy screens compose. */
+/**
+ * Bottom-tab switches use no transition so Compose does not keep two heavy
+ * destinations on screen at once (that felt like freezes between pages).
+ */
 fun tabEnterTransition(): EnterTransition = EnterTransition.None
 
 fun tabExitTransition(): ExitTransition = ExitTransition.None
 
 fun screenEnterAnimation() =
-    fadeIn(animationSpec = tween(400, easing = EaseOutCubic)) +
+    fadeIn(animationSpec = tween(220, easing = EaseOutCubic)) +
         slideInVertically(
-            animationSpec = tween(400, easing = EaseOutCubic),
-            initialOffsetY = { it / 8 }
+            animationSpec = tween(220, easing = EaseOutCubic),
+            initialOffsetY = { it / 16 }
         )
 
 fun staggeredListEnter(index: Int) =
-    fadeIn(animationSpec = tween(350, delayMillis = index * 50, easing = EaseOutCubic)) +
+    fadeIn(animationSpec = tween(220, delayMillis = (index * 30).coerceAtMost(150), easing = EaseOutCubic)) +
         slideInHorizontally(
-            animationSpec = tween(350, delayMillis = index * 50, easing = EaseOutCubic),
-            initialOffsetX = { it / 12 }
+            animationSpec = tween(220, delayMillis = (index * 30).coerceAtMost(150), easing = EaseOutCubic),
+            initialOffsetX = { it / 16 }
         ) +
         scaleIn(
-            animationSpec = tween(350, delayMillis = index * 50, easing = EaseOutCubic),
-            initialScale = 0.96f
+            animationSpec = tween(220, delayMillis = (index * 30).coerceAtMost(150), easing = EaseOutCubic),
+            initialScale = 0.98f
         )
 
 @Composable

@@ -38,6 +38,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.widget.Toast
@@ -85,25 +86,28 @@ class TruckerLoadApp : Application() {
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
         WidgetUpdateWorker.schedule(this)
-        // One deferred widget paint at cold start; periodic worker keeps it fresh.
         WidgetUpdateWorker.refreshNow(this)
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 val userId = authStore.currentUserIdOrNull()
                 if (userId != null) {
-                    PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
-                    if (TelegramSyncMode.isServer()) {
-                        ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
-                    } else {
-                        TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
-                        // Ensure service once; start() is a no-op if already polling.
-                        if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
-                            TelegramBotForegroundService.start(this@TruckerLoadApp)
+                    // Defer push + Telegram FG until after the first Compose frames.
+                    appScope.launch {
+                        delay(2_000)
+                        PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
+                        if (TelegramSyncMode.isServer()) {
+                            ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
+                        } else {
+                            TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
+                            scheduleTelegramSync()
+                            if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
+                                TelegramBotForegroundService.start(this@TruckerLoadApp)
+                            }
                         }
                     }
                 }
-                // Widget refresh is periodic — avoid Room+bitmap work on every resume.
+                WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
             }
 
             override fun onStop(owner: LifecycleOwner) {
