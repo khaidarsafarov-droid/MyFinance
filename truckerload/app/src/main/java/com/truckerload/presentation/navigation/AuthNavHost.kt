@@ -5,11 +5,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.presentation.screens.auth.SignUpScreen
 import com.truckerload.presentation.screens.login.LoginScreen
 
 /**
- * Auth gate before the main app. Android: Google Sign-In only.
- * Apple / iCloud Sign in with Apple will live on the iOS client later.
+ * Auth gate before the main app.
+ * Android: Google or email/password. Sessions persist across launches.
+ * iOS (planned): Sign in with Apple / iCloud.
  */
 @Composable
 fun AuthNavHost(
@@ -23,11 +25,20 @@ fun AuthNavHost(
         startDestination = AuthRoutes.LOGIN
     ) {
         composable(AuthRoutes.LOGIN) {
-            LoginScreen(onSignedIn = onLoginSuccess)
+            LoginScreen(
+                onCreateAccount = { navController.navigate(AuthRoutes.SIGNUP) }
+            )
+        }
+        composable(AuthRoutes.SIGNUP) {
+            SignUpScreen(
+                onBack = { navController.popBackStack() },
+                onSuccess = onLoginSuccess,
+            )
         }
     }
 }
 
 object AuthRoutes {
     const val LOGIN = "auth_login"
+    const val SIGNUP = "auth_signup"
 }

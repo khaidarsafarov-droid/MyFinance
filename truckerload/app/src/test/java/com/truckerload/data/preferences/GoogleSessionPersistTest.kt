@@ -40,6 +40,24 @@ class GoogleSessionPersistTest {
     }
 
     @Test
+    fun emailLoginPersistsEvenWhenRememberMeFalse() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+
+        auth.login(
+            userId = "local_email_persist_1",
+            email = "driver@example.com",
+            rememberMe = false,
+            provider = AuthProvider.EMAIL,
+        )
+
+        assertTrue(auth.isLoggedIn.value)
+        assertEquals(AuthProvider.EMAIL, auth.authProvider())
+        assertEquals("local_email_persist_1", auth.currentUserIdOrNull())
+        assertTrue(auth.sessionOrNull() != null)
+    }
+
+    @Test
     fun googleSilentRestoreKeepsLocalSessionWithoutCredentialManager() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)

@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
@@ -123,9 +124,12 @@ class MainActivity : AppCompatActivity() {
 
             LaunchedEffect(isLoggedIn, userId) {
                 sessionReady = false
-                // Auth-only entry: Google on Android (Apple/iCloud planned for iOS).
-                // Never auto-login as local_dev — show AuthNavHost until a real provider session exists.
-                if (isLoggedIn && authStore.authProvider() != AuthProvider.GOOGLE) {
+                // Auth-only entry: Google or email/password (Apple planned for iOS).
+                // Never auto-login as local_dev. Real sessions are restored from disk silently.
+                val provider = authStore.authProvider()
+                val isGuestLocal = provider == AuthProvider.LOCAL ||
+                    userId == AccountIds.LOCAL_DEV
+                if (isLoggedIn && isGuestLocal) {
                     authStore.logout()
                     userProfileStore.unbind()
                     dependencies = null

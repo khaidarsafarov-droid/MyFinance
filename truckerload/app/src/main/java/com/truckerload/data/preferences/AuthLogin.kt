@@ -25,10 +25,11 @@ object AuthLogin {
         }
         userProfileStore.bindUser(id)
         userProfileStore.saveProfile(profile)
+        // Always persist identity on disk — next cold start must not ask for login again.
         authStore.login(
             userId = id,
             email = profile.email,
-            rememberMe = rememberMe,
+            rememberMe = true,
             accessToken = accessToken,
             refreshToken = refreshToken,
             googleSub = profile.googleId,

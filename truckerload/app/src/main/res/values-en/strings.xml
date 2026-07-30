@@ -44,8 +44,8 @@
     <string name="analytics_chart_empty">No data for selected period</string>
 
     <string name="login_title">Sign In</string>
-    <string name="login_subtitle">Sign in with Google to continue</string>
-    <string name="login_auth_only_hint">Google Auth only. Your data stays on this device (local first).</string>
+    <string name="login_subtitle">Sign in once — we keep you signed in</string>
+    <string name="login_auth_only_hint">Google or email. Apple ID coming on iPhone.</string>
     <string name="login_button">Sign In</string>
     <string name="login_create_account">Create account</string>
     <string name="login_no_account_prefix">No account? </string>
