@@ -337,15 +337,18 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             loadsFromDb
                 .debounce(400)
-                .collect { WidgetDataUpdater.updateWidgetData(app) }
+                .collect { runCatching { WidgetDataUpdater.updateWidgetData(app) } }
         }
         viewModelScope.launch {
-            if (!TelegramTokenStore(app).hasToken()) return@launch
-            val token = TelegramTokenStore(app).getToken()
-            val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
-            _uiState.update { it.copy(botStatusActive = health.ok) }
-            if (health.ok && botServiceStarted.compareAndSet(false, true)) {
-                TelegramBotForegroundService.start(app)
+            runCatching {
+                val store = TelegramTokenStore(app)
+                if (!store.hasToken()) return@runCatching
+                val token = store.getToken()
+                val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+                _uiState.update { it.copy(botStatusActive = health.ok) }
+                if (health.ok && botServiceStarted.compareAndSet(false, true)) {
+                    TelegramBotForegroundService.start(app)
+                }
             }
         }
     }

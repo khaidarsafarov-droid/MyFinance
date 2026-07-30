@@ -1,7 +1,9 @@
 package com.truckerload.di
 
 import android.app.Application
+import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
@@ -29,6 +31,12 @@ class UserComponentManagerTest {
         app = RuntimeEnvironment.getApplication()
         profileStore = mock()
         manager = UserComponentManager(app, profileStore)
+    }
+
+    @After
+    fun tearDown() {
+        manager.endSession()
+        AppDatabase.closeCurrent()
     }
 
     @Test

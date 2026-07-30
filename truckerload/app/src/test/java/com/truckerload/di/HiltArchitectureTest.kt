@@ -35,9 +35,13 @@ class HiltArchitectureTest {
         assertTrue(source.contains("@InstallIn(SingletonComponent::class)"))
         assertTrue(source.contains("UserComponentManager"))
         assertTrue(source.contains("manager.require()"))
+        // Strip KDoc/comments so mentions of @Singleton in docs do not fail the guard.
+        val codeOnly = source
+            .replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
+            .replace(Regex("//.*"), "")
         assertFalse(
             "Account repos must not be cached as @Singleton",
-            source.contains("@Singleton"),
+            codeOnly.contains("@Singleton"),
         )
         assertTrue(source.contains("fun provideLoadRepository"))
         assertTrue(source.contains("fun provideSocialRepository"))
