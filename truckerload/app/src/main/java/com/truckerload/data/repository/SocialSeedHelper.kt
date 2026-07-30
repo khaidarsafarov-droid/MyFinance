@@ -9,7 +9,7 @@ import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.domain.social.StatusType
 import kotlinx.coroutines.flow.first
 
-internal class SocialSeedHelper(
+class SocialSeedHelper(
     private val chatDao: SocialChatDao,
     private val chatMemberDao: ChatMemberDao,
     private val driverStatusDao: DriverStatusDao,
