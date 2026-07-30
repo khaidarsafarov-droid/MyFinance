@@ -104,6 +104,8 @@ class HomeViewModel(
     companion object {
         /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
         private val botServiceStarted = AtomicBoolean(false)
+        private const val FLOW_TIMEOUT_MS = 5_000L
+        private val flowSharing = SharingStarted.WhileSubscribed(FLOW_TIMEOUT_MS)
     }
 
     private val filterUseCase = LoadFilterUseCase()
@@ -137,28 +139,28 @@ class HomeViewModel(
                 else -> loadRepository.watchLoads()
             }
         }
-        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
+        .stateIn(scope = viewModelScope, started = flowSharing, initialValue = emptyList())
 
     /**
-     * Calendar dots from SQL DISTINCT date — no full-journal hydrate on the home path.
-     * Optimistic inserts/overlay dates are merged in [filteredLoadsAndTotals].
+     * Full journal for calendar dots — must not be scoped to the active week filter,
+     * otherwise opening the calendar on "This week" hides other months' markers.
      */
-    private val loadDatesFromDb: StateFlow<Set<String>> = loadRepository.watchDistinctLoadDates()
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptySet())
+    private val allLoadsForCalendar: StateFlow<List<Load>> = loadRepository.watchLoads()
+        .stateIn(scope = viewModelScope, started = flowSharing, initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
 
     /** true до первого эмита из Room. */
     val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
         .map { done -> !done }
-        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = true)
+        .stateIn(scope = viewModelScope, started = flowSharing, initialValue = true)
 
     /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
     private val debouncedSearchQuery: StateFlow<String> = _searchQuery
         .debounce(250)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+        .stateIn(viewModelScope, flowSharing, "")
 
     /** Только поля фильтра — не пересчитываем список при isSearchExpanded и прочих UI-флагах. */
     private val filterState: StateFlow<HomeFilterState> = combine(
@@ -180,7 +182,7 @@ class HomeViewModel(
     ) { base, query -> base.copy(searchQuery = query) }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Eagerly,
+            started = flowSharing,
             initialValue = HomeFilterState(),
         )
 
@@ -207,14 +209,14 @@ class HomeViewModel(
         val datesWithLoads: Set<String>
     )
 
-    /** Фильтрованный список + итоги + индекс дат. Индекс — SQL DISTINCT + оверлей. */
+    /** Фильтрованный список + итоги + индекс дат. Индекс — по всем грузам (календарь). */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
-        loadDatesFromDb,
+        allLoadsForCalendar,
         _optimisticOverlay,
         _pendingDeleteIds,
         filterState,
-    ) { loads, dbDates, overlay, pendingDeletes, filter ->
+    ) { loads, allLoads, overlay, pendingDeletes, filter ->
         val base = loads
             .filter { it.id !in pendingDeletes }
             .map { overlay[it.id] ?: it }
@@ -231,17 +233,20 @@ class HomeViewModel(
             selectedYear = filter.selectedYear,
             dateIndex = null,
         )
-        val overlayDates = overlay.values
+        val calendarBase = allLoads
             .filter { it.id !in pendingDeletes }
-            .mapNotNull { LoadDateIndex.exactLoadDate(it) }
+            .map { overlay[it.id] ?: it }
+        val calendarIds = allLoads.map { it.id }.toSet()
+        val calendarMerged = calendarBase +
+            overlay.values.filter { it.id !in calendarIds && it.id !in pendingDeletes }
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
-            datesWithLoads = dbDates + overlayDates,
+            datesWithLoads = LoadDateIndex.build(calendarMerged).keys.toSet(),
         )
     }
         .flowOn(Dispatchers.Default)
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
+        .stateIn(scope = viewModelScope, started = flowSharing, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
     /**
      * True Room SQL paging for week / dispute journal filters.

@@ -713,6 +713,8 @@
     <string name="settings_telegram_server_mode">Серверный режим: токен бота хранится только на сервере. Привяжите этот аккаунт к серверному боту.</string>
     <string name="settings_telegram_create_link">Создать ссылку привязки</string>
     <string name="settings_telegram_link_error">Не удалось создать ссылку. Проверьте вход и адрес сервера.</string>
+    <string name="settings_telegram_status_active">Бот отслеживает сообщения</string>
+    <string name="settings_telegram_status_inactive">Бот не запущен</string>
     <string name="push_notification_channel_name">Обновления Truck Log</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">Доступно новое обновление</string>
@@ -784,6 +786,8 @@
     <string name="notify_add_paycheck_title">Добавьте зарплату</string>
     <string name="notify_add_diesel_title">Добавьте дизель</string>
     <string name="notify_missing_week_body">Нет данных за неделю %1$d</string>
+    <string name="notify_missing_data_title">Недостающие данные</string>
+    <string name="notify_missing_data_body">Неделя %1$d: %2$s</string>
     <string name="notify_channel_missing_name">Отсутствующие данные</string>
     <string name="notify_channel_alerts_name">Напоминания</string>
 
@@ -866,10 +870,10 @@
     <string name="auto_restore_success">✅ Данные восстановлены. Грузов: %1$d</string>
     <string name="auto_restore_failed">Не удалось восстановить: %1$s</string>
     <string name="auto_restore_no_file">Авто-бэкап не найден</string>
-    <string name="telegram_bot_channel_name">Telegram бот</string>
-    <string name="telegram_bot_channel_desc">Фоновая синхронизация сообщений из Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log — бот активен</string>
-    <string name="telegram_bot_notification_text">Слушаю сообщения в Telegram</string>
+    <string name="telegram_bot_channel_name">Фоновая синхронизация</string>
+    <string name="telegram_bot_channel_desc">Тихое уведомление, пока бот слушает Telegram</string>
+    <string name="telegram_bot_notification_title">Truck Log — синхронизация</string>
+    <string name="telegram_bot_notification_text">Слушаю Telegram</string>
 
     <string name="export_share_chooser">Поделиться</string>
     <string name="export_saved_to_folder">Отчёт сохранён в папку %1$s</string>

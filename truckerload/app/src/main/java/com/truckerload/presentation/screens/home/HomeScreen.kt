@@ -91,7 +91,6 @@ import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.ForestSectionTitle
 import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LoadCalendarWithDots
-import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
@@ -321,24 +320,10 @@ fun HomeScreen(
                 }
                 if (isInitialLoading) {
                     Box(
-                        modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.7f)),
+                        modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.5f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            repeat(3) { index ->
-                                StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
-                                if (index < 2) {
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            CircularProgressIndicator(color = tc.AccentPrimary)
-                        }
+                        CircularProgressIndicator(color = tc.AccentPrimary)
                     }
                 }
             }
