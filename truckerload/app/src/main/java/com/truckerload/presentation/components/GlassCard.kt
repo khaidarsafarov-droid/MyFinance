@@ -2,6 +2,7 @@ package com.truckerload.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
@@ -66,7 +67,11 @@ fun GlassCard(
                 },
             )
             .then(if (heroBrush != null) Modifier.background(heroBrush, shape) else Modifier)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+            .then(if (onClick != null) Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                ) else Modifier),
         shape = shape,
         color = containerColor,
         tonalElevation = 0.dp,

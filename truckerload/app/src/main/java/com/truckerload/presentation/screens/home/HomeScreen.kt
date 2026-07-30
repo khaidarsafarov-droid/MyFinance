@@ -46,10 +46,8 @@ import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -103,7 +101,7 @@ import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
 import com.truckerload.widget.WidgetDeepLink
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onLoadClick: (String) -> Unit,
@@ -345,7 +343,7 @@ fun HomeScreen(
         }
     )
 }
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreenContent(
     paddingValues: PaddingValues,
@@ -391,7 +389,7 @@ private fun HomeScreenContent(
         }
     }
 
-    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = { onRefresh() })
+    val pullRefreshState = rememberPullToRefreshState()
 
     if (showYearSelector) {
         AlertDialog(
@@ -424,7 +422,12 @@ private fun HomeScreenContent(
     }
 
     BentoGlassScreenBackground {
-        Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
+        PullToRefreshBox(
+            isRefreshing = refreshing,
+            onRefresh = { onRefresh() },
+            modifier = Modifier.fillMaxSize(),
+            state = pullRefreshState,
+        ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -620,7 +623,6 @@ private fun HomeScreenContent(
                 }
             }
         }
-        PullRefreshIndicator(refreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
 
     if (pendingDeleteId != null) {

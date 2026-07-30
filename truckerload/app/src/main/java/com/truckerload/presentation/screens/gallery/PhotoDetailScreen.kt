@@ -23,6 +23,7 @@ import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -182,7 +183,9 @@ fun PhotoDetailScreen(
             ) {
                 OutlinedButton(
                     onClick = { loadMenuExpanded = true },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    modifier = Modifier
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth(),
                 ) {
                     val label = selectedLoadId?.let { id ->
                         loads.find { it.id == id }?.let { formatLoadRoute(it) }

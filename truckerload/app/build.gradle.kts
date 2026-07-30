@@ -15,12 +15,12 @@ if (firebaseConfigured) {
 
 android {
     namespace = "com.truckerload"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.truckerload"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 11
         versionName = "1.5.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -152,10 +152,10 @@ dependencies {
     implementation(project(":shared:contract"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(libs.androidx.core.ktx)
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.lifecycle:lifecycle-process:2.7.0")
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -166,7 +166,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // Hilt (KSP)
     implementation(libs.hilt.android)
@@ -198,7 +198,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Biometric unlock (email accounts)
     implementation("androidx.biometric:biometric:1.1.0")

@@ -28,8 +28,8 @@ import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -154,7 +154,7 @@ fun CommunityScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            TabRow(selectedTabIndex = tabIndex) {
+            PrimaryTabRow(selectedTabIndex = tabIndex) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = tabIndex == index,
@@ -495,7 +495,7 @@ private fun LeaderboardTabContent(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            TabRow(selectedTabIndex = categoryIndex) {
+            PrimaryTabRow(selectedTabIndex = categoryIndex) {
                 categories.forEachIndexed { index, category ->
                     Tab(
                         selected = categoryIndex == index,
