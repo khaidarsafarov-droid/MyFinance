@@ -90,7 +90,8 @@ fun GoogleMapsHeatmapCard(
     metrics: List<USStateMetric>,
     selectedCode: String,
     refreshing: Boolean,
-    onStateSelected: (String) -> Unit
+    onStateSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val geoJson = remember { loadGeoJsonFromRaw(context) }
@@ -98,13 +99,14 @@ fun GoogleMapsHeatmapCard(
     val selected = if (selectedCode.isNotBlank()) byCode[selectedCode] else null
 
     Card(
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {

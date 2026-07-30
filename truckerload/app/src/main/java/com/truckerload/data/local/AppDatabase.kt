@@ -30,6 +30,7 @@ import com.truckerload.data.local.dao.TelegramInboxDao
 import com.truckerload.data.local.dao.VoiceRoomDao
 import com.truckerload.data.local.dao.VoiceRoomParticipantDao
 import com.truckerload.data.local.dao.VoiceSignalDao
+import com.truckerload.data.local.entities.CrowdRateEntity
 import com.truckerload.data.local.entities.BlockedUserEntity
 import com.truckerload.data.local.entities.CallSessionEntity
 import com.truckerload.data.local.entities.ChallengeParticipationEntity
@@ -90,8 +91,9 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         MediaSyncQueueEntity::class,
         MaintenanceTaskEntity::class,
         MaintenanceArchiveEntity::class,
+        CrowdRateEntity::class,
     ],
-    version = 28,
+    version = 29,
     // exportSchema=false: Room will not write schema JSON under schemas/. Migrations still
     // run from code, but CI cannot diff exported schemas — enable exportSchema=true +
     // schemas/ in VCS before shipping destructive migration changes.
@@ -124,6 +126,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun syncOutboxDao(): SyncOutboxDao
     abstract fun mediaSyncQueueDao(): MediaSyncQueueDao
     abstract fun maintenanceDao(): MaintenanceDao
+    abstract fun crowdRateDao(): com.truckerload.data.local.dao.CrowdRateDao
 
     companion object {
         private const val LEGACY_DB_NAME = "truckerload_db"
@@ -189,6 +192,7 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_25_26,
                         MIGRATION_26_27,
                         MIGRATION_27_28,
+                        MIGRATION_28_29,
                     )
                     // RISK: versions 1–5 have no migrations — opening an ancient DB wipes all tables.
                     // Ship with exportSchema=true + documented upgrade path before removing this.
