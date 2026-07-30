@@ -100,6 +100,13 @@
             </intent-filter>
         </receiver>
         <receiver
+            android:name=".sync.PickupAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.truckerload.action.PICKUP_ALARM" />
+            </intent-filter>
+        </receiver>
+        <receiver
             android:name=".widget.TruckerLoadWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_label">

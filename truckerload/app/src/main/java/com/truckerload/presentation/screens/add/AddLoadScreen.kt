@@ -35,6 +35,7 @@ import com.truckerload.R
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.components.PickupAlarmDialog
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -58,11 +59,22 @@ fun AddLoadScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val parseFailed = stringResource(R.string.add_load_parse_failed)
 
-    LaunchedEffect(uiState.savedLoad) {
-        if (uiState.savedLoad != null) {
+    LaunchedEffect(uiState.savedLoad, uiState.alarmPrompt) {
+        if (uiState.savedLoad != null && uiState.alarmPrompt == null) {
             viewModel.clearSaved()
             onSaved()
         }
+    }
+
+    uiState.alarmPrompt?.let { prompt ->
+        PickupAlarmDialog(
+            prompt = prompt,
+            onDismiss = {
+                viewModel.clearAlarmPrompt()
+                viewModel.clearSaved()
+                onSaved()
+            },
+        )
     }
 
     Scaffold(

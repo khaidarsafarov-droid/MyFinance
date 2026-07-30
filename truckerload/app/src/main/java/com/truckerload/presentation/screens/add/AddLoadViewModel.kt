@@ -11,6 +11,9 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.PickupAlarmPrompt
+import com.truckerload.sync.PickupAlarmPlanner
+import com.truckerload.utils.getFirstPickUpMillis
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +25,7 @@ data class AddLoadUiState(
     val error: String? = null,
     val isSaving: Boolean = false,
     val savedLoad: Load? = null,
+    val alarmPrompt: PickupAlarmPrompt? = null,
 )
 
 class AddLoadViewModel(
@@ -45,6 +49,10 @@ class AddLoadViewModel(
         _uiState.update { it.copy(savedLoad = null) }
     }
 
+    fun clearAlarmPrompt() {
+        _uiState.update { it.copy(alarmPrompt = null) }
+    }
+
     fun save(
         parseFailedFallback: String,
         saveErrorFormatter: (String) -> String,
@@ -61,8 +69,24 @@ class AddLoadViewModel(
                         loadRepository.insertLoad(load)
                         onOptimisticInsert?.invoke(load)
                         savedStateHandle[KEY_RAW] = ""
+                        val pickupMillis = getFirstPickUpMillis(load)
+                        val now = System.currentTimeMillis()
+                        val alarmPrompt = if (PickupAlarmPlanner.shouldPromptForAlarm(pickupMillis, now)) {
+                            PickupAlarmPrompt(
+                                loadId = load.id,
+                                tripId = load.tripId,
+                                pickupMillis = pickupMillis!!,
+                            )
+                        } else {
+                            null
+                        }
                         _uiState.update {
-                            it.copy(isSaving = false, savedLoad = load, rawText = "")
+                            it.copy(
+                                isSaving = false,
+                                savedLoad = load,
+                                rawText = "",
+                                alarmPrompt = alarmPrompt,
+                            )
                         }
                     } catch (e: Exception) {
                         _uiState.update {

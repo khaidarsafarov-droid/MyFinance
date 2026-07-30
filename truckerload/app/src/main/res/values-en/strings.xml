@@ -784,6 +784,19 @@
     <string name="notify_channel_missing_name">Missing data</string>
     <string name="notify_channel_alerts_name">Reminders</string>
 
+    <string name="pickup_alarm_title">Pickup reminder</string>
+    <string name="pickup_alarm_message">Load %1$s starts at %2$s. Set an alarm?</string>
+    <string name="pickup_alarm_two_hours">2 hours before pickup</string>
+    <string name="pickup_alarm_one_hour">1 hour before pickup</string>
+    <string name="pickup_alarm_custom">Custom time</string>
+    <string name="pickup_alarm_custom_time_title">Choose reminder time</string>
+    <string name="pickup_alarm_skip">No thanks</string>
+    <string name="pickup_alarm_scheduled">Alarm set for %1$s</string>
+    <string name="pickup_alarm_past">Reminder time is already in the past</string>
+    <string name="pickup_alarm_notify_title">Pickup coming up</string>
+    <string name="pickup_alarm_notify_body">Load %1$s — pickup at %2$s</string>
+    <string name="pickup_alarm_channel_name">Pickup reminders</string>
+
     <string name="sync_processing">⏳ Processing...</string>
     <string name="sync_welcome">🚛 Welcome to Truck Log!\n\nForward here:\n• load (Trip ID / PU# / Total Rate)\n• settlement text (Grand Total)\n• fuel receipt (Total / gallons)\n\nThe bot works even when the app is closed.\n\n📥 /import — bulk import (HTML, Relay, CSV)\n🔄 \"Restore\" or /restore — restore everything from the bot archive.\nCommands: /help · /status · /stats</string>
     <string name="sync_help">📋 How to use the Truck Log bot:\n1. Forward Amazon Relay load text\n2. Or settlement / fuel receipt text\n3. Data will be saved in the Truck Log app\n\n🔄 Restore: type \"restore\" or /restore — the bot will reload all saved messages into the app.\n\n/dedup — scan the database and remove duplicates\n\nThe app can be closed — the bot runs in the background on your phone.\n/status — record count in database · /stats — weekly statistics</string>

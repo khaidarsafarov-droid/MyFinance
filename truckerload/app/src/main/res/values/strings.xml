@@ -784,6 +784,19 @@
     <string name="notify_channel_missing_name">Отсутствующие данные</string>
     <string name="notify_channel_alerts_name">Напоминания</string>
 
+    <string name="pickup_alarm_title">Напоминание о погрузке</string>
+    <string name="pickup_alarm_message">Груз %1$s начинается %2$s. Поставить будильник?</string>
+    <string name="pickup_alarm_two_hours">За 2 часа до погрузки</string>
+    <string name="pickup_alarm_one_hour">За 1 час до погрузки</string>
+    <string name="pickup_alarm_custom">Своё время</string>
+    <string name="pickup_alarm_custom_time_title">Выберите время напоминания</string>
+    <string name="pickup_alarm_skip">Не нужно</string>
+    <string name="pickup_alarm_scheduled">Будильник установлен на %1$s</string>
+    <string name="pickup_alarm_past">Время напоминания уже прошло</string>
+    <string name="pickup_alarm_notify_title">Скоро погрузка</string>
+    <string name="pickup_alarm_notify_body">Груз %1$s — погрузка в %2$s</string>
+    <string name="pickup_alarm_channel_name">Напоминания о погрузке</string>
+
     <string name="sync_processing">⏳ Обрабатываю...</string>
     <string name="sync_welcome">🚛 Добро пожаловать в Truck Log!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
     <string name="sync_help">📋 Как пользоваться ботом Truck Log:\n1. Перешлите текст лоуда Amazon Relay\n2. Или текст settlement / fuel receipt\n3. Данные сохранятся в приложении Truck Log\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
