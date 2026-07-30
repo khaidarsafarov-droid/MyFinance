@@ -1,8 +1,6 @@
 package com.truckerload.utils
 
-import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
@@ -15,6 +13,9 @@ import com.truckerload.data.preferences.SettingsDataStore
 object AppLocale {
 
     fun apply(context: Context, language: AppLanguage) {
+        val current = AppCompatDelegate.getApplicationLocales()
+        if (!current.isEmpty && current[0]?.language == language.tag) return
+
         val locales = LocaleListCompat.forLanguageTags(language.tag)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.applicationContext
@@ -25,19 +26,9 @@ object AppLocale {
         SettingsDataStore.mirrorLanguageTag(context.applicationContext, language.tag)
     }
 
-    /** Apply locale and rebuild the current screen so strings update immediately. */
+    /** Apply locale; AppCompat recreates the activity when the locale actually changes. */
     fun applyAndRecreate(context: Context, language: AppLanguage) {
         apply(context, language)
-        findActivity(context)?.recreate()
-    }
-
-    private fun findActivity(context: Context): Activity? {
-        var current: Context? = context
-        while (current is ContextWrapper) {
-            if (current is Activity) return current
-            current = current.baseContext
-        }
-        return null
     }
 
     fun applyStored(context: Context) {
