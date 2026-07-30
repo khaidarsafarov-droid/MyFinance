@@ -130,9 +130,9 @@ fun LoadCalendarWithDots(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 week.forEach { (day, inMonth, dateStr) ->
-                    val hasLoad = dateStr != null && dateStr in datesWithLoads
-                    val isSelected = dateStr == selectedDate
                     val isCurrentMonth = inMonth == 1
+                    val hasLoad = isCurrentMonth && dateStr != null && dateStr in datesWithLoads
+                    val isSelected = dateStr == selectedDate
 
                     Box(
                         modifier = Modifier

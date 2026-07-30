@@ -241,19 +241,18 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                text = stringResource(R.string.home_calendar_select_week),
+                                stringResource(R.string.home_calendar_select_week),
                                 color = tc.TextPrimary,
-                                fontWeight = FontWeight.Medium,
                                 maxLines = 1,
                             )
                         }
-                        TlButton(
+                        TextButton(
                             onClick = { showCalendar = false },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.align(Alignment.End),
                         ) {
                             Text(
-                                text = stringResource(R.string.common_close),
-                                fontWeight = FontWeight.SemiBold,
+                                stringResource(R.string.common_close),
+                                color = tc.TextSecondary,
                                 maxLines = 1,
                             )
                         }
