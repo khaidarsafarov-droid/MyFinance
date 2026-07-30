@@ -195,7 +195,6 @@ private fun isRailDestinationSelected(currentRoute: String?, targetRoute: String
             currentRoute == Routes.ADVANCED_STATS ||
             currentRoute == Routes.MAP
         Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
-            currentRoute == Routes.TAX_TRACKER ||
             currentRoute == Routes.FINANCIAL_ADVISOR
         else -> currentRoute == targetRoute
     }
