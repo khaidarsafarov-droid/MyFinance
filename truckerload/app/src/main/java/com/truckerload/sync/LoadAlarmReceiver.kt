@@ -9,53 +9,54 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.truckerload.R
+import com.truckerload.data.preferences.LoadAlarmStore
 import com.truckerload.presentation.MainActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Fires a high-priority notification when a scheduled load pickup alarm triggers. */
+/** Fires the pickup reminder notification when [LoadAlarmScheduler] triggers. */
 class LoadAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != LoadAlarmScheduler.ACTION_LOAD_ALARM) return
-        val app = context.applicationContext
+        val appContext = context.applicationContext
         val loadId = intent.getStringExtra(LoadAlarmScheduler.EXTRA_LOAD_ID).orEmpty()
         val tripId = intent.getStringExtra(LoadAlarmScheduler.EXTRA_TRIP_ID).orEmpty()
         val pickupMillis = intent.getLongExtra(LoadAlarmScheduler.EXTRA_PICKUP_MILLIS, 0L)
-        if (loadId.isNotEmpty()) {
-            LoadAlarmStore(app).remove(loadId)
-        }
-        showNotification(app, loadId, tripId, pickupMillis)
-    }
+        val routeLabel = intent.getStringExtra(LoadAlarmScheduler.EXTRA_ROUTE_LABEL).orEmpty()
 
-    private fun showNotification(
-        context: Context,
-        loadId: String,
-        tripId: String,
-        pickupMillis: Long,
-    ) {
-        createChannel(context)
-        val openIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        if (loadId.isNotBlank()) {
+            LoadAlarmStore(appContext).remove(loadId)
         }
-        val contentPending = PendingIntent.getActivity(
-            context,
+
+        ensureChannel(appContext)
+        val title = appContext.getString(R.string.load_alarm_notify_title)
+        val timeLabel = if (pickupMillis > 0L) {
+            SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(pickupMillis))
+        } else {
+            ""
+        }
+        val body = when {
+            tripId.isNotBlank() && routeLabel.isNotBlank() && timeLabel.isNotBlank() ->
+                appContext.getString(R.string.load_alarm_notify_body_full, tripId, routeLabel, timeLabel)
+            tripId.isNotBlank() && timeLabel.isNotBlank() ->
+                appContext.getString(R.string.load_alarm_notify_body_trip_time, tripId, timeLabel)
+            timeLabel.isNotBlank() ->
+                appContext.getString(R.string.load_alarm_notify_body_time, timeLabel)
+            else ->
+                appContext.getString(R.string.load_alarm_notify_body_generic)
+        }
+
+        val openApp = PendingIntent.getActivity(
+            appContext,
             LoadAlarmScheduler.requestCode(loadId),
-            openIntent,
+            Intent(appContext, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val pickupLabel = if (pickupMillis > 0L) {
-            TIME_FMT.format(Date(pickupMillis))
-        } else {
-            "—"
-        }
-        val title = context.getString(R.string.load_alarm_notify_title)
-        val body = if (tripId.isNotBlank()) {
-            context.getString(R.string.load_alarm_notify_body, tripId, pickupLabel)
-        } else {
-            context.getString(R.string.load_alarm_notify_body_no_trip, pickupLabel)
-        }
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+
+        val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle(title)
             .setContentText(body)
@@ -63,19 +64,15 @@ class LoadAlarmReceiver : BroadcastReceiver() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
-            .setContentIntent(contentPending)
+            .setContentIntent(openApp)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .build()
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notifyId = if (loadId.isNotEmpty()) {
-            NOTIFY_BASE + (loadId.hashCode() and 0x0FFF)
-        } else {
-            NOTIFY_BASE
-        }
-        nm.notify(notifyId, notification)
+
+        val nm = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(NOTIFICATION_BASE_ID + LoadAlarmScheduler.requestCode(loadId) % 10_000, notification)
     }
 
-    private fun createChannel(context: Context) {
+    private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(
@@ -92,7 +89,6 @@ class LoadAlarmReceiver : BroadcastReceiver() {
 
     companion object {
         const val CHANNEL_ID = "truckerload_load_alarms"
-        private const val NOTIFY_BASE = 4200
-        private val TIME_FMT = SimpleDateFormat("dd.MM HH:mm", Locale.getDefault())
+        private const val NOTIFICATION_BASE_ID = 42000
     }
 }
