@@ -2,7 +2,6 @@ package com.truckerload.presentation.screens.map
 
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdRateSource
-import com.truckerload.domain.crowd.CrowdScope
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.StateRating
 import org.junit.Assert.assertEquals
@@ -46,22 +45,21 @@ class CrowdMapAggregatorTest {
     }
 
     @Test
-    fun filterByScope_meOnly() {
+    fun filterMeOnly_dropsNetwork() {
         val reports = listOf(
             CrowdRateReport("m", "WA", "OR", 2.5, 1000.0, 400.0, now, CrowdRateSource.ME),
             CrowdRateReport("n", "TX", "OK", 2.2, 900.0, 400.0, now, CrowdRateSource.NETWORK),
         )
-        val me = CrowdMapAggregator.filterByScope(reports, CrowdScope.ME)
+        val me = CrowdMapAggregator.filterMeOnly(reports)
         assertEquals(1, me.size)
         assertEquals(CrowdRateSource.ME, me[0].source)
-        assertEquals(2, CrowdMapAggregator.filterByScope(reports, CrowdScope.ALL).size)
     }
 
     @Test
     fun stateSummary_listsRecentOutbound() {
         val reports = listOf(
-            CrowdRateReport("1", "WA", "OR", 2.9, 1160.0, 400.0, now - TimeUnit.HOURS.toMillis(3), CrowdRateSource.NETWORK),
-            CrowdRateReport("2", "WA", "CA", 2.5, 1250.0, 500.0, now - TimeUnit.DAYS.toMillis(2), CrowdRateSource.NETWORK),
+            CrowdRateReport("1", "WA", "OR", 2.9, 1160.0, 400.0, now - TimeUnit.HOURS.toMillis(3), CrowdRateSource.ME),
+            CrowdRateReport("2", "WA", "CA", 2.5, 1250.0, 500.0, now - TimeUnit.DAYS.toMillis(2), CrowdRateSource.ME),
             CrowdRateReport("3", "OR", "WA", 3.0, 900.0, 300.0, now, CrowdRateSource.ME),
         )
         val summary = CrowdMapAggregator.stateSummary(reports, "WA")

@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.map
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdRateSource
-import com.truckerload.domain.crowd.CrowdScope
 import com.truckerload.domain.crowd.CrowdStateSummary
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.StateRating
@@ -17,8 +16,7 @@ import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
 /**
- * Pure crowd-map math: lane reports → state heatmap + per-state recent feed.
- * Heat is based on **outbound** activity (loads sent from the state).
+ * Pure map math from the driver's own loads: lane reports → outbound heatmap + recent feed.
  */
 object CrowdMapAggregator {
 
@@ -50,11 +48,8 @@ object CrowdMapAggregator {
         }
     }
 
-    fun filterByScope(reports: List<CrowdRateReport>, scope: CrowdScope): List<CrowdRateReport> =
-        when (scope) {
-            CrowdScope.ME -> reports.filter { it.source == CrowdRateSource.ME }
-            CrowdScope.ALL -> reports
-        }
+    fun filterMeOnly(reports: List<CrowdRateReport>): List<CrowdRateReport> =
+        reports.filter { it.source == CrowdRateSource.ME }
 
     fun heatmapFromOutbound(reports: List<CrowdRateReport>): List<USStateMetric> {
         val known = getUsStateCodes()

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,27 +24,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.data.crowd.CrowdRateRepository
-import com.truckerload.data.local.AppDatabase
 import com.truckerload.domain.crowd.CrowdRateReport
-import com.truckerload.domain.crowd.CrowdRateSource
-import com.truckerload.domain.crowd.CrowdScope
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
 import com.truckerload.presentation.components.getStateDisplayName
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
-import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.ForestScreenTitle
@@ -62,17 +53,10 @@ fun MapScreen(
     embedded: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
     val loadRepository = LocalLoadRepository.current
     val selectedStateStore = LocalSelectedStateStore.current
-    val crowdRepo = remember(loadRepository) {
-        CrowdRateRepository(
-            db = AppDatabase.getInstance(context.applicationContext),
-            loadRepository = loadRepository,
-        )
-    }
     val viewModel: MapViewModel = viewModel(
-        factory = MapViewModel.Factory(crowdRepo, selectedStateStore),
+        factory = MapViewModel.Factory(loadRepository, selectedStateStore),
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -92,7 +76,7 @@ fun MapScreen(
                             ForestScreenTitle(stringResource(R.string.map_title))
                             Text(
                                 text = stringResource(
-                                    R.string.map_subtitle_crowd_week,
+                                    R.string.map_subtitle_my_week,
                                     uiState.totalReports,
                                 ),
                                 style = AppTypography.Subtitle,
@@ -150,33 +134,10 @@ private fun MapScreenBody(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            text = stringResource(R.string.map_crowd_hint),
+            text = stringResource(R.string.map_my_rates_hint),
             style = MaterialTheme.typography.bodySmall,
             color = tc.TextSecondary,
         )
-        if (uiState.usingCommunitySample) {
-            Text(
-                text = stringResource(R.string.map_crowd_sample_banner),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.AccentPrimary,
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ScopeChip(
-                selected = uiState.scope == CrowdScope.ME,
-                label = stringResource(R.string.map_scope_me),
-                onClick = { viewModel.setScope(CrowdScope.ME) },
-            )
-            ScopeChip(
-                selected = uiState.scope == CrowdScope.ALL,
-                label = stringResource(R.string.map_scope_all),
-                onClick = { viewModel.setScope(CrowdScope.ALL) },
-            )
-        }
 
         Box(
             modifier = Modifier
@@ -226,7 +187,7 @@ private fun MapScreenBody(
                 )
             } else {
                 summary.recent.forEach { report ->
-                    CrowdRecentRow(report = report)
+                    MyRecentRow(report = report)
                 }
             }
         }
@@ -258,38 +219,17 @@ private fun MapScreenBody(
 }
 
 @Composable
-private fun ScopeChip(
-    selected: Boolean,
-    label: String,
-    onClick: () -> Unit,
-) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(label) },
-        colors = AppFilterChipDefaults.colors(),
-    )
-}
-
-@Composable
-private fun CrowdRecentRow(report: CrowdRateReport) {
+private fun MyRecentRow(report: CrowdRateReport) {
     val tc = LocalTruckColors.current
     val now = System.currentTimeMillis()
     val age = formatCrowdAge(now - report.reportedAtMillis)
-    val sourceLabel = when (report.source) {
-        CrowdRateSource.ME -> stringResource(R.string.map_scope_me)
-        CrowdRateSource.FRIEND,
-        CrowdRateSource.NETWORK,
-        -> stringResource(R.string.map_crowd_source_network)
-    }
     Text(
         text = stringResource(
-            R.string.map_crowd_recent_row,
+            R.string.map_my_recent_row,
             report.fromState,
             report.toState,
             String.format(Locale.getDefault(), "%.2f", report.rpm),
             age,
-            sourceLabel,
         ),
         style = MaterialTheme.typography.bodyMedium,
         color = tc.TextPrimary,

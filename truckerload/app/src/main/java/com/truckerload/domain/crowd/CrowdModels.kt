@@ -1,15 +1,14 @@
 package com.truckerload.domain.crowd
 
 /**
- * Who contributed an anonymized lane rate to the crowd map.
+ * Who contributed a lane rate. Map UI currently uses ME only; FRIEND/NETWORK reserved for later.
  */
 enum class CrowdScope {
     ME,
-    ALL,
 }
 
 /**
- * One anonymized report: RPM observed on a from→to state lane at a point in time.
+ * One lane rate: RPM observed on a from→to state lane at a point in time.
  */
 data class CrowdRateReport(
     val id: String,
