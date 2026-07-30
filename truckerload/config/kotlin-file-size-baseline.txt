@@ -1,0 +1,18 @@
+# Kotlin production sources allowed above the soft limit (600 lines).
+# Format: <path-relative-to-app/> <max-lines>
+# Caps freeze growth — shrink the file and remove the entry when under 600.
+# Phase 3 god-file splits should clear most of these.
+
+src/main/java/com/truckerload/data/repository/SocialRepository.kt 1029
+src/main/java/com/truckerload/presentation/screens/map/FriendsLiveMapScreen.kt 991
+src/main/java/com/truckerload/presentation/screens/maintenance/MaintenanceScreen.kt 943
+src/main/java/com/truckerload/sync/TelegramBotSyncEngine.kt 871
+src/main/java/com/truckerload/presentation/screens/social/SocialViewModels.kt 818
+src/main/java/com/truckerload/presentation/screens/stats/StatsScreen.kt 784
+src/main/java/com/truckerload/presentation/navigation/NavGraph.kt 738
+src/main/java/com/truckerload/presentation/screens/home/HomeScreen.kt 725
+src/main/java/com/truckerload/presentation/screens/social/ProfileScreen.kt 720
+src/main/java/com/truckerload/data/local/DatabaseMigrations.kt 715
+src/main/java/com/truckerload/presentation/screens/social/CommunityScreen.kt 642
+src/main/java/com/truckerload/presentation/screens/home/HomeViewModel.kt 623
+src/main/java/com/truckerload/presentation/screens/stats/StatsViewModel.kt 614

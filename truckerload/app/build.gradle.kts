@@ -281,6 +281,29 @@ dependencies {
 }
 
 /**
+ * Phase 3: fail when Kotlin production sources exceed the 600-line soft limit
+ * (or grow past a frozen baseline cap). Ideal target is 350 (warnings only).
+ * Run: ./gradlew :app:checkKotlinFileSize
+ */
+tasks.register<Exec>("checkKotlinFileSize") {
+    group = "verification"
+    description = "Fails if Kotlin sources exceed the 600-line soft limit (Phase 3 file-size gate)"
+    workingDir = rootProject.projectDir
+    commandLine(
+        "python3",
+        "scripts/check_kotlin_file_size.py",
+        "--app-dir",
+        project.projectDir.absolutePath,
+        "--baseline",
+        rootProject.file("config/kotlin-file-size-baseline.txt").absolutePath,
+    )
+}
+
+tasks.named("check").configure {
+    dependsOn("checkKotlinFileSize")
+}
+
+/**
  * Phase 0: fail the build if release BuildConfig still embeds bot/API secrets.
  * Run: ./gradlew :app:verifyReleaseSecretsEmpty
  */
