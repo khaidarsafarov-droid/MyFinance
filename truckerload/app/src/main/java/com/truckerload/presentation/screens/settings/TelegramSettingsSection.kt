@@ -53,12 +53,16 @@ fun TelegramSettingsSection() {
     var showToken by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
+    // Explicit Boolean — TelegramBotForegroundService.isRunning() must return Boolean
+    // (not the private AtomicBoolean field), or Compose cannot infer mutableStateOf's type.
     var botActive by remember {
-        mutableStateOf<Boolean>(TelegramBotForegroundService.isRunning())
+        val running: Boolean = TelegramBotForegroundService.isRunning()
+        mutableStateOf(running)
     }
 
     LaunchedEffect(Unit) {
-        botActive = TelegramBotForegroundService.isRunning()
+        val running: Boolean = TelegramBotForegroundService.isRunning()
+        botActive = running
     }
 
     BentoGlassSection(
@@ -129,7 +133,8 @@ fun TelegramSettingsSection() {
                                 tokenStore.setToken(token)
                                 TelegramBotForegroundService.stop(context)
                                 TelegramBotForegroundService.start(context)
-                                botActive = TelegramBotForegroundService.isRunning()
+                                val running: Boolean = TelegramBotForegroundService.isRunning()
+                                botActive = running
                                 context.getString(R.string.settings_telegram_ok, health.username.orEmpty())
                             }
                             health.isUnauthorized -> context.getString(R.string.settings_telegram_invalid)
