@@ -118,8 +118,9 @@ fun SignUpScreen(
                 phoneNumber = phoneFormatted,
             ),
         )
+        // No outbound email without Supabase — treat on-device accounts as verified.
         com.truckerload.data.preferences.EmailVerificationStore(context)
-            .beginVerification(emailTrimmed)
+            .markVerified(emailTrimmed)
         com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
         completeSignUp()

@@ -64,7 +64,11 @@ fun EmailVerificationScreen(
         }
         if (!store.isPending(email)) {
             val generated = store.beginVerification(email)
-            if (BuildConfig.LOCAL_ONLY_MODE || BuildConfig.DEBUG) {
+            // Show code when no outbound mail (local-only, debug, or Supabase unset).
+            val supabaseConfigured = BuildConfig.SUPABASE_URL.isNotBlank() &&
+                BuildConfig.SUPABASE_ANON_KEY.isNotBlank() &&
+                !BuildConfig.LOCAL_ONLY_MODE
+            if (BuildConfig.LOCAL_ONLY_MODE || BuildConfig.DEBUG || !supabaseConfigured) {
                 hint = context.getString(R.string.email_verify_dev_code, generated)
             }
         }

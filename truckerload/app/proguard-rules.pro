@@ -27,3 +27,9 @@
 -dontwarn com.itextpdf.bouncycastle.BouncyCastleFactory
 -dontwarn com.itextpdf.bouncycastlefips.BouncyCastleFipsFactory
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# Crashlytics references newer Android Profiling APIs (API 35+) not in compileSdk 34
+-dontwarn android.os.ProfilingManager
+-dontwarn android.os.ProfilingResult
+-dontwarn android.os.ProfilingTrigger
+-dontwarn android.os.ProfilingTrigger$Builder

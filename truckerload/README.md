@@ -18,7 +18,12 @@ The repository contains:
 There is no web/Expo client. The Telegram bot runs in the Android foreground service
 in device mode or through the Ktor webhook in server mode.
 
-## Build and test
+## Share with friends (no server)
+
+Local-first APK for friends: data stays on the phone; optional file / Google Drive
+backup. See [docs/FRIENDS_SHARE.md](docs/FRIENDS_SHARE.md) and
+`scripts/build-friends-apk.sh`.
+
 
 JDK 21 and Android SDK 34 are required.
 

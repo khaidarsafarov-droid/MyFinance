@@ -21,8 +21,8 @@ android {
         applicationId = "com.truckerload"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.5.2"
+        versionCode = 10
+        versionName = "1.5.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
@@ -57,8 +57,49 @@ android {
         buildConfigField("boolean", "CLOUD_MEDIA_ENABLED", cloudMediaEnabled.toString())
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
+        // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
+        // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a
+        val abiFiltersProp = (project.findProperty("abiFilters") as? String)
+            ?.split(',')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            .orEmpty()
+        val friendsPhone = project.hasProperty("friendsPhoneApk")
+        val selectedAbis = when {
+            abiFiltersProp.isNotEmpty() -> abiFiltersProp
+            friendsPhone -> listOf("arm64-v8a", "armeabi-v7a")
+            else -> emptyList()
+        }
+        if (selectedAbis.isNotEmpty()) {
+            ndk {
+                abiFilters.clear()
+                abiFilters.addAll(selectedAbis)
+            }
+        }
     }
 
+    // Optional friends/production signing. Create keystore.properties (gitignored) —
+    // see docs/FRIENDS_SHARE.md. Without it, release stays unsigned (CI can still compile).
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+    }
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                val storePath = keystoreProperties.getProperty("storeFile")
+                    ?: error("keystore.properties missing storeFile")
+                storeFile = rootProject.file(storePath)
+                storePassword = keystoreProperties.getProperty("storePassword")
+                    ?: error("keystore.properties missing storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                    ?: error("keystore.properties missing keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                    ?: error("keystore.properties missing keyPassword")
+            }
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -67,6 +108,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
