@@ -129,9 +129,12 @@ fun LoadCalendarWithDots(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 week.forEach { (day, inMonth, dateStr) ->
-                    val hasLoad = dateStr != null && dateStr in datesWithLoads
+                    // Dots are exact journal dates only (see LoadDateIndex) — not PU→DEL spans.
+                    val hasLoad = isCurrentMonthDay(inMonth) &&
+                        dateStr != null &&
+                        dateStr in datesWithLoads
                     val isSelected = dateStr == selectedDate
-                    val isCurrentMonth = inMonth == 1
+                    val isCurrentMonth = isCurrentMonthDay(inMonth)
 
                     Box(
                         modifier = Modifier
@@ -141,7 +144,7 @@ fun LoadCalendarWithDots(
                             .background(
                                 when {
                                     isSelected -> tc.AccentPrimary.copy(alpha = 0.3f)
-                                    hasLoad && isCurrentMonth -> tc.AccentProfit.copy(alpha = 0.15f)
+                                    hasLoad -> tc.AccentProfit.copy(alpha = 0.15f)
                                     else -> Color.Transparent
                                 }
                             )
@@ -177,6 +180,8 @@ fun LoadCalendarWithDots(
         }
     }
 }
+
+private fun isCurrentMonthDay(inMonthFlag: Int): Boolean = inMonthFlag == 1
 
 private fun monthLongLabel(month: Int): String {
     val value = DateFormatSymbols(Locale.getDefault())
