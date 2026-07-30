@@ -245,6 +245,14 @@
     <string name="scans_gallery">Scan gallery</string>
     <string name="no_scans">No saved scans</string>
     <string name="scan_pages">Pages: %1$d</string>
+    <string name="scan_detail_title">Scan</string>
+    <string name="scan_detail_trip">Trip ID</string>
+    <string name="scan_detail_date">Date</string>
+    <string name="scan_detail_route">From — to</string>
+    <string name="scan_detail_pages">Pages</string>
+    <string name="scan_detail_size">Size</string>
+    <string name="scan_detail_file">File</string>
+    <string name="scan_detail_ocr">Scan text</string>
     <string name="scan_size">Size: %1$s</string>
     <string name="scan_session_count">In session: %1$d</string>
     <string name="scan_add_another">Add another</string>

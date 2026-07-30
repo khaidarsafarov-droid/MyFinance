@@ -245,6 +245,14 @@
     <string name="scans_gallery">Галерея сканов</string>
     <string name="no_scans">Нет сохранённых сканов</string>
     <string name="scan_pages">Страниц: %1$d</string>
+    <string name="scan_detail_title">Скан</string>
+    <string name="scan_detail_trip">Trip ID</string>
+    <string name="scan_detail_date">Дата</string>
+    <string name="scan_detail_route">Откуда — куда</string>
+    <string name="scan_detail_pages">Страниц</string>
+    <string name="scan_detail_size">Размер</string>
+    <string name="scan_detail_file">Файл</string>
+    <string name="scan_detail_ocr">Текст со скана</string>
     <string name="scan_size">Размер: %1$s</string>
     <string name="scan_session_count">В сессии: %1$d</string>
     <string name="scan_add_another">Добавить ещё</string>
