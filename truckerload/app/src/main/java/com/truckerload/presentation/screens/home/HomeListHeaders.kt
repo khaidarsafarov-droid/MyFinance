@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
@@ -34,6 +36,7 @@ import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import java.util.Locale
 
 @Composable
 internal fun PeriodSummarySection(
@@ -49,14 +52,21 @@ internal fun PeriodSummarySection(
     val totals = header.totals
     val gross = MoneyFormat.formatCurrency(totals.totalRate)
     val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
-    val rpm = stringResource(R.string.home_period_avg_rpm, totals.avgRpmFormatted)
+    val rpmValue = if (totals.totalMiles > 0) {
+        String.format(Locale.US, "$%.2f", totals.avgRpm)
+    } else {
+        "—"
+    }
+    val rpmLabel = stringResource(R.string.home_period_avg_rpm_label)
+    val rpmCd = stringResource(R.string.home_period_avg_rpm, rpmValue)
     val summaryCd = stringResource(
         R.string.home_period_summary_cd,
         header.label,
         gross,
         miles,
-        rpm,
+        rpmCd,
     )
+    val soft = SoftUiColors.ForestSoft
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -83,11 +93,15 @@ internal fun PeriodSummarySection(
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = header.label.uppercase(),
-                style = AppTypography.Caption.copy(color = SoftUiColors.ForestSoft),
+                style = AppTypography.Caption.copy(color = soft),
             )
+            // Gross left; miles + avg RPM stacked right so the label never wraps alone.
             Row(
-                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
                     text = gross,
@@ -95,12 +109,38 @@ internal fun PeriodSummarySection(
                         color = Color.White,
                         fontWeight = FontWeight.Black,
                     ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
-                Text(
-                    text = " • $miles • $rpm",
-                    style = AppTypography.Body.copy(color = SoftUiColors.ForestSoft),
-                    modifier = Modifier.padding(bottom = 4.dp, start = 2.dp),
-                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = miles,
+                        style = AppTypography.Body.copy(color = soft),
+                        maxLines = 1,
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            text = rpmValue,
+                            style = AppTypography.Body.copy(
+                                color = soft,
+                                fontWeight = FontWeight.SemiBold,
+                            ),
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = rpmLabel,
+                            style = AppTypography.Caption.copy(color = soft),
+                            maxLines = 1,
+                        )
+                    }
+                }
             }
             HomePeriodFilterDropdown(
                 currentFilter = currentFilter,
