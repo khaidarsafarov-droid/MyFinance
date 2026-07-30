@@ -661,7 +661,9 @@
     <string name="widget_loading_hint">Loading KPI…</string>
     <string name="widget_metric_cpm">Rate per mile</string>
     <string name="settings_restore_error">Error: %1$s</string>
-    <string name="settings_telegram_title">Telegram Bot</string>
+        <string name="settings_telegram_status_active">Bot is listening for messages</string>
+    <string name="settings_telegram_status_inactive">Bot is not running</string>
+<string name="settings_telegram_title">Telegram Bot</string>
     <string name="settings_telegram_desc">Token from @BotFather (/newbot or /token). If the bot does not respond — the token was likely revoked: issue a new one and tap Test.</string>
     <string name="settings_telegram_token_label">BOT TOKEN</string>
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
