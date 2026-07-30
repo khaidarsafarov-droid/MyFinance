@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.VolumeUp
 import java.util.Locale
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.filled.Receipt
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -65,13 +64,11 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
-import com.truckerload.utils.BatteryOptimizationHelper
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
@@ -82,10 +79,6 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    onTaxTracker: () -> Unit = {},
-    onMaintenance: () -> Unit = {},
-    onAddPaycheck: () -> Unit = {},
-    onAddDiesel: () -> Unit = {},
     showBack: Boolean = false
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
@@ -102,17 +95,10 @@ fun SettingsScreen(
     )
     val exportState by settingsViewModel.exportState.collectAsStateWithLifecycle()
     val restoreState by settingsViewModel.restoreState.collectAsStateWithLifecycle()
-    val sendTelegramState by settingsViewModel.sendTelegramState.collectAsStateWithLifecycle()
-    val savedTelegramChatId by settingsViewModel.telegramChatId.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var backupRestoreMessage by remember { mutableStateOf<String?>(null) }
     var exportedFile by remember { mutableStateOf<java.io.File?>(null) }
     var showExportActions by remember { mutableStateOf(false) }
-    var showTelegramIdDialog by remember { mutableStateOf(false) }
-    var telegramIdInput by remember(savedTelegramChatId) {
-        mutableStateOf(savedTelegramChatId?.toString().orEmpty())
-    }
-    var pendingTelegramFile by remember { mutableStateOf<java.io.File?>(null) }
 
     val loadRestoreLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -185,32 +171,6 @@ fun SettingsScreen(
         }
     }
 
-    LaunchedEffect(sendTelegramState) {
-        when (val state = sendTelegramState) {
-            is SettingsViewModel.SendTelegramState.Success -> {
-                android.widget.Toast.makeText(
-                    context,
-                    context.getString(R.string.send_success),
-                    android.widget.Toast.LENGTH_LONG
-                ).show()
-                settingsViewModel.resetSendTelegramState()
-            }
-            is SettingsViewModel.SendTelegramState.NeedChatId -> {
-                showTelegramIdDialog = true
-                settingsViewModel.resetSendTelegramState()
-            }
-            is SettingsViewModel.SendTelegramState.Error -> {
-                val message = when (state.message) {
-                    SettingsViewModel.ERROR_NO_TOKEN -> context.getString(R.string.settings_telegram_token_missing)
-                    else -> context.getString(R.string.send_error, state.message)
-                }
-                android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
-                settingsViewModel.resetSendTelegramState()
-            }
-            else -> Unit
-        }
-    }
-
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
@@ -239,7 +199,6 @@ fun SettingsScreen(
         ) {
             ThemeSettingsSection(selected = themeMode)
             LanguageSettingsSection(selected = appLanguage)
-            ParserSettings()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
             var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
@@ -302,43 +261,43 @@ fun SettingsScreen(
             }
 
             BentoGlassSection(title = stringResource(R.string.settings_rpm_thresholds_title)) {
-                        Text(
-                            text = stringResource(R.string.settings_rpm_thresholds_desc),
-                            style = AppTypography.Caption,
-                            modifier = Modifier.padding(bottom = 12.dp),
-                        )
                 RpmColorLegend(
-                    modifier = Modifier.padding(bottom = 16.dp),
+                    compact = true,
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
                 val fieldColors = AppTextFieldDefaults.outlined()
-                OutlinedTextField(
-                    value = minInput,
-                    onValueChange = { minInput = it; error = null },
-                    label = { Text(stringResource(R.string.settings_red_threshold_label)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = fieldColors
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = targetInput,
-                    onValueChange = { targetInput = it; error = null },
-                    label = { Text(stringResource(R.string.settings_green_threshold_label)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = fieldColors
-                )
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedTextField(
+                        value = minInput,
+                        onValueChange = { minInput = it; error = null },
+                        label = { Text(stringResource(R.string.settings_red_threshold_short)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        colors = fieldColors,
+                    )
+                    OutlinedTextField(
+                        value = targetInput,
+                        onValueChange = { targetInput = it; error = null },
+                        label = { Text(stringResource(R.string.settings_green_threshold_short)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        colors = fieldColors,
+                    )
+                }
                 error?.let { err ->
                     Text(
                         text = err,
                         color = tc.AccentExpense,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 6.dp),
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
                         val min = minInput.replace(",", ".").toDoubleOrNull()
@@ -354,111 +313,25 @@ fun SettingsScreen(
                                 .onFailure { error = it.message }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
                 ) {
                     Text(stringResource(R.string.settings_rpm_save))
                 }
-            }
-
-            BentoGlassSection(title = stringResource(R.string.settings_section_tools)) {
-                OutlinedButton(
-                    onClick = onTaxTracker,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
-                ) {
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Receipt, contentDescription = stringResource(R.string.tax_title))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.tax_title))
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = onMaintenance,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
-                ) {
-                    Text(stringResource(R.string.maintenance_title))
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = onAddPaycheck,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) {
-                    Text(stringResource(R.string.add_paycheck_title))
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = onAddDiesel,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) {
-                    Text(stringResource(R.string.add_diesel_title))
-                }
-            }
-
-            BentoGlassSection(
-                title = stringResource(R.string.settings_telegram_title),
-                subtitle = stringResource(
-                    if (com.truckerload.sync.TelegramSyncMode.isServer()) {
-                        R.string.settings_telegram_server_mode
-                    } else {
-                        R.string.settings_telegram_desc
-                    },
-                ),
-            ) {
-                TelegramBotSettingsContent(context = context, tc = tc)
-            }
-
-            BentoGlassSection(
-                title = stringResource(R.string.settings_battery_title),
-                subtitle = if (BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
-                    stringResource(R.string.settings_battery_ok)
-                } else {
-                    stringResource(R.string.settings_battery_desc)
-                }
-            ) {
-                BatteryOptimizationContent(context = context, tc = tc)
             }
 
             BentoGlassSection(
                 title = stringResource(R.string.export_loads),
                 subtitle = stringResource(R.string.export_loads_description)
             ) {
-                val fieldColors = AppTextFieldDefaults.outlined()
-                OutlinedTextField(
-                    value = telegramIdInput,
-                    onValueChange = { telegramIdInput = it },
-                    label = { Text(stringResource(R.string.enter_telegram_id)) },
-                    placeholder = { Text(stringResource(R.string.telegram_id_hint)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = fieldColors
-                )
-                OutlinedButton(
-                    onClick = {
-                        settingsViewModel.saveTelegramChatId(telegramIdInput)
-                        android.widget.Toast.makeText(
-                            context,
-                            context.getString(R.string.telegram_id_saved),
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
-                ) {
-                    Text(stringResource(R.string.save_telegram_id))
-                }
-                Spacer(modifier = Modifier.height(8.dp))
                 if (exportState is SettingsViewModel.ExportState.Loading ||
-                    restoreState is SettingsViewModel.RestoreState.Loading ||
-                    sendTelegramState is SettingsViewModel.SendTelegramState.Loading
+                    restoreState is SettingsViewModel.RestoreState.Loading
                 ) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     Spacer(modifier = Modifier.height(8.dp))
                     val progressText = when {
                         exportState is SettingsViewModel.ExportState.Loading ->
                             stringResource(R.string.exporting_loads)
-                        restoreState is SettingsViewModel.RestoreState.Loading ->
-                            stringResource(R.string.restoring_loads)
-                        else -> stringResource(R.string.sending_to_telegram)
+                        else -> stringResource(R.string.restoring_loads)
                     }
                     Text(
                         text = progressText,
@@ -616,56 +489,22 @@ fun SettingsScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        pendingTelegramFile = exportTarget
-                        settingsViewModel.sendExportToTelegram(exportTarget)
+                        settingsViewModel.openExportsFolder(exportTarget)
                         showExportActions = false
+                        exportedFile = null
                     }
                 ) {
-                    Text(stringResource(R.string.send_to_telegram))
+                    Text(stringResource(R.string.open_folder))
                 }
             },
             dismissButton = {
                 OutlinedButton(
                     onClick = {
-                        settingsViewModel.openExportsFolder(exportTarget)
                         showExportActions = false
+                        exportedFile = null
                     }
                 ) {
-                    Text(stringResource(R.string.open_folder))
-                }
-            }
-        )
-    }
-
-    if (showTelegramIdDialog) {
-        AlertDialog(
-            onDismissRequest = { showTelegramIdDialog = false },
-            title = { Text(stringResource(R.string.enter_telegram_id), color = tc.TextPrimary) },
-            text = {
-                OutlinedTextField(
-                    value = telegramIdInput,
-                    onValueChange = { telegramIdInput = it },
-                    placeholder = { Text(stringResource(R.string.telegram_id_hint)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        settingsViewModel.saveTelegramChatId(telegramIdInput)
-                        showTelegramIdDialog = false
-                        pendingTelegramFile?.let { settingsViewModel.sendExportToTelegram(it) }
-                        pendingTelegramFile = null
-                    }
-                ) {
-                    Text(stringResource(R.string.save_telegram_id))
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showTelegramIdDialog = false }) {
-                    Text(stringResource(R.string.common_cancel))
+                    Text(stringResource(R.string.common_ok))
                 }
             }
         )

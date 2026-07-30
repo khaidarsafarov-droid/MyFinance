@@ -142,7 +142,7 @@
     <string name="home_cd_search">Search</string>
     <string name="home_cd_bot_active">Telegram bot active</string>
     <string name="home_cd_bot_inactive">Telegram bot inactive</string>
-    <string name="connectivity_offline_banner">Offline — local data available; Drive/Telegram sync paused</string>
+    <string name="connectivity_offline_banner">Offline — local data available; Drive sync paused</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_weekly_goal">Goal</string>
     <string name="nav_logbook">Loads</string>
@@ -298,7 +298,7 @@
     <string name="home_empty_last_week">No loads last week</string>
     <string name="home_empty_this_month">No loads this month</string>
     <string name="home_empty_dispute">No loads in dispute</string>
-    <string name="home_empty_all_body">Send data to the Telegram bot or add a load. Pull down to refresh.</string>
+    <string name="home_empty_all_body">Add a load manually or paste trip text. Pull down to refresh.</string>
     <string name="home_empty_filtered_body">Change the filter or pull down to refresh.</string>
     <string name="home_stats_header">%1$d loads total  •  $%2$.0f  •  %3$.0f mi  •  %4$s avg RPM</string>
     <string name="home_period_avg_rpm">%1$s avg RPM</string>
@@ -427,7 +427,7 @@
     <string name="add_load_parse_failed">Could not parse message</string>
     <string name="add_load_saving">Saving…</string>
     <string name="add_load_save_offline">Save in app (offline)</string>
-    <string name="add_load_hint_online">Paste a message and tap Save — data goes straight to the local database. Or send a message to the Telegram bot.</string>
+    <string name="add_load_hint_online">Paste a message and tap Save — data goes straight to the local database.</string>
     <string name="edit_load_title">Edit load</string>
     <string name="edit_load_save_changes">Save changes</string>
     <string name="edit_load_added_at">Added: %1$s</string>
@@ -497,10 +497,12 @@
     <string name="rpm_legend_yellow">%1$.2f–%2$.2f/mi</string>
     <string name="rpm_legend_green">&gt; %1$.2f/mi</string>
     <string name="analytics_week_loads_title">Loads for %1$s</string>
-    <string name="settings_rpm_thresholds_title">RPM profitability thresholds</string>
+    <string name="settings_rpm_thresholds_title">RPM thresholds</string>
     <string name="settings_rpm_thresholds_desc">Below red threshold — unprofitable. Between thresholds — average RPM (yellow). Above green — high profit.</string>
     <string name="settings_red_threshold_label">Red threshold ($/mile)</string>
     <string name="settings_green_threshold_label">Green threshold ($/mile)</string>
+    <string name="settings_red_threshold_short">Red $/mi</string>
+    <string name="settings_green_threshold_short">Green $/mi</string>
     <string name="settings_red_threshold_error">Enter a number for the red threshold</string>
     <string name="settings_green_threshold_error">Enter a number for the green threshold</string>
     <string name="settings_rpm_threshold_negative">Thresholds cannot be negative</string>

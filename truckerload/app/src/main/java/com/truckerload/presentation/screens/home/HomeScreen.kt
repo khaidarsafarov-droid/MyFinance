@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sync
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.components.LocalOpenDrawer
@@ -78,14 +77,12 @@ import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.data.preferences.RpmThresholds
-import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.truckerload.presentation.components.BotStatusBadge
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.presentation.theme.AppTypography
@@ -101,13 +98,9 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
 import com.truckerload.widget.WidgetDeepLink
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -135,8 +128,7 @@ fun HomeScreen(
     }
     val context = LocalContext.current
     val openDrawer = LocalOpenDrawer.current
-    val isBotConfigured = remember(context) { TelegramTokenStore(context).hasToken() }
-    val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(loadRepository, isBotConfigured, context))
+    val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(loadRepository, isBotConfigured = false, context))
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
@@ -144,12 +136,6 @@ fun HomeScreen(
     val connectivity by remember(context) {
         ConnectivityObserver.observe(context)
     }.collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.refreshBotStatus()
-        }
-    }
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val datesWithLoads = filteredResult.datesWithLoads
@@ -312,20 +298,6 @@ fun HomeScreen(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
                 actions = {
-                    if (isBotConfigured) {
-                        IconButton(
-                            onClick = {
-                                TelegramSyncWorker.enqueueEnsureService(context.applicationContext, replace = true)
-                            },
-                            modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
-                        ) {
-                            Icon(
-                                Icons.Default.Sync,
-                                contentDescription = stringResource(R.string.home_cd_sync_telegram),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
-                    }
                     IconButton(
                         onClick = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
@@ -336,7 +308,6 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
-                    BotStatusBadge(active = uiState.botStatusActive)
                 }
             )
         },
@@ -437,14 +408,13 @@ private fun HomeScreenContent(
 
     fun onRefresh() {
         refreshing = true
-        TelegramSyncWorker.enqueueEnsureService(context.applicationContext, replace = true)
         android.widget.Toast.makeText(
             context,
             context.getString(R.string.home_sync_triggered),
             android.widget.Toast.LENGTH_SHORT,
         ).show()
         scope.launch {
-            delay(2500)
+            delay(800)
             refreshing = false
         }
     }

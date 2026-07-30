@@ -15,7 +15,10 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.LocalGasStation
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.material3.AlertDialog
@@ -56,6 +59,9 @@ enum class DrawerDestination {
     REPORTS,
     DOCUMENTS,
     MAINTENANCE,
+    TAX_TRACKER,
+    ADD_PAYCHECK,
+    ADD_DIESEL,
     SCANNER,
     CAMERA,
     SUPPORT,
@@ -118,6 +124,21 @@ fun AppDrawerContent(
                 icon = Icons.Outlined.Build,
                 label = stringResource(R.string.maintenance_title),
                 onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.Receipt,
+                label = stringResource(R.string.tax_title),
+                onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.Payments,
+                label = stringResource(R.string.add_paycheck_title),
+                onClick = { onNavigate(DrawerDestination.ADD_PAYCHECK); onClose() },
+            )
+            drawerItem(
+                icon = Icons.Outlined.LocalGasStation,
+                label = stringResource(R.string.add_diesel_title),
+                onClick = { onNavigate(DrawerDestination.ADD_DIESEL); onClose() },
             )
             drawerItem(
                 icon = Icons.Outlined.DocumentScanner,
