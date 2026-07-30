@@ -9,19 +9,24 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.hilt.work.HiltWorker
 import com.truckerload.data.preferences.AuthStore
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 
 /**
  * Background Drive backup when the device has network (guide Part 3 — WorkManager trigger).
  */
-class DriveSyncWorker(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class DriveSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val userId = AuthStore(applicationContext).currentUserIdOrNull()
+        val userId = authStore.currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.i(TAG, "No session — skip Drive sync")
             return Result.success()

@@ -4,7 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.TelegramTokenStore
@@ -26,10 +28,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class SettingsViewModel(
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val settingsDataStore: SettingsDataStore,
-    private val appContext: Context
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     sealed interface ExportState {
@@ -207,18 +210,5 @@ class SettingsViewModel(
         const val ERROR_NO_PARSED_LOADS = "no_parsed_loads"
         const val ERROR_NO_TOKEN = "no_token"
         const val ERROR_GENERIC = "failed"
-
-        fun factory(loadRepository: LoadRepository, context: Context): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    val appContext = context.applicationContext
-                    return SettingsViewModel(
-                        loadRepository = loadRepository,
-                        settingsDataStore = SettingsDataStore(appContext),
-                        appContext = appContext
-                    ) as T
-                }
-            }
     }
 }

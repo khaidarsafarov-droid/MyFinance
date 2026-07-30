@@ -8,12 +8,13 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.hilt.work.HiltWorker
 import com.truckerload.R
-import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.MaintenanceRepository
-import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.preferences.AuthStore
+import com.truckerload.di.UserComponentManager
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
 
@@ -21,9 +22,12 @@ import kotlinx.coroutines.flow.first
  * At most one paycheck + one diesel reminder per ISO week, and one bundled maintenance alert
  * (not one shade entry per task). Stable notification IDs prevent stacking duplicates.
  */
-class SmartNotificationWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class SmartNotificationWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
+    private val userComponentManager: UserComponentManager,
 ) : CoroutineWorker(context, params) {
 
     companion object {
@@ -39,11 +43,11 @@ class SmartNotificationWorker(
     }
 
     override suspend fun doWork(): Result {
-        val db = AppDatabase.getInstanceForActiveUser(applicationContext)
-            ?: return Result.success()
-        val paycheckRepo = PaycheckRepository(db)
-        val dieselRepo = DieselRepository(db)
-        val maintenanceRepo = MaintenanceRepository(db)
+        val userId = authStore.currentUserIdOrNull() ?: return Result.success()
+        val session = userComponentManager.startSession(userId)
+        val paycheckRepo = session.paycheckRepository
+        val dieselRepo = session.dieselRepository
+        val maintenanceRepo = session.maintenanceRepository
 
         createChannels()
         cancelLegacyPerTaskMaintenanceAlerts()

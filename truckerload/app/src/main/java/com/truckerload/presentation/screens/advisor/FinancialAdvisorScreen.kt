@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.advisor
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -60,12 +61,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalDieselRepository
-import com.truckerload.presentation.di.LocalAiRepository
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.screens.chat.ChatMessage
 import com.truckerload.presentation.screens.chat.ChatViewModel
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -79,15 +75,7 @@ import kotlinx.coroutines.launch
 fun FinancialAdvisorScreen(onBack: () -> Unit) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val viewModel: ChatViewModel = viewModel(
-        factory = ChatViewModel.Factory(
-            LocalAiRepository.current,
-            LocalLoadRepository.current,
-            LocalPaycheckRepository.current,
-            LocalDieselRepository.current,
-            context
-        )
-    )
+    val viewModel: ChatViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }

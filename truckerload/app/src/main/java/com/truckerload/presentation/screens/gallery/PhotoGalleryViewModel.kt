@@ -1,7 +1,8 @@
 package com.truckerload.presentation.screens.gallery
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.local.entities.PhotoEntity
 import com.truckerload.data.repository.LoadRepository
@@ -33,7 +34,8 @@ data class PhotoGalleryUiState(
     val isLoadingLoads: Boolean = true,
 )
 
-class PhotoGalleryViewModel(
+@HiltViewModel
+class PhotoGalleryViewModel @Inject constructor(
     private val photoRepository: PhotoRepository,
     private val loadRepository: LoadRepository,
 ) : ViewModel() {
@@ -107,13 +109,4 @@ class PhotoGalleryViewModel(
         val loadId: String?,
     )
 
-    class Factory(
-        private val photoRepository: PhotoRepository,
-        private val loadRepository: LoadRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return PhotoGalleryViewModel(photoRepository, loadRepository) as T
-        }
-    }
 }

@@ -2,8 +2,10 @@ package com.truckerload.presentation.screens.detail
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
+import android.net.Uri
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
@@ -29,11 +31,14 @@ sealed class LoadDetailEvent {
     data class Message(val text: String) : LoadDetailEvent()
 }
 
-class LoadDetailViewModel(
+@HiltViewModel
+class LoadDetailViewModel @Inject constructor(
     application: Application,
-    private val loadId: String,
     private val loadRepository: LoadRepository,
+    savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
+
+    private val loadId = Uri.decode(savedStateHandle.get<String>("loadId").orEmpty())
 
     private val _uiState = MutableStateFlow(LoadDetailUiState())
     val uiState: StateFlow<LoadDetailUiState> = _uiState.asStateFlow()
@@ -125,15 +130,5 @@ class LoadDetailViewModel(
                 _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
             }
         }
-    }
-
-    class Factory(
-        private val application: Application,
-        private val loadId: String,
-        private val loadRepository: LoadRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            LoadDetailViewModel(application, loadId, loadRepository) as T
     }
 }

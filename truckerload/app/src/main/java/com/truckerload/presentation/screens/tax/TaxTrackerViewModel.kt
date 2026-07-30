@@ -1,7 +1,8 @@
 package com.truckerload.presentation.screens.tax
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
@@ -42,7 +43,8 @@ private val QUARTERLY_DATES = listOf(
     Triple(1, 15, "Q4")
 )
 
-class TaxTrackerViewModel(
+@HiltViewModel
+class TaxTrackerViewModel @Inject constructor(
     private val paycheckRepository: PaycheckRepository,
     private val dieselRepository: DieselRepository,
     private val loadRepository: LoadRepository
@@ -167,13 +169,4 @@ class TaxTrackerViewModel(
         return Pair(0, "")
     }
 
-    class Factory(
-        private val paycheckRepository: PaycheckRepository,
-        private val dieselRepository: DieselRepository,
-        private val loadRepository: LoadRepository
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            TaxTrackerViewModel(paycheckRepository, dieselRepository, loadRepository) as T
-    }
 }

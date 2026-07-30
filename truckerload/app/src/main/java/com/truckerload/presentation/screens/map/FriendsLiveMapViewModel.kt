@@ -1,7 +1,10 @@
 package com.truckerload.presentation.screens.map
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
@@ -67,14 +70,17 @@ data class FriendsLiveMapUiState(
     val lastRefreshAt: Long = 0L,
 )
 
-class FriendsLiveMapViewModel(
+@HiltViewModel
+class FriendsLiveMapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
     private val userProfileStore: UserProfileStore,
-    private val friendsApi: SupabaseFriendsRealtimeService,
-    private val locationHelper: LocationHelper,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
+
+    private val friendsApi = SupabaseFriendsRealtimeService(authStore)
+    private val locationHelper = LocationHelper(context)
 
     private val _uiState = MutableStateFlow(FriendsLiveMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -452,26 +458,6 @@ class FriendsLiveMapViewModel(
                 },
             )
         }
-
-    class Factory(
-        private val loadRepository: LoadRepository,
-        private val settingsDataStore: SettingsDataStore,
-        private val authStore: AuthStore,
-        private val userProfileStore: UserProfileStore,
-        private val friendsApi: SupabaseFriendsRealtimeService,
-        private val locationHelper: LocationHelper,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            FriendsLiveMapViewModel(
-                loadRepository,
-                settingsDataStore,
-                authStore,
-                userProfileStore,
-                friendsApi,
-                locationHelper,
-            ) as T
-    }
 
     companion object {
         const val SELF_ROUTE_ID = "__me__"

@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.social
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,12 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.LeaderboardCategory
 import com.truckerload.domain.social.SocialChat
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -80,12 +79,8 @@ fun CommunityScreen(
     onOpenGroupDetail: (String) -> Unit = {},
     onOpenPeerProfile: (String) -> Unit = {},
     modifier: Modifier = Modifier,
-    chatsViewModel: ChatsViewModel = viewModel(
-        factory = ChatsViewModel.Factory(LocalSocialRepository.current),
-    ),
-    communityViewModel: CommunityViewModel = viewModel(
-        factory = CommunityViewModel.Factory(LocalSocialRepository.current),
-    ),
+    chatsViewModel: ChatsViewModel = hiltViewModel(),
+    communityViewModel: CommunityViewModel = hiltViewModel(),
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf(

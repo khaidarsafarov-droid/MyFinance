@@ -1,7 +1,7 @@
 package com.truckerload.presentation.screens.add
 
-import android.app.Application
 import android.widget.Toast
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,10 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalAiRepository
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -65,12 +63,8 @@ fun AddLoadScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val loadRepository = LocalLoadRepository.current
     val aiRepository = LocalAiRepository.current
-    val viewModel: AddLoadViewModel = viewModel(
-        factory = AddLoadViewModel.Factory(application, loadRepository, aiRepository),
-    )
+    val viewModel: AddLoadViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val parseFailed = stringResource(R.string.add_load_parse_failed)
     val alarmSetToast = stringResource(R.string.load_alarm_set_toast)

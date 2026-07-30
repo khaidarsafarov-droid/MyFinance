@@ -28,6 +28,36 @@ class HiltArchitectureTest {
         )
     }
 
+    @Test
+    fun userAccountModule_bridgesSessionWithoutSingletonScope() {
+        val source = readMainSource("com/truckerload/di/UserAccountModule.kt")
+
+        assertTrue(source.contains("@InstallIn(SingletonComponent::class)"))
+        assertTrue(source.contains("UserComponentManager"))
+        assertTrue(source.contains("manager.require()"))
+        // Strip KDoc/comments so mentions of @Singleton in docs do not fail the guard.
+        val codeOnly = source
+            .replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
+            .replace(Regex("//.*"), "")
+        assertFalse(
+            "Account repos must not be cached as @Singleton",
+            codeOnly.contains("@Singleton"),
+        )
+        assertTrue(source.contains("fun provideLoadRepository"))
+        assertTrue(source.contains("fun provideSocialRepository"))
+        assertTrue(source.contains("fun provideAppDatabase"))
+    }
+
+    @Test
+    fun userComponentManager_ownsSessionLifecycle() {
+        val source = readMainSource("com/truckerload/di/UserComponentManager.kt")
+
+        assertTrue(source.contains("fun startSession"))
+        assertTrue(source.contains("fun endSession"))
+        assertTrue(source.contains("AppDatabase.closeCurrent()"))
+        assertTrue(source.contains("userProfileStore.unbind()"))
+    }
+
     private fun readMainSource(relativePath: String): String {
         val candidates = listOf(
             File("src/main/java/$relativePath"),

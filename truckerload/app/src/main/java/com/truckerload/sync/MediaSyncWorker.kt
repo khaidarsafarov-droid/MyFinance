@@ -14,6 +14,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.hilt.work.HiltWorker
 import com.truckerload.BuildConfig
 import com.truckerload.contract.ContractJson
 import com.truckerload.contract.MediaKind
@@ -32,6 +33,9 @@ import com.truckerload.data.sync.MediaFilePolicy
 import com.truckerload.data.sync.MediaQueuePolicy
 import com.truckerload.data.sync.MediaSyncCursorStore
 import com.truckerload.data.sync.MediaValidationException
+import com.truckerload.di.UserComponentManager
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import java.io.File
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
@@ -43,23 +47,25 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
-class MediaSyncWorker(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class MediaSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
+    private val userComponentManager: UserComponentManager,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val gate = MediaCloudGate(applicationContext)
         if (!gate.isEnabled()) return Result.success()
-        val auth = AuthStore(applicationContext)
-        val accountId = auth.currentUserIdOrNull() ?: return Result.success()
+        val accountId = authStore.currentUserIdOrNull() ?: return Result.success()
         // Keep queued local work untouched while a session is temporarily offline
         // or awaiting refresh. Repositories enqueue based on feature configuration,
         // not current token availability, so no media mutation is lost.
-        if (auth.accessTokenOrNull().isNullOrBlank()) return Result.retry()
-        val db = AppDatabase.getInstance(applicationContext, accountId)
+        if (authStore.accessTokenOrNull().isNullOrBlank()) return Result.retry()
+        val db = userComponentManager.startSession(accountId).database
         val client = MediaCloudClient(
             backendUrl = BuildConfig.SYNC_BACKEND_URL,
-            accessToken = auth::accessTokenOrNull,
+            accessToken = authStore::accessTokenOrNull,
             deviceId = DeviceIdentity(applicationContext).id(),
         )
         val queue = db.mediaSyncQueueDao()

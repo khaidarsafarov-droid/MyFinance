@@ -3,11 +3,9 @@ package com.truckerload.presentation.screens.add
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
@@ -37,10 +35,11 @@ data class AddLoadUiState(
     val alarmPrompt: LoadAlarmPromptState? = null,
 )
 
-class AddLoadViewModel(
+@HiltViewModel
+class AddLoadViewModel @Inject constructor(
     application: Application,
     private val loadRepository: LoadRepository,
-    private val aiRepository: AiRepository?,
+    private val aiRepository: AiRepository,
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
@@ -115,11 +114,10 @@ class AddLoadViewModel(
         onOptimisticInsert: ((Load) -> Unit)?,
     ) {
         val text = _uiState.value.rawText
-        val ai = aiRepository ?: return
         if (text.isBlank() || _uiState.value.isSaving) return
         _uiState.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            ai.parseLoadFromMessage(text)
+            aiRepository.parseLoadFromMessage(text)
                 .onSuccess { load ->
                     try {
                         loadRepository.insertLoad(load)
@@ -164,21 +162,6 @@ class AddLoadViewModel(
                     }
                 }
         }
-    }
-
-    class Factory(
-        private val application: Application,
-        private val loadRepository: LoadRepository,
-        private val aiRepository: AiRepository?,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            AddLoadViewModel(
-                application,
-                loadRepository,
-                aiRepository,
-                extras.createSavedStateHandle(),
-            ) as T
     }
 
     companion object {

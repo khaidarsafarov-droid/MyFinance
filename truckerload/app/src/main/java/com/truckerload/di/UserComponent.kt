@@ -1,0 +1,83 @@
+package com.truckerload.di
+
+import android.content.Context
+import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.preferences.RpmThresholdsStore
+import com.truckerload.data.preferences.SelectedStateStore
+import com.truckerload.data.preferences.StatsSelectionStore
+import com.truckerload.data.preferences.UserProfileStore
+import com.truckerload.data.preferences.WeeklyProfitGoalStore
+import com.truckerload.data.repository.AiRepository
+import com.truckerload.data.repository.AnalyticsRepository
+import com.truckerload.data.repository.DieselRepository
+import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.MaintenanceRepository
+import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.repository.PhotoRepository
+import com.truckerload.data.repository.ScanRepository
+import com.truckerload.data.repository.SocialRepository
+import com.truckerload.data.repository.VoiceRepository
+import com.truckerload.data.repository.WeekRepository
+
+/**
+ * Account-scoped object graph for one [userId].
+ *
+ * Not a Hilt `@DefineComponent`: ViewModelComponent cannot parent a custom user
+ * component, so [UserComponentManager] owns this graph and [UserAccountModule]
+ * bridges repositories into SingletonComponent for `@HiltViewModel` injection.
+ */
+@UserScope
+class UserComponent private constructor(
+    @UserId val userId: String,
+    val database: AppDatabase,
+    val loadRepository: LoadRepository,
+    val paycheckRepository: PaycheckRepository,
+    val dieselRepository: DieselRepository,
+    val weekRepository: WeekRepository,
+    val rpmThresholdsStore: RpmThresholdsStore,
+    val selectedStateStore: SelectedStateStore,
+    val statsSelectionStore: StatsSelectionStore,
+    val weeklyProfitGoalStore: WeeklyProfitGoalStore,
+    val analyticsRepository: AnalyticsRepository,
+    val photoRepository: PhotoRepository,
+    val scanRepository: ScanRepository,
+    val socialRepository: SocialRepository,
+    val voiceRepository: VoiceRepository,
+    val aiRepository: AiRepository,
+    val maintenanceRepository: MaintenanceRepository,
+) {
+    companion object {
+        fun create(
+            context: Context,
+            userId: String,
+            userProfileStore: UserProfileStore,
+        ): UserComponent {
+            val id = userId.trim()
+            require(id.isNotBlank()) { "userId required" }
+            userProfileStore.bindUser(id)
+            val db = AppDatabase.getInstance(context, id)
+            val loadRepository = LoadRepository(db)
+            val paycheckRepository = PaycheckRepository(db)
+            val dieselRepository = DieselRepository(db)
+            return UserComponent(
+                userId = id,
+                database = db,
+                loadRepository = loadRepository,
+                paycheckRepository = paycheckRepository,
+                dieselRepository = dieselRepository,
+                weekRepository = WeekRepository(loadRepository, paycheckRepository, dieselRepository),
+                rpmThresholdsStore = RpmThresholdsStore(context, id),
+                selectedStateStore = SelectedStateStore(context, id),
+                statsSelectionStore = StatsSelectionStore(context, id),
+                weeklyProfitGoalStore = WeeklyProfitGoalStore(context, id),
+                analyticsRepository = AnalyticsRepository(db),
+                photoRepository = PhotoRepository(db),
+                scanRepository = ScanRepository(db),
+                socialRepository = SocialRepository(db, loadRepository, userProfileStore, context),
+                voiceRepository = VoiceRepository(db, context),
+                aiRepository = AiRepository(),
+                maintenanceRepository = MaintenanceRepository(db),
+            )
+        }
+    }
+}

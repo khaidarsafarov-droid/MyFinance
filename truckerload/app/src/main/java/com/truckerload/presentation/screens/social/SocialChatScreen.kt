@@ -4,6 +4,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,14 +60,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.data.social.VoiceNoteRecorder
 import com.truckerload.domain.social.MessageType
 import com.truckerload.domain.social.ReactionEmoji
 import com.truckerload.domain.social.SocialMessage
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -81,10 +80,7 @@ fun SocialChatScreen(
     chatId: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SocialChatViewModel = viewModel(
-        key = chatId,
-        factory = SocialChatViewModel.Factory(chatId, LocalSocialRepository.current),
-    ),
+    viewModel: SocialChatViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current

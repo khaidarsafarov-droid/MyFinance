@@ -11,15 +11,19 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.hilt.work.HiltWorker
 import com.truckerload.data.sync.CloudSyncEngine
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 
 /**
  * Periodic / one-shot account cloud sync (push outbox drain + pull/hydrate).
  */
-class CloudSyncWorker(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class CloudSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {

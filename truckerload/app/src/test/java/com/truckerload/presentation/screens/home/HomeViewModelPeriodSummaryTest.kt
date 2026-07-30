@@ -5,7 +5,13 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -16,21 +22,29 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class HomeViewModelPeriodSummaryTest {
 
     private val loadsFlow = MutableStateFlow<List<Load>>(emptyList())
+    private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var loadRepository: LoadRepository
     private lateinit var app: Application
     private lateinit var viewModel: HomeViewModel
 
     @Before
     fun setUp() {
+        Dispatchers.setMain(dispatcher)
         loadRepository = mock()
+        // Mock strings for periodSummaryHeader assertions; real applicationContext for
+        // TelegramTokenStore / AuthStore constructed in HomeViewModel init.
         app = mock()
+        val realApp = RuntimeEnvironment.getApplication()
+        whenever(app.applicationContext).thenReturn(realApp)
         whenever(app.getString(any<Int>())).thenReturn("period")
         whenever(app.getString(any<Int>(), any())).thenReturn("period")
         whenever(app.getString(any<Int>(), any(), any())).thenReturn("period")
@@ -38,7 +52,12 @@ class HomeViewModelPeriodSummaryTest {
         whenever(loadRepository.watchLoads()).thenReturn(loadsFlow)
         whenever(loadRepository.getLoadsByWeek(any(), any())).thenReturn(loadsFlow)
         whenever(loadRepository.getLoadsByDateRange(any(), any())).thenReturn(loadsFlow)
-        viewModel = HomeViewModel(loadRepository, isBotConfigured = false, app)
+        viewModel = HomeViewModel(loadRepository, app)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test

@@ -3,8 +3,11 @@
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.SocialRepository
 import com.truckerload.domain.social.Challenge
@@ -38,7 +41,8 @@ data class ProfileUiState(
     val saveError: String? = null,
 )
 
-class ProfileViewModel(
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
 
@@ -136,14 +140,6 @@ class ProfileViewModel(
             }
         }
     }
-
-    class Factory(
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            ProfileViewModel(socialRepository) as T
-    }
 }
 
 private data class AvatarActionState(
@@ -162,7 +158,8 @@ data class ChatsUiState(
     val errorMessage: String? = null,
 )
 
-class ChatsViewModel(
+@HiltViewModel
+class ChatsViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
 
@@ -233,14 +230,6 @@ class ChatsViewModel(
     fun clearError() {
         _errorMessage.value = null
     }
-
-    class Factory(
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            ChatsViewModel(socialRepository) as T
-    }
 }
 
 data class SocialChatUiState(
@@ -260,10 +249,13 @@ data class SocialChatUiState(
     val allMessages: List<SocialMessage> = olderMessages + messages
 }
 
-class SocialChatViewModel(
-    private val chatId: String,
+@HiltViewModel
+class SocialChatViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
+
+    private val chatId = Uri.decode(savedStateHandle.get<String>("chatId").orEmpty())
 
     private data class ChatMeta(
         val title: String = "",
@@ -400,15 +392,6 @@ class SocialChatViewModel(
             }
         }
     }
-
-    class Factory(
-        private val chatId: String,
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            SocialChatViewModel(chatId, socialRepository) as T
-    }
 }
 
 data class CommunityUiState(
@@ -419,7 +402,8 @@ data class CommunityUiState(
     val errorMessage: String? = null,
 )
 
-class CommunityViewModel(
+@HiltViewModel
+class CommunityViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
 
@@ -494,14 +478,6 @@ class CommunityViewModel(
     fun clearError() {
         _state.value = _state.value.copy(errorMessage = null)
     }
-
-    class Factory(
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            CommunityViewModel(socialRepository) as T
-    }
 }
 
 data class StatusUiState(
@@ -512,7 +488,8 @@ data class StatusUiState(
     val errorMessage: String? = null,
 )
 
-class StatusViewModel(
+@HiltViewModel
+class StatusViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
     private val _input = MutableStateFlow("")
@@ -582,12 +559,6 @@ class StatusViewModel(
     fun markViewed(statusId: String) {
         viewModelScope.launch { socialRepository.markStatusViewed(statusId) }
     }
-
-    class Factory(private val socialRepository: SocialRepository) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            StatusViewModel(socialRepository) as T
-    }
 }
 
 data class GroupsUiState(
@@ -597,7 +568,8 @@ data class GroupsUiState(
     val errorMessage: String? = null,
 )
 
-class GroupsViewModel(
+@HiltViewModel
+class GroupsViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
     private val _inviteCode = MutableStateFlow("")
@@ -654,12 +626,6 @@ class GroupsViewModel(
     fun clearError() {
         _errorMessage.value = null
     }
-
-    class Factory(private val socialRepository: SocialRepository) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            GroupsViewModel(socialRepository) as T
-    }
 }
 
 data class GroupDetailUiState(
@@ -669,10 +635,12 @@ data class GroupDetailUiState(
     val errorMessage: String? = null,
 )
 
-class GroupDetailViewModel(
-    private val chatId: String,
+@HiltViewModel
+class GroupDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
+    private val chatId = Uri.decode(savedStateHandle.get<String>("chatId").orEmpty())
     private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<GroupDetailUiState> =
@@ -704,15 +672,6 @@ class GroupDetailViewModel(
     fun clearError() {
         _errorMessage.value = null
     }
-
-    class Factory(
-        private val chatId: String,
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            GroupDetailViewModel(chatId, socialRepository) as T
-    }
 }
 
 private fun Throwable.toUiMessage(): String =
@@ -727,10 +686,12 @@ data class PeerProfileUiState(
     val errorMessage: String? = null,
 )
 
-class PeerProfileViewModel(
-    private val peerId: String,
+@HiltViewModel
+class PeerProfileViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
+    private val peerId = Uri.decode(savedStateHandle.get<String>("peerId").orEmpty())
     private val _followUpdating = MutableStateFlow(false)
     private val _blocking = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -805,14 +766,5 @@ class PeerProfileViewModel(
 
     fun clearError() {
         _errorMessage.value = null
-    }
-
-    class Factory(
-        private val peerId: String,
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            PeerProfileViewModel(peerId, socialRepository) as T
     }
 }

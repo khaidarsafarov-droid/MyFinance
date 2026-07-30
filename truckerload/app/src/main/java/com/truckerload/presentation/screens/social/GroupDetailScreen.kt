@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.social
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,9 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -41,10 +40,7 @@ fun GroupDetailScreen(
     chatId: String,
     onBack: () -> Unit,
     onOpenChat: (String) -> Unit,
-    viewModel: GroupDetailViewModel = viewModel(
-        key = chatId,
-        factory = GroupDetailViewModel.Factory(chatId, LocalSocialRepository.current),
-    ),
+    viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val chat = uiState.chat

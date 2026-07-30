@@ -9,21 +9,26 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.hilt.work.HiltWorker
 import com.google.firebase.FirebaseApp
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.data.sync.AccountCloudBackendFactory
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
-class PushTokenRegistrationWorker(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class PushTokenRegistrationWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
+    private val pushTokenStore: PushTokenStore,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         if (!isFirebaseConfigured(applicationContext)) return Result.success()
-        val token = PushTokenStore(applicationContext).get() ?: return Result.success()
-        val auth = AuthStore(applicationContext)
-        if (auth.currentUserIdOrNull() == null) return Result.success()
-        if (auth.accessTokenOrNull().isNullOrBlank()) return Result.retry()
+        val token = pushTokenStore.get() ?: return Result.success()
+        if (authStore.currentUserIdOrNull() == null) return Result.success()
+        if (authStore.accessTokenOrNull().isNullOrBlank()) return Result.retry()
         val client = runCatching { AccountCloudBackendFactory.remoteClientOrNull(applicationContext) }
             .getOrElse {
                 Log.w(TAG, "Push backend configuration is invalid")

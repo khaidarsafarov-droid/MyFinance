@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -64,12 +65,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.voice.VoiceParticipant
 import com.truckerload.domain.voice.VoiceRoom
-import com.truckerload.presentation.di.LocalSocialRepository
-import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -83,9 +81,7 @@ fun VoiceRoomsScreen(
     onBack: () -> Unit,
     onOpenRoom: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: VoiceRoomsViewModel = viewModel(
-        factory = VoiceRoomsViewModel.Factory(LocalVoiceRepository.current),
-    ),
+    viewModel: VoiceRoomsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current
@@ -218,13 +214,7 @@ fun VoiceRoomScreen(
     roomId: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: VoiceRoomViewModel = viewModel(
-        factory = VoiceRoomViewModel.Factory(
-            roomId = roomId,
-            voiceRepository = LocalVoiceRepository.current,
-            socialRepository = LocalSocialRepository.current,
-        ),
-    ),
+    viewModel: VoiceRoomViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current

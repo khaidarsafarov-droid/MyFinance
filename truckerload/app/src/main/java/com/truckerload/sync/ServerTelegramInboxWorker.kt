@@ -12,21 +12,26 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.truckerload.data.local.AppDatabase
+import androidx.hilt.work.HiltWorker
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.sync.AccountCloudBackendFactory
+import com.truckerload.di.UserComponentManager
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 
-class ServerTelegramInboxWorker(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class ServerTelegramInboxWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
+    private val userComponentManager: UserComponentManager,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         if (!TelegramSyncMode.isServer()) return Result.success()
-        val auth = AuthStore(applicationContext)
-        val userId = auth.currentUserIdOrNull() ?: return Result.success()
-        if (auth.accessTokenOrNull().isNullOrBlank()) return Result.retry()
+        val userId = authStore.currentUserIdOrNull() ?: return Result.success()
+        if (authStore.accessTokenOrNull().isNullOrBlank()) return Result.retry()
         val client = runCatching { AccountCloudBackendFactory.remoteClientOrNull(applicationContext) }
             .getOrElse {
                 Log.w(TAG, "Server Telegram backend configuration is invalid")
@@ -43,7 +48,7 @@ class ServerTelegramInboxWorker(
         val processor = runCatching {
             ServerTelegramMessageProcessor(
                 context = applicationContext,
-                db = AppDatabase.getInstance(applicationContext, userId),
+                db = userComponentManager.startSession(userId).database,
             )
         }.getOrElse {
             Log.w(TAG, "Server Telegram inbox database unavailable: ${it.javaClass.simpleName}")

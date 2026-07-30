@@ -2,10 +2,9 @@ package com.truckerload.presentation.screens.stats
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.StatsSelectionSnapshot
 import com.truckerload.data.preferences.StatsSelectionStore
@@ -66,7 +65,8 @@ data class StatsUiState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class StatsViewModel(
+@HiltViewModel
+class StatsViewModel @Inject constructor(
     private val weekRepository: WeekRepository,
     private val loadRepository: LoadRepository,
     private val selectedStateStore: SelectedStateStore,
@@ -591,22 +591,6 @@ class StatsViewModel(
         )
     }
 
-    class Factory(
-        private val weekRepository: WeekRepository,
-        private val loadRepository: LoadRepository,
-        private val selectedStateStore: SelectedStateStore,
-        private val statsSelectionStore: StatsSelectionStore,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            StatsViewModel(
-                weekRepository,
-                loadRepository,
-                selectedStateStore,
-                statsSelectionStore,
-                extras.createSavedStateHandle(),
-            ) as T
-    }
 
     companion object {
         private const val KEY_PERIOD = "stats_period"

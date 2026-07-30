@@ -3,7 +3,8 @@ package com.truckerload.presentation.screens.analytics
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.AnalyticsDashboard
@@ -34,7 +35,8 @@ data class AnalyticsUiState(
     val error: String? = null,
 )
 
-class AnalyticsViewModel(
+@HiltViewModel
+class AnalyticsViewModel @Inject constructor(
     private val repository: AnalyticsRepository,
     private val app: Application,
 ) : ViewModel() {
@@ -116,13 +118,4 @@ class AnalyticsViewModel(
         _uiState.update { it.copy(exportPath = null) }
     }
 
-    class Factory(
-        private val repository: AnalyticsRepository,
-        private val context: Context,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return AnalyticsViewModel(repository, context.applicationContext as Application) as T
-        }
-    }
 }

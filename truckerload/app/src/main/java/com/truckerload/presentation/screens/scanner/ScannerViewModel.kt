@@ -1,20 +1,22 @@
 package com.truckerload.presentation.screens.scanner
 
 import android.app.Application
-import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.utils.OCRService
 import com.truckerload.utils.PDFGenerator
 import com.truckerload.utils.StorageHelper
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import java.io.File
 
@@ -38,13 +40,22 @@ data class ScannerUiState(
     val autoAttachedAndDone: Boolean = false,
 )
 
-class ScannerViewModel(
+@HiltViewModel
+class ScannerViewModel @Inject constructor(
     private val app: Application,
     private val scanRepository: ScanRepository,
-    private val attachLoadId: String? = null,
-    private val attachTripId: String? = null,
-    private val attachLoadDate: String? = null,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    private val attachLoadId = savedStateHandle.get<String>("loadId")
+        ?.let { Uri.decode(it) }
+        ?.takeIf { it.isNotBlank() && it != "_" }
+    private val attachTripId = savedStateHandle.get<String>("tripId")
+        ?.let { Uri.decode(it) }
+        ?.takeIf { it.isNotBlank() && it != "_" }
+    private val attachLoadDate = savedStateHandle.get<String>("loadDate")
+        ?.let { Uri.decode(it) }
+        ?.takeIf { it.isNotBlank() }
 
     private val pdfGenerator = PDFGenerator(app)
     private val ocrService = OCRService(app)
@@ -270,24 +281,5 @@ class ScannerViewModel(
     override fun onCleared() {
         ocrService.close()
         super.onCleared()
-    }
-
-    class Factory(
-        private val context: Context,
-        private val scanRepository: ScanRepository,
-        private val attachLoadId: String? = null,
-        private val attachTripId: String? = null,
-        private val attachLoadDate: String? = null,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ScannerViewModel(
-                context.applicationContext as Application,
-                scanRepository,
-                attachLoadId = attachLoadId,
-                attachTripId = attachTripId,
-                attachLoadDate = attachLoadDate,
-            ) as T
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.map
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,14 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
 import com.truckerload.presentation.components.getStateDisplayName
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalSelectedStateStore
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -67,11 +65,7 @@ fun MapScreen(
     embedded: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
-    val loadRepository = LocalLoadRepository.current
-    val selectedStateStore = LocalSelectedStateStore.current
-    val viewModel: MapViewModel = viewModel(
-        factory = MapViewModel.Factory(loadRepository, selectedStateStore),
-    )
+    val viewModel: MapViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (embedded) {

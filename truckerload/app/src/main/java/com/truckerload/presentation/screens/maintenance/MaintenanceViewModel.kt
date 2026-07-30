@@ -5,7 +5,8 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.domain.model.MaintenanceArchiveEntry
@@ -73,7 +74,8 @@ data class ArchiveDraft(
         )
 }
 
-class MaintenanceViewModel(
+@HiltViewModel
+class MaintenanceViewModel @Inject constructor(
     app: Application,
     private val repository: MaintenanceRepository,
 ) : AndroidViewModel(app) {
@@ -357,16 +359,4 @@ class MaintenanceViewModel(
         super.onCleared()
     }
 
-    class Factory(
-        private val app: Application,
-        private val repository: MaintenanceRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(MaintenanceViewModel::class.java)) {
-                return MaintenanceViewModel(app, repository) as T
-            }
-            error("Unknown ViewModel: ${modelClass.name}")
-        }
-    }
 }

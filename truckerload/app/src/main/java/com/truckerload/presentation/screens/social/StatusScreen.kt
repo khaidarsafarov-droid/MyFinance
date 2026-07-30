@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.social
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,13 +52,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.data.social.VoiceNoteRecorder
 import com.truckerload.domain.social.DriverStatusPost
 import com.truckerload.domain.social.StatusType
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -70,14 +69,10 @@ import java.util.Locale
 @Composable
 fun StatusScreen(
     onBack: () -> Unit,
-    viewModel: StatusViewModel = viewModel(
-        factory = StatusViewModel.Factory(LocalSocialRepository.current),
-    ),
+    viewModel: StatusViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val profileVm: ProfileViewModel = viewModel(
-        factory = ProfileViewModel.Factory(LocalSocialRepository.current),
-    )
+    val profileVm: ProfileViewModel = hiltViewModel()
     val profileState by profileVm.uiState.collectAsStateWithLifecycle()
     val displayName = profileState.profile?.displayName.orEmpty()
     val tc = LocalTruckColors.current

@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.gallery
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -28,11 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.components.PhotoGridItem
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -44,12 +42,7 @@ fun PhotoGalleryScreen(
     onBack: () -> Unit,
     onPhotoClick: (String) -> Unit,
 ) {
-    val viewModel: PhotoGalleryViewModel = viewModel(
-        factory = PhotoGalleryViewModel.Factory(
-            LocalPhotoRepository.current,
-            LocalLoadRepository.current,
-        ),
-    )
+    val viewModel: PhotoGalleryViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val loads by viewModel.loadsForLinking.collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current

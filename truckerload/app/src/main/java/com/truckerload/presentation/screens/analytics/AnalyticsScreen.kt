@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.analytics
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
@@ -51,7 +51,6 @@ import com.truckerload.presentation.components.charts.TopRoutesBarChart
 import com.truckerload.presentation.components.charts.WeeklyRevenueLineChart
 import com.truckerload.presentation.components.LoadCard
 import com.truckerload.presentation.components.RpmColorLegend
-import com.truckerload.presentation.di.LocalAnalyticsRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
@@ -76,10 +75,7 @@ fun AnalyticsScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val repository = LocalAnalyticsRepository.current
-    val viewModel: AnalyticsViewModel = viewModel(
-        factory = AnalyticsViewModel.Factory(repository, context.applicationContext)
-    )
+    val viewModel: AnalyticsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.exportPath) {

@@ -8,16 +8,21 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.hilt.work.HiltWorker
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import android.util.Log
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
 /**
  * Ensures [TelegramBotForegroundService] is running. Polling only happens in the service (single client).
  */
-class TelegramSyncWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class TelegramSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
 ) : CoroutineWorker(context, params) {
 
     companion object {
@@ -52,7 +57,7 @@ class TelegramSyncWorker(
 
     override suspend fun doWork(): Result {
         if (TelegramSyncMode.isServer()) return Result.success()
-        val userId = AuthStore(applicationContext).currentUserIdOrNull()
+        val userId = authStore.currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w("TelegramSync", "No active user — skip ensuring Telegram service")
             return Result.success()

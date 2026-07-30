@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,9 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.utils.DocumentScannerService
 import kotlinx.coroutines.delay
 
@@ -40,16 +39,7 @@ fun ScannerFlowScreen(
     attachLoadId: String? = null,
     attachTripId: String? = null,
     attachLoadDate: String? = null,
-    viewModel: ScannerViewModel = viewModel(
-        key = "scanner_${attachLoadId.orEmpty()}",
-        factory = ScannerViewModel.Factory(
-            LocalContext.current,
-            LocalScanRepository.current,
-            attachLoadId = attachLoadId,
-            attachTripId = attachTripId,
-            attachLoadDate = attachLoadDate,
-        ),
-    ),
+    viewModel: ScannerViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val activity = context as? ComponentActivity

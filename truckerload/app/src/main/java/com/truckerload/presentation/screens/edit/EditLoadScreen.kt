@@ -1,6 +1,6 @@
 package com.truckerload.presentation.screens.edit
 
-import android.app.Application
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,12 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -58,12 +56,7 @@ fun EditLoadScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val loadRepository = LocalLoadRepository.current
-    val viewModel: EditLoadViewModel = viewModel(
-        key = "edit_${loadId}_$focusFinish",
-        factory = EditLoadViewModel.Factory(application, loadId, loadRepository, focusFinish),
-    )
+    val viewModel: EditLoadViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
     val finishFocusRequester = remember { FocusRequester() }

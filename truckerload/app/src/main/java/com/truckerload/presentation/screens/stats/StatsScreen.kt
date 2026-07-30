@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.stats
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.tween
@@ -66,7 +67,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -78,11 +78,8 @@ import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalSelectedStateStore
 import com.truckerload.presentation.di.LocalSocialRepository
-import com.truckerload.presentation.di.LocalStatsSelectionStore
 import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalWeekRepository
 import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
 import java.util.Locale
@@ -112,14 +109,7 @@ fun StatsScreen(
                 ?.takeIf { it.isNotBlank() && it != userProfile?.email }
             ?: ""
     }
-    val viewModel: StatsViewModel = viewModel(
-        factory = StatsViewModel.Factory(
-            LocalWeekRepository.current,
-            LocalLoadRepository.current,
-            LocalSelectedStateStore.current,
-            LocalStatsSelectionStore.current
-        )
-    )
+    val viewModel: StatsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

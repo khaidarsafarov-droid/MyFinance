@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.social
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,10 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.social.SocialChat
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -49,12 +48,8 @@ fun GroupsScreen(
     onBack: () -> Unit,
     onOpenGroup: (String) -> Unit,
     onOpenChat: (String) -> Unit,
-    viewModel: GroupsViewModel = viewModel(
-        factory = GroupsViewModel.Factory(LocalSocialRepository.current),
-    ),
-    profileViewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModel.Factory(LocalSocialRepository.current),
-    ),
+    viewModel: GroupsViewModel = hiltViewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()

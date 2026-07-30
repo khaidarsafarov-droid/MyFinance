@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.voice
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,11 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
-import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
@@ -51,9 +50,7 @@ import com.truckerload.presentation.theme.UiDimens
 @Composable
 fun IncomingCallOverlay(
     onAccept: (String) -> Unit,
-    viewModel: IncomingCallViewModel = viewModel(
-        factory = IncomingCallViewModel.Factory(LocalVoiceRepository.current),
-    ),
+    viewModel: IncomingCallViewModel = hiltViewModel(),
 ) {
     val call by viewModel.incomingCall.collectAsStateWithLifecycle()
     val ringing = call
@@ -140,9 +137,7 @@ fun IncomingCallScreen(
 fun CallScreen(
     callId: String,
     onBack: () -> Unit,
-    viewModel: CallViewModel = viewModel(
-        factory = CallViewModel.Factory(callId, LocalVoiceRepository.current),
-    ),
+    viewModel: CallViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val call = state.call

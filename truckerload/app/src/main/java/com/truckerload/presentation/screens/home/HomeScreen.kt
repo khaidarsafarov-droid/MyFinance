@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.home
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,7 +77,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import android.content.Context
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
@@ -129,7 +129,7 @@ fun HomeScreen(
     }
     val context = LocalContext.current
     val openDrawer = LocalOpenDrawer.current
-    val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(loadRepository, isBotConfigured = false, context))
+    val viewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()

@@ -1,7 +1,8 @@
 package com.truckerload.presentation.screens.map
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.repository.LoadRepository
@@ -27,7 +28,8 @@ data class MapUiState(
     val errorMessage: String? = null,
 )
 
-class MapViewModel(
+@HiltViewModel
+class MapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val selectedStateStore: SelectedStateStore,
 ) : ViewModel() {
@@ -99,12 +101,4 @@ class MapViewModel(
     private fun Throwable.toUiMessage(): String =
         localizedMessage ?: message ?: javaClass.simpleName
 
-    class Factory(
-        private val loadRepository: LoadRepository,
-        private val selectedStateStore: SelectedStateStore,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            MapViewModel(loadRepository, selectedStateStore) as T
-    }
 }
