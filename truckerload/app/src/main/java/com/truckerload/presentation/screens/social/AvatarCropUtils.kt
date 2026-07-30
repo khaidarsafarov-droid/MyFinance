@@ -2,10 +2,14 @@ package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
+import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 internal object AvatarCropUtils {
     private const val MAX_SOURCE_DIMENSION = 2048
@@ -22,7 +26,8 @@ internal object AvatarCropUtils {
             .takeWhile { largest / it > maxDimension }
             .lastOrNull()?.let { it * 2 } ?: 1
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions) ?: return null
+        return applyExifOrientation(decoded, bytes)
     }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
@@ -37,13 +42,14 @@ internal object AvatarCropUtils {
 
     fun fitScale(bitmapWidth: Int, bitmapHeight: Int, containerWidth: Float, containerHeight: Float): Float {
         if (bitmapWidth <= 0 || bitmapHeight <= 0) return 1f
+        if (containerWidth <= 0f || containerHeight <= 0f) return 1f
         return min(containerWidth / bitmapWidth, containerHeight / bitmapHeight)
     }
 
     fun minUserScale(cropDiameter: Float, bitmapWidth: Int, bitmapHeight: Int, fitScale: Float): Float {
         val displayWidth = bitmapWidth * fitScale
         val displayHeight = bitmapHeight * fitScale
-        if (displayWidth <= 0f || displayHeight <= 0f) return 1f
+        if (displayWidth <= 0f || displayHeight <= 0f || cropDiameter <= 0f) return 1f
         return max(cropDiameter / displayWidth, cropDiameter / displayHeight).coerceAtLeast(1f)
     }
 
@@ -71,6 +77,13 @@ internal object AvatarCropUtils {
         )
     }
 
+    /**
+     * Crops the square that matches the on-screen circular frame after [fitScale],
+     * [userScale], and [offset] are applied around the container center.
+     *
+     * The crop window is forced square and clamped as a unit so edge clamping
+     * cannot stretch/skew the framed subject.
+     */
     fun cropSquare(
         source: Bitmap,
         containerWidth: Float,
@@ -81,29 +94,21 @@ internal object AvatarCropUtils {
         offset: Offset,
         outputSize: Int = OUTPUT_SIZE,
     ): Bitmap {
-        val centerX = containerWidth / 2f
-        val centerY = containerHeight / 2f
-        val halfCrop = cropDiameter / 2f
-        val totalScale = fitScale * userScale
-
-        fun screenToBitmap(x: Float, y: Float): Pair<Float, Float> {
-            val imageCenterX = centerX + offset.x
-            val imageCenterY = centerY + offset.y
-            val bitmapX = source.width / 2f + (x - imageCenterX) / totalScale
-            val bitmapY = source.height / 2f + (y - imageCenterY) / totalScale
-            return bitmapX to bitmapY
-        }
-
-        val (rawLeft, rawTop) = screenToBitmap(centerX - halfCrop, centerY - halfCrop)
-        val (rawRight, rawBottom) = screenToBitmap(centerX + halfCrop, centerY + halfCrop)
-
-        val left = min(rawLeft, rawRight).toInt().coerceIn(0, source.width - 1)
-        val top = min(rawTop, rawBottom).toInt().coerceIn(0, source.height - 1)
-        val right = max(rawLeft, rawRight).toInt().coerceIn(left + 1, source.width)
-        val bottom = max(rawTop, rawBottom).toInt().coerceIn(top + 1, source.height)
-
-        val width = right - left
-        val height = bottom - top
+        require(outputSize > 0) { "outputSize must be positive" }
+        val window = cropWindowInBitmap(
+            bitmapWidth = source.width,
+            bitmapHeight = source.height,
+            containerWidth = containerWidth,
+            containerHeight = containerHeight,
+            cropDiameter = cropDiameter,
+            fitScale = fitScale,
+            userScale = userScale,
+            offset = offset,
+        )
+        val left = window[0]
+        val top = window[1]
+        val width = window[2] - left
+        val height = window[3] - top
         val cropped = Bitmap.createBitmap(source, left, top, width, height)
         return if (width == outputSize && height == outputSize) {
             cropped
@@ -112,5 +117,109 @@ internal object AvatarCropUtils {
                 if (it !== cropped) cropped.recycle()
             }
         }
+    }
+
+    /**
+     * Bitmap-space axis-aligned crop window for the circular frame. Exposed for tests.
+     */
+    fun cropWindowInBitmap(
+        bitmapWidth: Int,
+        bitmapHeight: Int,
+        containerWidth: Float,
+        containerHeight: Float,
+        cropDiameter: Float,
+        fitScale: Float,
+        userScale: Float,
+        offset: Offset,
+    ): IntArray {
+        if (bitmapWidth <= 0 || bitmapHeight <= 0 || cropDiameter <= 0f || fitScale <= 0f || userScale <= 0f) {
+            return intArrayOf(0, 0, 1, 1)
+        }
+        val centerX = containerWidth / 2f
+        val centerY = containerHeight / 2f
+        val halfCrop = cropDiameter / 2f
+        val totalScale = fitScale * userScale
+
+        fun screenToBitmap(x: Float, y: Float): Pair<Float, Float> {
+            val imageCenterX = centerX + offset.x
+            val imageCenterY = centerY + offset.y
+            val bitmapX = bitmapWidth / 2f + (x - imageCenterX) / totalScale
+            val bitmapY = bitmapHeight / 2f + (y - imageCenterY) / totalScale
+            return bitmapX to bitmapY
+        }
+
+        val (rawLeft, rawTop) = screenToBitmap(centerX - halfCrop, centerY - halfCrop)
+        val (rawRight, rawBottom) = screenToBitmap(centerX + halfCrop, centerY + halfCrop)
+
+        var leftF = min(rawLeft, rawRight)
+        var topF = min(rawTop, rawBottom)
+        var rightF = max(rawLeft, rawRight)
+        var bottomF = max(rawTop, rawBottom)
+        // Keep a square window; shift as a unit so framing does not skew at edges.
+        val side = min(rightF - leftF, bottomF - topF).coerceAtLeast(1f)
+        val midX = (leftF + rightF) / 2f
+        val midY = (topF + bottomF) / 2f
+        leftF = midX - side / 2f
+        topF = midY - side / 2f
+        rightF = leftF + side
+        bottomF = topF + side
+
+        if (leftF < 0f) {
+            rightF -= leftF
+            leftF = 0f
+        }
+        if (topF < 0f) {
+            bottomF -= topF
+            topF = 0f
+        }
+        if (rightF > bitmapWidth) {
+            val overflow = rightF - bitmapWidth
+            leftF -= overflow
+            rightF = bitmapWidth.toFloat()
+        }
+        if (bottomF > bitmapHeight) {
+            val overflow = bottomF - bitmapHeight
+            topF -= overflow
+            bottomF = bitmapHeight.toFloat()
+        }
+        leftF = leftF.coerceAtLeast(0f)
+        topF = topF.coerceAtLeast(0f)
+
+        val left = leftF.roundToInt().coerceIn(0, (bitmapWidth - 1).coerceAtLeast(0))
+        val top = topF.roundToInt().coerceIn(0, (bitmapHeight - 1).coerceAtLeast(0))
+        val maxSide = min(bitmapWidth - left, bitmapHeight - top).coerceAtLeast(1)
+        val size = side.roundToInt().coerceIn(1, maxSide)
+        return intArrayOf(left, top, left + size, top + size)
+    }
+
+    private fun applyExifOrientation(source: Bitmap, jpegBytes: ByteArray): Bitmap {
+        val orientation = runCatching {
+            ExifInterface(ByteArrayInputStream(jpegBytes))
+                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.setScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.setRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.setRotate(-90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+            else -> return source
+        }
+
+        return runCatching {
+            Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true).also {
+                if (it !== source) source.recycle()
+            }
+        }.getOrDefault(source)
     }
 }
