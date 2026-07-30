@@ -88,14 +88,26 @@ class TaxTrackerViewModelYearSwitchTest {
         val collectJob = launch { viewModel.uiState.collect { } }
         try {
             viewModel.setYear(2025)
-            advanceUntilIdle()
+            val deadline2025 = System.currentTimeMillis() + 5_000
+            while (System.currentTimeMillis() < deadline2025) {
+                advanceUntilIdle()
+                val state = viewModel.uiState.value
+                if (state.year == 2025 && !state.isLoading) break
+                kotlinx.coroutines.delay(10)
+            }
             assertEquals(2025, viewModel.uiState.value.year)
             assertEquals(10_000.0, viewModel.uiState.value.totalGrossIncome, 0.01)
             assertEquals(500.0, viewModel.uiState.value.dieselDeductions, 0.01)
             assertEquals(1, viewModel.uiState.value.perDiemDays)
 
             viewModel.setYear(2026)
-            advanceUntilIdle()
+            val deadline2026 = System.currentTimeMillis() + 5_000
+            while (System.currentTimeMillis() < deadline2026) {
+                advanceUntilIdle()
+                val state = viewModel.uiState.value
+                if (state.year == 2026 && !state.isLoading) break
+                kotlinx.coroutines.delay(10)
+            }
             assertEquals(2026, viewModel.uiState.value.year)
             assertEquals(20_000.0, viewModel.uiState.value.totalGrossIncome, 0.01)
             assertEquals(800.0, viewModel.uiState.value.dieselDeductions, 0.01)
