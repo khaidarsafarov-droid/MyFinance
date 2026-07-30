@@ -117,7 +117,7 @@ Use this template when a step fails:
 5. Add Load: paste Relay fixture with Total Rate + Pu-address → Save → appears in list immediately.
 6. Open load camera from card → capture → share/save → returns to load detail.
 7. Drawer camera: watermark shows Trip ID of latest load but does **not** auto-attach files.
-7b. Widget Camera / Scan: opens «Select load» with the last 3 trips → capture attaches to the chosen load.
+7b. Widget Camera / Scan: opens «Select load» with up to 3 loads **from this trucking week** (not random by updatedAt) → tap a card to open camera/scanner attached to that load. «Выбрать из всех грузов» opens a searchable full journal list.
 8. Pull to refresh → toast «Telegram sync started» (when bot configured).
 
 Expected:

@@ -15,6 +15,7 @@ import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.data.sync.MediaSyncEnqueuer
+import com.truckerload.domain.attach.AttachLoadSelection
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
@@ -200,6 +201,21 @@ class LoadRepository(
 
     suspend fun getLoadsForLinking(limit: Int = 50): List<Load> =
         hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
+
+    /**
+     * Up to [limit] loads from the current trucking week (Sun–Sat), newest by date then
+     * [Load.parsedAt]. Used by widget Camera/Scan quick pick — not global updatedAt order.
+     */
+    suspend fun getRecentLoadsThisWeek(limit: Int = 3): List<Load> {
+        val (week, year) = getCurrentWeekNumberAndYear()
+        val weekLoads = hydrateLoads(loadDao.getLoadsByWeekOnce(week, year))
+        return AttachLoadSelection.quickPickThisWeek(
+            loads = weekLoads,
+            weekNumber = week,
+            year = year,
+            limit = limit,
+        )
+    }
 
     /** Все грузы (разовый запрос). */
     suspend fun getAll(): List<Load> = getAllLoadsOnce()
