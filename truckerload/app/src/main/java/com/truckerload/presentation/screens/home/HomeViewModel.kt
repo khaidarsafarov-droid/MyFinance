@@ -137,29 +137,28 @@ class HomeViewModel(
                 else -> loadRepository.watchLoads()
             }
         }
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
     /**
      * Full journal for calendar dots — must not be scoped to the active week filter,
      * otherwise opening the calendar on "This week" hides other months' markers.
-     * WhileSubscribed avoids keeping a full Room watch alive after leaving Home.
      */
     private val allLoadsForCalendar: StateFlow<List<Load>> = loadRepository.watchLoads()
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
 
     /** true до первого эмита из Room. */
     val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
         .map { done -> !done }
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = true)
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = true)
 
     /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
     private val debouncedSearchQuery: StateFlow<String> = _searchQuery
         .debounce(250)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     /** Только поля фильтра — не пересчитываем список при isSearchExpanded и прочих UI-флагах. */
     private val filterState: StateFlow<HomeFilterState> = combine(
@@ -181,7 +180,7 @@ class HomeViewModel(
     ) { base, query -> base.copy(searchQuery = query) }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = HomeFilterState(),
         )
 
@@ -201,7 +200,7 @@ class HomeViewModel(
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
-    /** Результат фильтрации: список, итоги, точные даты грузов (маркеры календаря). */
+    /** Результат фильтрации: список, итоги, даты с грузами (для индикаторов календаря). */
     data class FilteredResult(
         val loads: List<Load>,
         val totals: LoadFilterUseCase.Totals,
@@ -241,11 +240,11 @@ class HomeViewModel(
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
-            datesWithLoads = LoadDateIndex.markerDates(calendarMerged),
+            datesWithLoads = LoadDateIndex.calendarMarkerDates(calendarMerged),
         )
     }
         .flowOn(Dispatchers.Default)
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
 
     /**
      * True Room SQL paging for week / dispute journal filters.

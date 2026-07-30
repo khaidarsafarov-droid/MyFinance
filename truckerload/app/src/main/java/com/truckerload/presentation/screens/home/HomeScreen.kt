@@ -242,21 +242,17 @@ fun HomeScreen(
                         ) {
                             Text(
                                 text = stringResource(R.string.home_calendar_select_week),
-                                color = tc.AccentPrimary,
+                                color = tc.TextPrimary,
                                 fontWeight = FontWeight.Medium,
-                                maxLines = 2,
+                                maxLines = 1,
                             )
                         }
-                        // Solid close control — avoids squeezed vertical letter wrap of
-                        // "Закрыть" next to the long week action in a SpaceBetween Row.
                         TlButton(
                             onClick = { showCalendar = false },
                             modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                         ) {
                             Text(
                                 text = stringResource(R.string.common_close),
-                                color = Color.White,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
                             )
