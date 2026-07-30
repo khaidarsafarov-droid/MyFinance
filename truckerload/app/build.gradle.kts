@@ -21,8 +21,8 @@ android {
         applicationId = "com.truckerload"
         minSdk = 24
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.5.3"
+        versionCode = 9
+        versionName = "1.5.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
@@ -57,6 +57,25 @@ android {
         buildConfigField("boolean", "CLOUD_MEDIA_ENABLED", cloudMediaEnabled.toString())
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
+        // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
+        // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a
+        val abiFiltersProp = (project.findProperty("abiFilters") as? String)
+            ?.split(',')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            .orEmpty()
+        val friendsPhone = project.hasProperty("friendsPhoneApk")
+        val selectedAbis = when {
+            abiFiltersProp.isNotEmpty() -> abiFiltersProp
+            friendsPhone -> listOf("arm64-v8a", "armeabi-v7a")
+            else -> emptyList()
+        }
+        if (selectedAbis.isNotEmpty()) {
+            ndk {
+                abiFilters.clear()
+                abiFilters.addAll(selectedAbis)
+            }
+        }
     }
 
     // Optional friends/production signing. Create keystore.properties (gitignored) —

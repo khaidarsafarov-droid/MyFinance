@@ -42,6 +42,8 @@ chmod +x scripts/build-friends-apk.sh
 ./scripts/build-friends-apk.sh
 ```
 
+APK path after build: `dist/TruckerLoad-1.5.4-friends.apk`.
+
 В `local.properties` для дружеской сборки:
 
 ```
@@ -66,4 +68,4 @@ TELEGRAM_SYNC_MODE=device
 
 ## Версия
 
-Friends APK: **1.5.3** (`versionCode` 8).
+Friends APK: **1.5.4** (`versionCode` 9) — phone ABIs only (`arm64-v8a` + `armeabi-v7a`), ~half the size of a universal APK.

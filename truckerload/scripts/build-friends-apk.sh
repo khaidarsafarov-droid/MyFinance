@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Build a local-first signed release APK for sharing with friends.
+# Build a local-first signed release APK for sharing with friends (phones only).
 # Does not commit secrets. Requires JDK 21 + Android SDK.
 set -eu
-# pipefail when bash
 if [ -n "${BASH_VERSION:-}" ]; then
   set -o pipefail
 fi
@@ -15,8 +14,6 @@ if [[ ! -f local.properties ]]; then
   exit 1
 fi
 
-# Friends build: local Room only — no cloud backend URL baked in.
-# Tokens/keys stay empty unless you intentionally set them in local.properties.
 grep -q 'sdk.dir=' local.properties || {
   echo "local.properties must set sdk.dir" >&2
   exit 1
@@ -27,13 +24,12 @@ if [[ ! -f keystore.properties ]]; then
   exit 1
 fi
 
-# Ensure friends defaults without rewriting the whole file.
 if ! grep -q '^LOCAL_ONLY_MODE=' local.properties; then
   echo 'LOCAL_ONLY_MODE=true' >> local.properties
 fi
 
-echo "Building signed release APK (LOCAL_ONLY / no server sync)…"
-sh ./gradlew :app:assembleRelease
+echo "Building signed phone APK (arm64 + armeabi-v7a, LOCAL_ONLY)…"
+sh ./gradlew :app:assembleRelease -PfriendsPhoneApk=true
 
 APK="$ROOT/app/build/outputs/apk/release/app-release.apk"
 if [[ ! -f "$APK" ]]; then
@@ -42,7 +38,7 @@ if [[ ! -f "$APK" ]]; then
 fi
 
 mkdir -p "$ROOT/dist"
-OUT="$ROOT/dist/TruckerLoad-1.5.3-friends.apk"
+OUT="$ROOT/dist/TruckerLoad-1.5.4-friends.apk"
 cp -f "$APK" "$OUT"
 echo "OK: $OUT"
 ls -lh "$OUT"
