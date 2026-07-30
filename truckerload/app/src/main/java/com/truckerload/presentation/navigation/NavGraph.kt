@@ -1,6 +1,5 @@
 package com.truckerload.presentation.navigation
 
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -146,7 +145,7 @@ object Routes {
     fun call(callId: String) = "call/${encodePathSegment(callId)}"
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavGraph(
     navController: androidx.navigation.NavHostController = rememberNavController(),
@@ -271,23 +270,8 @@ fun NavGraph(
                 }
                 onDeepLinkHandled()
             }
-            WidgetDeepLink.ROUTE_ATTACH_CAMERA,
-            Routes.CAMERA,
-            -> {
-                navController.navigate(Routes.attachPick("camera")) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
-            WidgetDeepLink.ROUTE_ATTACH_SCANNER,
-            Routes.SCANNER,
-            -> {
-                navController.navigate(Routes.attachPick("scanner")) {
-                    launchSingleTop = true
-                }
-                onDeepLinkHandled()
-            }
             else -> {
+                // Widget camera/scan resolve to attach_pick/{camera|scanner}.
                 if (destination.startsWith("attach_pick/")) {
                     navController.navigate(destination) { launchSingleTop = true }
                     onDeepLinkHandled()

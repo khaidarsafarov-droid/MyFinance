@@ -67,7 +67,10 @@ fun ScannerFlowScreen(
     }
 
     LaunchedEffect(activity, uiState.scanLaunchKey) {
-        if (uiState.autoAttachedAndDone) return@LaunchedEffect
+        // Do not re-launch GMS while processing/showing a result (avoids stuck spinner + double UI).
+        if (uiState.autoAttachedAndDone || uiState.isProcessing || uiState.pendingScan != null) {
+            return@LaunchedEffect
+        }
         if (activity == null) {
             if (uiState.sessionScans.isEmpty()) {
                 viewModel.onScanStartFailed()

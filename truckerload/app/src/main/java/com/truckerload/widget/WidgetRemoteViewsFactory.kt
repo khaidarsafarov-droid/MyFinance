@@ -447,11 +447,11 @@ object WidgetRemoteViewsFactory {
     )
     views.setOnClickPendingIntent(
       R.id.widget_btn_camera,
-      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_CAMERA, 22),
+      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_ATTACH_CAMERA, 22),
     )
     views.setOnClickPendingIntent(
       R.id.widget_btn_scanner,
-      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_SCANNER, 23),
+      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_ATTACH_SCANNER, 23),
     )
   }
 

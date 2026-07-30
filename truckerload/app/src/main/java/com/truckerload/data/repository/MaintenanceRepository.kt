@@ -39,7 +39,6 @@ class MaintenanceRepository(
                     date = entity.date,
                     actualFinishDate = entity.actualFinishDate,
                     lastDelMillis = entity.lastDelMillis,
-                    parsedAt = entity.parsedAt,
                 )
             }
             tasks.map { task ->
@@ -103,7 +102,6 @@ class MaintenanceRepository(
                 date = entity.date,
                 actualFinishDate = entity.actualFinishDate,
                 lastDelMillis = entity.lastDelMillis,
-                parsedAt = entity.parsedAt,
             )
         }
         return active.map { task ->

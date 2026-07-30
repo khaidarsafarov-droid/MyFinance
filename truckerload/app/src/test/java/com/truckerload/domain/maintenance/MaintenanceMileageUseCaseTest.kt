@@ -11,14 +11,13 @@ import java.time.LocalDate
 class MaintenanceMileageUseCaseTest {
 
     private val today = LocalDate.of(2026, 7, 28)
-    private val createdAt = 1_720_000_000_000L
 
     @Test
     fun calculate_sumsLoadsWithEndDateOnOrAfterService_notStrictGreater() {
         val loads = listOf(
-            load("T-OLD", 5_000.0, "2026-07-20", "2026-07-22", parsedAt = createdAt + 1),
-            load("T-SAME-DAY", 1_778.0, "2026-07-24", "2026-07-24", parsedAt = createdAt + 1),
-            load("T-B", 1_502.0, "2026-07-28", "2026-07-28", parsedAt = createdAt + 2),
+            load("T-OLD", 5_000.0, "2026-07-20", "2026-07-22"),
+            load("T-SAME-DAY", 1_778.0, "2026-07-24", "2026-07-24"),
+            load("T-B", 1_502.0, "2026-07-28", "2026-07-28"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 878_030L,
@@ -38,9 +37,8 @@ class MaintenanceMileageUseCaseTest {
 
     @Test
     fun calculate_screenshotCase_oilChangeCountsJuly28Load() {
-        // ТО «Замена масло» 2026-07-24, interval 20_000, load T-113Q6BJDT = 1_502 mi end 07-28.
         val loads = listOf(
-            load("T-113Q6BJDT", 1_502.0, "2026-07-28", "2026-07-28", parsedAt = createdAt - 1),
+            load("T-113Q6BJDT", 1_502.0, "2026-07-28", "2026-07-28"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 878_030L,
@@ -48,7 +46,6 @@ class MaintenanceMileageUseCaseTest {
             serviceDate = "2026-07-24",
             loads = loads,
             today = today,
-            baselineRecordedAtMs = createdAt, // reminder created after load was already in journal
         )
         assertEquals(1_502L, snap.milesSinceService)
         assertEquals(1, snap.loadCount)
@@ -59,11 +56,9 @@ class MaintenanceMileageUseCaseTest {
     }
 
     @Test
-    fun calculate_countsJournalLoadsPresentBeforeReminder_whenEndOnOrAfterService() {
-        // Baseline odometer is at service time — post-service trips must count even if
-        // they were already in Room when the reminder row was inserted.
+    fun calculate_countsLoadsAlreadyInJournalWhenReminderCreated() {
         val loads = listOf(
-            load("T-NEW", 1_500.0, "2026-07-27", "2026-07-27", parsedAt = createdAt - 86_400_000L),
+            load("T-NEW", 1_500.0, "2026-07-27", "2026-07-27"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 878_030L,
@@ -71,7 +66,6 @@ class MaintenanceMileageUseCaseTest {
             serviceDate = "2026-07-24",
             loads = loads,
             today = today,
-            baselineRecordedAtMs = createdAt,
         )
         assertEquals(1_500L, snap.milesSinceService)
         assertEquals(879_530L, snap.currentOdometer)
@@ -81,8 +75,8 @@ class MaintenanceMileageUseCaseTest {
     @Test
     fun calculate_excludesLoadsFinishedBeforeService() {
         val loads = listOf(
-            load("T-BEFORE", 9_000.0, "2026-07-20", "2026-07-23", parsedAt = createdAt + 1),
-            load("T-OK", 800.0, "2026-07-26", "2026-07-26", parsedAt = createdAt + 1),
+            load("T-BEFORE", 9_000.0, "2026-07-20", "2026-07-23"),
+            load("T-OK", 800.0, "2026-07-26", "2026-07-26"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 100_000L,
@@ -98,8 +92,8 @@ class MaintenanceMileageUseCaseTest {
     @Test
     fun calculate_ignoresFarFutureMisdatedEndDates() {
         val loads = listOf(
-            load("T-FUT", 200_000.0, "2026-12-01", "2026-12-01", parsedAt = createdAt + 1),
-            load("T-OK", 800.0, "2026-07-26", "2026-07-26", parsedAt = createdAt + 1),
+            load("T-FUT", 200_000.0, "2026-12-01", "2026-12-01"),
+            load("T-OK", 800.0, "2026-07-26", "2026-07-26"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 100_000L,
@@ -113,10 +107,9 @@ class MaintenanceMileageUseCaseTest {
 
     @Test
     fun calculate_sameTruckingWeekFinishCountsEvenIfDeviceClockIsEarlier() {
-        // Device "today" is Wed 07-22; load finishes Sat 07-25 (same Sun–Sat week) → still counts.
         val midWeek = LocalDate.of(2026, 7, 22)
         val loads = listOf(
-            load("T-WEEK", 1_502.0, "2026-07-25", "2026-07-25", parsedAt = createdAt + 1),
+            load("T-WEEK", 1_502.0, "2026-07-25", "2026-07-25"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 100_000L,
@@ -132,9 +125,8 @@ class MaintenanceMileageUseCaseTest {
 
     @Test
     fun calculate_usesFinishDateNotStart_whenTripSpansService() {
-        // Started before ТО, finished after → must count (endDate >= serviceDate).
         val loads = listOf(
-            load("T-SPAN", 1_502.0, "2026-07-22", "2026-07-28", parsedAt = createdAt + 1),
+            load("T-SPAN", 1_502.0, "2026-07-22", "2026-07-28"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 878_030L,
@@ -150,8 +142,8 @@ class MaintenanceMileageUseCaseTest {
     @Test
     fun calculate_urgentWhenRemainingNonPositive() {
         val loads = listOf(
-            load("T-1", 12_000.0, "2026-07-27", "2026-07-27", parsedAt = createdAt + 1),
-            load("T-2", 8_000.0, "2026-07-28", "2026-07-28", parsedAt = createdAt + 2),
+            load("T-1", 12_000.0, "2026-07-27", "2026-07-27"),
+            load("T-2", 8_000.0, "2026-07-28", "2026-07-28"),
         )
         val snap = MaintenanceMileageUseCase.calculate(
             baseOdometer = 100_000L,
@@ -174,8 +166,8 @@ class MaintenanceMileageUseCaseTest {
             targetInterval = 100L,
             serviceDate = "2026-07-24",
             loads = listOf(
-                load("A", 1_500.0, "2026-07-25", "2026-07-25", parsedAt = createdAt + 1),
-                load("B", 1_778.0, "2026-07-26", "2026-07-26", parsedAt = createdAt + 1),
+                load("A", 1_500.0, "2026-07-25", "2026-07-25"),
+                load("B", 1_778.0, "2026-07-26", "2026-07-26"),
             ),
             today = today,
         )
@@ -191,11 +183,10 @@ class MaintenanceMileageUseCaseTest {
             reminderType = MaintenanceReminderType.MILES,
             intervalMiles = 20_000.0,
             odometerAtStart = 878_030.0,
-            createdAt = createdAt,
         )
         val progress = MaintenanceMileageUseCase.progressForTask(
             task,
-            listOf(load("T-113Q6BJDT", 1_502.0, "2026-07-28", "2026-07-28", parsedAt = createdAt - 10)),
+            listOf(load("T-113Q6BJDT", 1_502.0, "2026-07-28", "2026-07-28")),
             today = today,
         )
         assertEquals(1_502.0, progress.milesDrivenSinceStart, 0.01)
@@ -211,13 +202,11 @@ class MaintenanceMileageUseCaseTest {
         miles: Double,
         date: String,
         finish: String,
-        parsedAt: Long,
     ) = MaintenanceMileageUseCase.LoadInput(
         tripId = tripId,
         id = tripId,
         miles = miles,
         date = date,
         actualFinishDate = finish,
-        parsedAt = parsedAt,
     )
 }

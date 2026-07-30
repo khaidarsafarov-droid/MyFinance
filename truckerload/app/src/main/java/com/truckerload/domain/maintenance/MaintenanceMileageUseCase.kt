@@ -44,8 +44,6 @@ object MaintenanceMileageUseCase {
         val date: String,
         val actualFinishDate: String? = null,
         val lastDelMillis: Long? = null,
-        /** When the load row entered the journal (ms). Kept for diagnostics; not a cutoff. */
-        val parsedAt: Long = 0L,
     )
 
     data class MileageSnapshot(
@@ -102,8 +100,6 @@ object MaintenanceMileageUseCase {
         serviceDate: String,
         loads: List<LoadInput>,
         today: LocalDate = LocalDate.now(),
-        @Suppress("UNUSED_PARAMETER")
-        baselineRecordedAtMs: Long = 0L,
     ): MileageSnapshot {
         val service = serviceDate.take(10)
         // endDate >= serviceDate AND endDate <= end of current trucking week
@@ -168,7 +164,6 @@ object MaintenanceMileageUseCase {
                     serviceDate = task.startDate,
                     loads = loads,
                     today = today,
-                    baselineRecordedAtMs = task.createdAt,
                 )
                 MaintenanceProgress(
                     task = task,

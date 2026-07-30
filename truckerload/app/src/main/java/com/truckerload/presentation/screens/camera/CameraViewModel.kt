@@ -108,7 +108,8 @@ class CameraViewModel(
 
     private suspend fun resolveAttachContext(): CameraAttachContext {
         CameraAttachContext.fromExplicit(attachLoadId, attachTripId, attachLoadDate)?.let { return it }
-        // Widget / drawer camera: use latest Trip ID for watermark only — do not auto-attach files.
+        // Free camera (drawer / Routes.CAMERA): watermark with latest Trip ID only —
+        // do not auto-attach. Widget camera goes through attach_pick → CAMERA_FOR_LOAD.
         val latest = runCatching { loadRepository.getAllLoadsOnce().firstOrNull() }.getOrNull()
         return CameraAttachContext.fromLatestLoad(
             loadId = null,

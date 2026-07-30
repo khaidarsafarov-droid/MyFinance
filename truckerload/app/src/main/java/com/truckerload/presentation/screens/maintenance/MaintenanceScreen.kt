@@ -111,7 +111,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
         val uri = pendingCameraUri
         pendingCameraUri = null
         if (success && uri != null) {
-            viewModel.processReceiptPhoto(uri)
+            viewModel.processReceiptPhoto(uri, deleteAfterCopy = pendingCameraFile)
         } else {
             pendingCameraFile?.delete()
         }

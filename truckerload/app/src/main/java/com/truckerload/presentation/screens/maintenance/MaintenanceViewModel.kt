@@ -230,8 +230,10 @@ class MaintenanceViewModel(
     /**
      * Runs ML Kit (via [OCRService]) on the receipt image, parses key fields, and opens the
      * editable preview dialog. Photo is copied into protected app storage (`filesDir/receipts`).
+     *
+     * @param deleteAfterCopy optional camera cache file to remove after a successful copy
      */
-    fun processReceiptPhoto(uri: Uri) {
+    fun processReceiptPhoto(uri: Uri, deleteAfterCopy: File? = null) {
         viewModelScope.launch {
             _formState.update {
                 it.copy(
@@ -243,7 +245,12 @@ class MaintenanceViewModel(
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val saved = copyPhotoToProtectedStorage(uri)
-                    val ocr = ocrService.recognizeFromUri(getApplication(), uri)
+                    deleteAfterCopy?.delete()
+                    // OCR the protected copy (source may be a transient cache file).
+                    val ocr = ocrService.recognizeFromUri(
+                        getApplication(),
+                        android.net.Uri.fromFile(saved),
+                    )
                     val rawText = ocr.text
                     val parsed = ServiceReceiptTextParser.parse(rawText)
                     val receipt = ReceiptData(
@@ -258,6 +265,10 @@ class MaintenanceViewModel(
                         rawText = rawText,
                     )
                     receipt
+                }.also { outcome ->
+                    if (outcome.isFailure) {
+                        deleteAfterCopy?.delete()
+                    }
                 }
             }
             result

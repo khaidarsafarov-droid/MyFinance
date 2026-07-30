@@ -197,15 +197,15 @@ class ScannerViewModel(
         val state = _uiState.value
         val pending = state.pendingScan ?: return
         if (pending.savedToDb) {
-            if (showSuccess) {
+            // Always emit scan_success when finishing so the UI can exit (never leave
+            // autoAttachedAndDone=true without a status the LaunchedEffect handles).
+            if (showSuccess || finishAfter) {
                 _uiState.update {
                     it.copy(
                         statusMessage = "scan_success",
                         autoAttachedAndDone = finishAfter,
                     )
                 }
-            } else if (finishAfter) {
-                _uiState.update { it.copy(autoAttachedAndDone = true) }
             }
             return
         }
@@ -220,7 +220,7 @@ class ScannerViewModel(
                 loadId = attachLoadId,
             )
             val markedSession = if (pending.isMerged) {
-                state.sessionScans
+                state.sessionScans.map { it.copy(savedToDb = true) }
             } else {
                 state.sessionScans.map { scan ->
                     if (scan.file.absolutePath == pending.file.absolutePath) {
@@ -234,7 +234,7 @@ class ScannerViewModel(
                 it.copy(
                     pendingScan = pending.copy(savedToDb = true),
                     sessionScans = markedSession,
-                    statusMessage = if (showSuccess) "scan_success" else it.statusMessage,
+                    statusMessage = if (showSuccess || finishAfter) "scan_success" else it.statusMessage,
                     autoAttachedAndDone = finishAfter,
                 )
             }

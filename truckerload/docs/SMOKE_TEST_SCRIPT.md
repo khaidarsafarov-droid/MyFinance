@@ -116,13 +116,15 @@ Use this template when a step fails:
 4. Switch language to EN → Home DISPUTE filter label is English («Dispute»), not Russian.
 5. Add Load: paste Relay fixture with Total Rate + Pu-address → Save → appears in list immediately.
 6. Open load camera from card → capture → share/save → returns to load detail.
-7. Drawer/widget camera: watermark shows Trip ID of latest load but does **not** auto-attach files.
+7. Drawer camera: watermark shows Trip ID of latest load but does **not** auto-attach files.
+7b. Widget Camera / Scan: opens «Select load» with the last 3 trips → capture attaches to the chosen load.
 8. Pull to refresh → toast «Telegram sync started» (when bot configured).
 
 Expected:
 - No silent swipe-dismiss without confirm.
 - EN dispute strings present.
-- Free camera does not silently link photos to a load.
+- Free (drawer) camera does not silently link photos to a load.
+- Widget camera/scan always prompts for a load when the journal is non-empty.
 
 ## Emulator / Home animation note (QUALITY_100 #81)
 
