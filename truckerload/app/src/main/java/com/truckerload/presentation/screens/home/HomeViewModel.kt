@@ -240,7 +240,7 @@ class HomeViewModel(
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
-            datesWithLoads = LoadDateIndex.build(calendarMerged).keys.toSet(),
+            datesWithLoads = LoadDateIndex.markerDates(calendarMerged),
         )
     }
         .flowOn(Dispatchers.Default)

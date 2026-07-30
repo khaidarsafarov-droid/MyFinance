@@ -161,7 +161,8 @@ fun LoadCalendarWithDots(
                                     else -> tc.TextPrimary
                                 }
                             )
-                            if (hasLoad) {
+                            // Dots only for the visible month — adjacent-month spillover looked random.
+                            if (hasLoad && isCurrentMonth) {
                                 Box(
                                     modifier = Modifier
                                         .padding(top = 2.dp)

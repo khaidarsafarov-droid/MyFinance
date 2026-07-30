@@ -219,26 +219,38 @@ fun HomeScreen(
                             calendarMonth = m
                         },
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    // Stack actions vertically: the old SpaceBetween row squeezed «Закрыть»
+                    // into a single-character-wide column (letters stacked) beside the long week label.
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        TextButton(onClick = {
-                            val date = uiState.selectedDate
-                                ?: java.time.LocalDate.of(
-                                    calendarYear,
-                                    calendarMonth,
-                                    1,
-                                ).toString()
-                            val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
-                            val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
-                            viewModel.selectWeek(start, end, label)
-                            showCalendar = false
-                        }) {
-                            Text(stringResource(R.string.home_calendar_select_week), color = tc.AccentPrimary)
+                        TextButton(
+                            onClick = {
+                                val date = uiState.selectedDate
+                                    ?: java.time.LocalDate.of(
+                                        calendarYear,
+                                        calendarMonth,
+                                        1,
+                                    ).toString()
+                                val (week, year) = com.truckerload.utils.getWeekNumberAndYearFromDate(date)
+                                val (start, end, label) = com.truckerload.utils.getWeekRange(week, year)
+                                viewModel.selectWeek(start, end, label)
+                                showCalendar = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                stringResource(R.string.home_calendar_select_week),
+                                color = tc.AccentPrimary,
+                                maxLines = 1,
+                            )
                         }
-                        TextButton(onClick = { showCalendar = false }) {
-                            Text(stringResource(R.string.common_close), color = tc.AccentPrimary)
+                        TlButton(
+                            onClick = { showCalendar = false },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.common_close))
                         }
                     }
                 }
