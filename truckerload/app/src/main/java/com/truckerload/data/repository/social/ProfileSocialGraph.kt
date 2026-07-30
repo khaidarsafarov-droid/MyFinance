@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
 /** Block / follow / peer lookups for [ProfileRepositoryImpl]. */
-internal class ProfileSocialGraph(
+class ProfileSocialGraph(
     private val profileDao: DriverProfileDao,
     private val blockedUserDao: BlockedUserDao,
     private val followDao: DriverFollowDao,

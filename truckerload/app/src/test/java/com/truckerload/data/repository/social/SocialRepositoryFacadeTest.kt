@@ -48,6 +48,7 @@ class SocialRepositoryFacadeTest {
         val result = facade.updateStatus(DriverStatus.ONLINE)
         assertTrue(result is SocialResult.Success)
         verify(profile).updateStatus(DriverStatus.ONLINE)
+        Unit
     }
 
     @Test
@@ -62,6 +63,7 @@ class SocialRepositoryFacadeTest {
         val result = facade.createPrivateChat("Alice")
         assertEquals("dm_1", (result as SocialResult.Success).data)
         verify(chat).createPrivateChat("Alice")
+        Unit
     }
 
     @Test
