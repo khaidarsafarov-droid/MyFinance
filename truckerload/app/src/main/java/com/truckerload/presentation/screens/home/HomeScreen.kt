@@ -43,7 +43,6 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.TlButton
-import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.ExperimentalMaterialApi
@@ -220,12 +219,11 @@ fun HomeScreen(
                             calendarMonth = m
                         },
                     )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                    // Stack actions vertically: the old SpaceBetween row squeezed «Закрыть»
+                    // into a single-character-wide column (letters stacked) beside the long week label.
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         TextButton(
                             onClick = {
@@ -240,25 +238,19 @@ fun HomeScreen(
                                 viewModel.selectWeek(start, end, label)
                                 showCalendar = false
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(
-                                text = stringResource(R.string.home_calendar_select_week),
-                                color = tc.TextPrimary,
+                                stringResource(R.string.home_calendar_select_week),
+                                color = tc.AccentPrimary,
                                 maxLines = 1,
-                                softWrap = false,
                             )
                         }
-                        TlOutlinedButton(
+                        TlButton(
                             onClick = { showCalendar = false },
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(
-                                text = stringResource(R.string.common_close),
-                                color = tc.TextPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                softWrap = false,
-                            )
+                            Text(stringResource(R.string.common_close))
                         }
                     }
                 }
