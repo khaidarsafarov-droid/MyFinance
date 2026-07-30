@@ -247,7 +247,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                itemsIndexed(uiState.messages, key = { index, _ -> "msg_$index" }) { _, msg ->
+                itemsIndexed(uiState.messages, key = { _, msg -> msg.id }) { _, msg ->
                     MessageBubble(
                         isUser = msg.role == "user",
                         text = msg.text,

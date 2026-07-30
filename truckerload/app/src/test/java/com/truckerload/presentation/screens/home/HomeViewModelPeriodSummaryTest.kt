@@ -36,6 +36,7 @@ class HomeViewModelPeriodSummaryTest {
         whenever(app.getString(any<Int>(), any(), any())).thenReturn("period")
         whenever(app.getString(any<Int>(), any(), any(), any())).thenReturn("period")
         whenever(loadRepository.watchLoads()).thenReturn(loadsFlow)
+        whenever(loadRepository.watchLoadDateRows()).thenReturn(MutableStateFlow(emptyList()))
         whenever(loadRepository.getLoadsByWeek(any(), any())).thenReturn(loadsFlow)
         whenever(loadRepository.getLoadsByDateRange(any(), any())).thenReturn(loadsFlow)
         viewModel = HomeViewModel(loadRepository, isBotConfigured = false, app)

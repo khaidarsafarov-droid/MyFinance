@@ -142,9 +142,10 @@ class HomeViewModel(
     /**
      * Full journal for calendar dots — must not be scoped to the active week filter,
      * otherwise opening the calendar on "This week" hides other months' markers.
+     * Uses a lightweight id+date projection (no stop/penalty hydrate).
      */
-    private val allLoadsForCalendar: StateFlow<List<Load>> = loadRepository.watchLoads()
-        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList())
+    private val loadDateRowsForCalendar = loadRepository.watchLoadDateRows()
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = emptyList())
 
     private val _initialLoadDone = MutableStateFlow(false)
 
@@ -210,11 +211,11 @@ class HomeViewModel(
     /** Фильтрованный список + итоги + индекс дат. Индекс — по всем грузам (календарь). */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
-        allLoadsForCalendar,
+        loadDateRowsForCalendar,
         _optimisticOverlay,
         _pendingDeleteIds,
         filterState,
-    ) { loads, allLoads, overlay, pendingDeletes, filter ->
+    ) { loads, dateRows, overlay, pendingDeletes, filter ->
         val base = loads
             .filter { it.id !in pendingDeletes }
             .map { overlay[it.id] ?: it }
@@ -231,20 +232,28 @@ class HomeViewModel(
             selectedYear = filter.selectedYear,
             dateIndex = null,
         )
-        val calendarBase = allLoads
+        val dbDates = dateRows
+            .asSequence()
             .filter { it.id !in pendingDeletes }
-            .map { overlay[it.id] ?: it }
-        val calendarIds = allLoads.map { it.id }.toSet()
-        val calendarMerged = calendarBase +
-            overlay.values.filter { it.id !in calendarIds && it.id !in pendingDeletes }
+            .mapNotNull { row -> row.date.take(10).takeIf { it.length == 10 } }
+            .toSet()
+        val overlayDates = overlay.values
+            .asSequence()
+            .filter { it.id !in pendingDeletes }
+            .mapNotNull { LoadDateIndex.exactLoadDate(it) }
+            .toSet()
         FilteredResult(
             loads = filtered,
             totals = filterUseCase.calculateTotals(filtered),
-            datesWithLoads = LoadDateIndex.build(calendarMerged).keys.toSet(),
+            datesWithLoads = dbDates + overlayDates,
         )
     }
         .flowOn(Dispatchers.Default)
-        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()))
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0), emptySet()),
+        )
 
     /**
      * True Room SQL paging for week / dispute journal filters.
