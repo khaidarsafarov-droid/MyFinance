@@ -167,7 +167,7 @@
     <string name="about_guide_docs_title">5. Documents</string>
     <string name="about_guide_docs_body">Documents opens the scan gallery — open, share, or delete saved documents.</string>
     <string name="about_guide_reports_title">6. Reports and map</string>
-    <string name="about_guide_reports_body">Reports shows load analytics. Map shows crowd RPM for the last week: Me / All, state-to-state rates, and fresh prices (“2 days ago”, “an hour ago”).</string>
+    <string name="about_guide_reports_body">Reports shows load analytics. Map shows your RPM by state for the last week (outbound) and recent rates (“2 days ago”, “an hour ago”).</string>
     <string name="about_guide_backup_title">7. Backup</string>
     <string name="about_guide_backup_body">In Settings create a backup file on the phone or save to Google Drive and restore when you change devices.</string>
     <string name="about_guide_settings_title">8. Settings and profile</string>
@@ -381,21 +381,18 @@
     <string name="stats_map_open">Open map</string>
     <string name="map_title">Geographic efficiency</string>
     <string name="map_subtitle_all_loads">Across all driver loads (%1$d trips)</string>
-    <string name="map_subtitle_crowd_week">Crowd RPM · last 7 days · %1$d rates</string>
-    <string name="map_crowd_hint">Heatmap = average $/mile outbound from each state. Tap a state to see recent RPMs — an hour ago, yesterday, 2 days ago…</string>
-    <string name="map_crowd_sample_banner">No live market server yet: All shows anonymized community sample rates; your loads are under Me.</string>
-    <string name="map_scope_me">Me</string>
-    <string name="map_scope_all">All</string>
+    <string name="map_subtitle_my_week">My RPM · last 7 days · %1$d trip(s)</string>
+    <string name="map_my_rates_hint">Heatmap = your average $/mile outbound from each state this week. Tap a state to see recent rates — an hour ago, yesterday, 2 days ago…</string>
     <string name="map_crowd_source_network">community</string>
-    <string name="map_crowd_state_header">%1$s (%2$s) — outbound this week</string>
+    <string name="map_crowd_state_header">%1$s (%2$s) — your outbound this week</string>
     <string name="map_crowd_state_avg">Avg outbound RPM: $%1$s/mi · %2$d trip(s)</string>
-    <string name="map_crowd_recent_title">Recent rates from this state</string>
-    <string name="map_crowd_recent_empty">No rates from this state in the last week.</string>
-    <string name="map_crowd_recent_row">%1$s → %2$s · $%3$s/mi · %4$s · %5$s</string>
+    <string name="map_crowd_recent_title">Your recent rates from this state</string>
+    <string name="map_crowd_recent_empty">No loads from this state in the last week.</string>
+    <string name="map_my_recent_row">%1$s → %2$s · $%3$s/mi · %4$s</string>
     <string name="map_crowd_age_minutes">%1$d min ago</string>
     <string name="map_crowd_age_hours">%1$d h ago</string>
     <string name="map_crowd_age_days">%1$d d ago</string>
-    <string name="map_crowd_top_lanes">Top lanes this week</string>
+    <string name="map_crowd_top_lanes">Your top lanes this week</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
