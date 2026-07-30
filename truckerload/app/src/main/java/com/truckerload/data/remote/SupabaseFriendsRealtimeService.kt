@@ -48,7 +48,7 @@ class SupabaseFriendsRealtimeService(
                 .put("id", userId)
                 .put("nickname", handle)
             if (!fullName.isNullOrBlank()) body.put("full_name", fullName)
-            upsert("profiles", body, token, onConflict = "id")
+            upsert("profiles", body, token, onConflict = "id").mapSchemaErrors()
         }
 
     suspend fun searchByNickname(nickname: String): Result<FriendProfileHit?> =
@@ -313,8 +313,34 @@ class SupabaseFriendsRealtimeService(
             .build()
         return runCatching {
             client.newCall(req).execute().use { resp ->
-                if (!resp.isSuccessful) error("upsert $table HTTP ${resp.code}: ${resp.body?.string()}")
+                val text = resp.body?.string().orEmpty()
+                if (!resp.isSuccessful) error("upsert $table HTTP ${resp.code}: $text")
             }
+        }
+    }
+
+    private fun Result<Unit>.mapSchemaErrors(): Result<Unit> =
+        fold(
+            onSuccess = { Result.success(Unit) },
+            onFailure = { err ->
+                val msg = err.message.orEmpty()
+                if (isMissingNicknameColumnError(msg)) {
+                    Result.failure(IllegalStateException(ERROR_NICKNAME_SCHEMA_MISSING))
+                } else {
+                    Result.failure(err)
+                }
+            },
+        )
+
+    companion object {
+        /** UI maps this to [R.string.friends_nickname_schema_missing]. */
+        const val ERROR_NICKNAME_SCHEMA_MISSING = "schema_nickname_missing"
+
+        fun isMissingNicknameColumnError(message: String): Boolean {
+            val m = message.lowercase()
+            return m.contains("pgrst204") ||
+                (m.contains("nickname") && m.contains("schema cache")) ||
+                (m.contains("nickname") && m.contains("could not find"))
         }
     }
 

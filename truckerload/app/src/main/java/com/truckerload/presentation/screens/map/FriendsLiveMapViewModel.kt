@@ -128,12 +128,18 @@ class FriendsLiveMapViewModel(
             }
             val profile = userProfileStore.profile.value
             val result = friendsApi.upsertMyNickname(handle, profile?.displayName)
+            val err = result.exceptionOrNull()?.message
             if (result.isSuccess) {
                 persistLocalNickname(handle)
                 _uiState.update { it.copy(nicknameMessage = "saved") }
+            } else if (err == SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING) {
+                persistLocalNickname(handle)
+                _uiState.update {
+                    it.copy(nicknameMessage = SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING)
+                }
             } else {
                 _uiState.update {
-                    it.copy(errorMessage = result.exceptionOrNull()?.message ?: "nickname save failed")
+                    it.copy(errorMessage = err ?: "nickname save failed")
                 }
             }
         }

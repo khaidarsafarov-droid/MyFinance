@@ -5,6 +5,13 @@ Run in Supabase SQL editor (in order):
 1. `supabase/migrations/20260730_friends_live_routes.sql`
 2. `supabase/migrations/20260731_friend_nicknames.sql` (nicknames + friend_links + RLS)
 
+### Fix: `Could not find the 'nickname' column of 'profiles'`
+That HTTP 400 / `PGRST204` means migration **#2 was not applied** on the Supabase project.
+1. Open [Supabase Dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**
+2. Paste the full contents of `supabase/migrations/20260731_friend_nicknames.sql`
+3. Run it (it ends with `notify pgrst, 'reload schema';`)
+4. Retry **Добавить никнейм** in the app — no APK rebuild required for the server fix
+
 Optional Realtime (Dashboard → Database → Replication):
 - `driver_presence`
 - `active_route_shares`
