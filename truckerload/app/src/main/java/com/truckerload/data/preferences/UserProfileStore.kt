@@ -19,6 +19,8 @@ data class UserProfile(
     val phoneNumber: String? = null,
     /** Google OpenID `sub` — stable identity key for this Google account. */
     val googleId: String? = null,
+    /** Unique Truck Log handle for finding friends (@nickname). */
+    val nickname: String? = null,
 ) {
     val displayName: String
         get() = listOf(givenName, familyName).filter { it.isNotBlank() }.joinToString(" ")
@@ -68,6 +70,8 @@ class UserProfileStore(context: Context) {
             putString(KEY_PHONE, profile.phoneNumber)
             if (profile.googleId.isNullOrBlank()) remove(KEY_GOOGLE_ID)
             else putString(KEY_GOOGLE_ID, profile.googleId)
+            if (profile.nickname.isNullOrBlank()) remove(KEY_NICKNAME)
+            else putString(KEY_NICKNAME, profile.nickname)
         }
         _profile.value = profile
     }
@@ -99,6 +103,7 @@ class UserProfileStore(context: Context) {
             photoUrl = prefs.getString(KEY_PHOTO_URL, null)?.takeIf { it.isNotBlank() },
             phoneNumber = prefs.getString(KEY_PHONE, null)?.takeIf { it.isNotBlank() },
             googleId = prefs.getString(KEY_GOOGLE_ID, null)?.takeIf { it.isNotBlank() },
+            nickname = prefs.getString(KEY_NICKNAME, null)?.takeIf { it.isNotBlank() },
         )
     }
 
@@ -138,6 +143,7 @@ class UserProfileStore(context: Context) {
         private const val KEY_PHOTO_URL = "photo_url"
         private const val KEY_PHONE = "phone_number"
         private const val KEY_GOOGLE_ID = "google_id"
+        private const val KEY_NICKNAME = "nickname"
         private const val KEY_SETUP_COMPLETE = "profile_setup_complete"
 
         fun prefsName(userId: String): String =

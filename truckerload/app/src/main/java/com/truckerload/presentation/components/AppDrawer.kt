@@ -23,8 +23,8 @@ import androidx.compose.material.icons.outlined.LocalGasStation
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Receipt
-import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -127,7 +127,7 @@ fun AppDrawerContent(
                 onClick = { onNavigate(DrawerDestination.MAP); onClose() },
             )
             drawerItem(
-                icon = Icons.Outlined.Route,
+                icon = Icons.Outlined.PersonAdd,
                 label = stringResource(R.string.drawer_friends_live),
                 onClick = { onNavigate(DrawerDestination.FRIENDS_LIVE); onClose() },
             )

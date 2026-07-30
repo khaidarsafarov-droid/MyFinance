@@ -4,7 +4,10 @@ import com.truckerload.BuildConfig
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendPresence
+import com.truckerload.domain.friends.FriendProfileHit
+import com.truckerload.domain.friends.FriendShareLink
 import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.SharedLoadStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,8 +21,7 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 /**
- * REST client for friends presence + active route shares on Supabase.
- * Realtime can be layered later; polling works with anon key + user JWT.
+ * REST client for friends presence, nicknames, and share links on Supabase.
  */
 class SupabaseFriendsRealtimeService(
     private val authStore: AuthStore,
@@ -33,6 +35,134 @@ class SupabaseFriendsRealtimeService(
         !BuildConfig.LOCAL_ONLY_MODE &&
             BuildConfig.SUPABASE_URL.isNotBlank() &&
             BuildConfig.SUPABASE_ANON_KEY.isNotBlank()
+
+    suspend fun upsertMyNickname(nickname: String, fullName: String?): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val userId = authStore.currentUserIdOrNull()
+                ?: return@withContext Result.failure(IllegalStateException("no user"))
+            val token = authStore.accessTokenOrNull().orEmpty()
+            if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+            val handle = NicknameValidator.sanitizeOrNull(nickname)
+                ?: return@withContext Result.failure(IllegalArgumentException("invalid nickname"))
+            val body = JSONObject()
+                .put("id", userId)
+                .put("nickname", handle)
+            if (!fullName.isNullOrBlank()) body.put("full_name", fullName)
+            upsert("profiles", body, token, onConflict = "id")
+        }
+
+    suspend fun searchByNickname(nickname: String): Result<FriendProfileHit?> =
+        withContext(Dispatchers.IO) {
+            val token = authStore.accessTokenOrNull().orEmpty()
+            if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+            val handle = NicknameValidator.sanitizeOrNull(nickname)
+                ?: return@withContext Result.success(null)
+            val body = JSONObject().put("p_nickname", handle).toString()
+            val req = Request.Builder()
+                .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/rpc/search_profile_by_nickname")
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer $token")
+                .header("Content-Type", "application/json")
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+            runCatching {
+                client.newCall(req).execute().use { resp ->
+                    val text = resp.body?.string().orEmpty()
+                    if (!resp.isSuccessful) error("search nickname HTTP ${resp.code}: $text")
+                    val arr = JSONArray(text)
+                    if (arr.length() == 0) return@runCatching null
+                    val o = arr.getJSONObject(0)
+                    FriendProfileHit(
+                        userId = o.optString("user_id"),
+                        nickname = o.optString("nickname"),
+                        displayName = o.optString("full_name").ifBlank { o.optString("nickname") },
+                    )
+                }
+            }
+        }
+
+    suspend fun listMyFriendLinks(): Result<List<FriendShareLink>> = withContext(Dispatchers.IO) {
+        val userId = authStore.currentUserIdOrNull()
+            ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val token = authStore.accessTokenOrNull().orEmpty()
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        val json = get(
+            "friend_links?select=*&owner_id=eq.$userId&order=created_at.desc",
+            token,
+        ).getOrElse { return@withContext Result.failure(it) }
+        val arr = JSONArray(json)
+        val out = ArrayList<FriendShareLink>(arr.length())
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            out += FriendShareLink(
+                friendUserId = o.optString("friend_id"),
+                friendNickname = o.optString("friend_nickname"),
+                friendDisplayName = o.optString("friend_display_name"),
+                shareMyLocation = o.optBoolean("share_my_location", true),
+                shareMyRoute = o.optBoolean("share_my_route", true),
+            )
+        }
+        Result.success(out)
+    }
+
+    suspend fun addFriend(hit: FriendProfileHit): Result<Unit> = withContext(Dispatchers.IO) {
+        val userId = authStore.currentUserIdOrNull()
+            ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val token = authStore.accessTokenOrNull().orEmpty()
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        if (hit.userId == userId) {
+            return@withContext Result.failure(IllegalArgumentException("cannot add yourself"))
+        }
+        val link = JSONObject()
+            .put("owner_id", userId)
+            .put("friend_id", hit.userId)
+            .put("friend_nickname", hit.nickname)
+            .put("friend_display_name", hit.displayName)
+            .put("share_my_location", true)
+            .put("share_my_route", true)
+            .put("updated_at", Instant.now().toString())
+        upsert("friend_links", link, token, onConflict = "owner_id,friend_id").getOrElse {
+            return@withContext Result.failure(it)
+        }
+        // Also register follow edge for graph tooling / legacy RLS
+        val friendship = JSONObject()
+            .put("follower_id", userId)
+            .put("followee_id", hit.userId)
+        upsert("friendships", friendship, token, onConflict = "follower_id,followee_id")
+        Result.success(Unit)
+    }
+
+    suspend fun updateFriendShare(
+        friendUserId: String,
+        shareMyLocation: Boolean,
+        shareMyRoute: Boolean,
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val userId = authStore.currentUserIdOrNull()
+            ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val token = authStore.accessTokenOrNull().orEmpty()
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        val body = JSONObject()
+            .put("share_my_location", shareMyLocation)
+            .put("share_my_route", shareMyRoute)
+            .put("updated_at", Instant.now().toString())
+        patchEq(
+            table = "friend_links",
+            filter = "owner_id=eq.$userId&friend_id=eq.$friendUserId",
+            body = body,
+            token = token,
+        )
+    }
+
+    suspend fun removeFriend(friendUserId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val userId = authStore.currentUserIdOrNull()
+            ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val token = authStore.accessTokenOrNull().orEmpty()
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        deleteFilter("friend_links", "owner_id=eq.$userId&friend_id=eq.$friendUserId", token)
+            .getOrElse { return@withContext Result.failure(it) }
+        deleteFilter("friendships", "follower_id=eq.$userId&followee_id=eq.$friendUserId", token)
+        Result.success(Unit)
+    }
 
     suspend fun upsertPresence(
         displayName: String,
@@ -162,13 +292,23 @@ class SupabaseFriendsRealtimeService(
         Result.success(out)
     }
 
-    private fun upsert(table: String, body: JSONObject, token: String): Result<Unit> {
+    private fun upsert(
+        table: String,
+        body: JSONObject,
+        token: String,
+        onConflict: String? = null,
+    ): Result<Unit> {
+        val prefer = if (onConflict.isNullOrBlank()) {
+            "resolution=merge-duplicates"
+        } else {
+            "resolution=merge-duplicates,on_conflict=$onConflict"
+        }
         val req = Request.Builder()
             .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/$table")
             .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
             .header("Authorization", "Bearer $token")
             .header("Content-Type", "application/json")
-            .header("Prefer", "resolution=merge-duplicates")
+            .header("Prefer", prefer)
             .post(body.toString().toRequestBody("application/json".toMediaType()))
             .build()
         return runCatching {
@@ -178,9 +318,32 @@ class SupabaseFriendsRealtimeService(
         }
     }
 
-    private fun deleteEq(table: String, column: String, value: String, token: String): Result<Unit> {
+    private fun patchEq(
+        table: String,
+        filter: String,
+        body: JSONObject,
+        token: String,
+    ): Result<Unit> {
         val req = Request.Builder()
-            .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/$table?$column=eq.$value")
+            .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/$table?$filter")
+            .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            .header("Authorization", "Bearer $token")
+            .header("Content-Type", "application/json")
+            .patch(body.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+        return runCatching {
+            client.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) error("patch $table HTTP ${resp.code}: ${resp.body?.string()}")
+            }
+        }
+    }
+
+    private fun deleteEq(table: String, column: String, value: String, token: String): Result<Unit> =
+        deleteFilter(table, "$column=eq.$value", token)
+
+    private fun deleteFilter(table: String, filter: String, token: String): Result<Unit> {
+        val req = Request.Builder()
+            .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/$table?$filter")
             .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
             .header("Authorization", "Bearer $token")
             .delete()
