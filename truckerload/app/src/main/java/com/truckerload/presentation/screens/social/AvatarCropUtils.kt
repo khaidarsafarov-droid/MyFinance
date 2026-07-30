@@ -2,8 +2,11 @@ package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
+import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 import kotlin.math.max
 import kotlin.math.min
 
@@ -22,7 +25,39 @@ internal object AvatarCropUtils {
             .takeWhile { largest / it > maxDimension }
             .lastOrNull()?.let { it * 2 } ?: 1
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions) ?: return null
+        return applyExifOrientation(bytes, decoded)
+    }
+
+    /**
+     * Applies JPEG EXIF orientation so gallery/camera photos keep upright framing in the cropper.
+     */
+    fun applyExifOrientation(jpegBytes: ByteArray, bitmap: Bitmap): Bitmap {
+        val orientation = runCatching {
+            ExifInterface(ByteArrayInputStream(jpegBytes))
+                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.setScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.setRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.setRotate(-90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+            else -> return bitmap
+        }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true).also {
+            if (it !== bitmap) bitmap.recycle()
+        }
     }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
@@ -69,6 +104,35 @@ internal object AvatarCropUtils {
             x = if (minX <= maxX) offset.x.coerceIn(minX, maxX) else 0f,
             y = if (minY <= maxY) offset.y.coerceIn(minY, maxY) else 0f,
         )
+    }
+
+    /**
+     * After the crop viewport size changes, keep the user's framing by raising scale if needed
+     * and re-clamping the pan offset — never snap back to center.
+     */
+    fun preserveTransformAfterLayoutChange(
+        previousUserScale: Float,
+        previousOffset: Offset,
+        fitScale: Float,
+        minScale: Float,
+        bitmapWidth: Int,
+        bitmapHeight: Int,
+        containerWidth: Float,
+        containerHeight: Float,
+        cropDiameter: Float,
+    ): Pair<Float, Offset> {
+        val userScale = previousUserScale.coerceIn(minScale, minScale * 4f)
+        val offset = clampOffset(
+            offset = previousOffset,
+            userScale = userScale,
+            fitScale = fitScale,
+            bitmapWidth = bitmapWidth,
+            bitmapHeight = bitmapHeight,
+            containerWidth = containerWidth,
+            containerHeight = containerHeight,
+            cropDiameter = cropDiameter,
+        )
+        return userScale to offset
     }
 
     fun cropSquare(

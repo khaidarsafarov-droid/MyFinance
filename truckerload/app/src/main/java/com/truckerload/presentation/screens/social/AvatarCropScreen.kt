@@ -62,6 +62,8 @@ fun AvatarCropScreen(
     var cropLayout by remember(preparedBitmap) { mutableStateOf<AvatarCropLayout?>(null) }
     var userScale by remember(preparedBitmap) { mutableFloatStateOf(1f) }
     var offset by remember(preparedBitmap) { mutableStateOf(Offset.Zero) }
+    // Only seed scale/offset once per bitmap. Layout size flickers must not wipe framing.
+    var transformInitialized by remember(preparedBitmap) { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.Black,
@@ -121,8 +123,25 @@ fun AvatarCropScreen(
 
                 LaunchedEffect(layout) {
                     cropLayout = layout
-                    userScale = layout.minScale
-                    offset = Offset.Zero
+                    if (!transformInitialized) {
+                        userScale = layout.minScale
+                        offset = Offset.Zero
+                        transformInitialized = true
+                    } else {
+                        val preserved = AvatarCropUtils.preserveTransformAfterLayoutChange(
+                            previousUserScale = userScale,
+                            previousOffset = offset,
+                            fitScale = layout.fitScale,
+                            minScale = layout.minScale,
+                            bitmapWidth = preparedBitmap.width,
+                            bitmapHeight = preparedBitmap.height,
+                            containerWidth = layout.containerWidth,
+                            containerHeight = layout.containerHeight,
+                            cropDiameter = layout.cropDiameter,
+                        )
+                        userScale = preserved.first
+                        offset = preserved.second
+                    }
                 }
 
                 fun clampCurrentOffset(): Offset {
