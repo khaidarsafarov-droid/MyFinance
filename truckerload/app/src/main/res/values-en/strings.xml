@@ -148,9 +148,29 @@
     <string name="nav_logbook">Loads</string>
     <string name="drawer_reports">Reports</string>
     <string name="drawer_documents">Documents</string>
-    <string name="drawer_support">Support</string>
+    <string name="drawer_tools">Tools</string>
     <string name="drawer_about">About app</string>
     <string name="drawer_logout">Sign out</string>
+
+    <string name="about_app_title">About the app</string>
+    <string name="about_app_version">Version %1$s (%2$d)</string>
+    <string name="about_app_intro">A short guide: track Amazon Relay loads, weekly goals, photos/scans, and backups.</string>
+    <string name="about_guide_loads_title">1. Add a load</string>
+    <string name="about_guide_loads_body">On Home tap Add load and paste a Relay message (needs Total Rate and a Pu-address or Del-address line). Save — the load appears in the journal with miles and RPM.</string>
+    <string name="about_guide_home_title">2. Home journal</string>
+    <string name="about_guide_home_body">Home lists loads for the selected period with totals, miles, and average RPM. Open a card to edit, mark finish, or attach photos and scans.</string>
+    <string name="about_guide_goal_title">3. Weekly goal</string>
+    <string name="about_guide_goal_body">In the Goal tab set a weekly gross target and track progress. The app shows how much is left and how many days remain in the period.</string>
+    <string name="about_guide_tools_title">4. Tools</string>
+    <string name="about_guide_tools_body">Menu → Tools: Maintenance (mileage reminders), Scanner (documents/OCR), and Camera (trip photos). From Home or the widget you can attach a shot to a load from this week.</string>
+    <string name="about_guide_docs_title">5. Documents</string>
+    <string name="about_guide_docs_body">Documents opens the scan gallery — open, share, or delete saved documents.</string>
+    <string name="about_guide_reports_title">6. Reports</string>
+    <string name="about_guide_reports_body">Reports shows load analytics: revenue, miles, RPM, and deeper stats for the period.</string>
+    <string name="about_guide_backup_title">7. Backup</string>
+    <string name="about_guide_backup_body">In Settings create a backup file on the phone or save to Google Drive and restore when you change devices.</string>
+    <string name="about_guide_settings_title">8. Settings and profile</string>
+    <string name="about_guide_settings_body">Settings covers theme, backup, paychecks, and diesel. Profile holds driver info. The left menu opens all of these sections.</string>
 
     <string name="goal_screen_title">Weekly Goal</string>
     <string name="goal_pace_period_hint">On the road: %1$s days</string>

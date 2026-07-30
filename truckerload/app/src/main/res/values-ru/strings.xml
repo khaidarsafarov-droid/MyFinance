@@ -148,9 +148,29 @@
     <string name="nav_logbook">Грузы</string>
     <string name="drawer_reports">Отчёты</string>
     <string name="drawer_documents">Документы</string>
-    <string name="drawer_support">Техподдержка</string>
+    <string name="drawer_tools">Инструменты</string>
     <string name="drawer_about">О приложении</string>
     <string name="drawer_logout">Выход</string>
+
+    <string name="about_app_title">О приложении</string>
+    <string name="about_app_version">Версия %1$s (%2$d)</string>
+    <string name="about_app_intro">Краткий обзор: как вести журнал грузов Amazon Relay, цели недели, фото/сканы и бэкап.</string>
+    <string name="about_guide_loads_title">1. Добавить груз</string>
+    <string name="about_guide_loads_body">На главном экране нажмите «Добавить груз» и вставьте сообщение из Relay (нужны Total Rate и строка Pu-address или Del-address). Сохраните — груз появится в журнале с милями и RPM.</string>
+    <string name="about_guide_home_title">2. Журнал на главной</string>
+    <string name="about_guide_home_body">Главный экран показывает грузы за выбранный период, сумму, мили и средний RPM. Откройте карточку груза, чтобы править данные, отметить финиш или прикрепить фото и сканы.</string>
+    <string name="about_guide_goal_title">3. Цель недели</string>
+    <string name="about_guide_goal_body">Во вкладке цели задайте недельный гросс и следите за прогрессом. Приложение считает, сколько осталось до цели и сколько дней в периоде.</string>
+    <string name="about_guide_tools_title">4. Инструменты</string>
+    <string name="about_guide_tools_body">В меню → Инструменты: ТО (пробег и напоминания обслуживания), Сканер (документы/OCR) и Камера (фото рейса). С главного экрана или виджета можно сразу привязать снимок к грузу этой недели.</string>
+    <string name="about_guide_docs_title">5. Документы</string>
+    <string name="about_guide_docs_body">Пункт «Документы» открывает галерею сканов. Там можно открыть, поделиться или удалить сохранённые документы.</string>
+    <string name="about_guide_reports_title">6. Отчёты</string>
+    <string name="about_guide_reports_body">«Отчёты» показывают аналитику по грузам: доход, мили, RPM и детальную статистику за период.</string>
+    <string name="about_guide_backup_title">7. Резервная копия</string>
+    <string name="about_guide_backup_body">В Настройках создайте файл-бэкап на телефоне или сохраните данные в Google Drive и восстановите их при смене устройства.</string>
+    <string name="about_guide_settings_title">8. Настройки и профиль</string>
+    <string name="about_guide_settings_body">В Настройках — тема, бэкап, зарплата и дизель. Профиль — данные водителя. Меню слева открывает все эти разделы.</string>
 
     <string name="goal_screen_title">Цель недели</string>
     <string name="goal_pace_period_hint">В рейсе: %1$s дн.</string>

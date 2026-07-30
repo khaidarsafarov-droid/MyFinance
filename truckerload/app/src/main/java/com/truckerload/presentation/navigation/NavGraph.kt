@@ -43,6 +43,7 @@ import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.screens.add.AddDieselScreen
 import com.truckerload.presentation.screens.add.AddLoadScreen
 import com.truckerload.presentation.screens.add.AddPaycheckScreen
+import com.truckerload.presentation.screens.about.AboutAppScreen
 import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.home.HomeScreen
@@ -102,6 +103,7 @@ object Routes {
     const val MAINTENANCE = "maintenance"
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
+    const val ABOUT = "about"
     const val CAMERA = "camera"
     const val CAMERA_FOR_LOAD = "camera_load/{loadId}/{tripId}/{loadDate}"
     const val SCANNER = "scanner"
@@ -314,8 +316,7 @@ fun NavGraph(
                 DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
-                DrawerDestination.SUPPORT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
-                DrawerDestination.ABOUT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
+                DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
             }
         },
     ) { padding ->
@@ -518,6 +519,11 @@ fun NavGraph(
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     showBack = !tablet
+                )
+            }
+            composable(Routes.ABOUT) {
+                AboutAppScreen(
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(
