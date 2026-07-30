@@ -2,7 +2,9 @@ package com.truckerload.presentation.screens.goal
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.LoadRepository
@@ -32,10 +34,11 @@ data class WeeklyGoalUiState(
  * Local-First goal tower: Actual Daily Yield (PU→DEL), без прогнозов.
  * Room → WeeklyGoalCalculator → UI + виджет (WorkManager + мгновенный refresh при insert).
  */
-class GoalViewModel(
+@HiltViewModel
+class GoalViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val goalStore: WeeklyProfitGoalStore,
-    private val appContext: Context
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val loadsFlow = loadRepository.watchLoads()
@@ -147,14 +150,4 @@ class GoalViewModel(
             else -> amount.toString()
         }
 
-    class Factory(
-        private val loadRepository: LoadRepository,
-        private val goalStore: WeeklyProfitGoalStore,
-        private val context: Context
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return GoalViewModel(loadRepository, goalStore, context.applicationContext) as T
-        }
-    }
 }

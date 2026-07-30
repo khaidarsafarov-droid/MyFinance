@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.camera
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,10 +41,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.rememberDecodedBitmap
 import com.truckerload.utils.PhotoManager
@@ -228,17 +226,7 @@ fun CameraFlowScreen(
     attachLoadId: String? = null,
     attachTripId: String? = null,
     attachLoadDate: String? = null,
-    viewModel: CameraViewModel = viewModel(
-        key = "camera_${attachLoadId.orEmpty()}_${attachTripId.orEmpty()}",
-        factory = CameraViewModel.Factory(
-            LocalContext.current,
-            LocalPhotoRepository.current,
-            LocalLoadRepository.current,
-            attachLoadId = attachLoadId,
-            attachTripId = attachTripId,
-            attachLoadDate = attachLoadDate,
-        ),
-    ),
+    viewModel: CameraViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

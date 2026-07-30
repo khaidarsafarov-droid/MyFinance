@@ -9,23 +9,28 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.truckerload.data.local.AppDatabase
+import androidx.hilt.work.HiltWorker
 import com.truckerload.data.local.entities.SyncOutboxEntity
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.di.UserComponentManager
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
 /**
  * Drains [SyncOutboxEntity] when the device is online, then publishes the
  * account snapshot via [com.truckerload.data.sync.CloudSyncEngine].
  */
-class OutboundSyncWorker(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class OutboundSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val authStore: AuthStore,
+    private val userComponentManager: UserComponentManager,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val userId = AuthStore(applicationContext).currentUserIdOrNull()
-        if (userId.isNullOrBlank()) return Result.success()
-        val db = AppDatabase.getInstance(applicationContext, userId)
+        val userId = authStore.currentUserIdOrNull() ?: return Result.success()
+        val db = userComponentManager.startSession(userId).database
         val dao = db.syncOutboxDao()
         val pending = dao.listByStatus(SyncOutboxEntity.STATUS_PENDING, limit = 40)
 

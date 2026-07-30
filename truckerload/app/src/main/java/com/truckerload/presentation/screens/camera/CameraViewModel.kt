@@ -1,14 +1,16 @@
 package com.truckerload.presentation.screens.camera
 
 import android.app.Application
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import androidx.exifinterface.media.ExifInterface
+import android.net.Uri
 import android.util.Log
+import androidx.exifinterface.media.ExifInterface
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PhotoRepository
@@ -76,14 +78,23 @@ data class CameraAttachContext(
     }
 }
 
-class CameraViewModel(
+@HiltViewModel
+class CameraViewModel @Inject constructor(
     private val app: Application,
     private val photoRepository: PhotoRepository,
     private val loadRepository: LoadRepository,
-    private val attachLoadId: String? = null,
-    private val attachTripId: String? = null,
-    private val attachLoadDate: String? = null,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    private val attachLoadId = savedStateHandle.get<String>("loadId")
+        ?.let { Uri.decode(it) }
+        ?.takeIf { it.isNotBlank() && it != "_" }
+    private val attachTripId = savedStateHandle.get<String>("tripId")
+        ?.let { Uri.decode(it) }
+        ?.takeIf { it.isNotBlank() && it != "_" }
+    private val attachLoadDate = savedStateHandle.get<String>("loadDate")
+        ?.let { Uri.decode(it) }
+        ?.takeIf { it.isNotBlank() }
 
     private val locationHelper = LocationHelper(app)
     private val photoManager = PhotoManager(app)
@@ -343,27 +354,6 @@ class CameraViewModel(
         } catch (e: Exception) {
             Log.w(TAG, "EXIF orientation failed; using original", e)
             original
-        }
-    }
-
-    class Factory(
-        private val context: Context,
-        private val photoRepository: PhotoRepository,
-        private val loadRepository: LoadRepository,
-        private val attachLoadId: String? = null,
-        private val attachTripId: String? = null,
-        private val attachLoadDate: String? = null,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CameraViewModel(
-                context.applicationContext as Application,
-                photoRepository,
-                loadRepository,
-                attachLoadId = attachLoadId,
-                attachTripId = attachTripId,
-                attachLoadDate = attachLoadDate,
-            ) as T
         }
     }
 

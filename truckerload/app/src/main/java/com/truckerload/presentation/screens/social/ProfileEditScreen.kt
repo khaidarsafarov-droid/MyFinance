@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.social
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,14 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.TruckType
 import com.truckerload.presentation.components.CountryPickerField
 import com.truckerload.presentation.components.PhoneWithCountryField
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -50,9 +49,7 @@ fun ProfileEditScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModel.Factory(LocalSocialRepository.current),
-    ),
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = uiState.profile

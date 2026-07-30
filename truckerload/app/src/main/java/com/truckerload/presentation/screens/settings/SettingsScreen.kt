@@ -2,6 +2,7 @@ package com.truckerload.presentation.screens.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
@@ -59,8 +60,6 @@ import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.screens.settings.ThemeSettingsSection
 import com.truckerload.presentation.screens.settings.LanguageSettingsSection
 import com.truckerload.presentation.components.RpmColorLegend
-import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -69,7 +68,7 @@ import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.truckerload.di.userComponentManager
 import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -86,13 +85,9 @@ fun SettingsScreen(
     val appLanguage by settingsDataStore.language.collectAsStateWithLifecycle(initialValue = com.truckerload.data.preferences.AppLanguage.RU)
     val tc = LocalTruckColors.current
     val authStore = LocalAuthStore.current
-    val userProfileStore = LocalUserProfileStore.current
     val store = LocalRpmThresholdsStore.current
     val context = LocalContext.current
-    val loadRepo = LocalLoadRepository.current
-    val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.factory(loadRepo, context)
-    )
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
     val exportState by settingsViewModel.exportState.collectAsStateWithLifecycle()
     val restoreState by settingsViewModel.restoreState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -521,8 +516,7 @@ fun SettingsScreen(
                             // Stop Telegram first so it cannot write into a closed Room pool.
                             com.truckerload.sync.TelegramBotForegroundService.stopForLogout(context)
                             kotlinx.coroutines.delay(300)
-                            com.truckerload.data.local.AppDatabase.closeCurrent()
-                            userProfileStore.unbind()
+                            context.userComponentManager().endSession()
                             authStore.logout()
                             showLogoutConfirm = false
                             android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()

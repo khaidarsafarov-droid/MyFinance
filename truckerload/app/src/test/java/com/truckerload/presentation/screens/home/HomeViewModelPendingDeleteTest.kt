@@ -55,7 +55,7 @@ class HomeViewModelPendingDeleteTest {
                 Unit
             }
         }
-        viewModel = HomeViewModel(loadRepository, isBotConfigured = false, app)
+        viewModel = HomeViewModel(loadRepository, app)
     }
 
     @After

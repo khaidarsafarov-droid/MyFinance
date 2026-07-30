@@ -4,10 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.R
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
@@ -35,7 +34,8 @@ data class AddPaycheckUiState(
     val showSaveDialog: Boolean = false,
 )
 
-class AddPaycheckViewModel(
+@HiltViewModel
+class AddPaycheckViewModel @Inject constructor(
     application: Application,
     private val paycheckRepository: PaycheckRepository,
     private val savedStateHandle: SavedStateHandle,
@@ -204,18 +204,6 @@ class AddPaycheckViewModel(
         _uiState.update { it.copy(recordedAtMillis = value, error = null) }
     }
 
-    class Factory(
-        private val application: Application,
-        private val paycheckRepository: PaycheckRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            AddPaycheckViewModel(
-                application,
-                paycheckRepository,
-                extras.createSavedStateHandle(),
-            ) as T
-    }
 
     companion object {
         private const val KEY_AMOUNT_TEXT = "add_paycheck_amount_text"

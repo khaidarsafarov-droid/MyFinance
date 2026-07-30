@@ -11,6 +11,8 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.Configuration
+import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.truckerload.data.preferences.AuthStore
@@ -20,14 +22,13 @@ import com.google.android.material.color.DynamicColors
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.presentation.theme.ThemeManager
-import com.truckerload.data.local.AppDatabase
+import com.truckerload.di.UserComponentManager
 import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.sync.ServerTelegramInboxWorker
 import com.truckerload.sync.PushTokenRegistrationWorker
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
 import com.truckerload.widget.WidgetStatsLoader
@@ -45,13 +46,24 @@ import kotlinx.coroutines.withContext
 import android.widget.Toast
 
 @HiltAndroidApp
-class TruckerLoadApp : Application() {
+class TruckerLoadApp : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
     lateinit var authStore: AuthStore
 
     @Inject
     lateinit var settingsDataStore: SettingsDataStore
+
+    @Inject
+    lateinit var userComponentManager: UserComponentManager
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -174,8 +186,7 @@ class TruckerLoadApp : Application() {
     private fun refreshLoadReportingWeeks() {
         appScope.launch(Dispatchers.IO) {
             val userId = authStore.currentUserIdOrNull() ?: return@launch
-            val db = AppDatabase.getInstanceForActiveUser(this@TruckerLoadApp) ?: return@launch
-            val repo = LoadRepository(db)
+            val repo = userComponentManager.startSession(userId).loadRepository
             val repairStore = StartupRepairStore(this@TruckerLoadApp)
             BackupService.restoreLatestCompanionBackupIfEmpty(this@TruckerLoadApp)
                 ?.onSuccess { message ->

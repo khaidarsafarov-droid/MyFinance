@@ -47,9 +47,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.data.local.AppDatabase
+import com.truckerload.di.userComponentManager
 import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.sync.TelegramBotForegroundService
@@ -80,7 +79,6 @@ fun AppDrawerContent(
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val authStore = LocalAuthStore.current
-    val userProfileStore = LocalUserProfileStore.current
     val scope = rememberCoroutineScope()
     var showLogoutConfirm by remember { mutableStateOf(false) }
     var toolsExpanded by remember { mutableStateOf(false) }
@@ -221,8 +219,7 @@ fun AppDrawerContent(
                         scope.launch {
                             TelegramBotForegroundService.stopForLogout(context)
                             delay(300)
-                            AppDatabase.closeCurrent()
-                            userProfileStore.unbind()
+                            context.userComponentManager().endSession()
                             authStore.logout()
                             showLogoutConfirm = false
                             onClose()

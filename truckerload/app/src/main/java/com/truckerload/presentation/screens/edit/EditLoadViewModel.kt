@@ -1,13 +1,12 @@
 package com.truckerload.presentation.screens.edit
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
@@ -39,13 +38,15 @@ data class EditLoadUiState(
     val saved: Boolean = false,
 )
 
-class EditLoadViewModel(
+@HiltViewModel
+class EditLoadViewModel @Inject constructor(
     application: Application,
-    private val loadId: String,
     private val loadRepository: LoadRepository,
     private val savedStateHandle: SavedStateHandle,
-    private val focusFinish: Boolean = false,
 ) : AndroidViewModel(application) {
+
+    private val loadId = Uri.decode(savedStateHandle.get<String>("loadId").orEmpty())
+    private val focusFinish = savedStateHandle.get<Boolean>("focusFinish") ?: false
 
     private val _uiState = MutableStateFlow(EditLoadUiState(focusFinish = focusFinish))
     val uiState: StateFlow<EditLoadUiState> = _uiState.asStateFlow()
@@ -212,23 +213,6 @@ class EditLoadViewModel(
                 }
             }
         }
-    }
-
-    class Factory(
-        private val application: Application,
-        private val loadId: String,
-        private val loadRepository: LoadRepository,
-        private val focusFinish: Boolean = false,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            EditLoadViewModel(
-                application,
-                loadId,
-                loadRepository,
-                extras.createSavedStateHandle(),
-                focusFinish,
-            ) as T
     }
 
     companion object {

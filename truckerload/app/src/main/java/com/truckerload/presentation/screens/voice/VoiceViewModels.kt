@@ -1,7 +1,10 @@
 package com.truckerload.presentation.screens.voice
 
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.SocialRepository
 import com.truckerload.data.repository.VoiceRepository
@@ -30,7 +33,8 @@ data class VoiceRoomsUiState(
     val errorMessage: String? = null,
 )
 
-class VoiceRoomsViewModel(
+@HiltViewModel
+class VoiceRoomsViewModel @Inject constructor(
     private val voiceRepository: VoiceRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(VoiceRoomsUiState())
@@ -66,12 +70,6 @@ class VoiceRoomsViewModel(
                 }
         }
     }
-
-    class Factory(private val voiceRepository: VoiceRepository) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            VoiceRoomsViewModel(voiceRepository) as T
-    }
 }
 
 data class VoiceRoomUiState(
@@ -84,11 +82,13 @@ data class VoiceRoomUiState(
     val audioBitrate: Int = 64_000,
 )
 
-class VoiceRoomViewModel(
-    private val roomId: String,
+@HiltViewModel
+class VoiceRoomViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val voiceRepository: VoiceRepository,
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
+    private val roomId = Uri.decode(savedStateHandle.get<String>("roomId").orEmpty())
     private val _local = MutableStateFlow(VoiceRoomUiState())
     val uiState: StateFlow<VoiceRoomUiState> = _local.asStateFlow()
     private var ticker: Job? = null
@@ -204,16 +204,6 @@ class VoiceRoomViewModel(
             }
         }
     }
-
-    class Factory(
-        private val roomId: String,
-        private val voiceRepository: VoiceRepository,
-        private val socialRepository: SocialRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            VoiceRoomViewModel(roomId, voiceRepository, socialRepository) as T
-    }
 }
 
 private fun Throwable.toUiMessage(): String =
@@ -225,10 +215,12 @@ data class CallUiState(
     val durationSeconds: Long = 0,
 )
 
-class CallViewModel(
-    private val callId: String,
+@HiltViewModel
+class CallViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val voiceRepository: VoiceRepository,
 ) : ViewModel() {
+    private val callId = Uri.decode(savedStateHandle.get<String>("callId").orEmpty())
     private val _local = MutableStateFlow(CallUiState())
     val uiState: StateFlow<CallUiState> = _local.asStateFlow()
     private var ticker: Job? = null
@@ -281,18 +273,10 @@ class CallViewModel(
         ticker?.cancel()
         super.onCleared()
     }
-
-    class Factory(
-        private val callId: String,
-        private val voiceRepository: VoiceRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            CallViewModel(callId, voiceRepository) as T
-    }
 }
 
-class IncomingCallViewModel(
+@HiltViewModel
+class IncomingCallViewModel @Inject constructor(
     private val voiceRepository: VoiceRepository,
 ) : ViewModel() {
     val incomingCall: StateFlow<CallState?> =
@@ -314,11 +298,5 @@ class IncomingCallViewModel(
 
     fun simulateDemoCall() {
         viewModelScope.launch { voiceRepository.simulateIncomingCall() }
-    }
-
-    class Factory(private val voiceRepository: VoiceRepository) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            IncomingCallViewModel(voiceRepository) as T
     }
 }

@@ -1,9 +1,9 @@
 package com.truckerload.presentation.screens.chat
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.DieselRepository
@@ -31,18 +31,19 @@ data class ChatUiState(
     val error: String? = null
 )
 
-class ChatViewModel(
-    private val aiRepository: AiRepository?,
+@HiltViewModel
+class ChatViewModel @Inject constructor(
+    private val aiRepository: AiRepository,
     private val loadRepository: LoadRepository,
     private val paycheckRepository: PaycheckRepository,
     private val dieselRepository: DieselRepository,
-    private val app: Application
+    private val app: Application,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    val isAvailable: Boolean get() = aiRepository != null
+    val isAvailable: Boolean = true
 
     fun setInputText(text: String) {
         _uiState.update { it.copy(inputText = text, error = null) }
@@ -52,7 +53,7 @@ class ChatViewModel(
 
     fun sendMessage(text: String? = null) {
         val msg = (text ?: _uiState.value.inputText).trim()
-        if (msg.isBlank() || aiRepository == null || _uiState.value.isLoading) return
+        if (msg.isBlank() || _uiState.value.isLoading) return
 
         streamJob?.cancel()
         _uiState.update {
@@ -118,7 +119,7 @@ class ChatViewModel(
     }
 
     fun runAiHealthCheck() {
-        if (aiRepository == null || _uiState.value.isLoading) return
+        if (_uiState.value.isLoading) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             val result = aiRepository.healthCheck()
@@ -150,11 +151,11 @@ class ChatViewModel(
         appContext: String?
     ): String {
         // 1) Regular chat with app context.
-        aiRepository?.chat(history, msg, appContext)?.getOrNull()?.trim()?.takeIf { it.isNotBlank() }?.let {
+        aiRepository.chat(history, msg, appContext)?.getOrNull()?.trim()?.takeIf { it.isNotBlank() }?.let {
             return it
         }
         // 2) Fallback without app context (smaller prompt, safer against 400/limit issues).
-        aiRepository?.chat(history, msg, null)?.getOrNull()?.trim()?.takeIf { it.isNotBlank() }?.let {
+        aiRepository.chat(history, msg, null)?.getOrNull()?.trim()?.takeIf { it.isNotBlank() }?.let {
             return it
         }
         return ""
@@ -207,16 +208,4 @@ class ChatViewModel(
 
     private fun nowTimeStamp(): String =
         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-
-    class Factory(
-        private val aiRepository: AiRepository?,
-        private val loadRepository: LoadRepository,
-        private val paycheckRepository: PaycheckRepository,
-        private val dieselRepository: DieselRepository,
-        private val context: Context
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            ChatViewModel(aiRepository, loadRepository, paycheckRepository, dieselRepository, context.applicationContext as Application) as T
-    }
 }

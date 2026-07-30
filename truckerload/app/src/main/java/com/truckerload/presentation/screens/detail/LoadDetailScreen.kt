@@ -1,6 +1,6 @@
 package com.truckerload.presentation.screens.detail
 
-import android.app.Application
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,7 +52,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
@@ -65,7 +64,6 @@ import com.truckerload.presentation.components.StatBox
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.utils.ShareHelper
@@ -87,14 +85,9 @@ fun LoadDetailScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val loadRepository = LocalLoadRepository.current
     val photoRepository = LocalPhotoRepository.current
     val scanRepository = LocalScanRepository.current
-    val viewModel: LoadDetailViewModel = viewModel(
-        key = "detail_$loadId",
-        factory = LoadDetailViewModel.Factory(application, loadId, loadRepository),
-    )
+    val viewModel: LoadDetailViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
     val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())

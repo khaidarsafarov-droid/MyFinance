@@ -1,9 +1,9 @@
 package com.truckerload.presentation.screens.home
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
@@ -95,10 +95,10 @@ private data class HomeFilterState(
 )
 
 @OptIn(FlowPreview::class)
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
-    private val isBotConfigured: Boolean = false,
-    private val app: Application
+    private val app: Application,
 ) : ViewModel() {
 
     companion object {
@@ -108,7 +108,7 @@ class HomeViewModel(
 
     private val filterUseCase = LoadFilterUseCase()
 
-    private val _uiState = MutableStateFlow(HomeUiState(botStatusActive = isBotConfigured))
+    private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     /** Room subscription scoped by filter — week filters use reporting weekNumber/year. */
@@ -339,14 +339,13 @@ class HomeViewModel(
                 .debounce(400)
                 .collect { WidgetDataUpdater.updateWidgetData(app) }
         }
-        if (isBotConfigured) {
-            viewModelScope.launch {
-                val token = TelegramTokenStore(app).getToken()
-                val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
-                _uiState.update { it.copy(botStatusActive = health.ok) }
-                if (health.ok && botServiceStarted.compareAndSet(false, true)) {
-                    TelegramBotForegroundService.start(app)
-                }
+        viewModelScope.launch {
+            if (!TelegramTokenStore(app).hasToken()) return@launch
+            val token = TelegramTokenStore(app).getToken()
+            val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+            _uiState.update { it.copy(botStatusActive = health.ok) }
+            if (health.ok && botServiceStarted.compareAndSet(false, true)) {
+                TelegramBotForegroundService.start(app)
             }
         }
     }
@@ -609,15 +608,5 @@ class HomeViewModel(
     private fun buildYearMonthSections(loads: List<Load>): List<YearSection> {
         if (loads.isEmpty()) return emptyList()
         return groupedLoadsByYearMonth(loads)
-    }
-
-    class Factory(
-        private val loadRepository: LoadRepository,
-        private val isBotConfigured: Boolean = false,
-        private val context: Context
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            HomeViewModel(loadRepository, isBotConfigured, context.applicationContext as Application) as T
     }
 }

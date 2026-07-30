@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,7 +69,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -83,9 +83,6 @@ import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -108,22 +105,10 @@ fun FriendsLiveMapScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val loadRepository = LocalLoadRepository.current
-    val settings = LocalSettingsDataStore.current
     val authStore = LocalAuthStore.current
-    val userProfileStore = LocalUserProfileStore.current
     val friendsApi = remember(authStore) { SupabaseFriendsRealtimeService(authStore) }
     val locationHelper = remember(context) { com.truckerload.utils.LocationHelper(context) }
-    val viewModel: FriendsLiveMapViewModel = viewModel(
-        factory = FriendsLiveMapViewModel.Factory(
-            loadRepository = loadRepository,
-            settingsDataStore = settings,
-            authStore = authStore,
-            userProfileStore = userProfileStore,
-            friendsApi = friendsApi,
-            locationHelper = locationHelper,
-        ),
-    )
+    val viewModel: FriendsLiveMapViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var hasLocationPermission by remember {

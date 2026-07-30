@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.social
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,9 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
@@ -48,10 +47,7 @@ fun PeerProfileScreen(
     onBack: () -> Unit,
     onOpenChat: (String) -> Unit = {},
     onStartCall: (String, String) -> Unit = { _, _ -> },
-    viewModel: PeerProfileViewModel = viewModel(
-        key = peerId,
-        factory = PeerProfileViewModel.Factory(peerId, LocalSocialRepository.current),
-    ),
+    viewModel: PeerProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val peer = uiState.peer

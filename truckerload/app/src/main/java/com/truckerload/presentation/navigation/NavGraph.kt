@@ -1,5 +1,6 @@
 package com.truckerload.presentation.navigation
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalSocialRepository
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.screens.home.HomeViewModel
@@ -556,12 +555,11 @@ fun NavGraph(
                 )
             }
             composable(Routes.ADD_LOAD) { addLoadEntry ->
-                val loadRepository = LocalLoadRepository.current
                 val homeEntry = remember(addLoadEntry) {
                     runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
                 }
                 val homeViewModel: HomeViewModel? = homeEntry?.let {
-                    viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured = false, context))
+                    hiltViewModel(it)
                 }
                 AddLoadScreen(
                     onSaved = { navController.popBackStack() },
@@ -582,12 +580,11 @@ fun NavGraph(
             ) { editBackStackEntry ->
                 val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
                 val focusFinish = editBackStackEntry.arguments?.getBoolean("focusFinish") == true
-                val loadRepository = LocalLoadRepository.current
                 val homeEntry = remember(editBackStackEntry) {
                     runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
                 }
                 val homeViewModel: HomeViewModel? = homeEntry?.let {
-                    viewModel(it, factory = HomeViewModel.Factory(loadRepository, isBotConfigured = false, context))
+                    hiltViewModel(it)
                 }
                 EditLoadScreen(
                     loadId = loadId,

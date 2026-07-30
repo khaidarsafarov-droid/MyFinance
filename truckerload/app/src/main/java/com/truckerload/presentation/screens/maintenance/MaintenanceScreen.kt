@@ -1,11 +1,11 @@
 package com.truckerload.presentation.screens.maintenance
 
 import android.Manifest
-import android.app.Application
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -68,7 +68,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.domain.model.MaintenanceArchiveEntry
@@ -77,7 +76,6 @@ import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
-import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -95,11 +93,7 @@ import java.util.Locale
 fun MaintenanceScreen(onBack: () -> Unit) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val repository = LocalMaintenanceRepository.current
-    val viewModel: MaintenanceViewModel = viewModel(
-        factory = MaintenanceViewModel.Factory(application, repository),
-    )
+    val viewModel: MaintenanceViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }

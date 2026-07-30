@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.tax
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,11 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalDieselRepository
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
@@ -49,13 +46,7 @@ import java.util.Locale
 @Composable
 fun TaxTrackerScreen(onBack: () -> Unit) {
     val tc = LocalTruckColors.current
-    val viewModel: TaxTrackerViewModel = viewModel(
-        factory = TaxTrackerViewModel.Factory(
-            LocalPaycheckRepository.current,
-            LocalDieselRepository.current,
-            LocalLoadRepository.current
-        )
-    )
+    val viewModel: TaxTrackerViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(

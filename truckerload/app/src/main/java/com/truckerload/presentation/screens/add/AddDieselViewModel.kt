@@ -4,10 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.truckerload.R
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
@@ -35,7 +34,8 @@ data class AddDieselUiState(
     val showSaveDialog: Boolean = false,
 )
 
-class AddDieselViewModel(
+@HiltViewModel
+class AddDieselViewModel @Inject constructor(
     application: Application,
     private val dieselRepository: DieselRepository,
     private val savedStateHandle: SavedStateHandle,
@@ -205,18 +205,6 @@ class AddDieselViewModel(
         _uiState.update { it.copy(recordedAtMillis = value, error = null) }
     }
 
-    class Factory(
-        private val application: Application,
-        private val dieselRepository: DieselRepository,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            AddDieselViewModel(
-                application,
-                dieselRepository,
-                extras.createSavedStateHandle(),
-            ) as T
-    }
 
     companion object {
         private const val KEY_AMOUNT_TEXT = "add_diesel_amount_text"

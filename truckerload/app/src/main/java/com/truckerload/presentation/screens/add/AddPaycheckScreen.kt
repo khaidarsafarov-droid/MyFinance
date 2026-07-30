@@ -1,6 +1,6 @@
 package com.truckerload.presentation.screens.add
 
-import android.app.Application
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,11 +43,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
-import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -64,11 +62,7 @@ fun AddPaycheckScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val paycheckRepository = LocalPaycheckRepository.current
-    val viewModel: AddPaycheckViewModel = viewModel(
-        factory = AddPaycheckViewModel.Factory(application, paycheckRepository),
-    )
+    val viewModel: AddPaycheckViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }

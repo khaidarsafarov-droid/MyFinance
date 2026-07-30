@@ -38,7 +38,7 @@ class HomeViewModelPeriodSummaryTest {
         whenever(loadRepository.watchLoads()).thenReturn(loadsFlow)
         whenever(loadRepository.getLoadsByWeek(any(), any())).thenReturn(loadsFlow)
         whenever(loadRepository.getLoadsByDateRange(any(), any())).thenReturn(loadsFlow)
-        viewModel = HomeViewModel(loadRepository, isBotConfigured = false, app)
+        viewModel = HomeViewModel(loadRepository, app)
     }
 
     @Test

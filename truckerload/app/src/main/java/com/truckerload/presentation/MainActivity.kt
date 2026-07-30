@@ -17,40 +17,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.BuildConfig
 import com.truckerload.R
-import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.preferences.AuthStore
-import com.truckerload.data.preferences.RpmThresholdsStore
-import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.preferences.StatsSelectionStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.data.preferences.WeeklyProfitGoalStore
-import com.truckerload.data.repository.AiRepository
-import com.truckerload.data.repository.AnalyticsRepository
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.MaintenanceRepository
-import com.truckerload.data.repository.PaycheckRepository
-import com.truckerload.data.repository.PhotoRepository
-import com.truckerload.data.repository.ScanRepository
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.data.repository.VoiceRepository
-import com.truckerload.data.repository.WeekRepository
+import com.truckerload.di.UserComponent
+import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.components.AutoRestoreDialog
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalAnalyticsRepository
@@ -74,9 +61,9 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
 import com.truckerload.presentation.theme.TruckerLoadTheme
-import com.truckerload.sync.TelegramBotForegroundService
-import com.truckerload.sync.ServerTelegramInboxWorker
 import com.truckerload.sync.PushTokenRegistrationWorker
+import com.truckerload.sync.ServerTelegramInboxWorker
+import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
@@ -102,6 +89,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var userProfileStore: UserProfileStore
 
+    @Inject
+    lateinit var userComponentManager: UserComponentManager
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
     }
@@ -117,43 +107,33 @@ class MainActivity : AppCompatActivity() {
         FeedbackManager.init(applicationContext)
 
         setContent {
-            var dependencies by remember { mutableStateOf<MainDependencies?>(null) }
-            var boundUserId by remember { mutableStateOf<String?>(null) }
+            var session by remember { mutableStateOf<UserComponent?>(null) }
             var sessionReady by remember { mutableStateOf(false) }
             val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
             val userId by authStore.userId.collectAsStateWithLifecycle()
 
             LaunchedEffect(isLoggedIn, userId) {
-                // Auth-only entry: Google or email/password (Apple planned for iOS).
-                // Never auto-login as local_dev. Real sessions are restored from disk silently.
                 val provider = authStore.authProvider()
                 val isGuestLocal = provider == AuthProvider.LOCAL ||
                     userId == AccountIds.LOCAL_DEV
                 if (isLoggedIn && isGuestLocal) {
                     authStore.logout()
-                    userProfileStore.unbind()
-                    dependencies = null
-                    boundUserId = null
+                    userComponentManager.endSession()
+                    session = null
                     sessionReady = true
                     return@LaunchedEffect
                 }
                 if (isLoggedIn && !userId.isNullOrBlank()) {
                     val activeUserId = userId as String
-                    val needsRebuild = dependencies == null || boundUserId != activeUserId
+                    val needsRebuild = session == null || session?.userId != activeUserId
                     if (needsRebuild) {
-                        // Only blank the UI on cold session bind — keep current frame on recreate.
-                        if (dependencies == null) {
+                        if (session == null) {
                             sessionReady = false
                         }
-                        val deps = createDependencies(
-                            context = applicationContext,
-                            userId = activeUserId,
-                            authStore = authStore,
-                            authCredentialsStore = authCredentialsStore,
-                            userProfileStore = userProfileStore,
-                        )
-                        dependencies = deps
-                        boundUserId = activeUserId
+                        val deps = withContext(Dispatchers.IO) {
+                            userComponentManager.startSession(activeUserId)
+                        }
+                        session = deps
                         if (!TelegramSyncMode.isServer()) {
                             val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
                             tokenStore.bootstrapFromBuildConfigIfEmpty()
@@ -200,18 +180,15 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     TelegramBotForegroundService.stopForLogout(applicationContext)
                     kotlinx.coroutines.delay(300)
-                    AppDatabase.closeCurrent()
-                    userProfileStore.unbind()
-                    dependencies = null
-                    boundUserId = null
+                    userComponentManager.endSession()
+                    session = null
                     sessionReady = true
                 }
             }
 
-            // Compose colors follow DataStore; night mode is applied only from
-            // ThemeSettingsSection / TruckerLoadApp — never from the SYSTEM initialValue
-            // (that caused an Activity recreate loop when Light was saved).
-            val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
+            val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(
+                initialValue = AppThemeMode.SYSTEM,
+            )
             val darkTheme = when (themeMode) {
                 AppThemeMode.DARK -> true
                 AppThemeMode.LIGHT -> false
@@ -228,7 +205,7 @@ class MainActivity : AppCompatActivity() {
                                 CircularProgressIndicator()
                             }
                         }
-                        !isLoggedIn || dependencies == null -> {
+                        !isLoggedIn || session == null -> {
                             CompositionLocalProvider(
                                 LocalSettingsDataStore provides settingsDataStore,
                                 LocalAuthStore provides authStore,
@@ -242,43 +219,47 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         else -> {
-                            val deps = dependencies
+                            val deps = session
                             if (deps != null) {
-                            val biometricStore = remember {
-                                com.truckerload.data.preferences.BiometricUnlockStore(applicationContext)
-                            }
-                            val gateEnabled = deps.authStore.authProvider() ==
-                                com.truckerload.data.preferences.AuthProvider.EMAIL &&
-                                biometricStore.isEnabled()
-                            CompositionLocalProvider(
-                                LocalSettingsDataStore provides settingsDataStore,
-                                LocalAuthStore provides deps.authStore,
-                                LocalAuthCredentialsStore provides deps.authCredentialsStore,
-                                LocalUserProfileStore provides deps.userProfileStore,
-                                LocalLoadRepository provides deps.loadRepository,
-                                LocalPaycheckRepository provides deps.paycheckRepository,
-                                LocalDieselRepository provides deps.dieselRepository,
-                                LocalWeekRepository provides deps.weekRepository,
-                                LocalAiRepository provides deps.aiRepository,
-                                LocalRpmThresholdsStore provides deps.rpmThresholdsStore,
-                                LocalSelectedStateStore provides deps.selectedStateStore,
-                                LocalStatsSelectionStore provides deps.statsSelectionStore,
-                                LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
-                                LocalAnalyticsRepository provides deps.analyticsRepository,
-                                LocalPhotoRepository provides deps.photoRepository,
-                                LocalScanRepository provides deps.scanRepository,
-                                LocalSocialRepository provides deps.socialRepository,
-                                LocalVoiceRepository provides deps.voiceRepository,
-                                LocalMaintenanceRepository provides deps.maintenanceRepository,
-                            ) {
-                                com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
-                                    NavGraph(
-                                        deepLinkRoute = deepLinkRoute,
-                                        onDeepLinkHandled = { deepLinkRoute = null },
-                                    )
-                                    AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                val biometricStore = remember {
+                                    com.truckerload.data.preferences.BiometricUnlockStore(applicationContext)
                                 }
-                            }
+                                val gateEnabled = authStore.authProvider() ==
+                                    AuthProvider.EMAIL &&
+                                    biometricStore.isEnabled()
+                                // Locals remain for screens that still collect Flows outside ViewModels.
+                                CompositionLocalProvider(
+                                    LocalSettingsDataStore provides settingsDataStore,
+                                    LocalAuthStore provides authStore,
+                                    LocalAuthCredentialsStore provides authCredentialsStore,
+                                    LocalUserProfileStore provides userProfileStore,
+                                    LocalLoadRepository provides deps.loadRepository,
+                                    LocalPaycheckRepository provides deps.paycheckRepository,
+                                    LocalDieselRepository provides deps.dieselRepository,
+                                    LocalWeekRepository provides deps.weekRepository,
+                                    LocalAiRepository provides deps.aiRepository,
+                                    LocalRpmThresholdsStore provides deps.rpmThresholdsStore,
+                                    LocalSelectedStateStore provides deps.selectedStateStore,
+                                    LocalStatsSelectionStore provides deps.statsSelectionStore,
+                                    LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
+                                    LocalAnalyticsRepository provides deps.analyticsRepository,
+                                    LocalPhotoRepository provides deps.photoRepository,
+                                    LocalScanRepository provides deps.scanRepository,
+                                    LocalSocialRepository provides deps.socialRepository,
+                                    LocalVoiceRepository provides deps.voiceRepository,
+                                    LocalMaintenanceRepository provides deps.maintenanceRepository,
+                                ) {
+                                    com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
+                                        // Reset Nav/ViewModel stores when the account changes.
+                                        key(deps.userId) {
+                                            NavGraph(
+                                                deepLinkRoute = deepLinkRoute,
+                                                onDeepLinkHandled = { deepLinkRoute = null },
+                                            )
+                                        }
+                                        AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                    }
+                                }
                             }
                         }
                     }
@@ -300,62 +281,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private data class MainDependencies(
-        val authStore: AuthStore,
-        val authCredentialsStore: AuthCredentialsStore,
-        val userProfileStore: UserProfileStore,
-        val loadRepository: LoadRepository,
-        val paycheckRepository: PaycheckRepository,
-        val dieselRepository: DieselRepository,
-        val weekRepository: WeekRepository,
-        val rpmThresholdsStore: RpmThresholdsStore,
-        val selectedStateStore: SelectedStateStore,
-        val statsSelectionStore: StatsSelectionStore,
-        val weeklyProfitGoalStore: WeeklyProfitGoalStore,
-        val analyticsRepository: AnalyticsRepository,
-        val photoRepository: PhotoRepository,
-        val scanRepository: ScanRepository,
-        val socialRepository: SocialRepository,
-        val voiceRepository: VoiceRepository,
-        val aiRepository: AiRepository,
-        val maintenanceRepository: MaintenanceRepository,
-    )
-
-    private suspend fun createDependencies(
-        context: Context,
-        userId: String,
-        authStore: AuthStore,
-        authCredentialsStore: AuthCredentialsStore,
-        userProfileStore: UserProfileStore,
-    ): MainDependencies = withContext(Dispatchers.IO) {
-        userProfileStore.bindUser(userId)
-        val db = AppDatabase.getInstance(context, userId)
-        val loadRepository = LoadRepository(db)
-        val paycheckRepository = PaycheckRepository(db)
-        val dieselRepository = DieselRepository(db)
-        val weekRepository = WeekRepository(loadRepository, paycheckRepository, dieselRepository)
-        MainDependencies(
-            authStore = authStore,
-            authCredentialsStore = authCredentialsStore,
-            userProfileStore = userProfileStore,
-            loadRepository = loadRepository,
-            paycheckRepository = paycheckRepository,
-            dieselRepository = dieselRepository,
-            weekRepository = weekRepository,
-            rpmThresholdsStore = RpmThresholdsStore(context, userId),
-            selectedStateStore = SelectedStateStore(context, userId),
-            statsSelectionStore = StatsSelectionStore(context, userId),
-            weeklyProfitGoalStore = WeeklyProfitGoalStore(context, userId),
-            analyticsRepository = AnalyticsRepository(db),
-            photoRepository = PhotoRepository(db),
-            scanRepository = ScanRepository(db),
-            socialRepository = SocialRepository(db, loadRepository, userProfileStore, context),
-            voiceRepository = VoiceRepository(db, context),
-            aiRepository = AiRepository(),
-            maintenanceRepository = MaintenanceRepository(db),
-        )
-    }
-
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val granted = ContextCompat.checkSelfPermission(
@@ -363,7 +288,6 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
         if (granted) return
-        // Rationale string is available for UI that explains why we need it (API 33+).
         if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
             android.util.Log.i(
                 "TruckLog",

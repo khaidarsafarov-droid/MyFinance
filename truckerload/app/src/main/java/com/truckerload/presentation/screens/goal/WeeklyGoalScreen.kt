@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.goal
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,12 +50,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.truckerload.R
 import com.truckerload.domain.goal.PaceStatus
 import com.truckerload.presentation.components.GoalProgressRing
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -74,13 +72,9 @@ import com.truckerload.presentation.utils.MoneyFormat
 @Composable
 fun WeeklyGoalScreen() {
     val tc = LocalTruckColors.current
-    val loadRepository = LocalLoadRepository.current
-    val goalStore = LocalWeeklyProfitGoalStore.current
     val context = LocalContext.current
     val openDrawer = LocalOpenDrawer.current
-    val viewModel: GoalViewModel = viewModel(
-        factory = GoalViewModel.Factory(loadRepository, goalStore, context)
-    )
+    val viewModel: GoalViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val progress = uiState.progress
     LaunchedEffect(
