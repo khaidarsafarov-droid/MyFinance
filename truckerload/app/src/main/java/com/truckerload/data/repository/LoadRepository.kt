@@ -27,6 +27,7 @@ import com.truckerload.utils.getLastDeliveryMillis
 import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.utils.withReportingWeek
+import com.truckerload.utils.AuditMetrics
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
@@ -481,6 +482,7 @@ class LoadRepository(
 
         val toInsert = uniqueLoads.filter { normalizeTripId(it.tripId) !in existingIds }
         if (toInsert.isEmpty()) {
+            AuditMetrics.cdcDuplicateBatch()
             return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
         }
 
@@ -522,6 +524,8 @@ class LoadRepository(
                 if (rowId != -1L) {
                     insertedCount++
                     stopEntitiesByLoadId[loadEntities[index].id]?.let { stopEntities.addAll(it) }
+                } else {
+                    AuditMetrics.cdcStopsSkippedForIgnoredLoad()
                 }
             }
             if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)

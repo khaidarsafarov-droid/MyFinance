@@ -28,6 +28,7 @@ import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.data.preferences.AccountIds
+import com.truckerload.utils.AuditMetrics
 import com.truckerload.utils.LogRedactor
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
@@ -251,14 +252,22 @@ class TelegramBotSyncEngine(private val context: Context) {
         chatRestore: TelegramChatRestore,
         prefs: SharedPreferences
     ) {
-        // FIX: authorize chat before any persist/mutate — open bot was a data-exfil risk
+        // Stage 3: OTP pairing — reject first-claimer /start without a code from Settings
         val settingsStore = SettingsDataStore(context)
         val allowedChatId = settingsStore.getTelegramChatIdOnce()
         val incomingChatId = update.chatId.toLongOrNull()
         val rawForPair = update.text.trim()
-        val isStartCommand = !update.isCallbackQuery && isCommand(rawForPair, "/start")
-        when {
-            allowedChatId != null && (incomingChatId == null || incomingChatId != allowedChatId) -> {
+        val pairState = settingsStore.getTelegramPairingCodeOnce()
+        val decision = TelegramChatGate.decide(
+            allowedChatId = allowedChatId,
+            incomingChatId = incomingChatId,
+            text = rawForPair,
+            expectedPairCode = pairState?.first,
+            pairCodeExpiresAtMillis = pairState?.second,
+        )
+        when (decision) {
+            TelegramAuthDecision.RejectUnauthorized -> {
+                AuditMetrics.telegramUnauthorized()
                 if (!update.isCallbackQuery && update.text.isNotBlank()) {
                     runCatching {
                         telegramApi.sendMessage(
@@ -269,7 +278,8 @@ class TelegramBotSyncEngine(private val context: Context) {
                 }
                 return
             }
-            allowedChatId == null && !isStartCommand -> {
+            TelegramAuthDecision.RejectNeedPairCode -> {
+                AuditMetrics.telegramPairNeedCode()
                 if (!update.isCallbackQuery && update.text.isNotBlank()) {
                     runCatching {
                         telegramApi.sendMessage(
@@ -280,9 +290,24 @@ class TelegramBotSyncEngine(private val context: Context) {
                 }
                 return
             }
-            allowedChatId == null && isStartCommand -> {
-                bindTelegramChatIdIfUnpaired(update.chatId)
+            TelegramAuthDecision.RejectBadPairCode -> {
+                AuditMetrics.telegramPairBadCode()
+                if (!update.isCallbackQuery && update.text.isNotBlank()) {
+                    runCatching {
+                        telegramApi.sendMessage(
+                            update.chatId,
+                            context.getString(R.string.sync_chat_pair_bad_code),
+                        )
+                    }
+                }
+                return
             }
+            is TelegramAuthDecision.PairAndAllow -> {
+                settingsStore.saveTelegramChatId(decision.chatId)
+                settingsStore.clearTelegramPairingCode()
+                AuditMetrics.telegramPaired()
+            }
+            TelegramAuthDecision.Allow -> Unit
         }
 
         if (!update.isCallbackQuery && update.text.isNotBlank()) {
@@ -850,17 +875,6 @@ class TelegramBotSyncEngine(private val context: Context) {
             mime == "text/plain" ||
             name.contains("trucklog_export") ||
             name.contains("truckerload_export")
-    }
-
-    /** FIX: pair chat synchronously on first /start; never overwrite an existing binding. */
-    private suspend fun bindTelegramChatIdIfUnpaired(chatId: String) {
-        val id = chatId.toLongOrNull() ?: return
-        runCatching {
-            val store = SettingsDataStore(context)
-            if (store.getTelegramChatIdOnce() == null) {
-                store.saveTelegramChatId(id)
-            }
-        }
     }
 
     data class SyncRunResult(

@@ -23,6 +23,7 @@ import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.presentation.MainActivity
+import com.truckerload.utils.AuditMetrics
 import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -229,6 +230,7 @@ class FriendsLocationShareService : Service() {
                 api.clearPresence()
                 // FIX: also revoke active_route_shares so friends stop seeing the path
                 api.clearActiveRoute()
+                AuditMetrics.friendsShareCleared()
             }
         }
     }

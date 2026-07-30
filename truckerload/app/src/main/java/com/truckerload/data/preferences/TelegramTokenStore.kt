@@ -20,8 +20,10 @@ class TelegramTokenStore(
     fun getToken(): String {
         val saved = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
         if (saved.isNotBlank()) return saved
-        // Device bootstrap token only when an account is active (avoid writing into empty logout state).
-        if (resolvedUserId != null) return BuildConfig.TELEGRAM_BOT_TOKEN.trim()
+        // Stage 3: BuildConfig bootstrap only in debug (release BuildConfig token is always empty).
+        if (resolvedUserId != null && BuildConfig.DEBUG) {
+            return BuildConfig.TELEGRAM_BOT_TOKEN.trim()
+        }
         return ""
     }
 
@@ -40,10 +42,11 @@ class TelegramTokenStore(
     }
 
     /**
-     * One-time bootstrap from local.properties → encrypted prefs (dev builds only).
-     * Does not overwrite a token the user already saved.
+     * One-time bootstrap from local.properties → encrypted prefs (debug builds only).
+     * Does not overwrite a token the user already saved. No-op in release.
      */
     fun bootstrapFromBuildConfigIfEmpty() {
+        if (!BuildConfig.DEBUG) return
         val saved = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
         if (saved.isNotBlank()) return
         val fromBuild = BuildConfig.TELEGRAM_BOT_TOKEN.trim()

@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.truckerload.sync.TelegramPairingCodes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -27,6 +29,8 @@ private val KEY_LANGUAGE = intPreferencesKey("app_language")
 private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
 private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
 private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
+private val KEY_TELEGRAM_PAIR_CODE = stringPreferencesKey("telegram_pair_code")
+private val KEY_TELEGRAM_PAIR_EXPIRES = longPreferencesKey("telegram_pair_expires_at")
 
 class SettingsDataStore(context: Context) {
 
@@ -110,6 +114,60 @@ class SettingsDataStore(context: Context) {
             } else {
                 prefs[KEY_TELEGRAM_CHAT_ID] = chatId
             }
+        }
+    }
+
+    suspend fun clearTelegramChatId() {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        appContext.settingsDataStore.edit { prefs ->
+            if (userId != null) {
+                prefs.remove(longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}"))
+            }
+            prefs.remove(KEY_TELEGRAM_CHAT_ID)
+        }
+    }
+
+    private fun pairCodeKey(userId: String?): Preferences.Key<String> =
+        if (userId != null) {
+            stringPreferencesKey("telegram_pair_code_${AccountIds.sanitizeFilePart(userId)}")
+        } else {
+            KEY_TELEGRAM_PAIR_CODE
+        }
+
+    private fun pairExpiresKey(userId: String?): Preferences.Key<Long> =
+        if (userId != null) {
+            longPreferencesKey("telegram_pair_expires_${AccountIds.sanitizeFilePart(userId)}")
+        } else {
+            KEY_TELEGRAM_PAIR_EXPIRES
+        }
+
+    /**
+     * Issues a fresh 6-digit OTP for Telegram chat pairing (TTL [TelegramPairingCodes.TTL_MS]).
+     */
+    suspend fun issueTelegramPairingCode(): Pair<String, Long> {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        val code = TelegramPairingCodes.generate()
+        val expiresAt = System.currentTimeMillis() + TelegramPairingCodes.TTL_MS
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[pairCodeKey(userId)] = code
+            prefs[pairExpiresKey(userId)] = expiresAt
+        }
+        return code to expiresAt
+    }
+
+    suspend fun getTelegramPairingCodeOnce(): Pair<String, Long>? {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        val prefs = appContext.settingsDataStore.data.first()
+        val code = prefs[pairCodeKey(userId)] ?: return null
+        val expires = prefs[pairExpiresKey(userId)] ?: return null
+        return code to expires
+    }
+
+    suspend fun clearTelegramPairingCode() {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs.remove(pairCodeKey(userId))
+            prefs.remove(pairExpiresKey(userId))
         }
     }
 

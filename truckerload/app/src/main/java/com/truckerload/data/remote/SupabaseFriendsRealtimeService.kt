@@ -9,6 +9,7 @@ import com.truckerload.domain.friends.FriendShareLink
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.SharedLoadStatus
+import com.truckerload.utils.UuidValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -137,8 +138,11 @@ class SupabaseFriendsRealtimeService(
         shareMyLocation: Boolean,
         shareMyRoute: Boolean,
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        val userId = authStore.currentUserIdOrNull()
-            ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val userId = runCatching { requireSessionUserId() }.getOrElse {
+            return@withContext Result.failure(it)
+        }
+        val friendId = UuidValidator.sanitizeFilterIdOrNull(friendUserId)
+            ?: return@withContext Result.failure(IllegalArgumentException("invalid friend id"))
         val token = authStore.accessTokenOrNull().orEmpty()
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
         val body = JSONObject()
@@ -147,20 +151,23 @@ class SupabaseFriendsRealtimeService(
             .put("updated_at", Instant.now().toString())
         patchEq(
             table = "friend_links",
-            filter = "owner_id=eq.$userId&friend_id=eq.$friendUserId",
+            filter = "owner_id=eq.$userId&friend_id=eq.$friendId",
             body = body,
             token = token,
         )
     }
 
     suspend fun removeFriend(friendUserId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        val userId = authStore.currentUserIdOrNull()
-            ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val userId = runCatching { requireSessionUserId() }.getOrElse {
+            return@withContext Result.failure(it)
+        }
+        val friendId = UuidValidator.sanitizeFilterIdOrNull(friendUserId)
+            ?: return@withContext Result.failure(IllegalArgumentException("invalid friend id"))
         val token = authStore.accessTokenOrNull().orEmpty()
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
-        deleteFilter("friend_links", "owner_id=eq.$userId&friend_id=eq.$friendUserId", token)
+        deleteFilter("friend_links", "owner_id=eq.$userId&friend_id=eq.$friendId", token)
             .getOrElse { return@withContext Result.failure(it) }
-        deleteFilter("friendships", "follower_id=eq.$userId&followee_id=eq.$friendUserId", token)
+        deleteFilter("friendships", "follower_id=eq.$userId&followee_id=eq.$friendId", token)
         Result.success(Unit)
     }
 
@@ -188,7 +195,9 @@ class SupabaseFriendsRealtimeService(
     }
 
     suspend fun clearPresence(): Result<Unit> = withContext(Dispatchers.IO) {
-        val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val userId = runCatching { requireSessionUserId() }.getOrElse {
+            return@withContext Result.failure(it)
+        }
         val token = authStore.accessTokenOrNull().orEmpty()
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
         deleteEq("driver_presence", "user_id", userId, token)
@@ -196,10 +205,19 @@ class SupabaseFriendsRealtimeService(
 
     /** FIX: remove shared route when privacy/share is turned off (presence-only clear left routes visible). */
     suspend fun clearActiveRoute(): Result<Unit> = withContext(Dispatchers.IO) {
-        val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val userId = runCatching { requireSessionUserId() }.getOrElse {
+            return@withContext Result.failure(it)
+        }
         val token = authStore.accessTokenOrNull().orEmpty()
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
         deleteEq("active_route_shares", "user_id", userId, token)
+    }
+
+    /** Stage 3: reject filter-injection characters before PostgREST URL interpolation. */
+    private fun requireSessionUserId(): String {
+        val raw = authStore.currentUserIdOrNull()
+            ?: throw IllegalStateException("no user")
+        return UuidValidator.requireFilterId(raw, "user id")
     }
 
     suspend fun upsertActiveRoute(route: FriendActiveRoute, sharePathEnabled: Boolean): Result<Unit> =

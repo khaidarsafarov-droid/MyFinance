@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.presentation.components.BotStatusBadge
@@ -33,7 +34,11 @@ import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramPairingCodes
 import com.truckerload.sync.TelegramSyncMode
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,10 +54,14 @@ fun TelegramSettingsSection() {
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
     val tokenStore = remember { TelegramTokenStore(context) }
+    val settingsStore = remember { SettingsDataStore(context) }
     var tokenInput by remember { mutableStateOf(tokenStore.getToken()) }
     var showToken by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
+    var pairedChatId by remember { mutableStateOf<Long?>(null) }
+    var pairCodeDisplay by remember { mutableStateOf<String?>(null) }
+    var pairExpiresDisplay by remember { mutableStateOf<String?>(null) }
     // Must be Boolean: companion exposes fun isRunning(), not the private AtomicBoolean.
     var botActive: Boolean by remember {
         mutableStateOf(TelegramBotForegroundService.isRunning())
@@ -60,6 +69,12 @@ fun TelegramSettingsSection() {
 
     LaunchedEffect(Unit) {
         botActive = TelegramBotForegroundService.isRunning()
+        pairedChatId = withContext(Dispatchers.IO) { settingsStore.getTelegramChatIdOnce() }
+        val pair = withContext(Dispatchers.IO) { settingsStore.getTelegramPairingCodeOnce() }
+        if (pair != null && TelegramPairingCodes.isActive(pair.second, System.currentTimeMillis())) {
+            pairCodeDisplay = pair.first
+            pairExpiresDisplay = formatPairExpiry(pair.second)
+        }
     }
 
     BentoGlassSection(
@@ -153,8 +168,71 @@ fun TelegramSettingsSection() {
                 color = tc.TextSecondary,
             )
         }
+
+        Text(
+            text = stringResource(R.string.settings_telegram_pair_title),
+            style = MaterialTheme.typography.titleSmall,
+            color = tc.TextPrimary,
+        )
+        Text(
+            text = stringResource(R.string.settings_telegram_pair_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = tc.TextSecondary,
+        )
+        if (pairedChatId != null) {
+            Text(
+                text = stringResource(R.string.settings_telegram_paired, pairedChatId.toString()),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.AccentProfit,
+            )
+            OutlinedButton(
+                onClick = {
+                    scope.launch {
+                        withContext(Dispatchers.IO) { settingsStore.clearTelegramChatId() }
+                        pairedChatId = null
+                        statusMessage = context.getString(R.string.settings_telegram_unpaired)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+            ) {
+                Text(stringResource(R.string.settings_telegram_unpair))
+            }
+        } else {
+            pairCodeDisplay?.let { code ->
+                Text(
+                    text = stringResource(
+                        R.string.settings_telegram_pair_code_active,
+                        code,
+                        pairExpiresDisplay.orEmpty(),
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.AccentPrimary,
+                )
+            }
+            Button(
+                onClick = {
+                    scope.launch {
+                        val (code, expires) = withContext(Dispatchers.IO) {
+                            settingsStore.issueTelegramPairingCode()
+                        }
+                        pairCodeDisplay = code
+                        pairExpiresDisplay = formatPairExpiry(expires)
+                        statusMessage = context.getString(
+                            R.string.settings_telegram_pair_code_issued,
+                            code,
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+            ) {
+                Text(stringResource(R.string.settings_telegram_issue_pair_code))
+            }
+        }
     }
 }
+
+private fun formatPairExpiry(expiresAtMillis: Long): String =
+    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(expiresAtMillis))
 
 @Composable
 private fun TelegramServerModeSection() {

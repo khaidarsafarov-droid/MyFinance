@@ -713,3 +713,20 @@ val MIGRATION_28_29 = object : Migration(28, 29) {
     }
 }
 
+/** Deduplicate stops and enforce unique (loadId, stopNumber, type). */
+val MIGRATION_29_30 = object : Migration(29, 30) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            DELETE FROM stops WHERE id NOT IN (
+                SELECT MIN(id) FROM stops GROUP BY loadId, stopNumber, type
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS index_stops_loadId_stopNumber_type " +
+                "ON stops(loadId, stopNumber, type)",
+        )
+    }
+}
+

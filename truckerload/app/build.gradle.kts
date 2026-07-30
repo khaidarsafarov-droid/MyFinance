@@ -105,6 +105,10 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Stage 3: never bake bot/AI secrets into shipped APKs (reverse-engineering risk).
+            // Users enter the Telegram token in Settings; AI key must come from a backend proxy.
+            buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
+            buildConfigField("String", "CEREBRAS_API_KEY", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -1,6 +1,7 @@
--- Quick fix for: Could not find the 'nickname' column of 'profiles' (PGRST204)
+-- REQUIRED for nickname / friends search (Stage 3 ops checklist).
+-- Symptom without this: PostgREST PGRST204 — no profiles.nickname column.
 -- Prefer the full file 20260731_friend_nicknames.sql when possible.
--- Paste into Supabase → SQL Editor → Run.
+-- Paste into Supabase → SQL Editor → Run (project jsptulbjtesnphrbxsil or your linked project).
 
 alter table public.profiles
   add column if not exists nickname text;

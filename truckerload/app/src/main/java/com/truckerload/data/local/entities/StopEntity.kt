@@ -13,7 +13,11 @@ import androidx.room.PrimaryKey
         childColumns = ["loadId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["loadId"])]
+    indices = [
+        Index(value = ["loadId"]),
+        // Stage 3: prevent duplicate stop rows for the same load sequence/type
+        Index(value = ["loadId", "stopNumber", "type"], unique = true),
+    ]
 )
 data class StopEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
