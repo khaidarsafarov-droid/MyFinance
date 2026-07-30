@@ -2,8 +2,11 @@ package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.core.graphics.scale
+import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 import kotlin.math.max
 import kotlin.math.min
 
@@ -22,7 +25,41 @@ internal object AvatarCropUtils {
             .takeWhile { largest / it > maxDimension }
             .lastOrNull()?.let { it * 2 } ?: 1
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions) ?: return null
+        return applyExifOrientation(bytes, decoded)
+    }
+
+    /**
+     * Bakes EXIF orientation into pixel data so crop pan/zoom and the saved avatar
+     * match what the user saw in the gallery / camera preview.
+     */
+    fun applyExifOrientation(jpegBytes: ByteArray, bitmap: Bitmap): Bitmap {
+        val orientation = runCatching {
+            ExifInterface(ByteArrayInputStream(jpegBytes))
+                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.preScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.preScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.preScale(-1f, 1f)
+                matrix.postRotate(270f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.preScale(-1f, 1f)
+                matrix.postRotate(90f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            else -> return bitmap
+        }
+
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true).also {
+            if (it !== bitmap) bitmap.recycle()
+        }
     }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
@@ -37,6 +74,7 @@ internal object AvatarCropUtils {
 
     fun fitScale(bitmapWidth: Int, bitmapHeight: Int, containerWidth: Float, containerHeight: Float): Float {
         if (bitmapWidth <= 0 || bitmapHeight <= 0) return 1f
+        if (containerWidth <= 0f || containerHeight <= 0f) return 1f
         return min(containerWidth / bitmapWidth, containerHeight / bitmapHeight)
     }
 

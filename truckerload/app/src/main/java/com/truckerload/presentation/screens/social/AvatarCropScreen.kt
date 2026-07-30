@@ -119,10 +119,28 @@ fun AvatarCropScreen(
                     )
                 }
 
+                // Keep pan/zoom when the crop area is remeasured (insets, IME, etc.).
+                // Only center on the first valid layout for this bitmap.
                 LaunchedEffect(layout) {
+                    if (layout.containerWidth <= 0f || layout.containerHeight <= 0f) return@LaunchedEffect
+                    val previous = cropLayout
                     cropLayout = layout
-                    userScale = layout.minScale
-                    offset = Offset.Zero
+                    if (previous == null) {
+                        userScale = layout.minScale
+                        offset = Offset.Zero
+                    } else {
+                        userScale = userScale.coerceIn(layout.minScale, layout.minScale * 4f)
+                        offset = AvatarCropUtils.clampOffset(
+                            offset = offset,
+                            userScale = userScale,
+                            fitScale = layout.fitScale,
+                            bitmapWidth = preparedBitmap.width,
+                            bitmapHeight = preparedBitmap.height,
+                            containerWidth = layout.containerWidth,
+                            containerHeight = layout.containerHeight,
+                            cropDiameter = layout.cropDiameter,
+                        )
+                    }
                 }
 
                 fun clampCurrentOffset(): Offset {
