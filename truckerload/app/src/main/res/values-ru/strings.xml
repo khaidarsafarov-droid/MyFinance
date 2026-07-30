@@ -1051,6 +1051,8 @@
 <string name="friends_map_legend">Зелёный — вы · оранжевый — друзья онлайн</string>
 <string name="friends_map_tap_open">Нажмите, чтобы открыть карту</string>
 <string name="friends_me_marker">Я</string>
+    <string name="friends_my_route_label">Мой путь: %1$s</string>
+    <string name="friends_my_destination_marker">Разгрузка</string>
 <string name="friends_my_nickname_current">Ваш ник: @%1$s</string>
 <string name="friends_my_nickname_hint">По этому нику друзья найдут вас в Truck Log</string>
 <string name="friends_my_nickname_title">Мой никнейм</string>

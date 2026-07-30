@@ -1051,6 +1051,8 @@
 <string name="friends_map_legend">Green — you · orange — friends online</string>
 <string name="friends_map_tap_open">Tap to open the full map</string>
 <string name="friends_me_marker">Me</string>
+    <string name="friends_my_route_label">My route: %1$s</string>
+    <string name="friends_my_destination_marker">Delivery</string>
 <string name="friends_my_nickname_current">Your handle: @%1$s</string>
 <string name="friends_my_nickname_hint">Friends find you in Truck Log by this handle</string>
 <string name="friends_my_nickname_title">My nickname</string>

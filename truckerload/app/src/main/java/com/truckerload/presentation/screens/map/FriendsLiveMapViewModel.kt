@@ -19,6 +19,9 @@ import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.RouteIntersectionMatcher
 import com.truckerload.domain.friends.RouteOverlapMatch
 import com.truckerload.domain.friends.SharedLoadStatus
+import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.StopType
+import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.extractStateFromLocation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,6 +55,10 @@ data class FriendsLiveMapUiState(
     val shareLinks: List<FriendShareLink> = emptyList(),
     val editingFriendId: String? = null,
     val friends: List<FriendMapOverlay> = emptyList(),
+    /** Gray (driven) + blue (remaining) for the user's own active/upcoming load. */
+    val myPathPast: List<LatLngPoint> = emptyList(),
+    val myPathRemaining: List<LatLngPoint> = emptyList(),
+    val myRouteSummary: String? = null,
     val selectedFriendId: String? = null,
     val overlaps: List<RouteOverlapMatch> = emptyList(),
     val showOverlapsPanel: Boolean = false,
@@ -66,6 +73,7 @@ class FriendsLiveMapViewModel(
     private val authStore: AuthStore,
     private val userProfileStore: UserProfileStore,
     private val friendsApi: SupabaseFriendsRealtimeService,
+    private val locationHelper: LocationHelper,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendsLiveMapUiState())
@@ -73,6 +81,7 @@ class FriendsLiveMapViewModel(
 
     private var pollJob: Job? = null
     private val showPathFor = linkedSetOf<String>()
+    private var myLocationPoint: LatLngPoint? = null
 
     init {
         val nick = userProfileStore.profile.value?.nickname.orEmpty()
@@ -255,6 +264,11 @@ class FriendsLiveMapViewModel(
         }
     }
 
+    fun updateMyLocation(lat: Double, lng: Double) {
+        myLocationPoint = LatLngPoint(lat, lng)
+        viewModelScope.launch { rebuildMyPath() }
+    }
+
     fun refresh(silent: Boolean = false) {
         viewModelScope.launch {
             if (!silent) _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -303,11 +317,15 @@ class FriendsLiveMapViewModel(
                     )
                 }
                 val overlaps = computeOverlaps(routes)
+                val myPath = buildMyPathOverlay()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         shareLinks = links,
                         friends = overlays,
+                        myPathPast = myPath.past,
+                        myPathRemaining = myPath.remaining,
+                        myRouteSummary = myPath.summary,
                         overlaps = overlaps,
                         lastRefreshAt = System.currentTimeMillis(),
                         errorMessage = null,
@@ -319,6 +337,76 @@ class FriendsLiveMapViewModel(
                 }
             }
         }
+    }
+
+    private suspend fun rebuildMyPath() {
+        val myPath = buildMyPathOverlay()
+        _uiState.update {
+            it.copy(
+                myPathPast = myPath.past,
+                myPathRemaining = myPath.remaining,
+                myRouteSummary = myPath.summary,
+            )
+        }
+    }
+
+    private data class MyPathDraw(
+        val past: List<LatLngPoint>,
+        val remaining: List<LatLngPoint>,
+        val summary: String?,
+    )
+
+    private suspend fun buildMyPathOverlay(): MyPathDraw = withContext(Dispatchers.IO) {
+        val load = ActiveLoadSelector.selectForMapRoute(loadRepository.getAllLoadsOnce())
+            ?: return@withContext MyPathDraw(emptyList(), emptyList(), null)
+        val originLabel = load.pointA.ifBlank { load.firstPuCityState }
+        val destLabel = load.pointB.ifBlank { load.lastDelCityState }
+        val origin = geocodeLoadEndpoint(load, isOrigin = true)
+        val destination = geocodeLoadEndpoint(load, isOrigin = false)
+        if (origin == null && destination == null) {
+            return@withContext MyPathDraw(emptyList(), emptyList(), null)
+        }
+        val route = FriendActiveRoute(
+            userId = authStore.currentUserIdOrNull().orEmpty().ifBlank { SELF_ROUTE_ID },
+            displayName = "Me",
+            loadRef = load.id,
+            originLabel = originLabel,
+            destinationLabel = destLabel,
+            origin = origin,
+            destination = destination,
+            startDate = ActiveLoadSelector.startDateIso(load),
+            endDate = ActiveLoadSelector.endDateIso(load),
+            status = ActiveLoadSelector.statusFor(load),
+            trackPoints = emptyList(),
+        )
+        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint)
+        val summary = listOf(originLabel, destLabel)
+            .filter { it.isNotBlank() }
+            .joinToString(" → ")
+            .ifBlank { null }
+        MyPathDraw(past = split.past, remaining = split.remaining, summary = summary)
+    }
+
+    private suspend fun geocodeLoadEndpoint(load: Load, isOrigin: Boolean): LatLngPoint? {
+        val labels = if (isOrigin) {
+            listOf(
+                load.stops.firstOrNull { it.type == StopType.PU }?.fullAddress,
+                load.pointA,
+                load.firstPuCityState,
+            )
+        } else {
+            listOf(
+                load.stops.lastOrNull { it.type == StopType.DEL }?.fullAddress,
+                load.pointB,
+                load.lastDelCityState,
+            )
+        }
+        for (label in labels) {
+            val q = label?.trim().orEmpty()
+            if (q.isBlank()) continue
+            locationHelper.geocodeAddress(q)?.let { return it }
+        }
+        return null
     }
 
     fun setSharePathEnabled(enabled: Boolean) {
@@ -371,6 +459,7 @@ class FriendsLiveMapViewModel(
         private val authStore: AuthStore,
         private val userProfileStore: UserProfileStore,
         private val friendsApi: SupabaseFriendsRealtimeService,
+        private val locationHelper: LocationHelper,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
@@ -380,6 +469,11 @@ class FriendsLiveMapViewModel(
                 authStore,
                 userProfileStore,
                 friendsApi,
+                locationHelper,
             ) as T
+    }
+
+    companion object {
+        const val SELF_ROUTE_ID = "__me__"
     }
 }

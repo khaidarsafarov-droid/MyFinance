@@ -9,12 +9,16 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.truckerload.domain.friends.LatLngPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 class LocationHelper(private val context: Context) {
+
+    private val geocodeCache = ConcurrentHashMap<String, LatLngPoint?>()
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
@@ -69,5 +73,27 @@ class LocationHelper(private val context: Context) {
             android.util.Log.w("LocationHelper", "reverseGeocode failed", e)
             null
         }
+    }
+
+    /** Forward-geocode a city/state or full address for map routing (cached). */
+    suspend fun geocodeAddress(query: String): LatLngPoint? = withContext(Dispatchers.IO) {
+        val key = query.trim()
+        if (key.isBlank()) return@withContext null
+        if (geocodeCache.containsKey(key)) return@withContext geocodeCache[key]
+        if (!Geocoder.isPresent()) {
+            geocodeCache[key] = null
+            return@withContext null
+        }
+        val point = try {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            @Suppress("DEPRECATION")
+            val address = geocoder.getFromLocationName(key, 1)?.firstOrNull()
+            if (address != null) LatLngPoint(address.latitude, address.longitude) else null
+        } catch (e: Exception) {
+            android.util.Log.w("LocationHelper", "geocodeAddress failed for '$key'", e)
+            null
+        }
+        geocodeCache[key] = point
+        point
     }
 }

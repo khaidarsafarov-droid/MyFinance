@@ -73,11 +73,13 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.truckerload.R
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.domain.friends.FriendShareLink
+import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.di.LocalAuthStore
@@ -111,6 +113,7 @@ fun FriendsLiveMapScreen(
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
     val friendsApi = remember(authStore) { SupabaseFriendsRealtimeService(authStore) }
+    val locationHelper = remember(context) { com.truckerload.utils.LocationHelper(context) }
     val viewModel: FriendsLiveMapViewModel = viewModel(
         factory = FriendsLiveMapViewModel.Factory(
             loadRepository = loadRepository,
@@ -118,6 +121,7 @@ fun FriendsLiveMapScreen(
             authStore = authStore,
             userProfileStore = userProfileStore,
             friendsApi = friendsApi,
+            locationHelper = locationHelper,
         ),
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -140,7 +144,6 @@ fun FriendsLiveMapScreen(
     var centerOnMeNonce by remember { mutableIntStateOf(0) }
     var mapExpanded by remember { mutableStateOf(false) }
     var manageExpanded by remember { mutableStateOf(false) }
-    val locationHelper = remember(context) { com.truckerload.utils.LocationHelper(context) }
     val scope = rememberCoroutineScope()
 
     suspend fun refreshMyLocation(): LatLng? {
@@ -149,6 +152,7 @@ fun FriendsLiveMapScreen(
         val lat = loc?.latitude
         val lng = loc?.longitude
         if (lat == null || lng == null) return null
+        viewModel.updateMyLocation(lat, lng)
         return LatLng(lat, lng).also { myLocation = it }
     }
 
@@ -182,6 +186,8 @@ fun FriendsLiveMapScreen(
     if (mapExpanded) {
         FullscreenFriendsMapDialog(
             overlays = uiState.friends,
+            myPathPast = uiState.myPathPast,
+            myPathRemaining = uiState.myPathRemaining,
             selectedFriendId = uiState.selectedFriendId,
             myLocation = myLocation,
             showMyLocationLayer = hasLocationPermission,
@@ -307,6 +313,8 @@ fun FriendsLiveMapScreen(
                             if (!mapExpanded) {
                                 FriendsGoogleMap(
                                     overlays = emptyList(),
+                                    myPathPast = uiState.myPathPast,
+                                    myPathRemaining = uiState.myPathRemaining,
                                     selectedFriendId = null,
                                     myLocation = myLocation,
                                     showMyLocationLayer = hasLocationPermission,
@@ -334,6 +342,14 @@ fun FriendsLiveMapScreen(
                             color = tc.TextSecondary,
                             modifier = Modifier.padding(top = 8.dp),
                         )
+                        uiState.myRouteSummary?.let { summary ->
+                            Text(
+                                text = stringResource(R.string.friends_my_route_label, summary),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = tc.AccentPrimary,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
                         if (uiState.friends.isNotEmpty()) {
                             Text(
                                 text = stringResource(R.string.friends_online_count, uiState.friends.size),
@@ -665,6 +681,8 @@ private fun FriendsManageSection(
 @Composable
 private fun FullscreenFriendsMapDialog(
     overlays: List<FriendMapOverlay>,
+    myPathPast: List<LatLngPoint>,
+    myPathRemaining: List<LatLngPoint>,
     selectedFriendId: String?,
     myLocation: LatLng?,
     showMyLocationLayer: Boolean,
@@ -689,6 +707,8 @@ private fun FullscreenFriendsMapDialog(
             Box(modifier = Modifier.fillMaxSize()) {
                 FriendsGoogleMap(
                     overlays = overlays,
+                    myPathPast = myPathPast,
+                    myPathRemaining = myPathRemaining,
                     selectedFriendId = selectedFriendId,
                     myLocation = myLocation,
                     showMyLocationLayer = showMyLocationLayer,
@@ -832,6 +852,8 @@ private fun FriendShareRow(
 @Composable
 private fun FriendsGoogleMap(
     overlays: List<FriendMapOverlay>,
+    myPathPast: List<LatLngPoint> = emptyList(),
+    myPathRemaining: List<LatLngPoint> = emptyList(),
     selectedFriendId: String?,
     myLocation: LatLng?,
     showMyLocationLayer: Boolean,
@@ -841,6 +863,7 @@ private fun FriendsGoogleMap(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val meLabel = stringResource(R.string.friends_me_marker)
+    val destLabel = stringResource(R.string.friends_my_destination_marker)
     var mapView by remember { mutableStateOf<MapView?>(null) }
 
     DisposableEffect(lifecycleOwner) {
@@ -863,7 +886,16 @@ private fun FriendsGoogleMap(
         }
     }
 
-    LaunchedEffect(overlays, selectedFriendId, myLocation, showMyLocationLayer, interactive, mapView) {
+    LaunchedEffect(
+        overlays,
+        myPathPast,
+        myPathRemaining,
+        selectedFriendId,
+        myLocation,
+        showMyLocationLayer,
+        interactive,
+        mapView,
+    ) {
         val map = mapView ?: return@LaunchedEffect
         map.getMapAsync { googleMap ->
             googleMap.clear()
@@ -883,6 +915,31 @@ private fun FriendsGoogleMap(
                         .title(meLabel)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)),
                 )
+            }
+            // Own load corridor: gray = driven / blue = remaining (same colors as friends).
+            if (myPathPast.size >= 2) {
+                googleMap.addPolyline(
+                    PolylineOptions()
+                        .addAll(myPathPast.map { LatLng(it.lat, it.lng) })
+                        .color(COLOR_PAST)
+                        .width(12f),
+                )
+            }
+            if (myPathRemaining.size >= 2) {
+                googleMap.addPolyline(
+                    PolylineOptions()
+                        .addAll(myPathRemaining.map { LatLng(it.lat, it.lng) })
+                        .color(COLOR_REMAINING)
+                        .width(12f),
+                )
+                myPathRemaining.lastOrNull()?.let { dest ->
+                    googleMap.addMarker(
+                        MarkerOptions()
+                            .position(LatLng(dest.lat, dest.lng))
+                            .title(destLabel)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)),
+                    )
+                }
             }
             overlays.forEach { friend ->
                 val pos = LatLng(friend.presence.latitude, friend.presence.longitude)
@@ -926,6 +983,7 @@ private fun FriendsGoogleMap(
                 false
             }
             val selected = overlays.firstOrNull { it.presence.userId == selectedFriendId }
+            val routePoints = (myPathPast + myPathRemaining).map { LatLng(it.lat, it.lng) }
             when {
                 selected != null -> {
                     googleMap.moveCamera(
@@ -934,6 +992,17 @@ private fun FriendsGoogleMap(
                             8f,
                         ),
                     )
+                }
+                routePoints.size >= 2 && centerOnMeNonce == 0 -> {
+                    val bounds = LatLngBounds.builder().also { b ->
+                        routePoints.forEach(b::include)
+                        myLocation?.let(b::include)
+                    }.build()
+                    runCatching {
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 80))
+                    }.onFailure {
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(routePoints.first(), 7f))
+                    }
                 }
                 myLocation != null && centerOnMeNonce == 0 -> {
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12f))
