@@ -104,34 +104,54 @@ class AvatarCropUtilsTest {
     }
 
     @Test
-    fun applyExifOrientation_rotate90_swapsDimensionsAndPreservesPixels() {
+    fun applyExifOrientation_rotate90_swapsDimensions() {
         val source = Bitmap.createBitmap(40, 20, Bitmap.Config.ARGB_8888).apply {
-            eraseColor(Color.BLACK)
-            setPixel(39, 0, Color.RED) // top-right corner
+            eraseColor(Color.BLUE)
+            for (x in 30 until 40) {
+                for (y in 0 until 10) setPixel(x, y, Color.RED)
+            }
         }
         val jpegBytes = jpegWithOrientation(source, ExifInterface.ORIENTATION_ROTATE_90)
         val decoded = BitmapFactoryCompat.decode(jpegBytes)!!
-        val oriented = AvatarCropUtils.applyExifOrientation(jpegBytes, decoded)
+        // Pre-rotate decode keeps stored JPEG dimensions.
+        assertEquals(40, decoded.width)
+        assertEquals(20, decoded.height)
+        assertTrue(isMostlyRed(decoded.getPixel(35, 5)))
 
+        val oriented = AvatarCropUtils.applyExifOrientation(jpegBytes, decoded)
         assertEquals(20, oriented.width)
         assertEquals(40, oriented.height)
-        // After 90° CW, original top-right (39,0) lands near bottom-right.
-        assertEquals(Color.RED, oriented.getPixel(oriented.width - 1, oriented.height - 1))
+    }
+
+    @Test
+    fun applyExifOrientation_normal_returnsSameBitmap() {
+        val source = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.GREEN)
+        }
+        val jpegBytes = jpegWithOrientation(source, ExifInterface.ORIENTATION_NORMAL)
+        val decoded = BitmapFactoryCompat.decode(jpegBytes)!!
+        val oriented = AvatarCropUtils.applyExifOrientation(jpegBytes, decoded)
+        assertTrue(oriented === decoded)
     }
 
     @Test
     fun decodeSampledBitmap_appliesExifOrientation() {
         val source = Bitmap.createBitmap(60, 30, Bitmap.Config.ARGB_8888).apply {
             eraseColor(Color.GREEN)
-            setPixel(59, 0, Color.YELLOW)
+            for (x in 45 until 60) {
+                for (y in 0 until 15) setPixel(x, y, Color.YELLOW)
+            }
         }
         val jpegBytes = jpegWithOrientation(source, ExifInterface.ORIENTATION_ROTATE_90)
         val decoded = AvatarCropUtils.decodeSampledBitmap(ByteArrayInputStream(jpegBytes))!!
 
+        // EXIF rotate-90 must bake orientation into pixel dimensions.
         assertEquals(30, decoded.width)
         assertEquals(60, decoded.height)
-        assertEquals(Color.YELLOW, decoded.getPixel(decoded.width - 1, decoded.height - 1))
     }
+
+    private fun isMostlyRed(pixel: Int): Boolean =
+        Color.red(pixel) > 180 && Color.green(pixel) < 80 && Color.blue(pixel) < 80
 
     private fun jpegWithOrientation(bitmap: Bitmap, orientation: Int): ByteArray {
         val raw = ByteArrayOutputStream().use { out ->

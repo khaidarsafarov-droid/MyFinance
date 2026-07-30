@@ -57,9 +57,18 @@ internal object AvatarCropUtils {
             else -> return bitmap
         }
 
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true).also {
-            if (it !== bitmap) bitmap.recycle()
-        }
+        val srcRect = android.graphics.RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+        val dstRect = android.graphics.RectF()
+        matrix.mapRect(dstRect, srcRect)
+        matrix.postTranslate(-dstRect.left, -dstRect.top)
+
+        val outWidth = max(1, dstRect.width().toInt())
+        val outHeight = max(1, dstRect.height().toInt())
+        val config = bitmap.config ?: Bitmap.Config.ARGB_8888
+        val oriented = Bitmap.createBitmap(outWidth, outHeight, config)
+        android.graphics.Canvas(oriented).drawBitmap(bitmap, matrix, null)
+        if (oriented !== bitmap) bitmap.recycle()
+        return oriented
     }
 
     fun prepareBitmapForCrop(source: Bitmap): Bitmap {
