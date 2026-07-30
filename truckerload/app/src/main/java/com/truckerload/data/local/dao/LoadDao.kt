@@ -96,7 +96,7 @@ interface LoadDao {
     suspend fun insert(load: LoadEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(loads: List<LoadEntity>)
+    suspend fun insertAll(loads: List<LoadEntity>): List<Long>
 
     @Query("SELECT * FROM loads WHERE weekNumber = :weekNumber AND year = :year ORDER BY parsedAt DESC")
     fun getLoadsByWeek(weekNumber: Int, year: Int): Flow<List<LoadEntity>>

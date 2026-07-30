@@ -251,10 +251,43 @@ class TelegramBotSyncEngine(private val context: Context) {
         chatRestore: TelegramChatRestore,
         prefs: SharedPreferences
     ) {
+        // FIX: authorize chat before any persist/mutate — open bot was a data-exfil risk
+        val settingsStore = SettingsDataStore(context)
+        val allowedChatId = settingsStore.getTelegramChatIdOnce()
+        val incomingChatId = update.chatId.toLongOrNull()
+        val rawForPair = update.text.trim()
+        val isStartCommand = !update.isCallbackQuery && isCommand(rawForPair, "/start")
+        when {
+            allowedChatId != null && (incomingChatId == null || incomingChatId != allowedChatId) -> {
+                if (!update.isCallbackQuery && update.text.isNotBlank()) {
+                    runCatching {
+                        telegramApi.sendMessage(
+                            update.chatId,
+                            context.getString(R.string.sync_chat_unauthorized),
+                        )
+                    }
+                }
+                return
+            }
+            allowedChatId == null && !isStartCommand -> {
+                if (!update.isCallbackQuery && update.text.isNotBlank()) {
+                    runCatching {
+                        telegramApi.sendMessage(
+                            update.chatId,
+                            context.getString(R.string.sync_chat_pair_required),
+                        )
+                    }
+                }
+                return
+            }
+            allowedChatId == null && isStartCommand -> {
+                bindTelegramChatIdIfUnpaired(update.chatId)
+            }
+        }
+
         if (!update.isCallbackQuery && update.text.isNotBlank()) {
             chatRestore.persistIncoming(update)
         }
-        rememberTelegramChatId(update.chatId)
 
         if (update.isCallbackQuery && update.callbackQueryId != null) {
             val cmd = TelegramBotFeatures.menuButtonToCommand(update.text)
@@ -819,10 +852,14 @@ class TelegramBotSyncEngine(private val context: Context) {
             name.contains("truckerload_export")
     }
 
-    private fun rememberTelegramChatId(chatId: String) {
+    /** FIX: pair chat synchronously on first /start; never overwrite an existing binding. */
+    private suspend fun bindTelegramChatIdIfUnpaired(chatId: String) {
         val id = chatId.toLongOrNull() ?: return
-        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-            runCatching { SettingsDataStore(context).saveTelegramChatId(id) }
+        runCatching {
+            val store = SettingsDataStore(context)
+            if (store.getTelegramChatIdOnce() == null) {
+                store.saveTelegramChatId(id)
+            }
         }
     }
 

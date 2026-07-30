@@ -194,6 +194,14 @@ class SupabaseFriendsRealtimeService(
         deleteEq("driver_presence", "user_id", userId, token)
     }
 
+    /** FIX: remove shared route when privacy/share is turned off (presence-only clear left routes visible). */
+    suspend fun clearActiveRoute(): Result<Unit> = withContext(Dispatchers.IO) {
+        val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val token = authStore.accessTokenOrNull().orEmpty()
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        deleteEq("active_route_shares", "user_id", userId, token)
+    }
+
     suspend fun upsertActiveRoute(route: FriendActiveRoute, sharePathEnabled: Boolean): Result<Unit> =
         withContext(Dispatchers.IO) {
             val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))

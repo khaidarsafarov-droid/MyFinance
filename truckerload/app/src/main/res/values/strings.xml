@@ -825,6 +825,8 @@
 
     <string name="sync_processing">⏳ Обрабатываю...</string>
     <string name="sync_welcome">🚛 Добро пожаловать в Truck Log!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
+    <string name="sync_chat_unauthorized">⛔ Этот чат не привязан к приложению. Откройте Truck Log → Настройки и проверьте Telegram chat ID.</string>
+    <string name="sync_chat_pair_required">🔐 Сначала отправьте /start в этом чате, чтобы привязать бота к приложению. Другие чаты игнорируются.</string>
     <string name="sync_help">📋 Как пользоваться ботом Truck Log:\n1. Перешлите текст лоуда Amazon Relay\n2. Или текст settlement / fuel receipt\n3. Данные сохранятся в приложении Truck Log\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
     <string name="sync_status">📊 Статус Truck Log:\n• Лоудов: %1$d\n• Зарплат: %2$d\n• Дизель: %3$d\n\nБот активен в фоне. Перешлите новые данные — добавлю в приложение.</string>
     <string name="sync_help_load">📦 Лоуд:\nПерешлите текст с Trip ID, PU#/DEL, Total Rate и адресами.\nПример: Trip ID: ABC123, Total Rate: $1,200</string>
@@ -956,6 +958,7 @@
     <string name="biometric_unlock_retry">Повторить</string>
     <string name="biometric_unlock_cancelled">Разблокировка отменена</string>
     <string name="biometric_unlock_failed">Не удалось распознать. Попробуйте ещё раз</string>
+    <string name="biometric_unlock_unavailable">Биометрия недоступна. Разблокировка обязательна — повторите попытку или переустановите отпечаток/Face ID в системе.</string>
     <string name="biometric_enabled_toast">Вход по биометрии включён</string>
     <string name="home_country">Страна</string>
     <string name="phone_country_code">Код страны</string>

@@ -287,32 +287,27 @@ fun LoginScreen(
                                     googleId = claims?.optString("sub"),
                                 )
                             } else {
-                                android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, authResult.exceptionOrNull()?.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
-                                val c = decodeGoogleIdToken(idToken)
-                                saveProfileAndLogin(
-                                    c?.optString("email") ?: "",
-                                    c?.optString("given_name") ?: "",
-                                    c?.optString("family_name") ?: "",
-                                    resolveGooglePhotoUrl(null, idToken),
+                                // FIX: do not treat unverified ID-token claims as a logged-in session
+                                val authErr = authResult.exceptionOrNull()
+                                error = authErr?.message
+                                    ?: context.getString(R.string.auth_error_login_invalid)
+                                android.widget.Toast.makeText(
                                     context,
-                                    userProfileStore,
-                                    authStore,
-                                    googleId = c?.optString("sub"),
-                                )
+                                    context.getString(
+                                        R.string.login_google_fallback,
+                                        authErr?.message ?: "",
+                                    ),
+                                    android.widget.Toast.LENGTH_LONG,
+                                ).show()
                             }
                         } catch (e: Exception) {
-                            android.widget.Toast.makeText(context, context.getString(R.string.login_google_fallback, e.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
-                            val c = decodeGoogleIdToken(idToken)
-                            saveProfileAndLogin(
-                                c?.optString("email") ?: "",
-                                c?.optString("given_name") ?: "",
-                                c?.optString("family_name") ?: "",
-                                resolveGooglePhotoUrl(null, idToken),
+                            // FIX: fail closed when Supabase exchange throws (except pure offline demos)
+                            error = e.message ?: context.getString(R.string.auth_error_login_invalid)
+                            android.widget.Toast.makeText(
                                 context,
-                                userProfileStore,
-                                authStore,
-                                googleId = c?.optString("sub"),
-                            )
+                                context.getString(R.string.login_google_fallback, e.message ?: ""),
+                                android.widget.Toast.LENGTH_LONG,
+                            ).show()
                         }
                     } else {
                         val c = decodeGoogleIdToken(idToken)
@@ -439,7 +434,12 @@ fun LoginScreen(
                         onFailure = { err ->
                             withContext(Dispatchers.Main) {
                                 isLoading = false
-                                if (credentialsStore.validateCredentials(emailTrimmed, password)) {
+                                // FIX: local offline fallback only on transient network errors,
+                                // never on invalid credentials / auth API rejections
+                                val allowOfflineFallback =
+                                    credentialsStore.validateCredentials(emailTrimmed, password) &&
+                                        isTransientAuthNetworkError(err)
+                                if (allowOfflineFallback) {
                                     android.widget.Toast.makeText(
                                         context,
                                         context.getString(R.string.auth_local_login_fallback),
@@ -577,4 +577,17 @@ fun LoginScreen(
         }
     }
     }
+}
+
+/** Offline password fallback is allowed only for connectivity failures, not auth rejections. */
+private fun isTransientAuthNetworkError(err: Throwable): Boolean {
+    if (err is java.io.IOException) return true
+    val msg = err.message.orEmpty().lowercase(java.util.Locale.US)
+    return msg.contains("unable to resolve") ||
+        msg.contains("timeout") ||
+        msg.contains("timed out") ||
+        msg.contains("failed to connect") ||
+        msg.contains("connection reset") ||
+        msg.contains("network") ||
+        msg.contains("unreachable")
 }

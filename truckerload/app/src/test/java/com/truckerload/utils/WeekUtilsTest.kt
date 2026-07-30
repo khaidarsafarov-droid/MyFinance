@@ -49,6 +49,26 @@ class WeekUtilsTest {
     }
 
     @Test
+    fun `yearBoundarySundayUsesWeekYearNotCivilYear`() {
+        // 2025-12-28 is Sunday → trucking week 1 of week-year 2026
+        val (week, year) = getWeekNumberAndYearFromDate("2025-12-28")
+        assertEquals(1, week)
+        assertEquals(2026, year)
+        val (start, end, _) = getWeekRange(week, year)
+        assertEquals("2025-12-28", start)
+        assertEquals("2026-01-03", end)
+    }
+
+    @Test
+    fun `parseScheduledTimeToMillisUsesLoadDateYearForRelay`() {
+        val millis = parseScheduledTimeToMillis("07/05 18:00 EDT", defaultYear = 2025)
+        assertNotNull(millis)
+        val (w, y) = getWeekNumberAndYearFromTimestamp(millis!!)
+        assertEquals(2025, y)
+        assertTrue(w > 0)
+    }
+
+    @Test
     fun `parser assigns reporting week from Sunday Del`() {
         // Use fixed ISO dates via year-aware Relay times relative to load.date year.
         // 2025-07-05 Sat / 2025-07-06 Sun 00:01

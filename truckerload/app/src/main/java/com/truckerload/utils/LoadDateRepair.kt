@@ -39,7 +39,14 @@ object LoadDateRepair {
         return load.copy(date = repairedDate).withReportingWeek().withRouteMetrics()
     }
 
-    /** Year to use for Relay `MM/DD` when only an anchor timestamp is known. */
+    /**
+     * Year to use for Relay `MM/DD` when only an anchor year is known.
+     *
+     * Picks among [anchorYear - 1], [anchorYear], [anchorYear + 1] the civil date
+     * whose noon is closest to [nowMillis]. This keeps near-term bookings
+     * (e.g. PU in 3 weeks) in the live year while still mapping winter history
+     * viewed in spring to the previous year.
+     */
     fun resolveRelayYear(
         month: Int,
         day: Int,
@@ -47,20 +54,28 @@ object LoadDateRepair {
         nowMillis: Long = System.currentTimeMillis(),
     ): Int {
         if (month !in 1..12 || day !in 1..31) return anchorYear
-        val candidate = Calendar.getInstance().apply {
-            set(Calendar.YEAR, anchorYear)
-            set(Calendar.MONTH, month - 1)
-            set(Calendar.DAY_OF_MONTH, day)
-            set(Calendar.HOUR_OF_DAY, 12)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+        fun noonMillis(year: Int): Long? {
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, month - 1)
+                set(Calendar.DAY_OF_MONTH, day)
+                set(Calendar.HOUR_OF_DAY, 12)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            // FIX: reject impossible calendar days that rolled into the next month
+            if (cal.get(Calendar.MONTH) != month - 1 || cal.get(Calendar.DAY_OF_MONTH) != day) {
+                return null
+            }
+            return cal.timeInMillis
         }
-        // Near-term bookings (about two weeks) keep the anchor year; farther "future"
-        // MM/DD from Telegram history is almost always the previous calendar year
-        // (e.g. viewing August while still in late July must not paint 2025 loads as 2026).
-        val bookingHorizonMs = 14L * 24 * 60 * 60 * 1000
-        return if (candidate.timeInMillis - nowMillis > bookingHorizonMs) anchorYear - 1 else anchorYear
+        // FIX: nearest of three years — preserves live bookings beyond 14 days
+        return listOf(anchorYear - 1, anchorYear, anchorYear + 1)
+            .mapNotNull { year -> noonMillis(year)?.let { year to it } }
+            .minByOrNull { (_, millis) -> kotlin.math.abs(millis - nowMillis) }
+            ?.first
+            ?: anchorYear
     }
 
     private fun yearFromMillis(millis: Long): Int? {

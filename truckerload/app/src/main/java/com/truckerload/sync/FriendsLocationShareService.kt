@@ -27,20 +27,27 @@ import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * Publishes GPS presence + active route to Supabase while privacy toggle is ON.
- * Stops publishing (and clears presence) when privacy is OFF.
+ * Stops publishing (and clears presence + active route) when privacy is OFF.
  */
 class FriendsLocationShareService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var loopJob: Job? = null
+    // FIX: serialize publish vs clear to avoid re-publishing after share OFF
+    private val publishMutex = Mutex()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -48,6 +55,9 @@ class FriendsLocationShareService : Service() {
         when (intent?.action) {
             ACTION_STOP -> {
                 scope.launch {
+                    // FIX: stop the loop before clearing remote state
+                    loopJob?.cancelAndJoin()
+                    loopJob = null
                     clearRemote()
                     stopSelf()
                 }
@@ -73,6 +83,13 @@ class FriendsLocationShareService : Service() {
 
     override fun onDestroy() {
         loopJob?.cancel()
+        val appCtx = applicationContext
+        // FIX: clear remote even if the service scope is about to cancel
+        CoroutineScope(Dispatchers.IO).launch {
+            withContext(NonCancellable) {
+                clearRemoteStatic(appCtx)
+            }
+        }
         scope.cancel()
         super.onDestroy()
     }
@@ -101,13 +118,15 @@ class FriendsLocationShareService : Service() {
                 val name = listOfNotNull(profile?.givenName, profile?.familyName)
                     .joinToString(" ")
                     .ifBlank { profile?.email ?: "Driver" }
-                api.upsertPresence(
-                    displayName = name,
-                    lat = lat,
-                    lng = lng,
-                    sharePathEnabled = true,
-                )
-                publishActiveRoute(api, track)
+                publishMutex.withLock {
+                    api.upsertPresence(
+                        displayName = name,
+                        lat = lat,
+                        lng = lng,
+                        sharePathEnabled = true,
+                    )
+                    publishActiveRoute(api, track)
+                }
             }
             delay(30_000)
         }
@@ -119,7 +138,12 @@ class FriendsLocationShareService : Service() {
     ) {
         val db = AppDatabase.getInstanceForActiveUser(this) ?: return
         val loads = LoadRepository(db).getAllLoadsOnce()
-        val active = ActiveLoadSelector.selectForMapRoute(loads) ?: return
+        val active = ActiveLoadSelector.selectForMapRoute(loads)
+        // FIX: clear stale route when no active/future load remains
+        if (active == null) {
+            api.clearActiveRoute()
+            return
+        }
         val originLabel = active.pointA.ifBlank { active.firstPuCityState }
         val destLabel = active.pointB.ifBlank { active.lastDelCityState }
         val helper = LocationHelper(this)
@@ -146,9 +170,8 @@ class FriendsLocationShareService : Service() {
     }
 
     private suspend fun clearRemote() {
-        val api = SupabaseFriendsRealtimeService(AuthStore(this))
-        if (api.isConfigured()) {
-            api.clearPresence()
+        publishMutex.withLock {
+            clearRemoteStatic(this)
         }
     }
 
@@ -197,6 +220,16 @@ class FriendsLocationShareService : Service() {
         fun stop(context: Context) {
             val i = Intent(context, FriendsLocationShareService::class.java).setAction(ACTION_STOP)
             context.startService(i)
+        }
+
+        /** Clears presence + active route shares for the signed-in user. */
+        suspend fun clearRemoteStatic(context: Context) {
+            val api = SupabaseFriendsRealtimeService(AuthStore(context))
+            if (api.isConfigured()) {
+                api.clearPresence()
+                // FIX: also revoke active_route_shares so friends stop seeing the path
+                api.clearActiveRoute()
+            }
         }
     }
 }

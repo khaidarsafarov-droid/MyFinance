@@ -474,10 +474,12 @@ class LoadRepository(
             return SyncLoadsResult(0, "", SyncStatus.EMPTY)
         }
 
-        val tripIds = validLoads.map { normalizeTripId(it.tripId) }
+        // FIX: de-dupe within the batch so IGNORE load + always-insert stops cannot duplicate
+        val uniqueLoads = validLoads.distinctBy { normalizeTripId(it.tripId) }
+        val tripIds = uniqueLoads.map { normalizeTripId(it.tripId) }
         val existingIds = loadDao.getExistingTripIds(tripIds).map { normalizeTripId(it) }.toSet()
 
-        val toInsert = validLoads.filter { normalizeTripId(it.tripId) !in existingIds }
+        val toInsert = uniqueLoads.filter { normalizeTripId(it.tripId) !in existingIds }
         if (toInsert.isEmpty()) {
             return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
         }
@@ -487,10 +489,15 @@ class LoadRepository(
         val messageYear = messageDateSeconds
             ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
         val loadEntities = mutableListOf<LoadEntity>()
-        val stopEntities = mutableListOf<StopEntity>()
+        val stopEntitiesByLoadId = linkedMapOf<String, List<StopEntity>>()
 
         for (load in toInsert) {
-            val normalized = load.copy(tripId = normalizeTripId(load.tripId))
+            val normalized = load.copy(
+                tripId = normalizeTripId(load.tripId),
+                // FIX: set parsedAt before repair so year fallback uses the message time
+                parsedAt = parsedAt,
+                updatedAt = now,
+            )
             val repaired = LoadDateRepair.repair(normalized, anchorYearHint = messageYear)
             val dated = when {
                 repaired.date.isBlank() && messageDateSeconds != null ->
@@ -502,22 +509,35 @@ class LoadRepository(
                 updatedAt = now,
             )
             loadEntities.add(loadWithWeek.toEntity())
-            stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
+            stopEntitiesByLoadId[loadWithWeek.id] =
+                loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) }
         }
 
+        var insertedCount = 0
         db.withTransaction {
-            loadDao.insertAll(loadEntities)
+            // FIX: only insert stops for load rows that were actually inserted (not IGNORE)
+            val rowIds = loadDao.insertAll(loadEntities)
+            val stopEntities = mutableListOf<StopEntity>()
+            rowIds.forEachIndexed { index, rowId ->
+                if (rowId != -1L) {
+                    insertedCount++
+                    stopEntitiesByLoadId[loadEntities[index].id]?.let { stopEntities.addAll(it) }
+                }
+            }
             if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
+        }
+        if (insertedCount == 0) {
+            return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
         }
 
         val lastAdded = toInsert.last()
         val lastAddedText = "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"
         notifyWidgetDataChanged()
         scheduleAutoBackup()
-        if (playFeedback && toInsert.isNotEmpty()) {
+        if (playFeedback) {
             FeedbackManager.onLoadAdded()
         }
-        return SyncLoadsResult(toInsert.size, lastAddedText, SyncStatus.SUCCESS)
+        return SyncLoadsResult(insertedCount, lastAddedText, SyncStatus.SUCCESS)
     }
 
     private fun notifyWidgetDataChanged() {

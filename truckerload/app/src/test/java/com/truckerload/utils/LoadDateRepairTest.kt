@@ -33,14 +33,23 @@ class LoadDateRepairTest {
     }
 
     @Test
-    fun resolveRelayYear_farFutureMonthUsesPreviousYear() {
-        // Late July: August 15+ must not become "next month" pears for 2025 history.
+    fun resolveRelayYear_nearTermBookingKeepsLiveYear() {
+        // Late July: August 15 booking is nearer to 2026 than to Aug 2025.
         val now = Calendar.getInstance().apply {
             set(2026, Calendar.JULY, 30, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 15, 2026, now))
-        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 20, 2026, now))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 15, 2026, now))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 20, 2026, now))
+    }
+
+    @Test
+    fun resolveRelayYear_decemberToJanuaryUsesNextYear() {
+        val now = Calendar.getInstance().apply {
+            set(2025, Calendar.DECEMBER, 28, 12, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(1, 5, 2025, now))
     }
 
     @Test

@@ -28,6 +28,13 @@ class WeeklyGoalInputValidatorTest {
     }
 
     @Test
+    fun parseGoalAmount_rejectsZeroOrNegative() {
+        assertNull(WeeklyGoalInputValidator.parseGoalAmount("0"))
+        assertNull(WeeklyGoalInputValidator.parseGoalAmount("0.00"))
+        assertNull(WeeklyGoalInputValidator.parseGoalAmount("-10"))
+    }
+
+    @Test
     fun sanitize_keepsDigitsAndDecimalSeparatorsOnly() {
         assertEquals("123.45,6", WeeklyGoalInputValidator.sanitize("${'$'}123.45,6abc"))
     }

@@ -106,7 +106,8 @@ class EditLoadViewModel(
         if (state.isSaving) return
         val parsedRate = state.totalRate.toDoubleOrNull()
         val parsedMiles = state.totalMiles.toDoubleOrNull()
-        if (parsedRate == null || parsedMiles == null) {
+        // FIX: reject non-positive rate/miles that corrupt RPM and weekly totals
+        if (parsedRate == null || parsedMiles == null || parsedRate <= 0.0 || parsedMiles <= 0.0) {
             _uiState.update {
                 it.copy(saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number))
             }
