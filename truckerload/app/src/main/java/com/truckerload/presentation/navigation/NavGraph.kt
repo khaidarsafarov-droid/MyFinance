@@ -309,7 +309,6 @@ fun NavGraph(
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
-                DrawerDestination.SUPPORT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
             }
         },

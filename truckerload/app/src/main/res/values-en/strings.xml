@@ -149,7 +149,6 @@
     <string name="drawer_reports">Reports</string>
     <string name="drawer_documents">Documents</string>
     <string name="drawer_tools">Tools</string>
-    <string name="drawer_support">Support</string>
     <string name="drawer_about">About app</string>
     <string name="drawer_logout">Sign out</string>
 

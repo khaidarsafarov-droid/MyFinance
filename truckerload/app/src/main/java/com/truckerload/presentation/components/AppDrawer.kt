@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.Handyman
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -62,7 +61,6 @@ enum class DrawerDestination {
     MAINTENANCE,
     SCANNER,
     CAMERA,
-    SUPPORT,
     ABOUT,
 }
 
@@ -151,11 +149,6 @@ fun AppDrawerContent(
                     )
                 }
             }
-            drawerItem(
-                icon = Icons.Outlined.SupportAgent,
-                label = stringResource(R.string.drawer_support),
-                onClick = { onNavigate(DrawerDestination.SUPPORT); onClose() },
-            )
             drawerItem(
                 icon = Icons.Outlined.Info,
                 label = stringResource(R.string.drawer_about),
