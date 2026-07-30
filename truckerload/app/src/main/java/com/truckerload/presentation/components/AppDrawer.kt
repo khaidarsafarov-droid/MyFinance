@@ -46,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.presentation.di.LocalAuthStore
@@ -186,25 +185,23 @@ fun AppDrawerContent(
                 onClick = { onNavigate(DrawerDestination.ABOUT); onClose() },
             )
 
-            if (!BuildConfig.LOCAL_ONLY_MODE) {
-                Spacer(Modifier.weight(1f))
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = BentoGlassTheme.CardBorderMuted,
-                )
-                drawerItem(
-                    icon = Icons.AutoMirrored.Outlined.Logout,
-                    label = stringResource(R.string.drawer_logout),
-                    onClick = {
-                        onClose()
-                        showLogoutConfirm = true
-                    },
-                )
-            }
+            Spacer(Modifier.weight(1f))
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                color = BentoGlassTheme.CardBorderMuted,
+            )
+            drawerItem(
+                icon = Icons.AutoMirrored.Outlined.Logout,
+                label = stringResource(R.string.drawer_logout),
+                onClick = {
+                    onClose()
+                    showLogoutConfirm = true
+                },
+            )
         }
     }
 
-    if (showLogoutConfirm && !BuildConfig.LOCAL_ONLY_MODE) {
+    if (showLogoutConfirm) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirm = false },
             title = {

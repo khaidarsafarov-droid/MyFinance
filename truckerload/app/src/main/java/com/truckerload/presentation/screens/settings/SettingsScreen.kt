@@ -449,20 +449,18 @@ fun SettingsScreen(
 
             GoogleDriveSyncSection(tc = tc)
 
-            if (!BuildConfig.LOCAL_ONLY_MODE) {
-                BentoGlassSection(
-                    title = stringResource(R.string.settings_logout_title),
-                    subtitle = stringResource(R.string.settings_logout_desc)
+            BentoGlassSection(
+                title = stringResource(R.string.settings_logout_title),
+                subtitle = stringResource(R.string.settings_logout_desc)
+            ) {
+                OutlinedButton(
+                    onClick = { showLogoutConfirm = true },
+                    modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = { showLogoutConfirm = true },
-                        modifier = Modifier.fillMaxWidth().height(52.dp)
-                    ) {
-                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                            Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = stringResource(R.string.settings_logout_button))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.settings_logout_button))
-                        }
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = stringResource(R.string.settings_logout_button))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.settings_logout_button))
                     }
                 }
             }
@@ -510,7 +508,7 @@ fun SettingsScreen(
         )
     }
 
-    if (showLogoutConfirm && !BuildConfig.LOCAL_ONLY_MODE) {
+    if (showLogoutConfirm) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirm = false },
             title = { Text(stringResource(R.string.settings_logout_confirm_title), color = tc.TextPrimary) },

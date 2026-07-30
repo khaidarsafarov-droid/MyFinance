@@ -53,8 +53,8 @@ class GoogleSessionPersistTest {
             provider = AuthProvider.GOOGLE,
         )
 
-        // LOCAL_ONLY_MODE is true in this workspace build — restore must stay VERIFIED
-        // without launching Credential Manager (regression for "Google every launch").
+        // LOCAL_ONLY_MODE may skip cloud refresh; Google session stays VERIFIED either way
+        // (regression for "Google every launch").
         val health = kotlinx.coroutines.runBlocking {
             SilentAuthRestorer.restore(context, auth, profile)
         }

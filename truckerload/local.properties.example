@@ -1,8 +1,8 @@
 # Copy to local.properties and fill in your keys
 # sdk.dir is auto-added by Android Studio
 #
-# true = skip login (auto local_dev). For friends APK with Google/email login use false.
-# false = show Google + email/password (local on-device without Supabase; optional Supabase).
+# LOCAL_ONLY_MODE=true only disables cloud workers / Supabase client.
+# It no longer skips the login screen — entry is always Google Auth on Android.
 LOCAL_ONLY_MODE=false
 
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
@@ -23,8 +23,8 @@ TELEGRAM_SERVER_BOT_USERNAME=
 GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
 GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.googleusercontent.com
 
-# Supabase — опционально. Пусто = локальные аккаунты Google/email на устройстве.
-# Нужны только для общего аккаунта между устройствами / реальной почты.
+# Supabase — опционально. Пусто = Google-аккаунт только на устройстве.
+# Нужен для общего аккаунта между устройствами / friends live sync.
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 

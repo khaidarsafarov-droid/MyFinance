@@ -44,7 +44,8 @@
     <string name="analytics_chart_empty">Нет данных за выбранный период</string>
 
     <string name="login_title">Вход</string>
-    <string name="login_subtitle">Добро пожаловать в систему</string>
+    <string name="login_subtitle">Войдите через Google, чтобы продолжить</string>
+    <string name="login_auth_only_hint">Вход только через Google Auth. Данные хранятся локально на устройстве.</string>
     <string name="login_button">Войти</string>
     <string name="login_create_account">Создать аккаунт</string>
     <string name="login_no_account_prefix">Нет аккаунта? </string>
