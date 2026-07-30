@@ -45,7 +45,7 @@ class TelegramBotForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        isRunning.set(true)
+        isRunningFlag.set(true)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -95,7 +95,7 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onDestroy() {
-        isRunning.set(false)
+        isRunningFlag.set(false)
         startRequested.set(false)
         pollJob?.cancel()
         scope.cancel()
@@ -209,13 +209,16 @@ class TelegramBotForegroundService : Service() {
         @Volatile
         private var suppressRestart = false
 
-        private val isRunning = AtomicBoolean(false)
+        private val isRunningFlag = AtomicBoolean(false)
         private val startRequested = AtomicBoolean(false)
+
+        /** True while the foreground bot service is alive. */
+        fun isRunning(): Boolean = isRunningFlag.get()
 
         fun start(context: Context) {
             if (TelegramSyncMode.isServer()) return
             // Already alive or start already in flight — avoid startForegroundService spam.
-            if (isRunning.get() || TelegramPollCoordinator.isForegroundPolling()) return
+            if (isRunningFlag.get() || TelegramPollCoordinator.isForegroundPolling()) return
             if (!startRequested.compareAndSet(false, true)) return
             val userId = AuthStore(context).currentUserIdOrNull()
             if (userId == null) {
@@ -244,7 +247,7 @@ class TelegramBotForegroundService : Service() {
             suppressRestart = true
             startRequested.set(false)
             TelegramPollCoordinator.markForegroundPolling(false)
-            isRunning.set(false)
+            isRunningFlag.set(false)
             context.stopService(Intent(context, TelegramBotForegroundService::class.java))
         }
 

@@ -53,7 +53,10 @@ fun TelegramSettingsSection() {
     var showToken by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
-    var botActive by remember { mutableStateOf(TelegramBotForegroundService.isRunning()) }
+    // Must be Boolean: companion exposes fun isRunning(), not the private AtomicBoolean.
+    var botActive: Boolean by remember {
+        mutableStateOf(TelegramBotForegroundService.isRunning())
+    }
 
     LaunchedEffect(Unit) {
         botActive = TelegramBotForegroundService.isRunning()
@@ -127,7 +130,8 @@ fun TelegramSettingsSection() {
                                 tokenStore.setToken(token)
                                 TelegramBotForegroundService.stop(context)
                                 TelegramBotForegroundService.start(context)
-                                botActive = TelegramBotForegroundService.isRunning()
+                                val running: Boolean = TelegramBotForegroundService.isRunning()
+                                botActive = running
                                 context.getString(R.string.settings_telegram_ok, health.username.orEmpty())
                             }
                             health.isUnauthorized -> context.getString(R.string.settings_telegram_invalid)
