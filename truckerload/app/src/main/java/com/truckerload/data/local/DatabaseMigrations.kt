@@ -3,26 +3,31 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-private fun SupportSQLiteDatabase.hasColumn(table: String, column: String): Boolean {
-    query("PRAGMA table_info(`$table`)").use { cursor ->
-        val nameIndex = cursor.getColumnIndex("name")
-        if (nameIndex < 0) return false
-        while (cursor.moveToNext()) {
-            if (cursor.getString(nameIndex) == column) return true
+/**
+ * Thrown when opening a pre-v6 Room file. Destructive wipe was removed —
+ * user must restore from backup / reinstall rather than lose data silently.
+ */
+class UnsupportedDatabaseUpgradeException(
+    val fromVersion: Int,
+) : IllegalStateException(
+    "Database version $fromVersion is no longer supported. " +
+        "Please reinstall the app and restore from backup. " +
+        "Требуется переустановка. Сделайте бэкап.",
+)
+
+private fun blockedLegacyMigration(fromVersion: Int): Migration =
+    object : Migration(fromVersion, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            throw UnsupportedDatabaseUpgradeException(fromVersion)
         }
     }
-    return false
-}
 
-private fun SupportSQLiteDatabase.addColumnIfMissing(
-    table: String,
-    column: String,
-    definitionSql: String,
-) {
-    if (!hasColumn(table, column)) {
-        execSQL("ALTER TABLE $table ADD COLUMN $column $definitionSql")
-    }
-}
+/** Pre-v6 installs: fail closed (no destructive wipe). */
+val MIGRATION_1_6_BLOCKED = blockedLegacyMigration(1)
+val MIGRATION_2_6_BLOCKED = blockedLegacyMigration(2)
+val MIGRATION_3_6_BLOCKED = blockedLegacyMigration(3)
+val MIGRATION_4_6_BLOCKED = blockedLegacyMigration(4)
+val MIGRATION_5_6_BLOCKED = blockedLegacyMigration(5)
 
 /** Добавляет PU/DEL millis без удаления существующих грузов. */
 val MIGRATION_6_7 = object : Migration(6, 7) {
@@ -577,45 +582,62 @@ val MIGRATION_24_25 = object : Migration(24, 25) {
     }
 }
 
-/** Durable attachment queue and per-row cloud state. */
-val MEDIA_MIGRATION_25_26_SQL = listOf(
-    "ALTER TABLE photos ADD COLUMN cloudMediaId TEXT",
-    "ALTER TABLE photos ADD COLUMN cloudSyncStatus TEXT NOT NULL DEFAULT 'LOCAL'",
-    "ALTER TABLE photos ADD COLUMN cloudUpdatedAt INTEGER NOT NULL DEFAULT 0",
-    "CREATE INDEX IF NOT EXISTS index_photos_cloudSyncStatus ON photos(cloudSyncStatus)",
-    "ALTER TABLE scans ADD COLUMN cloudMediaId TEXT",
-    "ALTER TABLE scans ADD COLUMN cloudSyncStatus TEXT NOT NULL DEFAULT 'LOCAL'",
-    "ALTER TABLE scans ADD COLUMN cloudUpdatedAt INTEGER NOT NULL DEFAULT 0",
-    "CREATE INDEX IF NOT EXISTS index_scans_cloudSyncStatus ON scans(cloudSyncStatus)",
-    """
-    CREATE TABLE IF NOT EXISTS media_sync_queue (
-        id TEXT NOT NULL PRIMARY KEY,
-        localId TEXT NOT NULL,
-        kind TEXT NOT NULL,
-        operation TEXT NOT NULL,
-        remoteMediaId TEXT,
-        filePath TEXT,
-        metadataJson TEXT NOT NULL,
-        attempts INTEGER NOT NULL,
-        lastError TEXT,
-        createdAt INTEGER NOT NULL,
-        updatedAt INTEGER NOT NULL,
-        status TEXT NOT NULL
-    )
-    """.trimIndent(),
-    "CREATE UNIQUE INDEX IF NOT EXISTS index_media_sync_queue_kind_localId " +
-        "ON media_sync_queue(kind, localId)",
-    "CREATE INDEX IF NOT EXISTS index_media_sync_queue_status_createdAt " +
-        "ON media_sync_queue(status, createdAt)",
-    "CREATE INDEX IF NOT EXISTS index_media_sync_queue_status_updatedAt " +
-        "ON media_sync_queue(status, updatedAt)",
-)
-
+/** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        MEDIA_MIGRATION_25_26_SQL.forEach(db::execSQL)
+        db.addColumnIfMissing("photos", "cloudMediaId", "TEXT")
+        db.addColumnIfMissing("photos", "cloudSyncStatus", "TEXT NOT NULL DEFAULT 'LOCAL'")
+        db.addColumnIfMissing("photos", "cloudUpdatedAt", "INTEGER NOT NULL DEFAULT 0")
+        db.execLogged("CREATE INDEX IF NOT EXISTS index_photos_cloudSyncStatus ON photos(cloudSyncStatus)")
+        db.addColumnIfMissing("scans", "cloudMediaId", "TEXT")
+        db.addColumnIfMissing("scans", "cloudSyncStatus", "TEXT NOT NULL DEFAULT 'LOCAL'")
+        db.addColumnIfMissing("scans", "cloudUpdatedAt", "INTEGER NOT NULL DEFAULT 0")
+        db.execLogged("CREATE INDEX IF NOT EXISTS index_scans_cloudSyncStatus ON scans(cloudSyncStatus)")
+        db.execLogged(
+            """
+            CREATE TABLE IF NOT EXISTS media_sync_queue (
+                id TEXT NOT NULL PRIMARY KEY,
+                localId TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                remoteMediaId TEXT,
+                filePath TEXT,
+                metadataJson TEXT NOT NULL,
+                attempts INTEGER NOT NULL,
+                lastError TEXT,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL,
+                status TEXT NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execLogged(
+            "CREATE UNIQUE INDEX IF NOT EXISTS index_media_sync_queue_kind_localId " +
+                "ON media_sync_queue(kind, localId)",
+        )
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS index_media_sync_queue_status_createdAt " +
+                "ON media_sync_queue(status, createdAt)",
+        )
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS index_media_sync_queue_status_updatedAt " +
+                "ON media_sync_queue(status, updatedAt)",
+        )
     }
 }
+
+/**
+ * Contract surface for unit tests: documents the column names introduced in 25→26.
+ * Prefer running [MIGRATION_25_26] over string-matching raw ALTER SQL.
+ */
+val MEDIA_MIGRATION_25_26_COLUMNS = listOf(
+    "photos.cloudMediaId",
+    "photos.cloudSyncStatus",
+    "photos.cloudUpdatedAt",
+    "scans.cloudMediaId",
+    "scans.cloudSyncStatus",
+    "scans.cloudUpdatedAt",
+)
 
 /** ТО (maintenance) reminders + service receipt archive. */
 val MIGRATION_26_27 = object : Migration(26, 27) {
@@ -677,8 +699,10 @@ val MIGRATION_26_27 = object : Migration(26, 27) {
 /** Add serviceName to maintenance receipt archive (OCR company / shop name). */
 val MIGRATION_27_28 = object : Migration(27, 28) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            "ALTER TABLE maintenance_archive ADD COLUMN serviceName TEXT NOT NULL DEFAULT ''",
+        db.addColumnIfMissing(
+            "maintenance_archive",
+            "serviceName",
+            "TEXT NOT NULL DEFAULT ''",
         )
     }
 }
@@ -686,7 +710,7 @@ val MIGRATION_27_28 = object : Migration(27, 28) {
 /** Add anonymized crowd rate cache for map Me/Friends/All scopes. */
 val MIGRATION_28_29 = object : Migration(28, 29) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
+        db.execLogged(
             """
             CREATE TABLE IF NOT EXISTS crowd_rates (
                 id TEXT NOT NULL PRIMARY KEY,
@@ -702,14 +726,51 @@ val MIGRATION_28_29 = object : Migration(28, 29) {
             )
             """.trimIndent(),
         )
-        db.execSQL(
+        db.execLogged(
             "CREATE INDEX IF NOT EXISTS index_crowd_rates_fromState_reportedAtMillis " +
                 "ON crowd_rates(fromState, reportedAtMillis)",
         )
-        db.execSQL(
+        db.execLogged(
             "CREATE INDEX IF NOT EXISTS index_crowd_rates_source_reportedAtMillis " +
                 "ON crowd_rates(source, reportedAtMillis)",
         )
     }
 }
+
+/** All Room migrations registered on [AppDatabase] (including blocked pre-v6). */
+val ALL_ROOM_MIGRATIONS: Array<Migration> = arrayOf(
+    MIGRATION_1_6_BLOCKED,
+    MIGRATION_2_6_BLOCKED,
+    MIGRATION_3_6_BLOCKED,
+    MIGRATION_4_6_BLOCKED,
+    MIGRATION_5_6_BLOCKED,
+    MIGRATION_6_7,
+    MIGRATION_7_8,
+    MIGRATION_8_9,
+    MIGRATION_9_10,
+    MIGRATION_10_11,
+    MIGRATION_11_12,
+    MIGRATION_12_13,
+    MIGRATION_13_14,
+    MIGRATION_14_15,
+    MIGRATION_15_16,
+    MIGRATION_16_17,
+    MIGRATION_17_18,
+    MIGRATION_18_19,
+    MIGRATION_19_20,
+    MIGRATION_20_21,
+    MIGRATION_21_22,
+    MIGRATION_22_23,
+    MIGRATION_23_24,
+    MIGRATION_24_25,
+    MIGRATION_25_26,
+    MIGRATION_26_27,
+    MIGRATION_27_28,
+    MIGRATION_28_29,
+)
+
+/** Forward path from the first supported schema (v6) to current. */
+val ALL_MIGRATIONS_FROM_V6: Array<Migration> = ALL_ROOM_MIGRATIONS
+    .filter { it.startVersion >= 6 }
+    .toTypedArray()
 

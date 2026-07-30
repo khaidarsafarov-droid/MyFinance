@@ -572,9 +572,10 @@ class LoadRepository(
     /**
      * Fixes Relay Total Loaded Miles typos that dropped the decimal
      * (e.g. 182781 → 1827.81). Safe on session start; only rewrites absurd rows.
+     * Uses SQL prefilter (miles ≥ 10k and RPM < $0.50) instead of a full-table scan.
      */
     suspend fun repairInflatedLoadedMiles(): Int {
-        val entities = loadDao.getAllLoadsOnce()
+        val entities = loadDao.getLoadsWithSuspectInflatedMiles()
         if (entities.isEmpty()) return 0
         var fixed = 0
         for (entity in entities) {

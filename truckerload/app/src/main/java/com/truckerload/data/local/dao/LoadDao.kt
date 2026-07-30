@@ -44,6 +44,21 @@ interface LoadDao {
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     suspend fun getAllLoadsOnce(): List<LoadEntity>
 
+    /**
+     * Candidates for [ParseUtils.sanitizeLoadedMiles]: absurd miles with crushed RPM.
+     * Matches the Kotlin guard (miles ≥ 10_000 and rate/miles < 0.5).
+     * (No separate drivenMiles column — filter uses totalMiles/totalRate.)
+     */
+    @Query(
+        """
+        SELECT * FROM loads
+        WHERE totalMiles >= 10000.0
+          AND totalRate > 0.0
+          AND (totalRate / totalMiles) < 0.5
+        """,
+    )
+    suspend fun getLoadsWithSuspectInflatedMiles(): List<LoadEntity>
+
     @Query("SELECT * FROM loads ORDER BY updatedAt DESC, parsedAt DESC LIMIT :limit")
     suspend fun getLoadsForLinking(limit: Int): List<LoadEntity>
 

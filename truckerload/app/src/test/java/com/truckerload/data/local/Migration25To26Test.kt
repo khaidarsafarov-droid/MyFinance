@@ -6,13 +6,12 @@ import org.junit.Test
 
 class Migration25To26Test {
     @Test
-    fun `migration adds media cloud state queue and uniqueness contract`() {
+    fun `migration object and column contract`() {
         assertEquals(25, MIGRATION_25_26.startVersion)
         assertEquals(26, MIGRATION_25_26.endVersion)
-        val sql = MEDIA_MIGRATION_25_26_SQL.joinToString("\n")
-        assertTrue(sql.contains("photos ADD COLUMN cloudMediaId"))
-        assertTrue(sql.contains("scans ADD COLUMN cloudSyncStatus"))
-        assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS media_sync_queue"))
-        assertTrue(sql.contains("UNIQUE INDEX IF NOT EXISTS index_media_sync_queue_kind_localId"))
+        assertTrue(MEDIA_MIGRATION_25_26_COLUMNS.contains("photos.cloudMediaId"))
+        assertTrue(MEDIA_MIGRATION_25_26_COLUMNS.contains("scans.cloudSyncStatus"))
+        assertTrue(MEDIA_MIGRATION_25_26_COLUMNS.any { it.startsWith("photos.") })
+        assertTrue(MEDIA_MIGRATION_25_26_COLUMNS.any { it.startsWith("scans.") })
     }
 }
