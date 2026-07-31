@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +38,25 @@ internal fun ProfileNicknameSection() {
     val authStore = LocalAuthStore.current
     val authProfile by userProfileStore.profile.collectAsStateWithLifecycle()
     val friendsApi = remember(authStore) { SupabaseFriendsRealtimeService(authStore) }
-    var draft by remember(authProfile?.nickname) { mutableStateOf(authProfile?.nickname.orEmpty()) }
-    var editing by remember { mutableStateOf(authProfile?.nickname.isNullOrBlank()) }
+    val currentNick = authProfile?.nickname.orEmpty()
+    var draft by remember { mutableStateOf(currentNick) }
+    var editing by remember { mutableStateOf(currentNick.isBlank()) }
     var message by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val currentNick = authProfile?.nickname.orEmpty()
+
+    // Keep collapsed/expanded in sync when profile loads from prefs / Supabase.
+    LaunchedEffect(currentNick) {
+        if (currentNick.isNotBlank() && !editing) {
+            draft = currentNick
+        }
+        if (currentNick.isNotBlank() && message == "saved") {
+            editing = false
+        }
+        if (currentNick.isBlank()) {
+            editing = true
+        }
+    }
 
     BentoGlassCard(
         modifier = Modifier
@@ -101,6 +115,7 @@ internal fun ProfileNicknameSection() {
                         }
                         busy = true
                         scope.launch {
+                            // Supabase is source of truth when cloud is configured.
                             val result = if (friendsApi.isConfigured()) {
                                 friendsApi.upsertMyNickname(handle, authProfile?.displayName)
                             } else {
@@ -114,20 +129,19 @@ internal fun ProfileNicknameSection() {
                                 message = err ?: "error"
                                 return@launch
                             }
-                            // Persist locally even when cloud schema is missing so the
-                            // nickname still shows on this device until SQL is applied.
                             val current = userProfileStore.profile.value
                             if (current != null) {
                                 userProfileStore.saveProfile(current.copy(nickname = handle))
                             }
-                            message = if (
-                                err == SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
-                            ) {
-                                SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
+                            if (err == SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING) {
+                                message = SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
+                                // Keep form open until schema is applied.
+                                editing = true
                             } else {
-                                "saved"
+                                message = "saved"
+                                editing = false
+                                draft = handle
                             }
-                            editing = err != SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING
                         }
                     },
                     enabled = !busy,

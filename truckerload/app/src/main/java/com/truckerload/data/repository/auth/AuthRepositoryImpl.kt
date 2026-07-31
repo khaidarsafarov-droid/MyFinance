@@ -83,15 +83,19 @@ class AuthRepositoryImpl @Inject constructor(
                     .fold(
                         onSuccess = { signInResult ->
                             val u = signInResult.user
-                            val parts = (u.fullName ?: "${u.email?.take(10) ?: "User"}").trim().split(" ")
+                            val cloud = supabaseAuth.getProfile(signInResult.accessToken, u.id).getOrNull()
+                            val fullName = cloud?.fullName ?: u.fullName
+                            val parts = (fullName ?: "${u.email?.take(10) ?: "User"}").trim().split(" ")
                             val profile = UserProfile(
-                                email = u.email ?: credential.email,
+                                email = u.email ?: cloud?.email ?: credential.email,
                                 givenName = parts.firstOrNull() ?: credential.givenName,
                                 familyName = parts.drop(1).joinToString(" ")
                                     .ifBlank { credential.familyName },
                                 photoUrl = resolveGooglePhotoUrl(u.avatarUrl, idToken, credential.photoUrl),
                                 googleId = credential.googleId
                                     ?: decodeGoogleIdToken(idToken)?.optString("sub"),
+                                phoneNumber = cloud?.phoneNumber,
+                                nickname = cloud?.nickname,
                             )
                             return@withContext completeLoginResult(
                                 profile = profile,
@@ -181,6 +185,7 @@ class AuthRepositoryImpl @Inject constructor(
                                 familyName = parts.getOrNull(1) ?: "",
                                 photoUrl = null,
                                 phoneNumber = profile.phoneNumber,
+                                nickname = profile.nickname,
                             ),
                             supabaseUserId = r.user.id,
                             accessToken = r.accessToken,

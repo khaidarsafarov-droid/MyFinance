@@ -24,7 +24,14 @@ object AuthLogin {
             "email required for account session"
         }
         userProfileStore.bindUser(id)
-        userProfileStore.saveProfile(profile)
+        // Preserve / prefer cloud nickname; never wipe a stored handle with a blank login payload.
+        val existingNick = userProfileStore.profile.value?.nickname
+        val merged = when {
+            !profile.nickname.isNullOrBlank() -> profile
+            !existingNick.isNullOrBlank() -> profile.copy(nickname = existingNick)
+            else -> profile
+        }
+        userProfileStore.saveProfile(merged)
         // Always persist identity on disk — next cold start must not ask for login again.
         authStore.login(
             userId = id,
