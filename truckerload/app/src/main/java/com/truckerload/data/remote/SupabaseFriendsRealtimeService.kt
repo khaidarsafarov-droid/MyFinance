@@ -86,10 +86,30 @@ class SupabaseFriendsRealtimeService(
             ?: return@withContext Result.failure(IllegalStateException("no user"))
         val token = authStore.accessTokenOrNull().orEmpty()
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        // Prefer RPC that joins live profiles.nickname so friends see renames immediately.
+        val fromRpc = runCatching {
+            val req = Request.Builder()
+                .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/rpc/list_my_friend_links")
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer $token")
+                .header("Content-Type", "application/json")
+                .post("{}".toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(req).execute().use { resp ->
+                val text = resp.body?.string().orEmpty()
+                if (!resp.isSuccessful) error("list_my_friend_links HTTP ${resp.code}: $text")
+                parseFriendLinksJson(text)
+            }
+        }
+        if (fromRpc.isSuccess) return@withContext fromRpc
         val json = get(
             "friend_links?select=*&owner_id=eq.$userId&order=created_at.desc",
             token,
         ).getOrElse { return@withContext Result.failure(it) }
+        Result.success(parseFriendLinksJson(json))
+    }
+
+    private fun parseFriendLinksJson(json: String): List<FriendShareLink> {
         val arr = JSONArray(json)
         val out = ArrayList<FriendShareLink>(arr.length())
         for (i in 0 until arr.length()) {
@@ -102,7 +122,7 @@ class SupabaseFriendsRealtimeService(
                 shareMyRoute = o.optBoolean("share_my_route", true),
             )
         }
-        Result.success(out)
+        return out
     }
 
     suspend fun addFriend(hit: FriendProfileHit): Result<Unit> = withContext(Dispatchers.IO) {

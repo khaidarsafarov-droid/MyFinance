@@ -277,12 +277,17 @@ class SupabaseAuthService(private val appContext: Context) {
         }
     }
 
-    data class ProfileData(val fullName: String?, val phoneNumber: String?, val email: String?)
+    data class ProfileData(
+        val fullName: String?,
+        val phoneNumber: String?,
+        val email: String?,
+        val nickname: String? = null,
+    )
 
     /** Получить профиль из таблицы profiles по user.id */
     suspend fun getProfile(accessToken: String, userId: String): Result<ProfileData> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
-        val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/profiles?id=eq.$userId&select=full_name,phone_number,email"
+        val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/profiles?id=eq.$userId&select=full_name,phone_number,email,nickname"
         val request = Request.Builder()
             .url(url)
             .addHeader("apikey", BuildConfig.SUPABASE_ANON_KEY)
@@ -294,12 +299,13 @@ class SupabaseAuthService(private val appContext: Context) {
             val responseBody = response.body?.string() ?: ""
             if (!response.isSuccessful) return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_profile_load_error)))
             val arr = org.json.JSONArray(responseBody)
-            if (arr.length() == 0) return@withContext Result.success(ProfileData(null, null, null))
+            if (arr.length() == 0) return@withContext Result.success(ProfileData(null, null, null, null))
             val row = arr.getJSONObject(0)
             Result.success(ProfileData(
                 fullName = row.optString("full_name").takeIf { it.isNotBlank() },
                 phoneNumber = row.optString("phone_number").takeIf { it.isNotBlank() },
-                email = row.optString("email").takeIf { it.isNotBlank() }
+                email = row.optString("email").takeIf { it.isNotBlank() },
+                nickname = row.optString("nickname").takeIf { it.isNotBlank() },
             ))
         } catch (e: Exception) {
             Result.failure(e)
