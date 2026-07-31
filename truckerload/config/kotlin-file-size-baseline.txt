@@ -1,7 +1,7 @@
 # Kotlin production sources allowed above the soft limit (600 lines).
 # Format: <path-relative-to-app/> <max-lines>
 # Caps freeze growth — shrink the file and remove the entry when under 600.
-# Refreshed after merging Phase 1/2/4 onto main (v1.5.11-phase3-lint).
+# Refreshed after Phase 3 + Phase 5 merge onto main (v1.6.0-phase-complete).
 
 src/main/java/com/truckerload/presentation/screens/maintenance/MaintenanceScreen.kt 942
 src/main/java/com/truckerload/presentation/screens/stats/StatsScreen.kt 779
