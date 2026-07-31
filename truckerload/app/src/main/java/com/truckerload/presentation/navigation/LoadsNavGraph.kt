@@ -1,0 +1,80 @@
+package com.truckerload.presentation.navigation
+
+import android.net.Uri
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.remember
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.truckerload.presentation.screens.add.AddDieselScreen
+import com.truckerload.presentation.screens.add.AddLoadScreen
+import com.truckerload.presentation.screens.add.AddPaycheckScreen
+import com.truckerload.presentation.screens.detail.LoadDetailScreen
+import com.truckerload.presentation.screens.edit.EditLoadScreen
+import com.truckerload.presentation.screens.home.HomeViewModel
+
+fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
+    composable(
+        route = Routes.LOAD_DETAIL,
+        arguments = listOf(navArgument("loadId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val loadId = Uri.decode(backStackEntry.arguments?.getString("loadId").orEmpty())
+        LoadDetailScreen(
+            loadId = loadId,
+            onBack = { navController.popBackStack() },
+            onEdit = { navController.navigate(Routes.editLoad(loadId)) },
+            onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
+            onDelete = { navController.popBackStack() },
+            onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+        )
+    }
+    composable(Routes.ADD_LOAD) { addLoadEntry ->
+        val homeEntry = remember(addLoadEntry) {
+            runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
+        }
+        val homeViewModel: HomeViewModel? = homeEntry?.let {
+            hiltViewModel(it)
+        }
+        AddLoadScreen(
+            onSaved = { navController.popBackStack() },
+            onBack = { navController.popBackStack() },
+            onOptimisticInsert = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
+            onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
+        )
+    }
+    composable(
+        route = Routes.EDIT_LOAD,
+        arguments = listOf(
+            navArgument("loadId") { type = NavType.StringType },
+            navArgument("focusFinish") {
+                type = NavType.BoolType
+                defaultValue = false
+            },
+        ),
+    ) { editBackStackEntry ->
+        val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
+        val focusFinish = editBackStackEntry.arguments?.getBoolean("focusFinish") == true
+        val homeEntry = remember(editBackStackEntry) {
+            runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
+        }
+        val homeViewModel: HomeViewModel? = homeEntry?.let {
+            hiltViewModel(it)
+        }
+        EditLoadScreen(
+            loadId = loadId,
+            focusFinish = focusFinish,
+            onSaved = { navController.popBackStack() },
+            onBack = { navController.popBackStack() },
+            onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
+            onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
+        )
+    }
+    composable(Routes.ADD_PAYCHECK) {
+        AddPaycheckScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+    }
+    composable(Routes.ADD_DIESEL) {
+        AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+    }
+}

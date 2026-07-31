@@ -17,7 +17,6 @@ import com.truckerload.domain.model.Load
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
-import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.LoadDateIndex
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
@@ -39,60 +38,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.DateFormatSymbols
 import java.util.Calendar
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
-
-data class HomeUiState(
-    val loads: List<Load> = emptyList(),
-    val searchQuery: String = "",
-    val filter: LoadFilter = LoadFilter.THIS_WEEK,
-    val selectedYear: Int? = null,
-    val selectedWeekStart: String? = null,
-    val selectedWeekEnd: String? = null,
-    val selectedWeekLabel: String = "",
-    val selectedDate: String? = null,
-    val selectedDateLabel: String = "",
-    val isSearchExpanded: Boolean = false,
-    val botStatusActive: Boolean = false,
-    /** Surface non-fatal repository failures (delete/refresh). */
-    val errorMessage: String? = null,
-)
-
-data class YearSection(
-    val year: Int,
-    val loadCount: Int,
-    val totalRate: Double,
-    val totalMiles: Double,
-    val months: List<MonthSection>
-)
-
-data class MonthSection(
-    val year: Int,
-    val month: Int,
-    val monthName: String,
-    val loads: List<Load>
-)
-
-sealed class HomeListItem {
-    data class YearHeader(val section: YearSection) : HomeListItem()
-    data class MonthHeader(val section: MonthSection) : HomeListItem()
-    data class FilteredSectionHeader(val label: String, val totals: LoadFilterUseCase.Totals) : HomeListItem()
-    data class LoadItem(val load: Load) : HomeListItem()
-}
-
-/** Поля, влияющие на фильтрацию — отдельно от UI-флагов (поиск expanded и т.д.). */
-private data class HomeFilterState(
-    val filter: LoadFilter = LoadFilter.THIS_WEEK,
-    val searchQuery: String = "",
-    val selectedDate: String? = null,
-    val selectedWeekStart: String? = null,
-    val selectedWeekEnd: String? = null,
-    val selectedYear: Int? = null,
-    val selectedDateLabel: String = "",
-    val selectedWeekLabel: String = "",
-)
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
@@ -206,13 +153,6 @@ class HomeViewModel @Inject constructor(
     /** Bumped when delete dialog is cancelled so swipe cards snap back. */
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
-
-    /** Результат фильтрации: список, итоги (без полного journal для календаря). */
-    data class FilteredResult(
-        val loads: List<Load>,
-        val totals: LoadFilterUseCase.Totals,
-        val datesWithLoads: Set<String> = emptySet(),
-    )
 
     /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
@@ -458,21 +398,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun formatDateLabel(date: String): String {
-        if (date.length < 10) return date
-        val parts = date.split("-")
-        if (parts.size != 3) return date
-        val (y, m, d) = parts
-        val mi = m.toIntOrNull() ?: return date
-        val short = DateFormatSymbols(Locale.getDefault())
-            .shortMonths
-            .getOrNull((mi - 1).coerceIn(0, 11))
-            .orEmpty()
-            .replace(".", "")
-            .lowercase(Locale.getDefault())
-        return "$d $short $y"
-    }
-
     fun selectDateFromCalendar(dateMillis: Long) {
         val cal = Calendar.getInstance().apply { timeInMillis = dateMillis }
         selectDate("%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)))
@@ -490,26 +415,26 @@ class HomeViewModel @Inject constructor(
         val state = _uiState.value
         val label = when (state.filter) {
             LoadFilter.CALENDAR_DATE -> if (state.selectedDateLabel.isNotBlank()) {
-                formatFilterLabel(state.selectedDateLabel, totals.loadCount)
+                formatFilterLabel(app, state.selectedDateLabel, totals.loadCount)
             } else {
                 null
             }
             LoadFilter.CALENDAR_WEEK -> if (state.selectedWeekLabel.isNotBlank()) {
-                formatFilterLabel(state.selectedWeekLabel, totals.loadCount)
+                formatFilterLabel(app, state.selectedWeekLabel, totals.loadCount)
             } else {
                 null
             }
-            LoadFilter.YESTERDAY -> formatFilterLabel(app.getString(R.string.home_filter_yesterday), totals.loadCount)
-            LoadFilter.THIS_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_this_week), totals.loadCount)
-            LoadFilter.LAST_WEEK -> formatFilterLabel(app.getString(R.string.home_filter_last_week), totals.loadCount)
-            LoadFilter.THIS_MONTH -> formatFilterLabel(app.getString(R.string.home_filter_this_month), totals.loadCount)
-            LoadFilter.DISPUTE -> formatFilterLabel(app.getString(R.string.home_filter_dispute), totals.loadCount)
+            LoadFilter.YESTERDAY -> formatFilterLabel(app, app.getString(R.string.home_filter_yesterday), totals.loadCount)
+            LoadFilter.THIS_WEEK -> formatFilterLabel(app, app.getString(R.string.home_filter_this_week), totals.loadCount)
+            LoadFilter.LAST_WEEK -> formatFilterLabel(app, app.getString(R.string.home_filter_last_week), totals.loadCount)
+            LoadFilter.THIS_MONTH -> formatFilterLabel(app, app.getString(R.string.home_filter_this_month), totals.loadCount)
+            LoadFilter.DISPUTE -> formatFilterLabel(app, app.getString(R.string.home_filter_dispute), totals.loadCount)
             LoadFilter.ALL -> if (state.selectedYear != null) {
                 app.getString(
                     R.string.home_year_selected_header,
                     state.selectedYear ?: Calendar.getInstance().get(Calendar.YEAR),
                     totals.loadCount,
-                    loadWord(totals.loadCount),
+                    loadWord(app, totals.loadCount),
                 )
             } else {
                 null
@@ -524,92 +449,6 @@ class HomeViewModel @Inject constructor(
         totals: LoadFilterUseCase.Totals
     ): List<HomeListItem> {
         val state = _uiState.value
-
-        if (state.filter != LoadFilter.ALL) {
-            return filteredLoads.map { HomeListItem.LoadItem(it) }
-        }
-
-        if (state.selectedYear != null) {
-            // Period summary already shows year totals — avoid a second "Всего N • $ • mi" block.
-            val sections = buildYearMonthSections(dedupeByTripId(filteredLoads))
-            val result = mutableListOf<HomeListItem>()
-            for (ys in sections) {
-                for (ms in ys.months) {
-                    result.add(HomeListItem.MonthHeader(ms))
-                    result.addAll(ms.loads.map { HomeListItem.LoadItem(it) })
-                }
-            }
-            return result
-        }
-
-        val sections = groupedLoadsByYearMonth(dedupeByTripId(filteredLoads))
-        val result = mutableListOf<HomeListItem>()
-        for (yearSection in sections) {
-            result.add(HomeListItem.YearHeader(yearSection))
-            for (monthSection in yearSection.months) {
-                result.add(HomeListItem.MonthHeader(monthSection))
-                result.addAll(monthSection.loads.map { HomeListItem.LoadItem(it) })
-            }
-        }
-        return result
-    }
-
-    private fun dedupeByTripId(loads: List<Load>): List<Load> {
-        if (loads.isEmpty()) return loads
-        val seen = LinkedHashSet<String>()
-        return loads.filter { load ->
-            val key = load.tripId.ifBlank { load.id }
-            seen.add(key)
-        }
-    }
-
-    private fun loadWord(n: Int): String = when {
-        n % 10 == 1 && n % 100 != 11 -> app.getString(R.string.home_load_word_one)
-        n % 10 in 2..4 && (n % 100 < 10 || n % 100 >= 20) -> app.getString(R.string.home_load_word_few)
-        else -> app.getString(R.string.home_load_word_many)
-    }
-
-    private fun formatFilterLabel(baseLabel: String, count: Int): String =
-        app.getString(R.string.home_filter_label_with_count, baseLabel, count, loadWord(count))
-
-    private fun monthName(month: Int): String {
-        val long = DateFormatSymbols(Locale.getDefault())
-            .months
-            .getOrNull((month - 1).coerceIn(0, 11))
-            .orEmpty()
-        return long.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    }
-
-    private fun groupedLoadsByYearMonth(loads: List<Load>): List<YearSection> {
-        if (loads.isEmpty()) return emptyList()
-        val unique = dedupeByTripId(loads)
-        val byYear = unique.groupBy { load ->
-            if (load.date.length >= 4) load.date.substring(0, 4).toIntOrNull() ?: 0 else 0
-        }.filterKeys { it > 0 }
-
-        return byYear.keys.sortedDescending().map { year ->
-            val yearLoads = byYear[year] ?: emptyList()
-            val byMonth = yearLoads.groupBy { load ->
-                if (load.date.length >= 7) load.date.substring(5, 7).toIntOrNull() ?: 0 else 0
-            }.filterKeys { it in 1..12 }
-
-            val monthSections = byMonth.keys.sortedDescending().map { month ->
-                val monthLoads = (byMonth[month] ?: emptyList())
-                    .sortedWith(compareByDescending<Load> { it.date }.thenByDescending { it.parsedAt })
-                MonthSection(year, month, monthName(month), monthLoads)
-            }
-            YearSection(
-                year,
-                yearLoads.size,
-                yearLoads.sumOf { it.totalRate },
-                yearLoads.sumOf { it.totalMiles },
-                monthSections,
-            )
-        }
-    }
-
-    private fun buildYearMonthSections(loads: List<Load>): List<YearSection> {
-        if (loads.isEmpty()) return emptyList()
-        return groupedLoadsByYearMonth(loads)
+        return flattenedListItems(state.filter, state.selectedYear, filteredLoads)
     }
 }
