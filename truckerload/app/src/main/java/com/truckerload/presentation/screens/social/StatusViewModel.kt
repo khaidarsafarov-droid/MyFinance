@@ -1,37 +1,19 @@
-@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
-import android.net.Uri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.ChatType
-import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.DriverStatus
-import com.truckerload.domain.social.SocialChat
-import com.truckerload.domain.social.SocialMessage
-import com.truckerload.domain.social.SocialPeerProfile
-import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.getOrNull
-import com.truckerload.domain.social.GroupInviteCode
-import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.data.repository.social.StatusRepository
+import com.truckerload.domain.social.SocialResult
 
 data class StatusUiState(
     val statuses: List<com.truckerload.domain.social.DriverStatusPost> = emptyList(),
@@ -43,7 +25,8 @@ data class StatusUiState(
 
 @HiltViewModel
 class StatusViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val statusRepository: StatusRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
     private val _input = MutableStateFlow("")
     private val _isRecordingVoice = MutableStateFlow(false)
@@ -51,7 +34,7 @@ class StatusViewModel @Inject constructor(
 
     val uiState: StateFlow<StatusUiState> =
         combine(
-            socialRepository.watchFriendStatuses(),
+            statusRepository.watchFriendStatuses(),
             _input,
             _isRecordingVoice,
             _errorMessage,
@@ -65,7 +48,7 @@ class StatusViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatusUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun setInput(text: String) {
@@ -76,7 +59,7 @@ class StatusViewModel @Inject constructor(
         val text = _input.value.trim()
         if (text.isBlank()) return
         viewModelScope.launch {
-            socialRepository.createTextStatus(text, displayName)
+            statusRepository.createTextStatus(text, displayName)
             _input.value = ""
         }
     }
@@ -84,7 +67,7 @@ class StatusViewModel @Inject constructor(
     fun postPhotoStatus(bitmap: android.graphics.Bitmap, displayName: String, caption: String = "") {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPhotoStatus(bitmap, displayName, caption)) {
+            when (val result = statusRepository.createPhotoStatus(bitmap, displayName, caption)) {
                 is SocialResult.Success -> Unit
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -94,7 +77,7 @@ class StatusViewModel @Inject constructor(
     fun postVoiceStatus(audioFile: java.io.File, durationMs: Long, displayName: String) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createVoiceStatus(audioFile, durationMs, displayName)) {
+            when (val result = statusRepository.createVoiceStatus(audioFile, durationMs, displayName)) {
                 is SocialResult.Success -> Unit
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -110,6 +93,6 @@ class StatusViewModel @Inject constructor(
     }
 
     fun markViewed(statusId: String) {
-        viewModelScope.launch { socialRepository.markStatusViewed(statusId) }
+        viewModelScope.launch { statusRepository.markStatusViewed(statusId) }
     }
 }

@@ -2,36 +2,22 @@
 
 package com.truckerload.presentation.screens.social
 
-import android.graphics.Bitmap
-import android.net.Uri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.ChatType
-import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.DriverStatus
-import com.truckerload.domain.social.SocialChat
-import com.truckerload.domain.social.SocialMessage
-import com.truckerload.domain.social.SocialPeerProfile
-import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.getOrNull
-import com.truckerload.domain.social.GroupInviteCode
-import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.Challenge
+import com.truckerload.domain.social.LeaderboardCategory
+import com.truckerload.domain.social.SocialResult
 
 data class CommunityUiState(
     val challenge: Challenge? = null,
@@ -43,7 +29,8 @@ data class CommunityUiState(
 
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CommunityUiState())
@@ -52,17 +39,17 @@ class CommunityViewModel @Inject constructor(
     private val leaderboardCategory = MutableStateFlow(LeaderboardCategory.OVERALL)
 
     val leaderboard = leaderboardCategory
-        .flatMapLatest { category -> socialRepository.watchLeaderboard(category) }
+        .flatMapLatest { category -> profileRepository.watchLeaderboard(category) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                socialRepository.ensureInitialized()
+                socialSyncCoordinator.ensureInitialized()
                 _state.value = _state.value.copy(
-                    challenge = socialRepository.weeklyChallenge(),
-                    challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                    challenge = profileRepository.weeklyChallenge(),
+                    challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                     isLoading = false,
                     errorMessage = null,
                 )
@@ -81,8 +68,8 @@ class CommunityViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             runCatching {
                 _state.value = _state.value.copy(
-                    challenge = socialRepository.weeklyChallenge(),
-                    challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                    challenge = profileRepository.weeklyChallenge(),
+                    challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                     isLoading = false,
                     errorMessage = null,
                 )
@@ -95,17 +82,17 @@ class CommunityViewModel @Inject constructor(
     fun joinChallenge() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isJoiningChallenge = true, errorMessage = null)
-            when (val result = socialRepository.joinWeeklyChallenge()) {
+            when (val result = profileRepository.joinWeeklyChallenge()) {
                 is SocialResult.Success -> {
                     _state.value = _state.value.copy(
-                        challenge = socialRepository.weeklyChallenge(),
+                        challenge = profileRepository.weeklyChallenge(),
                         challengeJoined = true,
                         isJoiningChallenge = false,
                     )
                 }
                 is SocialResult.Error -> {
                     _state.value = _state.value.copy(
-                        challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                        challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                         isJoiningChallenge = false,
                         errorMessage = result.message,
                     )

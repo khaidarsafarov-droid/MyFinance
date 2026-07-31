@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalProfileRepository
+import com.truckerload.presentation.di.LocalSocialSyncCoordinator
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.screens.home.HomeViewModel
 import androidx.compose.ui.Alignment
@@ -171,7 +172,8 @@ fun NavGraph(
         return
     }
 
-    val socialRepository = LocalSocialRepository.current
+    val profileRepository = LocalProfileRepository.current
+    val socialSyncCoordinator = LocalSocialSyncCoordinator.current
     val userProfileStore = LocalUserProfileStore.current
     val setupComplete by userProfileStore.setupComplete.collectAsStateWithLifecycle()
     val authEmail by authStore.email.collectAsStateWithLifecycle()
@@ -196,11 +198,11 @@ fun NavGraph(
                 provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
                 authEmail.isNotBlank() &&
                 emailVerifyStore.isPending(authEmail)
-            launch { socialRepository.ensureInitialized() }
+            launch { socialSyncCoordinator.ensureInitialized() }
             return@LaunchedEffect
         }
-        socialRepository.ensureInitialized()
-        val setup = socialRepository.needsProfileSetup()
+        socialSyncCoordinator.ensureInitialized()
+        val setup = profileRepository.needsProfileSetup()
         needsSetup = setup
         if (setup) {
             needsEmailVerify = false
@@ -403,7 +405,7 @@ fun NavGraph(
             ) { backStackEntry ->
                 val peerId = backStackEntry.arguments?.getString("peerId").orEmpty()
                 val voiceRepository = LocalVoiceRepository.current
-                val socialRepository = LocalSocialRepository.current
+                val profileRepository = LocalProfileRepository.current
                 val scope = rememberCoroutineScope()
                 val callerFallbackName = stringResource(R.string.social_you)
                 PeerProfileScreen(
@@ -412,7 +414,7 @@ fun NavGraph(
                     onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
                     onStartCall = { calleeId, calleeName ->
                         scope.launch {
-                            val callerName = socialRepository.watchMyProfile().first().displayName.ifBlank { callerFallbackName }
+                            val callerName = profileRepository.watchMyProfile().first().displayName.ifBlank { callerFallbackName }
                             voiceRepository.startCall(calleeId, calleeName, callerName)
                                 .getOrNull()
                                 ?.let { call -> navController.navigate(Routes.call(call.callId)) }

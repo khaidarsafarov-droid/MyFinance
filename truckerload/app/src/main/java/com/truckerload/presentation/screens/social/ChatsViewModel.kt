@@ -2,36 +2,24 @@
 
 package com.truckerload.presentation.screens.social
 
-import android.graphics.Bitmap
-import android.net.Uri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.ChatType
-import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.DriverStatus
-import com.truckerload.domain.social.SocialChat
-import com.truckerload.domain.social.SocialMessage
-import com.truckerload.domain.social.SocialPeerProfile
-import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.getOrNull
-import com.truckerload.domain.social.GroupInviteCode
-import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.GroupRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.ChatType
+import com.truckerload.domain.social.SocialChat
+import com.truckerload.domain.social.SocialPeerProfile
+import com.truckerload.domain.social.SocialResult
 
 data class ChatsUiState(
     val chats: List<SocialChat> = emptyList(),
@@ -46,7 +34,9 @@ data class ChatsUiState(
 
 @HiltViewModel
 class ChatsViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val chatRepository: ChatRepository,
+    private val groupRepository: GroupRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
@@ -54,9 +44,9 @@ class ChatsViewModel @Inject constructor(
 
     val uiState: StateFlow<ChatsUiState> =
         combine(
-            searchQuery.flatMapLatest { query -> socialRepository.watchChatsSearch(query) },
-            socialRepository.watchTotalUnread(),
-            socialRepository.watchPeers(),
+            searchQuery.flatMapLatest { query -> chatRepository.watchChatsSearch(query) },
+            chatRepository.watchTotalUnread(),
+            chatRepository.watchPeers(),
             searchQuery,
             _errorMessage,
         ) { chats, unread, peers, query, error ->
@@ -72,7 +62,7 @@ class ChatsViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChatsUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun setSearchQuery(query: String) {
@@ -84,7 +74,7 @@ class ChatsViewModel @Inject constructor(
         if (trimmed.isBlank()) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createGroupChat(trimmed)) {
+            when (val result = groupRepository.createGroupChat(trimmed)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -96,7 +86,7 @@ class ChatsViewModel @Inject constructor(
         if (trimmed.isBlank()) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPrivateChat(trimmed)) {
+            when (val result = chatRepository.createPrivateChat(trimmed)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -106,7 +96,7 @@ class ChatsViewModel @Inject constructor(
     fun createPrivateChatWithPeer(peerId: String, onCreated: (String) -> Unit) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPrivateChatWithPeer(peerId)) {
+            when (val result = chatRepository.createPrivateChatWithPeer(peerId)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }

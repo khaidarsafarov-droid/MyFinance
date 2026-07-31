@@ -1,37 +1,26 @@
-@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.ChatType
-import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.DriverStatus
-import com.truckerload.domain.social.SocialChat
-import com.truckerload.domain.social.SocialMessage
-import com.truckerload.domain.social.SocialPeerProfile
-import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.getOrNull
-import com.truckerload.domain.social.GroupInviteCode
-import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.MediaRepository
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialConstants
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.SocialMessage
+import com.truckerload.domain.social.SocialResult
+import com.truckerload.domain.social.getOrNull
 
 data class SocialChatUiState(
     val chatTitle: String = "",
@@ -53,7 +42,10 @@ data class SocialChatUiState(
 @HiltViewModel
 class SocialChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val socialRepository: SocialRepository,
+    private val chatRepository: ChatRepository,
+    private val profileRepository: ProfileRepository,
+    private val mediaRepository: MediaRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val chatId = Uri.decode(savedStateHandle.get<String>("chatId").orEmpty())
@@ -75,10 +67,10 @@ class SocialChatViewModel @Inject constructor(
 
     val uiState: StateFlow<SocialChatUiState> =
         combine(
-            socialRepository.watchMessages(chatId),
+            chatRepository.watchMessages(chatId),
             _input,
             _meta,
-            socialRepository.watchMyProfile(),
+            profileRepository.watchMyProfile(),
         ) { messages, input, meta, profile ->
             SocialChatUiState(
                 chatTitle = meta.title,
@@ -100,9 +92,9 @@ class SocialChatViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            socialRepository.ensureInitialized()
-            socialRepository.markChatRead(chatId)
-            val chat = socialRepository.getChat(chatId)
+            socialSyncCoordinator.ensureInitialized()
+            chatRepository.markChatRead(chatId)
+            val chat = chatRepository.getChat(chatId)
             _meta.value = _meta.value.copy(
                 title = chat?.title ?: "",
                 participantCount = chat?.participantCount ?: 0,
@@ -115,7 +107,7 @@ class SocialChatViewModel @Inject constructor(
 
     private suspend fun refreshHasMore() {
         val currentOldest = uiState.value.allMessages.firstOrNull()?.sentAt ?: return
-        val page = socialRepository.loadMoreMessages(chatId, currentOldest).getOrNull().orEmpty()
+        val page = chatRepository.loadMoreMessages(chatId, currentOldest).getOrNull().orEmpty()
         _meta.value = _meta.value.copy(hasMore = page.isNotEmpty())
     }
 
@@ -129,7 +121,7 @@ class SocialChatViewModel @Inject constructor(
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Me" }
             val replyId = _meta.value.replyTo?.id
-            when (val result = socialRepository.sendMessage(chatId, text, name, replyToId = replyId)) {
+            when (val result = chatRepository.sendMessage(chatId, text, name, replyToId = replyId)) {
                 is SocialResult.Success -> {
                     _input.value = ""
                     _meta.value = _meta.value.copy(replyTo = null, errorMessage = null)
@@ -144,14 +136,14 @@ class SocialChatViewModel @Inject constructor(
     fun sendImage(bitmap: android.graphics.Bitmap, caption: String = "") {
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Me" }
-            socialRepository.sendImageMessage(chatId, bitmap, caption, name)
+            mediaRepository.sendImageMessage(chatId, bitmap, caption, name)
         }
     }
 
     fun sendVoiceNote(file: java.io.File, durationMs: Long) {
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Me" }
-            socialRepository.sendVoiceMessage(chatId, file, durationMs, name)
+            mediaRepository.sendVoiceMessage(chatId, file, durationMs, name)
         }
     }
 
@@ -165,7 +157,7 @@ class SocialChatViewModel @Inject constructor(
 
     fun addReaction(messageId: String, reaction: String) {
         viewModelScope.launch {
-            socialRepository.addReaction(messageId, reaction)
+            chatRepository.addReaction(messageId, reaction)
         }
     }
 
@@ -174,7 +166,7 @@ class SocialChatViewModel @Inject constructor(
         val oldest = uiState.value.allMessages.firstOrNull()?.sentAt ?: return
         viewModelScope.launch {
             _meta.value = _meta.value.copy(isLoadingMore = true)
-            when (val result = socialRepository.loadMoreMessages(chatId, oldest)) {
+            when (val result = chatRepository.loadMoreMessages(chatId, oldest)) {
                 is SocialResult.Success -> {
                     val batch = result.data
                     if (batch.isNotEmpty()) {
@@ -183,7 +175,7 @@ class SocialChatViewModel @Inject constructor(
                         )
                     }
                     _meta.value = _meta.value.copy(
-                        hasMore = batch.size >= SocialRepository.MESSAGE_PAGE_SIZE,
+                        hasMore = batch.size >= SocialConstants.MESSAGE_PAGE_SIZE,
                         isLoadingMore = false,
                     )
                 }

@@ -4,7 +4,6 @@ import android.content.Context
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.SocialRepository
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.ChatRepositoryImpl
 import com.truckerload.data.repository.social.GroupRepository
@@ -28,7 +27,7 @@ import com.truckerload.data.social.RecommendationService
  * Hilt cannot `@InstallIn(UserComponent::class)` because [UserComponent] is a hand-rolled
  * session graph; this factory is invoked from [UserComponent.create].
  */
-object SocialRepositoryModule {
+object SocialGraphModule {
 
     @UserScope
     data class Bundle(
@@ -38,7 +37,6 @@ object SocialRepositoryModule {
         val status: StatusRepository,
         val media: MediaRepository,
         val syncCoordinator: SocialSyncCoordinator,
-        val facade: SocialRepository,
     )
 
     fun create(
@@ -116,14 +114,6 @@ object SocialRepositoryModule {
             statusRepository = statusRepository,
             seedHelper = seedHelper,
         )
-        val facade = SocialRepository(
-            profile = profileRepository,
-            chat = chatRepository,
-            group = groupRepository,
-            status = statusRepository,
-            media = mediaRepository,
-            syncCoordinator = syncCoordinator,
-        )
         return Bundle(
             profile = profileRepository,
             chat = chatRepository,
@@ -131,7 +121,6 @@ object SocialRepositoryModule {
             status = statusRepository,
             media = mediaRepository,
             syncCoordinator = syncCoordinator,
-            facade = facade,
         )
     }
 }

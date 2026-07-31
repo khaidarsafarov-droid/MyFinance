@@ -38,8 +38,11 @@ val LocalPhotoRepository = compositionLocalOf<com.truckerload.data.repository.Ph
 val LocalScanRepository = compositionLocalOf<com.truckerload.data.repository.ScanRepository> {
     error("No ScanRepository provided")
 }
-val LocalSocialRepository = compositionLocalOf<com.truckerload.data.repository.SocialRepository> {
-    error("No SocialRepository provided")
+val LocalProfileRepository = compositionLocalOf<com.truckerload.data.repository.social.ProfileRepository> {
+    error("No ProfileRepository provided")
+}
+val LocalSocialSyncCoordinator = compositionLocalOf<com.truckerload.data.repository.social.SocialSyncCoordinator> {
+    error("No SocialSyncCoordinator provided")
 }
 val LocalVoiceRepository = compositionLocalOf<com.truckerload.data.repository.VoiceRepository> {
     error("No VoiceRepository provided")

@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
+import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
@@ -86,7 +86,7 @@ data class VoiceRoomUiState(
 class VoiceRoomViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val voiceRepository: VoiceRepository,
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel() {
     private val roomId = Uri.decode(savedStateHandle.get<String>("roomId").orEmpty())
     private val _local = MutableStateFlow(VoiceRoomUiState())
@@ -105,7 +105,7 @@ class VoiceRoomViewModel @Inject constructor(
         }
         viewModelScope.launch {
             combine(
-                socialRepository.watchMyEnhancedProfile(),
+                profileRepository.watchMyEnhancedProfile(),
                 voiceRepository.watchRoom(roomId, ""),
             ) { profile, room ->
                 profile.displayName to room

@@ -44,8 +44,11 @@ class HiltArchitectureTest {
             codeOnly.contains("@Singleton"),
         )
         assertTrue(source.contains("fun provideLoadRepository"))
-        assertTrue(source.contains("fun provideSocialRepository"))
+        assertTrue(source.contains("fun provideProfileRepository"))
+        assertTrue(source.contains("fun provideChatRepository"))
+        assertTrue(source.contains("fun provideSocialSyncCoordinator"))
         assertTrue(source.contains("fun provideAppDatabase"))
+        assertFalse(source.contains("fun provideSocial" + "Repository"))
     }
 
     @Test

@@ -57,7 +57,8 @@ import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
 import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalProfileRepository
+import com.truckerload.presentation.di.LocalSocialSyncCoordinator
 import com.truckerload.presentation.di.LocalStatsSelectionStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalVoiceRepository
@@ -249,7 +250,8 @@ class MainActivity : AppCompatActivity() {
                                     LocalAnalyticsRepository provides deps.analyticsRepository,
                                     LocalPhotoRepository provides deps.photoRepository,
                                     LocalScanRepository provides deps.scanRepository,
-                                    LocalSocialRepository provides deps.socialRepository,
+                                    LocalProfileRepository provides deps.profileRepository,
+                                    LocalSocialSyncCoordinator provides deps.socialSyncCoordinator,
                                     LocalVoiceRepository provides deps.voiceRepository,
                                     LocalMaintenanceRepository provides deps.maintenanceRepository,
                                 ) {

@@ -1,6 +1,7 @@
 package com.truckerload.di
 
 import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
@@ -14,13 +15,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.core.app.ApplicationProvider
 
 /**
- * Verifies account-scoped social repositories wire correctly through [SocialRepositoryModule].
+ * Verifies account-scoped social repositories wire correctly through [SocialGraphModule].
  */
 @RunWith(AndroidJUnit4::class)
-class SocialRepositoryModuleInstrumentedTest {
+class SocialGraphModuleInstrumentedTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val userId = "social_repo_module_test"
@@ -44,7 +44,7 @@ class SocialRepositoryModuleInstrumentedTest {
         val db = AppDatabase.getInstance(context, userId)
         val loadRepository = LoadRepository(db)
 
-        val bundle = SocialRepositoryModule.create(
+        val bundle = SocialGraphModule.create(
             context = context,
             db = db,
             loadRepository = loadRepository,
@@ -57,19 +57,19 @@ class SocialRepositoryModuleInstrumentedTest {
     }
 
     @Test
-    fun facade_delegatesEnsureInitialized() = runBlocking {
+    fun syncCoordinator_ensureInitialized() = runBlocking {
         val userProfileStore = UserProfileStore(context)
         userProfileStore.bindUser(userId)
         val db = AppDatabase.getInstance(context, userId)
         val loadRepository = LoadRepository(db)
-        val bundle = SocialRepositoryModule.create(
+        val bundle = SocialGraphModule.create(
             context = context,
             db = db,
             loadRepository = loadRepository,
             userProfileStore = userProfileStore,
         )
 
-        bundle.facade.ensureInitialized()
+        bundle.syncCoordinator.ensureInitialized()
         assertNotNull(bundle.profile.watchMyProfile())
     }
 }

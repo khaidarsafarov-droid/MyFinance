@@ -1,37 +1,24 @@
-@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-
 package com.truckerload.presentation.screens.social
 
 import android.graphics.Bitmap
-import android.net.Uri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.ChatType
-import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.DriverStatus
-import com.truckerload.domain.social.SocialChat
-import com.truckerload.domain.social.SocialMessage
-import com.truckerload.domain.social.SocialPeerProfile
-import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.getOrNull
-import com.truckerload.domain.social.GroupInviteCode
-import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.DriverStatus
+import com.truckerload.domain.social.EnhancedDriverProfile
+import com.truckerload.domain.social.SocialResult
 
 data class ProfileUiState(
     val profile: EnhancedDriverProfile? = null,
@@ -43,14 +30,15 @@ data class ProfileUiState(
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val _avatarActionState = MutableStateFlow(AvatarActionState())
 
     val uiState: StateFlow<ProfileUiState> =
         combine(
-            socialRepository.watchMyEnhancedProfile(),
+            profileRepository.watchMyEnhancedProfile(),
             _avatarActionState,
         ) { profile, avatarState ->
             ProfileUiState(
@@ -64,7 +52,7 @@ class ProfileViewModel @Inject constructor(
     val editState: StateFlow<ProfileUiState?> = _editState.asStateFlow()
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun startEdit() {
@@ -78,7 +66,7 @@ class ProfileViewModel @Inject constructor(
     fun uploadAvatar(bitmap: Bitmap) {
         viewModelScope.launch {
             _avatarActionState.update { it.copy(isUploading = true, error = null) }
-            when (val result = socialRepository.uploadAvatar(bitmap)) {
+            when (val result = profileRepository.uploadAvatar(bitmap)) {
                 is SocialResult.Success -> _avatarActionState.update { it.copy(isUploading = false) }
                 is SocialResult.Error -> _avatarActionState.update {
                     it.copy(isUploading = false, error = result.message)
@@ -90,7 +78,7 @@ class ProfileViewModel @Inject constructor(
     fun removeAvatar() {
         viewModelScope.launch {
             _avatarActionState.update { it.copy(isUploading = true, error = null) }
-            when (val result = socialRepository.removeAvatar()) {
+            when (val result = profileRepository.removeAvatar()) {
                 is SocialResult.Success -> _avatarActionState.update { it.copy(isUploading = false) }
                 is SocialResult.Error -> _avatarActionState.update {
                     it.copy(isUploading = false, error = result.message)
@@ -119,7 +107,7 @@ class ProfileViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _editState.value = _editState.value?.copy(isSaving = true, saveError = null)
-            when (val result = socialRepository.updateProfile(
+            when (val result = profileRepository.updateProfile(
                     displayName = displayName.trim(),
                     truckType = truckType.trim(),
                     experienceYears = experienceYears.coerceAtLeast(0),

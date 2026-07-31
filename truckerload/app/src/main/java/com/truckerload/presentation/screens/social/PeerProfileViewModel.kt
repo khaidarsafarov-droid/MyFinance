@@ -2,36 +2,23 @@
 
 package com.truckerload.presentation.screens.social
 
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.ChatType
-import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.DriverStatus
-import com.truckerload.domain.social.SocialChat
-import com.truckerload.domain.social.SocialMessage
-import com.truckerload.domain.social.SocialPeerProfile
-import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.getOrNull
-import com.truckerload.domain.social.GroupInviteCode
-import com.truckerload.domain.social.LeaderboardCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.SocialPeerProfile
+import com.truckerload.domain.social.SocialResult
 
 data class PeerProfileUiState(
     val peer: com.truckerload.domain.social.SocialPeerProfile? = null,
@@ -45,7 +32,9 @@ data class PeerProfileUiState(
 @HiltViewModel
 class PeerProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
+    private val chatRepository: ChatRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
     private val peerId = Uri.decode(savedStateHandle.get<String>("peerId").orEmpty())
     private val _followUpdating = MutableStateFlow(false)
@@ -56,9 +45,9 @@ class PeerProfileViewModel @Inject constructor(
     val uiState: StateFlow<PeerProfileUiState> =
         combine(
             combine(
-                socialRepository.watchPeer(peerId),
-                socialRepository.watchIsFollowing(peerId),
-                socialRepository.watchIsBlocked(peerId),
+                profileRepository.watchPeer(peerId),
+                profileRepository.watchIsFollowing(peerId),
+                profileRepository.watchIsBlocked(peerId),
             ) { peer, isFollowing, isBlocked -> Triple(peer, isFollowing, isBlocked) },
             combine(_followUpdating, _blocking, _errorMessage) { updating, blocking, error ->
                 Triple(updating, blocking, error)
@@ -75,7 +64,7 @@ class PeerProfileViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PeerProfileUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun toggleFollow() {
@@ -83,9 +72,9 @@ class PeerProfileViewModel @Inject constructor(
             _followUpdating.value = true
             _errorMessage.value = null
             val result = if (uiState.value.isFollowing) {
-                socialRepository.unfollowDriver(peerId)
+                profileRepository.unfollowDriver(peerId)
             } else {
-                socialRepository.followDriver(peerId)
+                profileRepository.followDriver(peerId)
             }
             if (result is SocialResult.Error) {
                 _errorMessage.value = result.message
@@ -99,9 +88,9 @@ class PeerProfileViewModel @Inject constructor(
             _blocking.value = true
             _errorMessage.value = null
             val result = if (uiState.value.isBlocked) {
-                socialRepository.unblockUser(peerId)
+                profileRepository.unblockUser(peerId)
             } else {
-                socialRepository.blockUser(peerId)
+                profileRepository.blockUser(peerId)
             }
             if (result is SocialResult.Error) {
                 _errorMessage.value = result.message
@@ -113,7 +102,7 @@ class PeerProfileViewModel @Inject constructor(
     fun startPrivateChat(onCreated: (String) -> Unit) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPrivateChatWithPeer(peerId)) {
+            when (val result = chatRepository.createPrivateChatWithPeer(peerId)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
