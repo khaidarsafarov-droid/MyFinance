@@ -1,5 +1,4 @@
 # Kotlin production sources allowed above the soft limit (600 lines).
 # Format: <path-relative-to-app/> <max-lines>
 # Caps freeze growth — shrink the file and remove the entry when under 600.
-# Cleared after Phase 3.7 presentation splits + DatabaseMigrations band split (v1.6.0-legacy-audit-complete).
-
+# Cleared after Phase 3.7 presentation splits + DatabaseMigrations band split (v1.6.0-legacy-audit-complete / v1.6.1-baseline-clean).
