@@ -3,6 +3,8 @@ package com.truckerload.domain.friends
 import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
+import com.truckerload.utils.getFirstPickUpMillis
+import com.truckerload.utils.getWeekNumberAndYearFromDate
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -51,7 +53,7 @@ data class RouteOverlapMatch(
 
 /**
  * Picks the load that is "in progress" for map routing:
- * today ∈ [startDate, endDate] and not completed.
+ * now ∈ [first PU clock, finish clock], preferring this reporting week's loads.
  */
 object ActiveLoadSelector {
 
@@ -78,50 +80,64 @@ object ActiveLoadSelector {
         if (isExplicitlyCompleted(load, today)) return SharedLoadStatus.COMPLETED
         val start = parseDate(startDateIso(load)) ?: return SharedLoadStatus.UNKNOWN
         val end = parseDate(endDateIso(load)) ?: return SharedLoadStatus.UNKNOWN
-        return when {
-            today.isBefore(start) -> SharedLoadStatus.FUTURE
-            today.isAfter(end) -> SharedLoadStatus.COMPLETED
-            // Finish day only: after last DEL / finish clock, drop the live route.
-            // Mid-trip days (today < end) stay ACTIVE even if wall-clock is later.
-            today == end -> {
-                val finishMs = LoadYieldCalculator.resolveFinishMillis(load)
-                if (finishMs != null && nowMillis >= finishMs) {
-                    SharedLoadStatus.COMPLETED
-                } else {
-                    SharedLoadStatus.ACTIVE
-                }
-            }
-            else -> SharedLoadStatus.ACTIVE
+        when {
+            today.isBefore(start) -> return SharedLoadStatus.FUTURE
+            today.isAfter(end) -> return SharedLoadStatus.COMPLETED
         }
+        // Before first PU clock → not live yet (e.g. evening PU while waiting midday).
+        val startMs = getFirstPickUpMillis(load)
+        if (startMs != null && nowMillis < startMs) return SharedLoadStatus.FUTURE
+        // After last DEL / finish override clock → route off.
+        val finishMs = LoadYieldCalculator.resolveFinishMillis(load)
+        if (finishMs != null && nowMillis >= finishMs) return SharedLoadStatus.COMPLETED
+        return SharedLoadStatus.ACTIVE
     }
 
+    /**
+     * In-progress load for live map / friends share.
+     * Looks at this reporting week's loads first (not "last updated"),
+     * then picks the chronologically current trip by first-PU time.
+     */
     fun selectActive(
         loads: List<Load>,
         today: LocalDate = LocalDate.now(),
         nowMillis: Long = System.currentTimeMillis(),
-    ): Load? =
-        loads
-            .filter { statusFor(it, today, nowMillis) == SharedLoadStatus.ACTIVE }
-            .maxByOrNull { it.updatedAt }
+    ): Load? {
+        val active = loads.filter { statusFor(it, today, nowMillis) == SharedLoadStatus.ACTIVE }
+        if (active.isEmpty()) return null
+        val (week, year) = reportingWeekFor(today)
+        val weekActive = active.filter { it.weekNumber == week && it.year == year }
+        // Prefer this week; fall back to any ACTIVE (cross-week trip still on the road).
+        val pool = weekActive.ifEmpty { active }
+        return pool.maxByOrNull { getFirstPickUpMillis(it) ?: Long.MIN_VALUE }
+    }
 
     fun selectActiveAll(
         loads: List<Load>,
         today: LocalDate = LocalDate.now(),
         nowMillis: Long = System.currentTimeMillis(),
-    ): List<Load> =
-        loads.filter { statusFor(it, today, nowMillis) == SharedLoadStatus.ACTIVE }
-            .sortedByDescending { it.updatedAt }
+    ): List<Load> {
+        val (week, year) = reportingWeekFor(today)
+        return loads
+            .filter { statusFor(it, today, nowMillis) == SharedLoadStatus.ACTIVE }
+            .sortedWith(
+                compareByDescending<Load> { it.weekNumber == week && it.year == year }
+                    .thenByDescending { getFirstPickUpMillis(it) ?: Long.MIN_VALUE },
+            )
+    }
 
     /**
      * Load used to draw "my path" on the friends / own live map.
-     * Only a truly ACTIVE load — never fall back to upcoming FUTURE trips
-     * (those would keep drawing a facility route after today's load is done).
+     * Only a truly ACTIVE load — never fall back to upcoming FUTURE trips.
      */
     fun selectForMapRoute(
         loads: List<Load>,
         today: LocalDate = LocalDate.now(),
         nowMillis: Long = System.currentTimeMillis(),
     ): Load? = selectActive(loads, today, nowMillis)
+
+    private fun reportingWeekFor(today: LocalDate): Pair<Int, Int> =
+        getWeekNumberAndYearFromDate(today.toString())
 
     private fun parseDate(iso: String): LocalDate? =
         try {

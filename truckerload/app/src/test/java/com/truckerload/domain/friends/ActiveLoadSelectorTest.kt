@@ -3,6 +3,7 @@ package com.truckerload.domain.friends
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.utils.getWeekNumberAndYearFromDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -17,12 +18,97 @@ class ActiveLoadSelectorTest {
         .atZone(ZoneId.systemDefault())
         .toInstant()
         .toEpochMilli()
+    private val weekPair = getWeekNumberAndYearFromDate(today.toString())
 
     @Test
-    fun activeWhenTodayInsideRange() {
+    fun activeWhenTodayInsideRangeAfterFirstPu() {
         val load = sample(date = "2026-07-19", plannedEnd = "2026-07-22", actualFinish = null)
         assertEquals(SharedLoadStatus.ACTIVE, ActiveLoadSelector.statusFor(load, today, noonTodayMs))
         assertEquals(load.id, ActiveLoadSelector.selectActive(listOf(load), today, noonTodayMs)?.id)
+    }
+
+    @Test
+    fun beforeFirstPuClockIsFutureEvenOnStartDay() {
+        val finishDay = LocalDate.of(2026, 7, 20)
+        val at9pm = finishDay.atTime(21, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        val at10pm = finishDay.atTime(22, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        val load = sample(
+            date = "2026-07-20",
+            plannedEnd = "2026-07-21",
+            actualFinish = null,
+            puTime = "2026-07-20 22:00",
+            delTime = "2026-07-21 18:00",
+        )
+        assertEquals(SharedLoadStatus.FUTURE, ActiveLoadSelector.statusFor(load, finishDay, at9pm))
+        assertEquals(SharedLoadStatus.ACTIVE, ActiveLoadSelector.statusFor(load, finishDay, at10pm))
+        assertNull(ActiveLoadSelector.selectForMapRoute(listOf(load), finishDay, at9pm))
+        assertEquals(load.id, ActiveLoadSelector.selectForMapRoute(listOf(load), finishDay, at10pm)?.id)
+    }
+
+    @Test
+    fun waitingForEveningPuAfterShortFinishedHidesRoute() {
+        val day = LocalDate.of(2026, 7, 20)
+        val at3pm = day.atTime(15, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        val shortDone = sample(
+            date = "2026-07-20",
+            plannedEnd = "2026-07-20",
+            actualFinish = "2026-07-20",
+            puTime = "2026-07-20 08:00",
+            delTime = "2026-07-20 12:00",
+        ).copy(id = "short", updatedAt = 100L)
+        val evening = sample(
+            date = "2026-07-20",
+            plannedEnd = "2026-07-21",
+            actualFinish = null,
+            puTime = "2026-07-20 22:00",
+            delTime = "2026-07-21 18:00",
+        ).copy(id = "evening", updatedAt = 999L)
+        assertNull(
+            ActiveLoadSelector.selectForMapRoute(listOf(shortDone, evening), day, at3pm),
+        )
+        val afterPu = day.atTime(22, 30)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        assertEquals(
+            "evening",
+            ActiveLoadSelector.selectForMapRoute(listOf(shortDone, evening), day, afterPu)?.id,
+        )
+    }
+
+    @Test
+    fun prefersChronologicalWeekLoadOverNewerUpdatedAt() {
+        val early = sample(
+            date = "2026-07-20",
+            plannedEnd = "2026-07-20",
+            actualFinish = null,
+            puTime = "2026-07-20 08:00",
+            delTime = "2026-07-20 18:00",
+        ).copy(id = "early", updatedAt = 1L)
+        val laterEditedButStillFuture = sample(
+            date = "2026-07-20",
+            plannedEnd = "2026-07-21",
+            actualFinish = null,
+            puTime = "2026-07-20 22:00",
+            delTime = "2026-07-21 12:00",
+        ).copy(id = "later", updatedAt = 99_999L)
+        assertEquals(
+            "early",
+            ActiveLoadSelector.selectActive(
+                listOf(laterEditedButStillFuture, early),
+                today,
+                noonTodayMs,
+            )?.id,
+        )
     }
 
     @Test
@@ -55,7 +141,6 @@ class ActiveLoadSelectorTest {
         val upcoming = sample(date = "2026-07-25", plannedEnd = "2026-07-28", actualFinish = null)
             .copy(id = "future", updatedAt = 99L)
         assertEquals("active", ActiveLoadSelector.selectForMapRoute(listOf(upcoming, active), today, noonTodayMs)?.id)
-        // No active load → no route (do not fall back to future facility).
         assertNull(ActiveLoadSelector.selectForMapRoute(listOf(upcoming), today, noonTodayMs))
     }
 
@@ -74,11 +159,8 @@ class ActiveLoadSelectorTest {
             date = "2026-07-18",
             plannedEnd = "2026-07-20",
             actualFinish = null,
-        ).copy(
-            stops = listOf(
-                stop(1, StopType.PU, "2026-07-18 08:00", "A", "WA"),
-                stop(2, StopType.DEL, "2026-07-20 18:10", "B", "OR"),
-            ),
+            puTime = "2026-07-18 08:00",
+            delTime = "2026-07-20 18:10",
         )
         assertEquals(
             SharedLoadStatus.ACTIVE,
@@ -108,9 +190,10 @@ class ActiveLoadSelectorTest {
         scheduledTime: String,
         city: String,
         state: String,
+        loadId: String = "L1",
     ) = Stop(
         id = number,
-        loadId = "L1",
+        loadId = loadId,
         stopNumber = number,
         type = type,
         puNumber = null,
@@ -128,6 +211,8 @@ class ActiveLoadSelectorTest {
         date: String,
         plannedEnd: String,
         actualFinish: String? = null,
+        puTime: String = "$date 08:00",
+        delTime: String = "$plannedEnd 23:59",
     ) = Load(
         id = "L1",
         tripId = "T1",
@@ -138,16 +223,16 @@ class ActiveLoadSelectorTest {
         pointB = "Portland, OR",
         puCount = 1,
         delCount = 1,
-        weekNumber = 30,
-        year = 2026,
+        weekNumber = weekPair.first,
+        year = weekPair.second,
         rawMessage = "",
         parsedAt = 1L,
         updatedAt = 2L,
         actualFinishDate = actualFinish,
         lastDelCityState = "Portland, OR",
         stops = listOf(
-            stop(1, StopType.PU, "$date 08:00", "Seattle", "WA"),
-            stop(2, StopType.DEL, "$plannedEnd 23:59", "Portland", "OR"),
+            stop(1, StopType.PU, puTime, "Seattle", "WA"),
+            stop(2, StopType.DEL, delTime, "Portland", "OR"),
         ),
     )
 }
