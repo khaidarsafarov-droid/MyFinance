@@ -449,7 +449,9 @@
     <string name="friends_cannot_add_self">Нельзя добавить самого себя</string>
     <string name="friends_sharing_list_title">С кем я делюсь</string>
     <string name="friends_sharing_list_hint">Удалить или настроить: показывать себя / маршрут этому другу</string>
-    <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — найдите друга по нику выше</string>
+    <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — нажмите + чтобы добавить друга по нику</string>
+    <string name="friends_add_friend_cd">Добавить друга</string>
+    <string name="friends_add_friend_close_cd">Закрыть добавление друга</string>
     <string name="friends_share_summary">Я: позиция %1$s · маршрут %2$s</string>
     <string name="friends_edit_share">Настройки шаринга</string>
     <string name="friends_remove">Удалить</string>

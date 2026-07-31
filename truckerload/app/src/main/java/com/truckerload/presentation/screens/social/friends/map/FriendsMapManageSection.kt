@@ -1,7 +1,7 @@
 package com.truckerload.presentation.screens.social.friends.map
 
 import android.content.Intent
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Share
@@ -23,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.domain.friends.FriendShareLink
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -46,9 +48,19 @@ import com.truckerload.presentation.theme.LocalTruckColors
 fun FriendsMapManageSection(
     uiState: FriendsMapUiState,
     viewModel: FriendsMapViewModel,
+    addFriendExpanded: Boolean,
+    onAddFriendExpandedChange: (Boolean) -> Unit,
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+
+    // Collapse the add panel after a successful add.
+    LaunchedEffect(uiState.statusMessage) {
+        if (uiState.statusMessage == "added") {
+            onAddFriendExpandedChange(false)
+        }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (!uiState.supabaseReady) {
             Text(
@@ -58,106 +70,82 @@ fun FriendsMapManageSection(
             )
         }
 
-        Text(
-            text = stringResource(R.string.friends_my_nickname_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = uiState.nicknameDraft,
-                onValueChange = viewModel::setNicknameDraft,
-                label = { Text(stringResource(R.string.friends_nickname_label)) },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                colors = AppTextFieldDefaults.outlined(),
-            )
-            Button(onClick = { viewModel.saveNickname() }) {
-                Text(stringResource(R.string.friends_nickname_save))
-            }
-        }
-        when (uiState.nicknameMessage) {
-            "invalid" -> Text(
-                stringResource(R.string.friends_nickname_invalid),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            "saved", "saved_local" -> Text(
-                stringResource(R.string.friends_nickname_saved),
-                color = tc.AccentPrimary,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING -> Text(
-                stringResource(R.string.friends_nickname_schema_missing),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.friends_add_by_nickname_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = viewModel::setSearchQuery,
-                label = { Text(stringResource(R.string.friends_search_nickname_label)) },
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                colors = AppTextFieldDefaults.outlined(),
-            )
-            Button(
-                onClick = { viewModel.searchFriend() },
-                enabled = !uiState.searchBusy,
-            ) {
-                if (uiState.searchBusy) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Icon(Icons.Default.PersonAdd, contentDescription = null)
-                }
-            }
-        }
-        uiState.searchHit?.let { hit ->
-            Text(
-                text = stringResource(R.string.friends_found, hit.displayName, hit.nickname),
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextPrimary,
-            )
-            Button(onClick = { viewModel.addSearchedFriend() }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.friends_add_button))
-            }
-        }
-        if (uiState.searchNotFound || uiState.statusMessage == "not_found") {
-            Text(
-                text = stringResource(R.string.friends_not_in_app),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-            OutlinedButton(
-                onClick = {
-                    val share = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.friends_invite_share_text))
-                    }
-                    context.startActivity(
-                        Intent.createChooser(share, context.getString(R.string.friends_invite_share_title)),
+        AnimatedVisibility(visible = addFriendExpanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.friends_add_by_nickname_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = viewModel::setSearchQuery,
+                        label = { Text(stringResource(R.string.friends_search_nickname_label)) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        colors = AppTextFieldDefaults.outlined(),
                     )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
-                Text(stringResource(R.string.friends_invite_share_button))
+                    Button(
+                        onClick = { viewModel.searchFriend() },
+                        enabled = !uiState.searchBusy,
+                    ) {
+                        if (uiState.searchBusy) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.PersonAdd, contentDescription = null)
+                        }
+                    }
+                }
+                uiState.searchHit?.let { hit ->
+                    Text(
+                        text = stringResource(R.string.friends_found, hit.displayName, hit.nickname),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextPrimary,
+                    )
+                    Button(
+                        onClick = { viewModel.addSearchedFriend() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.friends_add_button))
+                    }
+                }
+                if (uiState.searchNotFound || uiState.statusMessage == "not_found") {
+                    Text(
+                        text = stringResource(R.string.friends_not_in_app),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            val share = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    context.getString(R.string.friends_invite_share_text),
+                                )
+                            }
+                            context.startActivity(
+                                Intent.createChooser(
+                                    share,
+                                    context.getString(R.string.friends_invite_share_title),
+                                ),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 6.dp),
+                        )
+                        Text(stringResource(R.string.friends_invite_share_button))
+                    }
+                }
             }
         }
 
@@ -263,6 +251,23 @@ fun FriendsMapManageSection(
                 }
             }
         }
+    }
+}
+
+/** Compact + / close control for the manage-section header. */
+@Composable
+fun FriendsAddFriendHeaderButton(
+    expanded: Boolean,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
+            contentDescription = stringResource(
+                if (expanded) R.string.friends_add_friend_close_cd else R.string.friends_add_friend_cd,
+            ),
+            tint = LocalTruckColors.current.TextPrimary,
+        )
     }
 }
 

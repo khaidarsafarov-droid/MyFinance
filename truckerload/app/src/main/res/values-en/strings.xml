@@ -449,7 +449,9 @@
     <string name="friends_cannot_add_self">You can\'t add yourself</string>
     <string name="friends_sharing_list_title">Who I share with</string>
     <string name="friends_sharing_list_hint">Delete or edit: show yourself / your route to this friend</string>
-    <string name="friends_sharing_list_empty">Nobody yet — search a nickname above</string>
+    <string name="friends_sharing_list_empty">Nobody yet — tap + to add a friend by nickname</string>
+    <string name="friends_add_friend_cd">Add friend</string>
+    <string name="friends_add_friend_close_cd">Close add friend</string>
     <string name="friends_share_summary">Me: position %1$s · route %2$s</string>
     <string name="friends_edit_share">Sharing settings</string>
     <string name="friends_remove">Remove</string>
