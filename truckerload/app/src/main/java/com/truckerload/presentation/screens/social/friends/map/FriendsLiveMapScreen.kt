@@ -75,6 +75,7 @@ fun FriendsLiveMapScreen(
     var centerOnMeNonce by remember { mutableIntStateOf(0) }
     var mapExpanded by remember { mutableStateOf(false) }
     var manageExpanded by remember { mutableStateOf(false) }
+    var addFriendExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     suspend fun refreshMyLocation(): LatLng? {
@@ -270,40 +271,58 @@ fun FriendsLiveMapScreen(
             }
 
             item {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { manageExpanded = !manageExpanded },
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(14.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(14.dp),
                     ) {
-                        Text(
-                            text = stringResource(R.string.friends_manage_section),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = tc.TextPrimary,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Icon(
-                            if (manageExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = null,
-                            tint = tc.TextSecondary,
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.friends_manage_section),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = tc.TextPrimary,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { manageExpanded = !manageExpanded }
+                                    .padding(vertical = 8.dp),
+                            )
+                            FriendsAddFriendHeaderButton(
+                                expanded = addFriendExpanded,
+                                onClick = {
+                                    if (!addFriendExpanded) {
+                                        manageExpanded = true
+                                        addFriendExpanded = true
+                                    } else {
+                                        addFriendExpanded = false
+                                    }
+                                },
+                            )
+                            IconButton(onClick = { manageExpanded = !manageExpanded }) {
+                                Icon(
+                                    if (manageExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    tint = tc.TextSecondary,
+                                )
+                            }
+                        }
+                    }
+                    if (manageExpanded || addFriendExpanded) {
+                        FriendsMapManageSection(
+                            uiState = uiState,
+                            viewModel = viewModel,
+                            addFriendExpanded = addFriendExpanded,
+                            onAddFriendExpandedChange = { expanded ->
+                                addFriendExpanded = expanded
+                                if (expanded) manageExpanded = true
+                            },
                         )
                     }
-                }
-            }
-
-            if (manageExpanded) {
-                item {
-                    FriendsMapManageSection(
-                        uiState = uiState,
-                        viewModel = viewModel,
-                    )
                 }
             }
 

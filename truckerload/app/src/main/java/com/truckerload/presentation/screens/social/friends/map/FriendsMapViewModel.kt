@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
@@ -38,7 +37,6 @@ class FriendsMapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
-    private val userProfileStore: UserProfileStore,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -53,24 +51,9 @@ class FriendsMapViewModel @Inject constructor(
     private var myLocationPoint: LatLngPoint? = null
 
     init {
-        val nick = userProfileStore.profile.value?.nickname.orEmpty()
-        _uiState.update {
-            it.copy(myNickname = nick, nicknameDraft = nick)
-        }
         viewModelScope.launch {
             settingsDataStore.sharePathWithFriends.collect { enabled ->
                 _uiState.update { it.copy(sharePathEnabled = enabled) }
-            }
-        }
-        viewModelScope.launch {
-            userProfileStore.profile.collect { profile ->
-                val n = profile?.nickname.orEmpty()
-                _uiState.update { s ->
-                    s.copy(
-                        myNickname = n,
-                        nicknameDraft = if (s.nicknameDraft.isBlank()) n else s.nicknameDraft,
-                    )
-                }
             }
         }
         refresh()
@@ -85,42 +68,6 @@ class FriendsMapViewModel @Inject constructor(
     override fun onCleared() {
         pollJob?.cancel()
         super.onCleared()
-    }
-
-    fun setNicknameDraft(value: String) {
-        _uiState.update { it.copy(nicknameDraft = value, nicknameMessage = null) }
-    }
-
-    fun saveNickname() {
-        viewModelScope.launch {
-            val draft = _uiState.value.nicknameDraft
-            val handle = NicknameValidator.sanitizeOrNull(draft)
-            if (handle == null) {
-                _uiState.update { it.copy(nicknameMessage = "invalid") }
-                return@launch
-            }
-            if (!friendsApi.isConfigured()) {
-                persistLocalNickname(handle)
-                _uiState.update { it.copy(nicknameMessage = "saved_local") }
-                return@launch
-            }
-            val profile = userProfileStore.profile.value
-            val result = friendsApi.upsertMyNickname(handle, profile?.displayName)
-            val err = result.exceptionOrNull()?.message
-            if (result.isSuccess) {
-                persistLocalNickname(handle)
-                _uiState.update { it.copy(nicknameMessage = "saved") }
-            } else if (err == SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING) {
-                persistLocalNickname(handle)
-                _uiState.update {
-                    it.copy(nicknameMessage = SupabaseFriendsRealtimeService.ERROR_NICKNAME_SCHEMA_MISSING)
-                }
-            } else {
-                _uiState.update {
-                    it.copy(errorMessage = err ?: "nickname save failed")
-                }
-            }
-        }
     }
 
     fun setSearchQuery(value: String) {
@@ -399,13 +346,7 @@ class FriendsMapViewModel @Inject constructor(
     }
 
     fun clearStatus() {
-        _uiState.update { it.copy(statusMessage = null, nicknameMessage = null) }
-    }
-
-    private fun persistLocalNickname(handle: String) {
-        val current = userProfileStore.profile.value ?: return
-        userProfileStore.saveProfile(current.copy(nickname = handle))
-        _uiState.update { it.copy(myNickname = handle, nicknameDraft = handle) }
+        _uiState.update { it.copy(statusMessage = null) }
     }
 
     private suspend fun computeOverlaps(friendRoutes: List<FriendActiveRoute>): List<RouteOverlapMatch> =
