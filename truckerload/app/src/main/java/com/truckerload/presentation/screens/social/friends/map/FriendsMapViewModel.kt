@@ -326,7 +326,8 @@ class FriendsMapViewModel @Inject constructor(
     )
 
     private suspend fun buildMyPathOverlay(): MyPathDraw = withContext(Dispatchers.IO) {
-        val load = ActiveLoadSelector.selectForMapRoute(loadRepository.getAllLoadsOnce())
+        // Only draw a route for a load that is still ACTIVE (not finished / past DEL).
+        val load = ActiveLoadSelector.selectActive(loadRepository.getAllLoadsOnce())
             ?: return@withContext MyPathDraw(emptyList(), emptyList(), null)
         val originLabel = load.pointA.ifBlank { load.firstPuCityState }
         val destLabel = load.pointB.ifBlank { load.lastDelCityState }

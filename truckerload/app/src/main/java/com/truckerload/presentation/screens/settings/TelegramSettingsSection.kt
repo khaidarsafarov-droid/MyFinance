@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,17 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.presentation.components.BotStatusBadge
 import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.sync.TelegramBotForegroundService
@@ -38,6 +31,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Telegram bot status in Settings. The bot token is never shown or edited here —
+ * it stays in encrypted [TelegramTokenStore] / BuildConfig only.
+ */
 @Composable
 fun TelegramSettingsSection() {
     if (TelegramSyncMode.isServer()) {
@@ -49,16 +46,15 @@ fun TelegramSettingsSection() {
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
     val tokenStore = remember { TelegramTokenStore(context) }
-    var tokenInput by remember { mutableStateOf(tokenStore.getToken()) }
-    var showToken by remember { mutableStateOf(false) }
+    var hasToken by remember { mutableStateOf(tokenStore.hasToken()) }
     var testing by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
-    // Must be Boolean: companion exposes fun isRunning(), not the private AtomicBoolean.
     var botActive: Boolean by remember {
         mutableStateOf(TelegramBotForegroundService.isRunning())
     }
 
     LaunchedEffect(Unit) {
+        hasToken = tokenStore.hasToken()
         botActive = TelegramBotForegroundService.isRunning()
     }
 
@@ -82,68 +78,47 @@ fun TelegramSettingsSection() {
             )
         }
 
-        OutlinedTextField(
-            value = tokenInput,
-            onValueChange = {
-                tokenInput = it
-                statusMessage = null
-            },
-            label = { Text(stringResource(R.string.settings_telegram_token_label)) },
-            placeholder = { Text(stringResource(R.string.settings_telegram_token_placeholder)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            visualTransformation = if (showToken) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            colors = AppTextFieldDefaults.outlined(),
+        Text(
+            text = stringResource(
+                if (hasToken) R.string.settings_telegram_token_configured
+                else R.string.settings_telegram_token_missing
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = if (hasToken) tc.AccentProfit else tc.TextSecondary,
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedButton(
-                onClick = { showToken = !showToken },
-                modifier = Modifier.weight(1f).height(44.dp),
-            ) {
-                Text(
-                    stringResource(
-                        if (showToken) R.string.settings_telegram_hide_token
-                        else R.string.settings_telegram_show_token
-                    )
-                )
-            }
-            Button(
-                onClick = {
-                    if (testing) return@Button
-                    scope.launch {
-                        testing = true
-                        statusMessage = context.getString(R.string.settings_telegram_checking)
-                        val token = tokenInput.trim()
-                        val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+        Button(
+            onClick = {
+                if (testing) return@Button
+                scope.launch {
+                    testing = true
+                    statusMessage = context.getString(R.string.settings_telegram_checking)
+                    val token = tokenStore.getToken()
+                    if (token.isBlank()) {
                         testing = false
-                        statusMessage = when {
-                            health.ok -> {
-                                tokenStore.setToken(token)
-                                TelegramBotForegroundService.stop(context)
-                                TelegramBotForegroundService.start(context)
-                                val running: Boolean = TelegramBotForegroundService.isRunning()
-                                botActive = running
-                                context.getString(R.string.settings_telegram_ok, health.username.orEmpty())
-                            }
-                            health.isUnauthorized -> context.getString(R.string.settings_telegram_invalid)
-                            else -> health.error ?: context.getString(R.string.settings_telegram_invalid)
-                        }
+                        hasToken = false
+                        statusMessage = context.getString(R.string.settings_telegram_token_missing)
+                        return@launch
                     }
-                },
-                enabled = tokenInput.isNotBlank() && !testing,
-                modifier = Modifier.weight(1f).height(44.dp),
-            ) {
-                Text(stringResource(R.string.settings_telegram_test))
-            }
+                    val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+                    testing = false
+                    hasToken = true
+                    statusMessage = when {
+                        health.ok -> {
+                            TelegramBotForegroundService.stop(context)
+                            TelegramBotForegroundService.start(context)
+                            botActive = TelegramBotForegroundService.isRunning()
+                            context.getString(R.string.settings_telegram_ok, health.username.orEmpty())
+                        }
+                        health.isUnauthorized -> context.getString(R.string.settings_telegram_invalid)
+                        else -> health.error ?: context.getString(R.string.settings_telegram_invalid)
+                    }
+                }
+            },
+            enabled = hasToken && !testing,
+            modifier = Modifier.fillMaxWidth().height(44.dp),
+        ) {
+            Text(stringResource(R.string.settings_telegram_test))
         }
 
         statusMessage?.let { message ->

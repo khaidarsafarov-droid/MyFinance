@@ -22,6 +22,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.domain.friends.SharedLoadStatus
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.CoroutineScope
@@ -119,7 +120,12 @@ class FriendsLocationShareService : Service() {
     ) {
         val db = AppDatabase.getInstanceForActiveUser(this) ?: return
         val loads = LoadRepository(db).getAllLoadsOnce()
-        val active = ActiveLoadSelector.selectForMapRoute(loads) ?: return
+        val active = ActiveLoadSelector.selectActive(loads)
+        if (active == null) {
+            // Finished / no in-progress load — remove stale route from friends' maps.
+            api.clearActiveRoute()
+            return
+        }
         val originLabel = active.pointA.ifBlank { active.firstPuCityState }
         val destLabel = active.pointB.ifBlank { active.lastDelCityState }
         val helper = LocationHelper(this)
@@ -138,7 +144,7 @@ class FriendsLocationShareService : Service() {
                 destination = destination,
                 startDate = ActiveLoadSelector.startDateIso(active),
                 endDate = ActiveLoadSelector.endDateIso(active),
-                status = ActiveLoadSelector.statusFor(active),
+                status = SharedLoadStatus.ACTIVE,
                 trackPoints = track.toList(),
             ),
             sharePathEnabled = true,
@@ -149,6 +155,7 @@ class FriendsLocationShareService : Service() {
         val api = SupabaseFriendsRealtimeService(AuthStore(this))
         if (api.isConfigured()) {
             api.clearPresence()
+            api.clearActiveRoute()
         }
     }
 

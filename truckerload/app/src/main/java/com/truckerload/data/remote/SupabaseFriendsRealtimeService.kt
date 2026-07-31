@@ -194,11 +194,23 @@ class SupabaseFriendsRealtimeService(
         deleteEq("driver_presence", "user_id", userId, token)
     }
 
+    /** Remove published live route when the driver has no ACTIVE load left. */
+    suspend fun clearActiveRoute(): Result<Unit> = withContext(Dispatchers.IO) {
+        val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))
+        val token = authStore.accessTokenOrNull().orEmpty()
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        deleteEq("active_route_shares", "user_id", userId, token)
+    }
+
     suspend fun upsertActiveRoute(route: FriendActiveRoute, sharePathEnabled: Boolean): Result<Unit> =
         withContext(Dispatchers.IO) {
             val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))
             val token = authStore.accessTokenOrNull().orEmpty()
             if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+            // Never advertise FUTURE / UNKNOWN as a live "active" route for friends.
+            if (route.status != SharedLoadStatus.ACTIVE) {
+                return@withContext clearActiveRoute()
+            }
             val points = JSONArray()
             route.trackPoints.forEach { p ->
                 points.put(JSONObject().put("lat", p.lat).put("lng", p.lng))
@@ -214,12 +226,7 @@ class SupabaseFriendsRealtimeService(
                 .put("dest_lng", route.destination?.lng)
                 .put("start_date", route.startDate.take(10))
                 .put("end_date", route.endDate.take(10))
-                .put("status", when (route.status) {
-                    SharedLoadStatus.ACTIVE -> "active"
-                    SharedLoadStatus.COMPLETED -> "completed"
-                    SharedLoadStatus.FUTURE -> "active"
-                    SharedLoadStatus.UNKNOWN -> "active"
-                })
+                .put("status", "active")
                 .put("track_points", points)
                 .put("share_path_enabled", sharePathEnabled)
                 .put("updated_at", Instant.now().toString())

@@ -38,6 +38,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -126,6 +129,7 @@ private fun MapScreenBody(
     showToolbarTitle: Boolean,
 ) {
     val tc = LocalTruckColors.current
+    var mapFullscreen by remember { mutableStateOf(false) }
     if (uiState.isLoading) {
         Box(
             modifier = Modifier.fillMaxSize().padding(padding),
@@ -134,6 +138,15 @@ private fun MapScreenBody(
             CircularProgressIndicator(color = tc.AccentPrimary)
         }
         return
+    }
+
+    if (mapFullscreen) {
+        FullscreenHeatmapDialog(
+            metrics = uiState.metrics,
+            selectedCode = uiState.selectedStateCode,
+            onStateSelected = viewModel::setSelectedState,
+            onDismiss = { mapFullscreen = false },
+        )
     }
 
     Column(
@@ -188,7 +201,7 @@ private fun MapScreenBody(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(360.dp),
+                .height(480.dp),
         ) {
             GoogleMapsHeatmapCard(
                 metrics = uiState.metrics,
@@ -196,6 +209,7 @@ private fun MapScreenBody(
                 refreshing = false,
                 onStateSelected = viewModel::setSelectedState,
                 modifier = Modifier.fillMaxSize(),
+                onExpandClick = { mapFullscreen = true },
             )
         }
 
