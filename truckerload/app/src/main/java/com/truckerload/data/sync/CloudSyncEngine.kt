@@ -12,6 +12,7 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.sync.cloud.SyncModeStore
 import com.truckerload.widget.WidgetDataUpdater
 import org.json.JSONObject
 
@@ -44,6 +45,12 @@ object CloudSyncEngine {
      */
     suspend fun onSessionReady(context: Context): SyncResult {
         val app = context.applicationContext
+        if (!SyncModeStore(app).allowsCloudCalls()) {
+            return SyncResult(
+                mode = SyncResult.Mode.SKIPPED,
+                message = "device_only",
+            )
+        }
         val userId = AuthStore(app).currentUserIdOrNull() ?: return SyncResult(
             mode = SyncResult.Mode.SKIPPED,
             message = "no_session",
@@ -109,6 +116,7 @@ object CloudSyncEngine {
     /** Outbound drain: publish current Room state to the account mirror. */
     suspend fun pushLocalSnapshot(context: Context): Boolean {
         val app = context.applicationContext
+        if (!SyncModeStore(app).allowsCloudCalls()) return false
         val userId = AuthStore(app).currentUserIdOrNull() ?: return false
         val db = AppDatabase.getInstance(app, userId)
         val ok = pushLocalSnapshot(userId, db, AccountCloudBackendFactory.create(app))
