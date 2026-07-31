@@ -16,6 +16,7 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.data.repository.SocialRepository
+import com.truckerload.di.SocialRepositoryModule
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
 
@@ -73,7 +74,12 @@ class UserComponent private constructor(
                 analyticsRepository = AnalyticsRepository(db),
                 photoRepository = PhotoRepository(db),
                 scanRepository = ScanRepository(db),
-                socialRepository = SocialRepository(db, loadRepository, userProfileStore, context),
+                socialRepository = SocialRepositoryModule.create(
+                    context = context,
+                    db = db,
+                    loadRepository = loadRepository,
+                    userProfileStore = userProfileStore,
+                ).facade,
                 voiceRepository = VoiceRepository(db, context),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),

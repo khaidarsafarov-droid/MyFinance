@@ -1,4 +1,4 @@
-package com.truckerload.data.repository
+package com.truckerload.data.repository.social
 
 import com.truckerload.data.local.dao.BlockedUserDao
 import com.truckerload.data.local.dao.ChatMemberDao
@@ -9,6 +9,8 @@ import com.truckerload.data.local.dao.SocialPeerDao
 import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.SocialChatEntity
+import com.truckerload.data.repository.toDomain
+import com.truckerload.data.repository.toPeerProfile
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.ReactionSummary
 import com.truckerload.domain.social.SocialChat
@@ -83,7 +85,7 @@ class SocialChatStore(
             val byId = messages.associateBy { it.id }
             messages.map { entity ->
                 entity.toDomain(
-                    isMine = entity.senderId == LOCAL_SENDER_ID,
+                    isMine = entity.senderId == SocialConstants.LOCAL_SENDER_ID,
                     reactions = summarizeReactions(reactions.filter { it.messageId == entity.id }),
                     replyPreview = entity.replyToId?.let { byId[it]?.text },
                 )
@@ -120,8 +122,4 @@ class SocialChatStore(
                 includesMe = list.any { it.userId == DriverProfileEntity.LOCAL_USER_ID },
             )
         }
-
-    private companion object {
-        const val LOCAL_SENDER_ID = "me"
-    }
 }
