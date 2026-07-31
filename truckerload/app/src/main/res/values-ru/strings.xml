@@ -384,6 +384,7 @@
     <string name="stats_trend_vs_prev_week">%1$s %2$s %3$s</string>
     <string name="stats_map_open">Открыть карту</string>
     <string name="map_title">Географическая эффективность</string>
+    <string name="map_expand_fullscreen">Открыть карту на весь экран</string>
     <string name="map_subtitle_all_loads">По всем грузам драйвера (%1$d рейсов)</string>
     <string name="map_subtitle_my_week">Мои RPM за 7 дней · %1$d рейс(ов)</string>
     <string name="map_period_week">Неделя</string>

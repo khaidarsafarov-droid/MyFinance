@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.tween
+import android.view.MotionEvent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,9 +17,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,6 +97,9 @@ fun GoogleMapsHeatmapCard(
     refreshing: Boolean,
     onStateSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** Wider continental framing for fullscreen; default keeps the compact card view. */
+    initialZoom: Float = 4f,
+    onExpandClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val geoJson = remember { loadGeoJsonFromRaw(context) }
@@ -145,6 +153,18 @@ fun GoogleMapsHeatmapCard(
                         MapView(ctx).apply {
                             onCreate(null)
                             mapView = this
+                            // Prefer map gestures over parent vertical scroll.
+                            setOnTouchListener { v, event ->
+                                when (event.actionMasked) {
+                                    MotionEvent.ACTION_DOWN,
+                                    MotionEvent.ACTION_MOVE,
+                                    -> v.parent?.requestDisallowInterceptTouchEvent(true)
+                                    MotionEvent.ACTION_UP,
+                                    MotionEvent.ACTION_CANCEL,
+                                    -> v.parent?.requestDisallowInterceptTouchEvent(false)
+                                }
+                                false
+                            }
                             // MapView needs onStart/onResume to load tiles; call immediately if already started
                             if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                                 onStart()
@@ -153,7 +173,17 @@ fun GoogleMapsHeatmapCard(
                                 }
                             }
                             getMapAsync { googleMap ->
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(39.5, -98.35), 4f))
+                                googleMap.uiSettings.apply {
+                                    isZoomControlsEnabled = true
+                                    isZoomGesturesEnabled = true
+                                    isScrollGesturesEnabled = true
+                                    isRotateGesturesEnabled = false
+                                    isTiltGesturesEnabled = false
+                                    isCompassEnabled = true
+                                }
+                                googleMap.moveCamera(
+                                    CameraUpdateFactory.newLatLngZoom(LatLng(39.5, -98.35), initialZoom),
+                                )
                                 googleMap.setMapStyle(MapStyleOptions(MAP_STYLE))
                                 geoJson?.let { json ->
                                     try {
@@ -175,6 +205,22 @@ fun GoogleMapsHeatmapCard(
                     },
                     modifier = Modifier.fillMaxSize()
                 )
+
+                if (onExpandClick != null) {
+                    IconButton(
+                        onClick = onExpandClick,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .background(Color.White.copy(alpha = 0.92f), RoundedCornerShape(12.dp)),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Fullscreen,
+                            contentDescription = stringResource(R.string.map_expand_fullscreen),
+                            tint = Color(0xFF1F2937),
+                        )
+                    }
+                }
             }
 
             Row(

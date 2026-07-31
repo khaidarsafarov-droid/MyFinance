@@ -384,6 +384,7 @@
     <string name="stats_trend_vs_prev_week">%1$s %2$s %3$s</string>
     <string name="stats_map_open">Open map</string>
     <string name="map_title">Geographic efficiency</string>
+    <string name="map_expand_fullscreen">Open map fullscreen</string>
     <string name="map_subtitle_all_loads">Across all driver loads (%1$d trips)</string>
     <string name="map_subtitle_my_week">My RPM · last 7 days · %1$d trip(s)</string>
     <string name="map_period_week">Week</string>
