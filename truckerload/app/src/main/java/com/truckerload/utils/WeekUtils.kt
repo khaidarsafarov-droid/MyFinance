@@ -255,7 +255,8 @@ fun parseDateFromScheduledTime(s: String, defaultYear: Int? = null): String? {
 
 /** Безопасный разбор YYYY-MM-DD; защита от NumberFormatException на битых датах в БД. */
 internal fun parseIsoDateParts(dateStr: String): Triple<Int, Int, Int>? {
-    val parts = dateStr.split("-")
+    // Accept "YYYY-MM-DD" and "YYYY-MM-DD HH:mm" (date prefix only).
+    val parts = dateStr.trim().take(10).split("-")
     if (parts.size != 3) return null
     val year = parts[0].toIntOrNull() ?: return null
     val month = parts[1].toIntOrNull() ?: return null

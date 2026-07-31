@@ -63,6 +63,18 @@ class LoadYieldCalculatorTest {
     }
 
     @Test
+    fun `resolveFinishMillis uses exact clock when time is set`() {
+        val stops = listOf(
+            stop(StopType.PU, "2026-07-17 05:58", "Atlanta", "GA"),
+            stop(StopType.DEL, "2026-07-21 18:00", "Aurora", "CO"),
+        )
+        val load = sampleLoad(stops = stops).copy(actualFinishDate = "2026-07-20 14:30")
+        val finishMs = LoadYieldCalculator.resolveFinishMillis(load)
+        val expected = com.truckerload.utils.parseScheduledTimeToMillis("2026-07-20 14:30")
+        assertEquals(expected, finishMs)
+    }
+
+    @Test
     fun `clearing actualFinishDate restores stop-based duration`() {
         val stops = listOf(
             stop(StopType.PU, "2026-07-17 05:58", "Atlanta", "GA"),

@@ -184,6 +184,49 @@ class ActiveLoadSelectorTest {
         assertNull(ActiveLoadSelector.selectForMapRoute(listOf(load), today, noonTodayMs))
     }
 
+    @Test
+    fun finishDateTimeAllowsNewSameDayLoadAfterEarlyFinish() {
+        val day = LocalDate.of(2026, 7, 20)
+        val at2pm = day.atTime(14, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        val at4pm = day.atTime(16, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        // Planned through tomorrow; finished today at 14:00 with explicit time.
+        val earlyDone = sample(
+            date = "2026-07-18",
+            plannedEnd = "2026-07-21",
+            actualFinish = "2026-07-20 14:00",
+            puTime = "2026-07-18 08:00",
+            delTime = "2026-07-21 18:00",
+        ).copy(id = "early", updatedAt = 1L)
+        val nextLoad = sample(
+            date = "2026-07-20",
+            plannedEnd = "2026-07-21",
+            actualFinish = null,
+            puTime = "2026-07-20 15:00",
+            delTime = "2026-07-21 12:00",
+        ).copy(id = "next", updatedAt = 2L)
+
+        assertEquals(
+            SharedLoadStatus.ACTIVE,
+            ActiveLoadSelector.statusFor(earlyDone, day, at2pm - 60_000),
+        )
+        assertEquals(
+            SharedLoadStatus.COMPLETED,
+            ActiveLoadSelector.statusFor(earlyDone, day, at2pm),
+        )
+        // Before next PU → no route; after next PU → next load's route.
+        assertNull(ActiveLoadSelector.selectForMapRoute(listOf(earlyDone, nextLoad), day, at2pm))
+        assertEquals(
+            "next",
+            ActiveLoadSelector.selectForMapRoute(listOf(earlyDone, nextLoad), day, at4pm)?.id,
+        )
+    }
+
     private fun stop(
         number: Int,
         type: StopType,

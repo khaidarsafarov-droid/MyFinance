@@ -25,8 +25,8 @@ data class Load(
     val disputeResponseDate: String? = null,
     val disputeCompleted: Boolean = false,
     /**
-     * Фактическая дата окончания груза (YYYY-MM-DD), если водитель закончил раньше/иначе,
-     * чем по последнему DEL в Relay. null = брать окончание из стопов.
+     * Фактическое окончание груза, если водитель закончил раньше/иначе, чем по последнему DEL.
+     * `"YYYY-MM-DD"` (legacy, конец дня) или `"YYYY-MM-DD HH:mm"`. null = из стопов.
      */
     val actualFinishDate: String? = null,
     val stops: List<Stop> = emptyList(),

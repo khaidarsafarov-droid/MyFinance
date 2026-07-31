@@ -558,9 +558,10 @@
     <string name="edit_load_trip_id">Trip ID</string>
     <string name="edit_load_date_label">Load date (YYYY-MM-DD)</string>
     <string name="edit_load_date_help">load_date — for weekly reporting</string>
-    <string name="edit_load_finish_label">Finish date (YYYY-MM-DD)</string>
-    <string name="edit_load_finish_help">Default is the last DEL. Change it to recalculate duration and pace.</string>
-    <string name="edit_load_finish_help_with_del">Last DEL: %1$s. Change the date to recalculate duration and pace.</string>
+    <string name="edit_load_finish_label">Finish (YYYY-MM-DD HH:mm)</string>
+    <string name="edit_load_finish_help">Default is the last DEL. Set date and time to recalculate duration, pace, and the map route.</string>
+    <string name="edit_load_finish_help_with_del">Last DEL: %1$s. Change the date and time to recalculate duration, pace, and the map route.</string>
+    <string name="edit_load_finish_pick_datetime">Pick date and time</string>
     <string name="edit_load_total_rate">Total Rate</string>
     <string name="edit_load_total_miles">Total miles</string>
     <string name="edit_load_point_a">Point A</string>
@@ -581,10 +582,10 @@
     <string name="load_detail_stat_pace">Pace</string>
     <string name="load_detail_finish_title">When did you finish the load?</string>
     <string name="load_detail_finish_from_stops">From stops: %1$s</string>
-    <string name="load_detail_finish_manual">Your date: %1$s</string>
-    <string name="load_detail_finish_pick">Set finish date</string>
+    <string name="load_detail_finish_manual">Your finish: %1$s</string>
+    <string name="load_detail_finish_pick">Set finish date and time</string>
     <string name="load_detail_finish_clear">Reset to stop date</string>
-    <string name="load_detail_finish_hint">Default is the last DEL. Tap the button to open edit with that date filled in. If you finished earlier, change the date and save — duration and pace will update.</string>
+    <string name="load_detail_finish_hint">Default is the last DEL. If you finished early, set the finish date and time — duration, pace, and the map route will update.</string>
     <string name="dispute_section_title">Dispute</string>
     <string name="dispute_checkbox_label">Dispute</string>
     <string name="dispute_active">In dispute</string>

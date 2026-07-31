@@ -9,6 +9,7 @@ import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -106,7 +107,7 @@ class LoadDetailViewModel @Inject constructor(
         val current = _uiState.value.load ?: return
         viewModelScope.launch {
             try {
-                val normalizedDate = isoDate?.trim()?.takeIf { it.length >= 10 }?.take(10)
+                val normalizedDate = ActualFinishDate.normalize(isoDate)
                 val next = current.copy(
                     actualFinishDate = normalizedDate,
                     updatedAt = System.currentTimeMillis(),

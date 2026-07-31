@@ -1,6 +1,7 @@
 package com.truckerload.domain.friends
 
 import com.truckerload.domain.goal.LoadYieldCalculator
+import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.utils.getFirstPickUpMillis
@@ -63,13 +64,24 @@ object ActiveLoadSelector {
     fun endDateIso(load: Load): String =
         load.effectiveFinishDate()?.take(10) ?: load.date.take(10)
 
-    fun isExplicitlyCompleted(load: Load, today: LocalDate = LocalDate.now()): Boolean {
-        val finish = load.actualFinishDate?.trim()?.take(10) ?: return false
-        return try {
-            !LocalDate.parse(finish).isAfter(today)
-        } catch (_: DateTimeParseException) {
-            false
-        }
+    /**
+     * Driver marked an explicit finish.
+     * - Date-only (legacy): completed for that calendar day and after.
+     * - Date+time: completed only once [nowMillis] reaches that clock.
+     */
+    fun isExplicitlyCompleted(
+        load: Load,
+        today: LocalDate = LocalDate.now(),
+        nowMillis: Long = System.currentTimeMillis(),
+    ): Boolean {
+        val raw = load.actualFinishDate ?: return false
+        val finishDay = ActualFinishDate.datePart(raw)?.let { parseDate(it) } ?: return false
+        if (today.isAfter(finishDay)) return true
+        if (today.isBefore(finishDay)) return false
+        // Finish day:
+        if (!ActualFinishDate.hasTime(raw)) return true
+        val finishMs = ActualFinishDate.toMillis(raw) ?: return true
+        return nowMillis >= finishMs
     }
 
     fun statusFor(
@@ -77,7 +89,7 @@ object ActiveLoadSelector {
         today: LocalDate = LocalDate.now(),
         nowMillis: Long = System.currentTimeMillis(),
     ): SharedLoadStatus {
-        if (isExplicitlyCompleted(load, today)) return SharedLoadStatus.COMPLETED
+        if (isExplicitlyCompleted(load, today, nowMillis)) return SharedLoadStatus.COMPLETED
         val start = parseDate(startDateIso(load)) ?: return SharedLoadStatus.UNKNOWN
         val end = parseDate(endDateIso(load)) ?: return SharedLoadStatus.UNKNOWN
         when {

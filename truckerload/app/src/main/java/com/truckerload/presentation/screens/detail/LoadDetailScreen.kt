@@ -54,6 +54,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
@@ -382,7 +383,13 @@ private fun ActualFinishSection(
     onClearClick: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val finishLabel = load.effectiveFinishDate() ?: "—"
+    val finishLabel = if (!load.actualFinishDate.isNullOrBlank()) {
+        ActualFinishDate.displayLabel(load.actualFinishDate)
+            ?: load.effectiveFinishDate()
+            ?: "—"
+    } else {
+        load.effectiveFinishDate() ?: "—"
+    }
     val statusText = if (!load.actualFinishDate.isNullOrBlank()) {
         stringResource(R.string.load_detail_finish_manual, finishLabel)
     } else {
