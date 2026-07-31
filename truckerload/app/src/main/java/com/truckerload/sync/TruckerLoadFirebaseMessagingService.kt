@@ -14,6 +14,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.truckerload.R
 import com.truckerload.data.preferences.PushTokenStore
+import com.truckerload.data.sync.cloud.SyncModeStore
 import com.truckerload.presentation.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -24,17 +25,25 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var pushTokenStore: PushTokenStore
 
+    @Inject
+    lateinit var syncModeStore: SyncModeStore
+
     @Suppress("OVERRIDE_DEPRECATION")
     override fun onNewToken(token: String) {
         pushTokenStore.set(token)
-        PushTokenRegistrationWorker.enqueue(applicationContext)
+        if (syncModeStore.allowsCloudCalls()) {
+            PushTokenRegistrationWorker.enqueue(applicationContext)
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         if (message.data["type"] == "sync") {
-            CloudSyncWorker.enqueue(applicationContext)
-            MediaSyncWorker.enqueue(applicationContext)
-            ServerTelegramInboxWorker.enqueue(applicationContext)
+            // FCM is a wake-up only; skip cloud workers in DEVICE_ONLY.
+            if (syncModeStore.allowsCloudCalls()) {
+                CloudSyncWorker.enqueue(applicationContext)
+                MediaSyncWorker.enqueue(applicationContext)
+                ServerTelegramInboxWorker.enqueue(applicationContext)
+            }
             return
         }
         showNotification(
