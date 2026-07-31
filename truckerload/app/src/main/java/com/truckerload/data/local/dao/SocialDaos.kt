@@ -171,6 +171,9 @@ interface DriverStatusDao {
 
     @Query("DELETE FROM driver_statuses WHERE expiresAt <= :now")
     suspend fun purgeExpired(now: Long)
+
+    @Query("DELETE FROM driver_statuses WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
 }
 
 @Dao
@@ -223,6 +226,9 @@ interface ChatMemberDao {
     @Query("DELETE FROM chat_members WHERE chatId = :chatId AND userId = :userId")
     suspend fun remove(chatId: String, userId: String)
 
+    @Query("DELETE FROM chat_members WHERE chatId IN (:chatIds)")
+    suspend fun deleteAllInChats(chatIds: List<String>)
+
     @Query("SELECT COUNT(*) FROM chat_members WHERE chatId = :chatId")
     suspend fun countMembers(chatId: String): Int
 
@@ -243,6 +249,9 @@ interface SocialPeerDao {
 
     @Query("SELECT COUNT(*) FROM social_peers")
     suspend fun count(): Int
+
+    @Query("DELETE FROM social_peers WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
 
     @Query("SELECT * FROM social_peers WHERE id = :peerId LIMIT 1")
     suspend fun getById(peerId: String): SocialPeerEntity?

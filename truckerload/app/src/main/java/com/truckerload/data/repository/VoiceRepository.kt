@@ -9,7 +9,7 @@ import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
 import com.truckerload.data.voice.AudioQualityManager
 import com.truckerload.data.voice.LocalSignalingService
 import com.truckerload.data.voice.SignalingService
-import com.truckerload.data.voice.VoiceSeedData
+import com.truckerload.data.social.SocialDemoCleanup
 import com.truckerload.data.voice.WebRtcCallManager
 import kotlinx.coroutines.CoroutineScope
 import com.truckerload.data.voice.WebRtcAudioEngine
@@ -43,7 +43,9 @@ class VoiceRepository(
     private var activeRoomId: String? = null
 
     suspend fun ensureInitialized() {
-        VoiceSeedData.seedIfEmpty(roomDao, participantDao)
+        // Community voice starts empty; purge legacy demo rooms if present.
+        participantDao.deleteAllInRooms(SocialDemoCleanup.DEMO_VOICE_ROOM_IDS)
+        roomDao.deleteByIds(SocialDemoCleanup.DEMO_VOICE_ROOM_IDS)
     }
 
     fun watchRooms(): Flow<List<VoiceRoom>> =
@@ -198,26 +200,6 @@ class VoiceRepository(
         } else {
             callManager.startAsCallee(scope, callId)
         }
-    }
-
-    suspend fun simulateIncomingCall(callerName: String = "Alexey"): Result<CallState> = runCatching {
-        val callId = "call_${UUID.randomUUID()}"
-        val now = System.currentTimeMillis()
-        val state = CallSessionEntity(
-            callId = callId,
-            type = CallType.P2P.name,
-            status = CallStatus.RINGING.name,
-            callerId = "demo_caller",
-            callerName = callerName,
-            calleeId = DriverProfileEntity.LOCAL_USER_ID,
-            calleeName = "You",
-            isIncoming = true,
-            startedAt = now,
-            endedAt = null,
-            durationMs = 0,
-        )
-        callDao.upsert(state)
-        state.toDomain()
     }
 
     suspend fun acceptCall(callId: String): Result<CallState> = runCatching {

@@ -23,6 +23,9 @@ interface VoiceRoomDao {
 
     @Query("SELECT COUNT(*) FROM voice_rooms")
     suspend fun count(): Int
+
+    @Query("DELETE FROM voice_rooms WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
 }
 
 @Dao
@@ -41,6 +44,9 @@ interface VoiceRoomParticipantDao {
 
     @Query("DELETE FROM voice_room_participants WHERE roomId = :roomId AND userId = :userId")
     suspend fun remove(roomId: String, userId: String)
+
+    @Query("DELETE FROM voice_room_participants WHERE roomId IN (:roomIds)")
+    suspend fun deleteAllInRooms(roomIds: List<String>)
 
     @Query("UPDATE voice_room_participants SET isMuted = :muted WHERE roomId = :roomId AND userId = :userId")
     suspend fun setMuted(roomId: String, userId: String, muted: Boolean)

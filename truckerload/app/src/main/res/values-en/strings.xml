@@ -214,7 +214,6 @@
     <string name="camera_discard_attached_message">Photos are already attached to this load. Cancel will delete them.</string>
     <string name="load_delete_confirm_title">Delete load?</string>
     <string name="load_delete_confirm_message">The load and linked photos/scans will be deleted.</string>
-    <string name="social_demo_peer_suffix"> (demo)</string>
     <string name="photo_gallery">Photo gallery</string>
     <string name="no_photos">📭 No saved photos</string>
     <string name="photo_linked">✅ Photo linked to load</string>
