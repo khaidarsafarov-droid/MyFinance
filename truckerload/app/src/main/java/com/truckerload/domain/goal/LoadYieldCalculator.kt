@@ -1,7 +1,7 @@
 package com.truckerload.domain.goal
 
+import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.Load
-import com.truckerload.utils.dateStringToEndOfDayMillis
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
 import kotlin.math.ceil
@@ -10,13 +10,12 @@ private const val MS_PER_DAY = 86_400_000.0
 
 object LoadYieldCalculator {
 
-    /** End of load: driver override (end of day) or last DEL from Relay. */
+    /**
+     * End of load: driver override (exact `"YYYY-MM-DD HH:mm"` or legacy date end-of-day)
+     * or last DEL from Relay.
+     */
     fun resolveFinishMillis(load: Load): Long? {
-        val override = load.actualFinishDate
-            ?.trim()
-            ?.takeIf { it.length >= 10 }
-            ?.let { dateStringToEndOfDayMillis(it) }
-        if (override != null) return override
+        ActualFinishDate.toMillis(load.actualFinishDate)?.let { return it }
         return getLastDeliveryMillis(load)
     }
 

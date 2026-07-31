@@ -29,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -139,16 +138,17 @@ fun EditLoadScreen(
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
-                        // Finish date first when opened from «Когда закончили груз?»
+                        // Finish date+time first when opened from «Когда закончили груз?»
                         if (uiState.focusFinish) {
                             FinishDateField(
                                 value = uiState.finishDate,
                                 lastDelDate = uiState.lastDelDate,
                                 onValueChange = viewModel::setFinishDate,
+                                onDatePicked = viewModel::setFinishDatePart,
+                                onTimePicked = viewModel::setFinishTime,
                                 fieldColors = fieldColors,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(finishFocusRequester),
+                                modifier = Modifier.fillMaxWidth(),
+                                focusRequester = finishFocusRequester,
                             )
                         }
                         OutlinedTextField(
@@ -165,6 +165,8 @@ fun EditLoadScreen(
                                 value = uiState.finishDate,
                                 lastDelDate = uiState.lastDelDate,
                                 onValueChange = viewModel::setFinishDate,
+                                onDatePicked = viewModel::setFinishDatePart,
+                                onTimePicked = viewModel::setFinishTime,
                                 fieldColors = fieldColors,
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -241,26 +243,3 @@ fun EditLoadScreen(
     }
 }
 
-@Composable
-private fun FinishDateField(
-    value: String,
-    lastDelDate: String?,
-    onValueChange: (String) -> Unit,
-    fieldColors: androidx.compose.material3.TextFieldColors,
-    modifier: Modifier = Modifier,
-) {
-    val help = if (lastDelDate.isNullOrBlank()) {
-        stringResource(R.string.edit_load_finish_help)
-    } else {
-        stringResource(R.string.edit_load_finish_help_with_del, lastDelDate)
-    }
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(stringResource(R.string.edit_load_finish_label)) },
-        modifier = modifier,
-        supportingText = { Text(help) },
-        shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
-        colors = fieldColors,
-    )
-}

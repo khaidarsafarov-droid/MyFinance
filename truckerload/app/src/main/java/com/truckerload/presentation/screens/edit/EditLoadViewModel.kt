@@ -9,14 +9,17 @@ import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.lastDelDateFromStops
+import com.truckerload.domain.model.lastDelDateTimeFromStops
 import com.truckerload.domain.model.withRouteMetrics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 data class EditLoadUiState(
     val isLoading: Boolean = true,
@@ -24,7 +27,7 @@ data class EditLoadUiState(
     val original: Load? = null,
     val tripId: String = "",
     val loadDate: String = "",
-    /** Дата завершения груза (YYYY-MM-DD); по умолчанию — последний DEL. */
+    /** Finish override: `YYYY-MM-DD` or `YYYY-MM-DD HH:mm`. */
     val finishDate: String = "",
     val lastDelDate: String? = null,
     val totalRate: String = "",
@@ -70,6 +73,26 @@ class EditLoadViewModel @Inject constructor(
         _uiState.update { it.copy(finishDate = value, saveError = null) }
     }
 
+    fun setFinishDatePart(isoDate: String) {
+        val date = isoDate.trim().take(10)
+        if (date.length < 10) return
+        val current = _uiState.value.finishDate
+        val time = ActualFinishDate.timeParts(current)
+        val next = if (time != null) {
+            ActualFinishDate.combine(date, time.first, time.second)
+        } else {
+            // Picker path: keep a clock so early finish today drops the route immediately.
+            ActualFinishDate.combineNow(date)
+        }
+        setFinishDate(next)
+    }
+
+    fun setFinishTime(hour: Int, minute: Int) {
+        val date = ActualFinishDate.datePart(_uiState.value.finishDate)
+            ?: LocalDate.now().toString()
+        setFinishDate(ActualFinishDate.combine(date, hour, minute))
+    }
+
     fun setTotalRate(value: String) {
         savedStateHandle[KEY_RATE] = value
         _uiState.update { it.copy(totalRate = value, saveError = null) }
@@ -113,12 +136,7 @@ class EditLoadViewModel @Inject constructor(
             }
             return
         }
-        val finishIso = state.finishDate.trim().takeIf { it.length >= 10 }?.take(10)
-        // Always persist an explicit finish date when the driver sets one — including
-        // finishing on the planned last-DEL day. Live map uses actualFinishDate to
-        // drop the route immediately after the trip is marked complete.
-        // Empty field clears the override and falls back to stops.
-        val actualFinish = finishIso
+        val actualFinish = ActualFinishDate.normalize(state.finishDate)
         val updated = (state.disputeLoad ?: original).copy(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
@@ -141,7 +159,7 @@ class EditLoadViewModel @Inject constructor(
                         saved = true,
                         original = reloaded,
                         finishDate = reloaded.actualFinishDate
-                            ?: reloaded.lastDelDateFromStops().orEmpty(),
+                            ?: reloaded.lastDelDateTimeFromStops().orEmpty(),
                         lastDelDate = reloaded.lastDelDateFromStops(),
                         disputeLoad = reloaded,
                     )
@@ -180,10 +198,19 @@ class EditLoadViewModel @Inject constructor(
                 val lastDel = loaded.lastDelDateFromStops()
                 val tripId = savedStateHandle[KEY_TRIP] ?: loaded.tripId
                 val loadDate = savedStateHandle[KEY_DATE] ?: loaded.date
-                // Prefill finish with saved override, else last DEL (auto from stops).
                 val finishDate = savedStateHandle[KEY_FINISH]
-                    ?: loaded.actualFinishDate?.takeIf { it.length >= 10 }?.take(10)
-                    ?: lastDel.orEmpty()
+                    ?: ActualFinishDate.normalize(loaded.actualFinishDate)
+                    ?: run {
+                        val fromStops = loaded.lastDelDateTimeFromStops().orEmpty()
+                        if (focusFinish && fromStops.length == 10) {
+                            // «When did you finish?» — default clock to now on that day.
+                            ActualFinishDate.combineNow(fromStops)
+                        } else if (focusFinish && fromStops.isBlank()) {
+                            ActualFinishDate.combineNow(LocalDate.now().toString())
+                        } else {
+                            fromStops
+                        }
+                    }
                 val totalRate = savedStateHandle[KEY_RATE] ?: loaded.totalRate.toString()
                 val totalMiles = savedStateHandle[KEY_MILES] ?: loaded.totalMiles.toString()
                 val pointA = savedStateHandle[KEY_A] ?: loaded.pointA
