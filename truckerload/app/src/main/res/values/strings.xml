@@ -214,7 +214,6 @@
     <string name="camera_discard_attached_message">Фото уже привязаны к грузу. Отмена удалит их.</string>
     <string name="load_delete_confirm_title">Удалить груз?</string>
     <string name="load_delete_confirm_message">Груз и связанные фото/сканы будут удалены.</string>
-    <string name="social_demo_peer_suffix"> (демо)</string>
     <string name="photo_gallery">Галерея фото</string>
     <string name="no_photos">📭 Нет сохранённых фото</string>
     <string name="photo_linked">✅ Фото привязано к грузу</string>

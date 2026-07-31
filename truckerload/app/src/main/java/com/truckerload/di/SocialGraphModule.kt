@@ -13,7 +13,6 @@ import com.truckerload.data.repository.social.MediaRepositoryImpl
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.ProfileRepositoryImpl
 import com.truckerload.data.repository.social.SocialChatStore
-import com.truckerload.data.repository.social.SocialSeedHelper
 import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.data.repository.social.StatusRepository
 import com.truckerload.data.repository.social.StatusRepositoryImpl
@@ -55,7 +54,6 @@ object SocialGraphModule {
         val profileDao = db.driverProfileDao()
         val driverStatusDao = db.driverStatusDao()
 
-        val seedHelper = SocialSeedHelper(chatDao, chatMemberDao, driverStatusDao)
         val chatStore = SocialChatStore(
             chatDao = chatDao,
             chatMemberDao = chatMemberDao,
@@ -112,7 +110,6 @@ object SocialGraphModule {
             userProfileStore = userProfileStore,
             profileRepository = profileRepository,
             statusRepository = statusRepository,
-            seedHelper = seedHelper,
         )
         return Bundle(
             profile = profileRepository,

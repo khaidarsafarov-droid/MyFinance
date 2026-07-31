@@ -295,8 +295,4 @@ class IncomingCallViewModel @Inject constructor(
     fun reject(callId: String) {
         viewModelScope.launch { voiceRepository.rejectCall(callId) }
     }
-
-    fun simulateDemoCall() {
-        viewModelScope.launch { voiceRepository.simulateIncomingCall() }
-    }
 }

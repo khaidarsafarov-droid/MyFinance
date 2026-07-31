@@ -85,13 +85,37 @@ class SocialQaRoomTest {
     }
 
     @Test
-    fun peerSeedIsIdempotent() = runBlocking {
+    fun demoCleanupRemovesPrototypePeersAndChats() = runBlocking {
         val peerDao = db.socialPeerDao()
-        SocialPeerSeedData.seedIfEmpty(peerDao)
-        val first = peerDao.count()
-        assertTrue(first > 0)
-        SocialPeerSeedData.seedIfEmpty(peerDao)
-        assertEquals(first, peerDao.count())
+        peerDao.upsertAll(
+            listOf(
+                com.truckerload.data.local.entities.SocialPeerEntity(
+                    id = "peer_ivan",
+                    displayName = "Ivan Petrov",
+                    rating = 4.9,
+                    weeklyMiles = 100.0,
+                    weeklyRevenue = 1000.0,
+                    weeklyLoads = 1,
+                    weeklyRpm = 2.0,
+                ),
+            ),
+        )
+        db.socialChatDao().upsert(
+            SocialChatEntity(
+                id = "group_i95",
+                title = "I-95",
+                type = ChatType.GROUP.name,
+                participantCount = 1,
+                lastMessage = "demo",
+                lastMessageAt = 1L,
+                unreadCount = 0,
+                avatarEmoji = "🗺️",
+                inviteCode = "I95ROAD",
+            ),
+        )
+        SocialDemoCleanup.purge(db)
+        assertEquals(0, peerDao.count())
+        assertNull(db.socialChatDao().getChat("group_i95"))
     }
 
     @Test
