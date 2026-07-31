@@ -27,7 +27,7 @@ import org.json.JSONObject
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val authStore: AuthStore,
     private val userProfileStore: UserProfileStore,
     private val credentialsStore: AuthCredentialsStore,
