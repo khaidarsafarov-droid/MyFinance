@@ -15,10 +15,14 @@ import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
-import com.truckerload.data.repository.SocialRepository
-import com.truckerload.di.SocialRepositoryModule
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.GroupRepository
+import com.truckerload.data.repository.social.MediaRepository
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.data.repository.social.StatusRepository
 
 /**
  * Account-scoped object graph for one [userId].
@@ -42,7 +46,12 @@ class UserComponent private constructor(
     val analyticsRepository: AnalyticsRepository,
     val photoRepository: PhotoRepository,
     val scanRepository: ScanRepository,
-    val socialRepository: SocialRepository,
+    val profileRepository: ProfileRepository,
+    val chatRepository: ChatRepository,
+    val groupRepository: GroupRepository,
+    val statusRepository: StatusRepository,
+    val mediaRepository: MediaRepository,
+    val socialSyncCoordinator: SocialSyncCoordinator,
     val voiceRepository: VoiceRepository,
     val aiRepository: AiRepository,
     val maintenanceRepository: MaintenanceRepository,
@@ -60,6 +69,12 @@ class UserComponent private constructor(
             val loadRepository = LoadRepository(db)
             val paycheckRepository = PaycheckRepository(db)
             val dieselRepository = DieselRepository(db)
+            val social = SocialGraphModule.create(
+                context = context,
+                db = db,
+                loadRepository = loadRepository,
+                userProfileStore = userProfileStore,
+            )
             return UserComponent(
                 userId = id,
                 database = db,
@@ -74,12 +89,12 @@ class UserComponent private constructor(
                 analyticsRepository = AnalyticsRepository(db),
                 photoRepository = PhotoRepository(db),
                 scanRepository = ScanRepository(db),
-                socialRepository = SocialRepositoryModule.create(
-                    context = context,
-                    db = db,
-                    loadRepository = loadRepository,
-                    userProfileStore = userProfileStore,
-                ).facade,
+                profileRepository = social.profile,
+                chatRepository = social.chat,
+                groupRepository = social.group,
+                statusRepository = social.status,
+                mediaRepository = social.media,
+                socialSyncCoordinator = social.syncCoordinator,
                 voiceRepository = VoiceRepository(db, context),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),

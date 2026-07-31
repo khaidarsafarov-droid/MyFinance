@@ -95,7 +95,7 @@ import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.utils.MoneyFormat
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -114,7 +114,7 @@ fun HomeScreen(
 ) {
     val tc = LocalTruckColors.current
     val loadRepository = LocalLoadRepository.current
-    val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
+    val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
     val defaultDriverName = stringResource(R.string.default_driver_name)

@@ -9,7 +9,13 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.SocialRepository
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.GroupRepository
+import com.truckerload.data.repository.social.MediaRepository
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialConstants
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.data.repository.social.StatusRepository
 import com.truckerload.domain.social.Challenge
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.EnhancedDriverProfile
@@ -43,14 +49,15 @@ data class ProfileUiState(
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val _avatarActionState = MutableStateFlow(AvatarActionState())
 
     val uiState: StateFlow<ProfileUiState> =
         combine(
-            socialRepository.watchMyEnhancedProfile(),
+            profileRepository.watchMyEnhancedProfile(),
             _avatarActionState,
         ) { profile, avatarState ->
             ProfileUiState(
@@ -64,7 +71,7 @@ class ProfileViewModel @Inject constructor(
     val editState: StateFlow<ProfileUiState?> = _editState.asStateFlow()
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun startEdit() {
@@ -78,7 +85,7 @@ class ProfileViewModel @Inject constructor(
     fun uploadAvatar(bitmap: Bitmap) {
         viewModelScope.launch {
             _avatarActionState.update { it.copy(isUploading = true, error = null) }
-            when (val result = socialRepository.uploadAvatar(bitmap)) {
+            when (val result = profileRepository.uploadAvatar(bitmap)) {
                 is SocialResult.Success -> _avatarActionState.update { it.copy(isUploading = false) }
                 is SocialResult.Error -> _avatarActionState.update {
                     it.copy(isUploading = false, error = result.message)
@@ -90,7 +97,7 @@ class ProfileViewModel @Inject constructor(
     fun removeAvatar() {
         viewModelScope.launch {
             _avatarActionState.update { it.copy(isUploading = true, error = null) }
-            when (val result = socialRepository.removeAvatar()) {
+            when (val result = profileRepository.removeAvatar()) {
                 is SocialResult.Success -> _avatarActionState.update { it.copy(isUploading = false) }
                 is SocialResult.Error -> _avatarActionState.update {
                     it.copy(isUploading = false, error = result.message)
@@ -119,7 +126,7 @@ class ProfileViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _editState.value = _editState.value?.copy(isSaving = true, saveError = null)
-            when (val result = socialRepository.updateProfile(
+            when (val result = profileRepository.updateProfile(
                     displayName = displayName.trim(),
                     truckType = truckType.trim(),
                     experienceYears = experienceYears.coerceAtLeast(0),
@@ -160,7 +167,9 @@ data class ChatsUiState(
 
 @HiltViewModel
 class ChatsViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val chatRepository: ChatRepository,
+    private val groupRepository: GroupRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
@@ -168,9 +177,9 @@ class ChatsViewModel @Inject constructor(
 
     val uiState: StateFlow<ChatsUiState> =
         combine(
-            searchQuery.flatMapLatest { query -> socialRepository.watchChatsSearch(query) },
-            socialRepository.watchTotalUnread(),
-            socialRepository.watchPeers(),
+            searchQuery.flatMapLatest { query -> chatRepository.watchChatsSearch(query) },
+            chatRepository.watchTotalUnread(),
+            chatRepository.watchPeers(),
             searchQuery,
             _errorMessage,
         ) { chats, unread, peers, query, error ->
@@ -186,7 +195,7 @@ class ChatsViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChatsUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun setSearchQuery(query: String) {
@@ -198,7 +207,7 @@ class ChatsViewModel @Inject constructor(
         if (trimmed.isBlank()) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createGroupChat(trimmed)) {
+            when (val result = groupRepository.createGroupChat(trimmed)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -210,7 +219,7 @@ class ChatsViewModel @Inject constructor(
         if (trimmed.isBlank()) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPrivateChat(trimmed)) {
+            when (val result = chatRepository.createPrivateChat(trimmed)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -220,7 +229,7 @@ class ChatsViewModel @Inject constructor(
     fun createPrivateChatWithPeer(peerId: String, onCreated: (String) -> Unit) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPrivateChatWithPeer(peerId)) {
+            when (val result = chatRepository.createPrivateChatWithPeer(peerId)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -252,7 +261,10 @@ data class SocialChatUiState(
 @HiltViewModel
 class SocialChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val socialRepository: SocialRepository,
+    private val chatRepository: ChatRepository,
+    private val profileRepository: ProfileRepository,
+    private val mediaRepository: MediaRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val chatId = Uri.decode(savedStateHandle.get<String>("chatId").orEmpty())
@@ -274,10 +286,10 @@ class SocialChatViewModel @Inject constructor(
 
     val uiState: StateFlow<SocialChatUiState> =
         combine(
-            socialRepository.watchMessages(chatId),
+            chatRepository.watchMessages(chatId),
             _input,
             _meta,
-            socialRepository.watchMyProfile(),
+            profileRepository.watchMyProfile(),
         ) { messages, input, meta, profile ->
             SocialChatUiState(
                 chatTitle = meta.title,
@@ -299,9 +311,9 @@ class SocialChatViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            socialRepository.ensureInitialized()
-            socialRepository.markChatRead(chatId)
-            val chat = socialRepository.getChat(chatId)
+            socialSyncCoordinator.ensureInitialized()
+            chatRepository.markChatRead(chatId)
+            val chat = chatRepository.getChat(chatId)
             _meta.value = _meta.value.copy(
                 title = chat?.title ?: "",
                 participantCount = chat?.participantCount ?: 0,
@@ -314,7 +326,7 @@ class SocialChatViewModel @Inject constructor(
 
     private suspend fun refreshHasMore() {
         val currentOldest = uiState.value.allMessages.firstOrNull()?.sentAt ?: return
-        val page = socialRepository.loadMoreMessages(chatId, currentOldest).getOrNull().orEmpty()
+        val page = chatRepository.loadMoreMessages(chatId, currentOldest).getOrNull().orEmpty()
         _meta.value = _meta.value.copy(hasMore = page.isNotEmpty())
     }
 
@@ -328,7 +340,7 @@ class SocialChatViewModel @Inject constructor(
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Me" }
             val replyId = _meta.value.replyTo?.id
-            when (val result = socialRepository.sendMessage(chatId, text, name, replyToId = replyId)) {
+            when (val result = chatRepository.sendMessage(chatId, text, name, replyToId = replyId)) {
                 is SocialResult.Success -> {
                     _input.value = ""
                     _meta.value = _meta.value.copy(replyTo = null, errorMessage = null)
@@ -343,14 +355,14 @@ class SocialChatViewModel @Inject constructor(
     fun sendImage(bitmap: android.graphics.Bitmap, caption: String = "") {
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Me" }
-            socialRepository.sendImageMessage(chatId, bitmap, caption, name)
+            mediaRepository.sendImageMessage(chatId, bitmap, caption, name)
         }
     }
 
     fun sendVoiceNote(file: java.io.File, durationMs: Long) {
         viewModelScope.launch {
             val name = uiState.value.myDisplayName.ifBlank { "Me" }
-            socialRepository.sendVoiceMessage(chatId, file, durationMs, name)
+            mediaRepository.sendVoiceMessage(chatId, file, durationMs, name)
         }
     }
 
@@ -364,7 +376,7 @@ class SocialChatViewModel @Inject constructor(
 
     fun addReaction(messageId: String, reaction: String) {
         viewModelScope.launch {
-            socialRepository.addReaction(messageId, reaction)
+            chatRepository.addReaction(messageId, reaction)
         }
     }
 
@@ -373,7 +385,7 @@ class SocialChatViewModel @Inject constructor(
         val oldest = uiState.value.allMessages.firstOrNull()?.sentAt ?: return
         viewModelScope.launch {
             _meta.value = _meta.value.copy(isLoadingMore = true)
-            when (val result = socialRepository.loadMoreMessages(chatId, oldest)) {
+            when (val result = chatRepository.loadMoreMessages(chatId, oldest)) {
                 is SocialResult.Success -> {
                     val batch = result.data
                     if (batch.isNotEmpty()) {
@@ -382,7 +394,7 @@ class SocialChatViewModel @Inject constructor(
                         )
                     }
                     _meta.value = _meta.value.copy(
-                        hasMore = batch.size >= SocialRepository.MESSAGE_PAGE_SIZE,
+                        hasMore = batch.size >= SocialConstants.MESSAGE_PAGE_SIZE,
                         isLoadingMore = false,
                     )
                 }
@@ -404,7 +416,8 @@ data class CommunityUiState(
 
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CommunityUiState())
@@ -413,17 +426,17 @@ class CommunityViewModel @Inject constructor(
     private val leaderboardCategory = MutableStateFlow(LeaderboardCategory.OVERALL)
 
     val leaderboard = leaderboardCategory
-        .flatMapLatest { category -> socialRepository.watchLeaderboard(category) }
+        .flatMapLatest { category -> profileRepository.watchLeaderboard(category) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             runCatching {
-                socialRepository.ensureInitialized()
+                socialSyncCoordinator.ensureInitialized()
                 _state.value = _state.value.copy(
-                    challenge = socialRepository.weeklyChallenge(),
-                    challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                    challenge = profileRepository.weeklyChallenge(),
+                    challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                     isLoading = false,
                     errorMessage = null,
                 )
@@ -442,8 +455,8 @@ class CommunityViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             runCatching {
                 _state.value = _state.value.copy(
-                    challenge = socialRepository.weeklyChallenge(),
-                    challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                    challenge = profileRepository.weeklyChallenge(),
+                    challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                     isLoading = false,
                     errorMessage = null,
                 )
@@ -456,17 +469,17 @@ class CommunityViewModel @Inject constructor(
     fun joinChallenge() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isJoiningChallenge = true, errorMessage = null)
-            when (val result = socialRepository.joinWeeklyChallenge()) {
+            when (val result = profileRepository.joinWeeklyChallenge()) {
                 is SocialResult.Success -> {
                     _state.value = _state.value.copy(
-                        challenge = socialRepository.weeklyChallenge(),
+                        challenge = profileRepository.weeklyChallenge(),
                         challengeJoined = true,
                         isJoiningChallenge = false,
                     )
                 }
                 is SocialResult.Error -> {
                     _state.value = _state.value.copy(
-                        challengeJoined = socialRepository.hasJoinedWeeklyChallenge(),
+                        challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                         isJoiningChallenge = false,
                         errorMessage = result.message,
                     )
@@ -490,7 +503,8 @@ data class StatusUiState(
 
 @HiltViewModel
 class StatusViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val statusRepository: StatusRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
     private val _input = MutableStateFlow("")
     private val _isRecordingVoice = MutableStateFlow(false)
@@ -498,7 +512,7 @@ class StatusViewModel @Inject constructor(
 
     val uiState: StateFlow<StatusUiState> =
         combine(
-            socialRepository.watchFriendStatuses(),
+            statusRepository.watchFriendStatuses(),
             _input,
             _isRecordingVoice,
             _errorMessage,
@@ -512,7 +526,7 @@ class StatusViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatusUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun setInput(text: String) {
@@ -523,7 +537,7 @@ class StatusViewModel @Inject constructor(
         val text = _input.value.trim()
         if (text.isBlank()) return
         viewModelScope.launch {
-            socialRepository.createTextStatus(text, displayName)
+            statusRepository.createTextStatus(text, displayName)
             _input.value = ""
         }
     }
@@ -531,7 +545,7 @@ class StatusViewModel @Inject constructor(
     fun postPhotoStatus(bitmap: android.graphics.Bitmap, displayName: String, caption: String = "") {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPhotoStatus(bitmap, displayName, caption)) {
+            when (val result = statusRepository.createPhotoStatus(bitmap, displayName, caption)) {
                 is SocialResult.Success -> Unit
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -541,7 +555,7 @@ class StatusViewModel @Inject constructor(
     fun postVoiceStatus(audioFile: java.io.File, durationMs: Long, displayName: String) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createVoiceStatus(audioFile, durationMs, displayName)) {
+            when (val result = statusRepository.createVoiceStatus(audioFile, durationMs, displayName)) {
                 is SocialResult.Success -> Unit
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -557,7 +571,7 @@ class StatusViewModel @Inject constructor(
     }
 
     fun markViewed(statusId: String) {
-        viewModelScope.launch { socialRepository.markStatusViewed(statusId) }
+        viewModelScope.launch { statusRepository.markStatusViewed(statusId) }
     }
 }
 
@@ -570,15 +584,17 @@ data class GroupsUiState(
 
 @HiltViewModel
 class GroupsViewModel @Inject constructor(
-    private val socialRepository: SocialRepository,
+    private val chatRepository: ChatRepository,
+    private val groupRepository: GroupRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
     private val _inviteCode = MutableStateFlow("")
     private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<GroupsUiState> =
         combine(
-            socialRepository.watchPublicGroups(),
-            socialRepository.recommendGroups(),
+            chatRepository.watchPublicGroups(),
+            chatRepository.recommendGroups(),
             _inviteCode,
             _errorMessage,
         ) { groups, recommended, code, error ->
@@ -593,7 +609,7 @@ class GroupsViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GroupsUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun setInviteCode(code: String) {
@@ -603,7 +619,7 @@ class GroupsViewModel @Inject constructor(
     fun joinGroup(chatId: String, displayName: String, onJoined: (String) -> Unit) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.joinGroup(chatId, displayName)) {
+            when (val result = groupRepository.joinGroup(chatId, displayName)) {
                 is SocialResult.Success -> onJoined(chatId)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -616,7 +632,7 @@ class GroupsViewModel @Inject constructor(
         if (GroupInviteCode.isBlank(code)) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.joinGroupByInviteCode(GroupInviteCode.normalize(code), displayName)) {
+            when (val result = groupRepository.joinGroupByInviteCode(GroupInviteCode.normalize(code), displayName)) {
                 is SocialResult.Success -> onJoined(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -638,15 +654,16 @@ data class GroupDetailUiState(
 @HiltViewModel
 class GroupDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val socialRepository: SocialRepository,
+    private val chatRepository: ChatRepository,
+    private val groupRepository: GroupRepository,
 ) : ViewModel() {
     private val chatId = Uri.decode(savedStateHandle.get<String>("chatId").orEmpty())
     private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<GroupDetailUiState> =
         combine(
-            socialRepository.watchChats().map { chats -> chats.firstOrNull { it.id == chatId } },
-            socialRepository.watchGroupMembers(chatId),
+            chatRepository.watchChats().map { chats -> chats.firstOrNull { it.id == chatId } },
+            groupRepository.watchGroupMembers(chatId),
             _errorMessage,
         ) { chat, members, errorMessage ->
             GroupDetailUiState(
@@ -662,7 +679,7 @@ class GroupDetailViewModel @Inject constructor(
     fun leaveGroup(onLeft: () -> Unit) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.leaveGroup(chatId)) {
+            when (val result = groupRepository.leaveGroup(chatId)) {
                 is SocialResult.Success -> onLeft()
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
@@ -689,7 +706,9 @@ data class PeerProfileUiState(
 @HiltViewModel
 class PeerProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val socialRepository: SocialRepository,
+    private val profileRepository: ProfileRepository,
+    private val chatRepository: ChatRepository,
+    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
     private val peerId = Uri.decode(savedStateHandle.get<String>("peerId").orEmpty())
     private val _followUpdating = MutableStateFlow(false)
@@ -700,9 +719,9 @@ class PeerProfileViewModel @Inject constructor(
     val uiState: StateFlow<PeerProfileUiState> =
         combine(
             combine(
-                socialRepository.watchPeer(peerId),
-                socialRepository.watchIsFollowing(peerId),
-                socialRepository.watchIsBlocked(peerId),
+                profileRepository.watchPeer(peerId),
+                profileRepository.watchIsFollowing(peerId),
+                profileRepository.watchIsBlocked(peerId),
             ) { peer, isFollowing, isBlocked -> Triple(peer, isFollowing, isBlocked) },
             combine(_followUpdating, _blocking, _errorMessage) { updating, blocking, error ->
                 Triple(updating, blocking, error)
@@ -719,7 +738,7 @@ class PeerProfileViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PeerProfileUiState())
 
     init {
-        viewModelScope.launch { socialRepository.ensureInitialized() }
+        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
     }
 
     fun toggleFollow() {
@@ -727,9 +746,9 @@ class PeerProfileViewModel @Inject constructor(
             _followUpdating.value = true
             _errorMessage.value = null
             val result = if (uiState.value.isFollowing) {
-                socialRepository.unfollowDriver(peerId)
+                profileRepository.unfollowDriver(peerId)
             } else {
-                socialRepository.followDriver(peerId)
+                profileRepository.followDriver(peerId)
             }
             if (result is SocialResult.Error) {
                 _errorMessage.value = result.message
@@ -743,9 +762,9 @@ class PeerProfileViewModel @Inject constructor(
             _blocking.value = true
             _errorMessage.value = null
             val result = if (uiState.value.isBlocked) {
-                socialRepository.unblockUser(peerId)
+                profileRepository.unblockUser(peerId)
             } else {
-                socialRepository.blockUser(peerId)
+                profileRepository.blockUser(peerId)
             }
             if (result is SocialResult.Error) {
                 _errorMessage.value = result.message
@@ -757,7 +776,7 @@ class PeerProfileViewModel @Inject constructor(
     fun startPrivateChat(onCreated: (String) -> Unit) {
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = socialRepository.createPrivateChatWithPeer(peerId)) {
+            when (val result = chatRepository.createPrivateChatWithPeer(peerId)) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }

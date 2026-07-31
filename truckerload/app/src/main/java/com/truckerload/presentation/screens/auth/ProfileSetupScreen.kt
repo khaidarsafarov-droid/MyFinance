@@ -47,7 +47,8 @@ import com.truckerload.domain.social.SocialResult
 import com.truckerload.presentation.components.CountryPickerField
 import com.truckerload.presentation.components.PhoneWithCountryField
 import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalProfileRepository
+import com.truckerload.presentation.di.LocalSocialSyncCoordinator
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.screens.social.ProfileAvatar
 import com.truckerload.presentation.screens.social.ProfileAvatarPickerSheet
@@ -70,7 +71,8 @@ fun ProfileSetupScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val socialRepository = LocalSocialRepository.current
+    val profileRepository = LocalProfileRepository.current
+    val socialSyncCoordinator = LocalSocialSyncCoordinator.current
     val userProfileStore = LocalUserProfileStore.current
     val userProfile by userProfileStore.profile.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -100,8 +102,8 @@ fun ProfileSetupScreen(
     val defaultDriverName = stringResource(R.string.default_driver_name)
 
     LaunchedEffect(defaultDriverName) {
-        socialRepository.ensureInitialized()
-        val profile = socialRepository.watchMyEnhancedProfile().first()
+        socialSyncCoordinator.ensureInitialized()
+        val profile = profileRepository.watchMyEnhancedProfile().first()
         if (displayName.isBlank() && profile.displayName.isNotBlank() &&
             profile.displayName !in setOf(defaultDriverName, "Driver", "User")
         ) {
@@ -145,7 +147,7 @@ fun ProfileSetupScreen(
         onBitmapSelected = { bitmap ->
             scope.launch {
                 isUploadingAvatar = true
-                when (val result = socialRepository.uploadAvatar(bitmap)) {
+                when (val result = profileRepository.uploadAvatar(bitmap)) {
                     is SocialResult.Success -> {
                         avatarUrl = result.data
                         isUploadingAvatar = false
@@ -159,7 +161,7 @@ fun ProfileSetupScreen(
         },
         onRemove = {
             scope.launch {
-                socialRepository.removeAvatar()
+                profileRepository.removeAvatar()
                 avatarUrl = null
             }
         },
@@ -372,7 +374,7 @@ fun ProfileSetupScreen(
                         scope.launch {
                             val e164 = CountryCatalog.formatE164(phoneCountry, nationalNumber)
                             when (
-                                val result = socialRepository.completeProfileSetup(
+                                val result = profileRepository.completeProfileSetup(
                                     displayName = displayName,
                                     phoneNumber = e164,
                                     homeCountryIso2 = homeCountry.iso2,

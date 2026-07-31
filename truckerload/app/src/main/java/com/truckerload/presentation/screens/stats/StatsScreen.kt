@@ -79,7 +79,7 @@ import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalSocialRepository
+import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
 import kotlinx.coroutines.launch
 import java.text.DateFormatSymbols
@@ -99,7 +99,7 @@ fun StatsScreen(
     onOpenMap: () -> Unit = {}
 ) {
     val aiRepository = LocalAiRepository.current
-    val socialProfile by LocalSocialRepository.current.watchMyEnhancedProfile()
+    val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
     val defaultDriverName = stringResource(R.string.default_driver_name)
