@@ -208,6 +208,12 @@
     <string name="photo_save_error">Failed to save photo</string>
     <string name="photo_decode_error">Could not read photo</string>
     <string name="camera_busy">Camera is busy, please wait</string>
+    <string name="camera_flash_off">Off</string>
+    <string name="camera_flash_auto">Auto</string>
+    <string name="camera_flash_on">On</string>
+    <string name="camera_flash_cd_off">Flash off</string>
+    <string name="camera_flash_cd_auto">Flash auto</string>
+    <string name="camera_flash_cd_on">Flash on</string>
     <string name="camera_bind_error">Could not start camera</string>
     <string name="camera_continue_without_gps">You can continue without GPS — coordinates will be skipped</string>
     <string name="camera_discard_attached_title">Remove photos from load?</string>

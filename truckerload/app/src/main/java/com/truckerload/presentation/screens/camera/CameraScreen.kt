@@ -139,6 +139,11 @@ fun CameraScreen(
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val previewViewHolder = remember { mutableStateOf<PreviewView?>(null) }
     var captureInFlight by remember { mutableStateOf(false) }
+    var flashMode by remember { mutableStateOf(CameraFlashMode.OFF) }
+
+    LaunchedEffect(flashMode) {
+        imageCapture.flashMode = flashMode.toImageCaptureMode()
+    }
 
     DisposableEffect(previewViewHolder.value, hasCameraPermission, lifecycleOwner) {
         val previewView = previewViewHolder.value
@@ -245,13 +250,21 @@ fun CameraScreen(
                         },
                     )
 
+                    CameraFlashButton(
+                        mode = flashMode,
+                        onCycle = { flashMode = flashMode.next() },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(16.dp),
+                    )
+
                     if (!hasLocationPermission) {
                         Text(
                             text = stringResource(R.string.camera_continue_without_gps),
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
-                                .padding(16.dp)
+                                .padding(top = 88.dp)
                                 .background(
                                     MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                                     CircleShape,
