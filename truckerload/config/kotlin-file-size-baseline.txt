@@ -4,7 +4,6 @@
 # Refreshed after merging Phase 1/2/4 onto main (v1.5.11-phase3-lint).
 
 src/main/java/com/truckerload/presentation/screens/maintenance/MaintenanceScreen.kt 942
-src/main/java/com/truckerload/sync/TelegramBotSyncEngine.kt 871
 src/main/java/com/truckerload/presentation/screens/stats/StatsScreen.kt 779
 src/main/java/com/truckerload/data/local/DatabaseMigrations.kt 776
 src/main/java/com/truckerload/presentation/screens/social/SocialViewModels.kt 770
