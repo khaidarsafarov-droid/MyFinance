@@ -1,10 +1,7 @@
-package com.truckerload.presentation.screens.map
+package com.truckerload.presentation.screens.social.friends.map
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
@@ -13,10 +10,7 @@ import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
-import com.truckerload.domain.friends.FriendPresence
-import com.truckerload.domain.friends.FriendProfileHit
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
-import com.truckerload.domain.friends.FriendShareLink
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.RouteIntersectionMatcher
@@ -26,6 +20,9 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
 import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.extractStateFromLocation
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -36,42 +33,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-data class FriendMapOverlay(
-    val presence: FriendPresence,
-    val route: FriendActiveRoute?,
-    val showPath: Boolean,
-    val past: List<LatLngPoint>,
-    val remaining: List<LatLngPoint>,
-)
-
-data class FriendsLiveMapUiState(
-    val isLoading: Boolean = true,
-    val sharePathEnabled: Boolean = false,
-    val supabaseReady: Boolean = false,
-    val myNickname: String = "",
-    val nicknameDraft: String = "",
-    val nicknameMessage: String? = null,
-    val searchQuery: String = "",
-    val searchHit: FriendProfileHit? = null,
-    val searchNotFound: Boolean = false,
-    val searchBusy: Boolean = false,
-    val shareLinks: List<FriendShareLink> = emptyList(),
-    val editingFriendId: String? = null,
-    val friends: List<FriendMapOverlay> = emptyList(),
-    /** Gray (driven) + blue (remaining) for the user's own active/upcoming load. */
-    val myPathPast: List<LatLngPoint> = emptyList(),
-    val myPathRemaining: List<LatLngPoint> = emptyList(),
-    val myRouteSummary: String? = null,
-    val selectedFriendId: String? = null,
-    val overlaps: List<RouteOverlapMatch> = emptyList(),
-    val showOverlapsPanel: Boolean = false,
-    val statusMessage: String? = null,
-    val errorMessage: String? = null,
-    val lastRefreshAt: Long = 0L,
-)
-
 @HiltViewModel
-class FriendsLiveMapViewModel @Inject constructor(
+class FriendsMapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
@@ -82,7 +45,7 @@ class FriendsLiveMapViewModel @Inject constructor(
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
 
-    private val _uiState = MutableStateFlow(FriendsLiveMapUiState())
+    private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
 
     private var pollJob: Job? = null

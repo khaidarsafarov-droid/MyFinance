@@ -3,7 +3,6 @@
 # Caps freeze growth — shrink the file and remove the entry when under 600.
 # Refreshed after merging Phase 1/2/4 onto main (v1.5.11-phase3-lint).
 
-src/main/java/com/truckerload/presentation/screens/map/FriendsLiveMapScreen.kt 976
 src/main/java/com/truckerload/presentation/screens/maintenance/MaintenanceScreen.kt 942
 src/main/java/com/truckerload/sync/TelegramBotSyncEngine.kt 871
 src/main/java/com/truckerload/presentation/screens/stats/StatsScreen.kt 779

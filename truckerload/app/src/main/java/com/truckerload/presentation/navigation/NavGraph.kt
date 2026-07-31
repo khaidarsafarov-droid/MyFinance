@@ -50,7 +50,7 @@ import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
-import com.truckerload.presentation.screens.map.FriendsLiveMapScreen
+import com.truckerload.presentation.screens.social.friends.map.FriendsLiveMapScreen
 import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
