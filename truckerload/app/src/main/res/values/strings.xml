@@ -208,6 +208,12 @@
     <string name="photo_save_error">Ошибка сохранения фото</string>
     <string name="photo_decode_error">Не удалось прочитать фото</string>
     <string name="camera_busy">Камера занята, подождите</string>
+    <string name="camera_flash_off">Выкл</string>
+    <string name="camera_flash_auto">Авто</string>
+    <string name="camera_flash_on">Вкл</string>
+    <string name="camera_flash_cd_off">Вспышка выключена</string>
+    <string name="camera_flash_cd_auto">Вспышка авто</string>
+    <string name="camera_flash_cd_on">Вспышка включена</string>
     <string name="camera_bind_error">Не удалось запустить камеру</string>
     <string name="camera_continue_without_gps">Можно снимать без GPS — координаты не добавятся</string>
     <string name="camera_discard_attached_title">Удалить фото с груза?</string>
