@@ -1,5 +1,6 @@
 package com.truckerload.domain.friends
 
+import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
 import java.time.LocalDate
@@ -72,6 +73,7 @@ object ActiveLoadSelector {
     fun statusFor(
         load: Load,
         today: LocalDate = LocalDate.now(),
+        nowMillis: Long = System.currentTimeMillis(),
     ): SharedLoadStatus {
         if (isExplicitlyCompleted(load, today)) return SharedLoadStatus.COMPLETED
         val start = parseDate(startDateIso(load)) ?: return SharedLoadStatus.UNKNOWN
@@ -79,6 +81,16 @@ object ActiveLoadSelector {
         return when {
             today.isBefore(start) -> SharedLoadStatus.FUTURE
             today.isAfter(end) -> SharedLoadStatus.COMPLETED
+            // Finish day only: after last DEL / finish clock, drop the live route.
+            // Mid-trip days (today < end) stay ACTIVE even if wall-clock is later.
+            today == end -> {
+                val finishMs = LoadYieldCalculator.resolveFinishMillis(load)
+                if (finishMs != null && nowMillis >= finishMs) {
+                    SharedLoadStatus.COMPLETED
+                } else {
+                    SharedLoadStatus.ACTIVE
+                }
+            }
             else -> SharedLoadStatus.ACTIVE
         }
     }
@@ -86,37 +98,30 @@ object ActiveLoadSelector {
     fun selectActive(
         loads: List<Load>,
         today: LocalDate = LocalDate.now(),
+        nowMillis: Long = System.currentTimeMillis(),
     ): Load? =
         loads
-            .filter { statusFor(it, today) == SharedLoadStatus.ACTIVE }
+            .filter { statusFor(it, today, nowMillis) == SharedLoadStatus.ACTIVE }
             .maxByOrNull { it.updatedAt }
 
     fun selectActiveAll(
         loads: List<Load>,
         today: LocalDate = LocalDate.now(),
+        nowMillis: Long = System.currentTimeMillis(),
     ): List<Load> =
-        loads.filter { statusFor(it, today) == SharedLoadStatus.ACTIVE }
+        loads.filter { statusFor(it, today, nowMillis) == SharedLoadStatus.ACTIVE }
             .sortedByDescending { it.updatedAt }
 
     /**
-     * Load used to draw "my path" on the friends map:
-     * 1) active today, else 2) nearest upcoming, else 3) most recently updated unfinished.
+     * Load used to draw "my path" on the friends / own live map.
+     * Only a truly ACTIVE load — never fall back to upcoming FUTURE trips
+     * (those would keep drawing a facility route after today's load is done).
      */
     fun selectForMapRoute(
         loads: List<Load>,
         today: LocalDate = LocalDate.now(),
-    ): Load? {
-        selectActive(loads, today)?.let { return it }
-        val upcoming = loads
-            .filter { statusFor(it, today) == SharedLoadStatus.FUTURE }
-            .minWithOrNull(
-                compareBy<Load> { startDateIso(it) }.thenByDescending { it.updatedAt },
-            )
-        if (upcoming != null) return upcoming
-        return loads
-            .filter { statusFor(it, today) != SharedLoadStatus.COMPLETED }
-            .maxByOrNull { it.updatedAt }
-    }
+        nowMillis: Long = System.currentTimeMillis(),
+    ): Load? = selectActive(loads, today, nowMillis)
 
     private fun parseDate(iso: String): LocalDate? =
         try {

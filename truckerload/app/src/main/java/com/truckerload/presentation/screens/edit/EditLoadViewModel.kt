@@ -114,14 +114,11 @@ class EditLoadViewModel @Inject constructor(
             return
         }
         val finishIso = state.finishDate.trim().takeIf { it.length >= 10 }?.take(10)
-        val lastDel = state.lastDelDate
-        // Persist override only when it differs from last DEL (or DEL unknown).
+        // Always persist an explicit finish date when the driver sets one — including
+        // finishing on the planned last-DEL day. Live map uses actualFinishDate to
+        // drop the route immediately after the trip is marked complete.
         // Empty field clears the override and falls back to stops.
-        val actualFinish = when {
-            finishIso.isNullOrBlank() -> null
-            lastDel != null && finishIso == lastDel -> null
-            else -> finishIso
-        }
+        val actualFinish = finishIso
         val updated = (state.disputeLoad ?: original).copy(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
