@@ -37,4 +37,10 @@ class TelegramLogoutStopsFgsGuardTest {
         assertTrue("stopForLogout must exist for logout path", "stopForLogout" in names)
         assertTrue("stop must exist", "stop" in names)
     }
+
+    @Test
+    fun canStart_existsOnCompanion() {
+        val names = TelegramBotForegroundService.Companion::class.java.methods.map { it.name }.toSet()
+        assertTrue("canStart must exist for guarded FGS restarts", "canStart" in names)
+    }
 }

@@ -49,6 +49,11 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Android requires startForeground() within ~5 s of startForegroundService().
+        // Never call stopSelf() before promoting — that crashes the process with
+        // ForegroundServiceDidNotStartInTimeException ("keeps stopping").
+        startForegroundCompat()
+
         if (TelegramSyncMode.isServer()) {
             suppressRestart = true
             stopSelf()
@@ -57,19 +62,17 @@ class TelegramBotForegroundService : Service() {
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
+            suppressRestart = true
             stopSelf()
             return START_NOT_STICKY
         }
         val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w(TAG, "No TELEGRAM_BOT_TOKEN — stopping service")
+            suppressRestart = true
             stopSelf()
             return START_NOT_STICKY
         }
-
-        // Promote to foreground immediately (Android 8+ / 12+ time limits),
-        // but keep the shade entry quiet and non-alerting.
-        startForegroundCompat()
         setupBotFeaturesOnce(token)
         if (pollJob?.isActive != true) {
             TelegramPollCoordinator.markForegroundPolling(true)
@@ -215,20 +218,18 @@ class TelegramBotForegroundService : Service() {
         /** True while the foreground bot service is alive. */
         fun isRunning(): Boolean = isRunningFlag.get()
 
+        /** True when the bot FGS is allowed to run (logged in + token configured). */
+        fun canStart(context: Context): Boolean {
+            if (TelegramSyncMode.isServer()) return false
+            val userId = AuthStore(context).currentUserIdOrNull() ?: return false
+            return TelegramTokenStore(context, userId).getToken().isNotBlank()
+        }
+
         fun start(context: Context) {
-            if (TelegramSyncMode.isServer()) return
+            if (!canStart(context)) return
             // Already alive or start already in flight — avoid startForegroundService spam.
             if (isRunningFlag.get() || TelegramPollCoordinator.isForegroundPolling()) return
             if (!startRequested.compareAndSet(false, true)) return
-            val userId = AuthStore(context).currentUserIdOrNull()
-            if (userId == null) {
-                startRequested.set(false)
-                return
-            }
-            if (TelegramTokenStore(context, userId).getToken().isBlank()) {
-                startRequested.set(false)
-                return
-            }
             suppressRestart = false
             val intent = Intent(context, TelegramBotForegroundService::class.java)
             try {

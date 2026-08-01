@@ -194,10 +194,14 @@ class FriendsLocationShareService : Service() {
 
         fun start(context: Context) {
             val i = Intent(context, FriendsLocationShareService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(i)
-            } else {
-                context.startService(i)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(i)
+                } else {
+                    context.startService(i)
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("FriendsLocationShare", "Cannot start location share service: ${e.message}")
             }
         }
 
