@@ -27,6 +27,13 @@ private val KEY_LANGUAGE = intPreferencesKey("app_language")
 private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
 private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
 private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
+private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
+private val KEY_OLED_DARK = booleanPreferencesKey("oled_dark")
+private val KEY_QUIET_HOURS_ENABLED = booleanPreferencesKey("quiet_hours_enabled")
+private val KEY_QUIET_HOURS_START = intPreferencesKey("quiet_hours_start")
+private val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
+private val KEY_NOTIFY_MISSING_WEEK = booleanPreferencesKey("notify_missing_week")
+private val KEY_NOTIFY_MAINTENANCE = booleanPreferencesKey("notify_maintenance")
 
 class SettingsDataStore(context: Context) {
 
@@ -78,6 +85,34 @@ class SettingsDataStore(context: Context) {
 
     val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
+    }
+
+    val reduceMotion: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_REDUCE_MOTION] ?: false
+    }
+
+    val oledDark: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_OLED_DARK] ?: false
+    }
+
+    val quietHoursEnabled: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_QUIET_HOURS_ENABLED] ?: false
+    }
+
+    val quietHoursStart: Flow<Int> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_QUIET_HOURS_START] ?: 22
+    }
+
+    val quietHoursEnd: Flow<Int> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_QUIET_HOURS_END] ?: 7
+    }
+
+    val notifyMissingWeek: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_NOTIFY_MISSING_WEEK] ?: true
+    }
+
+    val notifyMaintenance: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_NOTIFY_MAINTENANCE] ?: true
     }
 
     suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
@@ -174,6 +209,62 @@ class SettingsDataStore(context: Context) {
     suspend fun saveSharePathWithFriends(enabled: Boolean) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
+        }
+    }
+
+    suspend fun getReduceMotionOnce(): Boolean = reduceMotion.first()
+
+    suspend fun saveReduceMotion(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_REDUCE_MOTION] = enabled
+        }
+    }
+
+    suspend fun getOledDarkOnce(): Boolean = oledDark.first()
+
+    suspend fun saveOledDark(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_OLED_DARK] = enabled
+        }
+    }
+
+    suspend fun getQuietHoursEnabledOnce(): Boolean = quietHoursEnabled.first()
+
+    suspend fun saveQuietHoursEnabled(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_QUIET_HOURS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun getQuietHoursStartOnce(): Int = quietHoursStart.first()
+
+    suspend fun saveQuietHoursStart(hour: Int) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_QUIET_HOURS_START] = hour.coerceIn(0, 23)
+        }
+    }
+
+    suspend fun getQuietHoursEndOnce(): Int = quietHoursEnd.first()
+
+    suspend fun saveQuietHoursEnd(hour: Int) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_QUIET_HOURS_END] = hour.coerceIn(0, 23)
+        }
+    }
+
+    suspend fun getNotifyMissingWeekOnce(): Boolean = notifyMissingWeek.first()
+
+    suspend fun saveNotifyMissingWeek(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_NOTIFY_MISSING_WEEK] = enabled
+        }
+    }
+
+    suspend fun getNotifyMaintenanceOnce(): Boolean = notifyMaintenance.first()
+
+    suspend fun saveNotifyMaintenance(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_NOTIFY_MAINTENANCE] = enabled
         }
     }
 }

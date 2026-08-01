@@ -7,10 +7,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,14 +38,17 @@ import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
+import com.truckerload.presentation.components.QuickActionsBottomSheet
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDeepLink
@@ -48,11 +61,13 @@ fun HomeScreen(
     onStats: () -> Unit,
     onWeeklyGoal: () -> Unit = onStats,
     onSettings: () -> Unit = {},
+    onCamera: () -> Unit = {},
+    onScan: () -> Unit = {},
+    onAddDiesel: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
 ) {
     val tc = LocalTruckColors.current
-    val loadRepository = LocalLoadRepository.current
     val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
@@ -71,6 +86,10 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
     val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
+    val undoDeleteId by viewModel.undoDeleteLoadId.collectAsStateWithLifecycle()
+    val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showQuickActions by remember { mutableStateOf(false) }
     val connectivity by remember(context) {
         ConnectivityObserver.observe(context)
     }.collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
@@ -126,7 +145,6 @@ fun HomeScreen(
     var calendarMonth by remember { mutableStateOf(cal.get(java.util.Calendar.MONTH) + 1) }
 
     fun openCalendarDialog() {
-        // Always open on the current month (or selected day), not a stale future month.
         val anchor = uiState.selectedDate
             ?.let { runCatching { java.time.LocalDate.parse(it.take(10)) }.getOrNull() }
             ?: java.time.LocalDate.now()
@@ -157,10 +175,36 @@ fun HomeScreen(
         )
     }
 
+    if (showQuickActions) {
+        QuickActionsBottomSheet(
+            onDismiss = { showQuickActions = false },
+            onAddLoad = onAddLoad,
+            onCamera = onCamera,
+            onScan = onScan,
+            onAddDiesel = onAddDiesel,
+        )
+    }
+
     LaunchedEffect(Unit) {
         if (WidgetDeepLink.consumeOpenJournalThisWeek(context)) {
             viewModel.setFilter(LoadFilter.THIS_WEEK)
         }
+    }
+
+    val undoLabel = stringResource(R.string.common_undo)
+    val deletedLabel = stringResource(R.string.home_load_deleted_snackbar)
+    LaunchedEffect(undoDeleteId) {
+        if (undoDeleteId == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = deletedLabel,
+            actionLabel = undoLabel,
+            duration = SnackbarDuration.Short,
+            withDismissAction = true,
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            viewModel.undoDeleteLoad()
+        }
+        // Dismiss / timeout: HomeViewModel commits after UNDO_DELETE_WINDOW_MS.
     }
 
     Scaffold(
@@ -173,6 +217,32 @@ fun HomeScreen(
                 openDrawer = openDrawer,
                 onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = tc.CardBackground,
+                    contentColor = tc.TextPrimary,
+                    actionColor = tc.AccentPrimary,
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    FeedbackManager.onNavSelect()
+                    showQuickActions = true
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(UiDimens.FabSize),
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.quick_actions_title),
+                )
+            }
         },
         content = { paddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
@@ -195,13 +265,15 @@ fun HomeScreen(
                         searchQuery = searchQuery,
                         listItems = listItems,
                         periodSummary = periodSummary,
+                        weekTotals = totals,
+                        weeklyGoal = weeklyGoal,
                         rpmThresholds = rpmThresholds,
                         viewModel = viewModel,
                         filteredLoads = filteredLoads,
                         useRoomPaging = useRoomPaging,
                         pagedLoads = pagedLoads,
                         onLoadClick = onLoadClick,
-                        onAddLoad = onAddLoad,
+                        onWeeklyGoal = onWeeklyGoal,
                         context = context,
                         onOpenCalendar = { openCalendarDialog() },
                         onLoadCamera = onLoadCamera,

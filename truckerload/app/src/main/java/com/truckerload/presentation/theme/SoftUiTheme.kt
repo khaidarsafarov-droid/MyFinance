@@ -36,6 +36,11 @@ object SoftUiColors {
     val BackgroundDark = Color(0xFF1A2420)
     val SurfaceDark = Color(0xFF24302A)
     val SurfaceMutedDark = Color(0xFF2E3C35)
+
+    /** True-black OLED tokens — saves power on AMOLED and reduces night glare. */
+    val BackgroundOled = Color(0xFF000000)
+    val SurfaceOled = Color(0xFF121212)
+    val SurfaceMutedOled = Color(0xFF1C1C1C)
     val VoiceCallBg = Color(0xFF1A1B2E)
     val VoiceSuccess = Color(0xFF34C759)
     val VoiceDanger = Color(0xFFFF3B30)
