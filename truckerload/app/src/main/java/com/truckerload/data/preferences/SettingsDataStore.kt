@@ -27,6 +27,7 @@ private val KEY_LANGUAGE = intPreferencesKey("app_language")
 private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
 private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
 private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
+private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 
 class SettingsDataStore(context: Context) {
 
@@ -78,6 +79,10 @@ class SettingsDataStore(context: Context) {
 
     val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
+    }
+
+    val reduceMotion: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_REDUCE_MOTION] ?: false
     }
 
     suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
@@ -174,6 +179,14 @@ class SettingsDataStore(context: Context) {
     suspend fun saveSharePathWithFriends(enabled: Boolean) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
+        }
+    }
+
+    suspend fun getReduceMotionOnce(): Boolean = reduceMotion.first()
+
+    suspend fun saveReduceMotion(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_REDUCE_MOTION] = enabled
         }
     }
 }

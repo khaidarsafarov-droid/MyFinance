@@ -10,8 +10,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,9 +44,13 @@ import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.widget.WidgetDeepLink
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
-import com.truckerload.widget.WidgetDeepLink
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,8 +175,45 @@ fun HomeScreen(
         }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val undoDeleteLoad by viewModel.undoDeleteLoad.collectAsStateWithLifecycle()
+    val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
+
+    LaunchedEffect(undoDeleteLoad) {
+        val load = undoDeleteLoad ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = context.getString(R.string.home_delete_undo_message, load.tripId.ifBlank { load.pointA }),
+            actionLabel = context.getString(R.string.common_undo),
+            withDismissAction = true,
+        )
+        when (result) {
+            SnackbarResult.ActionPerformed -> viewModel.undoDeleteLoad()
+            else -> viewModel.dismissUndoDelete()
+        }
+    }
+
+    LaunchedEffect(deleteError) {
+        val msg = deleteError ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(msg)
+        viewModel.clearDeleteError()
+    }
+
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddLoad,
+                modifier = Modifier.size(UiDimens.FabSize),
+                containerColor = tc.AccentPrimary,
+                contentColor = tc.Background,
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.home_add_load_button),
+                )
+            }
+        },
         topBar = {
             HomeScreenTopBar(
                 welcomeName = welcomeName,
@@ -185,7 +234,10 @@ fun HomeScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(tc.AccentExpense.copy(alpha = 0.25f))
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .semantics {
+                                    liveRegion = LiveRegionMode.Polite
+                                },
                         )
                     }
                     AuthStatusBanner()
@@ -201,7 +253,6 @@ fun HomeScreen(
                         useRoomPaging = useRoomPaging,
                         pagedLoads = pagedLoads,
                         onLoadClick = onLoadClick,
-                        onAddLoad = onAddLoad,
                         context = context,
                         onOpenCalendar = { openCalendarDialog() },
                         onLoadCamera = onLoadCamera,

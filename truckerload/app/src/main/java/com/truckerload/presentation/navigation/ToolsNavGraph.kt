@@ -25,13 +25,17 @@ import com.truckerload.presentation.screens.stats.StatsScreen
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 
-fun NavGraphBuilder.toolsNavGraph(navController: NavHostController, tablet: Boolean) {
+fun NavGraphBuilder.toolsNavGraph(
+    navController: NavHostController,
+    tablet: Boolean,
+    reduceMotion: Boolean,
+) {
     composable(
         route = Routes.ANALYTICS,
-        enterTransition = { tabEnterTransition() },
-        exitTransition = { tabExitTransition() },
-        popEnterTransition = { tabEnterTransition() },
-        popExitTransition = { tabExitTransition() },
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
         AnalyticsScreen(
             onBack = { navController.popBackStack() },
@@ -53,10 +57,10 @@ fun NavGraphBuilder.toolsNavGraph(navController: NavHostController, tablet: Bool
     }
     composable(
         route = Routes.STATS,
-        enterTransition = { tabEnterTransition() },
-        exitTransition = { tabExitTransition() },
-        popEnterTransition = { tabEnterTransition() },
-        popExitTransition = { tabExitTransition() },
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
         WeeklyGoalScreen()
     }
@@ -76,10 +80,10 @@ fun NavGraphBuilder.toolsNavGraph(navController: NavHostController, tablet: Bool
     }
     composable(
         route = Routes.SETTINGS,
-        enterTransition = { tabEnterTransition() },
-        exitTransition = { tabExitTransition() },
-        popEnterTransition = { tabEnterTransition() },
-        popExitTransition = { tabExitTransition() },
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
         SettingsScreen(
             onBack = { navController.popBackStack() },

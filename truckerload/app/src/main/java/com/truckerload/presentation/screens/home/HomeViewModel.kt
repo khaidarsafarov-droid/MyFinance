@@ -154,6 +154,9 @@ class HomeViewModel @Inject constructor(
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
+    private val _undoDeleteLoad = MutableStateFlow<Load?>(null)
+    val undoDeleteLoad: StateFlow<Load?> = _undoDeleteLoad.asStateFlow()
+
     /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         loadsFromDb,
@@ -325,17 +328,47 @@ class HomeViewModel @Inject constructor(
         val loadId = _pendingDeleteConfirmId.value ?: return
         _pendingDeleteConfirmId.value = null
         viewModelScope.launch {
+            val loadToRestore = loadRepository.getLoadById(loadId)
             _optimisticOverlay.update { it - loadId }
             _pendingDeleteIds.update { it + loadId }
             try {
                 loadRepository.deleteLoad(loadId)
                 WidgetDataUpdater.updateWidgetData(app.applicationContext)
+                if (loadToRestore != null) {
+                    _undoDeleteLoad.value = loadToRestore
+                }
             } catch (e: Exception) {
                 _pendingDeleteIds.update { it - loadId }
                 _swipeSettleGeneration.update { it + 1 }
                 _deleteError.value = e.message?.takeIf { it.isNotBlank() }
                     ?: app.getString(R.string.home_delete_failed)
             }
+        }
+    }
+
+    fun undoDeleteLoad() {
+        val load = _undoDeleteLoad.value ?: return
+        _undoDeleteLoad.value = null
+        viewModelScope.launch {
+            try {
+                loadRepository.insertLoad(load, playFeedback = false)
+                _pendingDeleteIds.update { it - load.id }
+                WidgetDataUpdater.updateWidgetData(app.applicationContext)
+            } catch (e: Exception) {
+                _deleteError.value = e.message?.takeIf { it.isNotBlank() }
+                    ?: app.getString(R.string.home_delete_failed)
+            }
+        }
+    }
+
+    fun dismissUndoDelete() {
+        _undoDeleteLoad.value = null
+    }
+
+    fun refreshHome() {
+        viewModelScope.launch {
+            refreshBotStatus()
+            runCatching { WidgetDataUpdater.updateWidgetData(app.applicationContext) }
         }
     }
 

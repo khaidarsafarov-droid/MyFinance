@@ -32,7 +32,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -266,6 +268,7 @@ private fun BottomNavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
+            .defaultMinSize(minHeight = UiDimens.TouchTarget)
             .clip(pillShape)
             .then(
                 if (selected) Modifier.background(selectedBg) else Modifier,
@@ -273,9 +276,12 @@ private fun BottomNavItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = { onNavigate(route) },
+                onClick = {
+                    FeedbackManager.onNavTap()
+                    onNavigate(route)
+                },
             )
-            .padding(horizontal = 2.dp, vertical = 6.dp),
+            .padding(horizontal = 4.dp, vertical = 8.dp),
     ) {
         Icon(
             icon,

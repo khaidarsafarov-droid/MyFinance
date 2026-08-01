@@ -21,6 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.truckerload.presentation.auth.BiometricOptInDialog
+import com.truckerload.presentation.auth.enableBiometricUnlock
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -53,6 +57,7 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val emailFocus = remember { FocusRequester() }
     val launchLegacyGoogle = rememberLegacyGoogleSignInLaunch(viewModel)
+    var showBiometricOffer by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -60,12 +65,7 @@ fun LoginScreen(
                 is AuthUiEvent.ShowToast ->
                     Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
                 AuthUiEvent.LaunchLegacyGoogleSignIn -> launchLegacyGoogle()
-                AuthUiEvent.ShowBiometricEnabledToast ->
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.biometric_enabled_toast),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                AuthUiEvent.ShowBiometricOfferDialog -> showBiometricOffer = true
             }
         }
     }
@@ -181,5 +181,19 @@ fun LoginScreen(
                 }
             }
         }
+    }
+    if (showBiometricOffer) {
+        BiometricOptInDialog(
+            onDismiss = { showBiometricOffer = false },
+            onEnabled = {
+                enableBiometricUnlock(context)
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.biometric_enabled_toast),
+                    Toast.LENGTH_SHORT,
+                ).show()
+                showBiometricOffer = false
+            },
+        )
     }
 }

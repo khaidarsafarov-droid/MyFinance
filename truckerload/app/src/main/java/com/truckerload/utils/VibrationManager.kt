@@ -34,10 +34,15 @@ object VibrationManager {
     vibrateOnMain(context, pattern = longArrayOf(0, 120, 80, 160))
   }
 
-  /** Short tap — used for settings preview only. */
+  /** Short tap — used for settings preview and UI confirmations. */
   fun preview(context: Context) {
     if (!isEnabled(context)) return
     vibrateOnMain(context, oneShotMs = 60)
+  }
+
+  fun lightTap(context: Context) {
+    if (!isEnabled(context)) return
+    vibrateOnMain(context, oneShotMs = 35)
   }
 
   private fun vibrateOnMain(context: Context, pattern: LongArray? = null, oneShotMs: Long? = null) {

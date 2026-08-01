@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.truckerload.presentation.theme.rememberReduceMotion
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 import com.truckerload.presentation.components.AdaptiveScaffold
@@ -202,6 +203,8 @@ fun NavGraph(
         currentRoute in phoneMainRoutes
     }
 
+    val reduceMotion = rememberReduceMotion()
+
     AdaptiveScaffold(
         showMainNavigation = showMainNavigation,
         currentRoute = currentRoute,
@@ -232,10 +235,10 @@ fun NavGraph(
         ) {
             composable(
                 route = Routes.HOME,
-                enterTransition = { tabEnterTransition() },
-                exitTransition = { tabExitTransition() },
-                popEnterTransition = { tabEnterTransition() },
-                popExitTransition = { tabExitTransition() },
+                enterTransition = { tabEnterTransition(reduceMotion) },
+                exitTransition = { tabExitTransition(reduceMotion) },
+                popEnterTransition = { tabEnterTransition(reduceMotion) },
+                popExitTransition = { tabExitTransition(reduceMotion) },
             ) {
                 HomeScreen(
                     onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
@@ -251,9 +254,9 @@ fun NavGraph(
                     },
                 )
             }
-            socialNavGraph(navController)
+            socialNavGraph(navController, reduceMotion)
             loadsNavGraph(navController)
-            toolsNavGraph(navController, tablet)
+            toolsNavGraph(navController, tablet, reduceMotion)
         }
         }
             IncomingCallOverlay(

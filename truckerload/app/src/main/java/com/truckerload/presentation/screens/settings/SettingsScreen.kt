@@ -194,6 +194,9 @@ fun SettingsScreen(
         ) {
             ThemeSettingsSection(selected = themeMode)
             LanguageSettingsSection(selected = appLanguage)
+            AccessibilitySettingsSection()
+            BiometricSettingsSection()
+            PrivacySettingsSection()
             TelegramSettingsSection()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }

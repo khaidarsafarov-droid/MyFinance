@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -56,7 +55,6 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
-import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
@@ -82,7 +80,6 @@ internal fun HomeScreenContent(
     useRoomPaging: Boolean,
     pagedLoads: LazyPagingItems<Load>,
     onLoadClick: (String) -> Unit,
-    onAddLoad: () -> Unit,
     context: Context,
     onOpenCalendar: () -> Unit,
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit,
@@ -94,22 +91,12 @@ internal fun HomeScreenContent(
     val scope = rememberCoroutineScope()
     val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsStateWithLifecycle()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
-    val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
-    LaunchedEffect(deleteError) {
-        val msg = deleteError ?: return@LaunchedEffect
-        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
-        viewModel.clearDeleteError()
-    }
 
     fun onRefresh() {
         refreshing = true
-        android.widget.Toast.makeText(
-            context,
-            context.getString(R.string.home_sync_triggered),
-            android.widget.Toast.LENGTH_SHORT,
-        ).show()
+        viewModel.refreshHome()
         scope.launch {
-            delay(800)
+            delay(600)
             refreshing = false
         }
     }
@@ -205,25 +192,6 @@ internal fun HomeScreenContent(
                             showYearSelector = true
                         },
                         modifier = Modifier.padding(bottom = 4.dp),
-                    )
-                }
-            }
-
-            item(key = "add_load_button") {
-                TlButton(
-                    onClick = onAddLoad,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.padding(start = 8.dp),
                     )
                 }
             }
