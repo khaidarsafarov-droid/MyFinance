@@ -46,15 +46,7 @@ class FriendsLocationShareService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            ACTION_STOP -> {
-                scope.launch {
-                    clearRemote()
-                    stopSelf()
-                }
-                return START_NOT_STICKY
-            }
-        }
+        // Promote before any early exit — required if this start came via startForegroundService.
         ensureNotificationChannel()
         ServiceCompat.startForeground(
             this,
@@ -66,6 +58,16 @@ class FriendsLocationShareService : Service() {
                 0
             },
         )
+        when (intent?.action) {
+            ACTION_STOP -> {
+                scope.launch {
+                    clearRemote()
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                }
+                return START_NOT_STICKY
+            }
+        }
         if (loopJob?.isActive != true) {
             loopJob = scope.launch { publishLoop() }
         }

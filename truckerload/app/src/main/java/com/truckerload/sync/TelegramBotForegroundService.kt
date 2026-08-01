@@ -13,6 +13,8 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramApi
@@ -35,6 +37,10 @@ import kotlinx.coroutines.launch
  *
  * Shows a single quiet ongoing notification (Android requires one for FGS).
  * The notification is min-importance, silent, and never re-alerted on restarts.
+ *
+ * Android 15 (targetSdk 35) caps [dataSync] FGS at ~6h / 24h in the background.
+ * [onTimeout] must [stopSelf] immediately or the system crashes the process with
+ * "Truck Log keeps stopping".
  */
 class TelegramBotForegroundService : Service() {
 
@@ -49,27 +55,30 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Always promote first — startForegroundService requires startForeground within ~5–10s
+        // even when we immediately decide to stop (no user / no token / server mode).
+        startForegroundCompat()
+
         if (TelegramSyncMode.isServer()) {
             suppressRestart = true
-            stopSelf()
+            stopGracefully()
             return START_NOT_STICKY
         }
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
-            stopSelf()
+            suppressRestart = true
+            stopGracefully()
             return START_NOT_STICKY
         }
         val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w(TAG, "No TELEGRAM_BOT_TOKEN — stopping service")
-            stopSelf()
+            suppressRestart = true
+            stopGracefully()
             return START_NOT_STICKY
         }
 
-        // Promote to foreground immediately (Android 8+ / 12+ time limits),
-        // but keep the shade entry quiet and non-alerting.
-        startForegroundCompat()
         setupBotFeaturesOnce(token)
         if (pollJob?.isActive != true) {
             TelegramPollCoordinator.markForegroundPolling(true)
@@ -84,8 +93,22 @@ class TelegramBotForegroundService : Service() {
         return START_STICKY
     }
 
+    /**
+     * Android 15+: dataSync quota exhausted. Must stop within a few seconds or the
+     * system throws RemoteServiceException ("keeps stopping").
+     */
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        Log.w(TAG, "dataSync FGS timeout (type=$fgsType) — stopping to avoid crash")
+        TelegramFgsQuota.markTimedOut()
+        suppressRestart = true
+        startRequested.set(false)
+        pollJob?.cancel()
+        TelegramPollCoordinator.markForegroundPolling(false)
+        stopSelf()
+    }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
-        if (TelegramSyncMode.isServer()) {
+        if (TelegramSyncMode.isServer() || TelegramFgsQuota.isPaused()) {
             super.onTaskRemoved(rootIntent)
             return
         }
@@ -99,13 +122,21 @@ class TelegramBotForegroundService : Service() {
         startRequested.set(false)
         pollJob?.cancel()
         scope.cancel()
-        if (!suppressRestart && !TelegramSyncMode.isServer()) {
+        if (!suppressRestart && !TelegramSyncMode.isServer() && !TelegramFgsQuota.isPaused()) {
             Log.w(TAG, "Service destroyed — scheduling restart")
             TelegramServiceRestarter.schedule(applicationContext)
         } else {
-            Log.i(TAG, "Service destroyed — restart suppressed (logout)")
+            Log.i(TAG, "Service destroyed — restart suppressed")
         }
         super.onDestroy()
+    }
+
+    private fun stopGracefully() {
+        startRequested.set(false)
+        pollJob?.cancel()
+        TelegramPollCoordinator.markForegroundPolling(false)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun setupBotFeaturesOnce(token: String) {
@@ -217,6 +248,14 @@ class TelegramBotForegroundService : Service() {
 
         fun start(context: Context) {
             if (TelegramSyncMode.isServer()) return
+            // Quota exhausted — only resume when the user opens the app (resets the timer).
+            if (TelegramFgsQuota.isPaused() && !isAppInForeground()) {
+                Log.i(TAG, "dataSync quota paused — defer start until app is foreground")
+                return
+            }
+            if (isAppInForeground()) {
+                TelegramFgsQuota.clearPause()
+            }
             // Already alive or start already in flight — avoid startForegroundService spam.
             if (isRunningFlag.get() || TelegramPollCoordinator.isForegroundPolling()) return
             if (!startRequested.compareAndSet(false, true)) return
@@ -239,6 +278,10 @@ class TelegramBotForegroundService : Service() {
                 }
             } catch (e: Exception) {
                 startRequested.set(false)
+                // Quota exhausted / background start denied — remember so watchdog stops retrying.
+                if (isDataSyncQuotaException(e)) {
+                    TelegramFgsQuota.markTimedOut()
+                }
                 Log.w(TAG, "Cannot start foreground bot service: ${LogRedactor.redact(e.message)}")
             }
         }
@@ -253,5 +296,17 @@ class TelegramBotForegroundService : Service() {
 
         /** Stop for logout: do not schedule AlarmManager restart. */
         fun stopForLogout(context: Context) = stop(context)
+
+        private fun isAppInForeground(): Boolean = try {
+            ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+        } catch (_: Exception) {
+            false
+        }
+
+        private fun isDataSyncQuotaException(e: Exception): Boolean {
+            val msg = e.message.orEmpty()
+            return msg.contains("Time limit already exhausted", ignoreCase = true) ||
+                msg.contains("foreground service type dataSync", ignoreCase = true)
+        }
     }
 }
