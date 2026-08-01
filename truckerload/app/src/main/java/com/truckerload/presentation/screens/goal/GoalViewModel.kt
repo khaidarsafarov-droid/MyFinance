@@ -10,6 +10,7 @@ import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.domain.goal.WeeklyGoalProgress
+import com.truckerload.domain.ux.UxMotivation
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +28,8 @@ data class WeeklyGoalUiState(
     val isEditingGoal: Boolean = false,
     val isSavingGoal: Boolean = false,
     val goalError: String? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val suggestedGoals: List<Double> = UxMotivation.suggestedWeeklyGoals(),
 )
 
 /**
@@ -87,12 +89,14 @@ class GoalViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             progressFlow.collect { progress ->
+                val recentGross = progress?.currentGross ?: 0.0
                 _uiState.update {
                     it.copy(
                         progress = progress,
                         goalInput = if (it.isEditingGoal) it.goalInput
                         else progress?.let { p -> formatGoalInput(p.targetAmount) }.orEmpty(),
-                        isLoading = progress == null
+                        isLoading = progress == null,
+                        suggestedGoals = UxMotivation.suggestedWeeklyGoals(recentGross),
                     )
                 }
             }
@@ -103,6 +107,16 @@ class GoalViewModel @Inject constructor(
         val current = _uiState.value.progress?.targetAmount ?: goalStore.getGoal()
         _uiState.update {
             it.copy(isEditingGoal = true, goalInput = formatGoalInput(current), goalError = null)
+        }
+    }
+
+    fun applySuggestedGoal(amount: Double) {
+        _uiState.update {
+            it.copy(
+                isEditingGoal = true,
+                goalInput = formatGoalInput(amount),
+                goalError = null,
+            )
         }
     }
 

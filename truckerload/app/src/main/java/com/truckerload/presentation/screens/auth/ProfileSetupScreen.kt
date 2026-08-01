@@ -232,13 +232,22 @@ fun ProfileSetupScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            // Goal gradient: account already created counts as 25% head start.
             LinearProgressIndicator(
-                progress = { (step + 1) / 3f },
+                progress = { 0.25f + (step / 3f) * 0.75f },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+            Text(
+                text = stringResource(
+                    R.string.ux_profile_setup_progress,
+                    (25 + step * 25).coerceAtMost(100),
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                color = tc.TextSecondary,
             )
             Text(
                 text = stringResource(

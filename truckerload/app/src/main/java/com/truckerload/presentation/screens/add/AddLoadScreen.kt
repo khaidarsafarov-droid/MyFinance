@@ -46,6 +46,7 @@ import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.sync.LoadAlarmPlanner
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -148,6 +149,21 @@ fun AddLoadScreen(
                     colors = AppTextFieldDefaults.outlined(),
                 )
             }
+            LoadParsePreviewCard(
+                preview = uiState.previewLoad,
+                isParsing = uiState.isParsingPreview,
+                parseHint = uiState.previewHint,
+            )
+            val preview = uiState.previewLoad
+            val saveLabel = when {
+                uiState.isSaving -> stringResource(R.string.add_load_saving)
+                preview != null && preview.totalRate > 0 -> stringResource(
+                    R.string.add_load_save_with_preview,
+                    MoneyFormat.formatCurrency(preview.totalRate),
+                    MoneyFormat.formatNumber(preview.totalMiles),
+                )
+                else -> stringResource(R.string.add_load_save_offline)
+            }
             Button(
                 onClick = {
                     viewModel.save(
@@ -163,13 +179,7 @@ fun AddLoadScreen(
                     .height(52.dp),
                 enabled = uiState.rawText.isNotBlank() && !uiState.isSaving && aiRepository != null,
             ) {
-                Text(
-                    if (uiState.isSaving) {
-                        stringResource(R.string.add_load_saving)
-                    } else {
-                        stringResource(R.string.add_load_save_offline)
-                    },
-                )
+                Text(saveLabel)
             }
             Text(
                 stringResource(R.string.add_load_hint_online),

@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.utils.AmountInputValidator
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import java.util.Locale
 
 data class AddPaycheckUiState(
     val amountText: String = "",
@@ -32,12 +34,14 @@ data class AddPaycheckUiState(
     val error: String? = null,
     val saved: Boolean = false,
     val showSaveDialog: Boolean = false,
+    val lastAmount: Double? = null,
 )
 
 @HiltViewModel
 class AddPaycheckViewModel @Inject constructor(
     application: Application,
     private val paycheckRepository: PaycheckRepository,
+    private val lastUsedDefaultsStore: LastUsedDefaultsStore,
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
@@ -50,6 +54,7 @@ class AddPaycheckViewModel @Inject constructor(
             weekNumber = savedStateHandle[KEY_WEEK_NUMBER] ?: initialWeekAndYear.first,
             year = savedStateHandle[KEY_YEAR] ?: initialWeekAndYear.second,
             showSaveDialog = savedStateHandle[KEY_SHOW_SAVE_DIALOG] ?: false,
+            lastAmount = lastUsedDefaultsStore.lastPaycheckAmount.value,
         ),
     )
     val uiState: StateFlow<AddPaycheckUiState> = _uiState.asStateFlow()
@@ -57,6 +62,13 @@ class AddPaycheckViewModel @Inject constructor(
     fun setAmountText(value: String) {
         savedStateHandle[KEY_AMOUNT_TEXT] = value
         _uiState.update { it.copy(amountText = value, error = null) }
+    }
+
+    fun applyLastAmount() {
+        val last = _uiState.value.lastAmount ?: return
+        val text = if (last % 1.0 == 0.0) last.toLong().toString()
+        else String.format(Locale.US, "%.2f", last)
+        setAmountText(text)
     }
 
     fun selectPreviousWeek() {
@@ -158,6 +170,7 @@ class AddPaycheckViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     paycheckRepository.insertPaycheck(paycheck)
                 }
+                lastUsedDefaultsStore.savePaycheckAmount(amount)
                 savedStateHandle[KEY_AMOUNT_TEXT] = ""
                 savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
                 savedStateHandle[KEY_YEAR] = year
@@ -170,6 +183,7 @@ class AddPaycheckViewModel @Inject constructor(
                         isSaving = false,
                         saved = true,
                         showSaveDialog = false,
+                        lastAmount = amount,
                     )
                 }
             } catch (e: Exception) {

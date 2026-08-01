@@ -7,6 +7,7 @@ import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.StatsSelectionStore
+import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.AiRepository
@@ -26,6 +27,7 @@ val LocalRpmThresholdsStore = compositionLocalOf<RpmThresholdsStore> { error("No
 val LocalSelectedStateStore = compositionLocalOf<SelectedStateStore> { error("No SelectedStateStore provided") }
 val LocalStatsSelectionStore = compositionLocalOf<StatsSelectionStore> { error("No StatsSelectionStore provided") }
 val LocalWeeklyProfitGoalStore = compositionLocalOf<WeeklyProfitGoalStore> { error("No WeeklyProfitGoalStore provided") }
+val LocalLastUsedDefaultsStore = compositionLocalOf<LastUsedDefaultsStore> { error("No LastUsedDefaultsStore provided") }
 val LocalSettingsDataStore = compositionLocalOf<com.truckerload.data.preferences.SettingsDataStore> {
     error("No SettingsDataStore provided")
 }
