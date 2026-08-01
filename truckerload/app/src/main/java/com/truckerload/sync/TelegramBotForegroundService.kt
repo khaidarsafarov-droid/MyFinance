@@ -49,27 +49,29 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // After startForegroundService() or a START_STICKY restart, Android requires
+        // startForeground() within a few seconds — even when we decide to stop.
+        // Skipping it causes RemoteServiceException / "Truck Log keeps stopping".
+        startForegroundCompat()
+
         if (TelegramSyncMode.isServer()) {
-            suppressRestart = true
-            stopSelf()
+            Log.i(TAG, "Server sync mode — stopping local bot FGS")
+            stopQuietly(restart = false)
             return START_NOT_STICKY
         }
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
-            stopSelf()
+            stopQuietly(restart = false)
             return START_NOT_STICKY
         }
         val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w(TAG, "No TELEGRAM_BOT_TOKEN — stopping service")
-            stopSelf()
+            stopQuietly(restart = false)
             return START_NOT_STICKY
         }
 
-        // Promote to foreground immediately (Android 8+ / 12+ time limits),
-        // but keep the shade entry quiet and non-alerting.
-        startForegroundCompat()
         setupBotFeaturesOnce(token)
         if (pollJob?.isActive != true) {
             TelegramPollCoordinator.markForegroundPolling(true)
@@ -82,6 +84,16 @@ class TelegramBotForegroundService : Service() {
             }
         }
         return START_STICKY
+    }
+
+    /** Stop after startForeground(); optionally suppress AlarmManager restart. */
+    private fun stopQuietly(restart: Boolean) {
+        suppressRestart = !restart
+        startRequested.set(false)
+        isRunningFlag.set(false)
+        TelegramPollCoordinator.markForegroundPolling(false)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -141,15 +153,24 @@ class TelegramBotForegroundService : Service() {
     private fun startForegroundCompat() {
         createChannel()
         val notification = buildNotification()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            startForeground(NOTIFICATION_ID, notification)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "startForeground failed", e)
+            // Still attempt a plain startForeground so the FGS contract is met.
+            runCatching {
+                @Suppress("DEPRECATION")
+                startForeground(NOTIFICATION_ID, notification)
+            }
         }
     }
 
