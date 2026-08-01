@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -56,7 +55,6 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
-import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
@@ -92,7 +90,7 @@ internal fun HomeScreenContent(
     var showYearSelector by remember { mutableStateOf(false) }
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsStateWithLifecycle()
+    val pendingDeleteIds by viewModel.pendingDeleteIds.collectAsStateWithLifecycle()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     LaunchedEffect(deleteError) {
@@ -209,25 +207,6 @@ internal fun HomeScreenContent(
                 }
             }
 
-            item(key = "add_load_button") {
-                TlButton(
-                    onClick = onAddLoad,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
-            }
-
             if ((useRoomPaging && pagedLoads.itemCount > 0) || (!useRoomPaging && listItems.isNotEmpty())) {
                 item(key = "recent_header") {
                     ForestSectionTitle(
@@ -275,6 +254,14 @@ internal fun HomeScreenContent(
                                 color = tc.TextSecondary,
                                 modifier = Modifier.padding(top = 8.dp),
                             )
+                            if (uiState.filter == LoadFilter.ALL) {
+                                TextButton(
+                                    onClick = onAddLoad,
+                                    modifier = Modifier.padding(top = 12.dp),
+                                ) {
+                                    Text(stringResource(R.string.home_add_load_button))
+                                }
+                            }
                         }
                     }
                 }
@@ -284,6 +271,7 @@ internal fun HomeScreenContent(
                     key = pagedLoads.itemKey { it.id },
                 ) { index ->
                     val load = pagedLoads[index] ?: return@items
+                    if (load.id in pendingDeleteIds) return@items
                     SwipeableLoadCard(
                         load = load,
                         onClick = { if (load.id.isNotBlank()) onLoadClick(load.id) },
@@ -351,24 +339,6 @@ internal fun HomeScreenContent(
         }
         }
         }
-
-    if (pendingDeleteId != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissDeleteLoad,
-            title = { Text(stringResource(R.string.load_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.load_delete_confirm_message)) },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmDeleteLoad) {
-                    Text(stringResource(R.string.common_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissDeleteLoad) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
-        )
-    }
     }
 }
 

@@ -7,10 +7,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,12 +40,13 @@ import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
-import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.SoftUiShapes
+import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDeepLink
@@ -52,7 +63,6 @@ fun HomeScreen(
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
 ) {
     val tc = LocalTruckColors.current
-    val loadRepository = LocalLoadRepository.current
     val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
@@ -71,6 +81,10 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
     val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
+    val pendingUndoDeleteId by viewModel.pendingUndoDeleteId.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val undoLabel = stringResource(R.string.common_undo)
+    val deletedMessage = stringResource(R.string.load_deleted_undo_message)
     val connectivity by remember(context) {
         ConnectivityObserver.observe(context)
     }.collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
@@ -163,6 +177,25 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(pendingUndoDeleteId) {
+        val id = pendingUndoDeleteId ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = deletedMessage,
+            actionLabel = undoLabel,
+            withDismissAction = true,
+            duration = SnackbarDuration.Long,
+        )
+        when (result) {
+            SnackbarResult.ActionPerformed -> viewModel.undoDeleteLoad()
+            SnackbarResult.Dismissed -> {
+                // Timer in ViewModel commits; ignore snackbar dismiss to avoid double-commit races.
+                if (viewModel.pendingUndoDeleteId.value == id) {
+                    // Keep waiting for ViewModel timer — no-op.
+                }
+            }
+        }
+    }
+
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
@@ -173,6 +206,30 @@ fun HomeScreen(
                 openDrawer = openDrawer,
                 onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddLoad,
+                containerColor = tc.AccentPrimary,
+                contentColor = tc.OnAccent,
+                shape = SoftUiShapes.Fab,
+                modifier = Modifier.size(UiDimens.TouchTarget + 8.dp),
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.home_add_load_button),
+                )
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = tc.SurfaceSecondary,
+                    contentColor = tc.TextPrimary,
+                    actionColor = tc.AccentPrimary,
+                )
+            }
         },
         content = { paddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
@@ -212,6 +269,6 @@ fun HomeScreen(
                     HomeInitialLoadingOverlay()
                 }
             }
-        }
+        },
     )
 }

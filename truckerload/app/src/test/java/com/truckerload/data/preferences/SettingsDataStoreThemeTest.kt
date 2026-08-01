@@ -34,4 +34,13 @@ class SettingsDataStoreThemeTest {
         store.saveThemeMode(AppThemeMode.SYSTEM)
         assertEquals(AppThemeMode.SYSTEM, store.getThemeModeOnce())
     }
+
+    @Test
+    fun saveReduceMotion_roundTripsThroughGetReduceMotionOnce() = runBlocking {
+        store.saveReduceMotion(true)
+        assertEquals(true, store.getReduceMotionOnce())
+
+        store.saveReduceMotion(false)
+        assertEquals(false, store.getReduceMotionOnce())
+    }
 }

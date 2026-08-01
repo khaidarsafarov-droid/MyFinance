@@ -36,10 +36,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
+import com.truckerload.utils.FeedbackManager
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
@@ -51,6 +54,9 @@ class HomeViewModel @Inject constructor(
     companion object {
         /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
         private val botServiceStarted = AtomicBoolean(false)
+
+        /** Undo window before the load is permanently removed (matches snackbar Long). */
+        const val DELETE_UNDO_MS = 6_000L
     }
 
     private val filterUseCase = LoadFilterUseCase()
@@ -143,14 +149,21 @@ class HomeViewModel @Inject constructor(
 
     /** IDs being deleted — excluded from merged list so they cannot reappear via overlay. */
     private val _pendingDeleteIds = MutableStateFlow<Set<String>>(emptySet())
+    val pendingDeleteIds: StateFlow<Set<String>> = _pendingDeleteIds.asStateFlow()
 
-    private val _pendingDeleteConfirmId = MutableStateFlow<String?>(null)
-    val pendingDeleteConfirmId: StateFlow<String?> = _pendingDeleteConfirmId.asStateFlow()
+    /**
+     * Load id waiting for undo window before hard-delete.
+     * UI shows a snackbar with Undo while this is non-null.
+     */
+    private val _pendingUndoDeleteId = MutableStateFlow<String?>(null)
+    val pendingUndoDeleteId: StateFlow<String?> = _pendingUndoDeleteId.asStateFlow()
+
+    private var deleteCommitJob: Job? = null
 
     private val _deleteError = MutableStateFlow<String?>(null)
     val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
 
-    /** Bumped when delete dialog is cancelled so swipe cards snap back. */
+    /** Bumped when delete is undone so swipe cards snap back. */
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
@@ -307,35 +320,68 @@ class HomeViewModel @Inject constructor(
         requestDeleteLoad(loadId)
     }
 
+    /**
+     * Soft-hides the load and starts an undo window before hard-delete.
+     * Commits any previous pending delete first so only one undo is active.
+     */
     fun requestDeleteLoad(loadId: String) {
         if (loadId.isBlank()) return
-        _pendingDeleteConfirmId.value = loadId
+        val previousId = _pendingUndoDeleteId.value
+        deleteCommitJob?.cancel()
+        deleteCommitJob = null
+        if (previousId != null && previousId != loadId) {
+            viewModelScope.launch { commitDelete(previousId) }
+        }
+        FeedbackManager.onDestructiveGesture()
+        _optimisticOverlay.update { it - loadId }
+        _pendingDeleteIds.update { it + loadId }
+        _pendingUndoDeleteId.value = loadId
+        deleteCommitJob = viewModelScope.launch {
+            delay(DELETE_UNDO_MS)
+            commitDelete(loadId)
+        }
+    }
+
+    /** Restore a soft-deleted load during the undo window. */
+    fun undoDeleteLoad() {
+        val loadId = _pendingUndoDeleteId.value ?: return
+        deleteCommitJob?.cancel()
+        deleteCommitJob = null
+        _pendingUndoDeleteId.value = null
+        _pendingDeleteIds.update { it - loadId }
+        _swipeSettleGeneration.update { it + 1 }
     }
 
     fun dismissDeleteLoad() {
-        _pendingDeleteConfirmId.value = null
-        _swipeSettleGeneration.update { it + 1 }
+        undoDeleteLoad()
     }
 
     fun clearDeleteError() {
         _deleteError.value = null
     }
 
+    /** Kept for call sites that previously confirmed a dialog — commits immediately. */
     fun confirmDeleteLoad() {
-        val loadId = _pendingDeleteConfirmId.value ?: return
-        _pendingDeleteConfirmId.value = null
-        viewModelScope.launch {
-            _optimisticOverlay.update { it - loadId }
-            _pendingDeleteIds.update { it + loadId }
-            try {
-                loadRepository.deleteLoad(loadId)
-                WidgetDataUpdater.updateWidgetData(app.applicationContext)
-            } catch (e: Exception) {
-                _pendingDeleteIds.update { it - loadId }
-                _swipeSettleGeneration.update { it + 1 }
-                _deleteError.value = e.message?.takeIf { it.isNotBlank() }
-                    ?: app.getString(R.string.home_delete_failed)
-            }
+        val loadId = _pendingUndoDeleteId.value ?: return
+        deleteCommitJob?.cancel()
+        deleteCommitJob = null
+        viewModelScope.launch { commitDelete(loadId) }
+    }
+
+    private suspend fun commitDelete(loadId: String) {
+        if (_pendingUndoDeleteId.value == loadId) {
+            _pendingUndoDeleteId.value = null
+        }
+        _optimisticOverlay.update { it - loadId }
+        _pendingDeleteIds.update { it + loadId }
+        try {
+            loadRepository.deleteLoad(loadId)
+            WidgetDataUpdater.updateWidgetData(app.applicationContext)
+        } catch (e: Exception) {
+            _pendingDeleteIds.update { it - loadId }
+            _swipeSettleGeneration.update { it + 1 }
+            _deleteError.value = e.message?.takeIf { it.isNotBlank() }
+                ?: app.getString(R.string.home_delete_failed)
         }
     }
 

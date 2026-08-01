@@ -34,6 +34,18 @@ object VibrationManager {
     vibrateOnMain(context, pattern = longArrayOf(0, 120, 80, 160))
   }
 
+  /** Light confirmation tap (save, successful action). */
+  fun vibrateConfirm(context: Context) {
+    if (!isEnabled(context)) return
+    vibrateOnMain(context, oneShotMs = 40)
+  }
+
+  /** Distinct tick for destructive / swipe gestures. */
+  fun vibrateWarning(context: Context) {
+    if (!isEnabled(context)) return
+    vibrateOnMain(context, pattern = longArrayOf(0, 35, 40, 35))
+  }
+
   /** Short tap — used for settings preview only. */
   fun preview(context: Context) {
     if (!isEnabled(context)) return

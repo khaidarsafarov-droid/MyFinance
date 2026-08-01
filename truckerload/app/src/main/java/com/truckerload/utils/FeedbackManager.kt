@@ -20,6 +20,7 @@ object FeedbackManager {
     val ctx = appContext ?: return
     mainHandler.post {
       SoundManager.playLoadAdded(ctx)
+      VibrationManager.vibrateConfirm(ctx)
     }
   }
 
@@ -28,6 +29,14 @@ object FeedbackManager {
     mainHandler.post {
       SoundManager.playGoalReached(ctx)
       VibrationManager.vibrateGoalReached(ctx)
+    }
+  }
+
+  /** Soft haptic for swipe-to-delete and other warning gestures. */
+  fun onDestructiveGesture() {
+    val ctx = appContext ?: return
+    mainHandler.post {
+      VibrationManager.vibrateWarning(ctx)
     }
   }
 }

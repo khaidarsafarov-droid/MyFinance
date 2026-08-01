@@ -94,14 +94,17 @@ fun TruckerLoadTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
     dynamicColor: Boolean = false,
+    reduceMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = resolveColorScheme(darkTheme, dynamicColor)
     val truckColors = truckPaletteFrom(colorScheme)
+    val effectiveReduceMotion = rememberEffectiveReduceMotion(reduceMotion)
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
+            MotionPreferences.reduceMotion = effectiveReduceMotion
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
             val barColor = if (darkTheme) {
@@ -126,6 +129,7 @@ fun TruckerLoadTheme(
         LocalTruckColors provides truckColors,
         LocalAppThemeMode provides themeMode,
         LocalDynamicColorEnabled provides dynamicColor,
+        LocalReduceMotion provides effectiveReduceMotion,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

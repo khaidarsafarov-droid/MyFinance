@@ -1,10 +1,13 @@
 package com.truckerload.presentation.theme
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
@@ -17,32 +20,54 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 
-fun tabEnterTransition() =
-    fadeIn(animationSpec = tween(120, easing = EaseOutCubic))
+/**
+ * Process-wide reduce-motion flag mirrored from [LocalReduceMotion] so
+ * non-composable NavHost transition factories can respect it.
+ */
+object MotionPreferences {
+    @Volatile
+    var reduceMotion: Boolean = false
+}
 
-fun tabExitTransition() =
-    androidx.compose.animation.fadeOut(animationSpec = tween(90, easing = EaseOutCubic))
+private fun durationMs(preferredMs: Int): Int =
+    if (MotionPreferences.reduceMotion) 0 else preferredMs.coerceIn(0, 500)
 
-fun screenEnterAnimation() =
-    fadeIn(animationSpec = tween(160, easing = EaseOutCubic))
+fun tabEnterTransition(): EnterTransition {
+    val ms = durationMs(120)
+    return if (ms == 0) EnterTransition.None else fadeIn(animationSpec = tween(ms, easing = EaseOutCubic))
+}
 
-fun staggeredListEnter(index: Int) =
-    fadeIn(animationSpec = tween(180, delayMillis = (index * 20).coerceAtMost(120), easing = EaseOutCubic)) +
+fun tabExitTransition(): ExitTransition {
+    val ms = durationMs(90)
+    return if (ms == 0) ExitTransition.None else fadeOut(animationSpec = tween(ms, easing = EaseOutCubic))
+}
+
+fun screenEnterAnimation(): EnterTransition {
+    val ms = durationMs(160)
+    return if (ms == 0) EnterTransition.None else fadeIn(animationSpec = tween(ms, easing = EaseOutCubic))
+}
+
+fun staggeredListEnter(index: Int): EnterTransition {
+    val ms = durationMs(180)
+    if (ms == 0) return EnterTransition.None
+    val delay = (index * 20).coerceAtMost(120)
+    return fadeIn(animationSpec = tween(ms, delayMillis = delay, easing = EaseOutCubic)) +
         scaleIn(
-            animationSpec = tween(180, delayMillis = (index * 20).coerceAtMost(120), easing = EaseOutCubic),
-            initialScale = 0.98f
+            animationSpec = tween(ms, delayMillis = delay, easing = EaseOutCubic),
+            initialScale = 0.98f,
         )
+}
 
 @Composable
 fun StaggeredAnimatedItem(
     index: Int,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     AnimatedVisibility(
         visible = true,
         enter = staggeredListEnter(index),
-        modifier = modifier
+        modifier = modifier,
     ) {
         content()
     }
@@ -50,10 +75,11 @@ fun StaggeredAnimatedItem(
 
 fun Modifier.neoGlassPressScale(): Modifier = composed {
     var pressed by remember { mutableStateOf(false) }
+    val duration = durationMs(120)
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.95f else 1f,
-        animationSpec = tween(120),
-        label = "neoGlassPress"
+        animationSpec = tween(duration),
+        label = "neoGlassPress",
     )
     scale(scale).pointerInput(Unit) {
         detectTapGestures(
@@ -64,7 +90,7 @@ fun Modifier.neoGlassPressScale(): Modifier = composed {
                 } finally {
                     pressed = false
                 }
-            }
+            },
         )
     }
 }
