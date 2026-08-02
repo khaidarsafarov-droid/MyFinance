@@ -51,10 +51,8 @@ import androidx.paging.compose.itemKey
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
-import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
-import com.truckerload.presentation.components.HomeWeekHeroCard
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.components.TlTextButton as TextButton
@@ -76,18 +74,12 @@ internal fun HomeScreenContent(
     searchQuery: String,
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
-    weekTotals: LoadFilterUseCase.Totals,
-    weeklyGoal: Double,
     rpmThresholds: RpmThresholds,
     viewModel: HomeViewModel,
     filteredLoads: List<Load>,
     useRoomPaging: Boolean,
     pagedLoads: LazyPagingItems<Load>,
     onLoadClick: (String) -> Unit,
-    onAddLoad: () -> Unit,
-    onWeeklyGoal: () -> Unit = {},
-    onAddDiesel: () -> Unit = {},
-    onOpenProfile: () -> Unit = {},
     context: Context,
     onOpenCalendar: () -> Unit,
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit,
@@ -177,54 +169,25 @@ internal fun HomeScreenContent(
                 }
             }
 
-            item(key = "ux_motivators") {
-                HomeUxMotivators(
-                    onAddLoad = onAddLoad,
-                    onWeeklyGoal = onWeeklyGoal,
-                    onAddDiesel = onAddDiesel,
-                    onOpenProfile = onOpenProfile,
-                )
-            }
-
-            if (uiState.filter == LoadFilter.THIS_WEEK) {
-                item(key = "week_hero") {
-                    val progress = if (weeklyGoal > 0) {
-                        (weekTotals.totalRate / weeklyGoal).toFloat().coerceIn(0f, 1f)
-                    } else {
-                        0f
-                    }
-                    val rpm = weekTotals.totalMiles.takeIf { it > 0 }?.let {
-                        weekTotals.totalRate / it
-                    }
-                    HomeWeekHeroCard(
-                        gross = weekTotals.totalRate,
-                        goal = weeklyGoal,
-                        progressPercent = progress * 100f,
-                        rpm = rpm,
-                        onClick = onWeeklyGoal,
+            periodSummary?.let { summary ->
+                item(key = "period_summary_${summary.label}") {
+                    PeriodSummarySection(
+                        header = summary,
+                        currentFilter = uiState.filter,
+                        selectedYear = uiState.selectedYear,
+                        selectedDateLabel = uiState.selectedDateLabel,
+                        selectedWeekLabel = uiState.selectedWeekLabel,
+                        onFilterSelected = viewModel::setFilter,
+                        onOpenCalendar = onOpenCalendar,
+                        onOpenArchive = {
+                            viewModel.setFilter(LoadFilter.ALL)
+                            showYearSelector = true
+                        },
                     )
                 }
-            } else {
-                periodSummary?.let { summary ->
-                    item(key = "period_summary_${summary.label}") {
-                        PeriodSummarySection(
-                            header = summary,
-                            currentFilter = uiState.filter,
-                            selectedYear = uiState.selectedYear,
-                            selectedDateLabel = uiState.selectedDateLabel,
-                            selectedWeekLabel = uiState.selectedWeekLabel,
-                            onFilterSelected = viewModel::setFilter,
-                            onOpenCalendar = onOpenCalendar,
-                            onOpenArchive = {
-                                viewModel.setFilter(LoadFilter.ALL)
-                                showYearSelector = true
-                            },
-                        )
-                    }
-                }
             }
 
-            if (periodSummary == null || uiState.filter == LoadFilter.THIS_WEEK) {
+            if (periodSummary == null) {
                 item(key = "period_filter") {
                     HomePeriodFilterDropdown(
                         currentFilter = uiState.filter,
