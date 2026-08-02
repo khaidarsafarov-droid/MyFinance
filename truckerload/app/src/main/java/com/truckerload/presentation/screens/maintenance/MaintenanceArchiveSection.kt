@@ -91,6 +91,8 @@ private fun ArchiveCard(
 ) {
     val tc = LocalTruckColors.current
     val hasReceipt = !entry.photoPath.isNullOrBlank()
+    // FIX: avoid !! on photoPath — capture non-null path once when hasReceipt is true
+    val receiptPath = entry.photoPath?.takeIf { it.isNotBlank() }
     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -98,15 +100,15 @@ private fun ArchiveCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (hasReceipt) {
+            if (hasReceipt && receiptPath != null) {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(MaterialTheme.shapes.medium)
-                        .clickable { onOpenPhoto(entry.photoPath!!) },
+                        .clickable { onOpenPhoto(receiptPath) },
                 ) {
                     AsyncImage(
-                        model = File(entry.photoPath),
+                        model = File(receiptPath),
                         contentDescription = stringResource(R.string.maintenance_receipt_photo),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
@@ -136,8 +138,8 @@ private fun ArchiveCard(
                             modifier = Modifier.weight(1f, fill = false),
                         )
                     }
-                    if (hasReceipt) {
-                        ReceiptAttachedBadge(onClick = { onOpenPhoto(entry.photoPath!!) })
+                    if (hasReceipt && receiptPath != null) {
+                        ReceiptAttachedBadge(onClick = { onOpenPhoto(receiptPath) })
                     }
                 }
                 Text(
@@ -156,8 +158,8 @@ private fun ArchiveCard(
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            if (hasReceipt) {
-                IconButton(onClick = { onOpenPhoto(entry.photoPath!!) }) {
+            if (hasReceipt && receiptPath != null) {
+                IconButton(onClick = { onOpenPhoto(receiptPath) }) {
                     Icon(
                         Icons.Default.Photo,
                         contentDescription = stringResource(R.string.maintenance_receipt_photo),
