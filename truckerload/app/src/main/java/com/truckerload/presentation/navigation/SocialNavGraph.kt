@@ -27,13 +27,13 @@ import com.truckerload.presentation.theme.tabExitTransition
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-fun NavGraphBuilder.socialNavGraph(navController: NavHostController) {
+fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotion: Boolean) {
     composable(
         route = Routes.COMMUNITY,
-        enterTransition = { tabEnterTransition() },
-        exitTransition = { tabExitTransition() },
-        popEnterTransition = { tabEnterTransition() },
-        popExitTransition = { tabExitTransition() },
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
         CommunityScreen(
             onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
@@ -91,10 +91,10 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController) {
     }
     composable(
         route = Routes.PROFILE,
-        enterTransition = { tabEnterTransition() },
-        exitTransition = { tabExitTransition() },
-        popEnterTransition = { tabEnterTransition() },
-        popExitTransition = { tabExitTransition() },
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
         ProfileScreen(
             onBack = { navigateToMainRoute(Routes.HOME, navController) },

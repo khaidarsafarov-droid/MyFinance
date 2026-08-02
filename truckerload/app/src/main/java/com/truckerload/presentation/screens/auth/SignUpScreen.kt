@@ -48,7 +48,9 @@ import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.domain.geo.CountryCatalog
-import com.truckerload.presentation.auth.GoogleAuthCallbacks
+import com.truckerload.presentation.auth.BiometricOptInDialog
+import com.truckerload.presentation.auth.enableBiometricUnlock
+import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import com.truckerload.presentation.auth.rememberGoogleSignInLauncher
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.PhoneWithCountryField
@@ -94,8 +96,14 @@ fun SignUpScreen(
         ),
     )
 
+    var showBiometricOffer by remember { mutableStateOf(false) }
+
     fun completeSignUp() {
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSuccess() }, 400)
+        if (shouldOfferBiometricUnlock(context)) {
+            showBiometricOffer = true
+        } else {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSuccess() }, 400)
+        }
     }
 
     fun finishLocalSignUp(
@@ -121,7 +129,6 @@ fun SignUpScreen(
         // No outbound email without Supabase — treat on-device accounts as verified.
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .markVerified(emailTrimmed)
-        com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
         completeSignUp()
     }
@@ -203,7 +210,6 @@ fun SignUpScreen(
                                                     )
                                                     com.truckerload.data.preferences.EmailVerificationStore(context)
                                                         .beginVerification(emailTrimmed)
-                                                    com.truckerload.presentation.auth.offerBiometricAfterEmailLogin(context)
                                                     completeSignUp()
                                                 },
                                                 onFailure = {
@@ -356,5 +362,18 @@ fun SignUpScreen(
             }
         }
         }
+    }
+    if (showBiometricOffer) {
+        BiometricOptInDialog(
+            onDismiss = {
+                showBiometricOffer = false
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSuccess() }, 400)
+            },
+            onEnabled = {
+                enableBiometricUnlock(context)
+                showBiometricOffer = false
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ onSuccess() }, 400)
+            },
+        )
     }
 }
