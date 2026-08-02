@@ -6,6 +6,8 @@
 LOCAL_ONLY_MODE=false
 
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+# Optional: truck HGV routing (height/weight). Falls back to Google/OSRM without it.
+OPENROUTESERVICE_API_KEY=
 CEREBRAS_API_KEY=
 TELEGRAM_BOT_TOKEN=
 

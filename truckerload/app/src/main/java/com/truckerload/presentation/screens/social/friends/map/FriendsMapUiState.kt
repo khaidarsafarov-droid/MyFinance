@@ -30,6 +30,10 @@ data class FriendsMapUiState(
     val myPathPast: List<LatLngPoint> = emptyList(),
     val myPathRemaining: List<LatLngPoint> = emptyList(),
     val myRouteSummary: String? = null,
+    /** Directions backend label when road routing succeeded (e.g. OSRM, Google). */
+    val myRouteProvider: String? = null,
+    /** True when only a straight-line fallback is shown (all providers failed). */
+    val myRouteStraightFallback: Boolean = false,
     val selectedFriendId: String? = null,
     val overlaps: List<RouteOverlapMatch> = emptyList(),
     val showOverlapsPanel: Boolean = false,

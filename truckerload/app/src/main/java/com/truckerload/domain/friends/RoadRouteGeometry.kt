@@ -6,8 +6,11 @@ package com.truckerload.domain.friends
  */
 object RoadRouteGeometry {
 
-    /** Default truck off-route threshold (~0.5 mi). */
-    const val DEFAULT_OFF_ROUTE_METERS = 800.0
+    /** Off-route threshold before reroute is considered (~50 m per product spec). */
+    const val DEFAULT_OFF_ROUTE_METERS = 50.0
+
+    /** Driver must stay off the corridor this long before a reroute fires. */
+    const val DEFAULT_OFF_ROUTE_DURATION_MS = 10_000L
 
     fun isOffRoute(
         point: LatLngPoint,

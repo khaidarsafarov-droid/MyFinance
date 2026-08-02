@@ -9,7 +9,6 @@ class EncodedPolylineCodecTest {
 
     @Test
     fun decodesGoogleSamplePolyline() {
-        // Classic Google sample: "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
         val points = EncodedPolylineCodec.decode("_p~iF~ps|U_ulLnnqC_mqNvxq`@")
         assertEquals(3, points.size)
         assertEquals(38.5, points[0].lat, 0.01)
@@ -37,14 +36,14 @@ class RoadRouteGeometryTest {
 
     @Test
     fun onRouteWhenNearPolyline() {
-        val me = LatLngPoint(41.002, -98.5)
-        assertFalse(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 800.0))
+        val me = LatLngPoint(41.0001, -98.5)
+        assertFalse(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 50.0))
     }
 
     @Test
     fun offRouteWhenFarFromPolyline() {
         val me = LatLngPoint(42.5, -98.5)
-        assertTrue(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 800.0))
+        assertTrue(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 50.0))
     }
 
     @Test
@@ -64,16 +63,18 @@ class RoadRouteSessionTest {
         private var responses: MutableList<List<LatLngPoint>>,
         private val configured: Boolean = true,
     ) : DrivingDirectionsProvider {
+        override val providerLabel: String = "Fake"
         var fetchCount = 0
         override fun isConfigured(): Boolean = configured
         override suspend fun fetchDrivingRoute(
             origin: LatLngPoint,
             destination: LatLngPoint,
-        ): Result<List<LatLngPoint>> {
+            options: DrivingRouteOptions,
+        ): Result<DrivingRouteResult> {
             fetchCount++
             val next = responses.removeFirstOrNull()
                 ?: return Result.failure(IllegalStateException("no more fakes"))
-            return Result.success(next)
+            return Result.success(DrivingRouteResult(next, providerLabel))
         }
     }
 
@@ -90,13 +91,14 @@ class RoadRouteSessionTest {
         val a = session.remainingRoad("me", LatLngPoint(41.0, -100.0), dest, nowMs = 1_000)
         val b = session.remainingRoad("me", LatLngPoint(41.001, -99.5), dest, nowMs = 2_000)
         assertEquals(1, fake.fetchCount)
-        assertTrue(a.size >= 2)
-        assertTrue(b.size >= 2)
-        assertEquals(dest.lng, a.last().lng, 1e-9)
+        assertTrue(a.points.size >= 2)
+        assertTrue(b.points.size >= 2)
+        assertTrue(a.isRoadRouted)
+        assertEquals(dest.lng, a.points.last().lng, 1e-9)
     }
 
     @Test
-    fun reroutesWhenOffCorridorAfterThrottle() = kotlinx.coroutines.runBlocking {
+    fun reroutesWhenSustainedOffCorridorAfterThrottle() = kotlinx.coroutines.runBlocking {
         val first = listOf(
             LatLngPoint(41.0, -100.0),
             LatLngPoint(41.0, -99.0),
@@ -111,18 +113,21 @@ class RoadRouteSessionTest {
         val session = RoadRouteSession(
             fake,
             offRouteThresholdMeters = 800.0,
+            offRouteDurationMs = 10_000L,
             minRerouteIntervalMs = 1_000,
         )
         val dest = LatLngPoint(41.0, -98.0)
         session.remainingRoad("me", LatLngPoint(41.0, -100.0), dest, nowMs = 0)
-        // Still on route — no refetch
         session.remainingRoad("me", LatLngPoint(41.0, -99.2), dest, nowMs = 500)
         assertEquals(1, fake.fetchCount)
-        // Far north, and throttle elapsed — refetch
-        val rerouted = session.remainingRoad("me", LatLngPoint(42.0, -99.0), dest, nowMs = 5_000)
+        // Off corridor but not sustained long enough
+        session.remainingRoad("me", LatLngPoint(42.0, -99.0), dest, nowMs = 5_000)
+        assertEquals(1, fake.fetchCount)
+        // Sustained off-route + throttle elapsed
+        val rerouted = session.remainingRoad("me", LatLngPoint(42.0, -99.0), dest, nowMs = 15_000)
         assertEquals(2, fake.fetchCount)
-        assertEquals(42.0, rerouted.first().lat, 1e-9)
-        assertEquals(dest.lng, rerouted.last().lng, 1e-9)
+        assertEquals(42.0, rerouted.points.first().lat, 1e-9)
+        assertEquals(dest.lng, rerouted.points.last().lng, 1e-9)
     }
 
     @Test
@@ -132,10 +137,11 @@ class RoadRouteSessionTest {
         val start = LatLngPoint(41.0, -100.0)
         val dest = LatLngPoint(41.0, -90.0)
         val path = session.remainingRoad("me", start, dest)
-        assertEquals(2, path.size)
+        assertEquals(2, path.points.size)
         assertEquals(0, fake.fetchCount)
-        assertEquals(start, path.first())
-        assertEquals(dest, path.last())
+        assertFalse(path.isRoadRouted)
+        assertEquals(start, path.points.first())
+        assertEquals(dest, path.points.last())
     }
 }
 

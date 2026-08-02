@@ -2,8 +2,11 @@ package com.truckerload.data.remote
 
 import com.truckerload.BuildConfig
 import com.truckerload.domain.friends.DrivingDirectionsProvider
+import com.truckerload.domain.friends.DrivingRouteOptions
+import com.truckerload.domain.friends.DrivingRouteResult
 import com.truckerload.domain.friends.EncodedPolylineCodec
 import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.domain.friends.VehicleRoutingMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -16,33 +19,43 @@ import java.util.concurrent.TimeUnit
  * Google Directions API (driving) → decoded road polyline.
  * Uses the same Maps key as the SDK ([BuildConfig.GOOGLE_MAPS_API_KEY]);
  * Directions API must be enabled on that Cloud project.
+ *
+ * Legacy Directions API has no true truck mode; for [VehicleRoutingMode.TRUCK] we
+ * pass `avoid=ferries`. For production HAZMAT / height / weight restrictions use
+ * TomTom Truck Routing, HERE, or [OpenRouteServiceDirectionsClient].
  */
 class GoogleDirectionsClient(
     private val apiKey: String = BuildConfig.GOOGLE_MAPS_API_KEY,
     private val client: OkHttpClient = defaultClient,
 ) : DrivingDirectionsProvider {
+    override val providerLabel: String = "Google"
+
     override fun isConfigured(): Boolean = apiKey.isNotBlank()
 
     override suspend fun fetchDrivingRoute(
         origin: LatLngPoint,
         destination: LatLngPoint,
-    ): Result<List<LatLngPoint>> = withContext(Dispatchers.IO) {
+        options: DrivingRouteOptions,
+    ): Result<DrivingRouteResult> = withContext(Dispatchers.IO) {
         if (!isConfigured()) {
             return@withContext Result.failure(IllegalStateException("GOOGLE_MAPS_API_KEY missing"))
         }
         runCatching {
-            val url = DIRECTIONS_BASE.toHttpUrl().newBuilder()
+            val builder = DIRECTIONS_BASE.toHttpUrl().newBuilder()
                 .addQueryParameter("origin", "${origin.lat},${origin.lng}")
                 .addQueryParameter("destination", "${destination.lat},${destination.lng}")
                 .addQueryParameter("mode", "driving")
                 .addQueryParameter("overview", "full")
                 .addQueryParameter("key", apiKey)
-                .build()
+            if (options.vehicleMode == VehicleRoutingMode.TRUCK && options.avoidFerries) {
+                builder.addQueryParameter("avoid", "ferries")
+            }
+            val url = builder.build()
             val req = Request.Builder().url(url).get().build()
             client.newCall(req).execute().use { resp ->
                 val body = resp.body?.string().orEmpty()
                 if (!resp.isSuccessful) error("Directions HTTP ${resp.code}: $body")
-                parseDirectionsBody(body)
+                DrivingRouteResult(parseDirectionsBody(body), providerLabel)
             }
         }
     }

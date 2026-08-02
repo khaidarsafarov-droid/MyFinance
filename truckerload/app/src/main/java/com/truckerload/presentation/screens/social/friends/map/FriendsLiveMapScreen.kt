@@ -263,6 +263,21 @@ fun FriendsLiveMapScreen(
                                 modifier = Modifier.padding(top = 2.dp),
                             )
                         }
+                        if (uiState.myRouteStraightFallback) {
+                            Text(
+                                text = stringResource(R.string.friends_route_straight_fallback),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        } else if (uiState.myRouteProvider != null) {
+                            Text(
+                                text = stringResource(R.string.friends_route_road_provider, uiState.myRouteProvider!!),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
                         if (uiState.friends.isNotEmpty()) {
                             Text(
                                 text = stringResource(R.string.friends_online_count, uiState.friends.size),

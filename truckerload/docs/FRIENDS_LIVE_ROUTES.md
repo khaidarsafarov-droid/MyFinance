@@ -25,14 +25,20 @@ GOOGLE_MAPS_API_KEY=...
 ```
 
 `GOOGLE_MAPS_API_KEY` must allow both **Maps SDK for Android** (map tiles) and
-**Directions API** (road polylines). Without Directions enabled, the map falls
-back to a straight line between you and the destination.
+**Directions API** (road polylines). If Directions is disabled or the key is
+missing, the app automatically falls back to **OSRM** (public driving profile).
+
+Optional truck HGV routing with height/weight restrictions:
+```
+OPENROUTESERVICE_API_KEY=...
+```
+Sign up at https://openrouteservice.org/dev/#/signup (free tier).
 
 ### Road routing behaviour
-- Blue path = Google driving route from your GPS (or PU) to DEL, along roads.
+- Blue path = driving route from your GPS (or PU) to DEL, along roads.
+- Providers (in order for truck): OpenRouteService HGV → Google Directions → OSRM.
 - Gray path = GPS crumbs already driven (when sharing).
-- If you leave the corridor (~800 m / 0.5 mi), the app recalculates a new
-  driving route (throttled to about once every 45s).
+- Off-route reroute: >50 m from corridor for 10+ seconds → new route (throttled ~5s).
 - Destination change (new active load) also triggers a fresh Directions fetch.
 
 ## In-app

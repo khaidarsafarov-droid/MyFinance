@@ -63,6 +63,10 @@ android {
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
+        val orsApiKey = localProps.getProperty("OPENROUTESERVICE_API_KEY", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "OPENROUTESERVICE_API_KEY", "\"$orsApiKey\"")
         // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
         // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a
         val abiFiltersProp = (project.findProperty("abiFilters") as? String)

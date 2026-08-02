@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.remote.GoogleDirectionsClient
+import com.truckerload.data.remote.DrivingDirectionsProviders
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
@@ -44,7 +44,7 @@ class FriendsMapViewModel @Inject constructor(
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
-    private val roadRoutes = RoadRouteSession(GoogleDirectionsClient())
+    private val roadRoutes = RoadRouteSession(DrivingDirectionsProviders.createDefault())
 
     private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -193,6 +193,7 @@ class FriendsMapViewModel @Inject constructor(
         viewModelScope.launch {
             if (!silent) _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
+                pullMyLocationQuietly()
                 val ready = friendsApi.isConfigured()
                 _uiState.update { it.copy(supabaseReady = ready) }
                 val links = if (ready) {
@@ -222,7 +223,7 @@ class FriendsMapViewModel @Inject constructor(
                             cacheKey = p.userId,
                             currentOrStart = start,
                             destination = route.destination,
-                        )
+                        ).points
                     } else {
                         null
                     }
@@ -254,6 +255,8 @@ class FriendsMapViewModel @Inject constructor(
                         myPathPast = myPath.past,
                         myPathRemaining = myPath.remaining,
                         myRouteSummary = myPath.summary,
+                        myRouteProvider = myPath.routeProvider,
+                        myRouteStraightFallback = myPath.isStraightFallback,
                         overlaps = overlaps,
                         lastRefreshAt = System.currentTimeMillis(),
                         errorMessage = null,
@@ -274,6 +277,8 @@ class FriendsMapViewModel @Inject constructor(
                 myPathPast = myPath.past,
                 myPathRemaining = myPath.remaining,
                 myRouteSummary = myPath.summary,
+                myRouteProvider = myPath.routeProvider,
+                myRouteStraightFallback = myPath.isStraightFallback,
             )
         }
     }
@@ -282,6 +287,8 @@ class FriendsMapViewModel @Inject constructor(
         val past: List<LatLngPoint>,
         val remaining: List<LatLngPoint>,
         val summary: String?,
+        val routeProvider: String? = null,
+        val isStraightFallback: Boolean = false,
     )
 
     private suspend fun buildMyPathOverlay(): MyPathDraw = withContext(Dispatchers.IO) {
@@ -309,17 +316,23 @@ class FriendsMapViewModel @Inject constructor(
             trackPoints = emptyList(),
         )
         val start = myLocationPoint ?: origin
-        val road = roadRoutes.remainingRoad(
+        val roadOutcome = roadRoutes.remainingRoad(
             cacheKey = RoadRouteSession.SELF_CACHE_KEY,
             currentOrStart = start,
             destination = destination,
         )
-        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint, roadRemaining = road)
+        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint, roadRemaining = roadOutcome.points)
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
             .joinToString(" → ")
             .ifBlank { null }
-        MyPathDraw(past = split.past, remaining = split.remaining, summary = summary)
+        MyPathDraw(
+            past = split.past,
+            remaining = split.remaining,
+            summary = summary,
+            routeProvider = roadOutcome.providerLabel,
+            isStraightFallback = !roadOutcome.isRoadRouted,
+        )
     }
 
     private suspend fun pullMyLocationQuietly() {
