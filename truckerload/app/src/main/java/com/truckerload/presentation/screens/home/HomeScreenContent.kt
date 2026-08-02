@@ -289,6 +289,14 @@ internal fun HomeScreenContent(
                                 color = tc.TextSecondary,
                                 modifier = Modifier.padding(top = 8.dp),
                             )
+                            if (uiState.filter == LoadFilter.ALL) {
+                                TextButton(
+                                    onClick = onAddLoad,
+                                    modifier = Modifier.padding(top = 12.dp),
+                                ) {
+                                    Text(stringResource(R.string.home_add_load_button))
+                                }
+                            }
                         }
                     }
                 }
@@ -298,6 +306,7 @@ internal fun HomeScreenContent(
                     key = pagedLoads.itemKey { it.id },
                 ) { index ->
                     val load = pagedLoads[index] ?: return@items
+                    if (load.id in pendingDeleteIds) return@items
                     SwipeableLoadCard(
                         load = load,
                         onClick = { if (load.id.isNotBlank()) onLoadClick(load.id) },

@@ -56,6 +56,9 @@ class HomeViewModel @Inject constructor(
 
         /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
         private val botServiceStarted = AtomicBoolean(false)
+
+        /** Undo window before the load is permanently removed (matches snackbar Long). */
+        const val DELETE_UNDO_MS = 6_000L
     }
 
     private val filterUseCase = LoadFilterUseCase()
@@ -148,9 +151,16 @@ class HomeViewModel @Inject constructor(
 
     /** IDs being deleted — excluded from merged list so they cannot reappear via overlay. */
     private val _pendingDeleteIds = MutableStateFlow<Set<String>>(emptySet())
+    val pendingDeleteIds: StateFlow<Set<String>> = _pendingDeleteIds.asStateFlow()
 
-    private val _pendingDeleteConfirmId = MutableStateFlow<String?>(null)
-    val pendingDeleteConfirmId: StateFlow<String?> = _pendingDeleteConfirmId.asStateFlow()
+    /**
+     * Load id waiting for undo window before hard-delete.
+     * UI shows a snackbar with Undo while this is non-null.
+     */
+    private val _pendingUndoDeleteId = MutableStateFlow<String?>(null)
+    val pendingUndoDeleteId: StateFlow<String?> = _pendingUndoDeleteId.asStateFlow()
+
+    private var deleteCommitJob: Job? = null
 
     /** Load id waiting for Undo snackbar before hard delete. */
     private val _undoDeleteLoadId = MutableStateFlow<String?>(null)
@@ -358,6 +368,7 @@ class HomeViewModel @Inject constructor(
         _deleteError.value = null
     }
 
+    /** Kept for call sites that previously confirmed a dialog — commits immediately. */
     fun confirmDeleteLoad() {
         val loadId = _pendingDeleteConfirmId.value ?: _undoDeleteLoadId.value ?: return
         _pendingDeleteConfirmId.value = null

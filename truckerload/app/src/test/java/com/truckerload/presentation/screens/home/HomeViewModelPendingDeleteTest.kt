@@ -94,7 +94,7 @@ class HomeViewModelPendingDeleteTest {
         viewModel.requestDeleteLoad("load-1")
         val genBefore = viewModel.swipeSettleGeneration.value
 
-        viewModel.dismissDeleteLoad()
+        viewModel.undoDeleteLoad()
 
         assertNull(viewModel.undoDeleteLoadId.value)
         assertTrue(viewModel.swipeSettleGeneration.value > genBefore)
@@ -102,7 +102,15 @@ class HomeViewModelPendingDeleteTest {
     }
 
     @Test
-    fun confirmDeleteLoad_clearsPendingAndDeletes() = runTest(dispatcher) {
+    fun dismissDeleteLoad_undoesPendingDelete() {
+        viewModel.requestDeleteLoad("load-1")
+        viewModel.dismissDeleteLoad()
+        assertNull(viewModel.pendingUndoDeleteId.value)
+        assertTrue(deletedIds.isEmpty())
+    }
+
+    @Test
+    fun confirmDeleteLoad_commitsImmediately() = runTest(dispatcher) {
         viewModel.requestDeleteLoad("load-1")
 
         viewModel.confirmDeleteLoad()

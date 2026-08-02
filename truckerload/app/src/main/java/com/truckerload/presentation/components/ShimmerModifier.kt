@@ -24,9 +24,9 @@ fun Modifier.shimmerPulse(): Modifier {
         targetValue = 0.7f,
         animationSpec = infiniteRepeatable(
             animation = tween(800, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "alpha"
+        label = "alpha",
     )
     return alpha(alpha)
 }

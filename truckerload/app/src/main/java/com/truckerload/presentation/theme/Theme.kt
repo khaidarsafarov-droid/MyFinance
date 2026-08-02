@@ -108,10 +108,12 @@ fun TruckerLoadTheme(
     val effectiveReduceMotion = reduceMotion || systemReduceMotion
     val colorScheme = resolveColorScheme(darkTheme, dynamicColor, oledDark = oledDark && darkTheme)
     val truckColors = truckPaletteFrom(colorScheme)
+    val effectiveReduceMotion = rememberEffectiveReduceMotion(reduceMotion)
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
+            MotionPreferences.reduceMotion = effectiveReduceMotion
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
             val barColor = if (darkTheme) {
