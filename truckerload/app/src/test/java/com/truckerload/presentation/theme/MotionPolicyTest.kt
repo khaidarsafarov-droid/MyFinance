@@ -1,18 +1,19 @@
 package com.truckerload.presentation.theme
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class MotionPolicyTest {
 
-  @Test
-  fun isSystemReducedMotion_defaultsToFalseWhenAnimatorScaleUnset() {
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    assertFalse(MotionPolicy.isSystemReducedMotion(context))
-  }
+    @Test
+    fun isSystemReducedMotion_defaultsToFalseWhenAnimatorScaleUnset() {
+        val context = RuntimeEnvironment.getApplication()
+        assertFalse(MotionPolicy.isSystemReducedMotion(context))
+    }
 }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.MotionPhotosOff
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
@@ -16,19 +15,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
-import kotlinx.coroutines.launch
 
 @Composable
 fun FeedbackSettingsSection(
@@ -36,12 +31,8 @@ fun FeedbackSettingsSection(
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
-    val settingsDataStore = LocalSettingsDataStore.current
-    val scope = rememberCoroutineScope()
     var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
     var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
-    val reduceMotion by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(initialValue = false)
-
     BentoGlassSection(
         title = stringResource(R.string.settings_feedback_title),
         subtitle = stringResource(R.string.settings_feedback_desc),
@@ -79,26 +70,6 @@ fun FeedbackSettingsSection(
                     vibrationEnabled = it
                     settingsViewModel.setVibrationEnabled(it)
                 },
-            )
-            SettingsToggleRow(
-                icon = {
-                    Icon(
-                        Icons.Default.MotionPhotosOff,
-                        contentDescription = stringResource(R.string.settings_reduce_motion_title),
-                        tint = tc.AccentPrimary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                },
-                label = stringResource(R.string.settings_reduce_motion_title),
-                checked = reduceMotion,
-                onCheckedChange = { enabled ->
-                    scope.launch { settingsDataStore.saveReduceMotion(enabled) }
-                },
-            )
-            Text(
-                text = stringResource(R.string.settings_reduce_motion_desc),
-                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                color = tc.TextSecondary,
             )
         }
     }

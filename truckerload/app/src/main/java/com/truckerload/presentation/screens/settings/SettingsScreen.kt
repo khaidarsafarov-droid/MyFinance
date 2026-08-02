@@ -202,6 +202,7 @@ fun SettingsScreen(
             ThemeSettingsSection(selected = themeMode, oledDark = oledDark)
             AccessibilitySettingsSection(reduceMotion = reduceMotion)
             LanguageSettingsSection(selected = appLanguage)
+            FeedbackSettingsSection(settingsViewModel = settingsViewModel)
             BiometricSettingsSection()
             PrivacySettingsSection()
             NotificationSettingsSection(
