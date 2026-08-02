@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
+import com.truckerload.presentation.theme.LocalReduceMotion
+import com.truckerload.presentation.theme.motionDurationMs
 import java.util.Locale
 
 @Composable
@@ -24,9 +26,13 @@ fun AnimatedNumber(
     color: Color = Color.Unspecified,
     useNeon: Boolean = false,
 ) {
+    val reduceMotion = LocalReduceMotion.current
     val animatedValue by animateFloatAsState(
         targetValue = target.toFloat(),
-        animationSpec = tween(800, easing = EaseOutCubic),
+        animationSpec = tween(
+            motionDurationMs(reduceMotion, 800),
+            easing = EaseOutCubic,
+        ),
         label = "animatedNumber"
     )
     val formatted = prefix + String.format(Locale.US, format, animatedValue.toDouble()) + suffix

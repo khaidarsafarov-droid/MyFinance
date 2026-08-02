@@ -22,7 +22,6 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
-import org.mockito.kotlin.verifyBlocking
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -64,25 +63,40 @@ class HomeViewModelPendingDeleteTest {
     }
 
     @Test
-    fun requestDeleteLoad_setsPendingConfirmId() {
+    fun requestDeleteLoad_setsUndoDeleteLoadId() {
         viewModel.requestDeleteLoad("load-1")
-        assertEquals("load-1", viewModel.pendingDeleteConfirmId.value)
+        assertEquals("load-1", viewModel.undoDeleteLoadId.value)
+        assertNull(viewModel.pendingDeleteConfirmId.value)
+        assertTrue(deletedIds.isEmpty())
     }
 
     @Test
     fun requestDeleteLoad_blank_isIgnored() {
         viewModel.requestDeleteLoad("  ")
+        assertNull(viewModel.undoDeleteLoadId.value)
         assertNull(viewModel.pendingDeleteConfirmId.value)
     }
 
     @Test
-    fun dismissDeleteLoad_clearsPendingAndBumpsSwipeGeneration() {
+    fun undoDeleteLoad_clearsPendingAndBumpsSwipeGeneration() {
+        viewModel.requestDeleteLoad("load-1")
+        val genBefore = viewModel.swipeSettleGeneration.value
+
+        viewModel.undoDeleteLoad()
+
+        assertNull(viewModel.undoDeleteLoadId.value)
+        assertTrue(viewModel.swipeSettleGeneration.value > genBefore)
+        assertTrue(deletedIds.isEmpty())
+    }
+
+    @Test
+    fun dismissDeleteLoad_undoesPendingSoftDelete() {
         viewModel.requestDeleteLoad("load-1")
         val genBefore = viewModel.swipeSettleGeneration.value
 
         viewModel.dismissDeleteLoad()
 
-        assertNull(viewModel.pendingDeleteConfirmId.value)
+        assertNull(viewModel.undoDeleteLoadId.value)
         assertTrue(viewModel.swipeSettleGeneration.value > genBefore)
         assertTrue(deletedIds.isEmpty())
     }
@@ -93,7 +107,7 @@ class HomeViewModelPendingDeleteTest {
 
         viewModel.confirmDeleteLoad()
 
-        assertNull(viewModel.pendingDeleteConfirmId.value)
+        assertNull(viewModel.undoDeleteLoadId.value)
         assertEquals(listOf("load-1"), deletedIds)
     }
 

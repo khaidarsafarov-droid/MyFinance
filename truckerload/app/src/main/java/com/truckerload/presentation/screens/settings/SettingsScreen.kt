@@ -82,6 +82,13 @@ fun SettingsScreen(
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
     val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
+    val oledDark by settingsDataStore.oledDark.collectAsStateWithLifecycle(initialValue = false)
+    val reduceMotion by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(initialValue = false)
+    val quietHoursEnabled by settingsDataStore.quietHoursEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val quietHoursStart by settingsDataStore.quietHoursStart.collectAsStateWithLifecycle(initialValue = 22)
+    val quietHoursEnd by settingsDataStore.quietHoursEnd.collectAsStateWithLifecycle(initialValue = 7)
+    val notifyMissingWeek by settingsDataStore.notifyMissingWeek.collectAsStateWithLifecycle(initialValue = true)
+    val notifyMaintenance by settingsDataStore.notifyMaintenance.collectAsStateWithLifecycle(initialValue = true)
     val appLanguage by settingsDataStore.language.collectAsStateWithLifecycle(initialValue = com.truckerload.data.preferences.AppLanguage.RU)
     val tc = LocalTruckColors.current
     val authStore = LocalAuthStore.current
@@ -192,8 +199,18 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
         ) {
-            ThemeSettingsSection(selected = themeMode)
+            ThemeSettingsSection(selected = themeMode, oledDark = oledDark)
+            AccessibilitySettingsSection(reduceMotion = reduceMotion)
             LanguageSettingsSection(selected = appLanguage)
+            BiometricSettingsSection()
+            PrivacySettingsSection()
+            NotificationSettingsSection(
+                quietHoursEnabled = quietHoursEnabled,
+                quietHoursStart = quietHoursStart,
+                quietHoursEnd = quietHoursEnd,
+                notifyMissingWeek = notifyMissingWeek,
+                notifyMaintenance = notifyMaintenance,
+            )
             TelegramSettingsSection()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }

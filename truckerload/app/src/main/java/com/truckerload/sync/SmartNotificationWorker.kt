@@ -11,11 +11,14 @@ import androidx.work.WorkerParameters
 import androidx.hilt.work.HiltWorker
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.di.UserComponentManager
+import com.truckerload.domain.notifications.QuietHours
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import com.truckerload.utils.shiftWeekNumberAndYear
+import java.util.Calendar
 import kotlinx.coroutines.flow.first
 
 /**
@@ -28,6 +31,7 @@ class SmartNotificationWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val authStore: AuthStore,
     private val userComponentManager: UserComponentManager,
+    private val settingsDataStore: SettingsDataStore,
 ) : CoroutineWorker(context, params) {
 
     companion object {
@@ -49,6 +53,17 @@ class SmartNotificationWorker @AssistedInject constructor(
         val dieselRepo = session.dieselRepository
         val maintenanceRepo = session.maintenanceRepository
 
+        val quietEnabled = settingsDataStore.getQuietHoursEnabledOnce()
+        val quietStart = settingsDataStore.getQuietHoursStartOnce()
+        val quietEnd = settingsDataStore.getQuietHoursEndOnce()
+        val nowHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        if (QuietHours.isActive(nowHour, quietStart, quietEnd, quietEnabled)) {
+            return Result.success()
+        }
+
+        val allowMissingWeek = settingsDataStore.getNotifyMissingWeekOnce()
+        val allowMaintenance = settingsDataStore.getNotifyMaintenanceOnce()
+
         createChannels()
         cancelLegacyPerTaskMaintenanceAlerts()
         val (currentWeek, year) = getCurrentWeekNumberAndYear()
@@ -60,14 +75,18 @@ class SmartNotificationWorker @AssistedInject constructor(
         return try {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
             val diesel = dieselRepo.getDieselForWeek(lastWeek, lastYear).first()
-            val dueMaintenance = maintenanceRepo.getDueProgressForNotifications()
+            val dueMaintenance = if (allowMaintenance) {
+                maintenanceRepo.getDueProgressForNotifications()
+            } else {
+                emptyList()
+            }
             val plan = SmartNotificationPlanner.plan(
                 hasPaycheckForLastWeek = paycheck != null,
                 dieselEntriesLastWeek = diesel.size,
                 maintenanceDueTitles = dueMaintenance.map { it.task.title },
-                alreadyNotifiedMissingWeek = alreadyNotifiedMissing,
+                alreadyNotifiedMissingWeek = alreadyNotifiedMissing || !allowMissingWeek,
             )
-            if (plan.notifyMissingPaycheck) {
+            if (allowMissingWeek && plan.notifyMissingPaycheck) {
                 notify(
                     applicationContext,
                     ID_PAYCHECK,
@@ -76,7 +95,7 @@ class SmartNotificationWorker @AssistedInject constructor(
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
                 )
             }
-            if (plan.notifyMissingDiesel) {
+            if (allowMissingWeek && plan.notifyMissingDiesel) {
                 notify(
                     applicationContext,
                     ID_DIESEL,
@@ -85,7 +104,7 @@ class SmartNotificationWorker @AssistedInject constructor(
                     applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
                 )
             }
-            if (plan.notifyMissingPaycheck || plan.notifyMissingDiesel) {
+            if (allowMissingWeek && (plan.notifyMissingPaycheck || plan.notifyMissingDiesel)) {
                 prefs.edit { putString(KEY_MISSING_WEEK, weekKey) }
             }
             if (plan.maintenanceDueTitles.isNotEmpty()) {
