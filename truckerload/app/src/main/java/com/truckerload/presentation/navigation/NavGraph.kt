@@ -244,12 +244,10 @@ fun NavGraph(
                     onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
                     onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
                     onStats = { navController.navigate(Routes.ANALYTICS) },
-                    onWeeklyGoal = { navController.navigate(Routes.STATS) },
                     onSettings = { navController.navigate(Routes.SETTINGS) },
                     onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
                     onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
                     onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
-                    onOpenProfile = { navController.navigate(Routes.PROFILE) },
                     onLoadCamera = { loadId, tripId, loadDate ->
                         navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
                     },

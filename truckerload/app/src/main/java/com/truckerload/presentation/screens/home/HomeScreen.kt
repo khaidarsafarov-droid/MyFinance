@@ -44,7 +44,6 @@ import com.truckerload.presentation.connectivity.ConnectivityStatus
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
@@ -59,12 +58,10 @@ fun HomeScreen(
     onLoadClick: (String) -> Unit,
     onAddLoad: () -> Unit,
     onStats: () -> Unit,
-    onWeeklyGoal: () -> Unit = onStats,
     onSettings: () -> Unit = {},
     onCamera: () -> Unit = {},
     onScan: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
-    onOpenProfile: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
 ) {
@@ -88,7 +85,6 @@ fun HomeScreen(
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
     val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
     val undoDeleteId by viewModel.undoDeleteLoadId.collectAsStateWithLifecycle()
-    val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showQuickActions by remember { mutableStateOf(false) }
     val connectivity by remember(context) {
@@ -266,18 +262,12 @@ fun HomeScreen(
                         searchQuery = searchQuery,
                         listItems = listItems,
                         periodSummary = periodSummary,
-                        weekTotals = totals,
-                        weeklyGoal = weeklyGoal,
                         rpmThresholds = rpmThresholds,
                         viewModel = viewModel,
                         filteredLoads = filteredLoads,
                         useRoomPaging = useRoomPaging,
                         pagedLoads = pagedLoads,
                         onLoadClick = onLoadClick,
-                        onAddLoad = onAddLoad,
-                        onWeeklyGoal = onWeeklyGoal,
-                        onAddDiesel = onAddDiesel,
-                        onOpenProfile = onOpenProfile,
                         context = context,
                         onOpenCalendar = { openCalendarDialog() },
                         onLoadCamera = onLoadCamera,
