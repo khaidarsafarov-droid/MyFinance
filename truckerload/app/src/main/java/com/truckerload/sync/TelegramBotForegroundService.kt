@@ -55,7 +55,6 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-<<<<<<< HEAD
         // After startForegroundService() or a START_STICKY restart, Android requires
         // startForeground() within a few seconds — even when we decide to stop.
         // Skipping it causes RemoteServiceException / "Truck Log keeps stopping".
@@ -64,37 +63,18 @@ class TelegramBotForegroundService : Service() {
         if (TelegramSyncMode.isServer()) {
             Log.i(TAG, "Server sync mode — stopping local bot FGS")
             stopQuietly(restart = false)
-=======
-        // Always promote first — startForegroundService requires startForeground within ~5–10s
-        // even when we immediately decide to stop (no user / no token / server mode).
-        startForegroundCompat()
-
-        if (TelegramSyncMode.isServer()) {
-            suppressRestart = true
-            stopGracefully()
->>>>>>> origin/cursor/fix-telegram-fgs-timeout-d43f
             return START_NOT_STICKY
         }
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
-<<<<<<< HEAD
             stopQuietly(restart = false)
-=======
-            suppressRestart = true
-            stopGracefully()
->>>>>>> origin/cursor/fix-telegram-fgs-timeout-d43f
             return START_NOT_STICKY
         }
         val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w(TAG, "No TELEGRAM_BOT_TOKEN — stopping service")
-<<<<<<< HEAD
             stopQuietly(restart = false)
-=======
-            suppressRestart = true
-            stopGracefully()
->>>>>>> origin/cursor/fix-telegram-fgs-timeout-d43f
             return START_NOT_STICKY
         }
 
@@ -112,15 +92,17 @@ class TelegramBotForegroundService : Service() {
         return START_STICKY
     }
 
-<<<<<<< HEAD
     /** Stop after startForeground(); optionally suppress AlarmManager restart. */
     private fun stopQuietly(restart: Boolean) {
         suppressRestart = !restart
         startRequested.set(false)
         isRunningFlag.set(false)
+        pollJob?.cancel()
         TelegramPollCoordinator.markForegroundPolling(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
-=======
+        stopSelf()
+    }
+
     /**
      * Android 15+: dataSync quota exhausted. Must stop within a few seconds or the
      * system throws RemoteServiceException ("keeps stopping").
@@ -130,9 +112,9 @@ class TelegramBotForegroundService : Service() {
         TelegramFgsQuota.markTimedOut()
         suppressRestart = true
         startRequested.set(false)
+        isRunningFlag.set(false)
         pollJob?.cancel()
         TelegramPollCoordinator.markForegroundPolling(false)
->>>>>>> origin/cursor/fix-telegram-fgs-timeout-d43f
         stopSelf()
     }
 
@@ -158,14 +140,6 @@ class TelegramBotForegroundService : Service() {
             Log.i(TAG, "Service destroyed — restart suppressed")
         }
         super.onDestroy()
-    }
-
-    private fun stopGracefully() {
-        startRequested.set(false)
-        pollJob?.cancel()
-        TelegramPollCoordinator.markForegroundPolling(false)
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     private fun setupBotFeaturesOnce(token: String) {
