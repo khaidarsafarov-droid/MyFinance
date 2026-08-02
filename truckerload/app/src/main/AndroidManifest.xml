@@ -86,7 +86,7 @@
         <service
             android:name=".sync.FriendsLocationShareService"
             android:exported="false"
-            android:foregroundServiceType="location"
+            android:foregroundServiceType="location|dataSync"
             android:stopWithTask="false" />
         <service
             android:name=".sync.TruckerLoadFirebaseMessagingService"

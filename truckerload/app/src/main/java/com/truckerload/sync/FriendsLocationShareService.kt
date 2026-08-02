@@ -1,5 +1,6 @@
 package com.truckerload.sync
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,11 +8,14 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AuthStore
@@ -24,6 +28,7 @@ import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.SharedLoadStatus
 import com.truckerload.presentation.MainActivity
+import com.truckerload.utils.CrashReporting
 import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +42,10 @@ import kotlinx.coroutines.launch
 /**
  * Publishes GPS presence + active route to Supabase while privacy toggle is ON.
  * Stops publishing (and clears presence) when privacy is OFF.
+ *
+ * Uses [START_NOT_STICKY]: a location-type FGS must not be auto-restarted from the
+ * background on Android 14+ (SecurityException → "keeps stopping" dialog). The friends
+ * map UI restarts sharing when the user returns with the toggle still on.
  */
 class FriendsLocationShareService : Service() {
 
@@ -50,26 +59,32 @@ class FriendsLocationShareService : Service() {
             ACTION_STOP -> {
                 scope.launch {
                     clearRemote()
+                    stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
                 }
                 return START_NOT_STICKY
             }
         }
         ensureNotificationChannel()
-        ServiceCompat.startForeground(
-            this,
-            NOTIFICATION_ID,
-            buildNotification(),
-            if (Build.VERSION.SDK_INT >= 34) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-            } else {
-                0
-            },
-        )
+        if (!hasLocationPermission(this)) {
+            Log.w(TAG, "No location permission — satisfying FGS contract then stopping")
+            // Still call startForeground so startForegroundService() does not crash the app.
+            promoteForeground(allowLocationType = false)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        val promoted = promoteForeground(allowLocationType = true)
+        if (!promoted) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (loopJob?.isActive != true) {
             loopJob = scope.launch { publishLoop() }
         }
-        return START_STICKY
+        // Do not sticky-restart from background — location FGS is while-in-use only.
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
@@ -159,6 +174,44 @@ class FriendsLocationShareService : Service() {
         }
     }
 
+    /**
+     * @return true if [ServiceCompat.startForeground] succeeded.
+     * When [allowLocationType] is false (or location start fails), falls back to dataSync
+     * so the startForegroundService() contract is still met.
+     */
+    private fun promoteForeground(allowLocationType: Boolean): Boolean {
+        val notification = buildNotification()
+        if (allowLocationType && Build.VERSION.SDK_INT >= 34) {
+            val ok = runCatching {
+                ServiceCompat.startForeground(
+                    this,
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION,
+                )
+            }.onFailure { e ->
+                Log.e(TAG, "startForeground(location) failed", e)
+                CrashReporting.recordException(e)
+            }.isSuccess
+            if (ok) return true
+        }
+        return runCatching {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                notification,
+                if (Build.VERSION.SDK_INT >= 34) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                } else {
+                    0
+                },
+            )
+        }.onFailure { e ->
+            Log.e(TAG, "startForeground(dataSync) failed", e)
+            CrashReporting.recordException(e)
+        }.isSuccess
+    }
+
     private fun ensureNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val mgr = getSystemService(NotificationManager::class.java)
@@ -189,21 +242,51 @@ class FriendsLocationShareService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.truckerload.STOP_FRIENDS_LOCATION_SHARE"
+        private const val TAG = "FriendsLocationShare"
         private const val CHANNEL_ID = "friends_location_share"
         private const val NOTIFICATION_ID = 4721
 
+        fun hasLocationPermission(context: Context): Boolean {
+            val fine = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
+            val coarse = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
+            return fine || coarse
+        }
+
         fun start(context: Context) {
+            if (!hasLocationPermission(context)) {
+                Log.w(TAG, "start skipped — location permission missing")
+                return
+            }
             val i = Intent(context, FriendsLocationShareService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(i)
-            } else {
-                context.startService(i)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(i)
+                } else {
+                    context.startService(i)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Cannot start friends location FGS", e)
+                CrashReporting.recordException(e)
             }
         }
 
         fun stop(context: Context) {
-            val i = Intent(context, FriendsLocationShareService::class.java).setAction(ACTION_STOP)
-            context.startService(i)
+            try {
+                val i = Intent(context, FriendsLocationShareService::class.java).setAction(ACTION_STOP)
+                context.startService(i)
+            } catch (e: Exception) {
+                // App may be backgrounded; force-stop if startService is blocked.
+                Log.w(TAG, "stop via intent failed, falling back to stopService", e)
+                runCatching {
+                    context.stopService(Intent(context, FriendsLocationShareService::class.java))
+                }
+            }
         }
     }
 }
