@@ -20,6 +20,7 @@ object FeedbackManager {
     val ctx = appContext ?: return
     mainHandler.post {
       SoundManager.playLoadAdded(ctx)
+      VibrationManager.vibrateTick(ctx)
     }
   }
 
@@ -28,6 +29,20 @@ object FeedbackManager {
     mainHandler.post {
       SoundManager.playGoalReached(ctx)
       VibrationManager.vibrateGoalReached(ctx)
+    }
+  }
+
+  fun onDeleteGesture() {
+    val ctx = appContext ?: return
+    mainHandler.post {
+      VibrationManager.vibrateConfirm(ctx)
+    }
+  }
+
+  fun onNavSelect() {
+    val ctx = appContext ?: return
+    mainHandler.post {
+      VibrationManager.vibrateTick(ctx)
     }
   }
 }

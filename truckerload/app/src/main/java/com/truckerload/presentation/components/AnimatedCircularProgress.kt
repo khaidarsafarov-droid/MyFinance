@@ -29,8 +29,10 @@ import com.truckerload.R
 import com.truckerload.domain.goal.PaceStatus
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.DarkGlassGradients
+import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.theme.motionDurationMs
 import java.util.Locale
 
 @Composable
@@ -47,14 +49,21 @@ fun AnimatedCircularProgress(
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
+    val reduceMotion = LocalReduceMotion.current
     val animatedProgress by animateFloatAsState(
         targetValue = progressPercent.coerceIn(0f, 100f),
-        animationSpec = tween(450, easing = EaseOutCubic),
+        animationSpec = tween(
+            motionDurationMs(reduceMotion, 450),
+            easing = EaseOutCubic,
+        ),
         label = "ringProgress",
     )
     val animatedGross by animateFloatAsState(
         targetValue = gross.toFloat(),
-        animationSpec = tween(350, easing = EaseOutCubic),
+        animationSpec = tween(
+            motionDurationMs(reduceMotion, 350),
+            easing = EaseOutCubic,
+        ),
         label = "ringGross",
     )
 

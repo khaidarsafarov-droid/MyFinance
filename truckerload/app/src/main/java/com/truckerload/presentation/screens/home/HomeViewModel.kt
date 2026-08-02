@@ -36,10 +36,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
+import com.truckerload.utils.FeedbackManager
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
@@ -49,6 +52,8 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
+        private const val UNDO_DELETE_WINDOW_MS = 5_000L
+
         /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
         private val botServiceStarted = AtomicBoolean(false)
     }
@@ -147,10 +152,16 @@ class HomeViewModel @Inject constructor(
     private val _pendingDeleteConfirmId = MutableStateFlow<String?>(null)
     val pendingDeleteConfirmId: StateFlow<String?> = _pendingDeleteConfirmId.asStateFlow()
 
+    /** Load id waiting for Undo snackbar before hard delete. */
+    private val _undoDeleteLoadId = MutableStateFlow<String?>(null)
+    val undoDeleteLoadId: StateFlow<String?> = _undoDeleteLoadId.asStateFlow()
+
+    private var undoDeleteJob: Job? = null
+
     private val _deleteError = MutableStateFlow<String?>(null)
     val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
 
-    /** Bumped when delete dialog is cancelled so swipe cards snap back. */
+    /** Bumped when delete is undone so swipe cards snap back. */
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
@@ -307,14 +318,40 @@ class HomeViewModel @Inject constructor(
         requestDeleteLoad(loadId)
     }
 
+    /**
+     * Soft-hides the load immediately and starts an Undo window before hard delete.
+     * Keeps confirm APIs for callers that still use the dialog path.
+     */
     fun requestDeleteLoad(loadId: String) {
         if (loadId.isBlank()) return
-        _pendingDeleteConfirmId.value = loadId
+        FeedbackManager.onDeleteGesture()
+        val previous = _undoDeleteLoadId.value
+        if (previous != null && previous != loadId) {
+            commitPendingDelete(previous)
+        }
+        undoDeleteJob?.cancel()
+        _pendingDeleteConfirmId.value = null
+        _optimisticOverlay.update { it - loadId }
+        _pendingDeleteIds.update { it + loadId }
+        _undoDeleteLoadId.value = loadId
+        undoDeleteJob = viewModelScope.launch {
+            delay(UNDO_DELETE_WINDOW_MS)
+            commitPendingDelete(loadId)
+        }
+    }
+
+    fun undoDeleteLoad() {
+        val loadId = _undoDeleteLoadId.value ?: return
+        undoDeleteJob?.cancel()
+        undoDeleteJob = null
+        _undoDeleteLoadId.value = null
+        _pendingDeleteIds.update { it - loadId }
+        _swipeSettleGeneration.update { it + 1 }
     }
 
     fun dismissDeleteLoad() {
         _pendingDeleteConfirmId.value = null
-        _swipeSettleGeneration.update { it + 1 }
+        undoDeleteLoad()
     }
 
     fun clearDeleteError() {
@@ -322,14 +359,25 @@ class HomeViewModel @Inject constructor(
     }
 
     fun confirmDeleteLoad() {
-        val loadId = _pendingDeleteConfirmId.value ?: return
+        val loadId = _pendingDeleteConfirmId.value ?: _undoDeleteLoadId.value ?: return
         _pendingDeleteConfirmId.value = null
+        commitPendingDelete(loadId)
+    }
+
+    private fun commitPendingDelete(loadId: String) {
+        if (loadId.isBlank()) return
+        undoDeleteJob?.cancel()
+        undoDeleteJob = null
+        if (_undoDeleteLoadId.value == loadId) {
+            _undoDeleteLoadId.value = null
+        }
         viewModelScope.launch {
             _optimisticOverlay.update { it - loadId }
             _pendingDeleteIds.update { it + loadId }
             try {
                 loadRepository.deleteLoad(loadId)
                 WidgetDataUpdater.updateWidgetData(app.applicationContext)
+                _pendingDeleteIds.update { it - loadId }
             } catch (e: Exception) {
                 _pendingDeleteIds.update { it - loadId }
                 _swipeSettleGeneration.update { it + 1 }

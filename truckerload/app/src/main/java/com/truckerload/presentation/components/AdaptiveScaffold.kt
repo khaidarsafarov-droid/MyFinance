@@ -57,6 +57,7 @@ import com.truckerload.presentation.utils.adaptiveVerticalPadding
 import com.truckerload.presentation.utils.isFoldable
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.rememberWindowSizeClass
+import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.launch
 
 val LocalOpenDrawer = staticCompositionLocalOf<() -> Unit> { {} }
@@ -273,7 +274,10 @@ private fun BottomNavItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = { onNavigate(route) },
+                onClick = {
+                    FeedbackManager.onNavSelect()
+                    onNavigate(route)
+                },
             )
             .padding(horizontal = 2.dp, vertical = 6.dp),
     ) {
