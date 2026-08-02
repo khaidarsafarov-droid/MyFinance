@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.remote.DrivingDirectionsProviders
+import com.truckerload.data.remote.OsrmDirectionsClient
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
@@ -44,7 +44,7 @@ class FriendsMapViewModel @Inject constructor(
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
-    private val roadRoutes = RoadRouteSession(DrivingDirectionsProviders.createDefault())
+    private val roadRoutes = RoadRouteSession(OsrmDirectionsClient())
 
     private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -255,7 +255,6 @@ class FriendsMapViewModel @Inject constructor(
                         myPathPast = myPath.past,
                         myPathRemaining = myPath.remaining,
                         myRouteSummary = myPath.summary,
-                        myRouteProvider = myPath.routeProvider,
                         myRouteStraightFallback = myPath.isStraightFallback,
                         overlaps = overlaps,
                         lastRefreshAt = System.currentTimeMillis(),
@@ -277,7 +276,6 @@ class FriendsMapViewModel @Inject constructor(
                 myPathPast = myPath.past,
                 myPathRemaining = myPath.remaining,
                 myRouteSummary = myPath.summary,
-                myRouteProvider = myPath.routeProvider,
                 myRouteStraightFallback = myPath.isStraightFallback,
             )
         }
@@ -287,7 +285,6 @@ class FriendsMapViewModel @Inject constructor(
         val past: List<LatLngPoint>,
         val remaining: List<LatLngPoint>,
         val summary: String?,
-        val routeProvider: String? = null,
         val isStraightFallback: Boolean = false,
     )
 
@@ -330,7 +327,6 @@ class FriendsMapViewModel @Inject constructor(
             past = split.past,
             remaining = split.remaining,
             summary = summary,
-            routeProvider = roadOutcome.providerLabel,
             isStraightFallback = !roadOutcome.isRoadRouted,
         )
     }

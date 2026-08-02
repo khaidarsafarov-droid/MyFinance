@@ -21,25 +21,19 @@ Optional Realtime (Dashboard → Database → Replication):
 LOCAL_ONLY_MODE=false
 SUPABASE_URL=https://<project>.supabase.co
 SUPABASE_ANON_KEY=...
-GOOGLE_MAPS_API_KEY=...
 ```
 
-`GOOGLE_MAPS_API_KEY` must allow both **Maps SDK for Android** (map tiles) and
-**Directions API** (road polylines). If Directions is disabled or the key is
-missing, the app automatically falls back to **OSRM** (public driving profile).
+**No map or routing API keys** are required for **Друзья на карте**:
+- Map tiles: **OpenStreetMap** (osmdroid)
+- Route polylines: **OSRM** public driving API
 
-Optional truck HGV routing with height/weight restrictions:
-```
-OPENROUTESERVICE_API_KEY=...
-```
-Sign up at https://openrouteservice.org/dev/#/signup (free tier).
+`GOOGLE_MAPS_API_KEY` is only used by the analytics heatmap screen, not the friends map.
 
 ### Road routing behaviour
-- Blue path = driving route from your GPS (or PU) to DEL, along roads.
-- Providers (in order for truck): OpenRouteService HGV → Google Directions → OSRM.
+- Blue path = OSRM driving route from GPS (or PU) to DEL, along roads.
 - Gray path = GPS crumbs already driven (when sharing).
 - Off-route reroute: >50 m from corridor for 10+ seconds → new route (throttled ~5s).
-- Destination change (new active load) also triggers a fresh Directions fetch.
+- Destination change (new active load) also triggers a fresh OSRM fetch.
 
 ## In-app
 1. Menu → **Друзья на карте** (иконка «добавить человека»)

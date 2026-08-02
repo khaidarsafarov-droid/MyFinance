@@ -85,6 +85,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
+        org.osmdroid.config.Configuration.getInstance().apply {
+            userAgentValue = packageName
+            load(this@TruckerLoadApp, getSharedPreferences("osmdroid", MODE_PRIVATE))
+        }
         // Do not force SYSTEM here — that races the saved Light/Dark preference and can
         // recreate MainActivity in a loop with Compose's themeMode initialValue.
         if (TelegramSyncMode.isServer()) {

@@ -14,11 +14,8 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * Public OSRM demo server — road-following fallback when Google Directions is
- * unavailable or returns an error. No API key required.
- *
- * Uses the `driving` profile (car). For truck-specific restrictions prefer
- * [OpenRouteServiceDirectionsClient] with an API key.
+ * Public OSRM server — road polylines for the friends map.
+ * No API key required; used only to show where friends are driving (not turn-by-turn nav).
  */
 class OsrmDirectionsClient(
     private val baseUrl: String = DEFAULT_BASE_URL,
