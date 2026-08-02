@@ -12,6 +12,8 @@ import com.truckerload.domain.model.Load
 import com.truckerload.sync.LoadAlarmPlanner
 import com.truckerload.sync.LoadAlarmScheduler
 import com.truckerload.utils.getFirstPickUpMillis
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +35,10 @@ data class AddLoadUiState(
     val isSaving: Boolean = false,
     val savedLoad: Load? = null,
     val alarmPrompt: LoadAlarmPromptState? = null,
+    /** Reciprocity: parsed preview before save. */
+    val previewLoad: Load? = null,
+    val isParsingPreview: Boolean = false,
+    val previewHint: String? = null,
 )
 
 @HiltViewModel
@@ -48,9 +54,66 @@ class AddLoadViewModel @Inject constructor(
     )
     val uiState: StateFlow<AddLoadUiState> = _uiState.asStateFlow()
 
+    private var previewJob: Job? = null
+
+    init {
+        val initial = _uiState.value.rawText
+        if (initial.isNotBlank()) {
+            schedulePreview(initial)
+        }
+    }
+
     fun setRawText(value: String) {
         savedStateHandle[KEY_RAW] = value
-        _uiState.update { it.copy(rawText = value, error = null) }
+        _uiState.update {
+            it.copy(
+                rawText = value,
+                error = null,
+                previewLoad = null,
+                previewHint = null,
+                isParsingPreview = value.isNotBlank(),
+            )
+        }
+        schedulePreview(value)
+    }
+
+    private fun schedulePreview(value: String) {
+        previewJob?.cancel()
+        if (value.isBlank()) {
+            _uiState.update {
+                it.copy(previewLoad = null, isParsingPreview = false, previewHint = null)
+            }
+            return
+        }
+        previewJob = viewModelScope.launch {
+            delay(PREVIEW_DEBOUNCE_MS)
+            _uiState.update { it.copy(isParsingPreview = true, previewHint = null) }
+            aiRepository.parseLoadFromMessage(value)
+                .onSuccess { load ->
+                    _uiState.update {
+                        it.copy(
+                            previewLoad = load,
+                            isParsingPreview = false,
+                            previewHint = null,
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            previewLoad = null,
+                            isParsingPreview = false,
+                            previewHint = if (value.length < MIN_PREVIEW_CHARS) {
+                                null
+                            } else {
+                                getApplication<Application>().getString(
+                                    com.truckerload.R.string.add_load_preview_incomplete,
+                                )
+                            },
+                        )
+                    }
+                }
+        }
     }
 
     fun clearSaved() {
@@ -117,7 +180,13 @@ class AddLoadViewModel @Inject constructor(
         if (text.isBlank() || _uiState.value.isSaving) return
         _uiState.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            aiRepository.parseLoadFromMessage(text)
+            val cached = _uiState.value.previewLoad
+            val parseResult = if (cached != null && cached.rawMessage == text) {
+                Result.success(cached)
+            } else {
+                aiRepository.parseLoadFromMessage(text)
+            }
+            parseResult
                 .onSuccess { load ->
                     try {
                         loadRepository.insertLoad(load)
@@ -142,6 +211,9 @@ class AddLoadViewModel @Inject constructor(
                                 savedLoad = load,
                                 rawText = "",
                                 alarmPrompt = alarmPrompt,
+                                previewLoad = null,
+                                previewHint = null,
+                                isParsingPreview = false,
                             )
                         }
                     } catch (e: Exception) {
@@ -166,5 +238,7 @@ class AddLoadViewModel @Inject constructor(
 
     companion object {
         private const val KEY_RAW = "add_load_raw_text"
+        private const val PREVIEW_DEBOUNCE_MS = 450L
+        private const val MIN_PREVIEW_CHARS = 40
     }
 }

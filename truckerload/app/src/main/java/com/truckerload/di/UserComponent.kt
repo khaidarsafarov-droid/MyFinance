@@ -2,6 +2,7 @@ package com.truckerload.di
 
 import android.content.Context
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.StatsSelectionStore
@@ -43,6 +44,7 @@ class UserComponent private constructor(
     val selectedStateStore: SelectedStateStore,
     val statsSelectionStore: StatsSelectionStore,
     val weeklyProfitGoalStore: WeeklyProfitGoalStore,
+    val lastUsedDefaultsStore: LastUsedDefaultsStore,
     val analyticsRepository: AnalyticsRepository,
     val photoRepository: PhotoRepository,
     val scanRepository: ScanRepository,
@@ -86,6 +88,7 @@ class UserComponent private constructor(
                 selectedStateStore = SelectedStateStore(context, id),
                 statsSelectionStore = StatsSelectionStore(context, id),
                 weeklyProfitGoalStore = WeeklyProfitGoalStore(context, id),
+                lastUsedDefaultsStore = LastUsedDefaultsStore(context, id),
                 analyticsRepository = AnalyticsRepository(db),
                 photoRepository = PhotoRepository(db),
                 scanRepository = ScanRepository(db),
