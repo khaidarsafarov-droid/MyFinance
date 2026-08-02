@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.remote.TelegramBotFeatures
 import com.truckerload.data.remote.TelegramUpdate
 import com.truckerload.data.repository.DieselRepository
@@ -242,6 +243,17 @@ class TelegramUpdateDispatcher(
 
         if (importSessions.isActive(update.chatId)) {
             if (messageParser.isExportTextDocument(update)) {
+                val declaredSize = update.documentFileSize
+                if (declaredSize != null && declaredSize > TelegramApi.MAX_DOWNLOAD_BYTES) {
+                    apiClient.sendWithMenu(
+                        update.chatId,
+                        context.getString(
+                            R.string.sync_import_file_too_large,
+                            (TelegramApi.MAX_DOWNLOAD_BYTES / (1024 * 1024)).toInt(),
+                        ),
+                    )
+                    return
+                }
                 val bytes = apiClient.downloadFile(fileId).getOrElse {
                     apiClient.sendWithMenu(
                         update.chatId,

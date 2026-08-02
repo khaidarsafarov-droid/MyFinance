@@ -270,7 +270,10 @@ class TelegramApi(private val token: String) {
         }
     }
 
-    suspend fun downloadFile(fileId: String): Result<ByteArray> = withContext(Dispatchers.IO) {
+    suspend fun downloadFile(
+        fileId: String,
+        maxBytes: Long = MAX_DOWNLOAD_BYTES,
+    ): Result<ByteArray> = withContext(Dispatchers.IO) {
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("Bot token not set"))
         runCatching {
             val getFileUrl = "$baseUrl/getFile?file_id=$fileId"
@@ -278,16 +281,44 @@ class TelegramApi(private val token: String) {
             client.newCall(getReq).execute().use { resp ->
                 if (!resp.isSuccessful) throw Exception("getFile failed: ${resp.code}")
                 val body = resp.body?.string() ?: throw Exception("Empty getFile response")
-                val path = JSONObject(body).optJSONObject("result")?.optString("file_path")
+                val result = JSONObject(body).optJSONObject("result")
                     ?: throw Exception("No file_path in response")
+                val path = result.optString("file_path")
+                    .takeIf { it.isNotBlank() }
+                    ?: throw Exception("No file_path in response")
+                val declaredSize = result.optLong("file_size", -1L)
+                if (declaredSize > 0 && declaredSize > maxBytes) {
+                    throw Exception("File too large: $declaredSize bytes (max $maxBytes)")
+                }
                 val fileUrl = "https://api.telegram.org/file/bot$token/$path"
                 val fileReq = Request.Builder().url(fileUrl).get().build()
                 client.newCall(fileReq).execute().use { fileResp ->
                     if (!fileResp.isSuccessful) throw Exception("download failed: ${fileResp.code}")
-                    fileResp.body?.bytes() ?: throw Exception("Empty file body")
+                    val responseBody = fileResp.body ?: throw Exception("Empty file body")
+                    val contentLength = responseBody.contentLength()
+                    if (contentLength > 0 && contentLength > maxBytes) {
+                        throw Exception("File too large: $contentLength bytes (max $maxBytes)")
+                    }
+                    val source = responseBody.source()
+                    val buffer = okio.Buffer()
+                    var totalRead = 0L
+                    while (true) {
+                        val read = source.read(buffer, 8_192)
+                        if (read == -1L) break
+                        totalRead += read
+                        if (totalRead > maxBytes) {
+                            throw Exception("File too large while downloading (max $maxBytes)")
+                        }
+                    }
+                    buffer.readByteArray()
                 }
             }
         }
+    }
+
+    companion object {
+        /** Hard cap for Telegram file downloads to avoid OOM kills in the background bot service. */
+        const val MAX_DOWNLOAD_BYTES = 20L * 1024 * 1024
     }
 }
 
