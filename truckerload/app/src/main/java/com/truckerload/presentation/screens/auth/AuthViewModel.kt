@@ -30,7 +30,7 @@ data class AuthUiState(
 sealed interface AuthUiEvent {
     data class ShowToast(val message: String) : AuthUiEvent
     data object LaunchLegacyGoogleSignIn : AuthUiEvent
-    data object ShowBiometricEnabledToast : AuthUiEvent
+    data object ShowBiometricOfferDialog : AuthUiEvent
 }
 
 @HiltViewModel
@@ -149,7 +149,7 @@ class AuthViewModel @Inject constructor(
     private suspend fun applySuccess(result: AuthSignInResult) {
         result.toastMessages.forEach { _events.emit(AuthUiEvent.ShowToast(it)) }
         if (result.biometricEnabled) {
-            _events.emit(AuthUiEvent.ShowBiometricEnabledToast)
+            _events.emit(AuthUiEvent.ShowBiometricOfferDialog)
         }
         _uiState.update { it.copy(isLoading = false, errorMessage = null) }
     }

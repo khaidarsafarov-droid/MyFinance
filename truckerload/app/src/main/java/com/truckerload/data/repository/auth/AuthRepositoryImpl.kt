@@ -14,7 +14,7 @@ import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.di.UserComponentManager
-import com.truckerload.presentation.auth.offerBiometricAfterEmailLogin
+import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -159,7 +159,7 @@ class AuthRepositoryImpl @Inject constructor(
             )
         }
         val toasts = mutableListOf(appContext.getString(R.string.supabase_not_configured_local))
-        val biometric = offerBiometricAfterEmailLogin(appContext)
+        val biometric = shouldOfferBiometricUnlock(appContext)
         return completeLoginResult(
             profile = UserProfile(email = email, givenName = "", familyName = "", photoUrl = null),
             toasts = toasts,
@@ -172,7 +172,7 @@ class AuthRepositoryImpl @Inject constructor(
         return result.fold(
             onSuccess = { r ->
                 credentialsStore.saveCredentials(email, password)
-                val biometric = offerBiometricAfterEmailLogin(appContext)
+                val biometric = shouldOfferBiometricUnlock(appContext)
                 val profileResult = supabaseAuth.getProfile(r.accessToken, r.user.id)
                 profileResult.fold(
                     onSuccess = { profile ->
@@ -213,7 +213,7 @@ class AuthRepositoryImpl @Inject constructor(
             onFailure = { err ->
                 if (credentialsStore.validateCredentials(email, password)) {
                     val toasts = mutableListOf(appContext.getString(R.string.auth_local_login_fallback))
-                    val biometric = offerBiometricAfterEmailLogin(appContext)
+                    val biometric = shouldOfferBiometricUnlock(appContext)
                     completeLoginResult(
                         profile = UserProfile(email = email, givenName = "", familyName = "", photoUrl = null),
                         toasts = toasts,
