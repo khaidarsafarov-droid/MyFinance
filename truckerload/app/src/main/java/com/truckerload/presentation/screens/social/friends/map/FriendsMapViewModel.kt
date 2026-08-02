@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.data.remote.GoogleDirectionsClient
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
@@ -12,6 +13,7 @@ import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
+import com.truckerload.domain.friends.RoadRouteSession
 import com.truckerload.domain.friends.RouteIntersectionMatcher
 import com.truckerload.domain.friends.RouteOverlapMatch
 import com.truckerload.domain.friends.SharedLoadStatus
@@ -42,6 +44,7 @@ class FriendsMapViewModel @Inject constructor(
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
+    private val roadRoutes = RoadRouteSession(GoogleDirectionsClient())
 
     private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -60,6 +63,7 @@ class FriendsMapViewModel @Inject constructor(
         pollJob = viewModelScope.launch {
             while (isActive) {
                 delay(20_000)
+                pullMyLocationQuietly()
                 refresh(silent = true)
             }
         }
@@ -211,11 +215,19 @@ class FriendsMapViewModel @Inject constructor(
                 val overlays = presence.map { p ->
                     val route = byUser[p.userId]
                     val show = p.userId in showPathFor
-                    val split = if (show && route != null) {
-                        FriendRoutePolylineBuilder.split(
-                            route,
-                            LatLngPoint(p.latitude, p.longitude),
+                    val current = LatLngPoint(p.latitude, p.longitude)
+                    val road = if (show && route != null) {
+                        val start = current
+                        roadRoutes.remainingRoad(
+                            cacheKey = p.userId,
+                            currentOrStart = start,
+                            destination = route.destination,
                         )
+                    } else {
+                        null
+                    }
+                    val split = if (show && route != null) {
+                        FriendRoutePolylineBuilder.split(route, current, roadRemaining = road)
                     } else {
                         FriendRoutePolylineBuilder.SplitPolylines(emptyList(), emptyList())
                     }
@@ -296,12 +308,26 @@ class FriendsMapViewModel @Inject constructor(
             status = ActiveLoadSelector.statusFor(load),
             trackPoints = emptyList(),
         )
-        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint)
+        val start = myLocationPoint ?: origin
+        val road = roadRoutes.remainingRoad(
+            cacheKey = RoadRouteSession.SELF_CACHE_KEY,
+            currentOrStart = start,
+            destination = destination,
+        )
+        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint, roadRemaining = road)
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
             .joinToString(" → ")
             .ifBlank { null }
         MyPathDraw(past = split.past, remaining = split.remaining, summary = summary)
+    }
+
+    private suspend fun pullMyLocationQuietly() {
+        if (!locationHelper.hasLocationPermission()) return
+        val loc = locationHelper.getCurrentLocation() ?: return
+        val lat = loc.latitude ?: return
+        val lng = loc.longitude ?: return
+        myLocationPoint = LatLngPoint(lat, lng)
     }
 
     private suspend fun geocodeLoadEndpoint(load: Load, isOrigin: Boolean): LatLngPoint? {

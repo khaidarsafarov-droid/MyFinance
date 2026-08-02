@@ -24,6 +24,17 @@ SUPABASE_ANON_KEY=...
 GOOGLE_MAPS_API_KEY=...
 ```
 
+`GOOGLE_MAPS_API_KEY` must allow both **Maps SDK for Android** (map tiles) and
+**Directions API** (road polylines). Without Directions enabled, the map falls
+back to a straight line between you and the destination.
+
+### Road routing behaviour
+- Blue path = Google driving route from your GPS (or PU) to DEL, along roads.
+- Gray path = GPS crumbs already driven (when sharing).
+- If you leave the corridor (~800 m / 0.5 mi), the app recalculates a new
+  driving route (throttled to about once every 45s).
+- Destination change (new active load) also triggers a fresh Directions fetch.
+
 ## In-app
 1. Menu → **Друзья на карте** (иконка «добавить человека»)
 2. Set **мой никнейм** (unique handle)

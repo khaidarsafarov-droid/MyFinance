@@ -56,6 +56,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.sync.FriendsLocationShareService
 import com.truckerload.utils.LocationHelper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,7 +94,11 @@ fun FriendsLiveMapScreen(
             myLocation = null
             return@LaunchedEffect
         }
-        refreshMyLocation()
+        // Keep GPS fresh so road routing can detect off-route and recalculate.
+        while (true) {
+            refreshMyLocation()
+            delay(15_000)
+        }
     }
 
     LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {

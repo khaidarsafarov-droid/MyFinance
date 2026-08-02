@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 /**
  * Splits a friend route into past (gray) and remaining (blue) polylines.
  * Past = track crumbs + line to current position.
- * Remaining = current position → destination (or origin→destination if no track yet).
+ * Remaining = road polyline when provided, otherwise a straight current→destination segment.
  */
 object FriendRoutePolylineBuilder {
 
@@ -20,6 +20,7 @@ object FriendRoutePolylineBuilder {
     fun split(
         route: FriendActiveRoute,
         current: LatLngPoint?,
+        roadRemaining: List<LatLngPoint>? = null,
     ): SplitPolylines {
         val origin = route.origin
         val dest = route.destination
@@ -31,11 +32,15 @@ object FriendRoutePolylineBuilder {
             if (current != null) add(current)
         }.distinctConsecutive()
 
-        val remaining = buildList {
-            val start = current ?: track.lastOrNull() ?: origin
-            if (start != null) add(start)
-            if (dest != null) add(dest)
-        }.distinctConsecutive()
+        val remaining = if (roadRemaining != null && roadRemaining.size >= 2) {
+            roadRemaining.distinctConsecutive()
+        } else {
+            buildList {
+                val start = current ?: track.lastOrNull() ?: origin
+                if (start != null) add(start)
+                if (dest != null) add(dest)
+            }.distinctConsecutive()
+        }
 
         return SplitPolylines(past = past, remaining = remaining)
     }
