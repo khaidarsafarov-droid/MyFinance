@@ -27,6 +27,8 @@ private val KEY_LANGUAGE = intPreferencesKey("app_language")
 private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
 private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
 private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
+private val KEY_LOCATION_BATTERY_SAVER = booleanPreferencesKey("location_battery_saver")
+private val KEY_ROUTE_VEHICLE_TRUCK = booleanPreferencesKey("route_vehicle_truck")
 private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 private val KEY_OLED_DARK = booleanPreferencesKey("oled_dark")
 private val KEY_QUIET_HOURS_ENABLED = booleanPreferencesKey("quiet_hours_enabled")
@@ -85,6 +87,16 @@ class SettingsDataStore(context: Context) {
 
     val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
+    }
+
+    /** When on, GPS / share updates slow to ~10 s (battery-friendly foreground mode). */
+    val locationBatterySaver: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_LOCATION_BATTERY_SAVER] ?: false
+    }
+
+    /** Preferred routing profile: truck (default) vs car. */
+    val routeVehicleTruck: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_ROUTE_VEHICLE_TRUCK] ?: true
     }
 
     val reduceMotion: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
@@ -209,6 +221,22 @@ class SettingsDataStore(context: Context) {
     suspend fun saveSharePathWithFriends(enabled: Boolean) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
+        }
+    }
+
+    suspend fun getLocationBatterySaverOnce(): Boolean = locationBatterySaver.first()
+
+    suspend fun saveLocationBatterySaver(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_LOCATION_BATTERY_SAVER] = enabled
+        }
+    }
+
+    suspend fun getRouteVehicleTruckOnce(): Boolean = routeVehicleTruck.first()
+
+    suspend fun saveRouteVehicleTruck(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_ROUTE_VEHICLE_TRUCK] = enabled
         }
     }
 

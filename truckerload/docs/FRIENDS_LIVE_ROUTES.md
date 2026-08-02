@@ -24,15 +24,30 @@ SUPABASE_ANON_KEY=...
 GOOGLE_MAPS_API_KEY=...
 ```
 
-`GOOGLE_MAPS_API_KEY` must allow both **Maps SDK for Android** (map tiles) and
-**Directions API** (road polylines). Without Directions enabled, the map falls
-back to a straight line between you and the destination.
+`GOOGLE_MAPS_API_KEY` must allow **Maps SDK for Android** (map tiles).
+
+For road polylines, prefer a separate unrestricted (or IP-restricted) key:
+
+```
+GOOGLE_DIRECTIONS_API_KEY=...
+```
+
+Android-package–restricted Maps keys often work for tiles but return
+`REQUEST_DENIED` for HTTPS Directions. Enable **Directions API** on that key.
+If Google Directions fails, the app falls back to the public **OSRM** road
+router (car profile). Only if both fail do you see a straight air-line, with
+an in-app warning.
 
 ### Road routing behaviour
-- Blue path = Google driving route from your GPS (or PU) to DEL, along roads.
+- Blue path = road network from your GPS (or PU) to DEL (Google → OSRM).
 - Gray path = GPS crumbs already driven (when sharing).
-- If you leave the corridor (~800 m / 0.5 mi), the app recalculates a new
-  driving route (throttled to about once every 45s).
+- **Truck** toggle (default on): Google request uses `mode=driving` +
+  `avoid=tolls|ferries` and carries truck dimensions in domain models for a
+  future TomTom/HERE truck backend (classic Directions has no `mode=truck`).
+- If you leave the corridor by **>50 m for 10+ seconds**, the app recalculates
+  from the current GPS to the destination.
+- GPS on the map screen refreshes every **5 s** (or **10 s** with Battery saver).
+  No background geolocation.
 - Destination change (new active load) also triggers a fresh Directions fetch.
 
 ## In-app

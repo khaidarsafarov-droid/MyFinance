@@ -89,15 +89,15 @@ fun FriendsLiveMapScreen(
         return LatLng(lat, lng).also { myLocation = it }
     }
 
-    LaunchedEffect(hasLocationPermission) {
+    LaunchedEffect(hasLocationPermission, uiState.locationBatterySaver) {
         if (!hasLocationPermission) {
             myLocation = null
             return@LaunchedEffect
         }
-        // Keep GPS fresh so road routing can detect off-route and recalculate.
+        // Foreground-only GPS: 5 s default, 10 s with battery saver. No background tracking.
         while (true) {
             refreshMyLocation()
-            delay(15_000)
+            delay(viewModel.locationPollIntervalMs())
         }
     }
 
@@ -207,6 +207,44 @@ fun FriendsLiveMapScreen(
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = stringResource(R.string.friends_route_truck_toggle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(
+                        checked = uiState.routeVehicleTruck,
+                        onCheckedChange = viewModel::setRouteVehicleTruck,
+                        colors = AppSwitchDefaults.colors(),
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = stringResource(R.string.friends_battery_saver_toggle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(
+                        checked = uiState.locationBatterySaver,
+                        onCheckedChange = viewModel::setLocationBatterySaver,
+                        colors = AppSwitchDefaults.colors(),
+                    )
+                }
             }
 
             uiState.errorMessage?.let { err ->
@@ -262,6 +300,41 @@ fun FriendsLiveMapScreen(
                                 color = tc.AccentPrimary,
                                 modifier = Modifier.padding(top = 2.dp),
                             )
+                        }
+                        if (uiState.myPathRemaining.size >= 2) {
+                            val eta = formatRouteEta(
+                                distanceMeters = uiState.myRouteDistanceMeters,
+                                durationSeconds = uiState.myRouteDurationSeconds,
+                            )
+                            if (eta != null) {
+                                Text(
+                                    text = eta,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = tc.TextSecondary,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
+                            if (uiState.myRouteIsRoadNetwork) {
+                                Text(
+                                    text = stringResource(
+                                        if (uiState.routeVehicleTruck) {
+                                            R.string.friends_route_road_truck
+                                        } else {
+                                            R.string.friends_route_road_car
+                                        },
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = tc.TextSecondary,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.friends_route_straight_fallback),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
                         }
                         if (uiState.friends.isNotEmpty()) {
                             Text(
@@ -334,4 +407,20 @@ fun FriendsLiveMapScreen(
             item { Spacer(Modifier.height(24.dp)) }
         }
     }
+}
+
+internal fun formatRouteEta(distanceMeters: Long?, durationSeconds: Long?): String? {
+    if (distanceMeters == null && durationSeconds == null) return null
+    val parts = mutableListOf<String>()
+    if (distanceMeters != null && distanceMeters > 0L) {
+        val miles = distanceMeters / 1609.344
+        parts += String.format("%.0f mi", miles)
+    }
+    if (durationSeconds != null && durationSeconds > 0L) {
+        val totalMin = (durationSeconds + 59) / 60
+        val hours = totalMin / 60
+        val mins = totalMin % 60
+        parts += if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
+    }
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
 }

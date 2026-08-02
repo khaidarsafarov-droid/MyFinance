@@ -423,6 +423,11 @@
     <string name="friends_live_map_subtitle">Где вы сейчас</string>
     <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
     <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
+    <string name="friends_route_truck_toggle">Маршрут для грузовика</string>
+    <string name="friends_battery_saver_toggle">Экономия батареи (GPS реже)</string>
+    <string name="friends_route_road_truck">Маршрут по дорогам · профиль Truck</string>
+    <string name="friends_route_road_car">Маршрут по дорогам · легковой</string>
+    <string name="friends_route_straight_fallback">Оффлайн/ошибка API: прямая линия. Нужен Directions API или сеть для OSRM.</string>
     <string name="friends_live_need_supabase">Нужен вход через Supabase (LOCAL_ONLY_MODE=false + URL/ключ). Примените SQL миграцию friends live.</string>
     <string name="friends_share_location_channel">Шаринг локации</string>
     <string name="friends_share_location_title">Truck Log делится путём</string>
@@ -663,6 +668,8 @@
     <string name="settings_privacy_not_granted">Не разрешено</string>
     <string name="settings_privacy_share_path">Делиться маршрутом с друзьями</string>
     <string name="settings_privacy_share_path_desc">Если выключено, друзья не видят ваш путь на карте</string>
+    <string name="settings_privacy_battery_saver">Экономия батареи</string>
+    <string name="settings_privacy_battery_saver_desc">Обновлять GPS на карте каждые 10 с вместо 5 с (только в открытом приложении)</string>
     <string name="settings_privacy_system_settings">Открыть системные настройки</string>
     <string name="settings_biometric_title">Разблокировка приложения</string>
     <string name="settings_biometric_desc">Отпечаток или Face ID после входа по email</string>

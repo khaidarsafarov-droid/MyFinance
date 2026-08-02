@@ -423,6 +423,11 @@
     <string name="friends_live_map_subtitle">Where you are now</string>
     <string name="friends_share_path_toggle">Show my path to friends</string>
     <string name="friends_share_path_hint">Off = do not send GPS or path history to Supabase</string>
+    <string name="friends_route_truck_toggle">Truck routing</string>
+    <string name="friends_battery_saver_toggle">Battery saver (slower GPS)</string>
+    <string name="friends_route_road_truck">Road route · Truck profile</string>
+    <string name="friends_route_road_car">Road route · Car</string>
+    <string name="friends_route_straight_fallback">Offline/API error: straight line. Enable Directions API or allow OSRM network access.</string>
     <string name="friends_live_need_supabase">Requires Supabase sign-in (LOCAL_ONLY_MODE=false + URL/key). Apply the friends live SQL migration.</string>
     <string name="friends_share_location_channel">Location sharing</string>
     <string name="friends_share_location_title">Truck Log is sharing your path</string>
@@ -663,6 +668,8 @@
     <string name="settings_privacy_not_granted">Not allowed</string>
     <string name="settings_privacy_share_path">Share route with friends</string>
     <string name="settings_privacy_share_path_desc">When off, friends cannot see your live path on the map</string>
+    <string name="settings_privacy_battery_saver">Battery saver</string>
+    <string name="settings_privacy_battery_saver_desc">Refresh GPS on the map every 10s instead of 5s (foreground only)</string>
     <string name="settings_privacy_system_settings">Open system app settings</string>
     <string name="settings_biometric_title">App unlock</string>
     <string name="settings_biometric_desc">Use fingerprint or face to unlock after email sign-in</string>
