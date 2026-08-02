@@ -225,7 +225,7 @@ fun FriendsLiveMapScreen(
                                 .clip(RoundedCornerShape(16.dp)),
                         ) {
                             if (!mapExpanded) {
-                                FriendsOsmMap(
+                                FriendsGoogleMap(
                                     overlays = emptyList(),
                                     myPathPast = uiState.myPathPast,
                                     myPathRemaining = uiState.myPathRemaining,

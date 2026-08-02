@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Public OSRM server — road polylines for the friends map.
- * No API key required; used only to show where friends are driving (not turn-by-turn nav).
+ * Free, no API key. We intentionally do not use Google Directions API (paid).
  */
 class OsrmDirectionsClient(
     private val baseUrl: String = DEFAULT_BASE_URL,

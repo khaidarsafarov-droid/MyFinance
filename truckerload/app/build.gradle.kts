@@ -236,16 +236,13 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 
-    // Google Maps (analytics heatmap only; friends map uses OSM + OSRM, no API key)
+    // Google Maps (free-tier Maps SDK; friends map routes use OSRM, not Directions API)
     implementation("com.google.maps.android:maps-compose:4.3.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.maps.android:android-maps-utils:3.8.2")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.google.android.gms:play-services-base:18.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
-
-    // OpenStreetMap for friends live map (no API key)
-    implementation("org.osmdroid:osmdroid-android:6.1.18")
 
     // CameraX (1.4.2+ required for 16 KB page-size aligned native libs)
     val cameraXVersion = "1.4.2"
