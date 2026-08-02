@@ -55,29 +55,26 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Android requires startForeground() within ~5 s of startForegroundService().
-        // Always promote first — even when we immediately decide to stop (no user / no token).
-        // Never call stopSelf() before promoting — that crashes with
-        // ForegroundServiceDidNotStartInTimeException ("keeps stopping").
+        // After startForegroundService() or a START_STICKY restart, Android requires
+        // startForeground() within a few seconds — even when we decide to stop.
+        // Skipping it causes RemoteServiceException / "Truck Log keeps stopping".
         startForegroundCompat()
 
         if (TelegramSyncMode.isServer()) {
-            suppressRestart = true
-            stopGracefully()
+            Log.i(TAG, "Server sync mode — stopping local bot FGS")
+            stopQuietly(restart = false)
             return START_NOT_STICKY
         }
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
-            suppressRestart = true
-            stopGracefully()
+            stopQuietly(restart = false)
             return START_NOT_STICKY
         }
         val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
             Log.w(TAG, "No TELEGRAM_BOT_TOKEN — stopping service")
-            suppressRestart = true
-            stopGracefully()
+            stopQuietly(restart = false)
             return START_NOT_STICKY
         }
         setupBotFeaturesOnce(token)
@@ -101,10 +98,17 @@ class TelegramBotForegroundService : Service() {
     override fun onTimeout(startId: Int, fgsType: Int) {
         Log.w(TAG, "dataSync FGS timeout (type=$fgsType) — stopping to avoid crash")
         TelegramFgsQuota.markTimedOut()
-        suppressRestart = true
+        stopQuietly(restart = false)
+    }
+
+    /** Stop after startForeground(); optionally suppress AlarmManager restart. */
+    private fun stopQuietly(restart: Boolean) {
+        suppressRestart = !restart
         startRequested.set(false)
         pollJob?.cancel()
+        isRunningFlag.set(false)
         TelegramPollCoordinator.markForegroundPolling(false)
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -130,14 +134,6 @@ class TelegramBotForegroundService : Service() {
             Log.i(TAG, "Service destroyed — restart suppressed")
         }
         super.onDestroy()
-    }
-
-    private fun stopGracefully() {
-        startRequested.set(false)
-        pollJob?.cancel()
-        TelegramPollCoordinator.markForegroundPolling(false)
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     private fun setupBotFeaturesOnce(token: String) {
@@ -173,15 +169,24 @@ class TelegramBotForegroundService : Service() {
     private fun startForegroundCompat() {
         createChannel()
         val notification = buildNotification()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            startForeground(NOTIFICATION_ID, notification)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "startForeground failed", e)
+            // Still attempt a plain startForeground so the FGS contract is met.
+            runCatching {
+                @Suppress("DEPRECATION")
+                startForeground(NOTIFICATION_ID, notification)
+            }
         }
     }
 
