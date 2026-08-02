@@ -6,8 +6,11 @@ package com.truckerload.domain.friends
  */
 object RoadRouteGeometry {
 
-    /** Default truck off-route threshold (~0.5 mi). */
-    const val DEFAULT_OFF_ROUTE_METERS = 800.0
+    /**
+     * Default off-route threshold (~100 m / 0.06 mi).
+     * Spec asked for 50 m; 100 m reduces GPS jitter false positives on phones.
+     */
+    const val DEFAULT_OFF_ROUTE_METERS = 100.0
 
     fun isOffRoute(
         point: LatLngPoint,

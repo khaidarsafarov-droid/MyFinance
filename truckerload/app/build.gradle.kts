@@ -62,6 +62,12 @@ android {
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
+        // Optional unrestricted (or HTTP-referrer) key for Directions JSON API.
+        // Android package+SHA1 restricted Maps keys often get REQUEST_DENIED on Directions.
+        val googleDirectionsApiKey = localProps.getProperty("GOOGLE_DIRECTIONS_API_KEY", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "GOOGLE_DIRECTIONS_API_KEY", "\"$googleDirectionsApiKey\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
         // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
         // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a

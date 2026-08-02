@@ -1168,6 +1168,8 @@
     <string name="social_challenge_king_miles_desc">Кто проедет больше всех миль за неделю %1$d/%2$d</string>
 <string name="friends_nickname_schema_missing">На сервере нет колонки nickname. Откройте Supabase → SQL → выполните supabase/migrations/20260731_friend_nicknames.sql (и Notify reload schema).</string>
 <string name="friends_my_route_label">Мой путь: %1$s</string>
+    <string name="friends_route_road_ok">Маршрут по дорогам</string>
+    <string name="friends_route_straight_fallback">Прямая линия — роутинг недоступен. Проверьте сеть или GOOGLE_DIRECTIONS_API_KEY.</string>
     <string name="friends_my_destination_marker">Разгрузка</string>
 <string name="load_alarm_ask_message">Погрузка ещё не началась (%1$s). Поставить будильник?</string>
 <string name="load_alarm_ask_no">Нет</string>

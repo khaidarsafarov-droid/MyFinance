@@ -37,14 +37,14 @@ class RoadRouteGeometryTest {
 
     @Test
     fun onRouteWhenNearPolyline() {
-        val me = LatLngPoint(41.002, -98.5)
-        assertFalse(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 800.0))
+        val me = LatLngPoint(41.0005, -98.5)
+        assertFalse(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 100.0))
     }
 
     @Test
     fun offRouteWhenFarFromPolyline() {
         val me = LatLngPoint(42.5, -98.5)
-        assertTrue(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 800.0))
+        assertTrue(RoadRouteGeometry.isOffRoute(me, i80Corridor, thresholdMeters = 100.0))
     }
 
     @Test
@@ -61,7 +61,7 @@ class RoadRouteGeometryTest {
 class RoadRouteSessionTest {
 
     private class FakeDirections(
-        private var responses: MutableList<List<LatLngPoint>>,
+        private var responses: MutableList<RouteFetchResult>,
         private val configured: Boolean = true,
     ) : DrivingDirectionsProvider {
         var fetchCount = 0
@@ -69,7 +69,8 @@ class RoadRouteSessionTest {
         override suspend fun fetchDrivingRoute(
             origin: LatLngPoint,
             destination: LatLngPoint,
-        ): Result<List<LatLngPoint>> {
+            profile: VehicleRoutingProfile,
+        ): Result<RouteFetchResult> {
             fetchCount++
             val next = responses.removeFirstOrNull()
                 ?: return Result.failure(IllegalStateException("no more fakes"))
@@ -84,19 +85,22 @@ class RoadRouteSessionTest {
             LatLngPoint(41.0, -99.0),
             LatLngPoint(41.0, -98.0),
         )
-        val fake = FakeDirections(mutableListOf(road))
-        val session = RoadRouteSession(fake, minRerouteIntervalMs = 0)
+        val fake = FakeDirections(
+            mutableListOf(RouteFetchResult(road, "google")),
+        )
+        val session = RoadRouteSession(fake, minRerouteIntervalMs = 0, minOffRouteDurationMs = 0)
         val dest = LatLngPoint(41.0, -98.0)
         val a = session.remainingRoad("me", LatLngPoint(41.0, -100.0), dest, nowMs = 1_000)
         val b = session.remainingRoad("me", LatLngPoint(41.001, -99.5), dest, nowMs = 2_000)
         assertEquals(1, fake.fetchCount)
-        assertTrue(a.size >= 2)
-        assertTrue(b.size >= 2)
-        assertEquals(dest.lng, a.last().lng, 1e-9)
+        assertTrue(a.isRoadNetwork)
+        assertTrue(b.isRoadNetwork)
+        assertEquals("google", a.source)
+        assertEquals(dest.lng, a.points.last().lng, 1e-9)
     }
 
     @Test
-    fun reroutesWhenOffCorridorAfterThrottle() = kotlinx.coroutines.runBlocking {
+    fun reroutesWhenOffCorridorAfterSustainedDuration() = kotlinx.coroutines.runBlocking {
         val first = listOf(
             LatLngPoint(41.0, -100.0),
             LatLngPoint(41.0, -99.0),
@@ -107,22 +111,33 @@ class RoadRouteSessionTest {
             LatLngPoint(41.5, -98.5),
             LatLngPoint(41.0, -98.0),
         )
-        val fake = FakeDirections(mutableListOf(first, second))
+        val fake = FakeDirections(
+            mutableListOf(
+                RouteFetchResult(first, "google"),
+                RouteFetchResult(second, "osrm"),
+            ),
+        )
         val session = RoadRouteSession(
             fake,
-            offRouteThresholdMeters = 800.0,
-            minRerouteIntervalMs = 1_000,
+            offRouteThresholdMeters = 100.0,
+            minOffRouteDurationMs = 10_000,
+            minRerouteIntervalMs = 5_000,
         )
         val dest = LatLngPoint(41.0, -98.0)
         session.remainingRoad("me", LatLngPoint(41.0, -100.0), dest, nowMs = 0)
         // Still on route — no refetch
         session.remainingRoad("me", LatLngPoint(41.0, -99.2), dest, nowMs = 500)
         assertEquals(1, fake.fetchCount)
-        // Far north, and throttle elapsed — refetch
-        val rerouted = session.remainingRoad("me", LatLngPoint(42.0, -99.0), dest, nowMs = 5_000)
+        // Far north but duration not yet 10s — no refetch
+        session.remainingRoad("me", LatLngPoint(42.0, -99.0), dest, nowMs = 5_000)
+        assertEquals(1, fake.fetchCount)
+        // Sustained off-route + cooldown — refetch
+        val rerouted = session.remainingRoad("me", LatLngPoint(42.0, -99.0), dest, nowMs = 12_000)
         assertEquals(2, fake.fetchCount)
-        assertEquals(42.0, rerouted.first().lat, 1e-9)
-        assertEquals(dest.lng, rerouted.last().lng, 1e-9)
+        assertTrue(rerouted.isRoadNetwork)
+        assertEquals("osrm", rerouted.source)
+        assertEquals(42.0, rerouted.points.first().lat, 1e-9)
+        assertEquals(dest.lng, rerouted.points.last().lng, 1e-9)
     }
 
     @Test
@@ -132,10 +147,12 @@ class RoadRouteSessionTest {
         val start = LatLngPoint(41.0, -100.0)
         val dest = LatLngPoint(41.0, -90.0)
         val path = session.remainingRoad("me", start, dest)
-        assertEquals(2, path.size)
+        assertEquals(2, path.points.size)
+        assertFalse(path.isRoadNetwork)
+        assertEquals(RoadRouteSession.SOURCE_STRAIGHT, path.source)
         assertEquals(0, fake.fetchCount)
-        assertEquals(start, path.first())
-        assertEquals(dest, path.last())
+        assertEquals(start, path.points.first())
+        assertEquals(dest, path.points.last())
     }
 }
 

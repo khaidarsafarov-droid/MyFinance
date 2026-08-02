@@ -6,6 +6,10 @@
 LOCAL_ONLY_MODE=false
 
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+# Optional: separate key for Directions HTTP (enable Directions API). Prefer an
+# unrestricted or IP-restricted key — Android package-restricted Maps keys often
+# cannot call Directions. If empty, the app falls back to OSRM road routing.
+GOOGLE_DIRECTIONS_API_KEY=
 CEREBRAS_API_KEY=
 TELEGRAM_BOT_TOKEN=
 

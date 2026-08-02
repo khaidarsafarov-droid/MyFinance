@@ -30,6 +30,10 @@ data class FriendsMapUiState(
     val myPathPast: List<LatLngPoint> = emptyList(),
     val myPathRemaining: List<LatLngPoint> = emptyList(),
     val myRouteSummary: String? = null,
+    /** True when blue path came from Google/OSRM roads (not air distance). */
+    val myRouteIsRoadNetwork: Boolean = false,
+    /** "google" | "osrm" | "straight" | null */
+    val myRouteSource: String? = null,
     val selectedFriendId: String? = null,
     val overlaps: List<RouteOverlapMatch> = emptyList(),
     val showOverlapsPanel: Boolean = false,

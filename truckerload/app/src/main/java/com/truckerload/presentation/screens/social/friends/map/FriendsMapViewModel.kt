@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.remote.GoogleDirectionsClient
+import com.truckerload.data.remote.CompositeDrivingDirectionsProvider
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
@@ -44,7 +44,7 @@ class FriendsMapViewModel @Inject constructor(
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
-    private val roadRoutes = RoadRouteSession(GoogleDirectionsClient())
+    private val roadRoutes = RoadRouteSession(CompositeDrivingDirectionsProvider.default())
 
     private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -217,17 +217,20 @@ class FriendsMapViewModel @Inject constructor(
                     val show = p.userId in showPathFor
                     val current = LatLngPoint(p.latitude, p.longitude)
                     val road = if (show && route != null) {
-                        val start = current
                         roadRoutes.remainingRoad(
                             cacheKey = p.userId,
-                            currentOrStart = start,
+                            currentOrStart = current,
                             destination = route.destination,
                         )
                     } else {
                         null
                     }
                     val split = if (show && route != null) {
-                        FriendRoutePolylineBuilder.split(route, current, roadRemaining = road)
+                        FriendRoutePolylineBuilder.split(
+                            route,
+                            current,
+                            roadRemaining = road?.points,
+                        )
                     } else {
                         FriendRoutePolylineBuilder.SplitPolylines(emptyList(), emptyList())
                     }
@@ -254,6 +257,8 @@ class FriendsMapViewModel @Inject constructor(
                         myPathPast = myPath.past,
                         myPathRemaining = myPath.remaining,
                         myRouteSummary = myPath.summary,
+                        myRouteIsRoadNetwork = myPath.isRoadNetwork,
+                        myRouteSource = myPath.source,
                         overlaps = overlaps,
                         lastRefreshAt = System.currentTimeMillis(),
                         errorMessage = null,
@@ -274,6 +279,8 @@ class FriendsMapViewModel @Inject constructor(
                 myPathPast = myPath.past,
                 myPathRemaining = myPath.remaining,
                 myRouteSummary = myPath.summary,
+                myRouteIsRoadNetwork = myPath.isRoadNetwork,
+                myRouteSource = myPath.source,
             )
         }
     }
@@ -282,18 +289,32 @@ class FriendsMapViewModel @Inject constructor(
         val past: List<LatLngPoint>,
         val remaining: List<LatLngPoint>,
         val summary: String?,
+        val isRoadNetwork: Boolean,
+        val source: String?,
     )
 
     private suspend fun buildMyPathOverlay(): MyPathDraw = withContext(Dispatchers.IO) {
         // Only draw a route for a load that is still ACTIVE (not finished / past DEL).
         val load = ActiveLoadSelector.selectActive(loadRepository.getAllLoadsOnce())
-            ?: return@withContext MyPathDraw(emptyList(), emptyList(), null)
+            ?: return@withContext MyPathDraw(
+                past = emptyList(),
+                remaining = emptyList(),
+                summary = null,
+                isRoadNetwork = false,
+                source = null,
+            )
         val originLabel = load.pointA.ifBlank { load.firstPuCityState }
         val destLabel = load.pointB.ifBlank { load.lastDelCityState }
         val origin = geocodeLoadEndpoint(load, isOrigin = true)
         val destination = geocodeLoadEndpoint(load, isOrigin = false)
         if (origin == null && destination == null) {
-            return@withContext MyPathDraw(emptyList(), emptyList(), null)
+            return@withContext MyPathDraw(
+                past = emptyList(),
+                remaining = emptyList(),
+                summary = null,
+                isRoadNetwork = false,
+                source = null,
+            )
         }
         val route = FriendActiveRoute(
             userId = authStore.currentUserIdOrNull().orEmpty().ifBlank { SELF_ROUTE_ID },
@@ -314,12 +335,22 @@ class FriendsMapViewModel @Inject constructor(
             currentOrStart = start,
             destination = destination,
         )
-        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint, roadRemaining = road)
+        val split = FriendRoutePolylineBuilder.split(
+            route,
+            myLocationPoint,
+            roadRemaining = road.points,
+        )
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
             .joinToString(" → ")
             .ifBlank { null }
-        MyPathDraw(past = split.past, remaining = split.remaining, summary = summary)
+        MyPathDraw(
+            past = split.past,
+            remaining = split.remaining,
+            summary = summary,
+            isRoadNetwork = road.isRoadNetwork,
+            source = road.source,
+        )
     }
 
     private suspend fun pullMyLocationQuietly() {

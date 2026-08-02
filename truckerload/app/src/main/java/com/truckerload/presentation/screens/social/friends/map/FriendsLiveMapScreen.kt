@@ -263,6 +263,24 @@ fun FriendsLiveMapScreen(
                                 modifier = Modifier.padding(top = 2.dp),
                             )
                         }
+                        if (uiState.myPathRemaining.size >= 2) {
+                            Text(
+                                text = stringResource(
+                                    if (uiState.myRouteIsRoadNetwork) {
+                                        R.string.friends_route_road_ok
+                                    } else {
+                                        R.string.friends_route_straight_fallback
+                                    },
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (uiState.myRouteIsRoadNetwork) {
+                                    tc.TextSecondary
+                                } else {
+                                    MaterialTheme.colorScheme.error
+                                },
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
                         if (uiState.friends.isNotEmpty()) {
                             Text(
                                 text = stringResource(R.string.friends_online_count, uiState.friends.size),
