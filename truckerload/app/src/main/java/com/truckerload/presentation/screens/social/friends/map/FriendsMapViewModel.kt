@@ -42,6 +42,7 @@ class FriendsMapViewModel @Inject constructor(
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
+    private val roadRouter = FriendsMapRoadRouter()
 
     private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -212,9 +213,10 @@ class FriendsMapViewModel @Inject constructor(
                     val route = byUser[p.userId]
                     val show = p.userId in showPathFor
                     val split = if (show && route != null) {
-                        FriendRoutePolylineBuilder.split(
-                            route,
-                            LatLngPoint(p.latitude, p.longitude),
+                        roadRouter.splitWithRoads(
+                            routeKey = "friend:${p.userId}:${route.loadRef.orEmpty()}",
+                            route = route,
+                            current = LatLngPoint(p.latitude, p.longitude),
                         )
                     } else {
                         FriendRoutePolylineBuilder.SplitPolylines(emptyList(), emptyList())
@@ -296,7 +298,12 @@ class FriendsMapViewModel @Inject constructor(
             status = ActiveLoadSelector.statusFor(load),
             trackPoints = emptyList(),
         )
-        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint)
+        // New load id → new cache key so the blue line replans for the new destination.
+        val split = roadRouter.splitWithRoads(
+            routeKey = "me:${load.id}",
+            route = route,
+            current = myLocationPoint,
+        )
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
             .joinToString(" → ")

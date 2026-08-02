@@ -8,18 +8,22 @@ import kotlin.math.sqrt
 /**
  * Splits a friend route into past (gray) and remaining (blue) polylines.
  * Past = track crumbs + line to current position.
- * Remaining = current position → destination (or origin→destination if no track yet).
+ * Remaining = road-following path from current → destination when [roadPath] is provided;
+ * otherwise falls back to a straight chord (legacy).
  */
 object FriendRoutePolylineBuilder {
 
     data class SplitPolylines(
         val past: List<LatLngPoint>,
         val remaining: List<LatLngPoint>,
+        /** Full road geometry used for the remaining segment (for cache / replan). */
+        val roadPath: List<LatLngPoint> = emptyList(),
     )
 
     fun split(
         route: FriendActiveRoute,
         current: LatLngPoint?,
+        roadPath: List<LatLngPoint> = emptyList(),
     ): SplitPolylines {
         val origin = route.origin
         val dest = route.destination
@@ -31,13 +35,21 @@ object FriendRoutePolylineBuilder {
             if (current != null) add(current)
         }.distinctConsecutive()
 
-        val remaining = buildList {
-            val start = current ?: track.lastOrNull() ?: origin
-            if (start != null) add(start)
-            if (dest != null) add(dest)
-        }.distinctConsecutive()
+        val start = current ?: track.lastOrNull() ?: origin
+        val remaining = when {
+            roadPath.size >= 2 && start != null ->
+                RoadRouteGeometry.remainingFromNearest(roadPath, start)
+            else -> buildList {
+                if (start != null) add(start)
+                if (dest != null) add(dest)
+            }.distinctConsecutive()
+        }
 
-        return SplitPolylines(past = past, remaining = remaining)
+        return SplitPolylines(
+            past = past,
+            remaining = remaining,
+            roadPath = roadPath,
+        )
     }
 
     private fun List<LatLngPoint>.distinctConsecutive(): List<LatLngPoint> {

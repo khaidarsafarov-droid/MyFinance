@@ -56,6 +56,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.sync.FriendsLocationShareService
 import com.truckerload.utils.LocationHelper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,12 +89,17 @@ fun FriendsLiveMapScreen(
         return LatLng(lat, lng).also { myLocation = it }
     }
 
+    // Keep the green pin + road route current while the map is open.
+    // RoadDirectionsClient caches geometry; ViewModel only replans when off-route or dest changes.
     LaunchedEffect(hasLocationPermission) {
         if (!hasLocationPermission) {
             myLocation = null
             return@LaunchedEffect
         }
-        refreshMyLocation()
+        while (true) {
+            refreshMyLocation()
+            delay(15_000)
+        }
     }
 
     LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {

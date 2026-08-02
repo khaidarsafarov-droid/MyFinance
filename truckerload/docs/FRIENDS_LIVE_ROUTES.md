@@ -32,6 +32,13 @@ GOOGLE_MAPS_API_KEY=...
 5. Toggle **Показывать мой путь друзьям** (starts location FGS)
 6. Markers = live positions; **Показать его путь** = gray (past) + blue (remaining)
 
+## Road routing
+The blue “remaining” line follows **driving roads**, not a straight chord:
+1. Prefer **Google Directions API** (`GOOGLE_MAPS_API_KEY` — enable Directions in Cloud Console)
+2. Fall back to public **OSRM** if Google is unavailable / returns non-OK
+3. Geometry is cached; the app **replans** when the driver leaves the corridor (~800 m) or the active load destination changes
+4. While the map is open, own GPS refreshes about every 15s so the blue line advances with you
+
 ## Active load rule
 Today ∈ [startDate, endDate], not finished early (`actualFinishDate`), not future.
 
