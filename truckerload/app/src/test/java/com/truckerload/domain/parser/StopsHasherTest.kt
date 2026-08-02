@@ -31,12 +31,28 @@ class StopsHasherTest {
     }
 
     @Test
-    fun `stop order does not affect hash`() {
+    fun `list order of same stopNumbers does not affect hash`() {
         val pu = sampleStop(1, StopType.PU)
         val del = sampleStop(2, StopType.DEL)
         assertEquals(
             StopsHasher.calculateStopsHash(listOf(pu, del)),
             StopsHasher.calculateStopsHash(listOf(del, pu)),
+        )
+    }
+
+    @Test
+    fun `route reorder with different stopNumbers changes hash`() {
+        val first = listOf(
+            sampleStop(1, StopType.PU, city = "Austin"),
+            sampleStop(2, StopType.DEL, city = "Dallas"),
+        )
+        val reordered = listOf(
+            sampleStop(1, StopType.PU, city = "Dallas"),
+            sampleStop(2, StopType.DEL, city = "Austin"),
+        )
+        assertNotEquals(
+            StopsHasher.calculateStopsHash(first),
+            StopsHasher.calculateStopsHash(reordered),
         )
     }
 

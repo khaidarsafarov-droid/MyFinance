@@ -1,5 +1,6 @@
 package com.truckerload.domain.import.usecase
 
+import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.import.LoadValidator
 import com.truckerload.domain.import.model.ImportException
 import com.truckerload.domain.import.model.ImportReport
@@ -47,7 +48,8 @@ class ImportLoadsUseCase(
             withTimeout(IMPORT_TIMEOUT_MS) {
                 val messageType = MessageTypeDetector.detect(rawInput)
                 val parser = parserFactory.getParser(messageType)
-                val parsedLoads = parser.parse(rawInput).distinctBy { it.tripId.uppercase() }
+                // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+                val parsedLoads = ImportTripDedup.keepLatestByTripId(parser.parse(rawInput))
                 processParsedLoads(parsedLoads, startTime, onProgress)
             }
         } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
@@ -68,7 +70,8 @@ class ImportLoadsUseCase(
                 } else {
                     HtmlLoadParser()
                 }
-                val parsedLoads = parser.parse(htmlContent).distinctBy { it.tripId.uppercase() }
+                // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+                val parsedLoads = ImportTripDedup.keepLatestByTripId(parser.parse(htmlContent))
                 processParsedLoads(
                     parsedLoads = parsedLoads,
                     startTime = startTime,
@@ -95,9 +98,10 @@ class ImportLoadsUseCase(
                         IllegalArgumentException("Not a Telegram JSON export"),
                     )
                 }
-                val parsedLoads = TelegramJsonExportParser()
-                    .parse(jsonContent)
-                    .distinctBy { it.tripId.uppercase() }
+                // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+                val parsedLoads = ImportTripDedup.keepLatestByTripId(
+                    TelegramJsonExportParser().parse(jsonContent),
+                )
                 processParsedLoads(
                     parsedLoads = parsedLoads,
                     startTime = startTime,

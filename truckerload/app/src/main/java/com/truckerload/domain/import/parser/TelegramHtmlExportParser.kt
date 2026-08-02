@@ -2,10 +2,10 @@ package com.truckerload.domain.import.parser
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
+import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
-import java.util.Locale
 
 /** Parses HTML files produced by Telegram Desktop chat export (messages.html, messages2.html, …). */
 class TelegramHtmlExportParser(
@@ -27,7 +27,8 @@ class TelegramHtmlExportParser(
             }
         }
 
-        return loads.distinctBy { it.tripId.uppercase(Locale.US) }
+        // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+        return ImportTripDedup.keepLatestByTripId(loads)
     }
 
     private fun parseTextDiv(textDiv: Element, loads: MutableList<Load>) {

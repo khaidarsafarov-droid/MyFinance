@@ -51,6 +51,8 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
     override suspend fun signOut() {
+        // FIX: clear friends presence + stop FGS before wiping tokens / closing Room
+        com.truckerload.sync.SessionTeardown.beforeLogout(appContext)
         withContext(Dispatchers.Main.immediate) {
             userComponentManager.endSession()
             authStore.logout()

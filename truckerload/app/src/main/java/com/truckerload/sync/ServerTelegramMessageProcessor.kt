@@ -12,6 +12,7 @@ import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
+import java.security.MessageDigest
 
 enum class ServerInboxProcessingResult {
     PROCESSED,
@@ -79,9 +80,10 @@ class ServerTelegramMessageProcessor(
 
         parser.parseDieselFromText(text).getOrNull()?.let { parsed ->
             if (parsed.totalAmount <= 0) return ServerInboxProcessingResult.IGNORED
-            val textHash = text.hashCode()
+            // FIX: String.hashCode collisions could skip legitimate diesel entries
+            val textHash = stableTextHash(text)
             val duplicate = dieselRepository.getAllDieselOnce().any {
-                it.rawExtractedText.hashCode() == textHash
+                stableTextHash(it.rawExtractedText) == textHash
             }
             if (!duplicate) {
                 val dateForWeek =
@@ -120,6 +122,11 @@ class ServerTelegramMessageProcessor(
         fun shouldIgnore(text: String): Boolean {
             val trimmed = text.trim()
             return trimmed.isBlank() || trimmed.startsWith("/")
+        }
+
+        fun stableTextHash(text: String): String {
+            val digest = MessageDigest.getInstance("SHA-256").digest(text.toByteArray())
+            return digest.joinToString("") { "%02x".format(it) }
         }
     }
 }

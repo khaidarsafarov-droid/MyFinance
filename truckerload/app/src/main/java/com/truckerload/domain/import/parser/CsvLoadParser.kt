@@ -14,29 +14,37 @@ class CsvLoadParser : LoadParser {
         val lines = input.lineSequence().map { it.trim() }.filter { it.isNotBlank() }.toList()
         if (lines.size < 2) return emptyList()
 
-        val headers = lines.first().split(",").map { it.trim().lowercase(Locale.US) }
+        // FIX: quote-aware split so "SWF2, Garner, NC" stays one column
+        val headers = splitCsvLine(lines.first()).map { it.trim().lowercase(Locale.US) }
         val tripIdx = headers.indexOfFirst { it.contains("trip") }
         val rateIdx = headers.indexOfFirst { it.contains("rate") }
         val milesIdx = headers.indexOfFirst { it.contains("mile") }
         val originIdx = headers.indexOfFirst { it.contains("origin") || it.contains("pickup") || it == "from" }
         val destIdx = headers.indexOfFirst { it.contains("dest") || it.contains("delivery") || it == "to" }
+        val dateIdx = headers.indexOfFirst { it == "date" || it.contains("pickup_date") }
 
         if (tripIdx == -1 || rateIdx == -1) return emptyList()
 
         val now = System.currentTimeMillis()
         return lines.drop(1).mapNotNull { line ->
-            val cols = line.split(",").map { it.trim() }
+            val cols = splitCsvLine(line)
             if (cols.size <= maxOf(tripIdx, rateIdx)) return@mapNotNull null
 
             val tripId = cols[tripIdx].uppercase(Locale.US)
             val rate = ParseUtils.parseMoney(cols[rateIdx])
             if (rate <= 0) return@mapNotNull null
-            val miles = milesIdx.takeIf { it != -1 && it < cols.size }
+            val rawMiles = milesIdx.takeIf { it != -1 && it < cols.size }
                 ?.let { ParseUtils.parseMiles(cols[it]) } ?: 0.0
+            // FIX: apply Relay typo sanitization (same as LoadMessageParser / Room mapper)
+            val miles = ParseUtils.sanitizeLoadedMiles(rawMiles, rate)
             val pointA = originIdx.takeIf { it != -1 && it < cols.size }?.let { cols[it] }.orEmpty()
             val pointB = destIdx.takeIf { it != -1 && it < cols.size }?.let { cols[it] }.orEmpty()
+            val dateRaw = dateIdx.takeIf { it != -1 && it < cols.size }?.let { cols[it] }.orEmpty()
 
             if (tripId.isBlank() || rate <= 0) return@mapNotNull null
+
+            val originAddr = ParseUtils.parseAddressLine(pointA)
+            val destAddr = ParseUtils.parseAddressLine(pointB)
 
             val stops = buildList {
                 if (pointA.isNotBlank()) {
@@ -44,9 +52,12 @@ class CsvLoadParser : LoadParser {
                         Stop(
                             id = 0, loadId = tripId, stopNumber = 1, type = StopType.PU,
                             puNumber = null, note = null, scheduledTime = "", timezone = "",
-                            facilityCode = null, fullAddress = pointA,
-                            city = pointA.substringBefore(",").trim(),
-                            state = pointA.substringAfter(",", "").trim(), zip = "",
+                            // FIX: FACILITY, City, ST via ParseUtils — not first-comma split
+                            facilityCode = originAddr.facilityCode,
+                            fullAddress = originAddr.fullAddress.ifBlank { pointA },
+                            city = originAddr.city,
+                            state = originAddr.state,
+                            zip = originAddr.zip,
                         )
                     )
                 }
@@ -55,9 +66,11 @@ class CsvLoadParser : LoadParser {
                         Stop(
                             id = 0, loadId = tripId, stopNumber = 2, type = StopType.DEL,
                             puNumber = null, note = null, scheduledTime = "", timezone = "",
-                            facilityCode = null, fullAddress = pointB,
-                            city = pointB.substringBefore(",").trim(),
-                            state = pointB.substringAfter(",", "").trim(), zip = "",
+                            facilityCode = destAddr.facilityCode,
+                            fullAddress = destAddr.fullAddress.ifBlank { pointB },
+                            city = destAddr.city,
+                            state = destAddr.state,
+                            zip = destAddr.zip,
                         )
                     )
                 }
@@ -66,7 +79,7 @@ class CsvLoadParser : LoadParser {
             val draft = Load(
                 id = tripId,
                 tripId = tripId,
-                date = "",
+                date = ParseUtils.normalizeDate(dateRaw),
                 totalRate = rate,
                 totalMiles = miles,
                 pointA = pointA,
@@ -82,6 +95,40 @@ class CsvLoadParser : LoadParser {
             )
             val (week, year) = getLoadReportingWeek(draft)
             draft.copy(weekNumber = week, year = year).withRouteMetrics()
+        }
+    }
+
+    companion object {
+        /**
+         * RFC 4180-ish field split: commas inside `"..."` do not delimit columns;
+         * `""` inside quotes is an escaped quote.
+         */
+        fun splitCsvLine(line: String): List<String> {
+            val result = ArrayList<String>()
+            val current = StringBuilder()
+            var inQuotes = false
+            var i = 0
+            while (i < line.length) {
+                val c = line[i]
+                when {
+                    c == '"' -> {
+                        if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+                            current.append('"')
+                            i++
+                        } else {
+                            inQuotes = !inQuotes
+                        }
+                    }
+                    c == ',' && !inQuotes -> {
+                        result.add(current.toString().trim())
+                        current.setLength(0)
+                    }
+                    else -> current.append(c)
+                }
+                i++
+            }
+            result.add(current.toString().trim())
+            return result
         }
     }
 }

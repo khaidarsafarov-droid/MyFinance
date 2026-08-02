@@ -84,7 +84,16 @@ class SettingsDataStore(context: Context) {
     }
 
     val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
+        // FIX: per-account privacy — global key leaked User A's opt-in to User B on same device
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        if (userId != null) {
+            val key = booleanPreferencesKey(
+                "share_path_with_friends_${AccountIds.sanitizeFilePart(userId)}",
+            )
+            prefs[key] ?: false
+        } else {
+            prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
+        }
     }
 
     val reduceMotion: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
@@ -207,8 +216,18 @@ class SettingsDataStore(context: Context) {
     suspend fun getSharePathWithFriendsOnce(): Boolean = sharePathWithFriends.first()
 
     suspend fun saveSharePathWithFriends(enabled: Boolean) {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
+            if (userId != null) {
+                // FIX: scope location-sharing opt-in per account (no cross-user migrate of true)
+                prefs[
+                    booleanPreferencesKey(
+                        "share_path_with_friends_${AccountIds.sanitizeFilePart(userId)}",
+                    ),
+                ] = enabled
+            } else {
+                prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
+            }
         }
     }
 

@@ -23,6 +23,12 @@ class WeeklyGoalInputValidatorTest {
     }
 
     @Test
+    fun parseGoalAmount_acceptsUsThousandsSeparator() {
+        assertEquals(2500.0, WeeklyGoalInputValidator.parseGoalAmount("2,500")!!, 0.0)
+        assertEquals(2500.75, WeeklyGoalInputValidator.parseGoalAmount("2,500.75")!!, 0.0)
+    }
+
+    @Test
     fun parseGoalAmount_rejectsNonNumericInput() {
         assertNull(WeeklyGoalInputValidator.parseGoalAmount("abc"))
     }

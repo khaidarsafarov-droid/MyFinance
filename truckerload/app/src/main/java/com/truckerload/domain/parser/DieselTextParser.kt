@@ -5,7 +5,8 @@ import com.truckerload.domain.model.DieselParseResult
 object DieselTextParser {
 
     private val totalPatterns = listOf(
-        Regex("""(?:Total\s*Amount|Amount\s*Due|Итого|Total)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE),
+        // FIX: drop bare "Total" — it matched Relay "Total Loaded Miles: 1198" as a diesel amount
+        Regex("""(?:Total\s*Amount|Amount\s*Due|Итого)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE),
         Regex("""(?:Fuel\s*Total|Diesel\s*Total)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE)
     )
     private val gallonsPattern = Regex("""([\d.]+)\s*(?:gal|gallons|гл)\b""", RegexOption.IGNORE_CASE)
