@@ -54,6 +54,7 @@ import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.HomeWeekHeroCard
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.components.TlTextButton as TextButton
