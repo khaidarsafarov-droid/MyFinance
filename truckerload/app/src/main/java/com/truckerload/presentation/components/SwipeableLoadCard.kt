@@ -45,14 +45,14 @@ fun SwipeableLoadCard(
     modifier: Modifier = Modifier,
     onCameraClick: (() -> Unit)? = null,
     onScanClick: (() -> Unit)? = null,
-    /** Bump to snap the card back to settled (e.g. after canceling delete confirm). */
+    /** Bump to snap the card back to settled (e.g. after undoing a delete). */
     settleKey: Any = Unit,
 ) {
     val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
-                // Request delete confirm; keep the card settled so cancel does not leave a ghost.
+                // Soft-delete with undo snackbar; keep card settled so undo can restore it.
                 onDelete()
                 false
             } else {

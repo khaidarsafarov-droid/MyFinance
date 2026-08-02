@@ -10,18 +10,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import com.truckerload.presentation.theme.LocalReduceMotion
 
 @Composable
 fun Modifier.shimmerPulse(): Modifier {
+    if (LocalReduceMotion.current) {
+        return alpha(0.5f)
+    }
     val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.7f,
         animationSpec = infiniteRepeatable(
             animation = tween(800, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "alpha"
+        label = "alpha",
     )
     return alpha(alpha)
 }
