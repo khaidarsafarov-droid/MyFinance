@@ -293,6 +293,13 @@ class TelegramMessageParser(
         dieselRepository: DieselRepository,
     ): String {
         val fileId = update.documentFileId ?: return context.getString(R.string.sync_doc_not_supported)
+        val declaredSize = update.documentFileSize
+        if (declaredSize != null && declaredSize > TelegramApi.MAX_DOWNLOAD_BYTES) {
+            return context.getString(
+                R.string.sync_import_file_too_large,
+                (TelegramApi.MAX_DOWNLOAD_BYTES / (1024 * 1024)).toInt(),
+            )
+        }
         val bytes = telegramApi.downloadFile(fileId).getOrElse { e ->
             Log.e(TAG, "download export file failed: ${LogRedactor.redact(e.message)}", e)
             return context.getString(R.string.restore_error, e.message.orEmpty())

@@ -258,8 +258,15 @@ class TelegramBotForegroundService : Service() {
         /** True while the foreground bot service is alive. */
         fun isRunning(): Boolean = isRunningFlag.get()
 
+        /** True when the bot FGS is allowed to run (logged in + token configured). */
+        fun canStart(context: Context): Boolean {
+            if (TelegramSyncMode.isServer()) return false
+            val userId = AuthStore(context).currentUserIdOrNull() ?: return false
+            return TelegramTokenStore(context, userId).getToken().isNotBlank()
+        }
+
         fun start(context: Context) {
-            if (TelegramSyncMode.isServer()) return
+            if (!canStart(context)) return
             // Quota exhausted — only resume when the user opens the app (resets the timer).
             if (TelegramFgsQuota.isPaused() && !isAppInForeground()) {
                 Log.i(TAG, "dataSync quota paused — defer start until app is foreground")
