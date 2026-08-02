@@ -18,14 +18,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.truckerload.presentation.theme.MotionPreferences
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.domain.goal.PaceStatus
+import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.theme.motionDurationMs
 
 @Composable
 fun GoalProgressRing(
