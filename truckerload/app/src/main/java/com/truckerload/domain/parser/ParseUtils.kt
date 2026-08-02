@@ -151,24 +151,9 @@ internal object ParseUtils {
         return ""
     }
 
-    fun weekAndYearFromDate(dateStr: String): Pair<Int, Int> {
-        if (dateStr.length < 10) {
-            val cal = Calendar.getInstance()
-            return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
-        }
-        return try {
-            val parts = dateStr.split("-")
-            if (parts.size != 3) return Pair(Calendar.getInstance().get(Calendar.WEEK_OF_YEAR), Calendar.getInstance().get(Calendar.YEAR))
-            val y = parts[0].toIntOrNull() ?: return Pair(Calendar.getInstance().get(Calendar.WEEK_OF_YEAR), Calendar.getInstance().get(Calendar.YEAR))
-            val m = parts[1].toIntOrNull()?.minus(1) ?: return Pair(Calendar.getInstance().get(Calendar.WEEK_OF_YEAR), Calendar.getInstance().get(Calendar.YEAR))
-            val d = parts[2].toIntOrNull() ?: return Pair(Calendar.getInstance().get(Calendar.WEEK_OF_YEAR), Calendar.getInstance().get(Calendar.YEAR))
-            val cal = Calendar.getInstance()
-            cal.set(y, m, d)
-            Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
-        } catch (e: Exception) {
-            Pair(Calendar.getInstance().get(Calendar.WEEK_OF_YEAR), Calendar.getInstance().get(Calendar.YEAR))
-        }
-    }
+    /** Delegates to trucking week-year helpers in WeekUtils. */
+    fun weekAndYearFromDate(dateStr: String): Pair<Int, Int> =
+        com.truckerload.utils.getWeekNumberAndYearFromDate(dateStr.takeIf { it.length >= 10 })
 
     data class AddressParts(
         val facilityCode: String?,

@@ -1,16 +1,26 @@
 package com.truckerload.sync
 
 import android.content.Context
+import com.truckerload.data.preferences.AccountIds
 import org.json.JSONObject
 import java.io.File
 
 /**
  * Локальный архив текстов, присланных в Telegram-бот.
  * Нужен для команды «восстанови» — Telegram API не отдаёт старую историю чата.
+ *
+ * File is scoped per [userId] so account B cannot read account A’s bot history.
  */
-class TelegramMessageArchive(context: Context) {
+class TelegramMessageArchive(
+    context: Context,
+    userId: String,
+) {
 
-    private val file = File(context.filesDir, FILE_NAME)
+    private val file = File(
+        context.filesDir,
+        // FIX: per-account archive path — shared file leaked history across users
+        "telegram_message_archive_${AccountIds.sanitizeFilePart(userId)}.jsonl",
+    )
 
     fun append(text: String, messageDateSeconds: Long?, updateId: Long? = null) {
         val trimmed = text.trim()
@@ -62,7 +72,6 @@ class TelegramMessageArchive(context: Context) {
     )
 
     companion object {
-        private const val FILE_NAME = "telegram_message_archive.jsonl"
         private val lock = Any()
     }
 }

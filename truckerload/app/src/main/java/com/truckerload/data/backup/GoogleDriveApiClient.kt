@@ -130,7 +130,7 @@ class GoogleDriveApiClient(
 
     private fun findBackupFileMeta(token: String): RemoteFileMeta? {
         val q = java.net.URLEncoder.encode(
-            "name='${GoogleDriveBackupPrefs.BACKUP_FILE_NAME}' and trashed=false",
+            "name='${prefs.backupFileName()}' and trashed=false",
             Charsets.UTF_8.name(),
         )
         val url = "$DRIVE_FILES?spaces=appDataFolder&q=$q&fields=files(id,name,modifiedTime)&pageSize=1"
@@ -157,7 +157,7 @@ class GoogleDriveApiClient(
 
     private fun createFile(token: String, json: String): String {
         val metadata = JSONObject()
-            .put("name", GoogleDriveBackupPrefs.BACKUP_FILE_NAME)
+            .put("name", prefs.backupFileName())
             .put("parents", org.json.JSONArray().put("appDataFolder"))
             .toString()
         val boundary = "truckerload_${System.currentTimeMillis()}"

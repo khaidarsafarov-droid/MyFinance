@@ -2,6 +2,7 @@ package com.truckerload.domain.usecase
 
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.WeekRepository
+import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
 
 data class WeekForecast(
@@ -21,16 +22,9 @@ class ForecastService(
     private val loadRepository: LoadRepository
 ) {
     suspend fun calculateForecast(currentWeek: Int, currentYear: Int): WeekForecast? {
-        val last8Weeks = mutableListOf<Pair<Int, Int>>()
-        var w = currentWeek - 1
-        var y = currentYear
-        for (i in 0 until 8) {
-            if (w < 1) {
-                w = 52
-                y--
-            }
-            last8Weeks.add(w to y)
-            w--
+        // FIX: use shiftWeekNumberAndYear — hardcoding week 52 skips week 53 / wrong prior week
+        val last8Weeks = (1..8).map { offset ->
+            shiftWeekNumberAndYear(currentWeek, currentYear, -offset)
         }
 
         val summariesWithPaycheck = last8Weeks.mapNotNull { (wn, wy) ->

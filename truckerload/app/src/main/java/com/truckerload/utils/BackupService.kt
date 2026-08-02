@@ -12,6 +12,8 @@ import com.truckerload.data.backup.BackupData
 import com.truckerload.data.backup.BackupDataCodec
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toEntity
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
@@ -37,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference
 object BackupService {
 
     private const val PREFS = "backup_companion"
-    private const val AUTO_BACKUP_SUBDIR = "backups/auto"
+    private const val AUTO_BACKUP_SUBDIR = "backups/auto" // legacy; prefer [autoBackupDir] per user
     private const val DEFAULT_KEEP_COUNT = 5
     private const val TAG = "BackupRestore"
     private const val AUTO_BACKUP_DEBOUNCE_MS = 45_000L
@@ -81,13 +83,16 @@ object BackupService {
             return@withContext
         }
 
+        val accountId = AuthStore(appContext).currentUserIdOrNull()
         val backup = BackupData(
+            // FIX: bind backup to active account so restore cannot cross accounts
+            accountId = accountId,
             loads = loads,
             paychecks = paycheckRepository.getAllPaychecksOnce(),
             diesel = dieselRepository.getAllDieselOnce()
         )
         val json = BackupDataCodec.toJson(backup)
-        val dir = autoBackupDir(appContext).apply { mkdirs() }
+        val dir = autoBackupDir(appContext, accountId).apply { mkdirs() }
         val fileName = "auto_backup_${formatAutoBackupTimestamp()}.tlb"
         File(dir, fileName).writeText(json, Charsets.UTF_8)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
@@ -152,6 +157,7 @@ object BackupService {
             if (loads.isEmpty() && paychecks.isEmpty() && diesel.isEmpty()) return@withContext null
             BackupDataCodec.toJson(
                 BackupData(
+                    accountId = AuthStore(appContext).currentUserIdOrNull(),
                     loads = loads,
                     paychecks = paychecks,
                     diesel = diesel,
@@ -178,6 +184,7 @@ object BackupService {
 
             val loads = loadRepository.getAllLoadsOnce()
             val backup = BackupData(
+                accountId = AuthStore(appContext).currentUserIdOrNull(),
                 loads = loads,
                 paychecks = paycheckRepository.getAllPaychecksOnce(),
                 diesel = dieselRepository.getAllDieselOnce()
@@ -269,7 +276,9 @@ object BackupService {
         val loadRepository = LoadRepository(db)
         if (loadRepository.getAllLoadsOnce().isNotEmpty()) return@withContext null
 
-        val dir = File(appContext.getExternalFilesDir(null), "backups")
+        val userId = AuthStore(appContext).currentUserIdOrNull() ?: return@withContext null
+        // FIX: only scan this account's companion dir — shared pool restored wrong user's journal
+        val dir = companionBackupDir(appContext, userId)
         if (!dir.isDirectory) return@withContext null
 
         val latest = dir.listFiles()
@@ -289,8 +298,13 @@ object BackupService {
         }
     }
 
-    private fun autoBackupDir(context: Context): File =
-        File(context.getExternalFilesDir(null), AUTO_BACKUP_SUBDIR)
+    private fun autoBackupDir(context: Context, userId: String? = AuthStore(context).currentUserIdOrNull()): File {
+        val part = AccountIds.sanitizeFilePart(userId ?: AccountIds.LOCAL_DEV)
+        return File(context.getExternalFilesDir(null), "backups/$part/auto")
+    }
+
+    private fun companionBackupDir(context: Context, userId: String): File =
+        File(context.getExternalFilesDir(null), "backups/${AccountIds.sanitizeFilePart(userId)}")
 
     private fun backupSortKey(file: File): String {
         val name = file.name
@@ -299,7 +313,8 @@ object BackupService {
     }
 
     private fun saveCompanionBackup(context: Context, txtFileName: String, json: String) {
-        val dir = File(context.getExternalFilesDir(null), "backups").apply { mkdirs() }
+        val userId = AuthStore(context).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV
+        val dir = companionBackupDir(context, userId).apply { mkdirs() }
         val companion = File(dir, BackupNoteFormatter.companionFileName(txtFileName))
         companion.writeText(json, Charsets.UTF_8)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -332,6 +347,16 @@ object BackupService {
 
         val db = AppDatabase.getInstanceForActiveUser(context.applicationContext)
             ?: return Result.failure(IllegalStateException("No active user session"))
+        val activeUserId = AuthStore(context.applicationContext).currentUserIdOrNull()
+        // FIX: refuse restore when backup.accountId is bound to a different account
+        if (!backup.accountId.isNullOrBlank() &&
+            !activeUserId.isNullOrBlank() &&
+            backup.accountId != activeUserId
+        ) {
+            return Result.failure(
+                IllegalStateException(context.getString(R.string.backup_restore_wrong_account))
+            )
+        }
         val loadDao = db.loadDao()
         val stopDao = db.stopDao()
         val penaltyDao = db.penaltyDao()

@@ -17,11 +17,22 @@ import com.truckerload.domain.parser.LoadProcessor
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.utils.FeedbackManager
+import java.util.Locale
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+
+/** Keeps the last occurrence of each trip id (exports are oldest-first). */
+private fun List<Load>.distinctByLastTripId(): List<Load> {
+    if (isEmpty()) return this
+    val byTrip = LinkedHashMap<String, Load>(size)
+    for (load in this) {
+        byTrip[load.tripId.uppercase(Locale.US)] = load
+    }
+    return byTrip.values.toList()
+}
 
 class ImportLoadsUseCase(
     private val parserFactory: ParserFactory = ParserFactory(),
@@ -47,7 +58,8 @@ class ImportLoadsUseCase(
             withTimeout(IMPORT_TIMEOUT_MS) {
                 val messageType = MessageTypeDetector.detect(rawInput)
                 val parser = parserFactory.getParser(messageType)
-                val parsedLoads = parser.parse(rawInput).distinctBy { it.tripId.uppercase() }
+                // FIX: last wins for duplicate Trip IDs in a single paste
+                val parsedLoads = parser.parse(rawInput).distinctByLastTripId()
                 processParsedLoads(parsedLoads, startTime, onProgress)
             }
         } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
@@ -68,7 +80,7 @@ class ImportLoadsUseCase(
                 } else {
                     HtmlLoadParser()
                 }
-                val parsedLoads = parser.parse(htmlContent).distinctBy { it.tripId.uppercase() }
+                val parsedLoads = parser.parse(htmlContent).distinctByLastTripId()
                 processParsedLoads(
                     parsedLoads = parsedLoads,
                     startTime = startTime,
@@ -97,7 +109,7 @@ class ImportLoadsUseCase(
                 }
                 val parsedLoads = TelegramJsonExportParser()
                     .parse(jsonContent)
-                    .distinctBy { it.tripId.uppercase() }
+                    .distinctByLastTripId()
                 processParsedLoads(
                     parsedLoads = parsedLoads,
                     startTime = startTime,
@@ -178,10 +190,13 @@ class ImportLoadsUseCase(
     private suspend fun processWithProcessor(load: Load): ImportResult {
         val processor = loadProcessor
             ?: return processLegacy(load)
+        // FIX: pass export/message timestamp so LoadDateRepair anchors Relay MM/DD correctly
+        val messageDateSeconds = load.parsedAt.takeIf { it > 0L }?.div(1000L)
         return when (
             val processing = processor.processLoad(
                 parsedLoad = load,
                 config = parserConfig,
+                messageDateSeconds = messageDateSeconds,
                 playFeedback = false,
             )
         ) {

@@ -30,10 +30,18 @@ fun formatDateTimeForDisplay(millis: Long): String {
     return "%02d.%02d.%04d %02d:%02d".format(d, m, y, h, min)
 }
 
-/** Get (weekNumber, year) from timestamp (millis) in device default timezone. */
+/**
+ * Week-year for Sun–Sat trucking weeks (API 24+ [Calendar.getWeekYear]).
+ * Late December dates that belong to week 1 of the next calendar year must use
+ * that week-year (e.g. 2025-12-28 → week 1 of 2026), not [Calendar.YEAR].
+ */
+private fun Calendar.truckingWeekYear(): Int = getWeekYear()
+
+/** Get (weekNumber, weekYear) from timestamp (millis) in device default timezone. */
 fun getWeekNumberAndYearFromTimestamp(millis: Long): Pair<Int, Int> {
     val cal = truckingWeekCalendar().apply { timeInMillis = millis }
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
+    // FIX: use week-year — calendar YEAR splits Dec 28–31 week-1 across two years
+    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
 }
 
 /**
@@ -42,18 +50,17 @@ fun getWeekNumberAndYearFromTimestamp(millis: Long): Pair<Int, Int> {
 fun getWeekRange(weekNumber: Int, year: Int): Triple<String, String, String> {
     val cal = truckingWeekCalendar()
     cal.clear()
-    cal.set(Calendar.YEAR, year)
-    cal.set(Calendar.WEEK_OF_YEAR, weekNumber)
-    cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+    // FIX: setWeekDate anchors by week-year so week 1 of 2026 starts on 2025-12-28
+    cal.setWeekDate(year, weekNumber, Calendar.SUNDAY)
     val startYear = cal.get(Calendar.YEAR)
     val startMonth = cal.get(Calendar.MONTH) + 1
     val startDay = cal.get(Calendar.DAY_OF_MONTH)
-    val startStr = "%04d-%02d-%02d".format(startYear, startMonth, startDay)
+    val startStr = String.format(Locale.US, "%04d-%02d-%02d", startYear, startMonth, startDay)
     cal.add(Calendar.DAY_OF_YEAR, 6)
     val endYear = cal.get(Calendar.YEAR)
     val endMonth = cal.get(Calendar.MONTH) + 1
     val endDay = cal.get(Calendar.DAY_OF_MONTH)
-    val endStr = "%04d-%02d-%02d".format(endYear, endMonth, endDay)
+    val endStr = String.format(Locale.US, "%04d-%02d-%02d", endYear, endMonth, endDay)
     val shortMonths = DateFormatSymbols(Locale.getDefault()).shortMonths
     val startMonthLabel = shortMonths.getOrNull((startMonth - 1).coerceIn(0, 11)).orEmpty().replace(".", "")
     val endMonthLabel = shortMonths.getOrNull((endMonth - 1).coerceIn(0, 11)).orEmpty().replace(".", "")
@@ -63,23 +70,25 @@ fun getWeekRange(weekNumber: Int, year: Int): Triple<String, String, String> {
 
 fun getCurrentWeekNumberAndYear(): Pair<Int, Int> {
     val cal = truckingWeekCalendar()
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
+    // FIX: week-year so late-December "this week" matches stored load keys
+    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
 }
 
 /** Shift trucking week by [deltaWeeks] (negative = previous). */
 fun shiftWeekNumberAndYear(weekNumber: Int, year: Int, deltaWeeks: Int): Pair<Int, Int> {
     val cal = truckingWeekCalendar()
     cal.clear()
-    cal.set(Calendar.YEAR, year)
-    cal.set(Calendar.WEEK_OF_YEAR, weekNumber)
+    // FIX: shift from week-year identity, not calendar YEAR
+    cal.setWeekDate(year, weekNumber, Calendar.SUNDAY)
     cal.add(Calendar.WEEK_OF_YEAR, deltaWeeks)
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
+    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
 }
 
 fun getPreviousWeekNumberAndYear(): Pair<Int, Int> {
     val cal = truckingWeekCalendar()
     cal.add(Calendar.WEEK_OF_YEAR, -1)
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
+    // FIX: week-year for previous-week filters/goals at year boundary
+    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
 }
 
 /** Current calendar week start and end as "YYYY-MM-DD" (device local). Use for filtering loads by date. */
@@ -311,8 +320,11 @@ fun utcDatePickerMillisToDateString(utcMillis: Long): String {
     )
 }
 
-/** Parse stop scheduledTime to epoch millis. Supports YYYY-MM-DD HH:mm and DD.MM.YYYY HH:mm. */
-fun parseScheduledTimeToMillis(scheduledTime: String): Long? {
+/**
+ * Parse stop scheduledTime to epoch millis. Supports YYYY-MM-DD HH:mm and DD.MM.YYYY HH:mm.
+ * [defaultYear] anchors Relay `MM/DD` the same way as [parseDateFromScheduledTime].
+ */
+fun parseScheduledTimeToMillis(scheduledTime: String, defaultYear: Int? = null): Long? {
     if (scheduledTime.isBlank()) return null
     val t = scheduledTime.trim()
     val iso = Regex("""^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})""")
@@ -345,23 +357,30 @@ fun parseScheduledTimeToMillis(scheduledTime: String): Long? {
         val day = m.groupValues[2].toInt()
         val hour = m.groupValues[3].toInt()
         val minute = m.groupValues[4].toInt()
-        val year = Calendar.getInstance(Locale.US).get(Calendar.YEAR)
+        // FIX: resolveRelayYear (not bare current year) so Dec→Jan trips keep real duration
+        val anchor = defaultYear ?: Calendar.getInstance(Locale.US).get(Calendar.YEAR)
+        val year = LoadDateRepair.resolveRelayYear(month, day, anchor)
         val cal = Calendar.getInstance(Locale.getDefault())
         cal.set(year, month - 1, day, hour, minute, 0)
         cal.set(Calendar.MILLISECOND, 0)
         return cal.timeInMillis
     }
-    val dateOnly = parseDateFromScheduledTime(t) ?: return null
+    val dateOnly = parseDateFromScheduledTime(t, defaultYear) ?: return null
     return dateStringToStartOfDayMillis(dateOnly)
 }
 
 private val US_RELAY_TIME = Regex("""^(\d{1,2})/(\d{1,2})\s+(\d{1,2}):(\d{2})(?:\s+([A-Z]{2,4}))?\s*$""")
 
+/** Year hint from load.date (YYYY-MM-DD…) for Relay MM/DD stop times. */
+private fun loadDateYearHint(load: Load): Int? =
+    load.date.takeIf { it.length >= 4 }?.substring(0, 4)?.toIntOrNull()
+
 /** First PU stop datetime (millis) or load.date at start of day. */
 fun getFirstPickUpMillis(load: Load): Long? {
+    val yearHint = loadDateYearHint(load)
     val fromStops = load.stops
         .filter { it.type == StopType.PU }
-        .mapNotNull { parseScheduledTimeToMillis(it.scheduledTime) }
+        .mapNotNull { parseScheduledTimeToMillis(it.scheduledTime, yearHint) }
         .minOrNull()
     if (fromStops != null) return fromStops
     return load.date.takeIf { it.length >= 10 }?.let { dateStringToStartOfDayMillis(it) }
@@ -369,9 +388,22 @@ fun getFirstPickUpMillis(load: Load): Long? {
 
 /** Last DEL stop datetime (millis) or load.date at start of day. */
 fun getLastDeliveryMillis(load: Load): Long? {
+    val yearHint = loadDateYearHint(load)
+    val puMs = getFirstPickUpMillis(load)
     val fromStops = load.stops
         .filter { it.type == StopType.DEL }
-        .mapNotNull { parseScheduledTimeToMillis(it.scheduledTime) }
+        .mapNotNull { stop ->
+            val ms = parseScheduledTimeToMillis(stop.scheduledTime, yearHint) ?: return@mapNotNull null
+            // FIX: New Year trip (12/30 → 01/02) — bump DEL into next year when before PU
+            if (puMs != null && ms < puMs) {
+                Calendar.getInstance(Locale.getDefault()).apply {
+                    timeInMillis = ms
+                    add(Calendar.YEAR, 1)
+                }.timeInMillis
+            } else {
+                ms
+            }
+        }
         .maxOrNull()
     if (fromStops != null) return fromStops
     return load.date.takeIf { it.length >= 10 }?.let { dateStringToStartOfDayMillis(it) }
@@ -455,7 +487,8 @@ fun enumerateRecentWeekSlots(count: Int): List<Pair<Int, Int>> {
     cal.add(Calendar.WEEK_OF_YEAR, -(count - 1).coerceAtLeast(0))
     return buildList {
         repeat(count.coerceAtLeast(1)) {
-            add(cal.get(Calendar.WEEK_OF_YEAR) to cal.get(Calendar.YEAR))
+            // FIX: week-year identity for recent-week slots across Dec/Jan
+            add(cal.get(Calendar.WEEK_OF_YEAR) to cal.truckingWeekYear())
             cal.add(Calendar.WEEK_OF_YEAR, 1)
         }
     }
@@ -489,7 +522,8 @@ fun getWeeksInMonth(year: Int, month: Int): List<Pair<Int, Int>> {
         (cal.get(Calendar.MONTH) == targetMonth && cal.get(Calendar.DAY_OF_MONTH) <= lastDay)) {
         val endOfWeek = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 6) }
         if (cal.get(Calendar.MONTH) == targetMonth || endOfWeek.get(Calendar.MONTH) == targetMonth) {
-            result.add(Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR)))
+            // FIX: store week-year so December week-1 maps to the next year key
+            result.add(Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear()))
         }
         cal.add(Calendar.DAY_OF_YEAR, 7)
         if (cal.get(Calendar.YEAR) > year) break
@@ -541,7 +575,7 @@ fun getPreviousQuarter(quarter: Int, year: Int): Pair<Int, Int> {
 }
 
 /**
- * Parse "YYYY-MM-DD" to (weekNumber, year). On error returns current week/year.
+ * Parse "YYYY-MM-DD" to (weekNumber, weekYear). On error returns current week/year.
  */
 fun getWeekNumberAndYearFromDate(dateStr: String?): Pair<Int, Int> {
     if (dateStr.isNullOrBlank() || dateStr.length < 10) return getCurrentWeekNumberAndYear()
@@ -553,7 +587,8 @@ fun getWeekNumberAndYearFromDate(dateStr: String?): Pair<Int, Int> {
         val d = parts[2].toIntOrNull() ?: return getCurrentWeekNumberAndYear()
         val cal = truckingWeekCalendar()
         cal.set(y, m, d)
-        Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.get(Calendar.YEAR))
+        // FIX: week-year — Dec 28 2025 is week 1 of 2026, not (1, 2025)
+        Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
     } catch (e: Exception) {
         getCurrentWeekNumberAndYear()
     }

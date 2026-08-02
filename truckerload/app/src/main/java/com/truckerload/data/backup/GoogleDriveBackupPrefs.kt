@@ -13,9 +13,16 @@ class GoogleDriveBackupPrefs(
     context: Context,
     userId: String = AuthStore(context).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV,
 ) {
+    /** Active TruckerLoad account this prefs instance is scoped to. */
+    val accountId: String = userId
+
     private val prefs = context.applicationContext
         .getSharedPreferences(prefsName(userId), Context.MODE_PRIVATE)
         .also { scoped -> migrateFromLegacyIfEmpty(context.applicationContext, scoped) }
+
+    /** Drive appDataFolder object name — unique per TruckerLoad account. */
+    fun backupFileName(): String =
+        "truckerload_backup_${AccountIds.sanitizeFilePart(accountId)}.tlb"
 
     var accountEmail: String?
         get() = prefs.getString(KEY_EMAIL, null)
@@ -55,14 +62,25 @@ class GoogleDriveBackupPrefs(
 
         const val BACKUP_FILE_NAME = "truckerload_backup.tlb"
         const val DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
+        private const val META_PREFS = "truckerload_account_meta"
+        private const val KEY_LEGACY_MIGRATED = "legacy_drive_backup_migrated"
 
         fun prefsName(userId: String): String =
             "google_drive_backup_${AccountIds.sanitizeFilePart(userId)}"
 
+        fun backupFileNameFor(userId: String): String =
+            "truckerload_backup_${AccountIds.sanitizeFilePart(userId)}.tlb"
+
         private fun migrateFromLegacyIfEmpty(context: Context, scoped: android.content.SharedPreferences) {
             if (scoped.contains(KEY_EMAIL) || scoped.contains(KEY_FILE_ID)) return
+            val meta = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
+            // FIX: one-shot migrate — previously every new account cloned the same driveFileId
+            if (meta.getBoolean(KEY_LEGACY_MIGRATED, false)) return
             val legacy = context.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE)
-            if (legacy.all.isEmpty()) return
+            if (legacy.all.isEmpty()) {
+                meta.edit { putBoolean(KEY_LEGACY_MIGRATED, true) }
+                return
+            }
             scoped.edit {
                 legacy.getString(KEY_EMAIL, null)?.let { putString(KEY_EMAIL, it) }
                 legacy.getString(KEY_FILE_ID, null)?.let { putString(KEY_FILE_ID, it) }
@@ -70,6 +88,8 @@ class GoogleDriveBackupPrefs(
                 putLong(KEY_LAST_SYNC, legacy.getLong(KEY_LAST_SYNC, 0L))
                 putLong(KEY_REMOTE_MODIFIED, legacy.getLong(KEY_REMOTE_MODIFIED, 0L))
             }
+            legacy.edit { clear() }
+            meta.edit { putBoolean(KEY_LEGACY_MIGRATED, true) }
         }
     }
 }

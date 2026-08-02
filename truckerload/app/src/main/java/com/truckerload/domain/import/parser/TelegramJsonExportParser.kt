@@ -15,7 +15,7 @@ class TelegramJsonExportParser(
     override fun parse(input: String): List<Load> {
         val root = JSONObject(input)
         val messages = root.optJSONArray("messages") ?: return emptyList()
-        val loads = mutableListOf<Load>()
+        val byTrip = LinkedHashMap<String, Load>()
 
         for (i in 0 until messages.length()) {
             val msg = messages.optJSONObject(i) ?: continue
@@ -27,12 +27,30 @@ class TelegramJsonExportParser(
             val text = TelegramStyledTextNormalizer.normalize(rawText)
             if (!MessageClassifier.isLoadLike(text)) continue
 
+            // FIX: use Telegram message date so Relay MM/DD anchors to the export year
+            val dateSeconds = extractMessageDateSeconds(msg)
+            val parsedAtMs = dateSeconds?.times(1000L) ?: 0L
+
             relayParser.parse(text).forEach { load ->
-                loads.add(load.copy(rawMessage = text.take(2000)))
+                val keyed = load.tripId.uppercase(Locale.US)
+                // FIX: last wins — Desktop exports are oldest-first; later rate/stop updates must win
+                byTrip[keyed] = load.copy(
+                    rawMessage = text.take(2000),
+                    parsedAt = parsedAtMs,
+                )
             }
         }
 
-        return loads.distinctBy { it.tripId.uppercase(Locale.US) }
+        return byTrip.values.toList()
+    }
+
+    private fun extractMessageDateSeconds(msg: JSONObject): Long? {
+        if (!msg.has("date") || msg.isNull("date")) return null
+        return when (val value = msg.opt("date")) {
+            is Number -> value.toLong().takeIf { it > 0L }
+            is String -> value.toLongOrNull()?.takeIf { it > 0L }
+            else -> null
+        }
     }
 
     private fun extractMessageText(msg: JSONObject): String {

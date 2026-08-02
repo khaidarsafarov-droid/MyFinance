@@ -49,4 +49,17 @@ class BackupDataCodecTest {
         assertEquals(null, BackupDataCodec.fromJson("not-json"))
         assertEquals(null, BackupDataCodec.fromJson(""))
     }
+
+    @Test
+    fun roundTrip_preservesAccountId() {
+        val original = BackupData(
+            version = 1,
+            exportedAt = 1L,
+            accountId = "user-abc",
+            loads = emptyList(),
+        )
+        val restored = BackupDataCodec.fromJson(BackupDataCodec.toJson(original))
+        assertNotNull(restored)
+        assertEquals("user-abc", restored!!.accountId)
+    }
 }

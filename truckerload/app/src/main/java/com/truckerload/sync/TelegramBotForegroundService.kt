@@ -78,15 +78,18 @@ class TelegramBotForegroundService : Service() {
             return START_NOT_STICKY
         }
 
+        // FIX: clear in-flight start gate so a missed onStartCommand cannot block forever
+        startRequested.set(false)
+        isRunningFlag.set(true)
         setupBotFeaturesOnce(token)
-        if (pollJob?.isActive != true) {
-            TelegramPollCoordinator.markForegroundPolling(true)
-            pollJob = scope.launch {
-                try {
-                    pollLoop(token)
-                } finally {
-                    TelegramPollCoordinator.markForegroundPolling(false)
-                }
+        // FIX: always restart poll with the current account token (account switch must not reuse old job)
+        pollJob?.cancel()
+        TelegramPollCoordinator.markForegroundPolling(true)
+        pollJob = scope.launch {
+            try {
+                pollLoop(token, userId)
+            } finally {
+                TelegramPollCoordinator.markForegroundPolling(false)
             }
         }
         return START_STICKY
@@ -98,7 +101,7 @@ class TelegramBotForegroundService : Service() {
      */
     override fun onTimeout(startId: Int, fgsType: Int) {
         Log.w(TAG, "dataSync FGS timeout (type=$fgsType) — stopping to avoid crash")
-        TelegramFgsQuota.markTimedOut()
+        TelegramFgsQuota.markTimedOut(applicationContext)
         stopQuietly(restart = false)
     }
 
@@ -114,7 +117,7 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        if (TelegramSyncMode.isServer() || TelegramFgsQuota.isPaused()) {
+        if (TelegramSyncMode.isServer() || TelegramFgsQuota.isPaused(applicationContext)) {
             super.onTaskRemoved(rootIntent)
             return
         }
@@ -128,7 +131,7 @@ class TelegramBotForegroundService : Service() {
         startRequested.set(false)
         pollJob?.cancel()
         scope.cancel()
-        if (!suppressRestart && !TelegramSyncMode.isServer() && !TelegramFgsQuota.isPaused()) {
+        if (!suppressRestart && !TelegramSyncMode.isServer() && !TelegramFgsQuota.isPaused(applicationContext)) {
             Log.w(TAG, "Service destroyed — scheduling restart")
             TelegramServiceRestarter.schedule(applicationContext)
         } else {
@@ -150,11 +153,22 @@ class TelegramBotForegroundService : Service() {
         }
     }
 
-    private suspend fun pollLoop(token: String) {
+    private suspend fun pollLoop(token: String, expectedUserId: String) {
         val engine = TelegramBotSyncEngine(applicationContext)
         while (scope.isActive) {
             try {
-                val result = engine.runOnce(token)
+                // FIX: abort if session switched mid-poll so updates never land in another DB
+                val activeUserId = AuthStore(applicationContext).currentUserIdOrNull()
+                if (activeUserId.isNullOrBlank() || activeUserId != expectedUserId) {
+                    Log.w(TAG, "Active user changed — stopping pollLoop")
+                    break
+                }
+                val activeToken = TelegramTokenStore(applicationContext, activeUserId).getToken()
+                if (activeToken.isBlank() || activeToken != token) {
+                    Log.w(TAG, "Bot token changed — stopping pollLoop")
+                    break
+                }
+                val result = engine.runOnce(token, expectedUserId = expectedUserId)
                 val delaySec = when {
                     result.processedUpdates > 0 -> result.nextDelaySeconds.coerceIn(1, 60)
                     else -> result.nextDelaySeconds.coerceIn(2, 60)
@@ -263,12 +277,12 @@ class TelegramBotForegroundService : Service() {
         fun start(context: Context) {
             if (!canStart(context)) return
             // Quota exhausted — only resume when the user opens the app (resets the timer).
-            if (TelegramFgsQuota.isPaused() && !isAppInForeground()) {
+            if (TelegramFgsQuota.isPaused(context) && !isAppInForeground()) {
                 Log.i(TAG, "dataSync quota paused — defer start until app is foreground")
                 return
             }
             if (isAppInForeground()) {
-                TelegramFgsQuota.clearPause()
+                TelegramFgsQuota.clearPause(context.applicationContext)
             }
             // Already alive or start already in flight — avoid startForegroundService spam.
             if (isRunningFlag.get() || TelegramPollCoordinator.isForegroundPolling()) return
@@ -294,7 +308,7 @@ class TelegramBotForegroundService : Service() {
                 startRequested.set(false)
                 // Quota exhausted / background start denied — remember so watchdog stops retrying.
                 if (isDataSyncQuotaException(e)) {
-                    TelegramFgsQuota.markTimedOut()
+                    TelegramFgsQuota.markTimedOut(context.applicationContext)
                 }
                 Log.w(TAG, "Cannot start foreground bot service: ${LogRedactor.redact(e.message)}")
             }

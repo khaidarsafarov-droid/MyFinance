@@ -21,6 +21,7 @@ private val Context.settingsDataStore: DataStore<Preferences> by preferencesData
 
 private val KEY_FIRST_RUN = booleanPreferencesKey("is_first_run")
 private val KEY_TELEGRAM_CHAT_ID = longPreferencesKey("telegram_chat_id")
+private val KEY_TELEGRAM_CHAT_ID_LEGACY_CLAIMED = booleanPreferencesKey("telegram_chat_id_legacy_claimed")
 private val KEY_TELEGRAM_UPDATE_OFFSET = longPreferencesKey("telegram_last_update_offset")
 private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
 private val KEY_LANGUAGE = intPreferencesKey("app_language")
@@ -123,9 +124,14 @@ class SettingsDataStore(context: Context) {
             val key = longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}")
             val prefs = appContext.settingsDataStore.data.first()
             prefs[key]?.let { return it }
-            // One-shot migrate global chat id into this account.
+            // FIX: one-shot migrate — clear global so later accounts do not inherit the same chat
+            if (prefs[KEY_TELEGRAM_CHAT_ID_LEGACY_CLAIMED] == true) return null
             val legacy = prefs[KEY_TELEGRAM_CHAT_ID] ?: return null
-            saveTelegramChatId(legacy)
+            appContext.settingsDataStore.edit { editPrefs ->
+                editPrefs[key] = legacy
+                editPrefs.remove(KEY_TELEGRAM_CHAT_ID)
+                editPrefs[KEY_TELEGRAM_CHAT_ID_LEGACY_CLAIMED] = true
+            }
             return legacy
         }
         return telegramChatId.first()
@@ -154,7 +160,8 @@ class SettingsDataStore(context: Context) {
         if (userId != null) {
             val key = longPreferencesKey("telegram_last_update_offset_${AccountIds.sanitizeFilePart(userId)}")
             val scoped = appContext.settingsDataStore.data.first()[key]
-            if (scoped != null) return scoped
+            // FIX: never fall back to global offset — that skipped updates for new accounts
+            return scoped ?: 0L
         }
         return appContext.settingsDataStore.data.first()[KEY_TELEGRAM_UPDATE_OFFSET] ?: 0L
     }

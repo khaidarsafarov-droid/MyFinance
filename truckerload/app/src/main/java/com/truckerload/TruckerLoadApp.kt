@@ -74,6 +74,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         initializeCrashReporting()
+        // FIX: hydrate durable dataSync FGS pause before watchdog/boot can restart the bot
+        com.truckerload.sync.TelegramFgsQuota.init(this)
         appScope.launch(Dispatchers.IO) {
             val language = settingsDataStore.getLanguageOnce()
             SettingsDataStore.mirrorLanguageTag(this@TruckerLoadApp, language.tag)

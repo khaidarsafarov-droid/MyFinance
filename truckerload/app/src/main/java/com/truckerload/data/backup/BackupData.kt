@@ -14,6 +14,8 @@ import com.truckerload.domain.model.Paycheck
 data class BackupData(
     val version: Int = 1,
     val exportedAt: Long = System.currentTimeMillis(),
+    /** Owning TruckerLoad account id; restore refuses cross-account injection when set. */
+    val accountId: String? = null,
     val loads: List<Load> = emptyList(),
     val paychecks: List<Paycheck> = emptyList(),
     val diesel: List<Diesel> = emptyList()

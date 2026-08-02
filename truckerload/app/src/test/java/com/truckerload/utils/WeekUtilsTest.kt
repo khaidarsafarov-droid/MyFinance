@@ -39,6 +39,33 @@ class WeekUtilsTest {
     }
 
     @Test
+    fun `late December uses week-year of next calendar year`() {
+        // Sun–Sat: 2025-12-28 … 2026-01-03 is week 1 of week-year 2026
+        val dec28 = getWeekNumberAndYearFromDate("2025-12-28")
+        val jan1 = getWeekNumberAndYearFromDate("2026-01-01")
+        assertEquals(1, dec28.first)
+        assertEquals(2026, dec28.second)
+        assertEquals(dec28, jan1)
+        val (start, end, _) = getWeekRange(1, 2026)
+        assertEquals("2025-12-28", start)
+        assertEquals("2026-01-03", end)
+    }
+
+    @Test
+    fun `New Year Relay trip keeps multi-day duration`() {
+        val load = sampleLoad(
+            date = "2025-12-30",
+            puTime = "12/30 08:00 EST",
+            delTime = "01/02 18:00 EST",
+        )
+        val start = getFirstPickUpMillis(load)
+        val end = getLastDeliveryMillis(load)
+        assertNotNull(start)
+        assertNotNull(end)
+        assertTrue("DEL must be after PU across year boundary", end!! > start!!)
+    }
+
+    @Test
     fun `same-week Del keeps PU week`() {
         val load = sampleLoad(
             date = "2025-07-01",
