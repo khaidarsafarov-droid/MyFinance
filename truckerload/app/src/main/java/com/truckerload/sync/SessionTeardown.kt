@@ -1,6 +1,7 @@
 package com.truckerload.sync
 
 import android.content.Context
+import com.truckerload.data.preferences.AuthStore
 import kotlinx.coroutines.delay
 
 /**
@@ -17,7 +18,19 @@ object SessionTeardown {
         val app = context.applicationContext
         FriendsLocationShareService.stopForLogout(app)
         TelegramBotForegroundService.stopForLogout(app)
-        // FIX: brief settle so FGS stop intents are delivered before Room/auth teardown
         delay(300)
+    }
+
+    /**
+     * Full sign-out path shared by Settings, drawer, and [com.truckerload.data.repository.auth.AuthRepository].
+     */
+    suspend fun signOut(
+        context: Context,
+        authStore: AuthStore,
+        endSession: () -> Unit,
+    ) {
+        beforeLogout(context)
+        endSession()
+        authStore.logout()
     }
 }

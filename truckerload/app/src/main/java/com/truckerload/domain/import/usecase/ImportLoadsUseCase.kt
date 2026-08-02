@@ -1,5 +1,6 @@
 package com.truckerload.domain.import.usecase
 
+import android.util.Log
 import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.import.LoadValidator
 import com.truckerload.domain.import.model.ImportException
@@ -17,6 +18,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.LoadProcessor
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
+import com.truckerload.utils.CrashReporting
 import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,7 @@ class ImportLoadsUseCase(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     companion object {
+        private const val TAG = "ImportLoads"
         const val MAX_LOADS_PER_IMPORT = 100
         const val MAX_LOADS_PER_JSON_IMPORT = 500
         const val IMPORT_TIMEOUT_MS = 30_000L
@@ -48,8 +51,7 @@ class ImportLoadsUseCase(
             withTimeout(IMPORT_TIMEOUT_MS) {
                 val messageType = MessageTypeDetector.detect(rawInput)
                 val parser = parserFactory.getParser(messageType)
-                // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
-                val parsedLoads = ImportTripDedup.keepLatestByTripId(parser.parse(rawInput))
+                val parsedLoads = dedupeKeepingLatest(parser.parse(rawInput))
                 processParsedLoads(parsedLoads, startTime, onProgress)
             }
         } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
@@ -70,8 +72,7 @@ class ImportLoadsUseCase(
                 } else {
                     HtmlLoadParser()
                 }
-                // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
-                val parsedLoads = ImportTripDedup.keepLatestByTripId(parser.parse(htmlContent))
+                val parsedLoads = dedupeKeepingLatest(parser.parse(htmlContent))
                 processParsedLoads(
                     parsedLoads = parsedLoads,
                     startTime = startTime,
@@ -98,8 +99,7 @@ class ImportLoadsUseCase(
                         IllegalArgumentException("Not a Telegram JSON export"),
                     )
                 }
-                // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
-                val parsedLoads = ImportTripDedup.keepLatestByTripId(
+                val parsedLoads = dedupeKeepingLatest(
                     TelegramJsonExportParser().parse(jsonContent),
                 )
                 processParsedLoads(
@@ -114,6 +114,17 @@ class ImportLoadsUseCase(
         } catch (e: TimeoutCancellationException) { android.util.Log.w("TL", "import timeout", e);
             Result.failure(ImportException.Timeout(JSON_IMPORT_TIMEOUT_MS))
         }
+    }
+
+    private fun dedupeKeepingLatest(raw: List<Load>): List<Load> {
+        val parsedLoads = ImportTripDedup.keepLatestByTripId(raw)
+        val dropped = raw.size - parsedLoads.size
+        if (dropped > 0) {
+            // Stage3 monitoring breadcrumb: older Trip ID revisions discarded
+            Log.i(TAG, "import dedup dropped $dropped older Trip ID revision(s)")
+            CrashReporting.setCustomKey("import_dedup_dropped", dropped.toLong())
+        }
+        return parsedLoads
     }
 
     private suspend fun processParsedLoads(

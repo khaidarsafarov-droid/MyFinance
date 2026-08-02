@@ -308,7 +308,7 @@ private fun io.ktor.server.routing.Route.syncRoutes(
         put("/snapshot") {
             val user = call.authenticatedUser(repositories)
             // FIX: throttle large snapshot PUTs per user
-            call.requireRateLimit(ipRateLimiter, "sync-put:${user.id}")
+            call.requireRateLimit(ipRateLimiter, metrics, "sync-put")
             val sourceDeviceId = call.request.headers["X-Device-Id"]?.let(::validDeviceId)
             val incoming = call.receiveJson<AccountCloudSnapshot>(MAX_SNAPSHOT_BODY_BYTES)
             if (incoming.accountId != user.id.toString()) {
@@ -539,8 +539,7 @@ private suspend fun MediaRecord.toDownloadContract(
 
 private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dependencies: AppDependencies) {
     put("/v1/media/local-upload/{mediaId}") {
-        // FIX: rate-limit unauthenticated local upload endpoints
-        call.requireRateLimit(dependencies.mediaRateLimiter, "media-upload")
+        call.requireRateLimit(dependencies.mediaRateLimiter, dependencies.metrics, "media-upload")
         val receiver = dependencies.objectStorage as? LocalUploadReceiver
             ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
         val mediaId = uuid(call.parameters["mediaId"], "mediaId")
@@ -574,8 +573,7 @@ private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dep
 
 private fun io.ktor.server.routing.Route.localMediaDownload(config: AppConfig, dependencies: AppDependencies) {
     get("/v1/media/local-download/{mediaId}") {
-        // FIX: rate-limit unauthenticated local download endpoints
-        call.requireRateLimit(dependencies.mediaRateLimiter, "media-download")
+        call.requireRateLimit(dependencies.mediaRateLimiter, dependencies.metrics, "media-download")
         val receiver = dependencies.objectStorage as? LocalDownloadReceiver
             ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
         val mediaId = uuid(call.parameters["mediaId"], "mediaId")
@@ -644,8 +642,7 @@ private fun io.ktor.server.routing.Route.telegramWebhook(
     val repositories = dependencies.repositories
     val metrics = dependencies.metrics
     post("/v1/telegram/webhook") {
-        // FIX: throttle webhook brute-force / flood before secret check burns CPU
-        call.requireRateLimit(dependencies.ipRateLimiter, "telegram-webhook")
+        call.requireRateLimit(dependencies.ipRateLimiter, dependencies.metrics, "telegram-webhook")
         val supplied = call.request.headers["X-Telegram-Bot-Api-Secret-Token"]
         if (!constantTimeEquals(config.telegramWebhookSecret, supplied)) {
             metrics.recordTelegramRejected()
@@ -710,7 +707,11 @@ private fun ApplicationCall.authorizeMetrics(config: AppConfig) {
     }
 }
 
-private fun ApplicationCall.requireRateLimit(limiter: SlidingWindowRateLimiter, bucket: String) {
+private fun ApplicationCall.requireRateLimit(
+    limiter: SlidingWindowRateLimiter,
+    metrics: BackendMetrics,
+    bucket: String,
+) {
     val forwarded = request.headers["X-Forwarded-For"]
         ?.split(',')
         ?.firstOrNull()
@@ -718,6 +719,7 @@ private fun ApplicationCall.requireRateLimit(limiter: SlidingWindowRateLimiter, 
         .orEmpty()
     val host = forwarded.ifBlank { request.local.remoteHost.ifBlank { "unknown" } }
     if (!limiter.allow("$bucket:$host")) {
+        metrics.recordRateLimited(bucket)
         throw ApiException(HttpStatusCode.TooManyRequests, "rate_limited", "Too many requests")
     }
 }

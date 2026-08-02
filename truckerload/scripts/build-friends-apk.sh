@@ -40,6 +40,15 @@ if ! grep -q '^CLOUD_MEDIA_ENABLED=' local.properties; then
   echo 'CLOUD_MEDIA_ENABLED=false' >> local.properties
 fi
 
+# Stage3: never ship bot/AI secrets in friends APKs (release BuildConfig is empty;
+# also clear local.properties so a mistaken -PallowDebugSecrets cannot leak).
+if grep -q '^TELEGRAM_BOT_TOKEN=' local.properties; then
+  sed -i 's/^TELEGRAM_BOT_TOKEN=.*/TELEGRAM_BOT_TOKEN=/' local.properties
+fi
+if grep -q '^CEREBRAS_API_KEY=' local.properties; then
+  sed -i 's/^CEREBRAS_API_KEY=.*/CEREBRAS_API_KEY=/' local.properties
+fi
+
 # Non-secret Web client ID is required for Credential Manager Google Sign-In.
 DEFAULT_WEB_CLIENT_ID='842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com'
 if ! grep -q '^GOOGLE_WEB_CLIENT_ID=.\+' local.properties; then

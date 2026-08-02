@@ -530,10 +530,11 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            // FIX: also stop friends location FGS + clear presence before auth wipe
-                            com.truckerload.sync.SessionTeardown.beforeLogout(context)
-                            context.userComponentManager().endSession()
-                            authStore.logout()
+                            com.truckerload.sync.SessionTeardown.signOut(
+                                context = context,
+                                authStore = authStore,
+                                endSession = { context.userComponentManager().endSession() },
+                            )
                             showLogoutConfirm = false
                             android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()
                         }

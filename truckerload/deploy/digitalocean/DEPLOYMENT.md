@@ -87,7 +87,36 @@ deploy/digitalocean/telegram-webhook.sh status
 ```
 
 Check HTTP 5xx rate, request latency, snapshot stale ratio, Telegram rejection and
-duplicate rates, and FCM failure count before completing the change record.
+duplicate rates, rate-limit hits, and FCM failure count before completing the change record.
+
+## Edge rate limits (recommended)
+
+In-process `SlidingWindowRateLimiter` is a safety net only. Put CDN / App Platform /
+Cloudflare (or nginx) limits in front of the API:
+
+| Route | Suggested edge limit |
+|-------|----------------------|
+| `POST /v1/telegram/webhook` | 60 req/min/IP |
+| `PUT /v1/sync/snapshot` | 20 req/min/user (or IP) |
+| `PUT/GET /v1/media/local-*` | 30 req/min/IP |
+| Other `/v1/*` | 120 req/min/IP |
+
+Reject with HTTP 429 and keep origin `METRICS_BEARER_TOKEN` scrape private.
+
+## Monitoring alerts
+
+Scrape `/metrics` with `Authorization: Bearer <METRICS_BEARER_TOKEN>`. Suggested alerts:
+
+| Metric | Condition | Why |
+|--------|-----------|-----|
+| `truckerload_telegram_webhook_updates_total{result="rejected"}` | rate > 5/min for 5m | Webhook secret brute-force / misconfig |
+| `truckerload_http_rate_limited_total` | rate > 10/min for 5m | Abuse or need to raise edge limits |
+| `truckerload_snapshot_writes_total{result="accepted"}` | sudden spike | Account sync flood |
+| `truckerload_http_server_requests_seconds_count{status="5xx"}` | any sustained | Backend fault |
+| `truckerload_push_notification_failures_total` | rate > 1/min | FCM credentials / quota |
+
+Client breadcrumb (Crashlytics custom key when Firebase is configured):
+`import_dedup_dropped` — count of older Trip ID revisions discarded during import.
 
 ## Application rollback
 

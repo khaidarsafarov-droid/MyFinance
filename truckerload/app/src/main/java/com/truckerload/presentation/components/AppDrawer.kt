@@ -216,10 +216,11 @@ fun AppDrawerContent(
                 Button(
                     onClick = {
                         scope.launch {
-                            // FIX: also stop friends location FGS + clear presence before auth wipe
-                            SessionTeardown.beforeLogout(context)
-                            context.userComponentManager().endSession()
-                            authStore.logout()
+                            SessionTeardown.signOut(
+                                context = context,
+                                authStore = authStore,
+                                endSession = { context.userComponentManager().endSession() },
+                            )
                             showLogoutConfirm = false
                             onClose()
                             Toast.makeText(
