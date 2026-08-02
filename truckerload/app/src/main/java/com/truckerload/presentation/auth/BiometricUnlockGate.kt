@@ -27,6 +27,7 @@ import androidx.fragment.app.FragmentActivity
 import com.truckerload.R
 import com.truckerload.data.preferences.BiometricUnlockStore
 import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 
@@ -137,13 +138,9 @@ fun BiometricUnlockGate(
             Button(onClick = { launchPrompt() }) {
                 Text(stringResource(R.string.biometric_unlock_retry))
             }
+            TextButton(onClick = { markUnlocked() }) {
+                Text(stringResource(R.string.biometric_unlock_skip))
+            }
         }
     }
-}
-
-fun offerBiometricAfterEmailLogin(context: Context): Boolean {
-    if (!canUseBiometricUnlock(context)) return false
-    BiometricUnlockStore(context).setEnabled(true)
-    BiometricSession.unlockedThisProcess = true
-    return true
 }

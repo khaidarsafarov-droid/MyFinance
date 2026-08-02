@@ -18,7 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +66,16 @@ fun SwipeableLoadCard(
     )
     LaunchedEffect(settleKey, load.id) {
         dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+    }
+    var swipeHapticFired by remember(load.id, settleKey) { mutableStateOf(false) }
+    LaunchedEffect(dismissState.progress) {
+        if (dismissState.progress > 0.35f && !swipeHapticFired) {
+            swipeHapticFired = true
+            FeedbackManager.onSwipeAction()
+        }
+        if (dismissState.progress < 0.05f) {
+            swipeHapticFired = false
+        }
     }
     val showDeleteBackground = dismissState.progress > 0.02f
 
