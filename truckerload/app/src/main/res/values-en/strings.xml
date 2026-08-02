@@ -1142,4 +1142,31 @@
 <string name="pickup_alarm_skip">No thanks</string>
 <string name="pickup_alarm_title">Pickup reminder</string>
 <string name="pickup_alarm_two_hours">2 hours before pickup</string>
+
+    <!-- UX psychology: smart defaults, goal gradient, reciprocity, IKEA, loss aversion, contrast -->
+    <string name="ux_activation_title">Get started this week</string>
+    <string name="ux_activation_progress">%1$d of %2$d · %3$d%% — already underway</string>
+    <string name="ux_activation_step_account">Account created</string>
+    <string name="ux_activation_step_profile">Profile completed</string>
+    <string name="ux_activation_step_load">First load added</string>
+    <string name="ux_activation_step_goal">Weekly goal set</string>
+    <string name="ux_activation_step_diesel">Diesel logged</string>
+    <string name="ux_loss_goal_behind">At risk: %1$s still needed · %2$d days left</string>
+    <string name="ux_loss_goal_unset">You earned %1$s without a target — set a goal so you don’t lose the week’s pace</string>
+    <string name="ux_loss_no_loads">No loads this week — every idle day pushes the goal farther away</string>
+    <string name="ux_loss_goal_behind_title">Goal at risk</string>
+    <string name="ux_loss_goal_behind_body">You could miss %1$s of your goal. %2$d days left · need %3$s/day</string>
+    <string name="ux_contrast_diesel_of_gross">Gross %1$s · diesel %2$s (%3$s%% of gross)</string>
+    <string name="ux_contrast_remaining_of_goal">%1$s of %2$s earned · %3$s still to go</string>
+    <string name="ux_smart_default_last_amount">Same as last time: %1$s</string>
+    <string name="ux_goal_suggested_label">Pick your goal</string>
+    <string name="ux_goal_ownership_hint">Set your weekly goal — the journal becomes your plan, not an empty screen</string>
+    <string name="ux_profile_setup_progress">Setup progress: %1$d%%</string>
+    <string name="ux_home_empty_reciprocity">Paste a Relay message — see rate, miles, and RPM before you save</string>
+    <string name="add_load_preview_title">Load preview</string>
+    <string name="add_load_preview_gift">Already parsed — save so you don’t lose it</string>
+    <string name="add_load_preview_parsing">Reading message…</string>
+    <string name="add_load_preview_incomplete">Still missing data (Total Rate and address). Edit the text above.</string>
+    <string name="add_load_preview_trip">Trip: %1$s</string>
+    <string name="add_load_save_with_preview">Save %1$s · %2$s mi</string>
 </resources>

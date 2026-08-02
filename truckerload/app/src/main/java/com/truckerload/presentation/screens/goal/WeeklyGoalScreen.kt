@@ -151,13 +151,39 @@ fun WeeklyGoalScreen() {
                 goalInput = uiState.goalInput,
                 goalError = uiState.goalError,
                 isSavingGoal = uiState.isSavingGoal,
+                suggestedGoals = uiState.suggestedGoals,
                 onStartEdit = viewModel::startEditingGoal,
                 onGoalInputChange = viewModel::onGoalInputChange,
                 onSaveGoal = viewModel::saveGoal,
-                onCancelEdit = viewModel::cancelEditingGoal
+                onCancelEdit = viewModel::cancelEditingGoal,
+                onSuggestedGoal = viewModel::applySuggestedGoal,
             )
 
+            if (progress.targetAmount <= 0) {
+                Text(
+                    text = stringResource(R.string.ux_goal_ownership_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LocalTruckColors.current.TextSecondary,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
+
             PaceInsightCard(progress = progress)
+
+            if (progress.targetAmount > 0 && progress.remainingAmount > 0) {
+                Text(
+                    text = stringResource(
+                        R.string.ux_contrast_remaining_of_goal,
+                        MoneyFormat.formatCurrency(progress.currentGross),
+                        MoneyFormat.formatCurrency(progress.targetAmount),
+                        MoneyFormat.formatCurrency(progress.remainingAmount),
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LocalTruckColors.current.TextPrimary,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
 
             if (progress.loadsCount > 0) {
                 Text(
@@ -187,10 +213,12 @@ private fun GoalHeroCard(
     goalInput: String,
     goalError: String?,
     isSavingGoal: Boolean,
+    suggestedGoals: List<Double> = emptyList(),
     onStartEdit: () -> Unit,
     onGoalInputChange: (String) -> Unit,
     onSaveGoal: () -> Unit,
-    onCancelEdit: () -> Unit
+    onCancelEdit: () -> Unit,
+    onSuggestedGoal: (Double) -> Unit = {},
 ) {
     val cs = MaterialTheme.colorScheme
     BentoGlassCard(
@@ -255,6 +283,27 @@ private fun GoalHeroCard(
                 colors = AppTextFieldDefaults.outlined(),
                 singleLine = true
             )
+            if (suggestedGoals.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.ux_goal_suggested_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = cs.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    suggestedGoals.take(3).forEach { amount ->
+                        OutlinedButton(
+                            onClick = { onSuggestedGoal(amount) },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(MoneyFormat.formatCurrency(amount), maxLines = 1)
+                        }
+                    }
+                }
+            }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -422,11 +471,12 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
             FinanceCockpitColors.SalaryAccent,
         )
         PaceStatus.BEHIND -> Triple(
-            stringResource(R.string.goal_pace_behind_title),
+            stringResource(R.string.ux_loss_goal_behind_title),
             stringResource(
-                R.string.goal_pace_behind_short,
-                MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
+                R.string.ux_loss_goal_behind_body,
                 MoneyFormat.formatCurrency(progress.remainingAmount),
+                progress.daysRemainingInWeek,
+                MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
             ),
             tc.AccentWarning,
         )

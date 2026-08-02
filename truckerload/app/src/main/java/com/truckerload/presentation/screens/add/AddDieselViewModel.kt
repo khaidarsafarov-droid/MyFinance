@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.utils.AmountInputValidator
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import java.util.Locale
 
 data class AddDieselUiState(
     val amountText: String = "",
@@ -32,12 +34,14 @@ data class AddDieselUiState(
     val error: String? = null,
     val saved: Boolean = false,
     val showSaveDialog: Boolean = false,
+    val lastAmount: Double? = null,
 )
 
 @HiltViewModel
 class AddDieselViewModel @Inject constructor(
     application: Application,
     private val dieselRepository: DieselRepository,
+    private val lastUsedDefaultsStore: LastUsedDefaultsStore,
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
@@ -50,6 +54,7 @@ class AddDieselViewModel @Inject constructor(
             weekNumber = savedStateHandle[KEY_WEEK_NUMBER] ?: initialWeekAndYear.first,
             year = savedStateHandle[KEY_YEAR] ?: initialWeekAndYear.second,
             showSaveDialog = savedStateHandle[KEY_SHOW_SAVE_DIALOG] ?: false,
+            lastAmount = lastUsedDefaultsStore.lastDieselAmount.value,
         ),
     )
     val uiState: StateFlow<AddDieselUiState> = _uiState.asStateFlow()
@@ -58,6 +63,16 @@ class AddDieselViewModel @Inject constructor(
         savedStateHandle[KEY_AMOUNT_TEXT] = value
         _uiState.update { it.copy(amountText = value, error = null) }
     }
+
+    fun applyLastAmount() {
+        val last = _uiState.value.lastAmount ?: return
+        val text = formatAmount(last)
+        setAmountText(text)
+    }
+
+    private fun formatAmount(amount: Double): String =
+        if (amount % 1.0 == 0.0) amount.toLong().toString()
+        else String.format(Locale.US, "%.2f", amount)
 
     fun selectPreviousWeek() {
         val state = _uiState.value
@@ -159,6 +174,7 @@ class AddDieselViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     dieselRepository.insertDiesel(diesel)
                 }
+                lastUsedDefaultsStore.saveDieselAmount(amount)
                 savedStateHandle[KEY_AMOUNT_TEXT] = ""
                 savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
                 savedStateHandle[KEY_YEAR] = year
@@ -171,6 +187,7 @@ class AddDieselViewModel @Inject constructor(
                         isSaving = false,
                         saved = true,
                         showSaveDialog = false,
+                        lastAmount = amount,
                     )
                 }
             } catch (e: Exception) {
