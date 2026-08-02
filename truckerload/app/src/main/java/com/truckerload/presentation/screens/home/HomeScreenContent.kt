@@ -185,7 +185,25 @@ internal fun HomeScreenContent(
                 )
             }
 
-            if (uiState.filter != LoadFilter.THIS_WEEK) {
+            if (uiState.filter == LoadFilter.THIS_WEEK) {
+                item(key = "week_hero") {
+                    val progress = if (weeklyGoal > 0) {
+                        (weekTotals.totalRate / weeklyGoal).toFloat().coerceIn(0f, 1f)
+                    } else {
+                        0f
+                    }
+                    val rpm = weekTotals.totalMiles.takeIf { it > 0 }?.let {
+                        weekTotals.totalRate / it
+                    }
+                    HomeWeekHeroCard(
+                        gross = weekTotals.totalRate,
+                        goal = weeklyGoal,
+                        progressPercent = progress * 100f,
+                        rpm = rpm,
+                        onClick = onWeeklyGoal,
+                    )
+                }
+            } else {
                 periodSummary?.let { summary ->
                     item(key = "period_summary_${summary.label}") {
                         PeriodSummarySection(

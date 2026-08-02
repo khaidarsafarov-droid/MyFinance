@@ -77,6 +77,7 @@ class TelegramBotForegroundService : Service() {
             stopQuietly(restart = false)
             return START_NOT_STICKY
         }
+
         setupBotFeaturesOnce(token)
         if (pollJob?.isActive != true) {
             TelegramPollCoordinator.markForegroundPolling(true)
@@ -105,8 +106,8 @@ class TelegramBotForegroundService : Service() {
     private fun stopQuietly(restart: Boolean) {
         suppressRestart = !restart
         startRequested.set(false)
-        pollJob?.cancel()
         isRunningFlag.set(false)
+        pollJob?.cancel()
         TelegramPollCoordinator.markForegroundPolling(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -272,6 +273,15 @@ class TelegramBotForegroundService : Service() {
             // Already alive or start already in flight — avoid startForegroundService spam.
             if (isRunningFlag.get() || TelegramPollCoordinator.isForegroundPolling()) return
             if (!startRequested.compareAndSet(false, true)) return
+            val userId = AuthStore(context).currentUserIdOrNull()
+            if (userId == null) {
+                startRequested.set(false)
+                return
+            }
+            if (TelegramTokenStore(context, userId).getToken().isBlank()) {
+                startRequested.set(false)
+                return
+            }
             suppressRestart = false
             val intent = Intent(context, TelegramBotForegroundService::class.java)
             try {
