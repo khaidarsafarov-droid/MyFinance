@@ -84,7 +84,10 @@ internal fun HomeScreenContent(
     useRoomPaging: Boolean,
     pagedLoads: LazyPagingItems<Load>,
     onLoadClick: (String) -> Unit,
+    onAddLoad: () -> Unit,
     onWeeklyGoal: () -> Unit,
+    onAddDiesel: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     context: Context,
     onOpenCalendar: () -> Unit,
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit,
@@ -172,6 +175,15 @@ internal fun HomeScreenContent(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
+            }
+
+            item(key = "ux_motivators") {
+                HomeUxMotivators(
+                    onAddLoad = onAddLoad,
+                    onWeeklyGoal = onWeeklyGoal,
+                    onAddDiesel = onAddDiesel,
+                    onOpenProfile = onOpenProfile,
+                )
             }
 
             if (uiState.filter == LoadFilter.THIS_WEEK) {
@@ -269,7 +281,7 @@ internal fun HomeScreenContent(
                             )
                             Text(
                                 if (uiState.filter == LoadFilter.ALL) {
-                                    stringResource(R.string.home_empty_all_body)
+                                    stringResource(R.string.ux_home_empty_reciprocity)
                                 } else {
                                     stringResource(R.string.home_empty_filtered_body)
                                 },

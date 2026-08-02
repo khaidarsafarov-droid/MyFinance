@@ -64,6 +64,7 @@ fun HomeScreen(
     onCamera: () -> Unit = {},
     onScan: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
 ) {
@@ -273,7 +274,10 @@ fun HomeScreen(
                         useRoomPaging = useRoomPaging,
                         pagedLoads = pagedLoads,
                         onLoadClick = onLoadClick,
+                        onAddLoad = onAddLoad,
                         onWeeklyGoal = onWeeklyGoal,
+                        onAddDiesel = onAddDiesel,
+                        onOpenProfile = onOpenProfile,
                         context = context,
                         onOpenCalendar = { openCalendarDialog() },
                         onLoadCamera = onLoadCamera,

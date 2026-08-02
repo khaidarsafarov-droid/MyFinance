@@ -1175,4 +1175,31 @@
 <string name="pickup_alarm_skip">Не нужно</string>
 <string name="pickup_alarm_title">Напоминание о погрузке</string>
 <string name="pickup_alarm_two_hours">За 2 часа до погрузки</string>
+
+    <!-- UX psychology: smart defaults, goal gradient, reciprocity, IKEA, loss aversion, contrast -->
+    <string name="ux_activation_title">Старт недели</string>
+    <string name="ux_activation_progress">%1$d из %2$d · %3$d%% — уже есть прогресс</string>
+    <string name="ux_activation_step_account">Аккаунт создан</string>
+    <string name="ux_activation_step_profile">Профиль заполнен</string>
+    <string name="ux_activation_step_load">Первый груз добавлен</string>
+    <string name="ux_activation_step_goal">Недельная цель задана</string>
+    <string name="ux_activation_step_diesel">Дизель учтён</string>
+    <string name="ux_loss_goal_behind">Под угрозой: ещё %1$s до цели · осталось %2$d дн.</string>
+    <string name="ux_loss_goal_unset">Уже заработано %1$s без цели — задайте план, чтобы не потерять темп</string>
+    <string name="ux_loss_no_loads">Неделя без грузов — каждый день без рейса отдаляет от цели</string>
+    <string name="ux_loss_goal_behind_title">Риск сорвать цель</string>
+    <string name="ux_loss_goal_behind_body">Можно потерять %1$s до цели. Осталось %2$d дн. · нужно %3$s/день</string>
+    <string name="ux_contrast_diesel_of_gross">Гросс %1$s · дизель %2$s (%3$s%% от гросса)</string>
+    <string name="ux_contrast_remaining_of_goal">Уже %1$s из %2$s · осталось заработать %3$s</string>
+    <string name="ux_smart_default_last_amount">Как в прошлый раз: %1$s</string>
+    <string name="ux_goal_suggested_label">Выберите свою цель</string>
+    <string name="ux_goal_ownership_hint">Задайте свою недельную цель — журнал станет вашим планом, а не пустым экраном</string>
+    <string name="ux_profile_setup_progress">Прогресс настройки: %1$d%%</string>
+    <string name="ux_home_empty_reciprocity">Вставьте сообщение Relay — сразу увидите сумму, мили и RPM, ещё до сохранения</string>
+    <string name="add_load_preview_title">Предпросмотр груза</string>
+    <string name="add_load_preview_gift">Уже распознано — сохраните, чтобы не потерять</string>
+    <string name="add_load_preview_parsing">Читаем сообщение…</string>
+    <string name="add_load_preview_incomplete">Пока не хватает данных (Total Rate и адрес). Можно править текст выше.</string>
+    <string name="add_load_preview_trip">Trip: %1$s</string>
+    <string name="add_load_save_with_preview">Сохранить %1$s · %2$s mi</string>
 </resources>

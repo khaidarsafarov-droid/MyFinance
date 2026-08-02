@@ -63,6 +63,7 @@ import com.truckerload.presentation.di.LocalStatsSelectionStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.di.LocalWeekRepository
+import com.truckerload.presentation.di.LocalLastUsedDefaultsStore
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
@@ -258,6 +259,7 @@ class MainActivity : AppCompatActivity() {
                                     LocalSelectedStateStore provides deps.selectedStateStore,
                                     LocalStatsSelectionStore provides deps.statsSelectionStore,
                                     LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
+                                    LocalLastUsedDefaultsStore provides deps.lastUsedDefaultsStore,
                                     LocalAnalyticsRepository provides deps.analyticsRepository,
                                     LocalPhotoRepository provides deps.photoRepository,
                                     LocalScanRepository provides deps.scanRepository,

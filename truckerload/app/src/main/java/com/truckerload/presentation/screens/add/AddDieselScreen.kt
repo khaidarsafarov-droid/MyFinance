@@ -50,10 +50,10 @@ import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.getWeekRange
 import java.util.Calendar
-import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,6 +224,20 @@ fun AddDieselScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = AppTextFieldDefaults.outlined(),
                     )
+                    val last = uiState.lastAmount
+                    if (last != null && uiState.amountText.isBlank()) {
+                        TextButton(
+                            onClick = viewModel::applyLastAmount,
+                            modifier = Modifier.padding(top = 4.dp),
+                        ) {
+                            Text(
+                                stringResource(
+                                    R.string.ux_smart_default_last_amount,
+                                    MoneyFormat.formatCurrency(last),
+                                ),
+                            )
+                        }
+                    }
                 }
             }
             Button(
