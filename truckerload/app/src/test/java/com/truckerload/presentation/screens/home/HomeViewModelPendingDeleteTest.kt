@@ -66,16 +66,14 @@ class HomeViewModelPendingDeleteTest {
     fun requestDeleteLoad_setsUndoDeleteLoadId() {
         viewModel.requestDeleteLoad("load-1")
         assertEquals("load-1", viewModel.undoDeleteLoadId.value)
-        assertNull(viewModel.pendingDeleteConfirmId.value)
-        assertTrue(deletedIds.isEmpty())
+                assertTrue(deletedIds.isEmpty())
     }
 
     @Test
     fun requestDeleteLoad_blank_isIgnored() {
         viewModel.requestDeleteLoad("  ")
         assertNull(viewModel.undoDeleteLoadId.value)
-        assertNull(viewModel.pendingDeleteConfirmId.value)
-    }
+            }
 
     @Test
     fun undoDeleteLoad_clearsPendingAndBumpsSwipeGeneration() {
@@ -105,7 +103,7 @@ class HomeViewModelPendingDeleteTest {
     fun dismissDeleteLoad_undoesPendingDelete() {
         viewModel.requestDeleteLoad("load-1")
         viewModel.dismissDeleteLoad()
-        assertNull(viewModel.pendingUndoDeleteId.value)
+        assertNull(viewModel.undoDeleteLoadId.value)
         assertTrue(deletedIds.isEmpty())
     }
 

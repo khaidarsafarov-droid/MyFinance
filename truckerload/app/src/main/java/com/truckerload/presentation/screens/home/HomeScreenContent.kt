@@ -98,6 +98,7 @@ internal fun HomeScreenContent(
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
+    val pendingDeleteIds by viewModel.pendingDeleteIds.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     LaunchedEffect(deleteError) {
         val msg = deleteError ?: return@LaunchedEffect

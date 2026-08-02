@@ -27,14 +27,14 @@ object FeedbackManager {
   fun onSwipeAction() {
     val ctx = appContext ?: return
     mainHandler.post {
-      VibrationManager.lightTap(ctx)
+      VibrationManager.vibrateTick(ctx)
     }
   }
 
   fun onNavTap() {
     val ctx = appContext ?: return
     mainHandler.post {
-      VibrationManager.lightTap(ctx)
+      VibrationManager.vibrateTick(ctx)
     }
   }
 

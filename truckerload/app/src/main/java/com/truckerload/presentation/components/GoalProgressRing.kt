@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.truckerload.presentation.theme.MotionPreferences
+import com.truckerload.presentation.theme.LocalReduceMotion
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -42,7 +42,7 @@ fun GoalProgressRing(
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
-    val motionMs = if (MotionPreferences.reduceMotion) 0 else 500
+    val motionMs = if (LocalReduceMotion.current) 0 else 500
     val animatedProgress by animateFloatAsState(
         targetValue = if (animate) progressPercent.coerceIn(0f, 100f) else progressPercent,
         animationSpec = tween(durationMillis = motionMs),

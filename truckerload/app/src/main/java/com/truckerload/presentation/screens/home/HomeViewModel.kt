@@ -340,7 +340,6 @@ class HomeViewModel @Inject constructor(
             commitPendingDelete(previous)
         }
         undoDeleteJob?.cancel()
-        _pendingDeleteConfirmId.value = null
         _optimisticOverlay.update { it - loadId }
         _pendingDeleteIds.update { it + loadId }
         _undoDeleteLoadId.value = loadId
@@ -360,7 +359,6 @@ class HomeViewModel @Inject constructor(
     }
 
     fun dismissDeleteLoad() {
-        _pendingDeleteConfirmId.value = null
         undoDeleteLoad()
     }
 
@@ -370,8 +368,7 @@ class HomeViewModel @Inject constructor(
 
     /** Kept for call sites that previously confirmed a dialog — commits immediately. */
     fun confirmDeleteLoad() {
-        val loadId = _pendingDeleteConfirmId.value ?: _undoDeleteLoadId.value ?: return
-        _pendingDeleteConfirmId.value = null
+        val loadId = _undoDeleteLoadId.value ?: return
         commitPendingDelete(loadId)
     }
 
