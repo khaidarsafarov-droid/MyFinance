@@ -195,12 +195,23 @@ class MainActivity : AppCompatActivity() {
             val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(
                 initialValue = AppThemeMode.SYSTEM,
             )
+            val oledDark by settingsDataStore.oledDark.collectAsStateWithLifecycle(
+                initialValue = false,
+            )
+            val reduceMotionPref by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(
+                initialValue = false,
+            )
             val darkTheme = when (themeMode) {
                 AppThemeMode.DARK -> true
                 AppThemeMode.LIGHT -> false
                 AppThemeMode.SYSTEM -> isSystemInDarkTheme()
             }
-            TruckerLoadTheme(darkTheme = darkTheme, themeMode = themeMode) {
+            TruckerLoadTheme(
+                darkTheme = darkTheme,
+                themeMode = themeMode,
+                oledDark = oledDark,
+                reduceMotion = reduceMotionPref,
+            ) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     when {
                         !sessionReady -> {

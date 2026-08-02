@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -52,11 +51,12 @@ import androidx.paging.compose.itemKey
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.HomeWeekHeroCard
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.SwipeableLoadCard
-import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
@@ -76,6 +76,8 @@ internal fun HomeScreenContent(
     searchQuery: String,
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
+    weekTotals: LoadFilterUseCase.Totals,
+    weeklyGoal: Double,
     rpmThresholds: RpmThresholds,
     viewModel: HomeViewModel,
     filteredLoads: List<Load>,
@@ -95,7 +97,6 @@ internal fun HomeScreenContent(
     var showYearSelector by remember { mutableStateOf(false) }
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val pendingDeleteId by viewModel.pendingDeleteConfirmId.collectAsStateWithLifecycle()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     LaunchedEffect(deleteError) {
@@ -185,25 +186,45 @@ internal fun HomeScreenContent(
                 )
             }
 
-            periodSummary?.let { summary ->
-                item(key = "period_summary_${summary.label}") {
-                    PeriodSummarySection(
-                        header = summary,
-                        currentFilter = uiState.filter,
-                        selectedYear = uiState.selectedYear,
-                        selectedDateLabel = uiState.selectedDateLabel,
-                        selectedWeekLabel = uiState.selectedWeekLabel,
-                        onFilterSelected = viewModel::setFilter,
-                        onOpenCalendar = onOpenCalendar,
-                        onOpenArchive = {
-                            viewModel.setFilter(LoadFilter.ALL)
-                            showYearSelector = true
-                        },
+            if (uiState.filter == LoadFilter.THIS_WEEK) {
+                item(key = "week_hero") {
+                    val progress = if (weeklyGoal > 0) {
+                        (weekTotals.totalRate / weeklyGoal).toFloat().coerceIn(0f, 1f)
+                    } else {
+                        0f
+                    }
+                    val rpm = weekTotals.totalMiles.takeIf { it > 0 }?.let {
+                        weekTotals.totalRate / it
+                    }
+                    HomeWeekHeroCard(
+                        gross = weekTotals.totalRate,
+                        goal = weeklyGoal,
+                        progressPercent = progress * 100f,
+                        rpm = rpm,
+                        onClick = onWeeklyGoal,
                     )
+                }
+            } else {
+                periodSummary?.let { summary ->
+                    item(key = "period_summary_${summary.label}") {
+                        PeriodSummarySection(
+                            header = summary,
+                            currentFilter = uiState.filter,
+                            selectedYear = uiState.selectedYear,
+                            selectedDateLabel = uiState.selectedDateLabel,
+                            selectedWeekLabel = uiState.selectedWeekLabel,
+                            onFilterSelected = viewModel::setFilter,
+                            onOpenCalendar = onOpenCalendar,
+                            onOpenArchive = {
+                                viewModel.setFilter(LoadFilter.ALL)
+                                showYearSelector = true
+                            },
+                        )
+                    }
                 }
             }
 
-            if (periodSummary == null) {
+            if (periodSummary == null || uiState.filter == LoadFilter.THIS_WEEK) {
                 item(key = "period_filter") {
                     HomePeriodFilterDropdown(
                         currentFilter = uiState.filter,
@@ -217,25 +238,6 @@ internal fun HomeScreenContent(
                             showYearSelector = true
                         },
                         modifier = Modifier.padding(bottom = 4.dp),
-                    )
-                }
-            }
-
-            item(key = "add_load_button") {
-                TlButton(
-                    onClick = onAddLoad,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.home_add_load_button),
-                        modifier = Modifier.padding(start = 8.dp),
                     )
                 }
             }
@@ -363,24 +365,6 @@ internal fun HomeScreenContent(
         }
         }
         }
-
-    if (pendingDeleteId != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissDeleteLoad,
-            title = { Text(stringResource(R.string.load_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.load_delete_confirm_message)) },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmDeleteLoad) {
-                    Text(stringResource(R.string.common_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissDeleteLoad) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
-        )
-    }
     }
 }
 

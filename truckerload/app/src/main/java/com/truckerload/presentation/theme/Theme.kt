@@ -46,42 +46,48 @@ private fun staticLightColorScheme(): ColorScheme = lightColorScheme(
     outlineVariant = SoftUiColors.SageBorder,
 )
 
-private fun staticDarkColorScheme(): ColorScheme = darkColorScheme(
-    primary = SoftUiColors.ForestAccent,
-    onPrimary = Color.White,
-    primaryContainer = SoftUiColors.SurfaceMutedDark,
-    onPrimaryContainer = SoftUiColors.Sage,
-    secondary = SoftUiColors.ForestSoft,
-    onSecondary = SoftUiColors.BackgroundDark,
-    secondaryContainer = SoftUiColors.SurfaceMutedDark,
-    onSecondaryContainer = SoftUiColors.Sage,
-    tertiary = SoftUiColors.ForestSoft,
-    onTertiary = SoftUiColors.BackgroundDark,
-    tertiaryContainer = SoftUiColors.SurfaceMutedDark,
-    onTertiaryContainer = SoftUiColors.Sage,
-    error = Color(0xFFF87171),
-    onError = Color(0xFF450A0A),
-    background = SoftUiColors.BackgroundDark,
-    onBackground = SoftUiColors.TextPrimaryDark,
-    surface = SoftUiColors.SurfaceDark,
-    onSurface = SoftUiColors.TextPrimaryDark,
-    surfaceVariant = SoftUiColors.SurfaceMutedDark,
-    onSurfaceVariant = SoftUiColors.TextSecondaryDark,
-    outline = Color(0x33FFFFFF),
-    outlineVariant = Color(0x1AFFFFFF),
-)
+private fun staticDarkColorScheme(oled: Boolean): ColorScheme {
+    val background = if (oled) SoftUiColors.BackgroundOled else SoftUiColors.BackgroundDark
+    val surface = if (oled) SoftUiColors.SurfaceOled else SoftUiColors.SurfaceDark
+    val surfaceVariant = if (oled) SoftUiColors.SurfaceMutedOled else SoftUiColors.SurfaceMutedDark
+    return darkColorScheme(
+        primary = SoftUiColors.ForestAccent,
+        onPrimary = Color.White,
+        primaryContainer = surfaceVariant,
+        onPrimaryContainer = SoftUiColors.Sage,
+        secondary = SoftUiColors.ForestSoft,
+        onSecondary = background,
+        secondaryContainer = surfaceVariant,
+        onSecondaryContainer = SoftUiColors.Sage,
+        tertiary = SoftUiColors.ForestSoft,
+        onTertiary = background,
+        tertiaryContainer = surfaceVariant,
+        onTertiaryContainer = SoftUiColors.Sage,
+        error = Color(0xFFF87171),
+        onError = Color(0xFF450A0A),
+        background = background,
+        onBackground = SoftUiColors.TextPrimaryDark,
+        surface = surface,
+        onSurface = SoftUiColors.TextPrimaryDark,
+        surfaceVariant = surfaceVariant,
+        onSurfaceVariant = SoftUiColors.TextSecondaryDark,
+        outline = Color(0x33FFFFFF),
+        outlineVariant = Color(0x1AFFFFFF),
+    )
+}
 
 @Composable
 private fun resolveColorScheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
+    oledDark: Boolean,
 ): ColorScheme {
     val context = LocalContext.current
     return when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> staticDarkColorScheme()
+        darkTheme -> staticDarkColorScheme(oled = oledDark)
         else -> staticLightColorScheme()
     }
 }
@@ -94,9 +100,13 @@ fun TruckerLoadTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
     dynamicColor: Boolean = false,
+    oledDark: Boolean = false,
+    reduceMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = resolveColorScheme(darkTheme, dynamicColor)
+    val systemReduceMotion = rememberSystemReduceMotion()
+    val effectiveReduceMotion = reduceMotion || systemReduceMotion
+    val colorScheme = resolveColorScheme(darkTheme, dynamicColor, oledDark = oledDark && darkTheme)
     val truckColors = truckPaletteFrom(colorScheme)
 
     val view = LocalView.current
@@ -105,7 +115,7 @@ fun TruckerLoadTheme(
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
             val barColor = if (darkTheme) {
-                SoftUiColors.BackgroundDark
+                if (oledDark) SoftUiColors.BackgroundOled else SoftUiColors.BackgroundDark
             } else {
                 SoftUiColors.Sage
             }
@@ -126,6 +136,8 @@ fun TruckerLoadTheme(
         LocalTruckColors provides truckColors,
         LocalAppThemeMode provides themeMode,
         LocalDynamicColorEnabled provides dynamicColor,
+        LocalReduceMotion provides effectiveReduceMotion,
+        LocalOledDarkEnabled provides (oledDark && darkTheme),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -139,3 +151,5 @@ fun TruckerLoadTheme(
 val LocalAppThemeMode = compositionLocalOf { AppThemeMode.SYSTEM }
 
 val LocalDynamicColorEnabled = compositionLocalOf { true }
+
+val LocalOledDarkEnabled = compositionLocalOf { false }
