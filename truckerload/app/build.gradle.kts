@@ -58,6 +58,10 @@ android {
             .equals("true", ignoreCase = true)
         buildConfigField("boolean", "CLOUD_MEDIA_ENABLED", cloudMediaEnabled.toString())
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
+        val googleMapsApiKey = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
         // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
         // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a

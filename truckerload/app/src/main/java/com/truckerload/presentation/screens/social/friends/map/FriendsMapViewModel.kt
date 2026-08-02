@@ -14,6 +14,7 @@ import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.RouteIntersectionMatcher
 import com.truckerload.domain.friends.RouteOverlapMatch
+import com.truckerload.domain.friends.RoadRouteResolver
 import com.truckerload.domain.friends.SharedLoadStatus
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
@@ -37,6 +38,7 @@ class FriendsMapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
+    private val roadRouteResolver: RoadRouteResolver,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -211,11 +213,15 @@ class FriendsMapViewModel @Inject constructor(
                 val overlays = presence.map { p ->
                     val route = byUser[p.userId]
                     val show = p.userId in showPathFor
+                    val current = LatLngPoint(p.latitude, p.longitude)
                     val split = if (show && route != null) {
-                        FriendRoutePolylineBuilder.split(
-                            route,
-                            LatLngPoint(p.latitude, p.longitude),
+                        val base = FriendRoutePolylineBuilder.split(route, current)
+                        val remaining = roadRouteResolver.enrichRemaining(
+                            split = base,
+                            current = current,
+                            cacheKey = "friend:${p.userId}",
                         )
+                        base.copy(remaining = remaining)
                     } else {
                         FriendRoutePolylineBuilder.SplitPolylines(emptyList(), emptyList())
                     }
@@ -297,11 +303,16 @@ class FriendsMapViewModel @Inject constructor(
             trackPoints = emptyList(),
         )
         val split = FriendRoutePolylineBuilder.split(route, myLocationPoint)
+        val remaining = roadRouteResolver.enrichRemaining(
+            split = split,
+            current = myLocationPoint,
+            cacheKey = "me:${load.id}",
+        )
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
             .joinToString(" → ")
             .ifBlank { null }
-        MyPathDraw(past = split.past, remaining = split.remaining, summary = summary)
+        MyPathDraw(past = split.past, remaining = remaining, summary = summary)
     }
 
     private suspend fun geocodeLoadEndpoint(load: Load, isOrigin: Boolean): LatLngPoint? {

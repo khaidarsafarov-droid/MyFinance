@@ -56,6 +56,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.sync.FriendsLocationShareService
 import com.truckerload.utils.LocationHelper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +95,15 @@ fun FriendsLiveMapScreen(
             return@LaunchedEffect
         }
         refreshMyLocation()
+    }
+
+    // Poll GPS while the map screen is open so the route re-draws when the driver moves or deviates.
+    LaunchedEffect(hasLocationPermission) {
+        if (!hasLocationPermission) return@LaunchedEffect
+        while (true) {
+            delay(15_000)
+            refreshMyLocation()
+        }
     }
 
     LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
