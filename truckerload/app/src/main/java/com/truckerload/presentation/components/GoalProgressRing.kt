@@ -43,7 +43,8 @@ fun GoalProgressRing(
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
-    val motionMs = if (MotionPreferences.reduceMotion) 0 else 500
+    val reduceMotion = LocalReduceMotion.current
+    val motionMs = motionDurationMs(reduceMotion, 500)
     val animatedProgress by animateFloatAsState(
         targetValue = if (animate) progressPercent.coerceIn(0f, 100f) else progressPercent,
         animationSpec = tween(durationMillis = motionMs),
