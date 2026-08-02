@@ -16,6 +16,9 @@ object TelegramServiceRestarter {
 
     fun schedule(context: Context, delayMs: Long = 3_000L) {
         if (TelegramSyncMode.isServer()) return
+        // After Android 15 dataSync timeout, immediate restarts are forbidden until
+        // the user opens the app — skip AlarmManager so we don't fight the platform.
+        if (TelegramFgsQuota.isPaused()) return
         val userId = AuthStore(context).currentUserIdOrNull() ?: return
         if (!TelegramTokenStore(context, userId).hasToken()) return
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return

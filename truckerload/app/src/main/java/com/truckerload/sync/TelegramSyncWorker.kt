@@ -67,6 +67,11 @@ class TelegramSyncWorker @AssistedInject constructor(
             Log.w("TelegramSync", "No bot token — set TELEGRAM_BOT_TOKEN in local.properties or Settings")
             return Result.success()
         }
+        // Quota pause: start() no-ops until the app is foregrounded again.
+        if (TelegramFgsQuota.isPaused()) {
+            Log.i("TelegramSync", "dataSync quota paused — skip ensure-service until foreground")
+            return Result.success()
+        }
         if (!TelegramPollCoordinator.isForegroundPolling()) {
             TelegramBotForegroundService.start(applicationContext)
         }
