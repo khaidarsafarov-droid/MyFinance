@@ -7,15 +7,17 @@ import com.truckerload.domain.model.Load
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 object LoadExporter {
 
     private const val EXPORTS_SUBDIR = "exports"
-    private val fileTimestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+    // FIX: thread-safe export filename — shared SimpleDateFormat corrupts under parallel exports
+    private val fileTimestamp: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US)
 
     suspend fun exportAllLoads(context: Context, loads: List<Load>): File = withContext(Dispatchers.IO) {
         require(loads.isNotEmpty()) { "no loads" }
@@ -28,7 +30,7 @@ object LoadExporter {
             append(formatStatistics(sorted))
         }
         val dir = exportsDir(context).apply { mkdirs() }
-        val fileName = "${BrandConstants.FILE_PREFIX}_Export_${fileTimestamp.format(Date())}.txt"
+        val fileName = "${BrandConstants.FILE_PREFIX}_Export_${LocalDateTime.now().format(fileTimestamp)}.txt"
         File(dir, fileName).apply { writeText(content, Charsets.UTF_8) }
     }
 

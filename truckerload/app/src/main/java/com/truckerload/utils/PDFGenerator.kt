@@ -12,8 +12,9 @@ import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Image
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class PDFGenerator(private val context: Context) {
@@ -33,7 +34,7 @@ class PDFGenerator(private val context: Context) {
         if (!tripId.isNullOrBlank()) {
             return AttachmentNaming.buildFileName(tripId, loadDate.orEmpty(), timestamp, "pdf")
         }
-        return "scan_${scanTimestampFormat.format(Date(timestamp))}.pdf"
+        return "scan_${scanTimestampFormat.format(Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()))}.pdf"
     }
 
     fun saveScanFromResult(
@@ -120,7 +121,9 @@ class PDFGenerator(private val context: Context) {
     }
 
     companion object {
-        private val scanTimestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+        // FIX: thread-safe scan filename — shared SimpleDateFormat is unsafe under concurrent saves
+        private val scanTimestampFormat: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss", Locale.US)
 
         fun formatFileSize(bytes: Long): String {
             if (bytes < 1024) return "$bytes B"
