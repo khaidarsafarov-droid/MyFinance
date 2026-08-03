@@ -27,13 +27,31 @@ class TelegramJsonExportParser(
             val text = TelegramStyledTextNormalizer.normalize(rawText)
             if (!MessageClassifier.isLoadLike(text)) continue
 
+            // FIX: use Telegram message date so Relay MM/DD anchors to the export year
+            val dateSeconds = extractMessageDateSeconds(msg)
+            val parsedAtMs = dateSeconds?.times(1000L) ?: 0L
+
             relayParser.parse(text).forEach { load ->
-                loads.add(load.copy(rawMessage = text.take(2000)))
+                loads.add(
+                    load.copy(
+                        rawMessage = text.take(2000),
+                        parsedAt = parsedAtMs,
+                    )
+                )
             }
         }
 
         // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
         return ImportTripDedup.keepLatestByTripId(loads)
+    }
+
+    private fun extractMessageDateSeconds(msg: JSONObject): Long? {
+        if (!msg.has("date") || msg.isNull("date")) return null
+        return when (val value = msg.opt("date")) {
+            is Number -> value.toLong().takeIf { it > 0L }
+            is String -> value.toLongOrNull()?.takeIf { it > 0L }
+            else -> null
+        }
     }
 
     private fun extractMessageText(msg: JSONObject): String {

@@ -16,10 +16,15 @@ import com.truckerload.utils.normalizeKey
 class AuthCredentialsStore(context: Context) {
     private val prefs: SharedPreferences = openPrefs(context)
 
-    fun saveCredentials(email: String, password: String) {
+    fun saveCredentials(email: String, password: String, enforcePolicy: Boolean = true) {
         val key = normalizeEmail(email)
         require(key.isNotBlank()) { "email required" }
         require(password.isNotBlank()) { "password required" }
+        // FIX: enforce password policy at persistence boundary (UI alone was insufficient)
+        if (enforcePolicy && !PasswordPolicy.isHashed(password)) {
+            val validation = PasswordPolicy.validate(password)
+            require(validation.ok) { "password policy rejected" }
+        }
         SecurePreferences.requireEncryptedForSecretWrite("auth credentials")
         val toStore = if (PasswordPolicy.isHashed(password)) password else PasswordPolicy.hash(password)
         prefs.edit {
@@ -53,8 +58,8 @@ class AuthCredentialsStore(context: Context) {
         val saved = passwordFor(email) ?: return false
         val ok = PasswordPolicy.matches(password, saved)
         if (ok && !PasswordPolicy.isHashed(saved)) {
-            // Upgrade legacy plaintext at rest.
-            saveCredentials(email, password)
+            // Upgrade legacy plaintext at rest (skip policy — password already authenticated).
+            saveCredentials(email, password, enforcePolicy = false)
         }
         return ok
     }

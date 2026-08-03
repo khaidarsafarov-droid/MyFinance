@@ -193,10 +193,13 @@ class ImportLoadsUseCase(
     private suspend fun processWithProcessor(load: Load): ImportResult {
         val processor = loadProcessor
             ?: return processLegacy(load)
+        // FIX: pass export/message timestamp so LoadDateRepair anchors Relay MM/DD correctly
+        val messageDateSeconds = load.parsedAt.takeIf { it > 0L }?.div(1000L)
         return when (
             val processing = processor.processLoad(
                 parsedLoad = load,
                 config = parserConfig,
+                messageDateSeconds = messageDateSeconds,
                 playFeedback = false,
             )
         ) {

@@ -8,7 +8,7 @@ import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.utils.getLoadReportingWeek
 import java.util.Locale
 
-/** Minimal CSV: TripId,Rate,Miles,Origin,Destination,... */
+/** Minimal CSV: TripId,Rate,Miles,Origin,Destination,Date,... */
 class CsvLoadParser : LoadParser {
     override fun parse(input: String): List<Load> {
         val lines = input.lineSequence().map { it.trim() }.filter { it.isNotBlank() }.toList()
@@ -21,7 +21,12 @@ class CsvLoadParser : LoadParser {
         val milesIdx = headers.indexOfFirst { it.contains("mile") }
         val originIdx = headers.indexOfFirst { it.contains("origin") || it.contains("pickup") || it == "from" }
         val destIdx = headers.indexOfFirst { it.contains("dest") || it.contains("delivery") || it == "to" }
-        val dateIdx = headers.indexOfFirst { it == "date" || it.contains("pickup_date") }
+        val dateIdx = headers.indexOfFirst {
+            it == "date" ||
+                it.contains("pickup_date") ||
+                it == "pickup date" ||
+                (it.contains("pu") && it.contains("date"))
+        }
 
         if (tripIdx == -1 || rateIdx == -1) return emptyList()
 
@@ -40,6 +45,9 @@ class CsvLoadParser : LoadParser {
             val pointA = originIdx.takeIf { it != -1 && it < cols.size }?.let { cols[it] }.orEmpty()
             val pointB = destIdx.takeIf { it != -1 && it < cols.size }?.let { cols[it] }.orEmpty()
             val dateRaw = dateIdx.takeIf { it != -1 && it < cols.size }?.let { cols[it] }.orEmpty()
+            val date = ParseUtils.normalizeDate(dateRaw).takeIf { it.length >= 10 }.orEmpty()
+            // FIX: reject undated rows instead of silently assigning the current week
+            if (date.isBlank()) return@mapNotNull null
 
             if (tripId.isBlank() || rate <= 0) return@mapNotNull null
 
@@ -79,7 +87,7 @@ class CsvLoadParser : LoadParser {
             val draft = Load(
                 id = tripId,
                 tripId = tripId,
-                date = ParseUtils.normalizeDate(dateRaw),
+                date = date,
                 totalRate = rate,
                 totalMiles = miles,
                 pointA = pointA,

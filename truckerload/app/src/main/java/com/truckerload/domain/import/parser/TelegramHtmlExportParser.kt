@@ -6,6 +6,7 @@ import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
+import java.util.Locale
 
 /** Parses HTML files produced by Telegram Desktop chat export (messages.html, messages2.html, …). */
 class TelegramHtmlExportParser(
@@ -45,8 +46,40 @@ class TelegramHtmlExportParser(
             return
         }
 
+        // FIX: use Telegram message date so Relay MM/DD anchors to the export year
+        val parsedAtMs = extractMessageDateMillis(messageDiv) ?: 0L
         relayParser.parse(textContent).forEach { load ->
-            loads.add(load.copy(rawMessage = textContent.take(2000)))
+            loads.add(
+                load.copy(
+                    rawMessage = textContent.take(2000),
+                    parsedAt = parsedAtMs,
+                )
+            )
+        }
+    }
+
+    /** Telegram Desktop HTML: title="DD.MM.YYYY HH:MM:SS UTC+XX:XX" on .date details. */
+    private fun extractMessageDateMillis(messageDiv: Element?): Long? {
+        if (messageDiv == null) return null
+        val title = messageDiv.select(".date.details, .pull_right.date.details")
+            .attr("title")
+            .ifBlank { messageDiv.select(".date").attr("title") }
+        if (title.isBlank()) return null
+        val match = Regex("""(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?""")
+            .find(title) ?: return null
+        return try {
+            val d = match.groupValues[1].toInt()
+            val m = match.groupValues[2].toInt()
+            val y = match.groupValues[3].toInt()
+            val h = match.groupValues[4].toInt()
+            val min = match.groupValues[5].toInt()
+            val s = match.groupValues[6].toIntOrNull() ?: 0
+            java.util.Calendar.getInstance(Locale.US).apply {
+                set(y, m - 1, d, h, min, s)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.timeInMillis
+        } catch (_: Exception) {
+            null
         }
     }
 

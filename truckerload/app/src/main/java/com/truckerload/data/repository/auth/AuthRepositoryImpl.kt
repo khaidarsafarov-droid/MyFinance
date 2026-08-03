@@ -152,10 +152,11 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
     private suspend fun signInEmailLocal(email: String, password: String): Result<AuthSignInResult> {
-        if (!credentialsStore.validateCredentials(email, password) &&
-            !credentialsStore.hasCredentialsFor(email)
-        ) {
-            credentialsStore.saveCredentials(email, password)
+        // FIX: never auto-register on failed login — that created accounts with weak/typo passwords
+        if (!credentialsStore.hasCredentialsFor(email)) {
+            return Result.failure(
+                IllegalArgumentException(appContext.getString(R.string.auth_error_invalid_credentials)),
+            )
         }
         if (!credentialsStore.validateCredentials(email, password)) {
             return Result.failure(

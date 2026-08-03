@@ -2,6 +2,7 @@ package com.truckerload.domain.usecase
 
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
 
 data class FuelAnalytics(
@@ -41,8 +42,8 @@ class FuelAnalyticsService(
         val costPer100 = if (totalMiles > 0) (totalSpent / totalMiles) * 100 else 0.0
 
         val prev = if (includePrevious) {
-            val prevWeek = if (weekNumber <= 1) 52 else weekNumber - 1
-            val prevYear = if (weekNumber <= 1) year - 1 else year
+            // FIX: week-year aware previous week (not hardcoded 52)
+            val (prevWeek, prevYear) = shiftWeekNumberAndYear(weekNumber, year, -1)
             try {
                 calculateForWeek(prevWeek, prevYear, includePrevious = false)
             } catch (e: Exception) {

@@ -144,6 +144,8 @@ class MainActivity : AppCompatActivity() {
                         }
                         session = deps
                         if (!TelegramSyncMode.isServer()) {
+                            // FIX: stop previous account's poller before starting the new session's bot
+                            TelegramBotForegroundService.stopForLogout(applicationContext)
                             val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
                             tokenStore.bootstrapFromBuildConfigIfEmpty()
                             if (tokenStore.hasToken()) {

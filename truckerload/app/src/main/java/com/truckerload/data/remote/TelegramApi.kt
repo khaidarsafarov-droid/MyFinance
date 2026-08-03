@@ -1,6 +1,8 @@
 package com.truckerload.data.remote
 
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
@@ -18,11 +20,8 @@ class TelegramApi(private val token: String) {
 
     private val baseUrl get() = "https://api.telegram.org/bot$token"
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(70, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
-        .build()
+    // FIX: share one OkHttpClient — constructing a new pool every poll leaked threads/sockets
+    private val client get() = sharedClient
 
     fun isConfigured(): Boolean = token.isNotBlank()
 
@@ -153,7 +152,6 @@ class TelegramApi(private val token: String) {
             val allowed = JSONArray().apply {
                 put("message")
                 put("callback_query")
-                put("edited_message")
             }
             val url = buildString {
                 append("$baseUrl/getUpdates?timeout=$timeoutSeconds")
@@ -162,34 +160,43 @@ class TelegramApi(private val token: String) {
                 offset?.let { append("&offset=$it") }
             }
             val request = Request.Builder().url(url).get().build()
-            runCatching {
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        val errBody = response.body?.string() ?: ""
-                        val hint = if (response.code == 401) {
-                            " Invalid token - get a new one from @BotFather."
-                        } else ""
-                        throw Exception("getUpdates failed: ${response.code}.$hint $errBody")
-                    }
-                    val json = JSONObject(response.body?.string() ?: "{}")
-                    val arr = json.optJSONArray("result")
-                        ?: return@runCatching TelegramGetUpdatesResult(emptyList(), offset ?: 0L)
-                    var rawMaxUpdateId = 0L
-                    val updates = buildList {
-                        for (i in 0 until arr.length()) {
-                            val obj = arr.getJSONObject(i)
-                            val updateId = obj.optLong("update_id")
-                            if (updateId > rawMaxUpdateId) rawMaxUpdateId = updateId
-                            parseUpdate(obj)?.let { add(it) }
+            // FIX: cancel the HTTP call when the coroutine is cancelled (FGS restart / account switch)
+            val call = client.newCall(request)
+            val cancelHandle = coroutineContext[Job]?.invokeOnCompletion { cause ->
+                if (cause != null) call.cancel()
+            }
+            try {
+                runCatching {
+                    call.execute().use { response ->
+                        if (!response.isSuccessful) {
+                            val errBody = response.body?.string() ?: ""
+                            val hint = if (response.code == 401) {
+                                " Invalid token - get a new one from @BotFather."
+                            } else ""
+                            throw Exception("getUpdates failed: ${response.code}.$hint $errBody")
                         }
+                        val json = JSONObject(response.body?.string() ?: "{}")
+                        val arr = json.optJSONArray("result")
+                            ?: return@runCatching TelegramGetUpdatesResult(emptyList(), offset ?: 0L)
+                        var rawMaxUpdateId = 0L
+                        val updates = buildList {
+                            for (i in 0 until arr.length()) {
+                                val obj = arr.getJSONObject(i)
+                                val updateId = obj.optLong("update_id")
+                                if (updateId > rawMaxUpdateId) rawMaxUpdateId = updateId
+                                parseUpdate(obj)?.let { add(it) }
+                            }
+                        }
+                        val nextOffset = when {
+                            rawMaxUpdateId > 0L -> rawMaxUpdateId + 1L
+                            offset != null && offset > 0L -> offset
+                            else -> 0L
+                        }
+                        TelegramGetUpdatesResult(updates, nextOffset, rawMaxUpdateId)
                     }
-                    val nextOffset = when {
-                        rawMaxUpdateId > 0L -> rawMaxUpdateId + 1L
-                        offset != null && offset > 0L -> offset
-                        else -> 0L
-                    }
-                    TelegramGetUpdatesResult(updates, nextOffset, rawMaxUpdateId)
                 }
+            } finally {
+                cancelHandle?.dispose()
             }
         }
 
@@ -208,8 +215,8 @@ class TelegramApi(private val token: String) {
             )
         }
 
+        // FIX: ignore edited_message — re-ingest was silently updating/replacing loads
         val msg = obj.optJSONObject("message")
-            ?: obj.optJSONObject("edited_message")
             ?: obj.optJSONObject("channel_post")
             ?: return null
 
@@ -319,6 +326,12 @@ class TelegramApi(private val token: String) {
     companion object {
         /** Hard cap for Telegram file downloads to avoid OOM kills in the background bot service. */
         const val MAX_DOWNLOAD_BYTES = 20L * 1024 * 1024
+
+        private val sharedClient: OkHttpClient = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(70, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .build()
     }
 }
 

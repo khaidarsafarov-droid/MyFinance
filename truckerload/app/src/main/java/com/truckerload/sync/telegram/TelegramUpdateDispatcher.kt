@@ -17,10 +17,6 @@ import com.truckerload.sync.import.ImportCommandHandler
 import com.truckerload.sync.import.ImportDocumentHandler
 import com.truckerload.sync.import.ImportSessionManager
 import com.truckerload.utils.LogRedactor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-
 /**
  * Routes Telegram updates / commands to import, restore, or inbound parse paths.
  */
@@ -38,10 +34,12 @@ class TelegramUpdateDispatcher(
         prefs: SharedPreferences,
         stateMachine: TelegramStateMachine,
     ) {
+        // FIX: only the paired private chat may mutate journal data / hijack exports
+        if (!authorizeChat(update)) return
+
         if (!update.isCallbackQuery && update.text.isNotBlank()) {
             chatRestore.persistIncoming(update)
         }
-        rememberTelegramChatId(update.chatId)
 
         if (update.isCallbackQuery && update.callbackQueryId != null) {
             val cmd = TelegramBotFeatures.menuButtonToCommand(update.text)
@@ -377,11 +375,48 @@ class TelegramUpdateDispatcher(
             trimmed.startsWith("$command ", ignoreCase = true)
     }
 
-    private fun rememberTelegramChatId(chatId: String) {
-        val id = chatId.toLongOrNull() ?: return
-        CoroutineScope(Dispatchers.IO).launch {
-            runCatching { SettingsDataStore(context).saveTelegramChatId(id) }
+    /**
+     * Pairing rules:
+     * - Bound chat: only that chat id is accepted (others get a short reject).
+     * - Unbound: `/start` in a private chat binds once; other traffic is rejected.
+     * Never overwrite a bound chat id from inbound messages.
+     */
+    private suspend fun authorizeChat(update: TelegramUpdate): Boolean {
+        val chatIdLong = update.chatId.toLongOrNull()
+        if (chatIdLong == null) {
+            Log.w(TAG, "Reject update with non-numeric chatId")
+            return false
         }
+        val settings = SettingsDataStore(context)
+        val bound = settings.getTelegramChatIdOnce()
+        if (bound != null) {
+            if (bound == chatIdLong) return true
+            // Still advance offset by returning successfully; do not process payload.
+            runCatching {
+                apiClient.sendMessage(
+                    update.chatId,
+                    context.getString(R.string.sync_chat_not_authorized),
+                )
+            }
+            Log.w(TAG, "Rejected unauthorized chatId=$chatIdLong (bound=$bound)")
+            return false
+        }
+        val raw = update.text.trim()
+        val isStart = isCommand(raw, "/start") ||
+            (update.isCallbackQuery && TelegramBotFeatures.menuButtonToCommand(raw) == "/start")
+        if (isStart && (update.chatType == "private" || update.chatType.isBlank())) {
+            settings.saveTelegramChatId(chatIdLong)
+            Log.i(TAG, "Paired Telegram chatId=$chatIdLong")
+            return true
+        }
+        runCatching {
+            apiClient.sendMessage(
+                update.chatId,
+                context.getString(R.string.sync_chat_pair_required),
+            )
+        }
+        Log.w(TAG, "Rejected unpaired chatId=$chatIdLong — send /start to pair")
+        return false
     }
 
     private companion object {

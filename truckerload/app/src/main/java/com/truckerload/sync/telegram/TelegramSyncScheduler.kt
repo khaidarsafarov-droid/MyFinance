@@ -45,16 +45,19 @@ class TelegramSyncScheduler(
             val name = "telegram_sync_${AccountIds.sanitizeFilePart(userId)}"
             val scoped = context.getSharedPreferences(name, Context.MODE_PRIVATE)
             val meta = context.getSharedPreferences("truckerload_account_meta", Context.MODE_PRIVATE)
-            val migrated = meta.getBoolean("legacy_telegram_offset_migrated", false)
+            // FIX: per-user migrate flag — device-wide flag made only the first account inherit legacy offset
+            val migrateKey = "legacy_telegram_offset_migrated_${AccountIds.sanitizeFilePart(userId)}"
+            val migrated = meta.getBoolean(migrateKey, false)
             if (!migrated && !scoped.contains(TelegramSyncWorker.KEY_LAST_OFFSET)) {
                 val legacy = context.getSharedPreferences(TelegramSyncWorker.PREFS_NAME, Context.MODE_PRIVATE)
                 val offset = legacy.getLong(TelegramSyncWorker.KEY_LAST_OFFSET, 0L)
-                if (offset > 0L) {
+                if (offset > 0L && !meta.getBoolean("legacy_telegram_offset_claimed", false)) {
                     scoped.edit(commit = true) {
                         putLong(TelegramSyncWorker.KEY_LAST_OFFSET, offset)
                     }
+                    meta.edit().putBoolean("legacy_telegram_offset_claimed", true).apply()
                 }
-                meta.edit().putBoolean("legacy_telegram_offset_migrated", true).apply()
+                meta.edit().putBoolean(migrateKey, true).apply()
             }
             return scoped
         }

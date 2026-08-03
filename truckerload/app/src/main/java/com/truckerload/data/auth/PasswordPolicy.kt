@@ -56,6 +56,8 @@ object PasswordPolicy {
         val parts = stored.split('$')
         if (parts.size != 4 || parts[0] != "pbkdf2") return false
         val iterations = parts[1].toIntOrNull() ?: return false
+        // FIX: cap attacker-controlled iteration count to prevent CPU hang on poisoned verifiers
+        if (iterations !in 10_000..ITERATIONS) return false
         val salt = runCatching { Base64.getDecoder().decode(parts[2]) }.getOrNull() ?: return false
         val expected = runCatching { Base64.getDecoder().decode(parts[3]) }.getOrNull() ?: return false
         val actual = pbkdf2(password.toCharArray(), salt, iterations)
