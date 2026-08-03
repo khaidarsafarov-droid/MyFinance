@@ -28,7 +28,7 @@
 
 1. В Google Cloud Console добавьте **Android** OAuth client:
    - package: `com.truckerload`
-   - SHA-1 friends keystore (пример): `1C:C5:60:BB:81:EA:B7:9E:9D:38:AB:E7:99:AC:2D:A6:82:94:BA:DB`
+   - SHA-1 friends/release keystore: `66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C`
 2. Если OAuth consent в режиме **Testing** — добавьте email друзей в **Test users**,
    иначе Google покажет `access_denied` / 403.
 3. В сборке должен быть `GOOGLE_WEB_CLIENT_ID` (Web client) — скрипт подставляет
@@ -57,10 +57,15 @@
 ```bash
 cd truckerload
 cp keystore.properties.example keystore.properties
-# один раз создайте keystore (см. комментарии в example) и сохраните пароли
+# один раз создайте friends keystore (см. комментарии в example) и сохраните пароли
+# опционально: cp debug-keystore.properties.example debug-keystore.properties
 chmod +x scripts/build-friends-apk.sh
 ./scripts/build-friends-apk.sh
 ```
+
+Постоянные keystore лежат в `signing/` (gitignore). Пароли — только в
+`keystore.properties` / `debug-keystore.properties`. Для PKCS12 store и key password
+должны совпадать.
 
 APK path after build: `dist/TruckerLoad-1.5.6-friends.apk`.
 
