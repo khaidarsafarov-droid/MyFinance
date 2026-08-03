@@ -58,6 +58,8 @@
     <string name="login_checking">Проверка аккаунта…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>
+    <string name="tablet_detail_empty_title">Выберите груз</string>
+    <string name="tablet_detail_empty_body">Нажмите на груз в списке слева, чтобы увидеть детали</string>
     <string name="home_recent_loads">Недавние грузы</string>
     <string name="home_period_filter_label">Период</string>
     <string name="home_add_load_button">Добавить груз</string>

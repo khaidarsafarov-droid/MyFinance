@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.adaptiveGridColumns
 
 data class BentoItem(
     val value: String,
@@ -30,7 +31,7 @@ data class BentoItem(
 fun BentoGrid(
     items: List<BentoItem>,
     modifier: Modifier = Modifier,
-    columns: Int = 2,
+    columns: Int = adaptiveGridColumns(compact = 2, medium = 2, expanded = 3),
     horizontalSpacing: androidx.compose.ui.unit.Dp = 10.dp,
     verticalSpacing: androidx.compose.ui.unit.Dp = 10.dp,
 ) {

@@ -50,6 +50,11 @@ Legacy-имена `DarkGlass*`, `NeoGlass*`, `Gold*`, `PurpleStart` — deprecat
 
 Logbook · Weekly Goal · Community · Profile
 
+## Планшеты
+
+См. [TABLET_ADAPTATION.md](../TABLET_ADAPTATION.md): Material width classes
+(Compact / Medium / Expanded), NavigationRail, list\|detail journal на ≥840dp.
+
 ## Связь с кодом
 
 После правок в canvas перенесите значения в:
