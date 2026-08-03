@@ -3,6 +3,7 @@ package com.truckerload.backend
 import io.micrometer.core.instrument.Counter
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class BackendMetrics(
@@ -14,6 +15,7 @@ class BackendMetrics(
     private lateinit var telegramRejected: Counter
     private lateinit var telegramDuplicate: Counter
     private lateinit var pushFailures: Counter
+    private val rateLimitedByBucket = ConcurrentHashMap<String, Counter>()
 
     @Synchronized
     fun initialize() {
@@ -53,6 +55,18 @@ class BackendMetrics(
         if (count > 0) pushFailures.increment(count.toDouble())
     }
 
+    /** Stage3: rate-limit hits for alert rules (webhook brute-force, sync floods). */
+    fun recordRateLimited(bucket: String) {
+        initialize()
+        val normalized = bucket.substringBefore(':').ifBlank { "unknown" }
+        rateLimitedByBucket.computeIfAbsent(normalized) {
+            Counter.builder(HTTP_RATE_LIMITED)
+                .description("Requests rejected by in-process rate limiter")
+                .tag("bucket", normalized)
+                .register(registry)
+        }.increment()
+    }
+
     fun recordHttp(method: String, status: Int, durationNanos: Long) {
         registry.timer(
             HTTP_REQUESTS,
@@ -76,6 +90,7 @@ class BackendMetrics(
 
     companion object {
         const val HTTP_REQUESTS = "truckerload.http.server.requests"
+        const val HTTP_RATE_LIMITED = "truckerload.http.rate_limited"
         const val SNAPSHOT_WRITES = "truckerload.snapshot.writes"
         const val TELEGRAM_WEBHOOK_UPDATES = "truckerload.telegram.webhook.updates"
         const val PUSH_NOTIFICATION_FAILURES = "truckerload.push.notification.failures"

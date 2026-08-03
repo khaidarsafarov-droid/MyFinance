@@ -80,6 +80,15 @@ data class AppDependencies(
     val objectStorage: ObjectStorage,
     val pushNotifier: PushNotifier = NoOpPushNotifier,
     val metrics: BackendMetrics = BackendMetrics(),
+    // FIX: in-process rate limits (webhook / media / sync floods)
+    val ipRateLimiter: SlidingWindowRateLimiter = SlidingWindowRateLimiter(
+        maxRequests = 120,
+        windowMs = 60_000,
+    ),
+    val mediaRateLimiter: SlidingWindowRateLimiter = SlidingWindowRateLimiter(
+        maxRequests = 60,
+        windowMs = 60_000,
+    ),
     val close: () -> Unit = {
         objectStorage.close()
         metrics.registry.close()
@@ -231,13 +240,18 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
             )
         }
 
-        telegramWebhook(config, dependencies.repositories, dependencies.metrics)
+        telegramWebhook(config, dependencies)
         localMediaUpload(config, dependencies)
         localMediaDownload(config, dependencies)
 
         authenticate("supabase") {
             route("/v1") {
-                syncRoutes(dependencies.repositories, dependencies.pushNotifier, dependencies.metrics)
+                syncRoutes(
+                    dependencies.repositories,
+                    dependencies.pushNotifier,
+                    dependencies.metrics,
+                    dependencies.ipRateLimiter,
+                )
                 mediaRoutes(config, dependencies)
                 telegramAuthenticatedRoutes(config, dependencies.repositories)
                 deviceRoutes(dependencies.repositories)
@@ -278,6 +292,7 @@ private fun io.ktor.server.routing.Route.syncRoutes(
     repositories: Repositories,
     pushNotifier: PushNotifier,
     metrics: BackendMetrics,
+    ipRateLimiter: SlidingWindowRateLimiter,
 ) {
     route("/sync") {
         get("/snapshot") {
@@ -292,6 +307,8 @@ private fun io.ktor.server.routing.Route.syncRoutes(
         }
         put("/snapshot") {
             val user = call.authenticatedUser(repositories)
+            // FIX: throttle large snapshot PUTs per user
+            call.requireRateLimit(ipRateLimiter, metrics, "sync-put")
             val sourceDeviceId = call.request.headers["X-Device-Id"]?.let(::validDeviceId)
             val incoming = call.receiveJson<AccountCloudSnapshot>(MAX_SNAPSHOT_BODY_BYTES)
             if (incoming.accountId != user.id.toString()) {
@@ -522,11 +539,17 @@ private suspend fun MediaRecord.toDownloadContract(
 
 private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dependencies: AppDependencies) {
     put("/v1/media/local-upload/{mediaId}") {
+        call.requireRateLimit(dependencies.mediaRateLimiter, dependencies.metrics, "media-upload")
         val receiver = dependencies.objectStorage as? LocalUploadReceiver
             ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
         val mediaId = uuid(call.parameters["mediaId"], "mediaId")
         val record = dependencies.repositories.media.getById(mediaId)
+            ?.takeIf { it.deletedAt == null }
             ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+        // FIX: objectKey is user-scoped (`userId/mediaId/...`); reject mismatched keys
+        if (!record.objectKey.startsWith("${record.userId}/")) {
+            throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+        }
         val expiresAt = call.request.queryParameters["expiresAt"]?.let(::nonNegativeLong)
             ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_expiry", "expiresAt is required")
         val token = call.request.queryParameters["token"].orEmpty()
@@ -550,12 +573,16 @@ private fun io.ktor.server.routing.Route.localMediaUpload(config: AppConfig, dep
 
 private fun io.ktor.server.routing.Route.localMediaDownload(config: AppConfig, dependencies: AppDependencies) {
     get("/v1/media/local-download/{mediaId}") {
+        call.requireRateLimit(dependencies.mediaRateLimiter, dependencies.metrics, "media-download")
         val receiver = dependencies.objectStorage as? LocalDownloadReceiver
             ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
         val mediaId = uuid(call.parameters["mediaId"], "mediaId")
         val record = dependencies.repositories.media.getById(mediaId)
-            ?.takeIf { it.status == "ready" }
+            ?.takeIf { it.status == "ready" && it.deletedAt == null }
             ?: throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+        if (!record.objectKey.startsWith("${record.userId}/")) {
+            throw ApiException(HttpStatusCode.NotFound, "media_not_found", "Media object was not found")
+        }
         val expiresAt = call.request.queryParameters["expiresAt"]?.let(::nonNegativeLong)
             ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_expiry", "expiresAt is required")
         val token = call.request.queryParameters["token"].orEmpty()
@@ -610,10 +637,12 @@ private fun io.ktor.server.routing.Route.telegramAuthenticatedRoutes(
 
 private fun io.ktor.server.routing.Route.telegramWebhook(
     config: AppConfig,
-    repositories: Repositories,
-    metrics: BackendMetrics,
+    dependencies: AppDependencies,
 ) {
+    val repositories = dependencies.repositories
+    val metrics = dependencies.metrics
     post("/v1/telegram/webhook") {
+        call.requireRateLimit(dependencies.ipRateLimiter, dependencies.metrics, "telegram-webhook")
         val supplied = call.request.headers["X-Telegram-Bot-Api-Secret-Token"]
         if (!constantTimeEquals(config.telegramWebhookSecret, supplied)) {
             metrics.recordTelegramRejected()
@@ -660,9 +689,14 @@ private fun io.ktor.server.routing.Route.telegramWebhook(
 }
 
 private fun ApplicationCall.authorizeMetrics(config: AppConfig) {
-    if (config.environment != AppEnvironment.PROD) return
     val expected = config.metricsBearerToken
-        ?: throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
+    // FIX: enforce bearer whenever token is configured (not only PROD)
+    if (expected.isNullOrBlank()) {
+        if (config.environment == AppEnvironment.PROD) {
+            throw ApiException(HttpStatusCode.NotFound, "not_found", "Route not found")
+        }
+        return
+    }
     val authorization = request.headers[HttpHeaders.Authorization]
     val parts = authorization?.split(' ', limit = 2)
     val supplied = parts
@@ -670,6 +704,23 @@ private fun ApplicationCall.authorizeMetrics(config: AppConfig) {
         ?.get(1)
     if (!constantTimeEquals(expected, supplied)) {
         throw ApiException(HttpStatusCode.Unauthorized, "unauthorized", "Metrics authentication required")
+    }
+}
+
+private fun ApplicationCall.requireRateLimit(
+    limiter: SlidingWindowRateLimiter,
+    metrics: BackendMetrics,
+    bucket: String,
+) {
+    val forwarded = request.headers["X-Forwarded-For"]
+        ?.split(',')
+        ?.firstOrNull()
+        ?.trim()
+        .orEmpty()
+    val host = forwarded.ifBlank { request.local.remoteHost.ifBlank { "unknown" } }
+    if (!limiter.allow("$bucket:$host")) {
+        metrics.recordRateLimited(bucket)
+        throw ApiException(HttpStatusCode.TooManyRequests, "rate_limited", "Too many requests")
     }
 }
 

@@ -2,11 +2,12 @@ package com.truckerload.utils
 
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
-import com.truckerload.domain.parser.LoadImportHelper
-import com.truckerload.domain.parser.LoadProcessor
-import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.parser.LoadImportHelper
+import com.truckerload.domain.parser.LoadProcessor
+import com.truckerload.domain.parser.ParseUtils
+import com.truckerload.domain.parser.ParserConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -63,36 +64,43 @@ object LoadImporter {
                 parsedAt = now,
                 updatedAt = now,
                 stops = listOf(
-                    Stop(
-                        id = 0,
-                        loadId = tripId,
-                        stopNumber = 1,
-                        type = StopType.PU,
-                        puNumber = null,
-                        note = null,
-                        scheduledTime = "",
-                        timezone = "",
-                        facilityCode = null,
-                        fullAddress = row.pointA.trim(),
-                        city = row.pointA.substringBefore(",").trim(),
-                        state = row.pointA.substringAfter(",", "").trim(),
-                        zip = ""
-                    ),
-                    Stop(
-                        id = 0,
-                        loadId = tripId,
-                        stopNumber = 2,
-                        type = StopType.DEL,
-                        puNumber = null,
-                        note = null,
-                        scheduledTime = "",
-                        timezone = "",
-                        facilityCode = null,
-                        fullAddress = row.pointB.trim(),
-                        city = row.pointB.substringBefore(",").trim(),
-                        state = row.pointB.substringAfter(",", "").trim(),
-                        zip = ""
-                    )
+                    run {
+                        // FIX: FACILITY, City, ST via ParseUtils — not first-comma split
+                        val addr = ParseUtils.parseAddressLine(row.pointA)
+                        Stop(
+                            id = 0,
+                            loadId = tripId,
+                            stopNumber = 1,
+                            type = StopType.PU,
+                            puNumber = null,
+                            note = null,
+                            scheduledTime = "",
+                            timezone = "",
+                            facilityCode = addr.facilityCode,
+                            fullAddress = addr.fullAddress.ifBlank { row.pointA.trim() },
+                            city = addr.city,
+                            state = addr.state,
+                            zip = addr.zip,
+                        )
+                    },
+                    run {
+                        val addr = ParseUtils.parseAddressLine(row.pointB)
+                        Stop(
+                            id = 0,
+                            loadId = tripId,
+                            stopNumber = 2,
+                            type = StopType.DEL,
+                            puNumber = null,
+                            note = null,
+                            scheduledTime = "",
+                            timezone = "",
+                            facilityCode = addr.facilityCode,
+                            fullAddress = addr.fullAddress.ifBlank { row.pointB.trim() },
+                            city = addr.city,
+                            state = addr.state,
+                            zip = addr.zip,
+                        )
+                    },
                 ),
                 penalties = emptyList()
             )

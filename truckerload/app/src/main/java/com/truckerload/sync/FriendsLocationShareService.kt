@@ -38,6 +38,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Publishes GPS presence + active route to Supabase while privacy toggle is ON.
@@ -287,6 +288,27 @@ class FriendsLocationShareService : Service() {
                     context.stopService(Intent(context, FriendsLocationShareService::class.java))
                 }
             }
+        }
+
+        /**
+         * Clears remote presence/route while auth is still valid, then stops the FGS.
+         * Call from logout **before** wiping tokens.
+         */
+        suspend fun stopForLogout(context: Context) {
+            val app = context.applicationContext
+            // FIX: logout previously left FGS running and stale presence visible to friends
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val api = SupabaseFriendsRealtimeService(AuthStore(app))
+                    if (api.isConfigured()) {
+                        api.clearPresence()
+                        api.clearActiveRoute()
+                    }
+                }.onFailure { e ->
+                    Log.w(TAG, "clear presence on logout failed", e)
+                }
+            }
+            stop(app)
         }
     }
 }

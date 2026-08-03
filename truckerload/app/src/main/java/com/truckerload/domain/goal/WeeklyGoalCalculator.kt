@@ -26,6 +26,8 @@ object WeeklyGoalCalculator {
         val currentGross = GoalMoneyMath.roundMoney(sqlYield?.totalGross ?: totals.totalRate)
         val (_, _, weekLabel) = getWeekRange(weekNumber, year)
 
+        val (currentWeek, currentYear) = getCurrentWeekNumberAndYear()
+        val isCurrentWeek = weekNumber == currentWeek && year == currentYear
         val daysActiveCalendar = getDaysActiveForWeek(weekNumber, year)
         val daysRemaining = getDaysRemainingForWeek(weekNumber, year)
         val totalActiveDays = if (sqlYield != null && sqlYield.totalActiveDays > 0.0) {
@@ -39,7 +41,12 @@ object WeeklyGoalCalculator {
             calculateDailyPace(weekLoads)
         }
 
-        val dailyTargetNeeded = GoalMoneyMath.dailyTarget(targetAmount, currentGross, daysRemaining)
+        // FIX: past weeks used daysRemaining=1 → "needed/day" = entire remaining gap
+        val dailyTargetNeeded = if (isCurrentWeek) {
+            GoalMoneyMath.dailyTarget(targetAmount, currentGross, daysRemaining)
+        } else {
+            0.0
+        }
         val expectedGrossByNow = GoalMoneyMath.expectedGrossByNow(targetAmount, daysActiveCalendar)
         val remaining = GoalMoneyMath.roundMoney((targetAmount - currentGross).coerceAtLeast(0.0))
 
@@ -52,6 +59,8 @@ object WeeklyGoalCalculator {
         val paceStatus = when {
             targetAmount <= 0 -> PaceStatus.BEHIND
             currentGross >= targetAmount -> PaceStatus.GOAL_MET
+            // Closed week: binary met / behind — no mid-week pace bands
+            !isCurrentWeek -> PaceStatus.BEHIND
             weekLoads.isEmpty() || actualDailyYield <= 0.0 -> PaceStatus.BEHIND
             actualDailyYield >= dailyTargetNeeded * 1.05 -> PaceStatus.AHEAD
             actualDailyYield >= dailyTargetNeeded * 0.92 -> PaceStatus.ON_TRACK

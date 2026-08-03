@@ -1,9 +1,9 @@
 package com.truckerload.domain.import.parser
 
+import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
-import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -32,7 +32,8 @@ class TelegramJsonExportParser(
             }
         }
 
-        return loads.distinctBy { it.tripId.uppercase(Locale.US) }
+        // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+        return ImportTripDedup.keepLatestByTripId(loads)
     }
 
     private fun extractMessageText(msg: JSONObject): String {

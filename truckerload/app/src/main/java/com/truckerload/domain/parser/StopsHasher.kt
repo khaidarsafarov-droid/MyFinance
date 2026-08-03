@@ -5,10 +5,21 @@ import java.security.MessageDigest
 
 object StopsHasher {
 
+    /**
+     * Stable hash of a stop list for change detection.
+     *
+     * Includes [Stop.stopNumber] and sorts by that number so list order from Room
+     * does not matter, but a real route reorder (different stop numbers / sequence)
+     * is detected.
+     */
     fun calculateStopsHash(stops: List<Stop>): String {
-        val normalized = stops.map { stop ->
-            "${stop.type}|${stop.city}|${stop.state}|${stop.facilityCode.orEmpty()}|${stop.scheduledTime}"
-        }.sorted().joinToString("|")
+        // FIX: previous sort-by-signature ignored PU/DEL order changes
+        val normalized = stops
+            .sortedBy { it.stopNumber }
+            .joinToString("|") { stop ->
+                "${stop.stopNumber}|${stop.type}|${stop.city}|${stop.state}|" +
+                    "${stop.facilityCode.orEmpty()}|${stop.scheduledTime}"
+            }
         return sha256(normalized)
     }
 

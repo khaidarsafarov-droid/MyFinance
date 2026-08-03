@@ -51,9 +51,13 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
     override suspend fun signOut() {
+        // Stage3: single logout path — FGS/presence teardown then session + auth wipe
         withContext(Dispatchers.Main.immediate) {
-            userComponentManager.endSession()
-            authStore.logout()
+            com.truckerload.sync.SessionTeardown.signOut(
+                context = appContext,
+                authStore = authStore,
+                endSession = { userComponentManager.endSession() },
+            )
         }
     }
 

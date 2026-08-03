@@ -4,6 +4,7 @@ import android.content.Context
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.domain.parser.ParseUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -25,7 +26,8 @@ object CsvExporter {
         val metrics = load.withRouteMetrics()
         val route = formatLoadRoute(metrics).replace("\"", "\"\"")
         val income = metrics.totalRate
-        val miles = metrics.totalMiles
+        // FIX: sanitize typo miles so export RPM matches Room-mapped journal values
+        val miles = ParseUtils.sanitizeLoadedMiles(metrics.totalMiles, income)
         val rpm = if (miles > 0) income / miles else 0.0
         return listOf(
             metrics.date,

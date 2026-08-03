@@ -948,6 +948,14 @@
     <string name="sync_dedup_duration">• Time: %1$d ms</string>
     <string name="sync_dedup_none">No duplicates found ✅</string>
     <string name="sync_dedup_removed_loads">Removed loads:</string>
+
+    <string name="legacy_absorb_title">Import local data?</string>
+    <string name="legacy_absorb_message">This device has a journal from a previous local account. Move loads and history into the current account? Nothing is copied without your consent.</string>
+    <string name="legacy_absorb_confirm">Import</string>
+    <string name="legacy_absorb_dismiss">Do not import</string>
+    <string name="legacy_absorb_success">Local data imported</string>
+    <string name="legacy_absorb_failed">Could not import local data</string>
+
     <string name="auto_restore_title">Restore data?</string>
     <string name="auto_restore_message">Saved data found. Restore it?</string>
     <string name="auto_restore_confirm">Restore</string>
