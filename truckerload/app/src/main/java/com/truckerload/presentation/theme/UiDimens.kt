@@ -13,10 +13,12 @@ object UiDimens {
     val IconFab = 28.dp
     val IconInline = 18.dp
 
-    // Touch targets (Material minimum)
+    // Touch targets (Material minimum — tablets need 48dp, not 44dp)
     val TouchTarget = 48.dp
     val TouchTargetCompact = 40.dp
     val FabSize = 56.dp
+    val InputMinHeight = 48.dp
+    val DialogMaxWidth = 672.dp // ~ max-w-2xl
 
     // Cards (minimum heights for consistent list rhythm)
     val LoadCardMinHeight = 120.dp
