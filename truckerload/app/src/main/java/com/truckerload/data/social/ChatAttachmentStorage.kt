@@ -8,6 +8,8 @@ import java.util.UUID
 class ChatAttachmentStorage(context: Context) {
     private val root = File(context.filesDir, "chat_attachments").apply { mkdirs() }
     private val statusRoot = File(context.filesDir, "statuses").apply { mkdirs() }
+    private val rootCanonical = root.canonicalFile
+    private val statusCanonical = statusRoot.canonicalFile
 
     fun saveImage(chatId: String, bitmap: Bitmap): String {
         val dir = File(root, chatId).apply { mkdirs() }
@@ -37,9 +39,18 @@ class ChatAttachmentStorage(context: Context) {
         return dest.absolutePath
     }
 
+    /**
+     * Resolves a stored attachment path only if it stays under chat/status sandboxes.
+     */
     fun resolve(path: String?): File? {
         if (path.isNullOrBlank()) return null
-        val file = File(path)
-        return file.takeIf { it.exists() }
+        // FIX: reject absolute paths outside filesDir sandboxes (path traversal / arbitrary read)
+        val file = runCatching { File(path).canonicalFile }.getOrNull() ?: return null
+        if (!file.exists()) return null
+        val underChat = file.path.startsWith(rootCanonical.path + File.separator) ||
+            file.path == rootCanonical.path
+        val underStatus = file.path.startsWith(statusCanonical.path + File.separator) ||
+            file.path == statusCanonical.path
+        return file.takeIf { underChat || underStatus }
     }
 }

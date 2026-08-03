@@ -1,9 +1,9 @@
 package com.truckerload.domain.import.parser
 
+import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
-import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -15,7 +15,7 @@ class TelegramJsonExportParser(
     override fun parse(input: String): List<Load> {
         val root = JSONObject(input)
         val messages = root.optJSONArray("messages") ?: return emptyList()
-        val byTrip = LinkedHashMap<String, Load>()
+        val loads = mutableListOf<Load>()
 
         for (i in 0 until messages.length()) {
             val msg = messages.optJSONObject(i) ?: continue
@@ -32,16 +32,17 @@ class TelegramJsonExportParser(
             val parsedAtMs = dateSeconds?.times(1000L) ?: 0L
 
             relayParser.parse(text).forEach { load ->
-                val keyed = load.tripId.uppercase(Locale.US)
-                // FIX: last wins — Desktop exports are oldest-first; later rate/stop updates must win
-                byTrip[keyed] = load.copy(
-                    rawMessage = text.take(2000),
-                    parsedAt = parsedAtMs,
+                loads.add(
+                    load.copy(
+                        rawMessage = text.take(2000),
+                        parsedAt = parsedAtMs,
+                    )
                 )
             }
         }
 
-        return byTrip.values.toList()
+        // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+        return ImportTripDedup.keepLatestByTripId(loads)
     }
 
     private fun extractMessageDateSeconds(msg: JSONObject): Long? {

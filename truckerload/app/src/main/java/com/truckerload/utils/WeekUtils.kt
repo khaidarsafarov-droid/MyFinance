@@ -321,8 +321,9 @@ fun utcDatePickerMillisToDateString(utcMillis: Long): String {
 }
 
 /**
- * Parse stop scheduledTime to epoch millis. Supports YYYY-MM-DD HH:mm and DD.MM.YYYY HH:mm.
- * [defaultYear] anchors Relay `MM/DD` the same way as [parseDateFromScheduledTime].
+ * Parse stop scheduledTime to epoch millis.
+ * Supports YYYY-MM-DD HH:mm, DD.MM.YYYY HH:mm, and Relay `MM/DD HH:mm TZ`.
+ * [defaultYear] anchors yearless Relay times (same rules as [parseDateFromScheduledTime]).
  */
 fun parseScheduledTimeToMillis(scheduledTime: String, defaultYear: Int? = null): Long? {
     if (scheduledTime.isBlank()) return null
@@ -357,7 +358,7 @@ fun parseScheduledTimeToMillis(scheduledTime: String, defaultYear: Int? = null):
         val day = m.groupValues[2].toInt()
         val hour = m.groupValues[3].toInt()
         val minute = m.groupValues[4].toInt()
-        // FIX: resolveRelayYear (not bare current year) so Dec→Jan trips keep real duration
+        // FIX: align with parseDateFromScheduledTime — current-year alone skews PU→DEL by ~365d
         val anchor = defaultYear ?: Calendar.getInstance(Locale.US).get(Calendar.YEAR)
         val year = LoadDateRepair.resolveRelayYear(month, day, anchor)
         val cal = Calendar.getInstance(Locale.getDefault())

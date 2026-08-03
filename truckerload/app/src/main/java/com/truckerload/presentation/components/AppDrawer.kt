@@ -51,8 +51,7 @@ import com.truckerload.di.userComponentManager
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.sync.TelegramBotForegroundService
-import kotlinx.coroutines.delay
+import com.truckerload.sync.SessionTeardown
 import kotlinx.coroutines.launch
 
 enum class DrawerDestination {
@@ -217,10 +216,11 @@ fun AppDrawerContent(
                 Button(
                     onClick = {
                         scope.launch {
-                            TelegramBotForegroundService.stopForLogout(context)
-                            delay(300)
-                            context.userComponentManager().endSession()
-                            authStore.logout()
+                            SessionTeardown.signOut(
+                                context = context,
+                                authStore = authStore,
+                                endSession = { context.userComponentManager().endSession() },
+                            )
                             showLogoutConfirm = false
                             onClose()
                             Toast.makeText(

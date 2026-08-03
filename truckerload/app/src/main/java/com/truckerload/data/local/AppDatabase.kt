@@ -129,10 +129,10 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         private const val LEGACY_DB_NAME = "truckerload_db"
-        private const val META_PREFS = "truckerload_account_meta"
+        private const val META_PREFS = LegacyDatabaseAbsorb.META_PREFS
         private const val KEY_LEGACY_DB_MIGRATED = "legacy_db_migrated"
-        private const val KEY_LEGACY_DB_OWNER = "legacy_db_owner"
-        private const val KEY_LEGACY_DB_CLAIMED = "legacy_db_claimed_by_account"
+        private const val KEY_LEGACY_DB_OWNER = LegacyDatabaseAbsorb.KEY_LEGACY_DB_OWNER
+        private const val KEY_LEGACY_DB_CLAIMED = LegacyDatabaseAbsorb.KEY_LEGACY_DB_CLAIMED
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -161,7 +161,8 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE = null
                 currentUserId = null
                 migrateLegacyDatabaseIfNeeded(context.applicationContext, id)
-                absorbPreviousLocalDatabaseIfNeeded(context.applicationContext, id)
+                // Stage3: never auto-copy another account's DB — prompt via LegacyAbsorbDialog
+                LegacyDatabaseAbsorb.notePendingIfNeeded(context.applicationContext, id)
                 val dbName = databaseNameFor(id)
                 val db = Room.databaseBuilder(
                     context.applicationContext,
@@ -249,48 +250,6 @@ abstract class AppDatabase : RoomDatabase() {
                     .apply()
             }
             // On failure: do NOT set the migrated flag so the next open retries.
-        }
-
-        /**
-         * One-time: if this account has no DB yet but a previous single-user DB exists
-         * under [AccountIds.LOCAL_DEV] or email-hash id, copy it so the first cloud login
-         * keeps existing loads/Telegram history.
-         */
-        private fun absorbPreviousLocalDatabaseIfNeeded(context: Context, userId: String) {
-            if (userId == com.truckerload.data.preferences.AccountIds.LOCAL_DEV) return
-            val meta = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
-            if (meta.getBoolean(KEY_LEGACY_DB_CLAIMED, false)) return
-            val target = context.getDatabasePath(databaseNameFor(userId))
-            if (target.exists() && DatabaseFileCopy.isHealthyDatabase(target)) {
-                meta.edit().putBoolean(KEY_LEGACY_DB_CLAIMED, true).apply()
-                return
-            }
-            if (target.exists()) {
-                DatabaseFileCopy.deleteDbTree(target)
-            }
-            val email = com.truckerload.data.preferences.AuthStore(context).email.value
-            val candidates = buildList {
-                add(com.truckerload.data.preferences.AccountIds.LOCAL_DEV)
-                if (email.isNotBlank()) {
-                    add(com.truckerload.data.preferences.AccountIds.fromEmail(email))
-                }
-            }
-            val sourceId = candidates.firstOrNull { candidate ->
-                candidate != userId && context.getDatabasePath(databaseNameFor(candidate)).exists()
-            } ?: return
-            val source = context.getDatabasePath(databaseNameFor(sourceId))
-            val copied = copyDatabaseOrReport(
-                source = source,
-                target = target,
-                userId = userId,
-                op = "absorb_previous",
-            )
-            if (copied) {
-                meta.edit()
-                    .putBoolean(KEY_LEGACY_DB_CLAIMED, true)
-                    .putString(KEY_LEGACY_DB_OWNER, userId)
-                    .apply()
-            }
         }
 
         private fun copyDatabaseOrReport(

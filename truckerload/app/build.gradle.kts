@@ -29,9 +29,22 @@ android {
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
             localProps.load(stream)
         }
-        buildConfigField("String", "CEREBRAS_API_KEY", "\"${localProps.getProperty("CEREBRAS_API_KEY", "")}\"")
+        // Stage3: never bake bot/AI secrets into APKs by default (including debug/friends).
+        // Opt-in for local device debugging only: ./gradlew … -PallowDebugSecrets=true
+        val allowDebugSecrets = project.hasProperty("allowDebugSecrets")
+        val cerebrasKey = if (allowDebugSecrets) {
+            localProps.getProperty("CEREBRAS_API_KEY", "")
+        } else {
+            ""
+        }
+        val telegramToken = if (allowDebugSecrets) {
+            localProps.getProperty("TELEGRAM_BOT_TOKEN", "")
+        } else {
+            ""
+        }
+        buildConfigField("String", "CEREBRAS_API_KEY", "\"$cerebrasKey\"")
         buildConfigField("String", "CEREBRAS_MODEL", "\"${localProps.getProperty("CEREBRAS_MODEL", "llama3.1-8b")}\"")
-        buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"${localProps.getProperty("TELEGRAM_BOT_TOKEN", "")}\"")
+        buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"$telegramToken\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")

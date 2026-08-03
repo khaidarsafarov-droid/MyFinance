@@ -71,7 +71,12 @@ object LoadMessageParser {
             ?: inlineRatePattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMoney(it) }
             ?: 0.0
         val rawMiles = totalMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
-            ?: inlineMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
+            // FIX: fallback uses largest "X mi" — first match is often a leg, not Total Loaded Miles
+            ?: inlineMilesPattern.findAll(block)
+                .mapNotNull { match ->
+                    ParseUtils.parseMiles(match.groupValues[1]).takeIf { it > 0.0 }
+                }
+                .maxOrNull()
             ?: 0.0
         val totalMiles = ParseUtils.sanitizeLoadedMiles(rawMiles, totalRate)
 

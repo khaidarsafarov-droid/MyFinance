@@ -2,10 +2,10 @@ package com.truckerload.domain.import.parser
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
+import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.LoadMessageParser
 import com.truckerload.domain.parser.ParseUtils
-import java.util.Locale
 
 class HtmlLoadParser(
     private val blockParser: LoadParser = RelayMessageParser(),
@@ -35,7 +35,8 @@ class HtmlLoadParser(
             }
         }
 
-        return loads.distinctBy { it.tripId.uppercase(Locale.US) }
+        // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+        return ImportTripDedup.keepLatestByTripId(loads)
     }
 
     private fun parseTable(table: Element, rawHtml: String): List<Load> {

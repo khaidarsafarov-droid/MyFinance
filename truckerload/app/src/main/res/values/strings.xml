@@ -952,6 +952,14 @@
     <string name="sync_dedup_duration">• Время: %1$d мс</string>
     <string name="sync_dedup_none">Дубликатов не найдено ✅</string>
     <string name="sync_dedup_removed_loads">Удалённые лоуды:</string>
+
+    <string name="legacy_absorb_title">Перенести локальные данные?</string>
+    <string name="legacy_absorb_message">На этом устройстве найден журнал другого локального аккаунта. Перенести грузы и историю в текущий аккаунт? Без согласия данные не копируются.</string>
+    <string name="legacy_absorb_confirm">Перенести</string>
+    <string name="legacy_absorb_dismiss">Не переносить</string>
+    <string name="legacy_absorb_success">Локальные данные перенесены</string>
+    <string name="legacy_absorb_failed">Не удалось перенести локальные данные</string>
+
     <string name="auto_restore_title">Восстановить данные?</string>
     <string name="auto_restore_message">Найдены сохранённые данные. Восстановить их?</string>
     <string name="auto_restore_confirm">Восстановить</string>

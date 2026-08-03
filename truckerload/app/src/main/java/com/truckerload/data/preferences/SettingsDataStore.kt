@@ -10,10 +10,8 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.flowOn
 
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "truckerload_settings"
@@ -60,6 +58,18 @@ class SettingsDataStore(context: Context) {
         }
     }
 
+    private fun accountPart(): String? =
+        AuthStore(appContext).currentUserIdOrNull()?.let(AccountIds::sanitizeFilePart)
+
+    private fun boolKey(base: String, account: String?) =
+        booleanPreferencesKey(if (account != null) "${base}_$account" else base)
+
+    private fun intKey(base: String, account: String?) =
+        intPreferencesKey(if (account != null) "${base}_$account" else base)
+
+    private fun floatKey(base: String, account: String?) =
+        floatPreferencesKey(if (account != null) "${base}_$account" else base)
+
     val isFirstRun: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_FIRST_RUN] ?: true
     }
@@ -68,24 +78,13 @@ class SettingsDataStore(context: Context) {
         prefs[KEY_TELEGRAM_CHAT_ID]
     }
 
+    // Device-global UX
     val themeMode: Flow<AppThemeMode> = appContext.settingsDataStore.data.map { prefs ->
         AppThemeMode.fromOrdinal(prefs[KEY_THEME_MODE] ?: AppThemeMode.SYSTEM.ordinal)
     }
 
     val language: Flow<AppLanguage> = appContext.settingsDataStore.data.map { prefs ->
         AppLanguage.fromOrdinal(prefs[KEY_LANGUAGE] ?: AppLanguage.RU.ordinal)
-    }
-
-    val parserAutoUpdate: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_PARSER_AUTO_UPDATE] ?: true
-    }
-
-    val parserPriceThreshold: Flow<Double> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_PARSER_PRICE_THRESHOLD]?.toDouble() ?: 1.0
-    }
-
-    val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
     }
 
     val reduceMotion: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
@@ -96,24 +95,73 @@ class SettingsDataStore(context: Context) {
         prefs[KEY_OLED_DARK] ?: false
     }
 
+    // FIX Stage3: account-scoped parser / quiet hours / notify / share-path
+    val parserAutoUpdate: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        accountScopedBool(prefs, "parser_auto_update", KEY_PARSER_AUTO_UPDATE, default = true)
+    }
+
+    val parserPriceThreshold: Flow<Double> = appContext.settingsDataStore.data.map { prefs ->
+        val account = accountPart()
+        val scoped = prefs[floatKey("parser_price_threshold_percent", account)]?.toDouble()
+        scoped ?: prefs[KEY_PARSER_PRICE_THRESHOLD]?.toDouble() ?: 1.0
+    }
+
+    val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        val account = accountPart()
+        if (account != null) {
+            prefs[boolKey("share_path_with_friends", account)] ?: false
+        } else {
+            prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
+        }
+    }
+
     val quietHoursEnabled: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_QUIET_HOURS_ENABLED] ?: false
+        accountScopedBool(prefs, "quiet_hours_enabled", KEY_QUIET_HOURS_ENABLED, default = false)
     }
 
     val quietHoursStart: Flow<Int> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_QUIET_HOURS_START] ?: 22
+        accountScopedInt(prefs, "quiet_hours_start", KEY_QUIET_HOURS_START, default = 22)
     }
 
     val quietHoursEnd: Flow<Int> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_QUIET_HOURS_END] ?: 7
+        accountScopedInt(prefs, "quiet_hours_end", KEY_QUIET_HOURS_END, default = 7)
     }
 
     val notifyMissingWeek: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_NOTIFY_MISSING_WEEK] ?: true
+        accountScopedBool(prefs, "notify_missing_week", KEY_NOTIFY_MISSING_WEEK, default = true)
     }
 
     val notifyMaintenance: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_NOTIFY_MAINTENANCE] ?: true
+        accountScopedBool(prefs, "notify_maintenance", KEY_NOTIFY_MAINTENANCE, default = true)
+    }
+
+    private fun accountScopedBool(
+        prefs: Preferences,
+        base: String,
+        legacy: Preferences.Key<Boolean>,
+        default: Boolean,
+    ): Boolean {
+        val account = accountPart()
+        if (account != null) {
+            prefs[boolKey(base, account)]?.let { return it }
+            // One-shot read of legacy global value (not for share_path privacy).
+            return prefs[legacy] ?: default
+        }
+        return prefs[legacy] ?: default
+    }
+
+    private fun accountScopedInt(
+        prefs: Preferences,
+        base: String,
+        legacy: Preferences.Key<Int>,
+        default: Int,
+    ): Int {
+        val account = accountPart()
+        if (account != null) {
+            prefs[intKey(base, account)]?.let { return it }
+            return prefs[legacy] ?: default
+        }
+        return prefs[legacy] ?: default
     }
 
     suspend fun isFirstRunOnce(): Boolean = isFirstRun.first()
@@ -200,22 +248,26 @@ class SettingsDataStore(context: Context) {
     suspend fun getParserPriceThresholdOnce(): Double = parserPriceThreshold.first()
 
     suspend fun saveParserAutoUpdate(enabled: Boolean) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_PARSER_AUTO_UPDATE] = enabled
+            prefs[boolKey("parser_auto_update", account)] = enabled
         }
     }
 
     suspend fun saveParserPriceThreshold(percent: Double) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_PARSER_PRICE_THRESHOLD] = percent.toFloat()
+            prefs[floatKey("parser_price_threshold_percent", account)] = percent.toFloat()
         }
     }
 
     suspend fun getSharePathWithFriendsOnce(): Boolean = sharePathWithFriends.first()
 
     suspend fun saveSharePathWithFriends(enabled: Boolean) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_SHARE_PATH_WITH_FRIENDS] = enabled
+            // Never migrate global true into a new account — privacy default is off.
+            prefs[boolKey("share_path_with_friends", account)] = enabled
         }
     }
 
@@ -238,40 +290,45 @@ class SettingsDataStore(context: Context) {
     suspend fun getQuietHoursEnabledOnce(): Boolean = quietHoursEnabled.first()
 
     suspend fun saveQuietHoursEnabled(enabled: Boolean) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_QUIET_HOURS_ENABLED] = enabled
+            prefs[boolKey("quiet_hours_enabled", account)] = enabled
         }
     }
 
     suspend fun getQuietHoursStartOnce(): Int = quietHoursStart.first()
 
     suspend fun saveQuietHoursStart(hour: Int) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_QUIET_HOURS_START] = hour.coerceIn(0, 23)
+            prefs[intKey("quiet_hours_start", account)] = hour.coerceIn(0, 23)
         }
     }
 
     suspend fun getQuietHoursEndOnce(): Int = quietHoursEnd.first()
 
     suspend fun saveQuietHoursEnd(hour: Int) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_QUIET_HOURS_END] = hour.coerceIn(0, 23)
+            prefs[intKey("quiet_hours_end", account)] = hour.coerceIn(0, 23)
         }
     }
 
     suspend fun getNotifyMissingWeekOnce(): Boolean = notifyMissingWeek.first()
 
     suspend fun saveNotifyMissingWeek(enabled: Boolean) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_NOTIFY_MISSING_WEEK] = enabled
+            prefs[boolKey("notify_missing_week", account)] = enabled
         }
     }
 
     suspend fun getNotifyMaintenanceOnce(): Boolean = notifyMaintenance.first()
 
     suspend fun saveNotifyMaintenance(enabled: Boolean) {
+        val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_NOTIFY_MAINTENANCE] = enabled
+            prefs[boolKey("notify_maintenance", account)] = enabled
         }
     }
 }

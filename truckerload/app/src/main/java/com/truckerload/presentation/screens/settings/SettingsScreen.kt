@@ -530,11 +530,11 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            // Stop Telegram first so it cannot write into a closed Room pool.
-                            com.truckerload.sync.TelegramBotForegroundService.stopForLogout(context)
-                            kotlinx.coroutines.delay(300)
-                            context.userComponentManager().endSession()
-                            authStore.logout()
+                            com.truckerload.sync.SessionTeardown.signOut(
+                                context = context,
+                                authStore = authStore,
+                                endSession = { context.userComponentManager().endSession() },
+                            )
                             showLogoutConfirm = false
                             android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()
                         }

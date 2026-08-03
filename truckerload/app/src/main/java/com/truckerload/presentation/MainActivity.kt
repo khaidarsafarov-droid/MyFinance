@@ -44,6 +44,8 @@ import com.truckerload.di.UserComponent
 import com.truckerload.di.UserComponentManager
 import com.truckerload.utils.CrashReporting
 import com.truckerload.presentation.components.AutoRestoreDialog
+import com.truckerload.presentation.components.LegacyAbsorbDialog
+import com.truckerload.sync.SessionTeardown
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalAnalyticsRepository
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
@@ -186,8 +188,7 @@ class MainActivity : AppCompatActivity() {
                         sessionReady = true
                     }
                 } else {
-                    TelegramBotForegroundService.stopForLogout(applicationContext)
-                    kotlinx.coroutines.delay(300)
+                    SessionTeardown.beforeLogout(applicationContext)
                     userComponentManager.endSession()
                     session = null
                     sessionReady = true
@@ -279,6 +280,11 @@ class MainActivity : AppCompatActivity() {
                                             )
                                         }
                                         AutoRestoreDialog(loadRepository = deps.loadRepository)
+                                        LegacyAbsorbDialog(
+                                            onSessionRebuilt = { rebuilt ->
+                                                session = rebuilt
+                                            },
+                                        )
                                     }
                                 }
                             }

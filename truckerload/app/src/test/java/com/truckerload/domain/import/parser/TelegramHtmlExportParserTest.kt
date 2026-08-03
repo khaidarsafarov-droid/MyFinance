@@ -36,6 +36,21 @@ class TelegramHtmlExportParserTest {
     }
 
     @Test
+    fun parse_sameTripIdKeepsLatestRateRevision() {
+        val html = sampleTelegramExport(
+            listOf(
+                loadBlock("T-116KYL6KW", rate = "1,000.00", miles = "500"),
+                loadBlock("T-116KYL6KW", rate = "2,500.00", miles = "850"),
+            ),
+        )
+        val loads = parser.parse(html)
+        assertEquals(1, loads.size)
+        assertEquals("T-116KYL6KW", loads.single().tripId)
+        assertEquals(2500.0, loads.single().totalRate, 0.01)
+        assertEquals(850.0, loads.single().totalMiles, 0.01)
+    }
+
+    @Test
     fun parse_skipsSystemMessages() {
         val html = sampleTelegramExport(
             listOf(

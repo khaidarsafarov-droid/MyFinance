@@ -8,6 +8,8 @@ LOCAL_ONLY_MODE=false
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 # Free tier: enable only "Maps SDK for Android" in Google Cloud (not Directions API).
 # Friends map route lines use OSRM (free, no key).
+# Bot/AI secrets are NOT embedded into debug or release APKs by default.
+# For on-device Telegram debugging only:  ./gradlew :app:assembleDebug -PallowDebugSecrets=true
 CEREBRAS_API_KEY=
 TELEGRAM_BOT_TOKEN=
 

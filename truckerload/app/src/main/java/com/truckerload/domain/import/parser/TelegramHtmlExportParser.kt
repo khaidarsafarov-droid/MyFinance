@@ -2,6 +2,7 @@ package com.truckerload.domain.import.parser
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
+import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
@@ -14,24 +15,24 @@ class TelegramHtmlExportParser(
 
     override fun parse(input: String): List<Load> {
         val doc = Ksoup.parse(html = input)
-        // FIX: last-wins map — first-seen distinctBy kept stale Trip ID updates
-        val byTrip = LinkedHashMap<String, Load>()
+        val loads = mutableListOf<Load>()
 
         val textNodes = doc.select(".history div.text")
         if (textNodes.isEmpty()) {
             doc.select("div.message div.text").forEach { textDiv ->
-                parseTextDiv(textDiv, byTrip)
+                parseTextDiv(textDiv, loads)
             }
         } else {
             textNodes.forEach { textDiv ->
-                parseTextDiv(textDiv, byTrip)
+                parseTextDiv(textDiv, loads)
             }
         }
 
-        return byTrip.values.toList()
+        // FIX: keep latest Trip ID revision — first-wins dropped rate/route updates
+        return ImportTripDedup.keepLatestByTripId(loads)
     }
 
-    private fun parseTextDiv(textDiv: Element, byTrip: LinkedHashMap<String, Load>) {
+    private fun parseTextDiv(textDiv: Element, loads: MutableList<Load>) {
         val textContent = TelegramStyledTextNormalizer.normalize(extractMessageText(textDiv))
         if (textContent.isBlank()) return
 
@@ -45,11 +46,14 @@ class TelegramHtmlExportParser(
             return
         }
 
+        // FIX: use Telegram message date so Relay MM/DD anchors to the export year
         val parsedAtMs = extractMessageDateMillis(messageDiv) ?: 0L
         relayParser.parse(textContent).forEach { load ->
-            byTrip[load.tripId.uppercase(Locale.US)] = load.copy(
-                rawMessage = textContent.take(2000),
-                parsedAt = parsedAtMs,
+            loads.add(
+                load.copy(
+                    rawMessage = textContent.take(2000),
+                    parsedAt = parsedAtMs,
+                )
             )
         }
     }
