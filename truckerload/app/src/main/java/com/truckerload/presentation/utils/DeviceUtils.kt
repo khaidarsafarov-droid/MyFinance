@@ -119,6 +119,13 @@ fun adaptiveCardColumns(): Int {
     }
 }
 
+/**
+ * Journal load cards stay at most 2 columns — content (route, RPM, actions)
+ * is too dense for a reliable 3-column swipeable layout.
+ */
+@Composable
+fun adaptiveLoadColumns(): Int = adaptiveCardColumns().coerceAtMost(2)
+
 /** Min cell size for adaptive photo grids on tablets. */
 @Composable
 fun adaptiveGalleryMinCellSize(): Dp {

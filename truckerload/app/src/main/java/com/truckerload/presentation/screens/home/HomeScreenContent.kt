@@ -47,14 +47,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.itemKey
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.StatsCardSkeleton
-import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
@@ -63,6 +61,7 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.utils.adaptiveLoadColumns
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -111,6 +110,10 @@ internal fun HomeScreenContent(
     }
 
     val pullRefreshState = rememberPullToRefreshState()
+    val loadColumns = adaptiveLoadColumns()
+    val gridRows = remember(listItems, loadColumns) {
+        buildHomeGridRows(listItems, loadColumns)
+    }
 
     if (showYearSelector) {
         AlertDialog(
@@ -256,71 +259,73 @@ internal fun HomeScreenContent(
                     }
                 }
             } else if (useRoomPaging) {
+                val rowCount = pagedLoadRowCount(pagedLoads.itemCount, loadColumns)
                 items(
-                    count = pagedLoads.itemCount,
-                    key = pagedLoads.itemKey { it.id },
-                ) { index ->
-                    val load = pagedLoads[index] ?: return@items
-                    SwipeableLoadCard(
-                        load = load,
-                        onClick = { if (load.id.isNotBlank()) onLoadClick(load.id) },
-                        onDelete = {
-                            if (load.id.isNotBlank()) {
-                                viewModel.requestDeleteLoad(load.id)
-                            }
-                        },
+                    count = rowCount,
+                    key = { rowIndex ->
+                        val start = rowIndex * loadColumns
+                        val first = pagedLoads.peek(start)
+                        "page_row_${first?.id ?: rowIndex}"
+                    },
+                ) { rowIndex ->
+                    val start = rowIndex * loadColumns
+                    val rowLoads = (0 until loadColumns).mapNotNull { offset ->
+                        pagedLoads[start + offset]
+                    }
+                    if (rowLoads.isEmpty()) return@items
+                    HomeLoadCardRow(
+                        loads = rowLoads,
+                        columns = loadColumns,
                         rpmThresholds = rpmThresholds,
-                        modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
-                        onCameraClick = {
-                            if (load.id.isNotBlank()) {
-                                onLoadCamera(load.id, load.tripId, load.date)
-                            }
-                        },
-                        onScanClick = {
-                            if (load.id.isNotBlank()) {
-                                onLoadScan(load.id, load.tripId, load.date)
-                            }
-                        },
                         settleKey = swipeSettleGeneration,
+                        onLoadClick = onLoadClick,
+                        onDelete = { id -> viewModel.requestDeleteLoad(id) },
+                        onLoadCamera = onLoadCamera,
+                        onLoadScan = onLoadScan,
                     )
                 }
             } else {
                 itemsIndexed(
-                    items = listItems,
-                    key = { _, item ->
-                        when (item) {
-                            is HomeListItem.YearHeader -> "year_${item.section.year}"
-                            is HomeListItem.MonthHeader -> "month_${item.section.year}_${item.section.month}"
-                            is HomeListItem.FilteredSectionHeader -> "filtered_${item.label}"
-                            is HomeListItem.LoadItem -> "load_${item.load.id}"
+                    items = gridRows,
+                    key = { _, row ->
+                        when (row) {
+                            is HomeGridRow.FullWidth -> when (val item = row.item) {
+                                is HomeListItem.YearHeader -> "year_${item.section.year}"
+                                is HomeListItem.MonthHeader ->
+                                    "month_${item.section.year}_${item.section.month}"
+                                is HomeListItem.FilteredSectionHeader -> "filtered_${item.label}"
+                                is HomeListItem.LoadItem -> "load_${item.load.id}"
+                            }
+                            is HomeGridRow.Loads ->
+                                "loads_${row.loads.joinToString("_") { it.id }}"
                         }
                     },
-                ) { _, item ->
-                    when (item) {
-                        is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
-                        is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
-                        is HomeListItem.FilteredSectionHeader -> Unit
-                        is HomeListItem.LoadItem -> SwipeableLoadCard(
-                            load = item.load,
-                            onClick = { if (item.load.id.isNotBlank()) onLoadClick(item.load.id) },
-                            onDelete = {
-                                if (item.load.id.isNotBlank()) {
-                                    viewModel.requestDeleteLoad(item.load.id)
-                                }
-                            },
+                ) { _, row ->
+                    when (row) {
+                        is HomeGridRow.FullWidth -> when (val item = row.item) {
+                            is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
+                            is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
+                            is HomeListItem.FilteredSectionHeader -> Unit
+                            is HomeListItem.LoadItem -> HomeLoadCardRow(
+                                loads = listOf(item.load),
+                                columns = 1,
+                                rpmThresholds = rpmThresholds,
+                                settleKey = swipeSettleGeneration,
+                                onLoadClick = onLoadClick,
+                                onDelete = { id -> viewModel.requestDeleteLoad(id) },
+                                onLoadCamera = onLoadCamera,
+                                onLoadScan = onLoadScan,
+                            )
+                        }
+                        is HomeGridRow.Loads -> HomeLoadCardRow(
+                            loads = row.loads,
+                            columns = loadColumns,
                             rpmThresholds = rpmThresholds,
-                            modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
-                            onCameraClick = {
-                                if (item.load.id.isNotBlank()) {
-                                    onLoadCamera(item.load.id, item.load.tripId, item.load.date)
-                                }
-                            },
-                            onScanClick = {
-                                if (item.load.id.isNotBlank()) {
-                                    onLoadScan(item.load.id, item.load.tripId, item.load.date)
-                                }
-                            },
                             settleKey = swipeSettleGeneration,
+                            onLoadClick = onLoadClick,
+                            onDelete = { id -> viewModel.requestDeleteLoad(id) },
+                            onLoadCamera = onLoadCamera,
+                            onLoadScan = onLoadScan,
                         )
                     }
                 }

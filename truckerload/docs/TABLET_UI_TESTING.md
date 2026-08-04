@@ -69,11 +69,14 @@ adb shell wm size reset
 
 ## Screen checklist
 
-- [ ] Home journal: pull-to-refresh works; load cards readable at 2-column width on tablet portrait.
+- [ ] Home journal: pull-to-refresh works; **2-column load cards** on tablet (≥600dp); 1 column on phone.
+- [ ] Multi-column: swipe-to-delete disabled (tap into detail to manage); phone keeps swipe.
 - [ ] Photo gallery: adaptive grid (2 cols portrait, 3 landscape).
 - [ ] Forms / search: inputs ≥ 48dp touch height.
 - [ ] Dialogs: centered, max width ~672dp, dismiss on outside tap.
-- [ ] Bottom nav items: ≥ 48dp tap targets.
+- [ ] Bottom nav / toolbar icons: ≥ 48dp tap targets.
+- [ ] Portrait tablet: bottom navigation (no rail).
+- [ ] Landscape tablet: navigation rail on the left.
 - [ ] No full-page horizontal scroll at 768–1366dp effective width.
 
 ## Chrome DevTools (web)
@@ -86,4 +89,5 @@ or `adb exec-out screencap -p` for visual checks.
 ```bash
 cd truckerload
 sh ./gradlew :app:testDebugUnitTest --tests com.truckerload.presentation.utils.WindowSizeClassTest
+sh ./gradlew :app:testDebugUnitTest --tests com.truckerload.presentation.screens.home.HomeLoadGridTest
 ```

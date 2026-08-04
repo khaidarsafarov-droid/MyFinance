@@ -40,8 +40,8 @@ object UiDimens {
     val CallActionButton = 72.dp
     val CallActionIcon = 32.dp
 
-    // Toolbar / top bar
-    val ToolbarTouchTarget = 44.dp
+    // Toolbar / top bar — 48dp for tablet touch (Material min)
+    val ToolbarTouchTarget = 48.dp
     val ToolbarIconSize = 24.dp
 
     // Bottom navigation bar
