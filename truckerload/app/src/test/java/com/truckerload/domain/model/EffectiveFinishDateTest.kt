@@ -67,6 +67,20 @@ class EffectiveFinishDateTest {
     }
 
     @Test
+    fun effectiveFinishDate_relayMmDdUsesLoadDateYear() {
+        // Card date must follow load.date year, not re-parse MM/DD against "this year".
+        val load = sample(
+            date = "2025-08-20",
+            stops = listOf(
+                stop(StopType.PU, "08/20 08:00 EDT"),
+                stop(StopType.DEL, "08/21 15:00 EDT"),
+            ),
+        )
+        assertEquals("2025-08-21", load.effectiveFinishDate())
+        assertEquals("2025-08-21", load.lastDelDateFromStops())
+    }
+
+    @Test
     fun withRouteMetrics_shortensDurationWhenFinishBeforeLastDel() {
         val load = sample(
             actualFinishDate = "2026-07-18",

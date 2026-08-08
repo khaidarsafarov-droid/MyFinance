@@ -28,7 +28,7 @@ class LoadDateRepairTest {
         }.timeInMillis
         assertEquals(2026, LoadDateRepair.resolveRelayYear(7, 5, 2026, now))
         assertEquals(2026, LoadDateRepair.resolveRelayYear(3, 1, 2026, now))
-        // Near-term booking within ~2 weeks keeps current year.
+        // Near-term booking within ~1 week keeps current year.
         assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 2, 2026, now))
     }
 
@@ -41,6 +41,37 @@ class LoadDateRepairTest {
         }.timeInMillis
         assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 15, 2026, now))
         assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 20, 2026, now))
+    }
+
+    @Test
+    fun resolveRelayYear_earlyAugustDoesNotKeepMidAugustAsCurrentYear() {
+        // Regression: Aug 8 + Pu-time 08/21 was kept as 2026 (within old 14-day horizon).
+        val now = Calendar.getInstance().apply {
+            set(2026, Calendar.AUGUST, 8, 12, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 20, 2026, now))
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 21, 2026, now))
+        // Still allow near-term bookings inside ~7 days.
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 14, 2026, now))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 5, 2026, now))
+    }
+
+    @Test
+    fun repair_rollsMidAugustHistoryOffCurrentYearWhenParsedInEarlyAugust() {
+        // Same symptom as journal cards showing 2026-08-21 for Relay Pu-time 08/21.
+        val load = sample(
+            id = "T-112QX54Y8",
+            date = "2026-08-21",
+            pu = "08/21 01:39 EDT",
+            del = "08/21 15:00 EDT",
+            miles = 425.0,
+        )
+        val repaired = LoadDateRepair.repair(load, anchorYearHint = 2026)
+        // On the agent clock (Aug 2026) mid-August MM/DD is >7 days out → previous year.
+        val expectedYear = LoadDateRepair.resolveRelayYear(8, 21, 2026)
+        assertEquals("%04d-08-21".format(expectedYear), repaired.date)
+        assertEquals(expectedYear, repaired.year)
     }
 
     @Test

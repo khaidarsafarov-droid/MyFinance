@@ -77,14 +77,27 @@ object ActualFinishDate {
 
 /** Last DEL stop scheduled datetime as `"YYYY-MM-DD HH:mm"` when parseable. */
 fun Load.lastDelDateTimeFromStops(): String? {
+    // FIX: align year with load.date for yearless Relay `MM/DD` stop times
+    val yearHint = date.take(4).toIntOrNull()
     val best = stops
         .filter { it.type == StopType.DEL }
         .mapNotNull { stop ->
-            val ms = parseScheduledTimeToMillis(stop.scheduledTime) ?: return@mapNotNull null
+            val ms = parseScheduledTimeToMillis(stop.scheduledTime, yearHint) ?: return@mapNotNull null
             stop to ms
         }
         .maxByOrNull { it.second }
         ?: return lastDelDateFromStops()
-    return ActualFinishDate.normalize(best.first.scheduledTime)
-        ?: lastDelDateFromStops()
+    val scheduled = best.first.scheduledTime
+    ActualFinishDate.normalize(scheduled)?.let { return it }
+    // Relay `08/21 15:00 EDT` is not ISO — rebuild from resolved millis.
+    val ms = best.second
+    val cal = Calendar.getInstance(Locale.getDefault()).apply { timeInMillis = ms }
+    return "%04d-%02d-%02d %02d:%02d".format(
+        Locale.US,
+        cal.get(Calendar.YEAR),
+        cal.get(Calendar.MONTH) + 1,
+        cal.get(Calendar.DAY_OF_MONTH),
+        cal.get(Calendar.HOUR_OF_DAY),
+        cal.get(Calendar.MINUTE),
+    )
 }

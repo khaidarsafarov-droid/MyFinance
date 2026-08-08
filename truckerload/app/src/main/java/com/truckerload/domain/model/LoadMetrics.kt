@@ -62,11 +62,14 @@ fun formatPacePerDay(pace: Double): String {
 }
 
 /** Дата последнего DEL из стопов (YYYY-MM-DD), без учёта ручного override. */
-fun Load.lastDelDateFromStops(): String? =
-    stops
+fun Load.lastDelDateFromStops(): String? {
+    // FIX: pass load.date year so Relay MM/DD stops don't re-anchor to "this year"
+    val yearHint = date.take(4).toIntOrNull()
+    return stops
         .filter { it.type == StopType.DEL }
-        .mapNotNull { com.truckerload.utils.parseDateFromScheduledTime(it.scheduledTime) }
+        .mapNotNull { com.truckerload.utils.parseDateFromScheduledTime(it.scheduledTime, yearHint) }
         .maxOrNull()
+}
 
 /** Дата окончания для UI: override или дата последнего DEL / load.date. */
 fun Load.effectiveFinishDate(): String? {
