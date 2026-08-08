@@ -44,6 +44,58 @@ class LoadDateRepairTest {
     }
 
     @Test
+    fun resolveRelayYear_staysStableWhenWallClockEntersBookingWindow() {
+        // Parsed in late July as previous-year history; must not flip to 2026 in early August.
+        val parsedAt = Calendar.getInstance().apply {
+            set(2026, Calendar.JULY, 30, 12, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 20, 2026, parsedAt))
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 21, 2026, parsedAt))
+    }
+
+    @Test
+    fun repair_doesNotFlipYearWhenHydratedAfterBookingWindowOpens() {
+        // Load was stored/parsed on July 30 with Pu-time 08/20 → year 2025.
+        // Hydrate/repair on August 8 must keep 2025 (anchor = parsedAt, not wall clock).
+        val parsedAt = Calendar.getInstance().apply {
+            set(2026, Calendar.JULY, 30, 12, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val load = sample(
+            id = "T-AUG20",
+            date = "2025-08-20",
+            pu = "08/20 08:00 EDT",
+            del = "08/21 15:00 EDT",
+            miles = 400.0,
+        ).copy(parsedAt = parsedAt, year = 2025)
+
+        val repaired = LoadDateRepair.repair(load)
+        assertEquals("2025-08-20", repaired.date)
+        assertEquals(2025, repaired.year)
+    }
+
+    @Test
+    fun repair_liveAugustBookingKeepsCurrentYear() {
+        // Message received August 8 about Pu-time 08/21 → near-term booking in 2026.
+        val parsedAt = Calendar.getInstance().apply {
+            set(2026, Calendar.AUGUST, 8, 14, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val load = sample(
+            id = "T-LIVE21",
+            date = "2026-08-21",
+            pu = "08/21 01:39 EDT",
+            del = "08/21 15:00 EDT",
+            miles = 425.0,
+        ).copy(parsedAt = parsedAt, year = 2026)
+
+        val repaired = LoadDateRepair.repair(load, anchorYearHint = 2026, referenceMillis = parsedAt)
+        assertEquals("2026-08-21", repaired.date)
+        assertEquals(2026, repaired.year)
+    }
+
+    @Test
     fun repair_usesMessageYearForMmDdStops() {
         // Stored wrongly as 2026, but Telegram message was from 2025.
         val load = Load(

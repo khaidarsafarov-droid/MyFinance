@@ -490,8 +490,9 @@ class LoadRepository(
         val stopEntities = mutableListOf<StopEntity>()
 
         for (load in toInsert) {
-            val normalized = load.copy(tripId = normalizeTripId(load.tripId))
-            val repaired = LoadDateRepair.repair(normalized, anchorYearHint = messageYear)
+            val normalized = load.copy(tripId = normalizeTripId(load.tripId), parsedAt = parsedAt)
+            // Anchor MM/DD year to message/parsedAt — not wall-clock at hydrate time.
+            val repaired = LoadDateRepair.repair(normalized, messageYear, parsedAt)
             val dated = when {
                 repaired.date.isBlank() && messageDateSeconds != null ->
                     repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))

@@ -247,6 +247,14 @@ class TelegramApi(private val token: String) {
             photoFileId = largest.optString("file_id").takeIf { it.isNotEmpty() }
         }
         val rawDate = msg.optLong("date")
+        // Prefer original send time for forwards so Relay MM/DD years match history.
+        val forwardDate = msg.optLong("forward_date").takeIf { it > 0L }
+            ?: msg.optJSONObject("forward_origin")?.optLong("date")?.takeIf { it > 0L }
+        val messageDateSeconds = when {
+            forwardDate != null -> forwardDate
+            rawDate > 0L -> rawDate
+            else -> null
+        }
         return TelegramUpdate(
             updateId = obj.optLong("update_id"),
             chatId = chatId,
@@ -257,7 +265,7 @@ class TelegramApi(private val token: String) {
             documentMimeType = documentMimeType,
             documentFileSize = documentFileSize,
             photoFileId = photoFileId,
-            messageDateSeconds = if (rawDate > 0) rawDate else null
+            messageDateSeconds = messageDateSeconds,
         )
     }
 
