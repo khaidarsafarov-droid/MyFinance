@@ -11,41 +11,54 @@ import java.util.Calendar
 class LoadDateRepairTest {
 
     @Test
-    fun resolveRelayYear_futureMonthUsesPreviousYear() {
-        // "Now" = March 15 2026; Relay Pu-time 11/20 without year → Nov 2025
-        val now = Calendar.getInstance().apply {
+    fun resolveRelayYear_futureMonthUsesPreviousYearWhenReferenceIsSpring() {
+        // Reference = March 15 2026; Relay Pu-time 11/20 without year → Nov 2025
+        val ref = Calendar.getInstance().apply {
             set(2026, Calendar.MARCH, 15, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        assertEquals(2025, LoadDateRepair.resolveRelayYear(11, 20, 2026, now))
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(11, 20, ref))
     }
 
     @Test
-    fun resolveRelayYear_pastOrNearMonthKeepsAnchorYear() {
-        val now = Calendar.getInstance().apply {
+    fun resolveRelayYear_pastOrNearMonthKeepsReferenceYear() {
+        val ref = Calendar.getInstance().apply {
             set(2026, Calendar.JULY, 26, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        assertEquals(2026, LoadDateRepair.resolveRelayYear(7, 5, 2026, now))
-        assertEquals(2026, LoadDateRepair.resolveRelayYear(3, 1, 2026, now))
-        // Near-term booking within ~2 weeks keeps current year.
-        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 2, 2026, now))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(7, 5, ref))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(3, 1, ref))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 2, ref))
     }
 
     @Test
-    fun resolveRelayYear_farFutureMonthUsesPreviousYear() {
-        // Late July: August 15+ must not become "next month" pears for 2025 history.
-        val now = Calendar.getInstance().apply {
+    fun resolveRelayYear_nearFutureAugustFromLateJulyKeepsReferenceYear() {
+        // Late July booking for mid-August must stay in the same calendar year.
+        val ref = Calendar.getInstance().apply {
             set(2026, Calendar.JULY, 30, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 15, 2026, now))
-        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 20, 2026, now))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 15, ref))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 20, ref))
+        assertEquals(2026, LoadDateRepair.resolveRelayYear(8, 21, ref))
+    }
+
+    @Test
+    fun resolveRelayYear_anchorsToTelegramMessageDate() {
+        val ref = Calendar.getInstance().apply {
+            set(2025, Calendar.AUGUST, 21, 2, 9, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 21, ref))
+        assertEquals(2025, LoadDateRepair.resolveRelayYear(8, 20, ref))
     }
 
     @Test
     fun repair_usesMessageYearForMmDdStops() {
-        // Stored wrongly as 2026, but Telegram message was from 2025.
+        val messageMillis = Calendar.getInstance().apply {
+            set(2025, Calendar.JULY, 5, 10, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
         val load = Load(
             id = "T-OLD",
             tripId = "T-OLD",
@@ -59,7 +72,7 @@ class LoadDateRepairTest {
             weekNumber = 28,
             year = 2026,
             rawMessage = "",
-            parsedAt = 1L,
+            parsedAt = messageMillis,
             updatedAt = 1L,
             stops = listOf(
                 Stop(
@@ -95,7 +108,7 @@ class LoadDateRepairTest {
             ),
         )
 
-        val repaired = LoadDateRepair.repair(load, anchorYearHint = 2025)
+        val repaired = LoadDateRepair.repair(load, anchorYearHint = 2025, referenceMillis = messageMillis)
         assertEquals("2025-07-05", repaired.date)
         assertEquals(2025, repaired.year)
         assertTrue(repaired.weekNumber > 0)
@@ -103,13 +116,23 @@ class LoadDateRepairTest {
 
     @Test
     fun yearTotals_shouldNotIncludeWrongYearAfterRepair() {
+        val july2025 = Calendar.getInstance().apply {
+            set(2025, Calendar.JULY, 5, 8, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val july2026 = Calendar.getInstance().apply {
+            set(2026, Calendar.JULY, 20, 8, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
         val wrongYear = LoadDateRepair.repair(
-            sample("T-A", "2026-07-05", "07/05 08:00 EDT", "07/06 08:00 EDT", miles = 800.0),
+            sample("T-A", "2026-07-05", "07/05 08:00 EDT", "07/06 08:00 EDT", miles = 800.0, parsedAt = july2025),
             anchorYearHint = 2025,
+            referenceMillis = july2025,
         )
         val thisYear = LoadDateRepair.repair(
-            sample("T-B", "2026-07-20", "07/20 08:00 EDT", "07/21 08:00 EDT", miles = 900.0),
+            sample("T-B", "2026-07-20", "07/20 08:00 EDT", "07/21 08:00 EDT", miles = 900.0, parsedAt = july2026),
             anchorYearHint = 2026,
+            referenceMillis = july2026,
         )
         val loads = listOf(wrongYear, thisYear)
         val miles2026 = loads.filter { it.date.startsWith("2026") }.sumOf { it.totalMiles }
@@ -124,6 +147,7 @@ class LoadDateRepairTest {
         pu: String,
         del: String,
         miles: Double,
+        parsedAt: Long = 1L,
     ) = Load(
         id = id,
         tripId = id,
@@ -137,7 +161,7 @@ class LoadDateRepairTest {
         weekNumber = 1,
         year = 2026,
         rawMessage = "",
-        parsedAt = 1L,
+        parsedAt = parsedAt,
         updatedAt = 1L,
         stops = listOf(
             Stop(1, id, 1, StopType.PU, "PU1", null, pu, "EDT", null, "A", "A", "TX", ""),

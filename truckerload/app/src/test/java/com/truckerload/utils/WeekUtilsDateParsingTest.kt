@@ -48,10 +48,14 @@ class WeekUtilsDateParsingTest {
 
     @Test
     fun parseScheduledTimeToMillis_relayYearAlignsWithResolveRelayYear() {
+        val ref = java.util.Calendar.getInstance().apply {
+            set(2026, java.util.Calendar.MARCH, 15, 12, 0, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
         val defaultYear = 2026
-        val millis = parseScheduledTimeToMillis("11/20 08:00 EDT", defaultYear = defaultYear)
+        val millis = parseScheduledTimeToMillis("11/20 08:00 EDT", defaultYear = defaultYear, referenceMillis = ref)
         assertNotNull(millis)
-        val expectedYear = LoadDateRepair.resolveRelayYear(11, 20, defaultYear)
+        val expectedYear = LoadDateRepair.resolveRelayYear(11, 20, ref)
         val cal = java.util.Calendar.getInstance()
         cal.timeInMillis = millis!!
         assertEquals(expectedYear, cal.get(java.util.Calendar.YEAR))
@@ -59,7 +63,7 @@ class WeekUtilsDateParsingTest {
         assertEquals(20, cal.get(java.util.Calendar.DAY_OF_MONTH))
         assertEquals(8, cal.get(java.util.Calendar.HOUR_OF_DAY))
 
-        val dateOnly = parseDateFromScheduledTime("11/20 08:00 EDT", defaultYear = defaultYear)
+        val dateOnly = parseDateFromScheduledTime("11/20 08:00 EDT", defaultYear = defaultYear, referenceMillis = ref)
         assertEquals("%04d-11-20".format(expectedYear), dateOnly)
     }
 }
