@@ -53,11 +53,7 @@ internal object ParseUtils {
     private const val MAX_FIXED_MILES = 5_000.0
     private val MILES_DECIMAL_FIX_DIVISORS = doubleArrayOf(100.0, 10.0, 1000.0)
 
-    fun normalizeDate(
-        raw: String?,
-        defaultYear: Int = Calendar.getInstance().get(Calendar.YEAR),
-        referenceMillis: Long? = null,
-    ): String {
+    fun normalizeDate(raw: String?, defaultYear: Int = Calendar.getInstance().get(Calendar.YEAR)): String {
         if (raw.isNullOrBlank()) return ""
         val trimmed = raw.trim()
         val iso = Regex("""(\d{4})-(\d{2})-(\d{2})""")
@@ -95,20 +91,14 @@ internal object ParseUtils {
             val dayNum = it.groupValues[2].toIntOrNull() ?: return@let
             val month = it.groupValues[1].padStart(2, '0')
             val day = it.groupValues[2].padStart(2, '0')
-            val ref = referenceMillis?.takeIf { it > 0L }
-                ?: Calendar.getInstance().apply {
-                    set(Calendar.YEAR, defaultYear)
-                    set(Calendar.MONTH, Calendar.JUNE)
-                    set(Calendar.DAY_OF_MONTH, 1)
-                    set(Calendar.HOUR_OF_DAY, 12)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
             val year = when {
                 it.groupValues[3].length == 4 -> it.groupValues[3].toIntOrNull() ?: defaultYear
                 it.groupValues[3].length == 2 -> 2000 + (it.groupValues[3].toIntOrNull() ?: (defaultYear % 100))
-                else -> com.truckerload.utils.LoadDateRepair.resolveRelayYear(monthNum, dayNum, ref)
+                else -> com.truckerload.utils.LoadDateRepair.resolveRelayYear(
+                    month = monthNum,
+                    day = dayNum,
+                    anchorYear = defaultYear,
+                )
             }
             return "$year-$month-$day"
         }
