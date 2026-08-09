@@ -54,9 +54,9 @@ import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.WindowSizeClass
 import com.truckerload.presentation.utils.adaptiveVerticalPadding
-import com.truckerload.presentation.utils.isFoldable
-import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.rememberWindowSizeClass
+import com.truckerload.presentation.utils.touchTarget
+import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.launch
 
@@ -89,7 +89,7 @@ fun AdaptiveScaffold(
             },
         ) {
             when {
-                isTablet() && showMainNavigation -> {
+                useNavigationRail() && showMainNavigation -> {
                     TabletScaffold(
                         modifier = modifier,
                         currentRoute = currentRoute,
@@ -101,7 +101,7 @@ fun AdaptiveScaffold(
                 else -> {
                     PhoneScaffold(
                         modifier = modifier,
-                        showBottomBar = showMainNavigation && !isTablet(),
+                        showBottomBar = showMainNavigation && !useNavigationRail(),
                         currentRoute = currentRoute,
                         onNavigate = onNavigate,
                         content = content,
@@ -120,7 +120,11 @@ private fun TabletScaffold(
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    Row(modifier = modifier.fillMaxSize()) {
+    Row(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BentoGlassTheme.ScreenBackground),
+    ) {
         TruckLogNavigationRail(
             currentRoute = currentRoute,
             onNavigate = onNavigate,
@@ -134,11 +138,9 @@ private fun TabletScaffold(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
-                .padding(
-                    horizontal = if (isFoldable()) 16.dp else 24.dp,
-                    vertical = adaptiveVerticalPadding(),
-                ),
+                .fillMaxSize()
+                .background(BentoGlassTheme.ScreenBackground)
+                .padding(vertical = adaptiveVerticalPadding()),
         ) {
             content(PaddingValues(0.dp))
         }
@@ -267,6 +269,7 @@ private fun BottomNavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
+            .touchTarget(minHeight = UiDimens.NavBarHeight)
             .clip(pillShape)
             .then(
                 if (selected) Modifier.background(selectedBg) else Modifier,

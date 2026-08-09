@@ -18,6 +18,10 @@ object UiDimens {
     val TouchTargetCompact = 40.dp
     val FabSize = 56.dp
 
+    // Tablet chrome
+    val TabletNavSidebarWidth = 240.dp
+    val ListPaneMinWidth = 320.dp
+
     // Cards (minimum heights for consistent list rhythm)
     val LoadCardMinHeight = 120.dp
     val StatCardMinHeight = 80.dp

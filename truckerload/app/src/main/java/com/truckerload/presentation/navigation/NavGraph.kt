@@ -30,7 +30,9 @@ import com.truckerload.presentation.components.AdaptiveScaffold
 import com.truckerload.presentation.components.DrawerDestination
 import com.truckerload.presentation.components.navigateToMainRoute
 import com.truckerload.presentation.utils.AdaptiveScreenContainer
-import com.truckerload.presentation.utils.isTablet
+import com.truckerload.presentation.utils.isTabletClassDevice
+import com.truckerload.presentation.utils.useNavigationRail
+import com.truckerload.presentation.utils.useTwoPaneLayout
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -53,7 +55,8 @@ fun NavGraph(
     }
     val context = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val tablet = isTablet()
+    val tabletClass = isTabletClassDevice()
+    val wideNav = useNavigationRail()
 
     if (!isLoggedIn) {
         // Auth UI is hosted by MainActivity (account switch recreates user-scoped deps).
@@ -190,7 +193,7 @@ fun NavGraph(
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
     val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.PROFILE)
-    val showMainNavigation = if (tablet) {
+    val showMainNavigation = if (tabletClass) {
         currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
@@ -240,25 +243,29 @@ fun NavGraph(
                 popEnterTransition = { tabEnterTransition(reduceMotion) },
                 popExitTransition = { tabExitTransition(reduceMotion) },
             ) {
-                HomeScreen(
-                    onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
-                    onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
-                    onStats = { navController.navigate(Routes.ANALYTICS) },
-                    onSettings = { navController.navigate(Routes.SETTINGS) },
-                    onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
-                    onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
-                    onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
-                    onLoadCamera = { loadId, tripId, loadDate ->
-                        navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
-                    },
-                    onLoadScan = { loadId, tripId, loadDate ->
-                        navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
-                    },
-                )
+                if (useTwoPaneLayout()) {
+                    JournalListDetailHost(navController = navController)
+                } else {
+                    HomeScreen(
+                        onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
+                        onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
+                        onStats = { navController.navigate(Routes.ANALYTICS) },
+                        onSettings = { navController.navigate(Routes.SETTINGS) },
+                        onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+                        onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
+                        onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                        onLoadCamera = { loadId, tripId, loadDate ->
+                            navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
+                        },
+                        onLoadScan = { loadId, tripId, loadDate ->
+                            navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
+                        },
+                    )
+                }
             }
             socialNavGraph(navController, reduceMotion)
             loadsNavGraph(navController)
-            toolsNavGraph(navController, tablet, reduceMotion)
+            toolsNavGraph(navController, wideNav, reduceMotion)
         }
         }
             IncomingCallOverlay(

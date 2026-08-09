@@ -332,6 +332,8 @@
     <string name="home_empty_dispute">No loads in dispute</string>
     <string name="home_empty_all_body">Add a load manually or paste trip text. Pull down to refresh.</string>
     <string name="home_empty_filtered_body">Change the filter or pull down to refresh.</string>
+    <string name="tablet_detail_empty_title">Select a load</string>
+    <string name="tablet_detail_empty_body">Tap a load in the list to see its details</string>
     <string name="home_stats_header">%1$d loads total  •  $%2$.0f  •  %3$.0f mi  •  %4$s avg RPM</string>
     <string name="home_period_avg_rpm">%1$s avg RPM</string>
     <string name="home_period_avg_rpm_label">avg RPM</string>

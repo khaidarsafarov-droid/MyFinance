@@ -332,6 +332,8 @@
     <string name="home_empty_dispute">Нет грузов на диспюте</string>
     <string name="home_empty_all_body">Добавьте груз вручную или вставьте текст рейса. Потяните вниз для обновления.</string>
     <string name="home_empty_filtered_body">Смените фильтр или потяните вниз для обновления.</string>
+    <string name="tablet_detail_empty_title">Выберите груз</string>
+    <string name="tablet_detail_empty_body">Нажмите на груз в списке слева, чтобы увидеть детали</string>
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
     <string name="home_period_avg_rpm">%1$s ср. RPM</string>
     <string name="home_period_avg_rpm_label">ср. RPM</string>
