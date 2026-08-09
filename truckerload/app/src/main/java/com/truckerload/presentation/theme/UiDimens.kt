@@ -17,6 +17,8 @@ object UiDimens {
     val TouchTarget = 48.dp
     val TouchTargetCompact = 40.dp
     val FabSize = 56.dp
+    val InputMinHeight = 48.dp
+    val DialogMaxWidth = 672.dp // ~ max-w-2xl
 
     // Forms — comfortable for finger input on tablets
     val FormFieldMinHeight = 48.dp

@@ -51,8 +51,38 @@ fun SwipeableLoadCard(
     onScanClick: (() -> Unit)? = null,
     /** Bump to snap the card back to settled (e.g. after undoing a delete). */
     settleKey: Any = Unit,
+    /** Disable swipe-to-delete in multi-column tablet grids (gesture conflicts). */
+    enableSwipe: Boolean = true,
 ) {
     val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
+
+    if (!enableSwipe) {
+        Surface(
+            modifier = modifier
+                .clip(cardShape)
+                .shadow(
+                    elevation = SoftUiElevation.Card,
+                    shape = cardShape,
+                    ambientColor = SoftUiColors.ShadowTint,
+                    spotColor = SoftUiColors.ShadowNeutral,
+                ),
+            shape = cardShape,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
+        ) {
+            LoadCard(
+                load = load,
+                onClick = onClick,
+                wrapInCard = false,
+                rpmThresholds = rpmThresholds,
+                onCameraClick = onCameraClick,
+                onScanClick = onScanClick,
+            )
+        }
+        return
+    }
+
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -108,9 +138,8 @@ fun SwipeableLoadCard(
                 }
             }
         },
-        modifier = modifier
-            .padding(horizontal = 16.dp)
-            .clip(cardShape),
+        // Horizontal padding owned by the caller (HomeLoadCardRow / adaptive padding).
+        modifier = modifier.clip(cardShape),
     ) {
         Surface(
             modifier = Modifier
