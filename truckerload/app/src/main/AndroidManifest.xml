@@ -25,6 +25,11 @@
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <supports-screens
+        android:largeScreens="true"
+        android:xlargeScreens="true"
+        android:anyDensity="true" />
+
     <application
         android:name=".TruckerLoadApp"
         android:enableOnBackInvokedCallback="true"

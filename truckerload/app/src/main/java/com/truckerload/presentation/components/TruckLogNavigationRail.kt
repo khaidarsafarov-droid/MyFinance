@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.navigation.Routes
@@ -57,7 +58,9 @@ fun TruckLogNavigationRail(
     val tc = LocalTruckColors.current
 
     NavigationRail(
-        modifier = modifier.fillMaxHeight(),
+        modifier = modifier
+            .fillMaxHeight()
+            .width(88.dp),
         containerColor = BentoGlassTheme.CardFill,
         contentColor = tc.TextPrimary,
     ) {

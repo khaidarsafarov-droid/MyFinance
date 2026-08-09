@@ -54,9 +54,9 @@ import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.WindowSizeClass
 import com.truckerload.presentation.utils.adaptiveVerticalPadding
-import com.truckerload.presentation.utils.isFoldable
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.rememberWindowSizeClass
+import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.launch
 
@@ -88,24 +88,30 @@ fun AdaptiveScaffold(
                 )
             },
         ) {
-            when {
-                isTablet() && showMainNavigation -> {
-                    TabletScaffold(
-                        modifier = modifier,
-                        currentRoute = currentRoute,
-                        onNavigate = onNavigate,
-                        onDrawerNavigate = onDrawerNavigate,
-                        content = content,
-                    )
-                }
-                else -> {
-                    PhoneScaffold(
-                        modifier = modifier,
-                        showBottomBar = showMainNavigation && !isTablet(),
-                        currentRoute = currentRoute,
-                        onNavigate = onNavigate,
-                        content = content,
-                    )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BentoGlassTheme.ScreenBackground),
+            ) {
+                when {
+                    useNavigationRail() && showMainNavigation -> {
+                        TabletScaffold(
+                            modifier = modifier,
+                            currentRoute = currentRoute,
+                            onNavigate = onNavigate,
+                            onDrawerNavigate = onDrawerNavigate,
+                            content = content,
+                        )
+                    }
+                    else -> {
+                        PhoneScaffold(
+                            modifier = modifier,
+                            showBottomBar = showMainNavigation && !useNavigationRail(),
+                            currentRoute = currentRoute,
+                            onNavigate = onNavigate,
+                            content = content,
+                        )
+                    }
                 }
             }
         }
@@ -135,10 +141,8 @@ private fun TabletScaffold(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .padding(
-                    horizontal = if (isFoldable()) 16.dp else 24.dp,
-                    vertical = adaptiveVerticalPadding(),
-                ),
+                .background(BentoGlassTheme.ScreenBackground)
+                .padding(vertical = adaptiveVerticalPadding()),
         ) {
             content(PaddingValues(0.dp))
         }
