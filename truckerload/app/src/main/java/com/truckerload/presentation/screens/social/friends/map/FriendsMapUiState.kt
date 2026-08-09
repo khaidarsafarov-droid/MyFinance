@@ -30,8 +30,14 @@ data class FriendsMapUiState(
     val myPathPast: List<LatLngPoint> = emptyList(),
     val myPathRemaining: List<LatLngPoint> = emptyList(),
     val myRouteSummary: String? = null,
-    /** True when only a straight-line fallback is shown (OSRM unavailable). */
-    val myRouteStraightFallback: Boolean = false,
+    /** True when blue path follows the road network (Google / OSRM), false = air line. */
+    val myRouteIsRoadNetwork: Boolean = false,
+    val myRouteProvider: String? = null,
+    val myRouteFailureReason: String? = null,
+    val myRouteDistanceMeters: Long? = null,
+    val myRouteDurationSeconds: Long? = null,
+    val locationBatterySaver: Boolean = false,
+    val routeVehicleTruck: Boolean = true,
     val selectedFriendId: String? = null,
     val overlaps: List<RouteOverlapMatch> = emptyList(),
     val showOverlapsPanel: Boolean = false,

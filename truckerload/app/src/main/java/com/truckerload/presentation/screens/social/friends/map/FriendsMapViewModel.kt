@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.remote.OsrmDirectionsClient
+import com.truckerload.data.remote.CompositeDirectionsProvider
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
@@ -13,10 +13,13 @@ import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
+import com.truckerload.domain.friends.RoadRouteResult
 import com.truckerload.domain.friends.RoadRouteSession
 import com.truckerload.domain.friends.RouteIntersectionMatcher
 import com.truckerload.domain.friends.RouteOverlapMatch
 import com.truckerload.domain.friends.SharedLoadStatus
+import com.truckerload.domain.friends.TruckRoutingParams
+import com.truckerload.domain.friends.VehicleRoutingMode
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
 import com.truckerload.utils.LocationHelper
@@ -44,7 +47,8 @@ class FriendsMapViewModel @Inject constructor(
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val locationHelper = LocationHelper(context)
-    private val roadRoutes = RoadRouteSession(OsrmDirectionsClient())
+    private val directions = CompositeDirectionsProvider()
+    private var roadRoutes = RoadRouteSession(directions)
 
     private val _uiState = MutableStateFlow(FriendsMapUiState())
     val uiState = _uiState.asStateFlow()
@@ -59,6 +63,18 @@ class FriendsMapViewModel @Inject constructor(
                 _uiState.update { it.copy(sharePathEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            settingsDataStore.locationBatterySaver.collect { enabled ->
+                _uiState.update { it.copy(locationBatterySaver = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            settingsDataStore.routeVehicleTruck.collect { truck ->
+                _uiState.update { it.copy(routeVehicleTruck = truck) }
+                rebuildRoadSession(truck)
+                rebuildMyPath()
+            }
+        }
         refresh()
         pollJob = viewModelScope.launch {
             while (isActive) {
@@ -67,6 +83,15 @@ class FriendsMapViewModel @Inject constructor(
                 refresh(silent = true)
             }
         }
+    }
+
+    private fun rebuildRoadSession(truck: Boolean) {
+        roadRoutes.clear()
+        roadRoutes = RoadRouteSession(
+            directions = directions,
+            vehicleMode = if (truck) VehicleRoutingMode.TRUCK else VehicleRoutingMode.CAR,
+            truckParams = TruckRoutingParams(),
+        )
     }
 
     override fun onCleared() {
@@ -193,7 +218,6 @@ class FriendsMapViewModel @Inject constructor(
         viewModelScope.launch {
             if (!silent) _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
-                pullMyLocationQuietly()
                 val ready = friendsApi.isConfigured()
                 _uiState.update { it.copy(supabaseReady = ready) }
                 val links = if (ready) {
@@ -223,7 +247,7 @@ class FriendsMapViewModel @Inject constructor(
                             cacheKey = p.userId,
                             currentOrStart = start,
                             destination = route.destination,
-                        ).points
+                        )
                     } else {
                         null
                     }
@@ -255,7 +279,11 @@ class FriendsMapViewModel @Inject constructor(
                         myPathPast = myPath.past,
                         myPathRemaining = myPath.remaining,
                         myRouteSummary = myPath.summary,
-                        myRouteStraightFallback = myPath.isStraightFallback,
+                        myRouteIsRoadNetwork = myPath.road?.isRoadNetwork == true,
+                        myRouteProvider = myPath.road?.providerName,
+                        myRouteFailureReason = myPath.road?.failureReason,
+                        myRouteDistanceMeters = myPath.road?.distanceMeters,
+                        myRouteDurationSeconds = myPath.road?.durationSeconds,
                         overlaps = overlaps,
                         lastRefreshAt = System.currentTimeMillis(),
                         errorMessage = null,
@@ -276,7 +304,11 @@ class FriendsMapViewModel @Inject constructor(
                 myPathPast = myPath.past,
                 myPathRemaining = myPath.remaining,
                 myRouteSummary = myPath.summary,
-                myRouteStraightFallback = myPath.isStraightFallback,
+                myRouteIsRoadNetwork = myPath.road?.isRoadNetwork == true,
+                myRouteProvider = myPath.road?.providerName,
+                myRouteFailureReason = myPath.road?.failureReason,
+                myRouteDistanceMeters = myPath.road?.distanceMeters,
+                myRouteDurationSeconds = myPath.road?.durationSeconds,
             )
         }
     }
@@ -285,7 +317,7 @@ class FriendsMapViewModel @Inject constructor(
         val past: List<LatLngPoint>,
         val remaining: List<LatLngPoint>,
         val summary: String?,
-        val isStraightFallback: Boolean = false,
+        val road: RoadRouteResult? = null,
     )
 
     private suspend fun buildMyPathOverlay(): MyPathDraw = withContext(Dispatchers.IO) {
@@ -313,12 +345,16 @@ class FriendsMapViewModel @Inject constructor(
             trackPoints = emptyList(),
         )
         val start = myLocationPoint ?: origin
-        val roadOutcome = roadRoutes.remainingRoad(
+        val roadResult = roadRoutes.remainingRoadResult(
             cacheKey = RoadRouteSession.SELF_CACHE_KEY,
             currentOrStart = start,
             destination = destination,
         )
-        val split = FriendRoutePolylineBuilder.split(route, myLocationPoint, roadRemaining = roadOutcome.points)
+        val split = FriendRoutePolylineBuilder.split(
+            route,
+            myLocationPoint,
+            roadRemaining = roadResult.points,
+        )
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
             .joinToString(" → ")
@@ -327,7 +363,7 @@ class FriendsMapViewModel @Inject constructor(
             past = split.past,
             remaining = split.remaining,
             summary = summary,
-            isStraightFallback = !roadOutcome.isRoadRouted,
+            road = roadResult,
         )
     }
 
@@ -367,6 +403,22 @@ class FriendsMapViewModel @Inject constructor(
         }
     }
 
+    fun setLocationBatterySaver(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.saveLocationBatterySaver(enabled)
+        }
+    }
+
+    fun setRouteVehicleTruck(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.saveRouteVehicleTruck(enabled)
+        }
+    }
+
+    /** GPS poll interval while the map screen is open (foreground only). */
+    fun locationPollIntervalMs(): Long =
+        if (_uiState.value.locationBatterySaver) LOCATION_INTERVAL_BATTERY_MS else LOCATION_INTERVAL_DEFAULT_MS
+
     fun selectFriend(userId: String?) {
         _uiState.update { it.copy(selectedFriendId = userId) }
     }
@@ -401,5 +453,7 @@ class FriendsMapViewModel @Inject constructor(
 
     companion object {
         const val SELF_ROUTE_ID = "__me__"
+        const val LOCATION_INTERVAL_DEFAULT_MS = 5_000L
+        const val LOCATION_INTERVAL_BATTERY_MS = 10_000L
     }
 }

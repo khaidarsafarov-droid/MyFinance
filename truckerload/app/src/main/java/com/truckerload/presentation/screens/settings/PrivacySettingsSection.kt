@@ -49,6 +49,7 @@ fun PrivacySettingsSection(
     val settingsDataStore = LocalSettingsDataStore.current
     val scope = rememberCoroutineScope()
     val sharePath by settingsDataStore.sharePathWithFriends.collectAsStateWithLifecycle(false)
+    val batterySaver by settingsDataStore.locationBatterySaver.collectAsStateWithLifecycle(false)
 
     val cameraGranted = permissionGranted(context, Manifest.permission.CAMERA)
     val micGranted = permissionGranted(context, Manifest.permission.RECORD_AUDIO)
@@ -113,6 +114,34 @@ fun PrivacySettingsSection(
                 checked = sharePath,
                 onCheckedChange = { enabled ->
                     scope.launch { settingsDataStore.saveSharePathWithFriends(enabled) }
+                },
+                colors = AppSwitchDefaults.colors(),
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_privacy_battery_saver),
+                    color = tc.TextPrimary,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    text = stringResource(R.string.settings_privacy_battery_saver_desc),
+                    color = tc.TextSecondary,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Switch(
+                checked = batterySaver,
+                onCheckedChange = { enabled ->
+                    scope.launch { settingsDataStore.saveLocationBatterySaver(enabled) }
                 },
                 colors = AppSwitchDefaults.colors(),
             )
