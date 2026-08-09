@@ -53,9 +53,11 @@ class AuthStore(context: Context) {
                         runCatching { AuthProvider.valueOf(it) }.getOrNull()
                     } ?: when {
                         !liveGoogleSub.isNullOrBlank() -> AuthProvider.GOOGLE
-                        persistedId.startsWith("local_") && persistedId != AccountIds.LOCAL_DEV ->
-                            AuthProvider.EMAIL
-                        else -> AuthProvider.LOCAL
+                        persistedId.startsWith("google_") -> AuthProvider.GOOGLE
+                        persistedId == AccountIds.LOCAL_DEV -> AuthProvider.LOCAL
+                        // local_<hash> email accounts and cloud UUIDs are real logins —
+                        // never treat a restored UUID as guest LOCAL (that force-logs out).
+                        else -> AuthProvider.EMAIL
                     }
                     liveLoggedIn = true
                     liveSessionHealth = AuthSessionHealth.VERIFIED
@@ -163,12 +165,12 @@ class AuthStore(context: Context) {
         val mail = email.trim()
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
-            provider != AuthProvider.LOCAL -> provider
+            provider == AuthProvider.GOOGLE || provider == AuthProvider.EMAIL -> provider
             id == AccountIds.LOCAL_DEV -> AuthProvider.LOCAL
             id.startsWith("local_") -> AuthProvider.EMAIL
             id.startsWith("google_") -> AuthProvider.GOOGLE
-            // Supabase UUID without googleSub still counts as email/cloud auth
-            else -> provider
+            // Supabase UUID (or any non-guest id) is a real account, not guest LOCAL.
+            else -> AuthProvider.EMAIL
         }
         // Real auth (Google / email) always persists identity across cold starts.
         val isPersistentAuth = resolvedProvider == AuthProvider.GOOGLE ||
@@ -293,9 +295,28 @@ class AuthStore(context: Context) {
         private val _email = MutableStateFlow("")
         private val _sessionHealth = MutableStateFlow(AuthSessionHealth.VERIFIED)
 
+        /** Test-only: clear process-wide session so the next [AuthStore] re-reads disk. */
+        internal fun resetForTests() {
+            synchronized(lock) {
+                bootstrapped = false
+                liveLoggedIn = false
+                liveUserId = null
+                liveEmail = ""
+                liveAccessToken = null
+                liveRefreshToken = null
+                liveGoogleSub = null
+                liveProvider = AuthProvider.LOCAL
+                liveSessionHealth = AuthSessionHealth.VERIFIED
+                _isLoggedIn.value = DEFAULT_LOGGED_IN
+                _userId.value = null
+                _email.value = ""
+                _sessionHealth.value = AuthSessionHealth.VERIFIED
+            }
+        }
+
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
-            if (SecurePreferences.plaintextFallbackUsed) return secure
+            // Migrate even on Keystore fallback so older installs keep their session.
             SecurePreferences.migratePlainToSecure(
                 context = context,
                 legacyName = LEGACY_PREFS_NAME,

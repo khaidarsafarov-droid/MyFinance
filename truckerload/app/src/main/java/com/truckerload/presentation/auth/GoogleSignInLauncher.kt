@@ -196,7 +196,7 @@ fun rememberGoogleSignInLauncher(
 
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
-        if (!CredentialManagerGoogleSignIn.isAvailable()) {
+        if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
             val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
                 GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestEmail()

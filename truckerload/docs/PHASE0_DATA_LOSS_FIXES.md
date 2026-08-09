@@ -13,8 +13,10 @@
    - Soft banner + tap-to-retry on home (`AuthStatusBanner`)
 
 3. **SecurePreferences**
-   - Debug: plaintext fallback + banner (unchanged UX)
-   - Release: wipe same-named plaintext file, use in-memory prefs (fail closed); secret writes still refused
+   - When EncryptedSharedPreferences / Keystore fails: durable plaintext fallback + banner
+   - High-value secrets (bot tokens, API keys) still refuse plaintext writes
+   - Session identity + PBKDF2 password verifiers are allowed on the degraded store so
+     registration/login survives process death (tablets with broken Keystore)
 
 4. **Release BuildConfig**
    - `TELEGRAM_BOT_TOKEN` and `CEREBRAS_API_KEY` forced empty in `release`

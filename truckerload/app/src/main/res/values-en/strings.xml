@@ -104,12 +104,13 @@
     <string name="auth_local_login_fallback">Signed in locally (cloud temporarily unavailable)</string>
     <string name="auth_session_unconfirmed_banner">Couldn’t verify session online. Working locally</string>
     <string name="auth_session_offline_local_banner">No network — working locally; sync paused</string>
-    <string name="auth_secure_storage_fallback_banner">Secure storage unavailable — secrets are not saved to disk; sign in again</string>
+    <string name="auth_secure_storage_fallback_banner">Secure storage unavailable — bot tokens are not saved; login is stored with reduced protection</string>
     <string name="auth_startup_backfill_retry_banner">Data sync needed. Tap to retry.</string>
     <string name="profile_last_drive_sync">Last Drive sync: %1$s</string>
     <string name="profile_last_drive_sync_never">Last Drive sync: never</string>
     <string name="profile_google_linked">Google: %1$s</string>
     <string name="signup_error_profile_save">Could not save profile</string>
+    <string name="signup_profile_sync_deferred">Account created. Cloud profile will sync later</string>
     <string name="signup_error_register">Registration error</string>
     <string name="signup_success_confirm_email">Registration successful. Confirm your email via the link in the message, then sign in.</string>
     <string name="supabase_not_configured">Supabase is not configured.</string>

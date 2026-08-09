@@ -27,7 +27,16 @@ object CredentialManagerGoogleSignIn {
 
     private val executor = Executors.newSingleThreadExecutor()
 
-    fun isAvailable(): Boolean = BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()
+    /**
+     * Credential Manager account picker is flaky on many tablets / large-screen OEMs.
+     * Prefer legacy Google Sign-In Activity there (sw ≥ 600dp).
+     */
+    fun isAvailable(context: Context? = null): Boolean {
+        if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isBlank()) return false
+        val sw = context?.resources?.configuration?.smallestScreenWidthDp ?: 0
+        if (sw >= 600) return false
+        return true
+    }
 
     /**
      * Запрашивает Google ID token через Credential Manager.
@@ -38,11 +47,21 @@ object CredentialManagerGoogleSignIn {
         context: Context,
         silent: Boolean = false,
     ): Result<String> = suspendCoroutine { cont ->
-        val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
-        if (webClientId.isBlank()) {
-            cont.resume(Result.failure(Exception("GOOGLE_WEB_CLIENT_ID is not configured")))
+        if (!isAvailable(context)) {
+            cont.resume(
+                Result.failure(
+                    Exception(
+                        if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isBlank()) {
+                            "GOOGLE_WEB_CLIENT_ID is not configured"
+                        } else {
+                            "Credential Manager skipped on large screen; use legacy Google Sign-In"
+                        },
+                    ),
+                ),
+            )
             return@suspendCoroutine
         }
+        val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
         val credentialManager = CredentialManager.create(context)
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(silent)
