@@ -24,4 +24,17 @@ class WindowSizeClassTest {
         assertTrue(isTabletClassWidth(600))
         assertTrue(isTabletClassWidth(1024))
     }
+
+    @Test
+    fun useTwoPaneForWidth() {
+        assertFalse(useTwoPaneForWidth(768))
+        assertTrue(useTwoPaneForWidth(1024))
+    }
+
+    @Test
+    fun adaptiveGridColumnsForWidth_defaults() {
+        assertEquals(1, adaptiveGridColumnsForWidth(411))
+        assertEquals(2, adaptiveGridColumnsForWidth(768))
+        assertEquals(3, adaptiveGridColumnsForWidth(1024))
+    }
 }

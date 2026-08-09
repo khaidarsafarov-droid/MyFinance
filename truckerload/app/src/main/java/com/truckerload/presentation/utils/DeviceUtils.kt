@@ -39,11 +39,30 @@ fun windowSizeClassForWidth(widthDp: Int): WindowSizeClass = when {
 fun isTabletClassWidth(widthDp: Int): Boolean =
     windowSizeClassForWidth(widthDp) != WindowSizeClass.COMPACT
 
+/** Side-by-side list/detail when the content pane is wide enough. */
+fun useTwoPaneForWidth(widthDp: Int): Boolean =
+    windowSizeClassForWidth(widthDp) == WindowSizeClass.EXPANDED
+
+/** Card / metric grid columns: 1 phone, 2 tablet portrait, 3 tablet landscape. */
+fun adaptiveGridColumnsForWidth(
+    widthDp: Int,
+    compact: Int = 1,
+    medium: Int = 2,
+    expanded: Int = 3,
+): Int = when (windowSizeClassForWidth(widthDp)) {
+    WindowSizeClass.EXPANDED -> expanded
+    WindowSizeClass.MEDIUM -> medium
+    WindowSizeClass.COMPACT -> compact
+}
+
 @Composable
 fun rememberWindowSizeClass(): WindowSizeClass {
     val width = LocalConfiguration.current.screenWidthDp
     return remember(width) { windowSizeClassForWidth(width) }
 }
+
+@Composable
+fun rememberScreenWidthDp(): Int = LocalConfiguration.current.screenWidthDp
 
 @Composable
 fun isLandscape(): Boolean {
@@ -70,6 +89,22 @@ fun useNavigationRail(): Boolean {
 
 @Composable
 fun isFoldable(): Boolean = rememberWindowSizeClass() == WindowSizeClass.MEDIUM
+
+/** List | detail panes (Expanded / landscape tablets). */
+@Composable
+fun useTwoPaneLayout(): Boolean = rememberWindowSizeClass() == WindowSizeClass.EXPANDED
+
+@Composable
+fun adaptiveGridColumns(
+    compact: Int = 1,
+    medium: Int = 2,
+    expanded: Int = 3,
+): Int {
+    val width = rememberScreenWidthDp()
+    return remember(width, compact, medium, expanded) {
+        adaptiveGridColumnsForWidth(width, compact, medium, expanded)
+    }
+}
 
 @Composable
 fun adaptiveHorizontalPadding(): Dp = when (rememberWindowSizeClass()) {

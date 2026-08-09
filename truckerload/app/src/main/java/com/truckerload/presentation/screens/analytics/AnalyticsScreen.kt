@@ -49,10 +49,11 @@ import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.presentation.components.charts.DailyDistributionChart
 import com.truckerload.presentation.components.charts.TopRoutesBarChart
 import com.truckerload.presentation.components.charts.WeeklyRevenueLineChart
+import com.truckerload.presentation.components.BentoGrid
+import com.truckerload.presentation.components.BentoItem
 import com.truckerload.presentation.components.LoadCard
 import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.theme.BentoGlassCard
-import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppTypography
@@ -344,60 +345,41 @@ private fun PeriodFilterRow(
 @Composable
 private fun SummaryMetricsGrid(summary: AnalyticsSummary) {
     val tc = LocalTruckColors.current
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.analytics_total_loads),
+    BentoGrid(
+        items = listOf(
+            BentoItem(
                 value = summary.totalLoads.toString(),
-                accent = tc.AccentPrimary,
-            )
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.analytics_total_gross),
+                label = stringResource(R.string.analytics_total_loads),
+                color = tc.AccentPrimary,
+            ),
+            BentoItem(
                 value = formatUsd(summary.totalGross),
-                accent = FinanceCockpitColors.SalaryAccent,
+                label = stringResource(R.string.analytics_total_gross),
+                color = FinanceCockpitColors.SalaryAccent,
                 highlight = true,
-            )
-        }
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.analytics_total_miles),
+            ),
+            BentoItem(
                 value = formatMiles(summary.totalMiles),
-                accent = tc.AccentInfo,
-            )
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.analytics_avg_rpm),
+                label = stringResource(R.string.analytics_total_miles),
+                color = tc.AccentInfo,
+            ),
+            BentoItem(
                 value = formatRpm(summary.avgRpm),
-                accent = BentoGlassTheme.GoalGradientEnd,
-            )
-        }
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.analytics_avg_per_load),
+                label = stringResource(R.string.analytics_avg_rpm),
+                color = BentoGlassTheme.GoalGradientEnd,
+            ),
+            BentoItem(
                 value = formatUsd(summary.avgGrossPerLoad),
-                accent = tc.AccentWarning,
-            )
-            BentoGlassMetricCell(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.analytics_best_week),
+                label = stringResource(R.string.analytics_avg_per_load),
+                color = tc.AccentWarning,
+            ),
+            BentoItem(
                 value = summary.bestWeek?.let { formatUsd(it.gross) } ?: "—",
-                accent = FinanceCockpitColors.NetProfitStart,
-            )
-        }
-    }
+                label = stringResource(R.string.analytics_best_week),
+                color = FinanceCockpitColors.NetProfitStart,
+            ),
+        ),
+    )
 }
 
 private fun formatUsd(value: Double): String =

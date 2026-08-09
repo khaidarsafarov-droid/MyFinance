@@ -13,10 +13,18 @@ object UiDimens {
     val IconFab = 28.dp
     val IconInline = 18.dp
 
-    // Touch targets (Material minimum)
+    // Touch targets (Material minimum; tablet-friendly 48dp)
     val TouchTarget = 48.dp
     val TouchTargetCompact = 40.dp
     val FabSize = 56.dp
+
+    // Forms — comfortable for finger input on tablets
+    val FormFieldMinHeight = 48.dp
+    val FormFieldSpacing = 16.dp
+    val FormSectionSpacing = 24.dp
+
+    // Tablet list | detail
+    val ListPaneMinWidth = 320.dp
 
     // Cards (minimum heights for consistent list rhythm)
     val LoadCardMinHeight = 120.dp
@@ -39,7 +47,7 @@ object UiDimens {
     val CallActionIcon = 32.dp
 
     // Toolbar / top bar
-    val ToolbarTouchTarget = 44.dp
+    val ToolbarTouchTarget = 48.dp
     val ToolbarIconSize = 24.dp
 
     // Bottom navigation bar

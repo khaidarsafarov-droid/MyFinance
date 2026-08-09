@@ -1,5 +1,9 @@
 package com.truckerload.presentation.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Flag
@@ -30,17 +33,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,12 +46,10 @@ import androidx.navigation.NavHostController
 import com.truckerload.R
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.SoftUiElevation
-import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.WindowSizeClass
+import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.adaptiveVerticalPadding
-import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.rememberWindowSizeClass
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.FeedbackManager
@@ -73,6 +68,7 @@ fun AdaptiveScaffold(
 ) {
     val drawerState = rememberDrawerState(initialValue = androidx.compose.material3.DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val sizeClass = rememberWindowSizeClass()
     val openDrawer: () -> Unit = {
         scope.launch { drawerState.open() }
     }
@@ -80,6 +76,7 @@ fun AdaptiveScaffold(
     CompositionLocalProvider(LocalOpenDrawer provides openDrawer) {
         ModalNavigationDrawer(
             drawerState = drawerState,
+            // Edge-swipe opens the tools drawer when main chrome is visible.
             gesturesEnabled = showMainNavigation,
             drawerContent = {
                 AppDrawerContent(
@@ -97,6 +94,7 @@ fun AdaptiveScaffold(
                     useNavigationRail() && showMainNavigation -> {
                         TabletScaffold(
                             modifier = modifier,
+                            sizeClass = sizeClass,
                             currentRoute = currentRoute,
                             onNavigate = onNavigate,
                             onDrawerNavigate = onDrawerNavigate,
@@ -120,12 +118,18 @@ fun AdaptiveScaffold(
 
 @Composable
 private fun TabletScaffold(
+    sizeClass: WindowSizeClass,
     currentRoute: String?,
     onNavigate: (String) -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val horizontalPad = when (sizeClass) {
+        WindowSizeClass.MEDIUM -> 16.dp
+        WindowSizeClass.EXPANDED -> adaptiveHorizontalPadding()
+        WindowSizeClass.COMPACT -> 16.dp
+    }
     Row(modifier = modifier.fillMaxSize()) {
         TruckLogNavigationRail(
             currentRoute = currentRoute,
@@ -142,7 +146,10 @@ private fun TabletScaffold(
                 .weight(1f)
                 .fillMaxHeight()
                 .background(BentoGlassTheme.ScreenBackground)
-                .padding(vertical = adaptiveVerticalPadding()),
+                .padding(
+                    horizontal = horizontalPad,
+                    vertical = adaptiveVerticalPadding(),
+                ),
         ) {
             content(PaddingValues(0.dp))
         }
@@ -157,12 +164,6 @@ private fun PhoneScaffold(
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val sizeClass = rememberWindowSizeClass()
-    val extraHorizontal = when (sizeClass) {
-        WindowSizeClass.MEDIUM -> 8.dp
-        else -> 0.dp
-    }
-
     Scaffold(
         modifier = modifier,
         containerColor = BentoGlassTheme.ScreenBackground,
@@ -175,11 +176,7 @@ private fun PhoneScaffold(
             }
         },
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = extraHorizontal),
-        ) {
+        Box(modifier = Modifier.padding(padding)) {
             content(PaddingValues(0.dp))
         }
     }
@@ -269,6 +266,7 @@ private fun BottomNavItem(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = modifier
             .fillMaxWidth()
             .clip(pillShape)
@@ -283,6 +281,7 @@ private fun BottomNavItem(
                     onNavigate(route)
                 },
             )
+            .touchTarget()
             .padding(horizontal = 2.dp, vertical = 6.dp),
     ) {
         Icon(

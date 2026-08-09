@@ -1,5 +1,7 @@
 package com.truckerload.presentation.theme
 
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -7,6 +9,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 object AppTextFieldDefaults {
@@ -28,6 +31,13 @@ object AppTextFieldDefaults {
         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     )
 }
+
+/** Min height 48dp for comfortable tablet / finger input. */
+fun Modifier.appFormField(): Modifier =
+    defaultMinSize(minHeight = UiDimens.FormFieldMinHeight)
+
+fun Modifier.appFormFieldSpacing(): Modifier =
+    padding(bottom = UiDimens.FormFieldSpacing)
 
 object AppFilterChipDefaults {
     private val chipShape = RoundedCornerShape(SoftUiDimens.ChipRadius)

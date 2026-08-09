@@ -32,6 +32,7 @@ import com.truckerload.presentation.components.navigateToMainRoute
 import com.truckerload.presentation.utils.AdaptiveScreenContainer
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.useNavigationRail
+import com.truckerload.presentation.utils.useTwoPaneLayout
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -245,21 +246,25 @@ fun NavGraph(
                 popEnterTransition = { tabEnterTransition(reduceMotion) },
                 popExitTransition = { tabExitTransition(reduceMotion) },
             ) {
-                HomeScreen(
-                    onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
-                    onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
-                    onStats = { navController.navigate(Routes.ANALYTICS) },
-                    onSettings = { navController.navigate(Routes.SETTINGS) },
-                    onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
-                    onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
-                    onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
-                    onLoadCamera = { loadId, tripId, loadDate ->
-                        navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
-                    },
-                    onLoadScan = { loadId, tripId, loadDate ->
-                        navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
-                    },
-                )
+                if (useTwoPaneLayout()) {
+                    JournalListDetailHost(navController = navController)
+                } else {
+                    HomeScreen(
+                        onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
+                        onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
+                        onStats = { navController.navigate(Routes.ANALYTICS) },
+                        onSettings = { navController.navigate(Routes.SETTINGS) },
+                        onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+                        onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
+                        onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                        onLoadCamera = { loadId, tripId, loadDate ->
+                            navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
+                        },
+                        onLoadScan = { loadId, tripId, loadDate ->
+                            navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
+                        },
+                    )
+                }
             }
             socialNavGraph(navController, reduceMotion)
             loadsNavGraph(navController)
