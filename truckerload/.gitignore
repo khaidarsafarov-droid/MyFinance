@@ -21,8 +21,9 @@ local.properties
 .env
 !.env.example
 
-# Release signing (never commit passwords or keystores)
+# Release / debug signing (never commit passwords or keystores)
 keystore.properties
+debug-keystore.properties
 signing/*.jks
 signing/*.keystore
 signing/*.p12

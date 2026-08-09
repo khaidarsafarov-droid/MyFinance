@@ -105,12 +105,31 @@ android {
 
     // Optional friends/production signing. Create keystore.properties (gitignored) —
     // see docs/FRIENDS_SHARE.md. Without it, release stays unsigned (CI can still compile).
+    // Optional permanent debug keystore: debug-keystore.properties (also gitignored).
     val keystorePropertiesFile = rootProject.file("keystore.properties")
     val keystoreProperties = Properties()
     if (keystorePropertiesFile.exists()) {
         keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
     }
+    val debugKeystorePropertiesFile = rootProject.file("debug-keystore.properties")
+    val debugKeystoreProperties = Properties()
+    if (debugKeystorePropertiesFile.exists()) {
+        debugKeystorePropertiesFile.inputStream().use { debugKeystoreProperties.load(it) }
+    }
     signingConfigs {
+        getByName("debug") {
+            if (debugKeystorePropertiesFile.exists()) {
+                val storePath = debugKeystoreProperties.getProperty("storeFile")
+                    ?: error("debug-keystore.properties missing storeFile")
+                storeFile = rootProject.file(storePath)
+                storePassword = debugKeystoreProperties.getProperty("storePassword")
+                    ?: error("debug-keystore.properties missing storePassword")
+                keyAlias = debugKeystoreProperties.getProperty("keyAlias")
+                    ?: error("debug-keystore.properties missing keyAlias")
+                keyPassword = debugKeystoreProperties.getProperty("keyPassword")
+                    ?: error("debug-keystore.properties missing keyPassword")
+            }
+        }
         create("release") {
             if (keystorePropertiesFile.exists()) {
                 val storePath = keystoreProperties.getProperty("storeFile")
@@ -128,6 +147,7 @@ android {
     buildTypes {
         debug {
             // Dev-only secrets may come from local.properties via defaultConfig.
+            // Uses permanent debug keystore when debug-keystore.properties is present.
         }
         release {
             isMinifyEnabled = true
