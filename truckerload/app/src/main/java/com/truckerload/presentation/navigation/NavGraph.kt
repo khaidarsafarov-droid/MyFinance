@@ -31,6 +31,7 @@ import com.truckerload.presentation.components.DrawerDestination
 import com.truckerload.presentation.components.navigateToMainRoute
 import com.truckerload.presentation.utils.AdaptiveScreenContainer
 import com.truckerload.presentation.utils.isTablet
+import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -54,6 +55,7 @@ fun NavGraph(
     val context = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
     val tablet = isTablet()
+    val navigationRail = useNavigationRail()
 
     if (!isLoggedIn) {
         // Auth UI is hosted by MainActivity (account switch recreates user-scoped deps).
@@ -227,7 +229,10 @@ fun NavGraph(
         },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-        AdaptiveScreenContainer(modifier = Modifier.padding(padding)) {
+        AdaptiveScreenContainer(
+            modifier = Modifier.padding(padding),
+            useFullWidth = navigationRail && showMainNavigation,
+        ) {
         NavHost(
             navController = navController,
             startDestination = Routes.HOME,
