@@ -106,6 +106,36 @@ fun adaptiveGridColumns(
     }
 }
 
+/** Card / metric grid columns: 1 phone, 2 portrait tablet, 3 landscape tablet. */
+@Composable
+fun adaptiveCardColumns(): Int {
+    val sizeClass = rememberWindowSizeClass()
+    val landscape = isLandscape()
+    return when {
+        sizeClass == WindowSizeClass.EXPANDED && landscape -> 3
+        sizeClass == WindowSizeClass.EXPANDED || sizeClass == WindowSizeClass.MEDIUM -> 2
+        else -> 1
+    }
+}
+
+/**
+ * Journal load cards stay at most 2 columns — content (route, RPM, actions)
+ * is too dense for a reliable 3-column swipeable layout.
+ */
+@Composable
+fun adaptiveLoadColumns(): Int = adaptiveCardColumns().coerceAtMost(2)
+
+/** Min cell size for adaptive photo grids on tablets. */
+@Composable
+fun adaptiveGalleryMinCellSize(): Dp {
+    val columns = adaptiveCardColumns()
+    return when (columns) {
+        3 -> 160.dp
+        2 -> 140.dp
+        else -> 120.dp
+    }
+}
+
 @Composable
 fun adaptiveHorizontalPadding(): Dp = when (rememberWindowSizeClass()) {
     WindowSizeClass.EXPANDED -> 32.dp

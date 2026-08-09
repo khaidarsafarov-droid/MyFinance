@@ -45,8 +45,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.maps.model.LatLng
 import com.truckerload.R
+import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -72,21 +72,21 @@ fun FriendsLiveMapScreen(
     val locationPermission = rememberFriendsMapLocationPermission()
     val hasLocationPermission = locationPermission.hasPermission
 
-    var myLocation by remember { mutableStateOf<LatLng?>(null) }
+    var myLocation by remember { mutableStateOf<LatLngPoint?>(null) }
     var centerOnMeNonce by remember { mutableIntStateOf(0) }
     var mapExpanded by remember { mutableStateOf(false) }
     var manageExpanded by remember { mutableStateOf(false) }
     var addFriendExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    suspend fun refreshMyLocation(): LatLng? {
+    suspend fun refreshMyLocation(): LatLngPoint? {
         if (!hasLocationPermission) return null
         val loc = locationHelper.getCurrentLocation()
         val lat = loc?.latitude
         val lng = loc?.longitude
         if (lat == null || lng == null) return null
         viewModel.updateMyLocation(lat, lng)
-        return LatLng(lat, lng).also { myLocation = it }
+        return LatLngPoint(lat, lng).also { myLocation = it }
     }
 
     LaunchedEffect(hasLocationPermission, uiState.locationBatterySaver) {
