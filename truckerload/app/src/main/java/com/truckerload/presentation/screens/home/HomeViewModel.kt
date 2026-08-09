@@ -330,7 +330,6 @@ class HomeViewModel @Inject constructor(
             commitPendingDelete(previous)
         }
         undoDeleteJob?.cancel()
-        _pendingDeleteConfirmId.value = null
         _optimisticOverlay.update { it - loadId }
         _pendingDeleteIds.update { it + loadId }
         _undoDeleteLoadId.value = loadId

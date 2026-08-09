@@ -104,7 +104,7 @@ fun StaggeredAnimatedItem(
 fun Modifier.neoGlassPressScale(): Modifier = composed {
     val reduceMotion = LocalReduceMotion.current
     var pressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
+        val scale by animateFloatAsState(
         targetValue = if (pressed && !reduceMotion) 0.95f else 1f,
         animationSpec = tween(motionDurationMs(reduceMotion, 120)),
         label = "neoGlassPress",

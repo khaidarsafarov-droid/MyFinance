@@ -104,8 +104,7 @@ fun TruckerLoadTheme(
     reduceMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val systemReduceMotion = rememberSystemReduceMotion()
-    val effectiveReduceMotion = reduceMotion || systemReduceMotion
+    val effectiveReduceMotion = rememberEffectiveReduceMotion(reduceMotion)
     val colorScheme = resolveColorScheme(darkTheme, dynamicColor, oledDark = oledDark && darkTheme)
     val truckColors = truckPaletteFrom(colorScheme)
 

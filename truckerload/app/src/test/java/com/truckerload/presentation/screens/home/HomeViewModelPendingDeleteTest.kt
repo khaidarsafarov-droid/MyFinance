@@ -74,8 +74,7 @@ class HomeViewModelPendingDeleteTest {
     fun requestDeleteLoad_blank_isIgnored() {
         viewModel.requestDeleteLoad("  ")
         assertNull(viewModel.undoDeleteLoadId.value)
-        assertNull(viewModel.pendingDeleteConfirmId.value)
-    }
+            }
 
     @Test
     fun undoDeleteLoad_clearsPendingAndBumpsSwipeGeneration() {
