@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.login
 
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -54,6 +55,7 @@ fun LoginScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val activity = LocalActivity.current ?: context
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val emailFocus = remember { FocusRequester() }
     val launchLegacyGoogle = rememberLegacyGoogleSignInLaunch(viewModel)
@@ -100,7 +102,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     GoogleSignInButton(
-                        onClick = { viewModel.onGoogleSignInClick(context) },
+                        onClick = { viewModel.onGoogleSignInClick(activity) },
                         enabled = !uiState.isLoading,
                         loading = uiState.isLoading && !uiState.showEmailFields,
                     )

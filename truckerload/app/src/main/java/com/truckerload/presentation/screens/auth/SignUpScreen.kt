@@ -214,8 +214,24 @@ fun SignUpScreen(
                                                     completeSignUp()
                                                 },
                                                 onFailure = {
-                                                    error = it.message
-                                                        ?: context.getString(R.string.signup_error_profile_save)
+                                                    credentialsStore.saveCredentials(emailTrimmed, password)
+                                                    AuthLogin.completeLogin(
+                                                        authStore = authStore,
+                                                        userProfileStore = userProfileStore,
+                                                        userId = r.user.id,
+                                                        profile = UserProfile(
+                                                            email = r.user.email ?: emailTrimmed,
+                                                            givenName = parts.firstOrNull() ?: "",
+                                                            familyName = parts.getOrNull(1) ?: "",
+                                                            photoUrl = null,
+                                                            phoneNumber = phoneFormatted,
+                                                        ),
+                                                        accessToken = r.accessToken,
+                                                        refreshToken = r.refreshToken,
+                                                    )
+                                                    com.truckerload.data.preferences.EmailVerificationStore(context)
+                                                        .beginVerification(emailTrimmed)
+                                                    completeSignUp()
                                                 },
                                             )
                                         }

@@ -11,6 +11,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.truckerload.BuildConfig
+import com.truckerload.data.auth.GoogleSignInSupport
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import java.util.concurrent.Executors
@@ -43,7 +44,16 @@ object CredentialManagerGoogleSignIn {
             cont.resume(Result.failure(Exception("GOOGLE_WEB_CLIENT_ID is not configured")))
             return@suspendCoroutine
         }
-        val credentialManager = CredentialManager.create(context)
+        if (!GoogleSignInSupport.isPlayServicesAvailable(context)) {
+            cont.resume(Result.failure(Exception("Google Play Services unavailable")))
+            return@suspendCoroutine
+        }
+        val activity = GoogleSignInSupport.findActivity(context)
+        if (activity == null) {
+            cont.resume(Result.failure(Exception("Activity context required for Google Sign-In")))
+            return@suspendCoroutine
+        }
+        val credentialManager = CredentialManager.create(activity)
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(silent)
             .setServerClientId(webClientId)
@@ -83,6 +93,6 @@ object CredentialManagerGoogleSignIn {
             }
         }
 
-        credentialManager.getCredentialAsync(context, request, null, executor, callback)
+        credentialManager.getCredentialAsync(activity, request, null, executor, callback)
     }
 }

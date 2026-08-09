@@ -5,6 +5,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.truckerload.R
+import com.truckerload.data.auth.GoogleSignInSupport
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthLogin
@@ -62,6 +63,9 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun requestGoogleIdToken(activityContext: Context): GoogleTokenRequestResult {
+        if (!GoogleSignInSupport.isPlayServicesAvailable(activityContext)) {
+            return GoogleTokenRequestResult.FallBackToLegacy
+        }
         if (!CredentialManagerGoogleSignIn.isAvailable()) {
             return GoogleTokenRequestResult.FallBackToLegacy
         }
@@ -290,6 +294,7 @@ class AuthRepositoryImpl @Inject constructor(
             rememberMe = true,
             accessToken = accessToken,
             refreshToken = refreshToken,
+            hasLocalCredentials = credentialsStore::hasCredentialsFor,
         )
         if (!ok) {
             return Result.failure(

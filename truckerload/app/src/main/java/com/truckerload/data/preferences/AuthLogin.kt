@@ -56,11 +56,13 @@ object AuthLogin {
         rememberMe: Boolean = true,
         accessToken: String? = null,
         refreshToken: String? = null,
+        hasLocalCredentials: (String) -> Boolean = { false },
     ): Boolean {
-        val userId = AccountIds.resolveOrNull(
+        val userId = AccountIds.resolveForLogin(
             supabaseUserId = supabaseUserId,
             email = profile.email,
             googleSub = profile.googleId,
+            hasLocalCredentials = hasLocalCredentials,
         ) ?: return false
         completeLogin(
             authStore = authStore,

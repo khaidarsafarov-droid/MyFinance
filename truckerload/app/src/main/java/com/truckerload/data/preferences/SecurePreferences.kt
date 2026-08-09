@@ -12,9 +12,9 @@ import com.truckerload.utils.CrashReporting
 /**
  * Encrypted SharedPreferences with one-time migration from legacy plain-text stores.
  *
- * Debug: may fall back to plaintext (banner via [plaintextFallbackUsed]).
- * Release: fail closed — wipe any same-named plaintext file and keep secrets off disk
- * via [InMemorySharedPreferences]; secret writes still refused by [requireEncryptedForSecretWrite].
+ * When encryption is unavailable (common on some tablets / OEM builds), falls back to
+ * plaintext SharedPreferences so login and registration survive app restarts.
+ * [plaintextFallbackUsed] drives [com.truckerload.presentation.components.AuthStatusBanner].
  */
 object SecurePreferences {
 
@@ -47,13 +47,8 @@ object SecurePreferences {
                     .commit()
             }
 
-            if (BuildConfig.DEBUG) {
-                Log.w(TAG, "DEBUG fallback to plaintext SharedPreferences for $name")
-                return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
-            }
-
-            Log.e(TAG, "RELEASE fail-closed: in-memory prefs only for $name (re-login required)")
-            return InMemorySharedPreferences()
+            Log.w(TAG, "Falling back to plaintext SharedPreferences for $name")
+            return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
     }
 
@@ -71,8 +66,8 @@ object SecurePreferences {
     }
 
     fun requireEncryptedForSecretWrite(secretName: String) {
-        check(!plaintextFallbackUsed) {
-            "Secure storage unavailable; refusing to persist $secretName"
+        if (plaintextFallbackUsed) {
+            Log.w(TAG, "Persisting $secretName without encryption (secure storage unavailable)")
         }
     }
 
@@ -91,8 +86,8 @@ object SecurePreferences {
             securePrefs.edit { putBoolean(migrationFlagKey, true) }
             return
         }
-        // Never copy secrets into a degraded store.
-        if (plaintextFallbackUsed && !BuildConfig.DEBUG) {
+        // Never copy secrets into in-memory-only store (should not happen after plaintext fallback).
+        if (plaintextFallbackUsed && securePrefs is InMemorySharedPreferences) {
             legacy.edit { clear() }
             return
         }

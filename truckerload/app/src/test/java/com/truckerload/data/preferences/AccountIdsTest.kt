@@ -32,10 +32,25 @@ class AccountIdsTest {
     }
 
     @Test
-    fun `different google subs isolate accounts`() {
-        assertNotEquals(
-            AccountIds.fromGoogleSub("sub-a"),
-            AccountIds.fromGoogleSub("sub-b"),
+    fun `resolveForLogin keeps local account when credentials exist`() {
+        val email = "driver@example.com"
+        val localId = AccountIds.fromEmail(email)
+        val supabaseId = "5ca1ab1e-4aa9-4b48-9b1b-47666ed03461"
+        assertEquals(
+            localId,
+            AccountIds.resolveForLogin(
+                supabaseUserId = supabaseId,
+                email = email,
+                hasLocalCredentials = { it == email },
+            ),
+        )
+        assertEquals(
+            supabaseId,
+            AccountIds.resolveForLogin(
+                supabaseUserId = supabaseId,
+                email = email,
+                hasLocalCredentials = { false },
+            ),
         )
     }
 }

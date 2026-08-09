@@ -124,16 +124,9 @@ class AuthStore(context: Context) {
     }
 
     fun updateTokens(accessToken: String?, refreshToken: String?) {
-        val writeSecrets = (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
-            !SecurePreferences.plaintextFallbackUsed
         synchronized(lock) {
             liveAccessToken = accessToken?.takeIf { it.isNotBlank() }
             liveRefreshToken = refreshToken?.takeIf { it.isNotBlank() }
-            if (!writeSecrets) {
-                // Keep tokens in memory for this process; do not wipe a prior encrypted disk copy
-                // when secure storage is temporarily unavailable.
-                return
-            }
             prefs.edit {
                 if (liveAccessToken == null) remove(KEY_ACCESS_TOKEN)
                 else putString(KEY_ACCESS_TOKEN, liveAccessToken)
@@ -175,9 +168,6 @@ class AuthStore(context: Context) {
             resolvedProvider == AuthProvider.EMAIL ||
             !googleSub.isNullOrBlank()
         val persistSession = rememberMe || isPersistentAuth
-        val canPersistSecrets = persistSession &&
-            (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
-            !SecurePreferences.plaintextFallbackUsed
         synchronized(lock) {
             liveUserId = id
             liveEmail = mail
@@ -186,11 +176,7 @@ class AuthStore(context: Context) {
             liveGoogleSub = googleSub?.takeIf { it.isNotBlank() }
             liveProvider = resolvedProvider
             liveLoggedIn = true
-            liveSessionHealth = if (canPersistSecrets || accessToken.isNullOrBlank()) {
-                AuthSessionHealth.VERIFIED
-            } else {
-                AuthSessionHealth.SESSION_UNCONFIRMED
-            }
+            liveSessionHealth = AuthSessionHealth.VERIFIED
             _userId.value = id
             _email.value = mail
             _isLoggedIn.value = true
@@ -201,9 +187,9 @@ class AuthStore(context: Context) {
                     putString(KEY_USER_ID, id)
                     putString(KEY_EMAIL, mail)
                     putString(KEY_PROVIDER, resolvedProvider.name)
-                    if (!canPersistSecrets || accessToken.isNullOrBlank()) remove(KEY_ACCESS_TOKEN)
+                    if (accessToken.isNullOrBlank()) remove(KEY_ACCESS_TOKEN)
                     else putString(KEY_ACCESS_TOKEN, accessToken)
-                    if (!canPersistSecrets || refreshToken.isNullOrBlank()) remove(KEY_REFRESH_TOKEN)
+                    if (refreshToken.isNullOrBlank()) remove(KEY_REFRESH_TOKEN)
                     else putString(KEY_REFRESH_TOKEN, refreshToken)
                     if (googleSub.isNullOrBlank()) remove(KEY_GOOGLE_SUB)
                     else putString(KEY_GOOGLE_SUB, googleSub)

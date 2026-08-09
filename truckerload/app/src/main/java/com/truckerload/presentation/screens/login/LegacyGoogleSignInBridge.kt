@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.login
 
 import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ import com.truckerload.presentation.screens.auth.AuthViewModel
 @Composable
 fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
     val context = LocalContext.current
+    val activity = LocalActivity.current ?: context
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) { result ->
@@ -63,6 +65,6 @@ fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail().requestProfile().build()
         }
-        launcher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+        launcher.launch(GoogleSignIn.getClient(activity, gso).signInIntent)
     }
 }

@@ -51,6 +51,25 @@ object AccountIds {
         return fromEmail(mail)
     }
 
+    /**
+     * Prefer the on-device account id when the user registered locally first (e.g. Supabase
+     * signup without immediate tokens / email confirmation) and later signs in via cloud.
+     * Keeps the same Room DB and profile namespace across login methods.
+     */
+    fun resolveForLogin(
+        supabaseUserId: String?,
+        email: String?,
+        googleSub: String? = null,
+        hasLocalCredentials: (String) -> Boolean = { false },
+    ): String? {
+        val mail = email?.trim().orEmpty()
+        val remote = supabaseUserId?.trim().orEmpty()
+        if (remote.isNotBlank() && mail.isNotBlank() && hasLocalCredentials(mail)) {
+            return fromEmail(mail)
+        }
+        return resolveOrNull(supabaseUserId, email, googleSub)
+    }
+
     fun resolve(supabaseUserId: String?, email: String, googleSub: String? = null): String =
         resolveOrNull(supabaseUserId, email, googleSub)
             ?: error("Cannot resolve account id without Supabase user id, Google sub, or email")

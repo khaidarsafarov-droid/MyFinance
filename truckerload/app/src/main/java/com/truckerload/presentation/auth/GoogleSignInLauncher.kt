@@ -3,6 +3,7 @@ package com.truckerload.presentation.auth
 import android.app.Activity
 import android.util.Base64
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -16,10 +17,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.truckerload.BuildConfig
 import com.truckerload.R
+import com.truckerload.data.auth.GoogleSignInSupport
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
+import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import kotlinx.coroutines.Dispatchers
@@ -44,8 +47,10 @@ fun rememberGoogleSignInLauncher(
     callbacks: GoogleAuthCallbacks,
 ): GoogleSignInLauncher {
     val context = LocalContext.current
+    val activity = LocalActivity.current ?: context
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
+    val credentialsStore = LocalAuthCredentialsStore.current
     val scope = rememberCoroutineScope()
     val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val callbacksState = rememberUpdatedState(callbacks)
@@ -76,6 +81,7 @@ fun rememberGoogleSignInLauncher(
             rememberMe = true,
             accessToken = accessToken,
             refreshToken = refreshToken,
+            hasLocalCredentials = credentialsStore::hasCredentialsFor,
         )
         callbacksState.value.onBusy(false)
         if (ok) {
@@ -196,7 +202,9 @@ fun rememberGoogleSignInLauncher(
 
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
-        if (!CredentialManagerGoogleSignIn.isAvailable()) {
+        if (!GoogleSignInSupport.isPlayServicesAvailable(context) ||
+            !CredentialManagerGoogleSignIn.isAvailable()
+        ) {
             val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
                 GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestEmail()
@@ -209,11 +217,11 @@ fun rememberGoogleSignInLauncher(
                     .requestProfile()
                     .build()
             }
-            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+            legacyLauncher.launch(GoogleSignIn.getClient(activity, gso).signInIntent)
             return@GoogleSignInLauncher
         }
         scope.launch {
-            val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(context)
+            val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(activity)
             val idToken = tokenResult.getOrNull()
             if (idToken != null) {
                 withContext(Dispatchers.Main) {
@@ -304,7 +312,7 @@ fun rememberGoogleSignInLauncher(
                                     .requestProfile()
                                     .build()
                             }
-                            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+                            legacyLauncher.launch(GoogleSignIn.getClient(activity, gso).signInIntent)
                         }
                     }
                 }
