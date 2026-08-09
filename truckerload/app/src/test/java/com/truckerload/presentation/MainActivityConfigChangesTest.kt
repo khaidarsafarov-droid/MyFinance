@@ -22,8 +22,9 @@ class MainActivityConfigChangesTest {
         assertTrue(text.contains("android:name=\".presentation.MainActivity\""))
         assertTrue(
             text.contains(
-                "android:configChanges=\"orientation|screenSize|screenLayout|smallestScreenSize\"",
+                "android:configChanges=\"orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode\"",
             ),
         )
+        assertTrue(text.contains("android:resizeableActivity=\"true\""))
     }
 }

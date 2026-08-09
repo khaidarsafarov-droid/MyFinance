@@ -46,4 +46,7 @@ object UiDimens {
     val NavBarHeight = 64.dp
     val NavBarActionSize = 36.dp
     val NavBarActionIcon = 18.dp
+
+    // Tablet list | detail
+    val ListPaneMinWidth = 320.dp
 }

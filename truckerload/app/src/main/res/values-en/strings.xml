@@ -58,6 +58,8 @@
     <string name="login_checking">Checking account…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>
+    <string name="tablet_detail_empty_title">Select a load</string>
+    <string name="tablet_detail_empty_body">Tap a load in the list to see its details</string>
     <string name="home_recent_loads">Recent loads</string>
     <string name="home_period_filter_label">Period</string>
     <string name="home_add_load_button">Add load</string>

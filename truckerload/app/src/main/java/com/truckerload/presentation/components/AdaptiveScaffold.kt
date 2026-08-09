@@ -54,7 +54,6 @@ import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.WindowSizeClass
 import com.truckerload.presentation.utils.adaptiveVerticalPadding
-import com.truckerload.presentation.utils.isFoldable
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.rememberWindowSizeClass
 import com.truckerload.utils.FeedbackManager
@@ -81,6 +80,9 @@ fun AdaptiveScaffold(
         ModalNavigationDrawer(
             drawerState = drawerState,
             gesturesEnabled = showMainNavigation,
+            // Explicit size so drawer content is never measured with unbounded width
+            // (which collapses the tablet Row down to the rail and letterboxes it).
+            modifier = modifier.fillMaxSize(),
             drawerContent = {
                 AppDrawerContent(
                     onNavigate = onDrawerNavigate,
@@ -88,24 +90,25 @@ fun AdaptiveScaffold(
                 )
             },
         ) {
-            when {
-                isTablet() && showMainNavigation -> {
-                    TabletScaffold(
-                        modifier = modifier,
-                        currentRoute = currentRoute,
-                        onNavigate = onNavigate,
-                        onDrawerNavigate = onDrawerNavigate,
-                        content = content,
-                    )
-                }
-                else -> {
-                    PhoneScaffold(
-                        modifier = modifier,
-                        showBottomBar = showMainNavigation && !isTablet(),
-                        currentRoute = currentRoute,
-                        onNavigate = onNavigate,
-                        content = content,
-                    )
+            // ModalNavigationDrawer can pass loose constraints; force a full-window host.
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    isTablet() && showMainNavigation -> {
+                        TabletScaffold(
+                            currentRoute = currentRoute,
+                            onNavigate = onNavigate,
+                            onDrawerNavigate = onDrawerNavigate,
+                            content = content,
+                        )
+                    }
+                    else -> {
+                        PhoneScaffold(
+                            showBottomBar = showMainNavigation && !isTablet(),
+                            currentRoute = currentRoute,
+                            onNavigate = onNavigate,
+                            content = content,
+                        )
+                    }
                 }
             }
         }
@@ -117,10 +120,19 @@ private fun TabletScaffold(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
-    modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    Row(modifier = modifier.fillMaxSize()) {
+    val sizeClass = rememberWindowSizeClass()
+    val horizontalPad = when (sizeClass) {
+        WindowSizeClass.MEDIUM -> 12.dp
+        WindowSizeClass.EXPANDED -> 16.dp
+        WindowSizeClass.COMPACT -> 12.dp
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BentoGlassTheme.ScreenBackground),
+    ) {
         TruckLogNavigationRail(
             currentRoute = currentRoute,
             onNavigate = onNavigate,
@@ -133,10 +145,11 @@ private fun TabletScaffold(
         )
         Box(
             modifier = Modifier
-                .weight(1f)
+                .weight(1f, fill = true)
                 .fillMaxHeight()
+                .fillMaxWidth()
                 .padding(
-                    horizontal = if (isFoldable()) 16.dp else 24.dp,
+                    horizontal = horizontalPad,
                     vertical = adaptiveVerticalPadding(),
                 ),
         ) {

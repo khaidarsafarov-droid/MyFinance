@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.BarChart
@@ -34,6 +35,9 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 
+/** Fixed sidebar width so the rail stays a left chrome strip, not a centered phone column. */
+private val RailWidth = 96.dp
+
 private data class RailDestination(
     val route: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -57,7 +61,9 @@ fun TruckLogNavigationRail(
     val tc = LocalTruckColors.current
 
     NavigationRail(
-        modifier = modifier.fillMaxHeight(),
+        modifier = modifier
+            .width(RailWidth)
+            .fillMaxHeight(),
         containerColor = BentoGlassTheme.CardFill,
         contentColor = tc.TextPrimary,
     ) {
@@ -72,9 +78,9 @@ fun TruckLogNavigationRail(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp),
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier.height(16.dp))
             HorizontalDivider(color = BentoGlassTheme.CardBorderMuted, thickness = 0.5.dp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier.height(8.dp))
         }
 
         tabletDestinations.forEach { dest ->
@@ -100,7 +106,7 @@ fun TruckLogNavigationRail(
             )
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(modifier.weight(1f))
         HorizontalDivider(color = BentoGlassTheme.CardBorderMuted, thickness = 0.5.dp)
 
         NavigationRailItem(
