@@ -114,7 +114,9 @@ fun SignUpScreen(
         phoneFormatted: String,
         toastRes: Int,
     ) {
-        credentialsStore.saveCredentials(emailTrimmed, passwordValue)
+        // Never abort session creation if credential persist fails — user must stay signed in.
+        runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
+            .onFailure { android.util.Log.w("SignUp", "Failed to persist local credentials", it) }
         AuthLogin.completeLogin(
             authStore = authStore,
             userProfileStore = userProfileStore,
@@ -131,6 +133,37 @@ fun SignUpScreen(
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .markVerified(emailTrimmed)
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
+        completeSignUp()
+    }
+
+    fun finishCloudSignUp(
+        emailTrimmed: String,
+        passwordValue: String,
+        userId: String,
+        givenName: String,
+        familyName: String,
+        phoneFormatted: String,
+        accessToken: String,
+        refreshToken: String,
+    ) {
+        runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
+            .onFailure { android.util.Log.w("SignUp", "Failed to persist credentials after cloud signup", it) }
+        AuthLogin.completeLogin(
+            authStore = authStore,
+            userProfileStore = userProfileStore,
+            userId = userId,
+            profile = UserProfile(
+                email = emailTrimmed,
+                givenName = givenName,
+                familyName = familyName,
+                photoUrl = null,
+                phoneNumber = phoneFormatted,
+            ),
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+        )
+        com.truckerload.data.preferences.EmailVerificationStore(context)
+            .beginVerification(emailTrimmed)
         completeSignUp()
     }
 
@@ -192,31 +225,27 @@ fun SignUpScreen(
                                         )
                                         withContext(Dispatchers.Main) {
                                             isLoading = false
-                                            upsertResult.fold(
-                                                onSuccess = {
-                                                    credentialsStore.saveCredentials(emailTrimmed, password)
-                                                    AuthLogin.completeLogin(
-                                                        authStore = authStore,
-                                                        userProfileStore = userProfileStore,
-                                                        userId = r.user.id,
-                                                        profile = UserProfile(
-                                                            email = r.user.email ?: emailTrimmed,
-                                                            givenName = parts.firstOrNull() ?: "",
-                                                            familyName = parts.getOrNull(1) ?: "",
-                                                            photoUrl = null,
-                                                            phoneNumber = phoneFormatted,
-                                                        ),
-                                                        accessToken = r.accessToken,
-                                                        refreshToken = r.refreshToken,
-                                                    )
-                                                    com.truckerload.data.preferences.EmailVerificationStore(context)
-                                                        .beginVerification(emailTrimmed)
-                                                    completeSignUp()
-                                                },
-                                                onFailure = {
-                                                    error = it.message
-                                                        ?: context.getString(R.string.signup_error_profile_save)
-                                                },
+                                            // Profile upsert is best-effort: auth already succeeded.
+                                            // Blocking login here left orphan Supabase users who could
+                                            // neither finish signup nor sign in locally.
+                                            upsertResult.onFailure {
+                                                android.util.Log.w("SignUp", "Profile upsert failed", it)
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    it.message
+                                                        ?: context.getString(R.string.signup_error_profile_save),
+                                                    android.widget.Toast.LENGTH_LONG,
+                                                ).show()
+                                            }
+                                            finishCloudSignUp(
+                                                emailTrimmed = r.user.email ?: emailTrimmed,
+                                                passwordValue = password,
+                                                userId = r.user.id,
+                                                givenName = parts.firstOrNull() ?: "",
+                                                familyName = parts.getOrNull(1) ?: "",
+                                                phoneFormatted = phoneFormatted,
+                                                accessToken = r.accessToken,
+                                                refreshToken = r.refreshToken,
                                             )
                                         }
                                     }

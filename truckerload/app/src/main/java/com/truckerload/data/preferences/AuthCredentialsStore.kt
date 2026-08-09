@@ -25,7 +25,9 @@ class AuthCredentialsStore(context: Context) {
             val validation = PasswordPolicy.validate(password)
             require(validation.ok) { "password policy rejected" }
         }
-        SecurePreferences.requireEncryptedForSecretWrite("auth credentials")
+        // PBKDF2 verifiers are one-way — safe to persist even when EncryptedSharedPreferences
+        // fell back to plaintext (common on tablets with a broken Keystore). Blocking the
+        // write here previously aborted registration before AuthStore.login ran.
         val toStore = if (PasswordPolicy.isHashed(password)) password else PasswordPolicy.hash(password)
         prefs.edit {
             putString(pwdKey(key), toStore)
@@ -85,7 +87,7 @@ class AuthCredentialsStore(context: Context) {
 
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
-            if (SecurePreferences.plaintextFallbackUsed) return secure
+            // Migrate even when encryption fell back — otherwise prior local logins vanish.
             SecurePreferences.migratePlainToSecure(
                 context = context,
                 legacyName = LEGACY_PREFS_NAME,

@@ -12,9 +12,11 @@ import com.truckerload.utils.CrashReporting
 /**
  * Encrypted SharedPreferences with one-time migration from legacy plain-text stores.
  *
- * Debug: may fall back to plaintext (banner via [plaintextFallbackUsed]).
- * Release: fail closed — wipe any same-named plaintext file and keep secrets off disk
- * via [InMemorySharedPreferences]; secret writes still refused by [requireEncryptedForSecretWrite].
+ * When the Android Keystore / EncryptedSharedPreferences stack fails (common on some
+ * tablets and OEM builds), fall back to durable plaintext prefs so login/registration
+ * survive process death. Callers that store raw secrets (bot tokens, JWTs) must still
+ * gate writes with [requireEncryptedForSecretWrite] / skip persistence when
+ * [plaintextFallbackUsed] is true. PBKDF2 password verifiers are safe to persist.
  */
 object SecurePreferences {
 
@@ -39,21 +41,15 @@ object SecurePreferences {
             CrashReporting.setCustomKey("secure_prefs_release", !BuildConfig.DEBUG)
             CrashReporting.recordException(e)
 
-            // Never leave secrets on a plaintext disk file.
-            runCatching {
-                appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
-                    .edit()
-                    .clear()
-                    .commit()
-            }
-
-            if (BuildConfig.DEBUG) {
-                Log.w(TAG, "DEBUG fallback to plaintext SharedPreferences for $name")
-                return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
-            }
-
-            Log.e(TAG, "RELEASE fail-closed: in-memory prefs only for $name (re-login required)")
-            return InMemorySharedPreferences()
+            // Durable plaintext fallback — identity must survive restarts so users are
+            // not forced to register again. Raw JWTs/bot tokens stay out of this store
+            // via caller-side gates when [plaintextFallbackUsed] is set.
+            Log.w(
+                TAG,
+                "Falling back to plaintext SharedPreferences for $name " +
+                    "(debug=${BuildConfig.DEBUG}); session identity will still persist",
+            )
+            return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
     }
 
@@ -91,11 +87,7 @@ object SecurePreferences {
             securePrefs.edit { putBoolean(migrationFlagKey, true) }
             return
         }
-        // Never copy secrets into a degraded store.
-        if (plaintextFallbackUsed && !BuildConfig.DEBUG) {
-            legacy.edit { clear() }
-            return
-        }
+        // Prefer migrating identity into the (possibly plaintext) durable store over wiping it.
         securePrefs.edit {
             legacy.all.forEach { (key, value) ->
                 when (value) {

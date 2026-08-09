@@ -3,8 +3,9 @@ package com.truckerload.data.preferences
 import android.content.SharedPreferences
 
 /**
- * Process-only prefs used when encrypted storage is unavailable in release builds.
- * Nothing is written to disk — secrets cannot leak via plaintext files.
+ * Process-only prefs for tests and non-durable scenarios.
+ * Auth session storage no longer uses this as a release fallback — identity must
+ * survive process death via durable plaintext when encryption is unavailable.
  */
 internal class InMemorySharedPreferences : SharedPreferences {
     private val lock = Any()

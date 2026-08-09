@@ -51,12 +51,10 @@ class AuthStore(context: Context) {
                     liveGoogleSub = prefs.getString(KEY_GOOGLE_SUB, null)?.takeIf { it.isNotBlank() }
                     liveProvider = prefs.getString(KEY_PROVIDER, null)?.let {
                         runCatching { AuthProvider.valueOf(it) }.getOrNull()
-                    } ?: when {
-                        !liveGoogleSub.isNullOrBlank() -> AuthProvider.GOOGLE
-                        persistedId.startsWith("local_") && persistedId != AccountIds.LOCAL_DEV ->
-                            AuthProvider.EMAIL
-                        else -> AuthProvider.LOCAL
-                    }
+                    } ?: inferProvider(
+                        userId = persistedId,
+                        googleSub = liveGoogleSub,
+                    )
                     liveLoggedIn = true
                     liveSessionHealth = AuthSessionHealth.VERIFIED
                 }
@@ -164,11 +162,7 @@ class AuthStore(context: Context) {
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider != AuthProvider.LOCAL -> provider
-            id == AccountIds.LOCAL_DEV -> AuthProvider.LOCAL
-            id.startsWith("local_") -> AuthProvider.EMAIL
-            id.startsWith("google_") -> AuthProvider.GOOGLE
-            // Supabase UUID without googleSub still counts as email/cloud auth
-            else -> provider
+            else -> inferProvider(userId = id, googleSub = googleSub)
         }
         // Real auth (Google / email) always persists identity across cold starts.
         val isPersistentAuth = resolvedProvider == AuthProvider.GOOGLE ||
@@ -293,9 +287,24 @@ class AuthStore(context: Context) {
         private val _email = MutableStateFlow("")
         private val _sessionHealth = MutableStateFlow(AuthSessionHealth.VERIFIED)
 
+        /**
+         * When [KEY_PROVIDER] is missing (legacy sessions) or login passes LOCAL for a
+         * durable account id, infer Google / email so MainActivity does not force-logout
+         * real users as guests.
+         */
+        internal fun inferProvider(userId: String, googleSub: String?): AuthProvider = when {
+            !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
+            userId.startsWith("google_") -> AuthProvider.GOOGLE
+            userId == AccountIds.LOCAL_DEV -> AuthProvider.LOCAL
+            userId.startsWith("local_") -> AuthProvider.EMAIL
+            // Supabase UUID / other durable cloud ids → email/cloud auth, never guest LOCAL
+            userId.isNotBlank() -> AuthProvider.EMAIL
+            else -> AuthProvider.LOCAL
+        }
+
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
-            if (SecurePreferences.plaintextFallbackUsed) return secure
+            // Migrate legacy plain auth even when encryption fell back to durable plaintext.
             SecurePreferences.migratePlainToSecure(
                 context = context,
                 legacyName = LEGACY_PREFS_NAME,

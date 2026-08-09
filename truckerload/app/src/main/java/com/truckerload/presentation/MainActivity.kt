@@ -122,9 +122,11 @@ class MainActivity : AppCompatActivity() {
             val userId by authStore.userId.collectAsStateWithLifecycle()
 
             LaunchedEffect(isLoggedIn, userId) {
+                // Only ephemeral guest / local_dev must be rejected. Email (`local_*` /
+                // Supabase UUID) and Google sessions must survive cold start.
                 val provider = authStore.authProvider()
-                val isGuestLocal = provider == AuthProvider.LOCAL ||
-                    userId == AccountIds.LOCAL_DEV
+                val isGuestLocal = userId == AccountIds.LOCAL_DEV ||
+                    (provider == AuthProvider.LOCAL && userId.isNullOrBlank())
                 if (isLoggedIn && isGuestLocal) {
                     authStore.logout()
                     userComponentManager.endSession()

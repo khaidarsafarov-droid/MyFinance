@@ -11,8 +11,10 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.truckerload.BuildConfig
+import com.truckerload.utils.findActivity
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import java.security.SecureRandom
 import java.util.concurrent.Executors
 
 /**
@@ -43,11 +45,16 @@ object CredentialManagerGoogleSignIn {
             cont.resume(Result.failure(Exception("GOOGLE_WEB_CLIENT_ID is not configured")))
             return@suspendCoroutine
         }
-        val credentialManager = CredentialManager.create(context)
+        // Activity context is required on many tablets; ApplicationContext silently fails.
+        val uiContext = context.findActivity() ?: context
+        val credentialManager = CredentialManager.create(uiContext)
+        val nonce = ByteArray(16).also { SecureRandom().nextBytes(it) }
+            .joinToString("") { b -> "%02x".format(b) }
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(silent)
             .setServerClientId(webClientId)
             .setAutoSelectEnabled(silent)
+            .setNonce(nonce)
             .build()
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(googleIdOption)
@@ -83,6 +90,6 @@ object CredentialManagerGoogleSignIn {
             }
         }
 
-        credentialManager.getCredentialAsync(context, request, null, executor, callback)
+        credentialManager.getCredentialAsync(uiContext, request, null, executor, callback)
     }
 }

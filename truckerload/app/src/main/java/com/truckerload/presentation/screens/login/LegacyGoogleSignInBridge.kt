@@ -12,6 +12,7 @@ import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.repository.auth.GoogleAuthCredential
 import com.truckerload.presentation.screens.auth.AuthViewModel
+import com.truckerload.utils.findActivity
 
 /**
  * Activity-result bridge for legacy Google Sign-In (UI-only).
@@ -56,6 +57,7 @@ fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
         }
     }
     return {
+        val activity = context.findActivity() ?: context
         val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail().requestProfile().requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID).build()
@@ -63,6 +65,10 @@ fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail().requestProfile().build()
         }
-        launcher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+        val client = GoogleSignIn.getClient(activity, gso)
+        // Clear a stuck prior Google session (frequent on tablets) then show the picker.
+        client.signOut().addOnCompleteListener {
+            launcher.launch(client.signInIntent)
+        }
     }
 }

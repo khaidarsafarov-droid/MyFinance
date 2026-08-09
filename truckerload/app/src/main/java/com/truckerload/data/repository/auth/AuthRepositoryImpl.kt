@@ -15,6 +15,7 @@ import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
+import com.truckerload.utils.findActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -65,7 +66,10 @@ class AuthRepositoryImpl @Inject constructor(
         if (!CredentialManagerGoogleSignIn.isAvailable()) {
             return GoogleTokenRequestResult.FallBackToLegacy
         }
-        val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(activityContext)
+        // Credential Manager requires an Activity context — tablets often wrap Compose
+        // LocalContext; resolve the host Activity before calling Play Services.
+        val host = activityContext.findActivity() ?: activityContext
+        val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(host)
         val idToken = tokenResult.getOrNull()
         if (idToken != null) return GoogleTokenRequestResult.Token(idToken)
         return when (tokenResult.exceptionOrNull()) {
@@ -176,7 +180,8 @@ class AuthRepositoryImpl @Inject constructor(
         val result = supabaseAuth.signInWithPassword(email, password)
         return result.fold(
             onSuccess = { r ->
-                credentialsStore.saveCredentials(email, password)
+                runCatching { credentialsStore.saveCredentials(email, password) }
+                    .onFailure { Log.w(TAG, "Failed to cache email credentials after cloud login", it) }
                 val biometric = shouldOfferBiometricUnlock(appContext)
                 val profileResult = supabaseAuth.getProfile(r.accessToken, r.user.id)
                 profileResult.fold(
@@ -313,6 +318,8 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "AuthRepository"
+
         private fun decodeGoogleIdToken(idToken: String): JSONObject? {
             return try {
                 val parts = idToken.split(".")

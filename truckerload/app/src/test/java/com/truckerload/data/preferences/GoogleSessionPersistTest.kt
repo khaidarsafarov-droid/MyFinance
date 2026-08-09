@@ -81,4 +81,59 @@ class GoogleSessionPersistTest {
         assertTrue(auth.isLoggedIn.value)
         assertFalse(auth.userId.value.isNullOrBlank())
     }
+
+    @Test
+    fun inferProviderTreatsGoogleAndUuidAsRealAuthNotGuest() {
+        assertEquals(
+            AuthProvider.GOOGLE,
+            AuthStore.inferProvider(userId = "google_abcdef0123456789", googleSub = null),
+        )
+        assertEquals(
+            AuthProvider.GOOGLE,
+            AuthStore.inferProvider(userId = "any-id", googleSub = "sub-1"),
+        )
+        assertEquals(
+            AuthProvider.EMAIL,
+            AuthStore.inferProvider(userId = "local_abcdef0123456789", googleSub = null),
+        )
+        assertEquals(
+            AuthProvider.EMAIL,
+            AuthStore.inferProvider(
+                userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                googleSub = null,
+            ),
+        )
+        assertEquals(
+            AuthProvider.LOCAL,
+            AuthStore.inferProvider(userId = AccountIds.LOCAL_DEV, googleSub = null),
+        )
+    }
+
+    @Test
+    fun supabaseUuidLoginIsEmailNotGuestLocal() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+
+        auth.login(
+            userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            email = "cloud@example.com",
+            rememberMe = true,
+            // Intentionally LOCAL — login must promote durable cloud ids to EMAIL.
+            provider = AuthProvider.LOCAL,
+        )
+
+        assertTrue(auth.isLoggedIn.value)
+        assertEquals(AuthProvider.EMAIL, auth.authProvider())
+        assertEquals("a1b2c3d4-e5f6-7890-abcd-ef1234567890", auth.currentUserIdOrNull())
+    }
+
+    @Test
+    fun localEmailCredentialsSurviveSaveAndValidate() {
+        val context = RuntimeEnvironment.getApplication()
+        val credentials = AuthCredentialsStore(context)
+        credentials.saveCredentials("Driver@Example.com", "Secret1ab")
+        assertTrue(credentials.hasCredentialsFor("driver@example.com"))
+        assertTrue(credentials.validateCredentials("driver@example.com", "Secret1ab"))
+        assertFalse(credentials.validateCredentials("driver@example.com", "wrong-pass"))
+    }
 }
