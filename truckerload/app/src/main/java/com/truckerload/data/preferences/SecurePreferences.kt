@@ -12,9 +12,14 @@ import com.truckerload.utils.CrashReporting
 /**
  * Encrypted SharedPreferences with one-time migration from legacy plain-text stores.
  *
- * Debug: may fall back to plaintext (banner via [plaintextFallbackUsed]).
- * Release: fail closed — wipe any same-named plaintext file and keep secrets off disk
- * via [InMemorySharedPreferences]; secret writes still refused by [requireEncryptedForSecretWrite].
+ * When Android Keystore / EncryptedSharedPreferences is unavailable (common on some OEM
+ * tablets), falls back to a durable plaintext file (`{name}_fallback`) and sets
+ * [plaintextFallbackUsed]. High-value secrets (bot tokens, API keys) still refuse disk
+ * writes via [requireEncryptedForSecretWrite]. Session identity and PBKDF2 password
+ * verifiers are allowed on the degraded store so users are not forced to re-register.
+ *
+ * Important: do not delete the fallback file on every [open] — Keystore can stay broken
+ * across process restarts; wiping would erase registration/login every cold start.
  */
 object SecurePreferences {
 
@@ -39,23 +44,32 @@ object SecurePreferences {
             CrashReporting.setCustomKey("secure_prefs_release", !BuildConfig.DEBUG)
             CrashReporting.recordException(e)
 
-            // Never leave secrets on a plaintext disk file.
-            runCatching {
-                appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
-                    .edit()
-                    .clear()
-                    .commit()
+            val fallbackName = fallbackName(name)
+            val fallback = appContext.getSharedPreferences(fallbackName, Context.MODE_PRIVATE)
+            // One-time rescue from a same-named plaintext file (older debug fallback).
+            if (fallback.all.isEmpty()) {
+                val legacySameName = appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+                if (legacySameName.all.isNotEmpty()) {
+                    fallback.edit {
+                        legacySameName.all.forEach { (key, value) ->
+                            when (value) {
+                                is String -> putString(key, value)
+                                is Boolean -> putBoolean(key, value)
+                                is Int -> putInt(key, value)
+                                is Long -> putLong(key, value)
+                                is Float -> putFloat(key, value)
+                            }
+                        }
+                    }
+                    legacySameName.edit { clear() }
+                }
             }
-
-            if (BuildConfig.DEBUG) {
-                Log.w(TAG, "DEBUG fallback to plaintext SharedPreferences for $name")
-                return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
-            }
-
-            Log.e(TAG, "RELEASE fail-closed: in-memory prefs only for $name (re-login required)")
-            return InMemorySharedPreferences()
+            Log.w(TAG, "Durable plaintext fallback for $name → $fallbackName")
+            return fallback
         }
     }
+
+    fun fallbackName(name: String): String = "${name}_fallback"
 
     /**
      * True after any [open] call fell back away from EncryptedSharedPreferences.
@@ -68,6 +82,11 @@ object SecurePreferences {
     /** Test-only reset. */
     internal fun resetFallbackForTests() {
         plaintextFallbackUsed = false
+    }
+
+    /** Test-only: simulate Keystore / encrypted-prefs failure. */
+    internal fun markFallbackForTests() {
+        plaintextFallbackUsed = true
     }
 
     fun requireEncryptedForSecretWrite(secretName: String) {
@@ -89,11 +108,6 @@ object SecurePreferences {
         val legacy = context.applicationContext.getSharedPreferences(legacyName, Context.MODE_PRIVATE)
         if (legacy.all.isEmpty()) {
             securePrefs.edit { putBoolean(migrationFlagKey, true) }
-            return
-        }
-        // Never copy secrets into a degraded store.
-        if (plaintextFallbackUsed && !BuildConfig.DEBUG) {
-            legacy.edit { clear() }
             return
         }
         securePrefs.edit {

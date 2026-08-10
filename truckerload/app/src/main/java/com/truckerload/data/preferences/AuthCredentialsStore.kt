@@ -2,6 +2,7 @@ package com.truckerload.data.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.content.edit
 import com.truckerload.data.auth.PasswordPolicy
 import com.truckerload.utils.normalizeKey
@@ -12,6 +13,10 @@ import com.truckerload.utils.normalizeKey
  *
  * Passwords are stored as PBKDF2 verifiers (see [PasswordPolicy]); legacy plaintext
  * entries are accepted once and upgraded on successful [validateCredentials].
+ *
+ * Verifiers are still written when [SecurePreferences.plaintextFallbackUsed] is set —
+ * losing the ability to log in after registration is worse than storing irreversible
+ * hashes on a degraded prefs file. Bot tokens continue to refuse plaintext writes.
  */
 class AuthCredentialsStore(context: Context) {
     private val prefs: SharedPreferences = openPrefs(context)
@@ -25,7 +30,9 @@ class AuthCredentialsStore(context: Context) {
             val validation = PasswordPolicy.validate(password)
             require(validation.ok) { "password policy rejected" }
         }
-        SecurePreferences.requireEncryptedForSecretWrite("auth credentials")
+        if (SecurePreferences.plaintextFallbackUsed) {
+            Log.w(TAG, "Persisting PBKDF2 verifier with degraded secure storage")
+        }
         val toStore = if (PasswordPolicy.isHashed(password)) password else PasswordPolicy.hash(password)
         prefs.edit {
             putString(pwdKey(key), toStore)
@@ -83,9 +90,11 @@ class AuthCredentialsStore(context: Context) {
 
         private fun pwdKey(normalizedEmail: String): String = KEY_PWD_PREFIX + normalizedEmail
 
+        private const val TAG = "AuthCredentialsStore"
+
         private fun openPrefs(context: Context): SharedPreferences {
             val secure = SecurePreferences.open(context, PREFS_NAME)
-            if (SecurePreferences.plaintextFallbackUsed) return secure
+            // Always migrate legacy plaintext — including when Keystore fallback is active.
             SecurePreferences.migratePlainToSecure(
                 context = context,
                 legacyName = LEGACY_PREFS_NAME,

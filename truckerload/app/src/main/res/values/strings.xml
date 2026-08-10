@@ -106,12 +106,13 @@
     <string name="auth_local_login_fallback">Вход выполнен локально (облако временно недоступно)</string>
     <string name="auth_session_unconfirmed_banner">Не удалось подтвердить сессию в сети. Работаем локально</string>
     <string name="auth_session_offline_local_banner">Нет сети — работаем локально, синхронизация отложена</string>
-    <string name="auth_secure_storage_fallback_banner">Защищённое хранилище недоступно — секреты не сохраняются на диск; войдите снова</string>
+    <string name="auth_secure_storage_fallback_banner">Защищённое хранилище недоступно — токены бота не сохраняются; вход сохранён с пониженной защитой</string>
     <string name="auth_startup_backfill_retry_banner">Требуется синхронизация данных. Нажмите, чтобы повторить.</string>
     <string name="profile_last_drive_sync">Последняя синхронизация Drive: %1$s</string>
     <string name="profile_last_drive_sync_never">Последняя синхронизация Drive: ещё не было</string>
     <string name="profile_google_linked">Google: %1$s</string>
     <string name="signup_error_profile_save">Не удалось сохранить профиль</string>
+    <string name="signup_profile_sync_deferred">Аккаунт создан. Профиль в облаке синхронизируется позже</string>
     <string name="signup_error_register">Ошибка регистрации</string>
     <string name="signup_success_confirm_email">Регистрация успешна. Подтвердите email по ссылке в письме, затем войдите.</string>
     <string name="supabase_not_configured">Supabase не настроен.</string>

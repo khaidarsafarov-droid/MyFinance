@@ -122,10 +122,10 @@ class MainActivity : AppCompatActivity() {
             val userId by authStore.userId.collectAsStateWithLifecycle()
 
             LaunchedEffect(isLoggedIn, userId) {
-                val provider = authStore.authProvider()
-                val isGuestLocal = provider == AuthProvider.LOCAL ||
-                    userId == AccountIds.LOCAL_DEV
-                if (isLoggedIn && isGuestLocal) {
+                // Only the explicit guest/dev account is rejected. Do not treat
+                // AuthProvider.LOCAL alone as guest — a missing/mis-tagged provider on a
+                // real cloud UUID used to force-logout and wipe the restored session.
+                if (isLoggedIn && userId == AccountIds.LOCAL_DEV) {
                     authStore.logout()
                     userComponentManager.endSession()
                     session = null

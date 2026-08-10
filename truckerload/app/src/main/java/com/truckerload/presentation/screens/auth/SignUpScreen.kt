@@ -114,7 +114,9 @@ fun SignUpScreen(
         phoneFormatted: String,
         toastRes: Int,
     ) {
-        credentialsStore.saveCredentials(emailTrimmed, passwordValue)
+        // Credentials must not block session creation — offline login needs the verifier,
+        // but the user should still be signed in if the write fails for any reason.
+        runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
         AuthLogin.completeLogin(
             authStore = authStore,
             userProfileStore = userProfileStore,
@@ -131,6 +133,44 @@ fun SignUpScreen(
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .markVerified(emailTrimmed)
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
+        completeSignUp()
+    }
+
+    fun finishCloudSignUp(
+        emailTrimmed: String,
+        passwordValue: String,
+        nameTrimmed: String,
+        phoneFormatted: String,
+        userId: String,
+        accessToken: String,
+        refreshToken: String?,
+        profileWarning: Boolean,
+    ) {
+        val parts = nameTrimmed.split(" ", limit = 2)
+        runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
+        AuthLogin.completeLogin(
+            authStore = authStore,
+            userProfileStore = userProfileStore,
+            userId = userId,
+            profile = UserProfile(
+                email = emailTrimmed,
+                givenName = parts.firstOrNull() ?: "",
+                familyName = parts.getOrNull(1) ?: "",
+                photoUrl = null,
+                phoneNumber = phoneFormatted,
+            ),
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+        )
+        com.truckerload.data.preferences.EmailVerificationStore(context)
+            .beginVerification(emailTrimmed)
+        if (profileWarning) {
+            android.widget.Toast.makeText(
+                context,
+                context.getString(R.string.signup_profile_sync_deferred),
+                android.widget.Toast.LENGTH_LONG,
+            ).show()
+        }
         completeSignUp()
     }
 
@@ -180,7 +220,6 @@ fun SignUpScreen(
                     withContext(Dispatchers.Main) {
                         signUpResult.fold(
                             onSuccess = { r ->
-                                val parts = nameTrimmed.split(" ", limit = 2)
                                 if (r.accessToken.isNotBlank()) {
                                     scope.launch {
                                         val upsertResult = supabaseAuth.upsertProfile(
@@ -192,31 +231,18 @@ fun SignUpScreen(
                                         )
                                         withContext(Dispatchers.Main) {
                                             isLoading = false
-                                            upsertResult.fold(
-                                                onSuccess = {
-                                                    credentialsStore.saveCredentials(emailTrimmed, password)
-                                                    AuthLogin.completeLogin(
-                                                        authStore = authStore,
-                                                        userProfileStore = userProfileStore,
-                                                        userId = r.user.id,
-                                                        profile = UserProfile(
-                                                            email = r.user.email ?: emailTrimmed,
-                                                            givenName = parts.firstOrNull() ?: "",
-                                                            familyName = parts.getOrNull(1) ?: "",
-                                                            photoUrl = null,
-                                                            phoneNumber = phoneFormatted,
-                                                        ),
-                                                        accessToken = r.accessToken,
-                                                        refreshToken = r.refreshToken,
-                                                    )
-                                                    com.truckerload.data.preferences.EmailVerificationStore(context)
-                                                        .beginVerification(emailTrimmed)
-                                                    completeSignUp()
-                                                },
-                                                onFailure = {
-                                                    error = it.message
-                                                        ?: context.getString(R.string.signup_error_profile_save)
-                                                },
+                                            // Always persist local credentials + session after a
+                                            // successful Supabase signUp — profile RPC failure must
+                                            // not force the user to register again.
+                                            finishCloudSignUp(
+                                                emailTrimmed = r.user.email ?: emailTrimmed,
+                                                passwordValue = password,
+                                                nameTrimmed = nameTrimmed,
+                                                phoneFormatted = phoneFormatted,
+                                                userId = r.user.id,
+                                                accessToken = r.accessToken,
+                                                refreshToken = r.refreshToken,
+                                                profileWarning = upsertResult.isFailure,
                                             )
                                         }
                                     }

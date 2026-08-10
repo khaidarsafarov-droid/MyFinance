@@ -37,7 +37,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val supabaseAuth = SupabaseAuthService(appContext)
 
     override fun isGoogleCredentialManagerAvailable(): Boolean =
-        CredentialManagerGoogleSignIn.isAvailable()
+        CredentialManagerGoogleSignIn.isAvailable(appContext)
 
     override fun isSupabaseConfigured(): Boolean = supabaseAuth.isConfigured()
 
@@ -62,7 +62,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun requestGoogleIdToken(activityContext: Context): GoogleTokenRequestResult {
-        if (!CredentialManagerGoogleSignIn.isAvailable()) {
+        if (!CredentialManagerGoogleSignIn.isAvailable(activityContext)) {
             return GoogleTokenRequestResult.FallBackToLegacy
         }
         val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(activityContext)
@@ -176,7 +176,9 @@ class AuthRepositoryImpl @Inject constructor(
         val result = supabaseAuth.signInWithPassword(email, password)
         return result.fold(
             onSuccess = { r ->
-                credentialsStore.saveCredentials(email, password)
+                // Never abort a successful cloud login because local verifier write failed.
+                runCatching { credentialsStore.saveCredentials(email, password) }
+                    .onFailure { Log.w("TL", "saveCredentials after Supabase login failed", it) }
                 val biometric = shouldOfferBiometricUnlock(appContext)
                 val profileResult = supabaseAuth.getProfile(r.accessToken, r.user.id)
                 profileResult.fold(
