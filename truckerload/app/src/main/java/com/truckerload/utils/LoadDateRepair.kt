@@ -13,30 +13,52 @@ import kotlin.math.abs
  */
 object LoadDateRepair {
 
+    /** Epoch before this is treated as unset/sentinel (tests often use `1L`). */
+    private const val MIN_SANE_REFERENCE_MS = 946_684_800_000L // 2000-01-01 UTC
+
     /**
      * Prefer [anchorYearHint] (Telegram message year). Else use [Load.parsedAt] year
      * when the stored date's year disagrees with stop times re-parsed under that year.
      *
-     * [referenceMillis] should be the Telegram message timestamp when available; otherwise
-     * [Load.parsedAt] or device "now".
+     * Year resolution is anchored to [Load.parsedAt] (or the message time), **not**
+     * wall-clock "now", so a load dated `08/20` that correctly resolved to the previous
+     * year in July is not flipped to the current year once August arrives.
      */
     fun repair(
         load: Load,
         anchorYearHint: Int? = null,
         referenceMillis: Long? = null,
     ): Load {
-        val ref = referenceMillis?.takeIf { it > 0L }
-            ?: load.parsedAt.takeIf { it > 0L }
+        val refMillis = saneReferenceMillis(referenceMillis)
+            ?: saneReferenceMillis(load.parsedAt)
             ?: System.currentTimeMillis()
+        val yearHint = load.date.take(4).toIntOrNull()?.takeIf { load.date.length >= 10 }
         val anchorYear = anchorYearHint
-            ?: yearFromMillis(ref)
+            ?: yearHint
+            ?: yearFromMillis(refMillis)
             ?: return load
+        // Trust stored load.date year on hydrate unless an explicit message-year override is given.
+        val trustStoredYear = anchorYearHint == null && yearHint != null && yearHint == anchorYear
         val puDates = load.stops
             .filter { it.type == StopType.PU }
-            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear, ref) }
+            .mapNotNull {
+                parseDateFromScheduledTime(
+                    s = it.scheduledTime,
+                    defaultYear = anchorYear,
+                    referenceMillis = refMillis,
+                    trustDefaultYear = trustStoredYear,
+                )
+            }
         val delDates = load.stops
             .filter { it.type == StopType.DEL }
-            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear, ref) }
+            .mapNotNull {
+                parseDateFromScheduledTime(
+                    s = it.scheduledTime,
+                    defaultYear = anchorYear,
+                    referenceMillis = refMillis,
+                    trustDefaultYear = trustStoredYear,
+                )
+            }
         if (puDates.isEmpty() && delDates.isEmpty()) return load
 
         val repairedDate = puDates.minOrNull()
@@ -51,19 +73,57 @@ object LoadDateRepair {
     }
 
     /**
-     * Year for Relay `MM/DD` without an explicit year: pick the calendar year whose
-     * month/day is closest to [referenceMillis] (message date or import anchor).
+     * Year for Relay `MM/DD` when only [referenceMillis] is known (message / parsedAt).
+     * Picks the calendar year whose month/day is closest to the reference instant.
      */
     fun resolveRelayYear(
         month: Int,
         day: Int,
-        referenceMillis: Long = System.currentTimeMillis(),
+        referenceMillis: Long,
     ): Int {
-        if (month !in 1..12 || day !in 1..31) {
-            return Calendar.getInstance().apply { timeInMillis = referenceMillis }.get(Calendar.YEAR)
+        val refYear = yearFromMillis(referenceMillis)
+            ?: Calendar.getInstance().apply { timeInMillis = referenceMillis }.get(Calendar.YEAR)
+        return resolveClosestYear(month, day, refYear, referenceMillis)
+    }
+
+    /**
+     * Year for Relay `MM/DD` when an explicit [anchorYear] is known (message year or load.date).
+     *
+     * [referenceMillis] should be the Telegram message time / [Load.parsedAt] when available —
+     * not wall-clock "now" on every hydrate/repair.
+     *
+     * Near-term bookings (~two weeks after the anchor) keep [anchorYear]; farther "future"
+     * MM/DD from Telegram history is almost always the previous calendar year.
+     */
+    fun resolveRelayYear(
+        month: Int,
+        day: Int,
+        anchorYear: Int,
+        referenceMillis: Long,
+    ): Int {
+        if (month !in 1..12 || day !in 1..31) return anchorYear
+        val candidateMs = calendarAt(anchorYear, month, day)
+        val bookingHorizonMs = 14L * 24 * 60 * 60 * 1000
+        if (candidateMs - referenceMillis > bookingHorizonMs) {
+            return anchorYear - 1
         }
-        val refYear = Calendar.getInstance().apply { timeInMillis = referenceMillis }.get(Calendar.YEAR)
-        fun atYear(year: Int): Long = Calendar.getInstance().apply {
+        return resolveClosestYear(month, day, anchorYear, referenceMillis)
+    }
+
+    private fun resolveClosestYear(
+        month: Int,
+        day: Int,
+        centerYear: Int,
+        referenceMillis: Long,
+    ): Int {
+        if (month !in 1..12 || day !in 1..31) return centerYear
+        return (centerYear - 1..centerYear + 1).minBy { year ->
+            abs(calendarAt(year, month, day) - referenceMillis)
+        }
+    }
+
+    private fun calendarAt(year: Int, month: Int, day: Int): Long =
+        Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.MONTH, month - 1)
             set(Calendar.DAY_OF_MONTH, day)
@@ -73,11 +133,11 @@ object LoadDateRepair {
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
-        return (refYear - 1..refYear + 1).minBy { year -> abs(atYear(year) - referenceMillis) }
+    private fun yearFromMillis(millis: Long): Int? {
+        val sane = saneReferenceMillis(millis) ?: return null
+        return Calendar.getInstance().apply { timeInMillis = sane }.get(Calendar.YEAR)
     }
 
-    private fun yearFromMillis(millis: Long): Int? {
-        if (millis <= 0L) return null
-        return Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.YEAR)
-    }
+    private fun saneReferenceMillis(millis: Long?): Long? =
+        millis?.takeIf { it >= MIN_SANE_REFERENCE_MS }
 }

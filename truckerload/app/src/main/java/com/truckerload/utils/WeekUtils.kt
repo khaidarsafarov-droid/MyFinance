@@ -175,29 +175,22 @@ fun getLastWeekStartAndEnd(): Pair<String, String> {
     return Pair(start, end)
 }
 
-private fun loadRelayReferenceMillis(load: Load): Long =
-    load.parsedAt.takeIf { it > 0L }
-        ?: load.date.take(10).let { dateStringToStartOfDayMillis(it) }
-        ?: System.currentTimeMillis()
-
 /** Дата первого Pick Up (PU) или load.date. */
 fun getPickUpDate(load: Load): String? {
-    val ref = loadRelayReferenceMillis(load)
     val yearHint = load.date.take(4).toIntOrNull()
     val fromStops = load.stops
         .filter { it.type == StopType.PU }
-        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, ref) }
+        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null) }
         .minOrNull()
     return fromStops ?: load.date.takeIf { it.length >= 10 }
 }
 
 /** Дата последней доставки (DEL), если есть. */
 fun getDeliveryDate(load: Load): String? {
-    val ref = loadRelayReferenceMillis(load)
     val yearHint = load.date.take(4).toIntOrNull()
     return load.stops
         .filter { it.type == StopType.DEL }
-        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, ref) }
+        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null) }
         .maxOrNull()
 }
 
@@ -241,49 +234,6 @@ fun canonicalDateString(raw: String?): String? {
         return trimmed.take(10)
     }
     return parseDateFromQuery(trimmed)
-}
-
-/**
- * Парсит дату из scheduledTime (YYYY-MM-DD HH:mm, DD.MM.YYYY, Relay `MM/DD HH:mm TZ`).
- * Возвращает YYYY-MM-DD или null.
- * [defaultYear] legacy hint; [referenceMillis] anchors yearless Relay `MM/DD` times.
- */
-fun parseDateFromScheduledTime(
-    s: String,
-    defaultYear: Int? = null,
-    referenceMillis: Long? = null,
-): String? {
-    if (s.isBlank()) return null
-    val t = s.trim()
-    if (t.length >= 10 && t[4] == '-' && t[7] == '-') {
-        val sub = t.substring(0, 10)
-        if (sub.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) return sub
-    }
-    // Relay US: "07/06 00:01 EDT" / "7/6 18:30 CDT"
-    val us = Regex("""^(\d{1,2})/(\d{1,2})(?:\s|$)""").find(t)
-    if (us != null) {
-        val month = us.groupValues[1].toIntOrNull() ?: return null
-        val day = us.groupValues[2].toIntOrNull() ?: return null
-        val ref = referenceMillis?.takeIf { it > 0L }
-            ?: defaultYear?.let { year ->
-                Calendar.getInstance().apply {
-                    set(Calendar.YEAR, year)
-                    set(Calendar.MONTH, Calendar.JUNE)
-                    set(Calendar.DAY_OF_MONTH, 1)
-                    set(Calendar.HOUR_OF_DAY, 12)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-            }
-            ?: System.currentTimeMillis()
-        val year = LoadDateRepair.resolveRelayYear(month, day, ref)
-        if (month in 1..12 && day in 1..31 && year in 1970..2100) {
-            return "%04d-%02d-%02d".format(year, month, day)
-        }
-        return null
-    }
-    return parseDateFromQuery(t)
 }
 
 /** Безопасный разбор YYYY-MM-DD; защита от NumberFormatException на битых датах в БД. */
@@ -344,73 +294,6 @@ fun utcDatePickerMillisToDateString(utcMillis: Long): String {
     )
 }
 
-/**
- * Parse stop scheduledTime to epoch millis.
- * Supports YYYY-MM-DD HH:mm, DD.MM.YYYY HH:mm, and Relay `MM/DD HH:mm TZ`.
- * [defaultYear] / [referenceMillis] anchor yearless Relay times (same rules as [parseDateFromScheduledTime]).
- */
-fun parseScheduledTimeToMillis(
-    scheduledTime: String,
-    defaultYear: Int? = null,
-    referenceMillis: Long? = null,
-): Long? {
-    if (scheduledTime.isBlank()) return null
-    val t = scheduledTime.trim()
-    val iso = Regex("""^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})""")
-    iso.find(t)?.let { m ->
-        val y = m.groupValues[1]
-        val mo = m.groupValues[2]
-        val d = m.groupValues[3]
-        val h = m.groupValues[4]
-        val mi = m.groupValues[5]
-        val cal = Calendar.getInstance(Locale.getDefault())
-        cal.set(y.toInt(), mo.toInt() - 1, d.toInt(), h.toInt(), mi.toInt(), 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        return cal.timeInMillis
-    }
-    val eu = Regex("""^(\d{1,2})\.(\d{1,2})\.(\d{2,4})\s+(\d{1,2}):(\d{2})""")
-    eu.find(t)?.let { m ->
-        val d = m.groupValues[1]
-        val mo = m.groupValues[2]
-        var y = m.groupValues[3].toInt()
-        val h = m.groupValues[4]
-        val mi = m.groupValues[5]
-        if (y in 0..99) y += 2000
-        val cal = Calendar.getInstance(Locale.getDefault())
-        cal.set(y, mo.toInt() - 1, d.toInt(), h.toInt(), mi.toInt(), 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        return cal.timeInMillis
-    }
-    US_RELAY_TIME.find(t)?.let { m ->
-        val month = m.groupValues[1].toInt()
-        val day = m.groupValues[2].toInt()
-        val hour = m.groupValues[3].toInt()
-        val minute = m.groupValues[4].toInt()
-        val ref = referenceMillis?.takeIf { it > 0L }
-            ?: defaultYear?.let { year ->
-                Calendar.getInstance(Locale.US).apply {
-                    set(Calendar.YEAR, year)
-                    set(Calendar.MONTH, Calendar.JUNE)
-                    set(Calendar.DAY_OF_MONTH, 1)
-                    set(Calendar.HOUR_OF_DAY, 12)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-            }
-            ?: System.currentTimeMillis()
-        val year = LoadDateRepair.resolveRelayYear(month, day, ref)
-        val cal = Calendar.getInstance(Locale.getDefault())
-        cal.set(year, month - 1, day, hour, minute, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        return cal.timeInMillis
-    }
-    val dateOnly = parseDateFromScheduledTime(t, defaultYear, referenceMillis) ?: return null
-    return dateStringToStartOfDayMillis(dateOnly)
-}
-
-private val US_RELAY_TIME = Regex("""^(\d{1,2})/(\d{1,2})\s+(\d{1,2}):(\d{2})(?:\s+([A-Z]{2,4}))?\s*$""")
-
 /** Year hint from load.date (YYYY-MM-DD…) for Relay MM/DD stop times. */
 private fun loadDateYearHint(load: Load): Int? =
     load.date.takeIf { it.length >= 4 }?.substring(0, 4)?.toIntOrNull()
@@ -418,10 +301,9 @@ private fun loadDateYearHint(load: Load): Int? =
 /** First PU stop datetime (millis) or load.date at start of day. */
 fun getFirstPickUpMillis(load: Load): Long? {
     val yearHint = loadDateYearHint(load)
-    val ref = loadRelayReferenceMillis(load)
     val fromStops = load.stops
         .filter { it.type == StopType.PU }
-        .mapNotNull { parseScheduledTimeToMillis(it.scheduledTime, yearHint, ref) }
+        .mapNotNull { parseScheduledTimeToMillis(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null) }
         .minOrNull()
     if (fromStops != null) return fromStops
     return load.date.takeIf { it.length >= 10 }?.let { dateStringToStartOfDayMillis(it) }
@@ -430,12 +312,12 @@ fun getFirstPickUpMillis(load: Load): Long? {
 /** Last DEL stop datetime (millis) or load.date at start of day. */
 fun getLastDeliveryMillis(load: Load): Long? {
     val yearHint = loadDateYearHint(load)
-    val ref = loadRelayReferenceMillis(load)
     val puMs = getFirstPickUpMillis(load)
     val fromStops = load.stops
         .filter { it.type == StopType.DEL }
         .mapNotNull { stop ->
-            val ms = parseScheduledTimeToMillis(stop.scheduledTime, yearHint, ref) ?: return@mapNotNull null
+            val ms = parseScheduledTimeToMillis(stop.scheduledTime, yearHint, trustDefaultYear = yearHint != null)
+                ?: return@mapNotNull null
             // FIX: New Year trip (12/30 → 01/02) — bump DEL into next year when before PU
             if (puMs != null && ms < puMs) {
                 Calendar.getInstance(Locale.getDefault()).apply {
@@ -455,9 +337,10 @@ fun getLastDeliveryMillis(load: Load): Long? {
 fun getLoadDateRange(load: Load): Set<String> {
     val dates = mutableSetOf<String>()
     canonicalDateString(load.date)?.let { dates.add(it) }
-    val ref = loadRelayReferenceMillis(load)
     val yearHint = load.date.take(4).toIntOrNull()
-    val stopDates = load.stops.mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, ref) }
+    val stopDates = load.stops.mapNotNull {
+        parseDateFromScheduledTime(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null)
+    }
     if (stopDates.isNotEmpty()) {
         val sorted = stopDates.sorted()
         val start = sorted.first()

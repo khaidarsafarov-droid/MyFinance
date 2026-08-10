@@ -1,6 +1,7 @@
 package com.truckerload.domain.model
 
 import com.truckerload.utils.dateStringToEndOfDayMillis
+import com.truckerload.utils.parseDateFromScheduledTime
 import com.truckerload.utils.parseScheduledTimeToMillis
 import java.util.Calendar
 import java.util.Locale
@@ -77,14 +78,33 @@ object ActualFinishDate {
 
 /** Last DEL stop scheduled datetime as `"YYYY-MM-DD HH:mm"` when parseable. */
 fun Load.lastDelDateTimeFromStops(): String? {
+    val yearHint = date.take(4).toIntOrNull()
     val best = stops
         .filter { it.type == StopType.DEL }
         .mapNotNull { stop ->
-            val ms = parseScheduledTimeToMillis(stop.scheduledTime) ?: return@mapNotNull null
+            val ms = parseScheduledTimeToMillis(
+                scheduledTime = stop.scheduledTime,
+                defaultYear = yearHint,
+                trustDefaultYear = yearHint != null,
+            ) ?: return@mapNotNull null
             stop to ms
         }
         .maxByOrNull { it.second }
         ?: return lastDelDateFromStops()
-    return ActualFinishDate.normalize(best.first.scheduledTime)
-        ?: lastDelDateFromStops()
+    // Relay MM/DD is not ISO — convert via year-aware parse, then attach clock if present.
+    val dateIso = parseDateFromScheduledTime(
+        s = best.first.scheduledTime,
+        defaultYear = yearHint,
+        trustDefaultYear = yearHint != null,
+    ) ?: return lastDelDateFromStops()
+    val timeMatch = Regex("""\b(\d{1,2}):(\d{2})\b""").find(best.first.scheduledTime)
+    return if (timeMatch != null) {
+        ActualFinishDate.combine(
+            dateIso,
+            timeMatch.groupValues[1].toInt(),
+            timeMatch.groupValues[2].toInt(),
+        )
+    } else {
+        dateIso
+    }
 }

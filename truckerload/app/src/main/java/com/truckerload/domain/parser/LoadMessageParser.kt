@@ -82,7 +82,8 @@ object LoadMessageParser {
 
         val stops = parseAllStops(block, tripId)
         val firstPuTime = stops.firstOrNull { it.type == StopType.PU }?.scheduledTime
-        val date = ParseUtils.normalizeDate(firstPuTime)
+        val date = com.truckerload.utils.parseDateFromScheduledTime(firstPuTime)
+            ?: ParseUtils.normalizeDate(firstPuTime)
 
         val puStops = stops.filter { it.type == StopType.PU }
         val delStops = stops.filter { it.type == StopType.DEL }

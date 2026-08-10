@@ -293,7 +293,12 @@ class LoadRepository(
     private suspend fun penaltiesFor(loadId: String) = penaltyDao.getPenaltiesByLoadId(loadId)
 
     suspend fun insertLoad(load: Load, playFeedback: Boolean = true) {
-        val repaired = LoadDateRepair.repair(load, referenceMillis = load.parsedAt.takeIf { it > 0L })
+        val now = System.currentTimeMillis()
+        val parsedAt = load.parsedAt.takeIf { it >= 946_684_800_000L } ?: now
+        val repaired = LoadDateRepair.repair(
+            load = load.copy(parsedAt = parsedAt),
+            referenceMillis = parsedAt,
+        )
         val normalized = repaired.withReportingWeek().withRouteMetrics()
         db.withTransaction {
             loadDao.insert(normalized.toEntity())
@@ -491,12 +496,9 @@ class LoadRepository(
         val stopEntities = mutableListOf<StopEntity>()
 
         for (load in toInsert) {
-            val normalized = load.copy(tripId = normalizeTripId(load.tripId))
-            val repaired = LoadDateRepair.repair(
-                normalized,
-                anchorYearHint = messageYear,
-                referenceMillis = parsedAt,
-            )
+            val normalized = load.copy(tripId = normalizeTripId(load.tripId), parsedAt = parsedAt)
+            // Anchor MM/DD year to message/parsedAt — not wall-clock at hydrate time.
+            val repaired = LoadDateRepair.repair(normalized, messageYear, parsedAt)
             val dated = when {
                 repaired.date.isBlank() && messageDateSeconds != null ->
                     repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
