@@ -4,6 +4,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
 import com.truckerload.domain.model.withRouteMetrics
 import java.util.Calendar
+import kotlin.math.abs
 
 /**
  * Corrects load.date / reporting week when Relay `MM/DD` times were anchored to the
@@ -31,15 +32,33 @@ object LoadDateRepair {
         val refMillis = saneReferenceMillis(referenceMillis)
             ?: saneReferenceMillis(load.parsedAt)
             ?: System.currentTimeMillis()
+        val yearHint = load.date.take(4).toIntOrNull()?.takeIf { load.date.length >= 10 }
         val anchorYear = anchorYearHint
+            ?: yearHint
             ?: yearFromMillis(refMillis)
             ?: return load
+        // Trust stored load.date year on hydrate unless an explicit message-year override is given.
+        val trustStoredYear = anchorYearHint == null && yearHint != null && yearHint == anchorYear
         val puDates = load.stops
             .filter { it.type == StopType.PU }
-            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear, refMillis) }
+            .mapNotNull {
+                parseDateFromScheduledTime(
+                    s = it.scheduledTime,
+                    defaultYear = anchorYear,
+                    referenceMillis = refMillis,
+                    trustDefaultYear = trustStoredYear,
+                )
+            }
         val delDates = load.stops
             .filter { it.type == StopType.DEL }
-            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear, refMillis) }
+            .mapNotNull {
+                parseDateFromScheduledTime(
+                    s = it.scheduledTime,
+                    defaultYear = anchorYear,
+                    referenceMillis = refMillis,
+                    trustDefaultYear = trustStoredYear,
+                )
+            }
         if (puDates.isEmpty() && delDates.isEmpty()) return load
 
         val repairedDate = puDates.minOrNull()
@@ -54,38 +73,65 @@ object LoadDateRepair {
     }
 
     /**
-     * Year to use for Relay `MM/DD` when only an anchor timestamp is known.
+     * Year for Relay `MM/DD` when only [referenceMillis] is known (message / parsedAt).
+     * Picks the calendar year whose month/day is closest to the reference instant.
+     */
+    fun resolveRelayYear(
+        month: Int,
+        day: Int,
+        referenceMillis: Long,
+    ): Int {
+        val refYear = yearFromMillis(referenceMillis)
+            ?: Calendar.getInstance().apply { timeInMillis = referenceMillis }.get(Calendar.YEAR)
+        return resolveClosestYear(month, day, refYear, referenceMillis)
+    }
+
+    /**
+     * Year for Relay `MM/DD` when an explicit [anchorYear] is known (message year or load.date).
      *
-     * [referenceMillis] should be the Telegram message time / [Load.parsedAt] when
-     * available. Using wall-clock "now" on every hydrate/repair makes year labels
-     * drift as the calendar approaches the MM/DD (e.g. July→August).
+     * [referenceMillis] should be the Telegram message time / [Load.parsedAt] when available —
+     * not wall-clock "now" on every hydrate/repair.
+     *
+     * Near-term bookings (~two weeks after the anchor) keep [anchorYear]; farther "future"
+     * MM/DD from Telegram history is almost always the previous calendar year.
      */
     fun resolveRelayYear(
         month: Int,
         day: Int,
         anchorYear: Int,
-        referenceMillis: Long = System.currentTimeMillis(),
+        referenceMillis: Long,
     ): Int {
         if (month !in 1..12 || day !in 1..31) return anchorYear
-        val candidate = Calendar.getInstance().apply {
-            set(Calendar.YEAR, anchorYear)
+        val candidateMs = calendarAt(anchorYear, month, day)
+        val bookingHorizonMs = 14L * 24 * 60 * 60 * 1000
+        if (candidateMs - referenceMillis > bookingHorizonMs) {
+            return anchorYear - 1
+        }
+        return resolveClosestYear(month, day, anchorYear, referenceMillis)
+    }
+
+    private fun resolveClosestYear(
+        month: Int,
+        day: Int,
+        centerYear: Int,
+        referenceMillis: Long,
+    ): Int {
+        if (month !in 1..12 || day !in 1..31) return centerYear
+        return (centerYear - 1..centerYear + 1).minBy { year ->
+            abs(calendarAt(year, month, day) - referenceMillis)
+        }
+    }
+
+    private fun calendarAt(year: Int, month: Int, day: Int): Long =
+        Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
             set(Calendar.MONTH, month - 1)
             set(Calendar.DAY_OF_MONTH, day)
             set(Calendar.HOUR_OF_DAY, 12)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-        }
-        // Near-term bookings (about two weeks after the message/parse anchor) keep the
-        // anchor year; farther "future" MM/DD from Telegram history is almost always
-        // the previous calendar year.
-        val bookingHorizonMs = 14L * 24 * 60 * 60 * 1000
-        return if (candidate.timeInMillis - referenceMillis > bookingHorizonMs) {
-            anchorYear - 1
-        } else {
-            anchorYear
-        }
-    }
+        }.timeInMillis
 
     private fun yearFromMillis(millis: Long): Int? {
         val sane = saneReferenceMillis(millis) ?: return null

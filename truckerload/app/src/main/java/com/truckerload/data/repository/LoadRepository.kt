@@ -293,7 +293,13 @@ class LoadRepository(
     private suspend fun penaltiesFor(loadId: String) = penaltyDao.getPenaltiesByLoadId(loadId)
 
     suspend fun insertLoad(load: Load, playFeedback: Boolean = true) {
-        val normalized = load.withReportingWeek().withRouteMetrics()
+        val now = System.currentTimeMillis()
+        val parsedAt = load.parsedAt.takeIf { it >= 946_684_800_000L } ?: now
+        val repaired = LoadDateRepair.repair(
+            load = load.copy(parsedAt = parsedAt),
+            referenceMillis = parsedAt,
+        )
+        val normalized = repaired.withReportingWeek().withRouteMetrics()
         db.withTransaction {
             loadDao.insert(normalized.toEntity())
             stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
