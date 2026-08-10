@@ -11,12 +11,12 @@ import java.util.Locale
  * used as-is — do not re-apply the booking-horizon heuristic on every UI read.
  */
 fun parseDateFromScheduledTime(
-    s: String,
+    s: String?,
     defaultYear: Int? = null,
     referenceMillis: Long? = null,
     trustDefaultYear: Boolean = false,
 ): String? {
-    if (s.isBlank()) return null
+    if (s.isNullOrBlank()) return null
     val t = s.trim()
     if (t.length >= 10 && t[4] == '-' && t[7] == '-') {
         val sub = t.substring(0, 10)
