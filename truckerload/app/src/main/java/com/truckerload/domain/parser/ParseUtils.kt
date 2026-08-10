@@ -53,7 +53,11 @@ internal object ParseUtils {
     private const val MAX_FIXED_MILES = 5_000.0
     private val MILES_DECIMAL_FIX_DIVISORS = doubleArrayOf(100.0, 10.0, 1000.0)
 
-    fun normalizeDate(raw: String?, defaultYear: Int = Calendar.getInstance().get(Calendar.YEAR)): String {
+    fun normalizeDate(
+        raw: String?,
+        defaultYear: Int = Calendar.getInstance().get(Calendar.YEAR),
+        referenceMillis: Long? = null,
+    ): String {
         if (raw.isNullOrBlank()) return ""
         val trimmed = raw.trim()
         val iso = Regex("""(\d{4})-(\d{2})-(\d{2})""")
@@ -98,6 +102,8 @@ internal object ParseUtils {
                     month = monthNum,
                     day = dayNum,
                     anchorYear = defaultYear,
+                    // FIX: booking horizon must use message/parse time, not wall-clock "now"
+                    referenceMillis = referenceMillis ?: System.currentTimeMillis(),
                 )
             }
             return "$year-$month-$day"

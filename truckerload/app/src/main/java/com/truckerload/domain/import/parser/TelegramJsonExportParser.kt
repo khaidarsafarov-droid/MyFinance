@@ -2,15 +2,14 @@ package com.truckerload.domain.import.parser
 
 import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadMessageParser
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
 import org.json.JSONArray
 import org.json.JSONObject
 
 /** Parses result.json from Telegram Desktop chat export. */
-class TelegramJsonExportParser(
-    private val relayParser: LoadParser = RelayMessageParser(),
-) : LoadParser {
+class TelegramJsonExportParser : LoadParser {
 
     override fun parse(input: String): List<Load> {
         val root = JSONObject(input)
@@ -27,17 +26,12 @@ class TelegramJsonExportParser(
             val text = TelegramStyledTextNormalizer.normalize(rawText)
             if (!MessageClassifier.isLoadLike(text)) continue
 
-            // FIX: use Telegram message date so Relay MM/DD anchors to the export year
+            // FIX: pass Telegram message time into Relay MM/DD year resolution
             val dateSeconds = extractMessageDateSeconds(msg)
-            val parsedAtMs = dateSeconds?.times(1000L) ?: 0L
+            val parsedAtMs = dateSeconds?.times(1000L)
 
-            relayParser.parse(text).forEach { load ->
-                loads.add(
-                    load.copy(
-                        rawMessage = text.take(2000),
-                        parsedAt = parsedAtMs,
-                    )
-                )
+            LoadMessageParser.parseAll(text, messageDateMillis = parsedAtMs).forEach { load ->
+                loads.add(load.copy(rawMessage = text.take(2000)))
             }
         }
 

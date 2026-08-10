@@ -4,6 +4,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import com.truckerload.domain.model.withRouteMetrics
+import java.util.Calendar
 import java.util.Locale
 
 /**
@@ -37,15 +38,20 @@ object LoadMessageParser {
         RegexOption.IGNORE_CASE
     )
 
-    fun parseAll(rawMessage: String): List<Load> {
+    /**
+     * @param messageDateMillis Telegram/export message time when known. Anchors Relay
+     * `MM/DD` year resolution so history (e.g. Aug 2025) is not painted as the device year.
+     */
+    fun parseAll(rawMessage: String, messageDateMillis: Long? = null): List<Load> {
         val normalized = TelegramStyledTextNormalizer.normalize(
             rawMessage.replace("\r\n", "\n").trim(),
         )
         if (!MessageClassifier.isLoadLike(normalized)) return emptyList()
-        return splitBlocks(normalized).mapNotNull { parseBlock(it, rawMessage) }
+        return splitBlocks(normalized).mapNotNull { parseBlock(it, rawMessage, messageDateMillis) }
     }
 
-    fun parseOne(rawMessage: String): Load? = parseAll(rawMessage).firstOrNull()
+    fun parseOne(rawMessage: String, messageDateMillis: Long? = null): Load? =
+        parseAll(rawMessage, messageDateMillis).firstOrNull()
 
     private val tripBlockSplitPattern = Regex(
         """(?m)(?=^Trip\s*ID)""",
@@ -63,7 +69,11 @@ object LoadMessageParser {
         return listOf(text)
     }
 
-    private fun parseBlock(block: String, rawMessage: String): Load? {
+    private fun parseBlock(
+        block: String,
+        rawMessage: String,
+        messageDateMillis: Long? = null,
+    ): Load? {
         val tripId = ParseUtils.firstMatch(block, tripIdPatterns)?.uppercase(Locale.US).orEmpty()
         if (tripId.isBlank()) return null
 
@@ -82,14 +92,21 @@ object LoadMessageParser {
 
         val stops = parseAllStops(block, tripId)
         val firstPuTime = stops.firstOrNull { it.type == StopType.PU }?.scheduledTime
-        val date = ParseUtils.normalizeDate(firstPuTime)
+        val now = System.currentTimeMillis()
+        val anchorMillis = messageDateMillis?.takeIf { it > 0L } ?: now
+        val anchorYear = Calendar.getInstance().apply { timeInMillis = anchorMillis }
+            .get(Calendar.YEAR)
+        val date = ParseUtils.normalizeDate(
+            raw = firstPuTime,
+            defaultYear = anchorYear,
+            referenceMillis = anchorMillis,
+        )
 
         val puStops = stops.filter { it.type == StopType.PU }
         val delStops = stops.filter { it.type == StopType.DEL }
         val pointA = puStops.firstOrNull()?.let { formatRoutePoint(it) }.orEmpty()
         val pointB = delStops.lastOrNull()?.let { formatRoutePoint(it) }.orEmpty()
 
-        val now = System.currentTimeMillis()
         if (totalRate <= 0.0 || (pointA.isBlank() && pointB.isBlank())) return null
 
         val draft = Load(
@@ -105,7 +122,7 @@ object LoadMessageParser {
             weekNumber = 0,
             year = 0,
             rawMessage = rawMessage,
-            parsedAt = now,
+            parsedAt = anchorMillis,
             updatedAt = now,
             stops = stops,
             penalties = emptyList()

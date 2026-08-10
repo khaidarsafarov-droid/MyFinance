@@ -4,14 +4,13 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
 import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadMessageParser
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
 import java.util.Locale
 
 /** Parses HTML files produced by Telegram Desktop chat export (messages.html, messages2.html, …). */
-class TelegramHtmlExportParser(
-    private val relayParser: LoadParser = RelayMessageParser(),
-) : LoadParser {
+class TelegramHtmlExportParser : LoadParser {
 
     override fun parse(input: String): List<Load> {
         val doc = Ksoup.parse(html = input)
@@ -46,15 +45,10 @@ class TelegramHtmlExportParser(
             return
         }
 
-        // FIX: use Telegram message date so Relay MM/DD anchors to the export year
-        val parsedAtMs = extractMessageDateMillis(messageDiv) ?: 0L
-        relayParser.parse(textContent).forEach { load ->
-            loads.add(
-                load.copy(
-                    rawMessage = textContent.take(2000),
-                    parsedAt = parsedAtMs,
-                )
-            )
+        // FIX: pass Telegram message time into Relay MM/DD year resolution
+        val parsedAtMs = extractMessageDateMillis(messageDiv)
+        LoadMessageParser.parseAll(textContent, messageDateMillis = parsedAtMs).forEach { load ->
+            loads.add(load.copy(rawMessage = textContent.take(2000)))
         }
     }
 

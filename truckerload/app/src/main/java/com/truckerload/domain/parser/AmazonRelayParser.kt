@@ -23,13 +23,27 @@ data class AmazonRelayParseResult(
  */
 fun parseAmazonRelayLoad(text: String): AmazonRelayParseResult? {
     val load = LoadMessageParser.parseOne(text.trim()) ?: return null
+    // FIX: sort PU/DEL with the load.date year so yearless MM/DD doesn't jump ~365d
+    val yearHint = load.date.take(4).toIntOrNull()
     val firstPuTime = load.stops
         .filter { it.type == StopType.PU && it.scheduledTime.isNotBlank() }
-        .minByOrNull { parseScheduledTimeToMillis(it.scheduledTime) ?: Long.MAX_VALUE }
+        .minByOrNull {
+            parseScheduledTimeToMillis(
+                scheduledTime = it.scheduledTime,
+                defaultYear = yearHint,
+                trustDefaultYear = yearHint != null,
+            ) ?: Long.MAX_VALUE
+        }
         ?.scheduledTime
     val lastDelTime = load.stops
         .filter { it.type == StopType.DEL && it.scheduledTime.isNotBlank() }
-        .maxByOrNull { parseScheduledTimeToMillis(it.scheduledTime) ?: 0L }
+        .maxByOrNull {
+            parseScheduledTimeToMillis(
+                scheduledTime = it.scheduledTime,
+                defaultYear = yearHint,
+                trustDefaultYear = yearHint != null,
+            ) ?: 0L
+        }
         ?.scheduledTime
 
     return AmazonRelayParseResult(
