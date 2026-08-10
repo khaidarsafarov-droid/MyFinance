@@ -94,7 +94,11 @@ internal object ParseUtils {
             val year = when {
                 it.groupValues[3].length == 4 -> it.groupValues[3].toIntOrNull() ?: defaultYear
                 it.groupValues[3].length == 2 -> 2000 + (it.groupValues[3].toIntOrNull() ?: (defaultYear % 100))
-                else -> com.truckerload.utils.LoadDateRepair.resolveRelayYear(monthNum, dayNum, defaultYear)
+                else -> com.truckerload.utils.LoadDateRepair.resolveRelayYear(
+                    month = monthNum,
+                    day = dayNum,
+                    anchorYear = defaultYear,
+                )
             }
             return "$year-$month-$day"
         }

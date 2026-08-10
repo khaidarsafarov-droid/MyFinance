@@ -12,20 +12,34 @@ import java.util.Calendar
  */
 object LoadDateRepair {
 
+    /** Epoch before this is treated as unset/sentinel (tests often use `1L`). */
+    private const val MIN_SANE_REFERENCE_MS = 946_684_800_000L // 2000-01-01 UTC
+
     /**
      * Prefer [anchorYearHint] (Telegram message year). Else use [Load.parsedAt] year
      * when the stored date's year disagrees with stop times re-parsed under that year.
+     *
+     * Year resolution is anchored to [Load.parsedAt] (or the message time), **not**
+     * wall-clock "now", so a load dated `08/20` that correctly resolved to the previous
+     * year in July is not flipped to the current year once August arrives.
      */
-    fun repair(load: Load, anchorYearHint: Int? = null): Load {
+    fun repair(
+        load: Load,
+        anchorYearHint: Int? = null,
+        referenceMillis: Long? = null,
+    ): Load {
+        val refMillis = saneReferenceMillis(referenceMillis)
+            ?: saneReferenceMillis(load.parsedAt)
+            ?: System.currentTimeMillis()
         val anchorYear = anchorYearHint
-            ?: yearFromMillis(load.parsedAt)
+            ?: yearFromMillis(refMillis)
             ?: return load
         val puDates = load.stops
             .filter { it.type == StopType.PU }
-            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear) }
+            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear, refMillis) }
         val delDates = load.stops
             .filter { it.type == StopType.DEL }
-            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear) }
+            .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, anchorYear, refMillis) }
         if (puDates.isEmpty() && delDates.isEmpty()) return load
 
         val repairedDate = puDates.minOrNull()
@@ -39,12 +53,18 @@ object LoadDateRepair {
         return load.copy(date = repairedDate).withReportingWeek().withRouteMetrics()
     }
 
-    /** Year to use for Relay `MM/DD` when only an anchor timestamp is known. */
+    /**
+     * Year to use for Relay `MM/DD` when only an anchor timestamp is known.
+     *
+     * [referenceMillis] should be the Telegram message time / [Load.parsedAt] when
+     * available. Using wall-clock "now" on every hydrate/repair makes year labels
+     * drift as the calendar approaches the MM/DD (e.g. July→August).
+     */
     fun resolveRelayYear(
         month: Int,
         day: Int,
         anchorYear: Int,
-        nowMillis: Long = System.currentTimeMillis(),
+        referenceMillis: Long = System.currentTimeMillis(),
     ): Int {
         if (month !in 1..12 || day !in 1..31) return anchorYear
         val candidate = Calendar.getInstance().apply {
@@ -56,15 +76,22 @@ object LoadDateRepair {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        // Near-term bookings (about two weeks) keep the anchor year; farther "future"
-        // MM/DD from Telegram history is almost always the previous calendar year
-        // (e.g. viewing August while still in late July must not paint 2025 loads as 2026).
+        // Near-term bookings (about two weeks after the message/parse anchor) keep the
+        // anchor year; farther "future" MM/DD from Telegram history is almost always
+        // the previous calendar year.
         val bookingHorizonMs = 14L * 24 * 60 * 60 * 1000
-        return if (candidate.timeInMillis - nowMillis > bookingHorizonMs) anchorYear - 1 else anchorYear
+        return if (candidate.timeInMillis - referenceMillis > bookingHorizonMs) {
+            anchorYear - 1
+        } else {
+            anchorYear
+        }
     }
 
     private fun yearFromMillis(millis: Long): Int? {
-        if (millis <= 0L) return null
-        return Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.YEAR)
+        val sane = saneReferenceMillis(millis) ?: return null
+        return Calendar.getInstance().apply { timeInMillis = sane }.get(Calendar.YEAR)
     }
+
+    private fun saneReferenceMillis(millis: Long?): Long? =
+        millis?.takeIf { it >= MIN_SANE_REFERENCE_MS }
 }

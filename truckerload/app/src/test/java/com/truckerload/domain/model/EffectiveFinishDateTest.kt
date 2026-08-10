@@ -33,6 +33,36 @@ class EffectiveFinishDateTest {
     }
 
     @Test
+    fun effectiveFinishDate_relayMmDdUsesLoadDateYear() {
+        // Card must show 2025 even if wall-clock is already inside the Aug 2026 booking window.
+        val load = sample(
+            date = "2025-08-20",
+            year = 2025,
+            parsedAt = 1_753_833_600_000L, // ~2025-07-30 UTC
+            stops = listOf(
+                stop(StopType.PU, "08/20 08:00 EDT"),
+                stop(StopType.DEL, "08/21 15:00 EDT"),
+            ),
+        )
+        assertEquals("2025-08-21", load.effectiveFinishDate())
+        assertEquals("2025-08-21", load.lastDelDateFromStops())
+    }
+
+    @Test
+    fun effectiveFinishDate_newYearRelayDelBumpsYear() {
+        val load = sample(
+            date = "2025-12-30",
+            year = 2025,
+            stops = listOf(
+                stop(StopType.PU, "12/30 18:00 EST"),
+                stop(StopType.DEL, "01/02 08:00 EST"),
+            ),
+        )
+        assertEquals("2026-01-02", load.effectiveFinishDate())
+        assertEquals("2026-01-02", load.lastDelDateFromStops())
+    }
+
+    @Test
     fun effectiveFinishDate_fallsBackToLoadDate() {
         val load = sample(date = "2026-07-15", stops = emptyList())
         assertEquals("2026-07-15", load.effectiveFinishDate())
@@ -105,6 +135,8 @@ class EffectiveFinishDateTest {
         actualFinishDate: String? = null,
         totalRate: Double = 1000.0,
         stops: List<Stop> = emptyList(),
+        year: Int = 2026,
+        parsedAt: Long = 1L,
     ) = Load(
         id = "id-1",
         tripId = "T-1",
@@ -116,9 +148,9 @@ class EffectiveFinishDateTest {
         puCount = 1,
         delCount = 1,
         weekNumber = 29,
-        year = 2026,
+        year = year,
         rawMessage = "",
-        parsedAt = 1L,
+        parsedAt = parsedAt,
         updatedAt = 1L,
         actualFinishDate = actualFinishDate,
         stops = stops,

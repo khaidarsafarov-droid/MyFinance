@@ -106,15 +106,20 @@ class LoadProcessor(
         }
 
     private fun normalizeIncoming(parsedLoad: Load, messageDateSeconds: Long?): Load {
+        val now = System.currentTimeMillis()
+        // Anchor year/horizon to the Telegram message time (not wall-clock at repair).
+        val parsedAt = messageDateSeconds?.times(1000) ?: parsedLoad.parsedAt.takeIf { it > 0L } ?: now
         val messageIso = messageDateSeconds?.let { formatDateFromUnixSeconds(it) }
         val messageYear = messageIso?.take(4)?.toIntOrNull()
-        val repaired = LoadDateRepair.repair(parsedLoad, anchorYearHint = messageYear)
+        val repaired = LoadDateRepair.repair(
+            load = parsedLoad.copy(parsedAt = parsedAt),
+            anchorYearHint = messageYear,
+            referenceMillis = parsedAt,
+        )
         val dated = when {
             repaired.date.isBlank() && messageIso != null -> repaired.copy(date = messageIso)
             else -> repaired
         }
-        val now = System.currentTimeMillis()
-        val parsedAt = messageDateSeconds?.times(1000) ?: now
         return dated
             .copy(
                 parsedAt = parsedAt,
