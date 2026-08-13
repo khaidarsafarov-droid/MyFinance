@@ -86,9 +86,8 @@ fun NavGraph(
         if (setupComplete) {
             needsSetup = false
             val provider = authStore.authProvider()
-            val supabaseConfigured = com.truckerload.data.remote.SupabaseAuthService(context.applicationContext)
-                .isConfigured()
-            needsEmailVerify = supabaseConfigured &&
+            // Soft on-device code — show whenever pending (no email is sent by the app).
+            needsEmailVerify =
                 provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
                 authEmail.isNotBlank() &&
                 emailVerifyStore.isPending(authEmail)
@@ -103,9 +102,7 @@ fun NavGraph(
             return@LaunchedEffect
         }
         val provider = authStore.authProvider()
-        val supabaseConfigured = com.truckerload.data.remote.SupabaseAuthService(context.applicationContext)
-            .isConfigured()
-        needsEmailVerify = supabaseConfigured &&
+        needsEmailVerify =
             provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
             authEmail.isNotBlank() &&
             emailVerifyStore.isPending(authEmail)

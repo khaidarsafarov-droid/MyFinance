@@ -35,8 +35,10 @@ Persisted on `driver_profile` (Room migration 23→24) and pushed to the outbox.
 ## Part 4 — Email verification (soft)
 
 After signup / profile wizard for `AuthProvider.EMAIL`, `EmailVerificationScreen`
-asks for a 6-digit code. Account stays usable (`Verify later`). In
-`LOCAL_ONLY_MODE` / debug builds the code is shown on-screen for QA.
+asks for a 6-digit **on-device** code (generated and shown in the app — the client
+does not email OTP). Account stays usable via **Verify later**. Supabase may still
+send its own magic-link email when cloud signup is configured; that is separate
+from this soft gate.
 
 ## Part 5 — Session restore (email)
 

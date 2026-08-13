@@ -34,3 +34,8 @@ SUPABASE_ANON_KEY=...
 ```
 
 `LOCAL_ONLY_MODE=true` does **not** skip login; it only disables cloud workers / Supabase client.
+
+`GOOGLE_WEB_CLIENT_ID` falls back to the project Web client in `app/build.gradle.kts`
+when omitted from `local.properties`. Android OAuth client (package `com.truckerload` +
+APK signing SHA-1) must still be registered in Google Cloud Console — ApiException **10**
+means the SHA-1 does not match.

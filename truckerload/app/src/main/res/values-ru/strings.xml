@@ -71,6 +71,8 @@
     <string name="stats_open_advisor">Открыть финансового советника</string>
     <string name="stats_action_unavailable">Действие пока недоступно</string>
     <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckerload, SHA-1).</string>
+    <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте SHA-1 подписи APK в Google Cloud Console для com.truckerload.</string>
+    <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
     <string name="login_google_fallback">Supabase временно недоступен (%1$s). Вход выполнен локально.</string>
     <string name="login_google_cancelled">Вход отменён</string>
 
@@ -1019,13 +1021,14 @@
     <string name="profile_setup_hub_hint">Например, Chicago, IL</string>
     <string name="profile_setup_hub_required">Укажите базу или хаб</string>
     <string name="email_verify_title">Подтверждение email</string>
-    <string name="email_verify_subtitle">Мы отправили 6-значный код на %1$s. Пока почта не подтверждена, аккаунт в статусе «ожидает активации», но журнал уже доступен.</string>
-    <string name="email_verify_code_label">Код из письма</string>
+    <string name="email_verify_subtitle">Мягкое подтверждение для %1$s. Код показан ниже на этом экране (письмо с кодом приложение не отправляет). Журнал уже доступен — можно подтвердить позже.</string>
+    <string name="email_verify_code_label">6-значный код</string>
     <string name="email_verify_confirm">Подтвердить</string>
     <string name="email_verify_skip">Подтвердить позже</string>
     <string name="email_verify_code_invalid">Введите 6 цифр</string>
     <string name="email_verify_code_wrong">Неверный код</string>
     <string name="email_verify_dev_code">Код для теста: %1$s</string>
+    <string name="email_verify_on_device_code">Ваш код: %1$s</string>
     <string name="biometric_unlock_title">Разблокировка</string>
     <string name="biometric_unlock_subtitle">Подтвердите личность отпечатком или Face ID</string>
     <string name="biometric_unlock_retry">Повторить</string>

@@ -6,11 +6,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.repository.auth.GoogleAuthCredential
+import com.truckerload.presentation.auth.GoogleSignInSupport
 import com.truckerload.presentation.screens.auth.AuthViewModel
 
 /**
@@ -51,18 +49,13 @@ fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
             )
         }
         task.addOnFailureListener {
-            val msg = (it as? ApiException)?.message ?: it.message ?: it.toString()
-            viewModel.onLegacyGoogleError(context.getString(R.string.login_google_error, msg))
+            viewModel.onLegacyGoogleError(GoogleSignInSupport.formatError(context, it))
         }
     }
     return {
-        val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail().requestProfile().requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID).build()
-        } else {
-            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail().requestProfile().build()
+        // Clear stale account so the picker always shows (avoids silent no-op failures).
+        GoogleSignInSupport.signOutThen(context) {
+            launcher.launch(GoogleSignInSupport.client(context).signInIntent)
         }
-        launcher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
     }
 }

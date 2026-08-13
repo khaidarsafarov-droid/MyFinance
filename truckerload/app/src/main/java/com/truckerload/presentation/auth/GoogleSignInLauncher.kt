@@ -2,6 +2,7 @@ package com.truckerload.presentation.auth
 
 import android.app.Activity
 import android.util.Base64
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,9 +13,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
@@ -26,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import android.util.Log
 
 data class GoogleAuthCallbacks(
     val onBusy: (Boolean) -> Unit,
@@ -184,32 +181,25 @@ fun rememberGoogleSignInLauncher(
             }
         }
         task.addOnFailureListener {
-            val message = (it as? ApiException)?.message ?: it.message ?: it.toString()
             Toast.makeText(
                 context,
-                context.getString(R.string.login_google_error, message),
+                GoogleSignInSupport.formatError(context, it),
                 Toast.LENGTH_LONG,
             ).show()
             callbacksState.value.onBusy(false)
         }
     }
 
+    fun launchLegacy() {
+        GoogleSignInSupport.signOutThen(context) {
+            legacyLauncher.launch(GoogleSignInSupport.client(context).signInIntent)
+        }
+    }
+
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
         if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
-            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                    .build()
-            } else {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .build()
-            }
-            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+            launchLegacy()
             return@GoogleSignInLauncher
         }
         scope.launch {
@@ -291,21 +281,7 @@ fun rememberGoogleSignInLauncher(
                             ).show()
                             callbacksState.value.onBusy(false)
                         }
-                        else -> {
-                            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                                    .build()
-                            } else {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .build()
-                            }
-                            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
-                        }
+                        else -> launchLegacy()
                     }
                 }
             }
@@ -323,7 +299,6 @@ internal fun decodeGoogleIdToken(idToken: String): JSONObject? {
         JSONObject(payload)
     } catch (e: Exception) {
         Log.w("TL", "swallowed", e)
-        null
         null
     }
 }
