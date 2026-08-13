@@ -792,7 +792,7 @@
     <string name="widget_metric_cpm">Rate per mile</string>
     <string name="settings_restore_error">Error: %1$s</string>
     <string name="settings_telegram_title">Telegram Bot</string>
-    <string name="settings_telegram_desc">The bot token is kept only in the app’s secure store and is never shown in the UI. Tap Test to check the Telegram connection.</string>
+    <string name="settings_telegram_desc">The bot token is kept only in the app’s secure store and is never shown in the UI. Tap Add bot to paste a token from @BotFather, or Test to check the connection.</string>
     <string name="settings_telegram_token_label">BOT TOKEN</string>
     <string name="settings_telegram_token_placeholder">123456789:AAH...</string>
     <string name="settings_telegram_token_configured">Token configured (hidden)</string>
@@ -801,8 +801,12 @@
     <string name="settings_telegram_status_active">Bot is listening for messages</string>
     <string name="settings_telegram_status_inactive">Bot is not running</string>
     <string name="settings_telegram_ok">✅ Bot @%1$s — token is valid</string>
-    <string name="settings_telegram_invalid">❌ Invalid token (401). Update the token via secure build/config storage, not the Settings screen.</string>
+    <string name="settings_telegram_invalid">❌ Invalid token (401). Get a new token from @BotFather → /token and tap Add bot.</string>
     <string name="settings_telegram_token_missing">Bot token is not set</string>
+    <string name="settings_telegram_add_bot">Add bot</string>
+    <string name="settings_telegram_change_bot">Change token</string>
+    <string name="settings_telegram_add_dialog_title">Add Telegram bot</string>
+    <string name="settings_telegram_add_dialog_desc">Paste the token from @BotFather. The saved token is never shown in the UI.</string>
     <string name="settings_rpm_save">Save thresholds</string>
     <string name="settings_saved_toast">Settings saved</string>
     <string name="settings_telegram_show_token">Show</string>
