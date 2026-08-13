@@ -386,6 +386,112 @@ class SupabaseAuthService(private val appContext: Context) {
         }
     }
 
+    /**
+     * Sends a 6-digit OTP to the user's email via Supabase Auth.
+     * Requires the Magic Link email template to include `{{ .Token }}` in the Supabase dashboard.
+     */
+    suspend fun sendEmailOtp(email: String, createUser: Boolean = false): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            if (!isConfigured()) {
+                return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
+            }
+            val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/auth/v1/otp"
+            val body = JSONObject().apply {
+                put("email", email.trim())
+                put("create_user", createUser)
+            }.toString()
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .addHeader("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
+                .addHeader("Content-Type", "application/json")
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+            try {
+                val response = client.newCall(request).execute()
+                val responseBody = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    val errorCode = response.header("x-sb-error-code")
+                    val err = try {
+                        JSONObject(responseBody).optString(
+                            "msg",
+                            JSONObject(responseBody).optString(
+                                "error_description",
+                                JSONObject(responseBody).optString("message", responseBody),
+                            ),
+                        )
+                    } catch (e: Exception) {
+                        responseBody
+                    }
+                    val friendly = if (errorCode == "over_email_send_rate_limit" || response.code == 429) {
+                        appContext.getString(R.string.auth_error_email_rate_limit)
+                    } else {
+                        err.ifBlank { appContext.getString(R.string.email_verify_send_failed_generic) }
+                    }
+                    return@withContext Result.failure(
+                        AuthApiException(friendly, errorCode = errorCode, httpCode = response.code),
+                    )
+                }
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(Exception(mapSignInError(e.message ?: e.toString())))
+            }
+        }
+
+    /**
+     * Verifies a 6-digit email OTP. Tries [signup] first (post-registration), then [email].
+     */
+    suspend fun verifyEmailOtp(email: String, token: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception(appContext.getString(R.string.supabase_not_configured)))
+        }
+        val trimmedEmail = email.trim()
+        val trimmedToken = token.trim()
+        verifyEmailOtpAttempt(trimmedEmail, trimmedToken, "signup")
+            .recoverCatching {
+                verifyEmailOtpAttempt(trimmedEmail, trimmedToken, "email").getOrThrow()
+            }
+    }
+
+    private fun verifyEmailOtpAttempt(email: String, token: String, type: String): Result<Unit> {
+        val url = "${BuildConfig.SUPABASE_URL.trimEnd('/')}/auth/v1/verify"
+        val body = JSONObject().apply {
+            put("type", type)
+            put("email", email)
+            put("token", token)
+        }.toString()
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            .addHeader("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
+            .addHeader("Content-Type", "application/json")
+            .post(body.toRequestBody("application/json".toMediaType()))
+            .build()
+        return try {
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string().orEmpty()
+            if (!response.isSuccessful) {
+                val err = try {
+                    JSONObject(responseBody).optString(
+                        "msg",
+                        JSONObject(responseBody).optString(
+                            "error_description",
+                            JSONObject(responseBody).optString("message", responseBody),
+                        ),
+                    )
+                } catch (e: Exception) {
+                    responseBody
+                }
+                return Result.failure(
+                    Exception(err.ifBlank { appContext.getString(R.string.email_verify_code_wrong) }),
+                )
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(Exception(mapSignInError(e.message ?: e.toString())))
+        }
+    }
+
     /** Refresh access token using a refresh_token grant (email / password sessions). */
     suspend fun refreshSession(refreshToken: String): Result<SignInResult> = withContext(Dispatchers.IO) {
         if (!isConfigured()) {

@@ -78,6 +78,11 @@ class AuthRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             val idToken = credential.idToken
             val toasts = mutableListOf<String>()
+            if (supabaseAuth.isConfigured() && idToken.isNullOrBlank()) {
+                return@withContext Result.failure(
+                    IllegalStateException(appContext.getString(R.string.login_google_no_id_token)),
+                )
+            }
             if (supabaseAuth.isConfigured() && !idToken.isNullOrBlank()) {
                 runCatching { supabaseAuth.signInWithIdToken(idToken) }
                     .getOrElse { e ->

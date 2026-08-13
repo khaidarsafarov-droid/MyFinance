@@ -125,6 +125,7 @@
     <string name="supabase_signup_no_user">Нет user в ответе. Supabase: Auth → Email → отключите Confirm email для теста.</string>
     <string name="supabase_no_tokens">Нет токенов в ответе</string>
     <string name="login_google_no_data">Нет данных</string>
+    <string name="login_google_no_id_token">Не удалось получить Google-токен. Проверьте GOOGLE_WEB_CLIENT_ID и SHA-1 отпечаток в Google Cloud Console (package: com.truckerload).</string>
     <string name="analytics_error_loading">Ошибка загрузки</string>
     <string name="load_delete_failed">Не удалось удалить груз</string>
     <string name="social_error_save_profile">Не удалось сохранить профиль</string>
@@ -1020,12 +1021,18 @@
     <string name="profile_setup_hub_required">Укажите базу или хаб</string>
     <string name="email_verify_title">Подтверждение email</string>
     <string name="email_verify_subtitle">Мы отправили 6-значный код на %1$s. Пока почта не подтверждена, аккаунт в статусе «ожидает активации», но журнал уже доступен.</string>
+    <string name="email_verify_subtitle_cloud">Мы отправили 6-значный код на %1$s. Проверьте входящие и папку «Спам». Пока почта не подтверждена, аккаунт в статусе «ожидает активации», но журнал уже доступен.</string>
     <string name="email_verify_code_label">Код из письма</string>
     <string name="email_verify_confirm">Подтвердить</string>
     <string name="email_verify_skip">Подтвердить позже</string>
     <string name="email_verify_code_invalid">Введите 6 цифр</string>
     <string name="email_verify_code_wrong">Неверный код</string>
     <string name="email_verify_dev_code">Код для теста: %1$s</string>
+    <string name="email_verify_sent_hint">Код отправлен. Если письма нет — проверьте «Спам» или нажмите «Отправить снова».</string>
+    <string name="email_verify_send_failed_generic">Не удалось отправить код. Попробуйте позже или нажмите «Подтвердить позже».</string>
+    <string name="email_verify_resend">Отправить код снова</string>
+    <string name="email_verify_resending">Отправляем…</string>
+    <string name="email_verify_confirming">Проверяем…</string>
     <string name="biometric_unlock_title">Разблокировка</string>
     <string name="biometric_unlock_subtitle">Подтвердите личность отпечатком или Face ID</string>
     <string name="biometric_unlock_retry">Повторить</string>

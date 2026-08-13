@@ -7,9 +7,9 @@ import kotlin.random.Random
 
 /**
  * Soft email verification for email/password accounts.
- * In LOCAL_ONLY / offline mode the 6-digit code is generated client-side and
- * stored hashed; with Supabase the server owns OTP delivery and this store
- * only tracks "pending vs verified" for UI gating.
+ * In LOCAL_ONLY / offline mode the 6-digit code is generated client-side.
+ * With Supabase configured, [com.truckerload.data.remote.SupabaseAuthService.sendEmailOtp]
+ * delivers the OTP email and [verifyEmailOtp] validates it server-side.
  */
 class EmailVerificationStore(context: Context) {
     private val prefs: SharedPreferences =

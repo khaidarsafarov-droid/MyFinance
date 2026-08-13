@@ -110,6 +110,15 @@ fun rememberGoogleSignInLauncher(
         task.addOnSuccessListener { account ->
             try {
                 val idToken = account.idToken
+                if (supabaseAuth.isConfigured() && idToken.isNullOrBlank()) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.login_google_no_id_token),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    callbacksState.value.onBusy(false)
+                    return@addOnSuccessListener
+                }
                 fun finishLocal() {
                     saveAndFinish(
                         account.email.orEmpty(),
@@ -323,7 +332,6 @@ internal fun decodeGoogleIdToken(idToken: String): JSONObject? {
         JSONObject(payload)
     } catch (e: Exception) {
         Log.w("TL", "swallowed", e)
-        null
         null
     }
 }

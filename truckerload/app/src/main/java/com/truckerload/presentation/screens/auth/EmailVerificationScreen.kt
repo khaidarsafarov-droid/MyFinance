@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,14 +31,21 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.EmailVerificationStore
+import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Soft email verification: 6-digit code. Account stays usable while pending
  * ([onSkip]); until verified status remains "awaiting activation".
+ *
+ * With Supabase configured, the code is sent by Supabase Auth (OTP email).
+ * In local-only / debug builds the code is shown on-screen for QA.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,11 +57,47 @@ fun EmailVerificationScreen(
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val store = remember { EmailVerificationStore(context.applicationContext) }
+    val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
+    val scope = rememberCoroutineScope()
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var hint by remember { mutableStateOf<String?>(null) }
+    var isSending by remember { mutableStateOf(false) }
+    var isVerifying by remember { mutableStateOf(false) }
 
-    LaunchedEffect(email) {
+    val supabaseConfigured = remember {
+        BuildConfig.SUPABASE_URL.isNotBlank() &&
+            BuildConfig.SUPABASE_ANON_KEY.isNotBlank() &&
+            !BuildConfig.LOCAL_ONLY_MODE &&
+            supabaseAuth.isConfigured()
+    }
+
+    fun sendOtp() {
+        if (isSending) return
+        scope.launch {
+            isSending = true
+            error = null
+            if (supabaseConfigured) {
+                val result = withContext(Dispatchers.IO) {
+                    supabaseAuth.sendEmailOtp(email)
+                }
+                result.fold(
+                    onSuccess = {
+                        hint = context.getString(R.string.email_verify_sent_hint)
+                    },
+                    onFailure = { err ->
+                        error = err.message ?: context.getString(R.string.email_verify_send_failed_generic)
+                    },
+                )
+            } else {
+                val generated = store.beginVerification(email)
+                hint = context.getString(R.string.email_verify_dev_code, generated)
+            }
+            isSending = false
+        }
+    }
+
+    LaunchedEffect(email, supabaseConfigured) {
         if (email.isBlank()) {
             onSkip()
             return@LaunchedEffect
@@ -63,14 +107,24 @@ fun EmailVerificationScreen(
             return@LaunchedEffect
         }
         if (!store.isPending(email)) {
-            val generated = store.beginVerification(email)
-            // Show code when no outbound mail (local-only, debug, or Supabase unset).
-            val supabaseConfigured = BuildConfig.SUPABASE_URL.isNotBlank() &&
-                BuildConfig.SUPABASE_ANON_KEY.isNotBlank() &&
-                !BuildConfig.LOCAL_ONLY_MODE
-            if (BuildConfig.LOCAL_ONLY_MODE || BuildConfig.DEBUG || !supabaseConfigured) {
-                hint = context.getString(R.string.email_verify_dev_code, generated)
+            store.beginVerification(email)
+        }
+        if (supabaseConfigured) {
+            isSending = true
+            error = null
+            val result = withContext(Dispatchers.IO) {
+                supabaseAuth.sendEmailOtp(email)
             }
+            result.fold(
+                onSuccess = { hint = context.getString(R.string.email_verify_sent_hint) },
+                onFailure = { err ->
+                    error = err.message ?: context.getString(R.string.email_verify_send_failed_generic)
+                },
+            )
+            isSending = false
+        } else {
+            val generated = store.beginVerification(email)
+            hint = context.getString(R.string.email_verify_dev_code, generated)
         }
     }
 
@@ -94,7 +148,11 @@ fun EmailVerificationScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = stringResource(R.string.email_verify_subtitle, email),
+                text = if (supabaseConfigured) {
+                    stringResource(R.string.email_verify_subtitle_cloud, email)
+                } else {
+                    stringResource(R.string.email_verify_subtitle, email)
+                },
                 style = MaterialTheme.typography.bodyLarge,
                 color = tc.TextSecondary,
             )
@@ -112,22 +170,72 @@ fun EmailVerificationScreen(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = AppTextFieldDefaults.outlined(),
+                enabled = !isVerifying,
             )
             error?.let {
                 Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall)
+            }
+            if (supabaseConfigured) {
+                TextButton(
+                    onClick = { sendOtp() },
+                    enabled = !isSending && !isVerifying,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        if (isSending) {
+                            stringResource(R.string.email_verify_resending)
+                        } else {
+                            stringResource(R.string.email_verify_resend)
+                        },
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
                     when {
                         code.length != 6 -> error = context.getString(R.string.email_verify_code_invalid)
-                        store.verifyCode(email, code) -> onVerified()
-                        else -> error = context.getString(R.string.email_verify_code_wrong)
+                        else -> {
+                            scope.launch {
+                                isVerifying = true
+                                error = null
+                                val verified = if (supabaseConfigured) {
+                                    withContext(Dispatchers.IO) {
+                                        supabaseAuth.verifyEmailOtp(email, code)
+                                    }.fold(
+                                        onSuccess = {
+                                            store.markVerified(email)
+                                            true
+                                        },
+                                        onFailure = { err ->
+                                            error = err.message
+                                                ?: context.getString(R.string.email_verify_code_wrong)
+                                            false
+                                        },
+                                    )
+                                } else {
+                                    store.verifyCode(email, code)
+                                }
+                                isVerifying = false
+                                if (verified) {
+                                    onVerified()
+                                } else if (!supabaseConfigured) {
+                                    error = context.getString(R.string.email_verify_code_wrong)
+                                }
+                            }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
+                enabled = !isVerifying,
             ) {
-                Text(stringResource(R.string.email_verify_confirm))
+                Text(
+                    if (isVerifying) {
+                        stringResource(R.string.email_verify_confirming)
+                    } else {
+                        stringResource(R.string.email_verify_confirm)
+                    },
+                )
             }
             TextButton(
                 onClick = {
@@ -135,6 +243,7 @@ fun EmailVerificationScreen(
                     onSkip()
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !isVerifying,
             ) {
                 Text(stringResource(R.string.email_verify_skip))
             }

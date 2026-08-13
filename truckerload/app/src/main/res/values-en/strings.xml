@@ -125,6 +125,7 @@
     <string name="supabase_signup_no_user">No user in response. Supabase: Auth → Email → disable Confirm email for testing.</string>
     <string name="supabase_no_tokens">No tokens in response</string>
     <string name="login_google_no_data">No data</string>
+    <string name="login_google_no_id_token">Could not obtain a Google token. Check GOOGLE_WEB_CLIENT_ID and the SHA-1 fingerprint in Google Cloud Console (package: com.truckerload).</string>
     <string name="analytics_error_loading">Loading error</string>
     <string name="load_delete_failed">Could not delete load</string>
     <string name="social_error_save_profile">Could not save profile</string>
@@ -1020,12 +1021,18 @@
     <string name="profile_setup_hub_required">Enter your home hub</string>
     <string name="email_verify_title">Verify email</string>
     <string name="email_verify_subtitle">We sent a 6-digit code to %1$s. Until verified, the account is pending activation — the journal is already available.</string>
+    <string name="email_verify_subtitle_cloud">We sent a 6-digit code to %1$s. Check your inbox and spam folder. Until verified, the account is pending activation — the journal is already available.</string>
     <string name="email_verify_code_label">Code from email</string>
     <string name="email_verify_confirm">Confirm</string>
     <string name="email_verify_skip">Verify later</string>
     <string name="email_verify_code_invalid">Enter 6 digits</string>
     <string name="email_verify_code_wrong">Incorrect code</string>
     <string name="email_verify_dev_code">Dev code: %1$s</string>
+    <string name="email_verify_sent_hint">Code sent. If you do not see the email, check spam or tap Resend.</string>
+    <string name="email_verify_send_failed_generic">Could not send the code. Try again later or tap Verify later.</string>
+    <string name="email_verify_resend">Resend code</string>
+    <string name="email_verify_resending">Sending…</string>
+    <string name="email_verify_confirming">Verifying…</string>
     <string name="biometric_unlock_title">Unlock</string>
     <string name="biometric_unlock_subtitle">Confirm with fingerprint or Face ID</string>
     <string name="biometric_unlock_retry">Try again</string>
