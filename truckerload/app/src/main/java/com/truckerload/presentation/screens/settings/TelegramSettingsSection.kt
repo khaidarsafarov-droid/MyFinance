@@ -199,7 +199,12 @@ fun TelegramSettingsSection() {
                     enabled = tokenInput.isNotBlank() && !busy,
                     modifier = Modifier.weight(1f).height(44.dp),
                 ) {
-                    Text(stringResource(R.string.settings_telegram_save_token))
+                    Text(
+                        stringResource(
+                            if (hasToken) R.string.settings_telegram_save_token
+                            else R.string.settings_telegram_add_bot
+                        )
+                    )
                 }
             }
 
