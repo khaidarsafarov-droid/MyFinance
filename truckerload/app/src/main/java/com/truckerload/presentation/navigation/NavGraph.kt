@@ -114,12 +114,16 @@ fun NavGraph(
         ProfileSetupScreen(
             onCompleted = {
                 needsSetup = false
-                // After wizard, start soft email verification for email accounts.
+                // After wizard, soft-verify email accounts. Do not regenerate the local
+                // backup code if signup already started pending — EmailVerificationScreen
+                // owns delivery (Supabase OTP or on-screen fallback).
                 if (authStore.authProvider() == com.truckerload.data.preferences.AuthProvider.EMAIL &&
                     authEmail.isNotBlank() &&
                     !emailVerifyStore.isVerified(authEmail)
                 ) {
-                    emailVerifyStore.beginVerification(authEmail)
+                    if (!emailVerifyStore.isPending(authEmail)) {
+                        emailVerifyStore.beginVerification(authEmail)
+                    }
                     needsEmailVerify = true
                 } else {
                     needsEmailVerify = false

@@ -6,14 +6,15 @@ import androidx.credentials.CredentialManagerCallback
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.truckerload.BuildConfig
+import com.truckerload.utils.findActivity
+import java.security.SecureRandom
+import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import java.util.concurrent.Executors
 
 /**
  * Credential Manager (One Tap replacement) — современный Sign-in with Google.
@@ -62,11 +63,16 @@ object CredentialManagerGoogleSignIn {
             return@suspendCoroutine
         }
         val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
-        val credentialManager = CredentialManager.create(context)
+        // Activity context is required on many devices; ApplicationContext silently fails.
+        val uiContext = context.findActivity() ?: context
+        val credentialManager = CredentialManager.create(uiContext)
+        val nonce = ByteArray(16).also { SecureRandom().nextBytes(it) }
+            .joinToString("") { b -> "%02x".format(b) }
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(silent)
             .setServerClientId(webClientId)
             .setAutoSelectEnabled(silent)
+            .setNonce(nonce)
             .build()
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(googleIdOption)
@@ -83,7 +89,9 @@ object CredentialManagerGoogleSignIn {
                                 credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_SIWG_CREDENTIAL
                             ) {
                                 GoogleIdTokenCredential.createFrom(credential.data).idToken
-                            } else null
+                            } else {
+                                null
+                            }
                         }
                         else -> null
                     }
@@ -102,6 +110,6 @@ object CredentialManagerGoogleSignIn {
             }
         }
 
-        credentialManager.getCredentialAsync(context, request, null, executor, callback)
+        credentialManager.getCredentialAsync(uiContext, request, null, executor, callback)
     }
 }

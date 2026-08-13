@@ -40,6 +40,13 @@ class EmailVerificationStore(context: Context) {
         return code
     }
 
+    /** Existing local code while pending (null if none). Used so resend can keep a backup code. */
+    fun peekCode(email: String): String? {
+        val key = AuthCredentialsStore.normalizeEmail(email)
+        if (key.isBlank() || !isPending(key)) return null
+        return prefs.getString(codeKey(key), null)?.takeIf { it.isNotBlank() }
+    }
+
     fun verifyCode(email: String, code: String): Boolean {
         val key = AuthCredentialsStore.normalizeEmail(email)
         if (key.isBlank()) return false

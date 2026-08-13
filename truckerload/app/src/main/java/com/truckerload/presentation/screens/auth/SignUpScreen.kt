@@ -113,6 +113,7 @@ fun SignUpScreen(
         nameTrimmed: String,
         phoneFormatted: String,
         toastRes: Int,
+        awaitEmailConfirm: Boolean = false,
     ) {
         // Credentials must not block session creation — offline login needs the verifier,
         // but the user should still be signed in if the write fails for any reason.
@@ -129,9 +130,14 @@ fun SignUpScreen(
                 phoneNumber = phoneFormatted,
             ),
         )
-        // No outbound email without Supabase — treat on-device accounts as verified.
-        com.truckerload.data.preferences.EmailVerificationStore(context)
-            .markVerified(emailTrimmed)
+        val verifyStore = com.truckerload.data.preferences.EmailVerificationStore(context)
+        if (awaitEmailConfirm && supabaseAuth.isConfigured()) {
+            // Soft gate: EmailVerificationScreen will request a real Supabase OTP.
+            verifyStore.beginVerification(emailTrimmed)
+        } else {
+            // Pure on-device account — nothing to deliver by email.
+            verifyStore.markVerified(emailTrimmed)
+        }
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
         completeSignUp()
     }
@@ -248,12 +254,15 @@ fun SignUpScreen(
                                     }
                                 } else {
                                     isLoading = false
+                                    // Supabase created the user but withheld tokens until email
+                                    // confirm — keep a local session and open soft OTP gate.
                                     finishLocalSignUp(
                                         emailTrimmed,
                                         password,
                                         nameTrimmed,
                                         phoneFormatted,
                                         R.string.signup_success_confirm_email,
+                                        awaitEmailConfirm = true,
                                     )
                                 }
                             },

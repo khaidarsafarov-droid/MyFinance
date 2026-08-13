@@ -45,7 +45,14 @@ android {
         buildConfigField("String", "CEREBRAS_API_KEY", "\"$cerebrasKey\"")
         buildConfigField("String", "CEREBRAS_MODEL", "\"${localProps.getProperty("CEREBRAS_MODEL", "llama3.1-8b")}\"")
         buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"$telegramToken\"")
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
+        // Public Web OAuth client (not a secret). Fallback keeps Google Sign-In working when
+        // local.properties omits the key (friends APK / CI). Same default as build-friends-apk.sh.
+        val defaultGoogleWebClientId =
+            "842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com"
+        val googleWebClientId = localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")
+            .trim()
+            .ifBlank { defaultGoogleWebClientId }
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
         buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
         val syncBackendUrl = localProps.getProperty("SYNC_BACKEND_URL", "")

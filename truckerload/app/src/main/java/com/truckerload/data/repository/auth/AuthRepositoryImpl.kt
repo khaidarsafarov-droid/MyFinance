@@ -15,6 +15,7 @@ import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
+import com.truckerload.utils.findActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -65,7 +66,9 @@ class AuthRepositoryImpl @Inject constructor(
         if (!CredentialManagerGoogleSignIn.isAvailable(activityContext)) {
             return GoogleTokenRequestResult.FallBackToLegacy
         }
-        val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(activityContext)
+        // Credential Manager requires an Activity context — Compose LocalContext is often wrapped.
+        val host = activityContext.findActivity() ?: activityContext
+        val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(host)
         val idToken = tokenResult.getOrNull()
         if (idToken != null) return GoogleTokenRequestResult.Token(idToken)
         return when (tokenResult.exceptionOrNull()) {

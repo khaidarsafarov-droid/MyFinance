@@ -22,6 +22,7 @@ import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.utils.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -194,26 +195,35 @@ fun rememberGoogleSignInLauncher(
         }
     }
 
+    fun launchLegacyGoogle() {
+        val activity = context.findActivity() ?: context
+        val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                .build()
+        } else {
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .build()
+        }
+        val client = GoogleSignIn.getClient(activity, gso)
+        client.signOut().addOnCompleteListener {
+            legacyLauncher.launch(client.signInIntent)
+        }
+    }
+
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
         if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
-            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                    .build()
-            } else {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .build()
-            }
-            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+            launchLegacyGoogle()
             return@GoogleSignInLauncher
         }
         scope.launch {
-            val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(context)
+            val host = context.findActivity() ?: context
+            val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(host)
             val idToken = tokenResult.getOrNull()
             if (idToken != null) {
                 withContext(Dispatchers.Main) {
@@ -291,21 +301,7 @@ fun rememberGoogleSignInLauncher(
                             ).show()
                             callbacksState.value.onBusy(false)
                         }
-                        else -> {
-                            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                                    .build()
-                            } else {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .build()
-                            }
-                            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
-                        }
+                        else -> launchLegacyGoogle()
                     }
                 }
             }
