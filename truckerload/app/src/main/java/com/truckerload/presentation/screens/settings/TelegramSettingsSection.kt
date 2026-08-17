@@ -30,6 +30,7 @@ import com.truckerload.R
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.presentation.components.BotStatusBadge
+import com.truckerload.presentation.screens.auth.BotFatherLinks
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -288,6 +289,12 @@ fun TelegramSettingsSection() {
                 modifier = Modifier.fillMaxWidth().height(44.dp),
             ) {
                 Text(stringResource(R.string.settings_telegram_add_bot))
+            }
+            OutlinedButton(
+                onClick = { BotFatherLinks.open(context) },
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+            ) {
+                Text(stringResource(R.string.telegram_onboarding_open_botfather))
             }
         }
 

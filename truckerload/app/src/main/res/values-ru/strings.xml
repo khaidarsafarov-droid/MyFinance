@@ -815,6 +815,17 @@
     <string name="settings_telegram_server_mode">Серверный режим: токен бота хранится только на сервере. Привяжите этот аккаунт к серверному боту.</string>
     <string name="settings_telegram_create_link">Создать ссылку привязки</string>
     <string name="settings_telegram_link_error">Не удалось создать ссылку. Проверьте вход и адрес сервера.</string>
+    <string name="telegram_onboarding_title">Подключите Telegram-бота</string>
+    <string name="telegram_onboarding_subtitle">После регистрации можно сразу привязать бота: он будет разбирать грузы из Telegram и сохранять их в приложение.</string>
+    <string name="telegram_onboarding_steps_title">Как получить токен</string>
+    <string name="telegram_onboarding_step_1">1. Нажмите «Открыть BotFather» — откроется бот @BotFather в Telegram.</string>
+    <string name="telegram_onboarding_step_2">2. Отправьте /newbot (новый бот) или /token (если бот уже есть).</string>
+    <string name="telegram_onboarding_step_3">3. Скопируйте токен — он выглядит как 123456789:AAH…</string>
+    <string name="telegram_onboarding_step_4">4. Вставьте токен ниже и нажмите «Сохранить». После этого можно присылать грузы боту.</string>
+    <string name="telegram_onboarding_open_botfather">Открыть BotFather</string>
+    <string name="telegram_onboarding_save">Сохранить токен</string>
+    <string name="telegram_onboarding_skip">Пропустить сейчас</string>
+    <string name="telegram_onboarding_skip_hint">Можно добавить бота позже в Настройках → Telegram бот.</string>
     <string name="push_notification_channel_name">Обновления Truck Log</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">Доступно новое обновление</string>

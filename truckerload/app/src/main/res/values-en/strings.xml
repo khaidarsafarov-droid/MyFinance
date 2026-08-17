@@ -815,6 +815,17 @@
     <string name="settings_telegram_server_mode">Server inbox mode: the bot token stays on the server. Link this account to the server bot.</string>
     <string name="settings_telegram_create_link">Create link</string>
     <string name="settings_telegram_link_error">Could not create a link. Check your sign-in and backend URL.</string>
+    <string name="telegram_onboarding_title">Connect your Telegram bot</string>
+    <string name="telegram_onboarding_subtitle">After you create an account, connect a bot so Telegram messages can be parsed and saved as loads.</string>
+    <string name="telegram_onboarding_steps_title">How to get a token</string>
+    <string name="telegram_onboarding_step_1">1. Tap Open BotFather — Telegram opens @BotFather.</string>
+    <string name="telegram_onboarding_step_2">2. Send /newbot (new bot) or /token (if you already have one).</string>
+    <string name="telegram_onboarding_step_3">3. Copy the token — it looks like 123456789:AAH…</string>
+    <string name="telegram_onboarding_step_4">4. Paste it below and tap Save. You can then send loads to the bot.</string>
+    <string name="telegram_onboarding_open_botfather">Open BotFather</string>
+    <string name="telegram_onboarding_save">Save token</string>
+    <string name="telegram_onboarding_skip">Skip for now</string>
+    <string name="telegram_onboarding_skip_hint">You can add the bot later in Settings → Telegram bot.</string>
     <string name="push_notification_channel_name">Truck Log updates</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">A new update is available</string>
