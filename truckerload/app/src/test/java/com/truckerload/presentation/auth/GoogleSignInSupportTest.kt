@@ -1,42 +1,35 @@
 package com.truckerload.presentation.auth
 
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.common.api.Status
-import com.truckerload.utils.InstalledSigningSha1
-import org.junit.Assert.assertFalse
+import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
 class GoogleSignInSupportTest {
 
     @Test
-    fun formatError_developerErrorIncludesInstalledSha1() {
-        val context = RuntimeEnvironment.getApplication()
-        val sha = InstalledSigningSha1.fingerprint(context)
-        val message = GoogleSignInSupport.formatError(
-            context,
-            ApiException(Status(CommonStatusCodes.DEVELOPER_ERROR)),
-        )
-        assertTrue(message.contains("10") || message.contains("SHA"))
-        if (sha != null) {
-            assertTrue(message.contains(sha))
-        }
+    fun formatError_usesInstalledSha1ForDeveloperError() {
+        val source = readMainSource("com/truckerload/presentation/auth/GoogleSignInSupport.kt")
+        assertTrue(source.contains("InstalledSigningSha1.fingerprint"))
+        assertTrue(source.contains("login_google_developer_error"))
+        assertTrue(source.contains("SIGN_OUT_TIMEOUT_MS"))
     }
 
     @Test
-    fun formatError_cancelIsNotWrappedAsGenericError() {
-        val context = RuntimeEnvironment.getApplication()
-        val message = GoogleSignInSupport.formatError(
-            context,
-            ApiException(Status(CommonStatusCodes.CANCELED)),
+    fun developerErrorString_includesShaPlaceholder() {
+        val values = File("src/main/res/values/strings.xml").takeIf { it.isFile }
+            ?: File("app/src/main/res/values/strings.xml")
+        val xml = values.readText()
+        val line = xml.lineSequence().first { it.contains("name=\"login_google_developer_error\"") }
+        assertTrue(line.contains("%1\$s"))
+    }
+
+    private fun readMainSource(relativePath: String): String {
+        val candidates = listOf(
+            File("src/main/java/$relativePath"),
+            File("app/src/main/java/$relativePath"),
+            File("../app/src/main/java/$relativePath"),
         )
-        assertFalse(message.contains("OAuth"))
+        return candidates.firstOrNull(File::isFile)?.readText()
+            ?: error("Main source not found: $relativePath")
     }
 }

@@ -18,7 +18,9 @@ object InstalledSigningSha1 {
             @Suppress("DEPRECATION")
             pm.getPackageInfo(pkg, PackageManager.GET_SIGNATURES).signatures?.firstOrNull()
         } ?: return@runCatching null
-        val digest = MessageDigest.getInstance("SHA-1").digest(signature.toByteArray())
-        digest.joinToString(":") { b -> "%02X".format(b) }
+        format(MessageDigest.getInstance("SHA-1").digest(signature.toByteArray()))
     }.getOrNull()
+
+    internal fun format(digest: ByteArray): String =
+        digest.joinToString(":") { b -> "%02X".format(b) }
 }
