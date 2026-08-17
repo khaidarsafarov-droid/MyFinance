@@ -3,7 +3,6 @@ package com.truckerload.data.repository.auth
 import android.content.Context
 import android.util.Base64
 import android.util.Log
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.truckerload.R
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthCredentialsStore
@@ -11,7 +10,6 @@ import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
@@ -36,8 +34,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     private val supabaseAuth = SupabaseAuthService(appContext)
 
-    override fun isGoogleCredentialManagerAvailable(): Boolean =
-        CredentialManagerGoogleSignIn.isAvailable(appContext)
+    override fun isGoogleCredentialManagerAvailable(): Boolean = false
 
     override fun isSupabaseConfigured(): Boolean = supabaseAuth.isConfigured()
 
@@ -62,16 +59,14 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun requestGoogleIdToken(activityContext: Context): GoogleTokenRequestResult {
-        if (!CredentialManagerGoogleSignIn.isAvailable(activityContext)) {
-            return GoogleTokenRequestResult.FallBackToLegacy
-        }
-        val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(activityContext)
-        val idToken = tokenResult.getOrNull()
-        if (idToken != null) return GoogleTokenRequestResult.Token(idToken)
-        return when (tokenResult.exceptionOrNull()) {
-            is GetCredentialCancellationException -> GoogleTokenRequestResult.Cancelled
-            else -> GoogleTokenRequestResult.FallBackToLegacy
-        }
+        // Credential Manager often returns "GetCredentialResponse error from framework"
+        // and then sits on a 20s timeout. Login uses the legacy account picker instead.
+        Log.i(
+            "TL",
+            "Google Sign-In: skip Credential Manager, use legacy picker " +
+                "(ctx=${activityContext.javaClass.simpleName})",
+        )
+        return GoogleTokenRequestResult.FallBackToLegacy
     }
 
     override suspend fun signInWithGoogle(credential: GoogleAuthCredential): Result<AuthSignInResult> =

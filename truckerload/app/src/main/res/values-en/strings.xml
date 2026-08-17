@@ -83,7 +83,7 @@
     <string name="stats_open_advisor">Open financial advisor</string>
     <string name="stats_action_unavailable">Action not available yet</string>
     <string name="login_google_error">Google sign-in error: %1$s. Configure OAuth in Google Cloud Console (package: com.truckerload, SHA-1).</string>
-    <string name="login_google_developer_error">wrong SHA-1 / OAuth client (code 10). Add this APK signing SHA-1 in Google Cloud Console for com.truckerload.</string>
+    <string name="login_google_developer_error">wrong SHA-1 / OAuth client (code 10). Add this APK signing SHA-1 in Google Cloud Console for com.truckerload: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services are missing or outdated on this device.</string>
     <string name="login_google_fallback">Supabase temporarily unavailable (%1$s). Signed in locally.</string>
     <string name="login_google_cancelled">Sign-in cancelled</string>

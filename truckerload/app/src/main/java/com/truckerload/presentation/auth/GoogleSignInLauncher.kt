@@ -14,13 +14,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
-import com.truckerload.data.remote.CredentialManagerGoogleSignIn
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.di.LocalAuthStore
@@ -219,101 +217,8 @@ fun rememberGoogleSignInLauncher(
 
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
-        if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
-            launchLegacy()
-            return@GoogleSignInLauncher
-        }
-        scope.launch {
-            val tokenResult = runCatching {
-                CredentialManagerGoogleSignIn.getGoogleIdToken(context)
-            }.getOrElse { err ->
-                withContext(Dispatchers.Main) {
-                    toastLegacyLaunchFailure(context, err, callbacksState.value.onBusy)
-                }
-                return@launch
-            }
-            val idToken = tokenResult.getOrNull()
-            if (idToken != null) {
-                withContext(Dispatchers.Main) {
-                    val claims = decodeGoogleIdToken(idToken)
-                    if (supabaseAuth.isConfigured()) {
-                        try {
-                            val authResult = supabaseAuth.signInWithIdToken(idToken)
-                            val signIn = authResult.getOrNull()
-                            val user = signIn?.user
-                            if (user != null) {
-                                val parts = (user.fullName ?: user.email?.take(10) ?: "User")
-                                    .trim()
-                                    .split(" ")
-                                saveAndFinish(
-                                    user.email ?: claims?.optString("email").orEmpty(),
-                                    parts.firstOrNull() ?: claims?.optString("given_name").orEmpty(),
-                                    parts.drop(1).joinToString(" ").ifBlank {
-                                        claims?.optString("family_name").orEmpty()
-                                    },
-                                    resolveGooglePhotoUrl(user.avatarUrl, idToken),
-                                    supabaseUserId = user.id,
-                                    accessToken = signIn.accessToken,
-                                    refreshToken = signIn.refreshToken,
-                                    googleId = claims?.optString("sub"),
-                                )
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    context.getString(
-                                        R.string.login_google_fallback,
-                                        authResult.exceptionOrNull()?.message.orEmpty(),
-                                    ),
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                                saveAndFinish(
-                                    claims?.optString("email").orEmpty(),
-                                    claims?.optString("given_name").orEmpty(),
-                                    claims?.optString("family_name").orEmpty(),
-                                    resolveGooglePhotoUrl(null, idToken),
-                                    googleId = claims?.optString("sub"),
-                                )
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.login_google_fallback, e.message.orEmpty()),
-                                Toast.LENGTH_LONG,
-                            ).show()
-                            saveAndFinish(
-                                claims?.optString("email").orEmpty(),
-                                claims?.optString("given_name").orEmpty(),
-                                claims?.optString("family_name").orEmpty(),
-                                resolveGooglePhotoUrl(null, idToken),
-                                googleId = claims?.optString("sub"),
-                            )
-                        }
-                    } else {
-                        saveAndFinish(
-                            claims?.optString("email").orEmpty(),
-                            claims?.optString("given_name").orEmpty(),
-                            claims?.optString("family_name").orEmpty(),
-                            resolveGooglePhotoUrl(null, idToken),
-                            googleId = claims?.optString("sub"),
-                        )
-                    }
-                }
-            } else {
-                withContext(Dispatchers.Main) {
-                    when (tokenResult.exceptionOrNull()) {
-                        is GetCredentialCancellationException -> {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.login_google_cancelled),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            callbacksState.value.onBusy(false)
-                        }
-                        else -> launchLegacy()
-                    }
-                }
-            }
-        }
+        // Credential Manager fails on many devices with a framework error and a 20s hang.
+        launchLegacy()
     }
 }
 
