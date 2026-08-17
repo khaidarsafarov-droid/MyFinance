@@ -27,18 +27,7 @@ fun parseDateFromScheduledTime(
     if (us != null) {
         val month = us.groupValues[1].toIntOrNull() ?: return null
         val day = us.groupValues[2].toIntOrNull() ?: return null
-        val year = when {
-            trustDefaultYear && defaultYear != null -> defaultYear
-            else -> {
-                val anchor = defaultYear ?: Calendar.getInstance().get(Calendar.YEAR)
-                LoadDateRepair.resolveRelayYear(
-                    month = month,
-                    day = day,
-                    anchorYear = anchor,
-                    referenceMillis = referenceMillis ?: System.currentTimeMillis(),
-                )
-            }
-        }
+        val year = resolveRelayParseYear(month, day, defaultYear, referenceMillis, trustDefaultYear)
         if (month in 1..12 && day in 1..31 && year in 1970..2100) {
             return "%04d-%02d-%02d".format(year, month, day)
         }
@@ -92,18 +81,7 @@ fun parseScheduledTimeToMillis(
         val hour = m.groupValues[3].toInt()
         val minute = m.groupValues[4].toInt()
         // FIX: align with parseDateFromScheduledTime — current-year alone skews PU→DEL by ~365d
-        val year = when {
-            trustDefaultYear && defaultYear != null -> defaultYear
-            else -> {
-                val anchor = defaultYear ?: Calendar.getInstance(Locale.US).get(Calendar.YEAR)
-                LoadDateRepair.resolveRelayYear(
-                    month = month,
-                    day = day,
-                    anchorYear = anchor,
-                    referenceMillis = referenceMillis ?: System.currentTimeMillis(),
-                )
-            }
-        }
+        val year = resolveRelayParseYear(month, day, defaultYear, referenceMillis, trustDefaultYear)
         val cal = Calendar.getInstance(Locale.getDefault())
         cal.set(year, month - 1, day, hour, minute, 0)
         cal.set(Calendar.MILLISECOND, 0)
@@ -119,3 +97,26 @@ fun parseScheduledTimeToMillis(
 }
 
 private val US_RELAY_TIME = Regex("""^(\d{1,2})/(\d{1,2})\s+(\d{1,2}):(\d{2})(?:\s+([A-Z]{2,4}))?\s*$""")
+
+/**
+ * FIX: [defaultYear] without [referenceMillis] must not re-anchor MM/DD to wall-clock.
+ * Booking-horizon math runs only when a real message/parsedAt timestamp is supplied.
+ */
+private fun resolveRelayParseYear(
+    month: Int,
+    day: Int,
+    defaultYear: Int?,
+    referenceMillis: Long?,
+    trustDefaultYear: Boolean,
+): Int {
+    if (defaultYear != null && (trustDefaultYear || referenceMillis == null || referenceMillis <= 0L)) {
+        return defaultYear
+    }
+    val anchor = defaultYear ?: Calendar.getInstance(Locale.US).get(Calendar.YEAR)
+    return LoadDateRepair.resolveRelayYear(
+        month = month,
+        day = day,
+        anchorYear = anchor,
+        referenceMillis = referenceMillis?.takeIf { it > 0L } ?: System.currentTimeMillis(),
+    )
+}

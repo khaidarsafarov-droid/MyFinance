@@ -47,7 +47,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
 import java.util.Locale
 
-/** Результат CDC-синхронизации грузов. */
 data class SyncLoadsResult(
     val addedCount: Int,
     val lastAddedText: String,
@@ -56,9 +55,6 @@ data class SyncLoadsResult(
 
 enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
 
-/**
- * Room-backed single source of truth for loads, route stops, history, and load-linked media.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoadRepository(
     private val db: AppDatabase,
@@ -72,7 +68,6 @@ class LoadRepository(
     private val photoDao = db.photoDao()
     private val scanDao = db.scanDao()
 
-    /** Single Source of Truth: реактивный поток. Room эмитит при любом изменении таблицы loads. */
     fun getAllLoads(): Flow<List<Load>> =
         loadDao.getAllLoads()
             .mapLatest { hydrateLoads(it) }
@@ -218,7 +213,6 @@ class LoadRepository(
         )
     }
 
-    /** Все грузы (разовый запрос). */
     suspend fun getAll(): List<Load> = getAllLoadsOnce()
 
     suspend fun importLoadsIfNotDuplicate(
@@ -257,7 +251,11 @@ class LoadRepository(
     }
 
     suspend fun getByTripId(tripId: String): Load? {
-        val entity = loadDao.getByTripId(tripId.trim()) ?: return null
+        val raw = tripId.trim()
+        if (raw.isBlank()) return null
+        val entity = loadDao.getByTripId(raw)
+            ?: loadDao.getByTripId(normalizeTripId(raw))
+            ?: return null
         return entity.toDomain(stopsFor(entity.id), penaltiesFor(entity.id))
     }
 
@@ -301,6 +299,9 @@ class LoadRepository(
         )
         val normalized = repaired.withReportingWeek().withRouteMetrics()
         db.withTransaction {
+            // FIX: REPLACE on loads would orphan autogen stop/penalty rows
+            stopDao.deleteByLoadId(normalized.id)
+            penaltyDao.deleteByLoadId(normalized.id)
             loadDao.insert(normalized.toEntity())
             stopDao.insertAll(normalized.stops.map { it.toEntity(normalized.id) })
             penaltyDao.insertAll(normalized.penalties.map { it.toEntity(normalized.id) })
@@ -339,8 +340,6 @@ class LoadRepository(
                 year = normalized.year,
                 updatedAt = System.currentTimeMillis(),
                 firstPuMillis = getFirstPickUpMillis(normalized),
-                // Persist finish override into lastDelMillis so SQL week-yield and
-                // widgets follow the driver's actual end date, not only Relay DEL.
                 lastDelMillis = LoadYieldCalculator.resolveFinishMillis(normalized)
                     ?: getLastDeliveryMillis(normalized),
                 route = normalized.route,
@@ -463,10 +462,6 @@ class LoadRepository(
         }
     }
 
-    /**
-     * CDC: синхронизация грузов. Вся логика в памяти — один запрос на проверку Trip ID, batch insert.
-     * Не создаёт пустые записи и дубликаты.
-     */
     suspend fun syncLoadsCdc(
         incomingLoads: List<Load>,
         messageDateSeconds: Long?,

@@ -73,6 +73,15 @@ class TelegramOnboardingStoreTest {
     }
 
     @Test
+    fun bootstrapDoesNotCrashWhenSecureStorageFallback() {
+        SecurePreferences.markFallbackForTests()
+        val context = RuntimeEnvironment.getApplication()
+        val store = TelegramTokenStore(context, "user-boot-fallback")
+        store.bootstrapFromBuildConfigIfEmpty()
+        assertFalse(store.hasPersistedToken())
+    }
+
+    @Test
     fun persistedUserTokenSkipsOnboarding() {
         val context = RuntimeEnvironment.getApplication()
         AuthStore(context).login(

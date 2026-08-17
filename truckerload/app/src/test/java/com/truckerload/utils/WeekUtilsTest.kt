@@ -23,6 +23,8 @@ class WeekUtilsTest {
             parseDateFromScheduledTime("07/05 18:30 CDT", defaultYear = 2025, trustDefaultYear = true),
         )
         assertEquals("2025-07-06", parseDateFromScheduledTime("2025-07-06 00:01 EDT"))
+        // defaultYear without wall-clock: July 2025 must not become 2026 in August 2026
+        assertEquals("2025-07-06", parseDateFromScheduledTime("07/06 00:01 EDT", defaultYear = 2025))
     }
 
     @Test

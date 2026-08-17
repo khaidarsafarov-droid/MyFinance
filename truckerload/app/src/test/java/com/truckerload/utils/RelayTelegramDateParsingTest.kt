@@ -36,7 +36,8 @@ class RelayTelegramDateParsingTest {
             YORK, PA 17408
         """.trimIndent()
 
-        val parsed = LoadMessageParser.parseOne(raw)!!.copy(parsedAt = messageMillis)
+        val parsed = LoadMessageParser.parseOne(raw, referenceMillis = messageMillis)!!
+        assertEquals("2025-08-21", parsed.date)
         val repaired = LoadDateRepair.repair(
             parsed,
             anchorYearHint = 2025,

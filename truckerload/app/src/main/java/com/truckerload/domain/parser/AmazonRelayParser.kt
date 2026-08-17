@@ -21,15 +21,33 @@ data class AmazonRelayParseResult(
 /**
  * Parses Amazon Relay load text: Total Rate, Total Loaded Miles, first Pu-time, last Del-time.
  */
-fun parseAmazonRelayLoad(text: String): AmazonRelayParseResult? {
-    val load = LoadMessageParser.parseOne(text.trim()) ?: return null
+fun parseAmazonRelayLoad(
+    text: String,
+    referenceMillis: Long = System.currentTimeMillis(),
+): AmazonRelayParseResult? {
+    val load = LoadMessageParser.parseOne(text.trim(), referenceMillis) ?: return null
+    val yearHint = load.date.take(4).toIntOrNull()
     val firstPuTime = load.stops
         .filter { it.type == StopType.PU && it.scheduledTime.isNotBlank() }
-        .minByOrNull { parseScheduledTimeToMillis(it.scheduledTime) ?: Long.MAX_VALUE }
+        .minByOrNull {
+            parseScheduledTimeToMillis(
+                it.scheduledTime,
+                defaultYear = yearHint,
+                referenceMillis = referenceMillis,
+                trustDefaultYear = yearHint != null,
+            ) ?: Long.MAX_VALUE
+        }
         ?.scheduledTime
     val lastDelTime = load.stops
         .filter { it.type == StopType.DEL && it.scheduledTime.isNotBlank() }
-        .maxByOrNull { parseScheduledTimeToMillis(it.scheduledTime) ?: 0L }
+        .maxByOrNull {
+            parseScheduledTimeToMillis(
+                it.scheduledTime,
+                defaultYear = yearHint,
+                referenceMillis = referenceMillis,
+                trustDefaultYear = yearHint != null,
+            ) ?: 0L
+        }
         ?.scheduledTime
 
     return AmazonRelayParseResult(

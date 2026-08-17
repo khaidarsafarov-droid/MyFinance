@@ -37,15 +37,21 @@ object LoadMessageParser {
         RegexOption.IGNORE_CASE
     )
 
-    fun parseAll(rawMessage: String): List<Load> {
+    fun parseAll(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): List<Load> {
         val normalized = TelegramStyledTextNormalizer.normalize(
             rawMessage.replace("\r\n", "\n").trim(),
         )
         if (!MessageClassifier.isLoadLike(normalized)) return emptyList()
-        return splitBlocks(normalized).mapNotNull { parseBlock(it, rawMessage) }
+        return splitBlocks(normalized).mapNotNull { parseBlock(it, rawMessage, referenceMillis) }
     }
 
-    fun parseOne(rawMessage: String): Load? = parseAll(rawMessage).firstOrNull()
+    fun parseOne(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): Load? = parseAll(rawMessage, referenceMillis).firstOrNull()
 
     private val tripBlockSplitPattern = Regex(
         """(?m)(?=^Trip\s*ID)""",
@@ -63,7 +69,7 @@ object LoadMessageParser {
         return listOf(text)
     }
 
-    private fun parseBlock(block: String, rawMessage: String): Load? {
+    private fun parseBlock(block: String, rawMessage: String, referenceMillis: Long): Load? {
         val tripId = ParseUtils.firstMatch(block, tripIdPatterns)?.uppercase(Locale.US).orEmpty()
         if (tripId.isBlank()) return null
 
@@ -82,15 +88,18 @@ object LoadMessageParser {
 
         val stops = parseAllStops(block, tripId)
         val firstPuTime = stops.firstOrNull { it.type == StopType.PU }?.scheduledTime
-        val date = com.truckerload.utils.parseDateFromScheduledTime(firstPuTime)
-            ?: ParseUtils.normalizeDate(firstPuTime)
+        // FIX: MM/DD year follows the Telegram/paste timestamp, not device "today"
+        val date = com.truckerload.utils.parseDateFromScheduledTime(
+            s = firstPuTime,
+            referenceMillis = referenceMillis,
+        ) ?: ParseUtils.normalizeDate(firstPuTime, referenceMillis = referenceMillis)
 
         val puStops = stops.filter { it.type == StopType.PU }
         val delStops = stops.filter { it.type == StopType.DEL }
         val pointA = puStops.firstOrNull()?.let { formatRoutePoint(it) }.orEmpty()
         val pointB = delStops.lastOrNull()?.let { formatRoutePoint(it) }.orEmpty()
 
-        val now = System.currentTimeMillis()
+        val now = referenceMillis.takeIf { it > 0L } ?: System.currentTimeMillis()
         if (totalRate <= 0.0 || (pointA.isBlank() && pointB.isBlank())) return null
 
         val draft = Load(

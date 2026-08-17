@@ -54,7 +54,10 @@ class TelegramTokenStore(
         val saved = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
         if (saved.isNotBlank()) return
         val fromBuild = BuildConfig.TELEGRAM_BOT_TOKEN.trim()
-        if (fromBuild.isNotBlank()) {
+        if (fromBuild.isBlank()) return
+        // FIX: Keystore fallback must not crash app start / BOOT_COMPLETED
+        if (SecurePreferences.plaintextFallbackUsed) return
+        runCatching {
             SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
             prefs.edit { putString(KEY_TOKEN, fromBuild) }
         }
