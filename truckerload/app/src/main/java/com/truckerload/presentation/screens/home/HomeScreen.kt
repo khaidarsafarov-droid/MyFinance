@@ -204,16 +204,20 @@ fun HomeScreen(
         // Dismiss / timeout: HomeViewModel commits after UNDO_DELETE_WINDOW_MS.
     }
 
+    val tabletChrome = com.truckerload.presentation.utils.useNavigationRail()
+
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
-            HomeScreenTopBar(
-                welcomeName = welcomeName,
-                weekLabel = weekLabel,
-                filter = uiState.filter,
-                openDrawer = openDrawer,
-                onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
-            )
+            if (!tabletChrome) {
+                HomeScreenTopBar(
+                    welcomeName = welcomeName,
+                    weekLabel = weekLabel,
+                    filter = uiState.filter,
+                    openDrawer = openDrawer,
+                    onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
+                )
+            }
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
@@ -226,19 +230,21 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    FeedbackManager.onNavSelect()
-                    showQuickActions = true
-                },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(UiDimens.FabSize),
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = stringResource(R.string.quick_actions_title),
-                )
+            if (!tabletChrome) {
+                FloatingActionButton(
+                    onClick = {
+                        FeedbackManager.onNavSelect()
+                        showQuickActions = true
+                    },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(UiDimens.FabSize),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.quick_actions_title),
+                    )
+                }
             }
         },
         content = { paddingValues ->
@@ -272,6 +278,9 @@ fun HomeScreen(
                         onOpenCalendar = { openCalendarDialog() },
                         onLoadCamera = onLoadCamera,
                         onLoadScan = onLoadScan,
+                        onAddLoad = onAddLoad,
+                        onOpenWeeklyGoal = onStats,
+                        periodTotals = totals,
                     )
                 }
                 if (isInitialLoading) {

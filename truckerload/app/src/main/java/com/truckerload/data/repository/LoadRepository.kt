@@ -576,11 +576,7 @@ class LoadRepository(
         return fixed
     }
 
-    /**
-     * Fixes Relay Total Loaded Miles typos that dropped the decimal
-     * (e.g. 182781 → 1827.81). Safe on session start; only rewrites absurd rows.
-     * Uses SQL prefilter (miles ≥ 10k and RPM < $0.50) instead of a full-table scan.
-     */
+    /** Fixes inflated Relay miles (e.g. 182781 → 1827.81) for suspect rows only. */
     suspend fun repairInflatedLoadedMiles(): Int {
         val entities = loadDao.getLoadsWithSuspectInflatedMiles()
         if (entities.isEmpty()) return 0
@@ -599,6 +595,5 @@ class LoadRepository(
         return fixed
     }
 
-    private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot =
-        WeekYieldSnapshot(totalGross = totalGross, totalActiveDays = totalActiveDays)
+    private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot = WeekYieldSnapshot(totalGross = totalGross, totalActiveDays = totalActiveDays)
 }
