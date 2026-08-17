@@ -73,6 +73,7 @@ fun NavGraph(
     val authEmail by authStore.email.collectAsStateWithLifecycle()
     var needsSetup by remember { mutableStateOf<Boolean?>(null) }
     var needsEmailVerify by remember { mutableStateOf<Boolean?>(null) }
+    var needsTelegramOnboarding by remember { mutableStateOf<Boolean?>(null) }
     val emailVerifyStore = remember(context) {
         com.truckerload.data.preferences.EmailVerificationStore(context.applicationContext)
     }
@@ -80,6 +81,7 @@ fun NavGraph(
         if (!isLoggedIn) {
             needsSetup = null
             needsEmailVerify = null
+            needsTelegramOnboarding = null
             return@LaunchedEffect
         }
         // Fast path for returning users: show journal first, seed social data in background.
@@ -92,6 +94,8 @@ fun NavGraph(
                 provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
                 authEmail.isNotBlank() &&
                 emailVerifyStore.isPending(authEmail)
+            needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(context)
+                .shouldPrompt(context)
             launch { socialSyncCoordinator.ensureInitialized() }
             return@LaunchedEffect
         }
@@ -100,6 +104,7 @@ fun NavGraph(
         needsSetup = setup
         if (setup) {
             needsEmailVerify = false
+            needsTelegramOnboarding = false
             return@LaunchedEffect
         }
         val provider = authStore.authProvider()
@@ -109,6 +114,8 @@ fun NavGraph(
             provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
             authEmail.isNotBlank() &&
             emailVerifyStore.isPending(authEmail)
+        needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(context)
+            .shouldPrompt(context)
     }
     if (needsSetup == true) {
         ProfileSetupScreen(
@@ -124,11 +131,14 @@ fun NavGraph(
                 } else {
                     needsEmailVerify = false
                 }
+                needsTelegramOnboarding = com.truckerload.data.preferences
+                    .TelegramOnboardingStore(context)
+                    .shouldPrompt(context)
             },
         )
         return
     }
-    if (needsSetup == null || needsEmailVerify == null) {
+    if (needsSetup == null || needsEmailVerify == null || needsTelegramOnboarding == null) {
         // Lightweight placeholder instead of a blank frame (reads as a freeze).
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -146,11 +156,20 @@ fun NavGraph(
         )
         return
     }
+    if (needsTelegramOnboarding == true) {
+        com.truckerload.presentation.screens.auth.TelegramOnboardingScreen(
+            onCompleted = { needsTelegramOnboarding = false },
+            onSkip = { needsTelegramOnboarding = false },
+        )
+        return
+    }
 
     // Handle widget deep links only after NavHost is about to be composed (setup gates passed).
-    LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent, needsSetup, needsEmailVerify) {
+    LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent, needsSetup, needsEmailVerify, needsTelegramOnboarding) {
         if (!isLoggedIn || !showMainContent) return@LaunchedEffect
-        if (needsSetup != false || needsEmailVerify != false) return@LaunchedEffect
+        if (needsSetup != false || needsEmailVerify != false || needsTelegramOnboarding != false) {
+            return@LaunchedEffect
+        }
         val route = deepLinkRoute ?: return@LaunchedEffect
         val destination = WidgetDeepLink.resolveNavRoute(route) ?: return@LaunchedEffect
         when (destination) {
