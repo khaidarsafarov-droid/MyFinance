@@ -27,10 +27,18 @@ class EmailVerificationStore(context: Context) {
         return prefs.getBoolean(pendingKey(key), false) && !isVerified(key)
     }
 
-    /** Starts verification and returns the plaintext code (for local/dev toast only). */
+    /**
+     * Starts verification and returns the plaintext code shown in the soft-verify UI.
+     * The app does not send email OTP itself — the code lives on-device until verified
+     * or skipped. (Supabase may separately email a magic link when cloud signup is used.)
+     */
     fun beginVerification(email: String): String {
         val key = AuthCredentialsStore.normalizeEmail(email)
         require(key.isNotBlank())
+        val existing = prefs.getString(codeKey(key), null)?.takeIf { it.length == 6 }
+        if (existing != null && prefs.getBoolean(pendingKey(key), false) && !isVerified(key)) {
+            return existing
+        }
         val code = "%06d".format(Random.nextInt(0, 1_000_000))
         prefs.edit {
             putBoolean(pendingKey(key), true)
@@ -38,6 +46,13 @@ class EmailVerificationStore(context: Context) {
             putString(codeKey(key), code)
         }
         return code
+    }
+
+    /** Returns the on-device soft-verify code when verification is still pending. */
+    fun peekCode(email: String): String? {
+        val key = AuthCredentialsStore.normalizeEmail(email)
+        if (key.isBlank() || !isPending(key)) return null
+        return prefs.getString(codeKey(key), null)?.takeIf { it.length == 6 }
     }
 
     fun verifyCode(email: String, code: String): Boolean {

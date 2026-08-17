@@ -83,6 +83,8 @@
     <string name="stats_open_advisor">Open financial advisor</string>
     <string name="stats_action_unavailable">Action not available yet</string>
     <string name="login_google_error">Google sign-in error: %1$s. Configure OAuth in Google Cloud Console (package: com.truckerload, SHA-1).</string>
+    <string name="login_google_developer_error">wrong SHA-1 / OAuth client (code 10). Add this APK signing SHA-1 in Google Cloud Console for com.truckerload.</string>
+    <string name="login_google_play_services_error">Google Play Services are missing or outdated on this device.</string>
     <string name="login_google_fallback">Supabase temporarily unavailable (%1$s). Signed in locally.</string>
     <string name="login_google_cancelled">Sign-in cancelled</string>
 
@@ -1067,13 +1069,14 @@
     <string name="profile_setup_hub_hint">e.g. Chicago, IL</string>
     <string name="profile_setup_hub_required">Enter your home hub</string>
     <string name="email_verify_title">Verify email</string>
-    <string name="email_verify_subtitle">We sent a 6-digit code to %1$s. Until verified, the account is pending activation — the journal is already available.</string>
-    <string name="email_verify_code_label">Code from email</string>
+    <string name="email_verify_subtitle">Soft verification for %1$s. The code is shown below on this screen (the app does not email the code). The journal is already available — you can verify later.</string>
+    <string name="email_verify_code_label">6-digit code</string>
     <string name="email_verify_confirm">Confirm</string>
     <string name="email_verify_skip">Verify later</string>
     <string name="email_verify_code_invalid">Enter 6 digits</string>
     <string name="email_verify_code_wrong">Incorrect code</string>
     <string name="email_verify_dev_code">Dev code: %1$s</string>
+    <string name="email_verify_on_device_code">Your code: %1$s</string>
     <string name="biometric_unlock_title">Unlock</string>
     <string name="biometric_unlock_subtitle">Confirm with fingerprint or Face ID</string>
     <string name="biometric_unlock_retry">Try again</string>

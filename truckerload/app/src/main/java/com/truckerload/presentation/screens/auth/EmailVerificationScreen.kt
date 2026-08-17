@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.EmailVerificationStore
 import com.truckerload.presentation.components.TlButton as Button
@@ -36,8 +35,10 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 
 /**
- * Soft email verification: 6-digit code. Account stays usable while pending
+ * Soft email verification: 6-digit on-device code. Account stays usable while pending
  * ([onSkip]); until verified status remains "awaiting activation".
+ *
+ * The code is generated and shown in the app — it is not emailed by the client.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +52,7 @@ fun EmailVerificationScreen(
     val store = remember { EmailVerificationStore(context.applicationContext) }
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    var hint by remember { mutableStateOf<String?>(null) }
+    var shownCode by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(email) {
         if (email.isBlank()) {
@@ -62,16 +63,12 @@ fun EmailVerificationScreen(
             onVerified()
             return@LaunchedEffect
         }
-        if (!store.isPending(email)) {
-            val generated = store.beginVerification(email)
-            // Show code when no outbound mail (local-only, debug, or Supabase unset).
-            val supabaseConfigured = BuildConfig.SUPABASE_URL.isNotBlank() &&
-                BuildConfig.SUPABASE_ANON_KEY.isNotBlank() &&
-                !BuildConfig.LOCAL_ONLY_MODE
-            if (BuildConfig.LOCAL_ONLY_MODE || BuildConfig.DEBUG || !supabaseConfigured) {
-                hint = context.getString(R.string.email_verify_dev_code, generated)
-            }
+        val generated = if (store.isPending(email)) {
+            store.peekCode(email) ?: store.beginVerification(email)
+        } else {
+            store.beginVerification(email)
         }
+        shownCode = generated
     }
 
     Scaffold(
@@ -98,8 +95,12 @@ fun EmailVerificationScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 color = tc.TextSecondary,
             )
-            hint?.let {
-                Text(text = it, style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
+            shownCode?.let {
+                Text(
+                    text = stringResource(R.string.email_verify_on_device_code, it),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = tc.TextPrimary,
+                )
             }
             OutlinedTextField(
                 value = code,
