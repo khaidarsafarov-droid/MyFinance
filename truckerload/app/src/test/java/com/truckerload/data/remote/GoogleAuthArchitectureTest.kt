@@ -28,7 +28,7 @@ class GoogleAuthArchitectureTest {
     @Test
     fun credentialManager_requiresActivity() {
         val source = readMainSource("com/truckerload/data/remote/CredentialManagerGoogleSignIn.kt")
-        assertTrue(source.contains("findActivity()"))
+        assertTrue(source.contains("resolveActivity(context)"))
         assertTrue(source.contains("getCredentialAsync(activity"))
     }
 

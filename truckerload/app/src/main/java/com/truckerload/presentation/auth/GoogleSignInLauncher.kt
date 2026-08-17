@@ -2,6 +2,7 @@ package com.truckerload.presentation.auth
 
 import android.app.Activity
 import android.util.Base64
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthLogin
@@ -29,7 +29,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import android.util.Log
 
 data class GoogleAuthCallbacks(
     val onBusy: (Boolean) -> Unit,
@@ -200,10 +199,9 @@ fun rememberGoogleSignInLauncher(
                     .onFailure { toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy) }
                 return@addOnFailureListener
             }
-            val message = (error as? ApiException)?.message ?: error.message ?: error.toString()
             Toast.makeText(
                 context,
-                context.getString(R.string.login_google_error, message),
+                GoogleSignInSupport.formatError(context, error),
                 Toast.LENGTH_LONG,
             ).show()
             callbacksState.value.onBusy(false)
@@ -211,12 +209,18 @@ fun rememberGoogleSignInLauncher(
     }
     legacyLauncherRef[0] = legacyLauncher
 
-    return GoogleSignInLauncher {
-        callbacksState.value.onBusy(true)
+    fun launchLegacy() {
         val requestIdToken = !omitIdToken && BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()
-        if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
+        GoogleSignInSupport.signOutThen(context) {
             launchLegacyGoogleSignIn(context, legacyLauncher, requestIdToken)
                 .onFailure { toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy) }
+        }
+    }
+
+    return GoogleSignInLauncher {
+        callbacksState.value.onBusy(true)
+        if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
+            launchLegacy()
             return@GoogleSignInLauncher
         }
         scope.launch {
@@ -305,16 +309,7 @@ fun rememberGoogleSignInLauncher(
                             ).show()
                             callbacksState.value.onBusy(false)
                         }
-                        else -> {
-                            launchLegacyGoogleSignIn(
-                                context,
-                                legacyLauncher,
-                                requestIdToken = !omitIdToken &&
-                                    BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank(),
-                            ).onFailure {
-                                toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy)
-                            }
-                        }
+                        else -> launchLegacy()
                     }
                 }
             }
@@ -346,7 +341,6 @@ internal fun decodeGoogleIdToken(idToken: String): JSONObject? {
         JSONObject(payload)
     } catch (e: Exception) {
         Log.w("TL", "swallowed", e)
-        null
         null
     }
 }

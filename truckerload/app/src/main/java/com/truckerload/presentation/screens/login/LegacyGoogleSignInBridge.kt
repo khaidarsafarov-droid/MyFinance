@@ -10,12 +10,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.data.repository.auth.GoogleAuthCredential
 import com.truckerload.presentation.auth.GOOGLE_SIGN_IN_NO_ACTIVITY
+import com.truckerload.presentation.auth.GoogleSignInSupport
 import com.truckerload.presentation.auth.launchLegacyGoogleSignIn
 import com.truckerload.presentation.screens.auth.AuthViewModel
 
@@ -69,14 +69,15 @@ fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
                 launchLegacyOrReport(context, retryLauncher, requestIdToken = false, viewModel)
                 return@addOnFailureListener
             }
-            val msg = (error as? ApiException)?.message ?: error.message ?: error.toString()
-            viewModel.onLegacyGoogleError(context.getString(R.string.login_google_error, msg))
+            viewModel.onLegacyGoogleError(GoogleSignInSupport.formatError(context, error))
         }
     }
     launcherRef[0] = launcher
     return {
         val requestIdToken = !omitIdToken && BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()
-        launchLegacyOrReport(context, launcher, requestIdToken, viewModel)
+        GoogleSignInSupport.signOutThen(context) {
+            launchLegacyOrReport(context, launcher, requestIdToken, viewModel)
+        }
     }
 }
 
@@ -90,7 +91,7 @@ private fun launchLegacyOrReport(
         val detail = if (err.message == GOOGLE_SIGN_IN_NO_ACTIVITY) {
             context.getString(R.string.login_google_need_activity)
         } else {
-            context.getString(R.string.login_google_error, err.message ?: err.toString())
+            GoogleSignInSupport.formatError(context, err)
         }
         viewModel.onLegacyGoogleError(detail)
     }

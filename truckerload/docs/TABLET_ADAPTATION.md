@@ -20,10 +20,15 @@ Form helpers: `Modifier.appFormField()` / `Modifier.appFormFieldSpacing()`.
 ## What was adapted
 
 1. **Breakpoints** aligned with Material (600 / 840) instead of treating every ≥600dp width as “Expanded”.
-2. **Navigation** — Compact: bottom bar; Medium+: `TruckLogNavigationRail` + modal tools drawer (edge swipe when main chrome is shown).
-3. **Journal** — Expanded: `JournalListDetailHost` (list left, load detail right).
-4. **Analytics metrics** — `BentoGrid` uses 2 columns on phone/portrait tablet, 3 on landscape.
-5. **Content width** — centered, capped at 840dp (Medium) / 1366dp (Expanded).
+2. **Navigation** — Compact: bottom bar; Medium landscape / Expanded: wide soft forest sidebar
+   (`TruckLogNavigationRail`) + modal tools drawer. Sidebar includes profile greeting and a
+   **Backup** card that opens Settings (Telegram sync is automatic — not promoted on Home).
+3. **Journal (tablet)** — soft dashboard: hero week summary, 4 stat cards, recent loads + weekly
+   goal panel. Phone layout unchanged.
+4. **Journal (expanded detail)** — `JournalListDetailHost` (list left, load detail right) when
+   browsing into a load from other flows; Home dashboard is the landing composition.
+5. **Analytics metrics** — `BentoGrid` uses 2 columns on phone/portrait tablet, 3 on landscape.
+6. **Content width** — padded beside the sidebar; Medium/Expanded horizontal padding as before.
 
 ## DevTools / emulator checklist
 

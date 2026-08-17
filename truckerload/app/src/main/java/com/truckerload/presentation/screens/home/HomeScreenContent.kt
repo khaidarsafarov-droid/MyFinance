@@ -83,6 +83,9 @@ internal fun HomeScreenContent(
     onOpenCalendar: () -> Unit,
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit,
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit,
+    onAddLoad: () -> Unit = {},
+    onOpenWeeklyGoal: () -> Unit = {},
+    periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
 ) {
     val tc = LocalTruckColors.current
     var showYearSelector by remember { mutableStateOf(false) }
@@ -90,6 +93,7 @@ internal fun HomeScreenContent(
     val scope = rememberCoroutineScope()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
+    val tabletChrome = com.truckerload.presentation.utils.useNavigationRail()
     LaunchedEffect(deleteError) {
         val msg = deleteError ?: return@LaunchedEffect
         android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
@@ -109,10 +113,9 @@ internal fun HomeScreenContent(
         }
     }
 
-    val pullRefreshState = rememberPullToRefreshState()
-    val loadColumns = adaptiveLoadColumns()
-    val gridRows = remember(listItems, loadColumns) {
-        buildHomeGridRows(listItems, loadColumns)
+    fun openArchive() {
+        viewModel.setFilter(LoadFilter.ALL)
+        showYearSelector = true
     }
 
     if (showYearSelector) {
@@ -143,6 +146,34 @@ internal fun HomeScreenContent(
             },
             confirmButton = { TextButton(onClick = { showYearSelector = false }) { Text(stringResource(R.string.common_close), color = tc.AccentPrimary) } }
         )
+    }
+
+    if (tabletChrome) {
+        val totals = periodTotals ?: periodSummary?.totals
+            ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, 0.0, 0.0)
+        BentoGlassScreenBackground {
+            TabletHomeDashboard(
+                paddingValues = paddingValues,
+                uiState = uiState,
+                searchQuery = searchQuery,
+                periodSummary = periodSummary,
+                totals = totals,
+                recentLoads = filteredLoads,
+                viewModel = viewModel,
+                onLoadClick = onLoadClick,
+                onAddLoad = onAddLoad,
+                onOpenWeeklyGoal = onOpenWeeklyGoal,
+                onOpenCalendar = onOpenCalendar,
+                onOpenArchive = { openArchive() },
+            )
+        }
+        return
+    }
+
+    val pullRefreshState = rememberPullToRefreshState()
+    val loadColumns = adaptiveLoadColumns()
+    val gridRows = remember(listItems, loadColumns) {
+        buildHomeGridRows(listItems, loadColumns)
     }
 
     BentoGlassScreenBackground {
