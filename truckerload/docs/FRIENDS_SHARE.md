@@ -26,13 +26,11 @@
 
 ### Важно про Google
 
-1. В Google Cloud Console держите **Android** OAuth client с SHA-1 **friends/release**:
+1. В Google Cloud Console держите **Android** OAuth client с SHA-1 вашего
+   `signing/truckerload-friends.keystore` (смотрите `sh ./scripts/print-signing-sha1.sh`):
    - package: `com.truckerload`
-   - SHA-1: `66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C`
-   Debug с телефона совпадёт, если `debug-keystore.properties` указывает на тот же
-   `signing/truckerload-friends.keystore` (alias `truckerload`). Иначе у debug
-   будет другой SHA-1 (например `F3:85:03:…`) и Google на Run из Studio не пустит.
-   Подробно: `docs/GOOGLE_SIGNIN_SETUP.md`.
+   Debug совпадает с friends APK: без `debug-keystore.properties` Gradle берёт
+   тот же `keystore.properties`. Подробно: `docs/GOOGLE_SIGNIN_SETUP.md`.
 2. Если OAuth consent в режиме **Testing** — добавьте email друзей в **Test users**,
    иначе Google покажет `access_denied` / 403.
 3. В сборке должен быть `GOOGLE_WEB_CLIENT_ID` (Web client) — скрипт подставляет
