@@ -17,22 +17,19 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Map
+import com.truckerload.presentation.components.SoftActionChip
+import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,11 +55,11 @@ import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.utils.useNavigationRail
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -96,45 +93,19 @@ fun AnalyticsScreen(
         }
     }
 
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
-        topBar = {
+    val tabletChrome = useNavigationRail()
+    SoftAppPageScaffold(
+        title = stringResource(R.string.analytics_title),
+        subtitle = stringResource(R.string.analytics_subtitle),
+        showBack = !embedded && !tabletChrome,
+        onBack = onBack,
+        showPhoneMenu = false,
+        actions = {
             if (!embedded) {
-                TopAppBar(
-                    title = {
-                        Column {
-                            ForestScreenTitle(stringResource(R.string.analytics_title))
-                            Text(
-                                stringResource(R.string.analytics_subtitle),
-                                style = AppTypography.Subtitle,
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = onBack,
-                            modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.common_back),
-                                tint = tc.TextPrimary,
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = viewModel::exportAnalytics) {
-                            Icon(
-                                Icons.Default.FileDownload,
-                                contentDescription = stringResource(R.string.analytics_export_cd),
-                                tint = tc.AccentPrimary,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = BentoGlassTheme.ScreenBackground,
-                        titleContentColor = tc.TextPrimary,
-                    ),
+                SoftActionChip(
+                    icon = Icons.Default.FileDownload,
+                    contentDescription = stringResource(R.string.analytics_export_cd),
+                    onClick = viewModel::exportAnalytics,
                 )
             }
         },

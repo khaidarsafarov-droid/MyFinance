@@ -16,18 +16,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,12 +41,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.local.entities.ScanEntity
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.theme.BentoGlassClickableCard
-import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.PDFGenerator
 import com.truckerload.utils.ShareHelper
@@ -106,25 +101,11 @@ fun ScanGalleryScreen(
         }
     }
 
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.scans_gallery), color = tc.TextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                ),
-            )
-        },
+    SoftAppPageScaffold(
+        title = stringResource(R.string.scans_gallery),
+        showBack = true,
+        onBack = onBack,
+        showPhoneMenu = false,
     ) { padding ->
         if (rows.isEmpty()) {
             Column(

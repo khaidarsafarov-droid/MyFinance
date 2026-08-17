@@ -144,6 +144,9 @@ fun TruckLogNavigationRail(
             toolDestinations.forEach { dest ->
                 val selected = when {
                     dest.route != null -> isRailDestinationSelected(currentRoute, dest.route)
+                    dest.drawer == DrawerDestination.SETTINGS ->
+                        currentRoute == Routes.SETTINGS ||
+                            currentRoute == Routes.FINANCIAL_ADVISOR
                     dest.drawer == DrawerDestination.REPORTS ->
                         currentRoute == Routes.ANALYTICS ||
                             currentRoute == Routes.ADVANCED_STATS ||

@@ -13,15 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,14 +29,12 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.components.SoftAppPageScaffold
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceScreen(onBack: () -> Unit) {
-    val tc = LocalTruckColors.current
     val context = LocalContext.current
     val viewModel: MaintenanceViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,26 +103,11 @@ fun MaintenanceScreen(onBack: () -> Unit) {
         galleryLauncher.launch("image/*")
     }
 
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.maintenance_title), color = tc.TextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
-            )
-        },
+    SoftAppPageScaffold(
+        title = stringResource(R.string.maintenance_title),
+        showBack = true,
+        onBack = onBack,
+        showPhoneMenu = false,
     ) { padding ->
         Column(
             modifier = Modifier
