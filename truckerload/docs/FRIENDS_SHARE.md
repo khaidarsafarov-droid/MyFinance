@@ -26,9 +26,11 @@
 
 ### Важно про Google
 
-1. В Google Cloud Console добавьте **Android** OAuth client:
+1. В Google Cloud Console добавьте **Android** OAuth client (отдельный клиент на каждый SHA-1):
    - package: `com.truckerload`
+   - SHA-1 этого билда / текущего keystore: `F3:85:03:A5:AB:66:25:1F:36:2E:81:65:20:A9:86:2F:0D:22:BB:05`
    - SHA-1 friends/release keystore: `66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C`
+   Подробно: `docs/GOOGLE_SIGNIN_SETUP.md`.
 2. Если OAuth consent в режиме **Testing** — добавьте email друзей в **Test users**,
    иначе Google покажет `access_denied` / 403.
 3. В сборке должен быть `GOOGLE_WEB_CLIENT_ID` (Web client) — скрипт подставляет

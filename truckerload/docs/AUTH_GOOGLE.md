@@ -34,3 +34,5 @@ SUPABASE_ANON_KEY=...
 ```
 
 `LOCAL_ONLY_MODE=true` does **not** skip login; it only disables cloud workers / Supabase client.
+
+Android OAuth clients (package `com.truckerload`) must list every signing SHA-1 of APKs that call Google. Exact fingerprints and Cloud Console steps: `docs/GOOGLE_SIGNIN_SETUP.md`.
