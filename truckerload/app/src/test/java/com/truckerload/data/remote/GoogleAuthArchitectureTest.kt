@@ -51,6 +51,21 @@ class GoogleAuthArchitectureTest {
         assertTrue(source.contains("shouldRetryWithoutIdToken"))
     }
 
+    @Test
+    fun login_skipsCredentialManagerHang() {
+        val repo = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
+        val start = repo.indexOf("fun requestGoogleIdToken")
+        val end = repo.indexOf("override suspend fun signInWithGoogle")
+        assertTrue(start >= 0 && end > start)
+        val method = repo.substring(start, end)
+        assertFalse(method.contains("getGoogleIdToken"))
+        assertTrue(method.contains("FallBackToLegacy"))
+
+        val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
+        assertTrue(launcher.contains("launchLegacy()"))
+        assertFalse(launcher.contains("CredentialManagerGoogleSignIn.getGoogleIdToken"))
+    }
+
     private fun readMainSource(relativePath: String): String {
         val candidates = listOf(
             File("src/main/java/$relativePath"),

@@ -83,7 +83,7 @@
     <string name="stats_open_advisor">Открыть финансового советника</string>
     <string name="stats_action_unavailable">Действие пока недоступно</string>
     <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckerload, SHA-1).</string>
-    <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте SHA-1 подписи APK в Google Cloud Console для com.truckerload.</string>
+    <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте этот SHA-1 в Google Cloud Console для com.truckerload: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
     <string name="login_google_fallback">Supabase временно недоступен (%1$s). Вход выполнен локально.</string>
     <string name="login_google_cancelled">Вход отменён</string>

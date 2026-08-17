@@ -40,6 +40,12 @@ GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleus
 После смены ключа: удалите приложение с телефона и поставьте APK, подписанный
 этим keystore.
 
+Вход в приложении открывает **выбор аккаунта Google** (не нижний лист
+Credential Manager). Credential Manager на многих телефонах отвечает
+`GetCredentialResponse error returned from framework` и зависает. Если Google
+вернёт код 10, тост покажет SHA-1 **установленного** APK — его и нужно внести
+в Android OAuth client.
+
 Play Store — отдельно: SHA-1 **App signing key certificate** из Play Console
 добавляют вторым Android-клиентом.
 
