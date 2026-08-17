@@ -38,4 +38,5 @@ SUPABASE_ANON_KEY=...
 `GOOGLE_WEB_CLIENT_ID` falls back to the project Web client in `app/build.gradle.kts`
 when omitted from `local.properties`. Android OAuth client (package `com.truckerload` +
 APK signing SHA-1) must still be registered in Google Cloud Console — ApiException **10**
-means the SHA-1 does not match.
+means the SHA-1 does not match. Exact fingerprints and Cloud Console steps:
+`docs/GOOGLE_SIGNIN_SETUP.md`.

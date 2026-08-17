@@ -87,6 +87,7 @@
     <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
     <string name="login_google_fallback">Supabase временно недоступен (%1$s). Вход выполнен локально.</string>
     <string name="login_google_cancelled">Вход отменён</string>
+    <string name="login_google_need_activity">Не удалось открыть окно Google. Закройте диалог и попробуйте ещё раз.</string>
 
     <string name="signup_title">Регистрация</string>
     <string name="signup_subtitle">Создайте аккаунт для учёта грузов и финансов</string>
@@ -759,6 +760,7 @@
     <string name="drive_sync_backup_ok">Сохранено в Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive подключён</string>
     <string name="drive_sync_connect_failed">Не удалось подключить Google Drive</string>
+    <string name="drive_sync_need_activity">Не удалось открыть Google Drive. Откройте Настройки ещё раз.</string>
     <string name="drive_sync_api_error">Ошибка Drive: %1$s</string>
     <string name="drive_sync_busy">Синхронизация…</string>
     <string name="drive_sync_restore_confirm_title">Восстановить из Drive?</string>

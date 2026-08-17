@@ -2,7 +2,9 @@ package com.truckerload.sync
 
 import android.content.Context
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.remote.GoogleSignInClients
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Stops account-bound foreground services and clears remote presence
@@ -32,5 +34,11 @@ object SessionTeardown {
         beforeLogout(context)
         endSession()
         authStore.logout()
+        // Play Services keeps the last Google account after app logout; clear it so
+        // the next "Sign in with Google" can pick a different account, and Drive
+        // does not keep a stale signed-in session.
+        withTimeoutOrNull(5_000) {
+            GoogleSignInClients.signOutDevice(context)
+        }
     }
 }

@@ -40,6 +40,7 @@ import com.truckerload.presentation.connectivity.ConnectivityStatus
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.TruckColorPalette
+import com.truckerload.utils.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,17 +51,17 @@ import java.util.Locale
 @Composable
 internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val context = LocalContext.current
-    val activity = context as? Activity
+    val activity = context.findActivity()
     val scope = rememberCoroutineScope()
     val prefs = remember { GoogleDriveBackupService.prefs(context) }
     val connectivity by ConnectivityObserver.observe(context)
         .collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
     var linkedEmail by remember {
         mutableStateOf(
-            prefs.accountEmail ?: run {
+            GoogleDriveBackupService.linkedAccountEmail(context) ?: run {
                 GoogleDriveBackupService.syncLinkedAccountFromGoogle(context)
-                prefs.accountEmail
-            }
+                GoogleDriveBackupService.linkedAccountEmail(context)
+            },
         )
     }
     var autoSync by remember { mutableStateOf(prefs.autoSyncEnabled) }
@@ -73,6 +74,9 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val driveSignInLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            return@rememberLauncherForActivityResult
+        }
         val ok = GoogleDriveBackupService.onSignInResult(context, result.data)
         if (ok) {
             linkedEmail = prefs.accountEmail
@@ -143,7 +147,24 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         if (linkedEmail.isNullOrBlank()) {
             Button(
                 onClick = {
-                    driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(context))
+                    val host = activity ?: context.findActivity()
+                    if (host == null) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.drive_sync_need_activity),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                        return@Button
+                    }
+                    runCatching {
+                        driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(host))
+                    }.onFailure {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.drive_sync_connect_failed),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
                 },
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().height(52.dp),

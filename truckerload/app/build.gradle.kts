@@ -123,38 +123,35 @@ android {
     if (debugKeystorePropertiesFile.exists()) {
         debugKeystorePropertiesFile.inputStream().use { debugKeystoreProperties.load(it) }
     }
+    fun com.android.build.api.dsl.ApkSigningConfig.applyKeystore(props: Properties) {
+        val storePath = props.getProperty("storeFile")
+            ?: error("signing properties missing storeFile")
+        storeFile = rootProject.file(storePath)
+        storePassword = props.getProperty("storePassword")
+            ?: error("signing properties missing storePassword")
+        keyAlias = props.getProperty("keyAlias")
+            ?: error("signing properties missing keyAlias")
+        keyPassword = props.getProperty("keyPassword")
+            ?: error("signing properties missing keyPassword")
+    }
     signingConfigs {
         getByName("debug") {
-            if (debugKeystorePropertiesFile.exists()) {
-                val storePath = debugKeystoreProperties.getProperty("storeFile")
-                    ?: error("debug-keystore.properties missing storeFile")
-                storeFile = rootProject.file(storePath)
-                storePassword = debugKeystoreProperties.getProperty("storePassword")
-                    ?: error("debug-keystore.properties missing storePassword")
-                keyAlias = debugKeystoreProperties.getProperty("keyAlias")
-                    ?: error("debug-keystore.properties missing keyAlias")
-                keyPassword = debugKeystoreProperties.getProperty("keyPassword")
-                    ?: error("debug-keystore.properties missing keyPassword")
+            when {
+                debugKeystorePropertiesFile.exists() -> applyKeystore(debugKeystoreProperties)
+                // Same SHA-1 as friends/release so Google Sign-In matches Track Load.
+                keystorePropertiesFile.exists() -> applyKeystore(keystoreProperties)
             }
         }
         create("release") {
             if (keystorePropertiesFile.exists()) {
-                val storePath = keystoreProperties.getProperty("storeFile")
-                    ?: error("keystore.properties missing storeFile")
-                storeFile = rootProject.file(storePath)
-                storePassword = keystoreProperties.getProperty("storePassword")
-                    ?: error("keystore.properties missing storePassword")
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                    ?: error("keystore.properties missing keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                    ?: error("keystore.properties missing keyPassword")
+                applyKeystore(keystoreProperties)
             }
         }
     }
     buildTypes {
         debug {
             // Dev-only secrets may come from local.properties via defaultConfig.
-            // Uses permanent debug keystore when debug-keystore.properties is present.
+            // Uses friends/release keystore when debug-keystore.properties is absent.
         }
         release {
             isMinifyEnabled = true

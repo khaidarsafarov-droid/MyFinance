@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.truckerload.R
+import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -20,12 +20,15 @@ import kotlinx.coroutines.withContext
 object GoogleDriveBackupService {
     private const val TAG = "GoogleDriveBackup"
 
-    fun signInIntent(context: Context): Intent {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestScopes(Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE))
-            .build()
-        return GoogleSignIn.getClient(context.applicationContext, gso).signInIntent
+    /** Must be an [Activity] — Play Services will not show the account picker from applicationContext. */
+    fun signInIntent(activity: Activity): Intent =
+        GoogleSignInClients.driveSignInIntent(activity)
+
+    /** Email only when Drive app-data scope is still granted for the signed-in Google account. */
+    fun linkedAccountEmail(context: Context): String? {
+        if (!isDriveScopeGranted(context)) return null
+        return prefs(context).accountEmail
+            ?: GoogleSignIn.getLastSignedInAccount(context)?.email
     }
 
     fun prefs(context: Context) = GoogleDriveBackupPrefs(context)
@@ -51,11 +54,7 @@ object GoogleDriveBackupService {
         val prefs = prefs(app)
         prefs.clear()
         runCatching {
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestScopes(Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE))
-                .build()
-            GoogleSignIn.getClient(app, gso).signOut().await()
+            GoogleSignIn.getClient(app, GoogleSignInClients.driveOptions()).signOut().await()
         }.onFailure { Log.w(TAG, "signOut failed", it) }
     }
 
