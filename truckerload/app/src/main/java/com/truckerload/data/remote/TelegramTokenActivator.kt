@@ -1,6 +1,7 @@
 package com.truckerload.data.remote
 
 import android.content.Context
+import com.truckerload.data.preferences.SecurePreferences
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.sync.TelegramBotForegroundService
 
@@ -22,6 +23,10 @@ object TelegramTokenActivator {
         // FIX: reject obviously malformed tokens before calling Telegram (avoids leaking junk in logs)
         if (!isPlausibleToken(token)) {
             return Result.failure(IllegalStateException("token_invalid"))
+        }
+        // FIX: fail before getMe when the device cannot store a bot secret
+        if (SecurePreferences.plaintextFallbackUsed) {
+            return Result.failure(IllegalStateException("token_secure_storage"))
         }
         val health = TelegramBotHealth.check(token)
         if (health.isUnauthorized) {

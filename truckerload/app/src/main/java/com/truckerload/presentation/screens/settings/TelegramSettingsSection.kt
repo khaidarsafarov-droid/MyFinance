@@ -166,6 +166,9 @@ fun TelegramSettingsSection() {
                                         "token_invalid" -> context.getString(
                                             R.string.settings_telegram_invalid,
                                         )
+                                        "token_secure_storage" -> context.getString(
+                                            R.string.auth_secure_storage_fallback_banner,
+                                        )
                                         else -> err.message
                                             ?: context.getString(R.string.settings_telegram_invalid)
                                     }
