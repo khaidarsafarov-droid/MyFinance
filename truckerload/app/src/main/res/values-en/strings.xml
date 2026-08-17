@@ -73,6 +73,7 @@
     <string name="login_google_error">Google sign-in error: %1$s. Configure OAuth in Google Cloud Console (package: com.truckerload, SHA-1).</string>
     <string name="login_google_fallback">Supabase temporarily unavailable (%1$s). Signed in locally.</string>
     <string name="login_google_cancelled">Sign-in cancelled</string>
+    <string name="login_google_need_activity">Could not open Google sign-in. Close any dialog and try again.</string>
 
     <string name="signup_title">Sign Up</string>
     <string name="signup_subtitle">Create an account to track loads and finances</string>
@@ -745,6 +746,7 @@
     <string name="drive_sync_backup_ok">Saved to Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive connected</string>
     <string name="drive_sync_connect_failed">Could not connect Google Drive</string>
+    <string name="drive_sync_need_activity">Could not open Google Drive. Open Settings again and retry.</string>
     <string name="drive_sync_api_error">Drive error: %1$s</string>
     <string name="drive_sync_busy">Syncing…</string>
     <string name="drive_sync_restore_confirm_title">Restore from Drive?</string>

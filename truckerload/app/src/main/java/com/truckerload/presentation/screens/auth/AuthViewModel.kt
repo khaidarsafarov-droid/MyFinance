@@ -60,20 +60,32 @@ class AuthViewModel @Inject constructor(
         if (_uiState.value.isLoading) return
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            when (val tokenResult = authRepository.requestGoogleIdToken(activityContext)) {
-                is GoogleTokenRequestResult.Token -> {
-                    completeGoogle(GoogleAuthCredential(idToken = tokenResult.idToken))
+            try {
+                when (val tokenResult = authRepository.requestGoogleIdToken(activityContext)) {
+                    is GoogleTokenRequestResult.Token -> {
+                        completeGoogle(GoogleAuthCredential(idToken = tokenResult.idToken))
+                    }
+                    GoogleTokenRequestResult.Cancelled -> {
+                        _events.emit(
+                            AuthUiEvent.ShowToast(activityContext.getString(R.string.login_google_cancelled)),
+                        )
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                    GoogleTokenRequestResult.FallBackToLegacy -> {
+                        _events.emit(AuthUiEvent.LaunchLegacyGoogleSignIn)
+                        // Keep isLoading=true until legacy result arrives
+                    }
                 }
-                GoogleTokenRequestResult.Cancelled -> {
-                    _events.emit(
-                        AuthUiEvent.ShowToast(activityContext.getString(R.string.login_google_cancelled)),
-                    )
-                    _uiState.update { it.copy(isLoading = false) }
-                }
-                GoogleTokenRequestResult.FallBackToLegacy -> {
-                    _events.emit(AuthUiEvent.LaunchLegacyGoogleSignIn)
-                    // Keep isLoading=true until legacy result arrives
-                }
+            } catch (e: Exception) {
+                _events.emit(
+                    AuthUiEvent.ShowToast(
+                        activityContext.getString(
+                            R.string.login_google_error,
+                            e.message ?: e.toString(),
+                        ),
+                    ),
+                )
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

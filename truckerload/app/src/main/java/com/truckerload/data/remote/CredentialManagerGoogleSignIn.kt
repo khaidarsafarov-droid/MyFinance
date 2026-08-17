@@ -6,11 +6,11 @@ import androidx.credentials.CredentialManagerCallback
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.truckerload.BuildConfig
+import com.truckerload.utils.findActivity
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import java.util.concurrent.Executors
@@ -61,8 +61,13 @@ object CredentialManagerGoogleSignIn {
             )
             return@suspendCoroutine
         }
+        val activity = context.findActivity()
+        if (activity == null) {
+            cont.resume(Result.failure(IllegalStateException("Google sign-in requires an Activity")))
+            return@suspendCoroutine
+        }
         val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
-        val credentialManager = CredentialManager.create(context)
+        val credentialManager = CredentialManager.create(activity)
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(silent)
             .setServerClientId(webClientId)
@@ -102,6 +107,6 @@ object CredentialManagerGoogleSignIn {
             }
         }
 
-        credentialManager.getCredentialAsync(context, request, null, executor, callback)
+        credentialManager.getCredentialAsync(activity, request, null, executor, callback)
     }
 }

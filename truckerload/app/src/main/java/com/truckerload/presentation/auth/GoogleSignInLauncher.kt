@@ -6,19 +6,22 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.CredentialManagerGoogleSignIn
+import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -49,6 +52,7 @@ fun rememberGoogleSignInLauncher(
     val scope = rememberCoroutineScope()
     val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val callbacksState = rememberUpdatedState(callbacks)
+    var omitIdToken by remember { mutableStateOf(false) }
 
     fun saveAndFinish(
         email: String,
@@ -183,8 +187,14 @@ fun rememberGoogleSignInLauncher(
                 callbacksState.value.onBusy(false)
             }
         }
-        task.addOnFailureListener {
-            val message = (it as? ApiException)?.message ?: it.message ?: it.toString()
+        task.addOnFailureListener { error ->
+            if (GoogleSignInClients.shouldRetryWithoutIdToken(error, alreadyOmittingIdToken = omitIdToken)) {
+                omitIdToken = true
+                launchLegacyGoogleSignIn(context, legacyLauncher, requestIdToken = false)
+                    .onFailure { toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy) }
+                return@addOnFailureListener
+            }
+            val message = (error as? ApiException)?.message ?: error.message ?: error.toString()
             Toast.makeText(
                 context,
                 context.getString(R.string.login_google_error, message),
@@ -196,24 +206,21 @@ fun rememberGoogleSignInLauncher(
 
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)
+        val requestIdToken = !omitIdToken && BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()
         if (!CredentialManagerGoogleSignIn.isAvailable(context)) {
-            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                    .build()
-            } else {
-                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
-                    .build()
-            }
-            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+            launchLegacyGoogleSignIn(context, legacyLauncher, requestIdToken)
+                .onFailure { toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy) }
             return@GoogleSignInLauncher
         }
         scope.launch {
-            val tokenResult = CredentialManagerGoogleSignIn.getGoogleIdToken(context)
+            val tokenResult = runCatching {
+                CredentialManagerGoogleSignIn.getGoogleIdToken(context)
+            }.getOrElse { err ->
+                withContext(Dispatchers.Main) {
+                    toastLegacyLaunchFailure(context, err, callbacksState.value.onBusy)
+                }
+                return@launch
+            }
             val idToken = tokenResult.getOrNull()
             if (idToken != null) {
                 withContext(Dispatchers.Main) {
@@ -292,25 +299,34 @@ fun rememberGoogleSignInLauncher(
                             callbacksState.value.onBusy(false)
                         }
                         else -> {
-                            val gso = if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                                    .build()
-                            } else {
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestEmail()
-                                    .requestProfile()
-                                    .build()
+                            launchLegacyGoogleSignIn(
+                                context,
+                                legacyLauncher,
+                                requestIdToken = !omitIdToken &&
+                                    BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank(),
+                            ).onFailure {
+                                toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy)
                             }
-                            legacyLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
                         }
                     }
                 }
             }
         }
     }
+}
+
+internal fun toastLegacyLaunchFailure(
+    context: android.content.Context,
+    err: Throwable,
+    onBusy: (Boolean) -> Unit,
+) {
+    val detail = if (err.message == GOOGLE_SIGN_IN_NO_ACTIVITY) {
+        context.getString(R.string.login_google_need_activity)
+    } else {
+        context.getString(R.string.login_google_error, err.message ?: err.toString())
+    }
+    Toast.makeText(context, detail, Toast.LENGTH_LONG).show()
+    onBusy(false)
 }
 
 internal fun decodeGoogleIdToken(idToken: String): JSONObject? {
