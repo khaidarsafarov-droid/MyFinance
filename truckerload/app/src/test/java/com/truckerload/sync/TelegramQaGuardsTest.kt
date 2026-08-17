@@ -48,11 +48,10 @@ class TelegramLogoutStopsFgsGuardTest {
 class TelegramBotFgsContractGuardTest {
 
     @Test
-    fun stopGracefully_and_startForegroundCompat_exist() {
-        // Regression guard: onStartCommand must promote to foreground before
-        // credential early-exits (via startForegroundCompat + stopGracefully).
+    fun stopQuietly_and_startForegroundCompat_exist() {
+        // FIX: method was renamed stopGracefully → stopQuietly; keep the FGS contract
         val methods = TelegramBotForegroundService::class.java.declaredMethods.map { it.name }.toSet()
-        assertTrue("stopGracefully must gate intentional FGS exits", "stopGracefully" in methods)
+        assertTrue("stopQuietly must gate intentional FGS exits", "stopQuietly" in methods)
         assertTrue("startForegroundCompat must exist", "startForegroundCompat" in methods)
     }
 }
