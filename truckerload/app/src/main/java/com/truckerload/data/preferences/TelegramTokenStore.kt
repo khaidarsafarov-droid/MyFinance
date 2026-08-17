@@ -35,6 +35,13 @@ class TelegramTokenStore(
 
     fun hasToken(): Boolean = getToken().isNotBlank()
 
+    /**
+     * True only when this account saved a token in encrypted prefs.
+     * Unlike [hasToken], ignores the BuildConfig bootstrap fallback.
+     */
+    // FIX: onboarding must not treat a BuildConfig bootstrap token as "user configured a bot"
+    fun hasPersistedToken(): Boolean = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty().isNotBlank()
+
     fun clearToken() {
         prefs.edit { remove(KEY_TOKEN) }
     }

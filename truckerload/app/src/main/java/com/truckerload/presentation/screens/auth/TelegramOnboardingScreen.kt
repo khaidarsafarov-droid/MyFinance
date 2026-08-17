@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.TelegramOnboardingStore
 import com.truckerload.data.remote.TelegramTokenActivator
+import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -51,7 +52,9 @@ fun TelegramOnboardingScreen(
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val onboardingStore = remember { TelegramOnboardingStore(context) }
+    val authStore = LocalAuthStore.current
+    val userId = authStore.currentUserIdOrNull()
+    val onboardingStore = remember(userId) { TelegramOnboardingStore(context, userId) }
     var tokenInput by remember { mutableStateOf("") }
     var showToken by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }

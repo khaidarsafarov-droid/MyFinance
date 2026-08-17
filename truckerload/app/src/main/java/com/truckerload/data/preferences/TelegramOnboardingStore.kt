@@ -12,9 +12,10 @@ class TelegramOnboardingStore(
     context: Context,
     userId: String? = AuthStore(context).currentUserIdOrNull(),
 ) {
+    private val resolvedUserId = userId?.trim()?.takeIf { it.isNotBlank() }
     private val prefs: SharedPreferences = SecurePreferences.open(
         context.applicationContext,
-        prefsName(userId),
+        prefsName(resolvedUserId),
     )
 
     fun isCompleted(): Boolean = prefs.getBoolean(KEY_COMPLETED, false)
@@ -30,7 +31,8 @@ class TelegramOnboardingStore(
     fun shouldPrompt(context: Context): Boolean {
         if (TelegramSyncMode.isServer()) return false
         if (isCompleted()) return false
-        if (TelegramTokenStore(context).hasToken()) {
+        // FIX: check the same account and only a token the user actually saved
+        if (TelegramTokenStore(context, resolvedUserId).hasPersistedToken()) {
             markCompleted()
             return false
         }

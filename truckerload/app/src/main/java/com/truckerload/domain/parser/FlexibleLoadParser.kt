@@ -26,15 +26,22 @@ object FlexibleLoadParser {
         Regex("""([\d.,]+)\s*mi\b""", RegexOption.IGNORE_CASE),
     )
     private val pickupPatterns = listOf(
-        Regex("""(?:Pu-address|Pickup|From|Origin|Погрузка)\s*[:]\s*(.+)""", RegexOption.IGNORE_CASE),
+        // FIX: \b on From — otherwise "Platform:" / "Freeform:" can steal the pickup
+        Regex("""(?:Pu-address|Pickup|\bFrom\b|Origin|Погрузка)\s*[:]\s*(.+)""", RegexOption.IGNORE_CASE),
     )
     private val deliveryPatterns = listOf(
-        Regex("""(?:Del-address|Delivery|To|Destination|Разгрузка)\s*[:]\s*(.+)""", RegexOption.IGNORE_CASE),
+        // FIX: \b on To — otherwise "Total Rate:" / "Auto:" can steal the delivery
+        Regex("""(?:Del-address|Delivery|\bTo\b|Destination|Разгрузка)\s*[:]\s*(.+)""", RegexOption.IGNORE_CASE),
     )
     private val cityStateLine = Regex(
         """^[A-Za-z0-9 .#'\-/]{2,40},\s*[A-Z]{2}(?:\s+\d{5})?$""",
     )
 
+    /**
+     * Parses a single load from pasted or OCR text.
+     *
+     * @return a [Load] when rate > 0 and at least one address is present; otherwise null.
+     */
     fun parseOne(rawMessage: String, nowMillis: Long = System.currentTimeMillis()): Load? {
         val text = TelegramStyledTextNormalizer.normalize(
             rawMessage.replace("\r\n", "\n").trim(),
