@@ -1,17 +1,24 @@
 package com.truckerload.presentation.screens.add
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.sync.LoadAlarmPlanner
 import com.truckerload.sync.LoadAlarmScheduler
+import com.truckerload.utils.LoadDocumentTextExtractor
 import com.truckerload.utils.getFirstPickUpMillis
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class LoadAlarmPromptState(
     val loadId: String,
@@ -30,12 +38,15 @@ data class LoadAlarmPromptState(
 )
 
 data class AddLoadUiState(
+    val mode: AddLoadInputMode = AddLoadInputMode.PASTE,
     val rawText: String = "",
+    val manual: ManualLoadFields = ManualLoadFields(),
+    val documentName: String? = null,
+    val isExtractingDocument: Boolean = false,
     val error: String? = null,
     val isSaving: Boolean = false,
     val savedLoad: Load? = null,
     val alarmPrompt: LoadAlarmPromptState? = null,
-    /** Reciprocity: parsed preview before save. */
     val previewLoad: Load? = null,
     val isParsingPreview: Boolean = false,
     val previewHint: String? = null,
@@ -50,7 +61,10 @@ class AddLoadViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
-        AddLoadUiState(rawText = savedStateHandle[KEY_RAW] ?: ""),
+        AddLoadUiState(
+            rawText = savedStateHandle[KEY_RAW] ?: "",
+            manual = ManualLoadFields(date = todayIso()),
+        ),
     )
     val uiState: StateFlow<AddLoadUiState> = _uiState.asStateFlow()
 
@@ -58,9 +72,11 @@ class AddLoadViewModel @Inject constructor(
 
     init {
         val initial = _uiState.value.rawText
-        if (initial.isNotBlank()) {
-            schedulePreview(initial)
-        }
+        if (initial.isNotBlank()) schedulePreview(initial)
+    }
+
+    fun setMode(mode: AddLoadInputMode) {
+        _uiState.update { it.copy(mode = mode, error = null) }
     }
 
     fun setRawText(value: String) {
@@ -77,43 +93,49 @@ class AddLoadViewModel @Inject constructor(
         schedulePreview(value)
     }
 
-    private fun schedulePreview(value: String) {
-        previewJob?.cancel()
-        if (value.isBlank()) {
-            _uiState.update {
-                it.copy(previewLoad = null, isParsingPreview = false, previewHint = null)
-            }
-            return
+    fun setManualTripId(value: String) = updateManual { it.copy(tripId = value) }
+    fun setManualDate(value: String) = updateManual { it.copy(date = value) }
+    fun setManualRate(value: String) = updateManual { it.copy(rate = value) }
+    fun setManualMiles(value: String) = updateManual { it.copy(miles = value) }
+    fun setManualPointA(value: String) = updateManual { it.copy(pointA = value) }
+    fun setManualPointB(value: String) = updateManual { it.copy(pointB = value) }
+
+    fun importDocument(uri: Uri, mimeType: String?) {
+        if (_uiState.value.isExtractingDocument) return
+        val name = uri.lastPathSegment?.substringAfterLast('/') ?: mimeType
+        _uiState.update {
+            it.copy(isExtractingDocument = true, documentName = name, error = null)
         }
-        previewJob = viewModelScope.launch {
-            delay(PREVIEW_DEBOUNCE_MS)
-            _uiState.update { it.copy(isParsingPreview = true, previewHint = null) }
-            aiRepository.parseLoadFromMessage(value)
-                .onSuccess { load ->
-                    _uiState.update {
-                        it.copy(
-                            previewLoad = load,
-                            isParsingPreview = false,
-                            previewHint = null,
-                        )
-                    }
-                }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                LoadDocumentTextExtractor(getApplication()).extract(uri, mimeType)
+            }
+            result
+                .onSuccess { text -> setRawText(text) }
                 .onFailure {
                     _uiState.update {
                         it.copy(
-                            previewLoad = null,
-                            isParsingPreview = false,
-                            previewHint = if (value.length < MIN_PREVIEW_CHARS) {
-                                null
-                            } else {
-                                getApplication<Application>().getString(
-                                    com.truckerload.R.string.add_load_preview_incomplete,
-                                )
-                            },
+                            error = getApplication<Application>().getString(
+                                com.truckerload.R.string.add_load_document_failed,
+                            ),
                         )
                     }
                 }
+            _uiState.update { it.copy(isExtractingDocument = false) }
         }
+    }
+
+    fun save(
+        parseFailedFallback: String,
+        saveErrorFormatter: (String) -> String,
+        onOptimisticInsert: ((Load) -> Unit)?,
+    ) {
+        if (_uiState.value.isSaving) return
+        if (_uiState.value.mode == AddLoadInputMode.MANUAL) {
+            saveManual(saveErrorFormatter, onOptimisticInsert)
+            return
+        }
+        saveParsed(parseFailedFallback, saveErrorFormatter, onOptimisticInsert)
     }
 
     fun clearSaved() {
@@ -140,20 +162,155 @@ class AddLoadViewModel @Inject constructor(
 
     fun schedulePresetAlarm(preset: LoadAlarmPlanner.Preset): Boolean {
         val prompt = _uiState.value.alarmPrompt ?: return false
-        val triggerAt = LoadAlarmPlanner.triggerAt(prompt.pickupMillis, preset.hoursBefore)
-        return scheduleAlarm(triggerAt)
+        return scheduleAlarm(LoadAlarmPlanner.triggerAt(prompt.pickupMillis, preset.hoursBefore))
     }
 
     fun scheduleCustomAlarm(triggerAtMillis: Long, invalidTimeMessage: String): Boolean {
         val prompt = _uiState.value.alarmPrompt ?: return false
         val now = System.currentTimeMillis()
         if (!LoadAlarmPlanner.isValidAlarmTime(triggerAtMillis, prompt.pickupMillis, now)) {
-            _uiState.update {
-                it.copy(alarmPrompt = prompt.copy(customError = invalidTimeMessage))
-            }
+            _uiState.update { it.copy(alarmPrompt = prompt.copy(customError = invalidTimeMessage)) }
             return false
         }
         return scheduleAlarm(triggerAtMillis)
+    }
+
+    private fun updateManual(transform: (ManualLoadFields) -> ManualLoadFields) {
+        _uiState.update { it.copy(manual = transform(it.manual), error = null) }
+    }
+
+    private fun schedulePreview(value: String) {
+        previewJob?.cancel()
+        if (value.isBlank()) {
+            _uiState.update { it.copy(previewLoad = null, isParsingPreview = false, previewHint = null) }
+            return
+        }
+        previewJob = viewModelScope.launch {
+            delay(PREVIEW_DEBOUNCE_MS)
+            _uiState.update { it.copy(isParsingPreview = true, previewHint = null) }
+            aiRepository.parseLoadFromUserInput(value)
+                .onSuccess { load ->
+                    _uiState.update {
+                        it.copy(previewLoad = load, isParsingPreview = false, previewHint = null)
+                    }
+                }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            previewLoad = null,
+                            isParsingPreview = false,
+                            previewHint = if (value.length < MIN_PREVIEW_CHARS) {
+                                null
+                            } else {
+                                getApplication<Application>().getString(
+                                    com.truckerload.R.string.add_load_preview_incomplete,
+                                )
+                            },
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun saveManual(
+        saveErrorFormatter: (String) -> String,
+        onOptimisticInsert: ((Load) -> Unit)?,
+    ) {
+        val fields = _uiState.value.manual
+        val rate = fields.parsedRate() ?: 0.0
+        if (rate <= 0.0) {
+            _uiState.update {
+                it.copy(error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_rate_required))
+            }
+            return
+        }
+        if (fields.pointA.isBlank() && fields.pointB.isBlank()) {
+            _uiState.update {
+                it.copy(error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_address_required))
+            }
+            return
+        }
+        persistLoad(
+            ManualLoadFactory.build(
+                tripId = fields.tripId,
+                date = fields.date,
+                rate = rate,
+                miles = fields.parsedMiles(),
+                pointA = fields.pointA,
+                pointB = fields.pointB,
+            ),
+            saveErrorFormatter,
+            onOptimisticInsert,
+        )
+    }
+
+    private fun saveParsed(
+        parseFailedFallback: String,
+        saveErrorFormatter: (String) -> String,
+        onOptimisticInsert: ((Load) -> Unit)?,
+    ) {
+        val text = _uiState.value.rawText
+        if (text.isBlank()) return
+        _uiState.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            val cached = _uiState.value.previewLoad
+            val parseResult = if (cached != null && cached.rawMessage == text) {
+                Result.success(cached)
+            } else {
+                aiRepository.parseLoadFromUserInput(text)
+            }
+            parseResult
+                .onSuccess { persistLoad(it, saveErrorFormatter, onOptimisticInsert) }
+                .onFailure { err ->
+                    _uiState.update {
+                        it.copy(isSaving = false, error = err.message ?: parseFailedFallback)
+                    }
+                }
+        }
+    }
+
+    private fun persistLoad(
+        load: Load,
+        saveErrorFormatter: (String) -> String,
+        onOptimisticInsert: ((Load) -> Unit)?,
+    ) {
+        _uiState.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            try {
+                loadRepository.insertLoad(load)
+                onOptimisticInsert?.invoke(load)
+                savedStateHandle[KEY_RAW] = ""
+                val pickup = getFirstPickUpMillis(load)
+                val offer = pickup?.let { LoadAlarmPlanner.buildOffer(it, System.currentTimeMillis()) }
+                val alarmPrompt = if (offer != null && offer.canOffer) {
+                    LoadAlarmPromptState(
+                        loadId = load.id,
+                        tripId = load.tripId,
+                        pickupMillis = offer.pickupMillis,
+                        availablePresets = offer.availablePresets,
+                    )
+                } else {
+                    null
+                }
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        savedLoad = load,
+                        rawText = "",
+                        manual = ManualLoadFields(date = todayIso()),
+                        documentName = null,
+                        alarmPrompt = alarmPrompt,
+                        previewLoad = null,
+                        previewHint = null,
+                        isParsingPreview = false,
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isSaving = false, error = saveErrorFormatter(e.message.orEmpty()))
+                }
+            }
+        }
     }
 
     private fun scheduleAlarm(triggerAtMillis: Long): Boolean {
@@ -165,76 +322,12 @@ class AddLoadViewModel @Inject constructor(
             triggerAtMillis = triggerAtMillis,
             pickupMillis = prompt.pickupMillis,
         )
-        if (ok) {
-            _uiState.update { it.copy(alarmPrompt = null) }
-        }
+        if (ok) _uiState.update { it.copy(alarmPrompt = null) }
         return ok
     }
 
-    fun save(
-        parseFailedFallback: String,
-        saveErrorFormatter: (String) -> String,
-        onOptimisticInsert: ((Load) -> Unit)?,
-    ) {
-        val text = _uiState.value.rawText
-        if (text.isBlank() || _uiState.value.isSaving) return
-        _uiState.update { it.copy(isSaving = true, error = null) }
-        viewModelScope.launch {
-            val cached = _uiState.value.previewLoad
-            val parseResult = if (cached != null && cached.rawMessage == text) {
-                Result.success(cached)
-            } else {
-                aiRepository.parseLoadFromMessage(text)
-            }
-            parseResult
-                .onSuccess { load ->
-                    try {
-                        loadRepository.insertLoad(load)
-                        onOptimisticInsert?.invoke(load)
-                        savedStateHandle[KEY_RAW] = ""
-                        val now = System.currentTimeMillis()
-                        val pickup = getFirstPickUpMillis(load)
-                        val offer = pickup?.let { LoadAlarmPlanner.buildOffer(it, now) }
-                        val alarmPrompt = if (offer != null && offer.canOffer) {
-                            LoadAlarmPromptState(
-                                loadId = load.id,
-                                tripId = load.tripId,
-                                pickupMillis = offer.pickupMillis,
-                                availablePresets = offer.availablePresets,
-                            )
-                        } else {
-                            null
-                        }
-                        _uiState.update {
-                            it.copy(
-                                isSaving = false,
-                                savedLoad = load,
-                                rawText = "",
-                                alarmPrompt = alarmPrompt,
-                                previewLoad = null,
-                                previewHint = null,
-                                isParsingPreview = false,
-                            )
-                        }
-                    } catch (e: Exception) {
-                        _uiState.update {
-                            it.copy(
-                                isSaving = false,
-                                error = saveErrorFormatter(e.message.orEmpty()),
-                            )
-                        }
-                    }
-                }
-                .onFailure { err ->
-                    _uiState.update {
-                        it.copy(
-                            isSaving = false,
-                            error = err.message ?: parseFailedFallback,
-                        )
-                    }
-                }
-        }
-    }
+    private fun todayIso(): String =
+        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
     companion object {
         private const val KEY_RAW = "add_load_raw_text"
