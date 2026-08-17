@@ -1,39 +1,30 @@
 package com.truckerload.presentation.screens.social
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.components.LocalOpenDrawer
-import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.components.SoftActionChip
+import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.components.SoftEmptyFill
+import com.truckerload.presentation.components.SoftTabletTwoPane
+import com.truckerload.presentation.utils.useNavigationRail
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,10 +37,9 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = uiState.profile
-    val tc = LocalTruckColors.current
-    val openDrawer = LocalOpenDrawer.current
     var showAvatarPicker by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val tabletChrome = useNavigationRail()
 
     LaunchedEffect(uiState.avatarError) {
         uiState.avatarError?.let { message ->
@@ -66,63 +56,55 @@ fun ProfileScreen(
         onRemove = viewModel::removeAvatar,
     )
 
-    Scaffold(
+    SoftAppPageScaffold(
+        title = stringResource(R.string.profile),
         modifier = modifier,
-        containerColor = BentoGlassTheme.ScreenBackground,
+        showBack = showBack && !tabletChrome,
+        onBack = onBack,
+        showPhoneMenu = !showBack,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.profile)) },
-                navigationIcon = {
-                    if (showBack) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                        }
-                    } else {
-                        IconButton(onClick = openDrawer) {
-                            Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_profile))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
+        actions = {
+            SoftActionChip(
+                icon = Icons.Default.Edit,
+                contentDescription = stringResource(R.string.edit_profile),
+                onClick = onEdit,
             )
         },
     ) { padding ->
         if (profile == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(stringResource(R.string.social_loading), color = tc.TextSecondary)
-            }
-            return@Scaffold
+            SoftEmptyFill(
+                message = stringResource(R.string.social_loading),
+                modifier = Modifier.padding(padding),
+            )
+            return@SoftAppPageScaffold
         }
+
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                PremiumProfileHeader(
-                    profile = profile,
-                    isUploadingAvatar = uiState.isUploadingAvatar,
-                    onAvatarClick = { showAvatarPicker = true },
+                SoftTabletTwoPane(
+                    start = {
+                        PremiumProfileHeader(
+                            profile = profile,
+                            isUploadingAvatar = uiState.isUploadingAvatar,
+                            onAvatarClick = { showAvatarPicker = true },
+                        )
+                    },
+                    end = {
+                        androidx.compose.foundation.layout.Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            PremiumStatsRow(profile)
+                            ProfileNicknameSection()
+                            ProfileAuthSyncSection()
+                        }
+                    },
                 )
             }
-            item { ProfileNicknameSection() }
-            item { ProfileAuthSyncSection() }
-            item { PremiumStatsRow(profile) }
             if (profile.badges.isNotEmpty()) {
                 item { ProfileBadgesSection(profile) }
             }

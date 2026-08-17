@@ -20,8 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Menu
-import com.truckerload.presentation.components.LocalOpenDrawer
+import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.components.SoftTabletTwoPane
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,10 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,7 +57,6 @@ import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.FinanceCockpitColors
-import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.theme.UiDimens
@@ -73,7 +69,6 @@ import com.truckerload.presentation.utils.MoneyFormat
 fun WeeklyGoalScreen() {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val openDrawer = LocalOpenDrawer.current
     val viewModel: GoalViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val progress = uiState.progress
@@ -102,106 +97,92 @@ fun WeeklyGoalScreen() {
         }
     }
 
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        ForestScreenTitle(stringResource(R.string.goal_screen_title))
-                        progress?.let {
-                            Text(it.weekLabel, style = AppTypography.Subtitle)
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary
-                )
-            )
-        }
+    SoftAppPageScaffold(
+        title = stringResource(R.string.goal_screen_title),
+        subtitle = progress?.weekLabel,
     ) { padding ->
         if (uiState.isLoading || progress == null) {
             Box(
                 Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = FinanceCockpitColors.SalaryAccent)
             }
-            return@Scaffold
+            return@SoftAppPageScaffold
         }
 
         BentoGlassScreenBackground {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            GoalHeroCard(
-                progress = progress,
-                isEditingGoal = uiState.isEditingGoal,
-                goalInput = uiState.goalInput,
-                goalError = uiState.goalError,
-                isSavingGoal = uiState.isSavingGoal,
-                suggestedGoals = uiState.suggestedGoals,
-                onStartEdit = viewModel::startEditingGoal,
-                onGoalInputChange = viewModel::onGoalInputChange,
-                onSaveGoal = viewModel::saveGoal,
-                onCancelEdit = viewModel::cancelEditingGoal,
-                onSuggestedGoal = viewModel::applySuggestedGoal,
-            )
-
-            if (progress.targetAmount <= 0) {
-                Text(
-                    text = stringResource(R.string.ux_goal_ownership_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LocalTruckColors.current.TextSecondary,
-                    modifier = Modifier.padding(horizontal = 4.dp),
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                SoftTabletTwoPane(
+                    start = {
+                        GoalHeroCard(
+                            progress = progress,
+                            isEditingGoal = uiState.isEditingGoal,
+                            goalInput = uiState.goalInput,
+                            goalError = uiState.goalError,
+                            isSavingGoal = uiState.isSavingGoal,
+                            suggestedGoals = uiState.suggestedGoals,
+                            onStartEdit = viewModel::startEditingGoal,
+                            onGoalInputChange = viewModel::onGoalInputChange,
+                            onSaveGoal = viewModel::saveGoal,
+                            onCancelEdit = viewModel::cancelEditingGoal,
+                            onSuggestedGoal = viewModel::applySuggestedGoal,
+                        )
+                    },
+                    end = {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            PaceInsightCard(progress = progress)
+                            GoalPaceMetrics(progress = progress)
+                        }
+                    },
                 )
+
+                if (progress.targetAmount <= 0) {
+                    Text(
+                        text = stringResource(R.string.ux_goal_ownership_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+
+                if (progress.targetAmount > 0 && progress.remainingAmount > 0) {
+                    Text(
+                        text = stringResource(
+                            R.string.ux_contrast_remaining_of_goal,
+                            MoneyFormat.formatCurrency(progress.currentGross),
+                            MoneyFormat.formatCurrency(progress.targetAmount),
+                            MoneyFormat.formatCurrency(progress.remainingAmount),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextPrimary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+
+                if (progress.loadsCount > 0) {
+                    Text(
+                        text = stringResource(
+                            R.string.goal_pace_period_hint,
+                            formatActiveDays(progress.totalActiveDays),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextPrimary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            PaceInsightCard(progress = progress)
-
-            if (progress.targetAmount > 0 && progress.remainingAmount > 0) {
-                Text(
-                    text = stringResource(
-                        R.string.ux_contrast_remaining_of_goal,
-                        MoneyFormat.formatCurrency(progress.currentGross),
-                        MoneyFormat.formatCurrency(progress.targetAmount),
-                        MoneyFormat.formatCurrency(progress.remainingAmount),
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LocalTruckColors.current.TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                )
-            }
-
-            if (progress.loadsCount > 0) {
-                Text(
-                    text = stringResource(
-                        R.string.goal_pace_period_hint,
-                        formatActiveDays(progress.totalActiveDays)
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LocalTruckColors.current.TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-            }
-
-            GoalPaceMetrics(progress = progress)
-
-            Spacer(Modifier.height(24.dp))
-        }
         }
     }
 }

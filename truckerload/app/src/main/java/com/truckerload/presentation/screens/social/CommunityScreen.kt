@@ -5,20 +5,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,9 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.components.LocalOpenDrawer
-import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.components.SoftActionChip
+import com.truckerload.presentation.components.SoftAppPageScaffold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,11 +52,8 @@ fun CommunityScreen(
     val chatsState by chatsViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val leaderboard by communityViewModel.leaderboard.collectAsStateWithLifecycle()
-    val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val openDrawer = LocalOpenDrawer.current
     val challenge = communityState.challenge
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(chatsState.errorMessage) {
@@ -82,33 +72,25 @@ fun CommunityScreen(
         }
     }
 
-    Scaffold(
+    SoftAppPageScaffold(
+        title = stringResource(R.string.community),
         modifier = modifier,
-        containerColor = BentoGlassTheme.ScreenBackground,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.community)) },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.common_menu), tint = tc.TextPrimary)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onOpenStatus) {
-                        Icon(Icons.Default.Star, contentDescription = stringResource(R.string.social_statuses))
-                    }
-                    IconButton(onClick = onOpenGroups) {
-                        Icon(Icons.Default.Groups, contentDescription = stringResource(R.string.social_groups))
-                    }
-                    IconButton(onClick = onOpenProfile) {
-                        Icon(Icons.Default.Person, contentDescription = stringResource(R.string.profile))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
+        actions = {
+            SoftActionChip(
+                icon = Icons.Default.Star,
+                contentDescription = stringResource(R.string.social_statuses),
+                onClick = onOpenStatus,
+            )
+            SoftActionChip(
+                icon = Icons.Default.Groups,
+                contentDescription = stringResource(R.string.social_groups),
+                onClick = onOpenGroups,
+            )
+            SoftActionChip(
+                icon = Icons.Default.Person,
+                contentDescription = stringResource(R.string.profile),
+                onClick = onOpenProfile,
             )
         },
     ) { padding ->

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
@@ -30,12 +29,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +48,9 @@ import com.truckerload.R
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
+import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.getStateDisplayName
 import com.truckerload.presentation.theme.AppFilterChipDefaults
-import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import java.util.Locale
@@ -67,7 +62,6 @@ fun MapScreen(
     onBack: () -> Unit = {},
     embedded: Boolean = false,
 ) {
-    val tc = LocalTruckColors.current
     val viewModel: MapViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -79,37 +73,11 @@ fun MapScreen(
             showToolbarTitle = true,
         )
     } else {
-        Scaffold(
-            containerColor = BentoGlassTheme.ScreenBackground,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.map_title),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = tc.TextPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = onBack,
-                            modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.common_back),
-                                tint = tc.TextPrimary,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = BentoGlassTheme.ScreenBackground,
-                        titleContentColor = tc.TextPrimary,
-                    ),
-                )
-            },
+        SoftAppPageScaffold(
+            title = stringResource(R.string.map_title),
+            showBack = true,
+            onBack = onBack,
+            showPhoneMenu = false,
         ) { padding ->
             MapScreenBody(
                 padding = padding,

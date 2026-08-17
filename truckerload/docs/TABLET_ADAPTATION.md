@@ -27,8 +27,12 @@ Form helpers: `Modifier.appFormField()` / `Modifier.appFormFieldSpacing()`.
    goal panel. Phone layout unchanged.
 4. **Journal (expanded detail)** — `JournalListDetailHost` (list left, load detail right) when
    browsing into a load from other flows; Home dashboard is the landing composition.
-5. **Analytics metrics** — `BentoGrid` uses 2 columns on phone/portrait tablet, 3 on landscape.
-6. **Content width** — padded beside the sidebar; Medium/Expanded horizontal padding as before.
+5. **App-wide soft page chrome** — `SoftAppPageScaffold` / `SoftTabletPageHeader` /
+   `SoftTabletTwoPane` (`TabletSoftChrome.kt`) on primary and tool destinations: Weekly Goal,
+   Community, Profile, Settings, Analytics, Advanced Stats, Map, Maintenance, Scan gallery,
+   About. Tablet shows a large title (+ optional actions); phone keeps TopAppBar (menu/back).
+6. **Analytics metrics** — `BentoGrid` uses 2 columns on phone/portrait tablet, 3 on landscape.
+7. **Content width** — padded beside the sidebar; Medium/Expanded horizontal padding as before.
 
 ## DevTools / emulator checklist
 

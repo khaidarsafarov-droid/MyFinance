@@ -14,19 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,13 +33,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.presentation.components.SoftActionChip
+import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
-import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.ForestScreenTitle
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -145,33 +138,19 @@ fun StatsScreen(
         }
     }
 
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
+    val tabletChrome = useNavigationRail()
+    SoftAppPageScaffold(
+        title = stringResource(R.string.stats_title),
+        subtitle = stringResource(R.string.stats_subtitle_rpm, uiState.avgRpm),
+        showBack = showBack && !tabletChrome,
+        onBack = onBack,
+        showPhoneMenu = false,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        ForestScreenTitle(stringResource(R.string.stats_title))
-                        Text(
-                            text = stringResource(R.string.stats_subtitle_rpm, uiState.avgRpm),
-                            style = AppTypography.Subtitle,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    if (showBack) {
-                        IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showAiOverlay = true }, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(Icons.Default.SmartToy, contentDescription = stringResource(R.string.stats_cd_advisor))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BentoGlassTheme.ScreenBackground)
+        actions = {
+            SoftActionChip(
+                icon = Icons.Default.SmartToy,
+                contentDescription = stringResource(R.string.stats_cd_advisor),
+                onClick = { showAiOverlay = true },
             )
         },
     ) { padding ->

@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import java.util.Locale
@@ -27,18 +26,14 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import com.truckerload.BuildConfig
 import com.truckerload.data.preferences.AppThemeMode
@@ -63,11 +58,13 @@ import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.ForestScreenTitle
+import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.components.SoftTabletTwoPane
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.di.userComponentManager
 import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
@@ -173,24 +170,12 @@ fun SettingsScreen(
         }
     }
 
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
-        topBar = {
-            TopAppBar(
-                title = { ForestScreenTitle(stringResource(R.string.settings_title)) },
-                navigationIcon = {
-                    if (showBack) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary
-                )
-            )
-        }
+    val tabletChrome = useNavigationRail()
+    SoftAppPageScaffold(
+        title = stringResource(R.string.settings_title),
+        showBack = showBack && !tabletChrome,
+        onBack = onBack,
+        showPhoneMenu = false,
     ) { padding ->
         Column(
             modifier = Modifier
@@ -199,20 +184,30 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
         ) {
-            ThemeSettingsSection(selected = themeMode, oledDark = oledDark)
-            AccessibilitySettingsSection(reduceMotion = reduceMotion)
-            LanguageSettingsSection(selected = appLanguage)
-            FeedbackSettingsSection(settingsViewModel = settingsViewModel)
-            BiometricSettingsSection()
-            PrivacySettingsSection()
-            NotificationSettingsSection(
-                quietHoursEnabled = quietHoursEnabled,
-                quietHoursStart = quietHoursStart,
-                quietHoursEnd = quietHoursEnd,
-                notifyMissingWeek = notifyMissingWeek,
-                notifyMaintenance = notifyMaintenance,
+            SoftTabletTwoPane(
+                start = {
+                    Column {
+                        ThemeSettingsSection(selected = themeMode, oledDark = oledDark)
+                        AccessibilitySettingsSection(reduceMotion = reduceMotion)
+                        LanguageSettingsSection(selected = appLanguage)
+                        FeedbackSettingsSection(settingsViewModel = settingsViewModel)
+                    }
+                },
+                end = {
+                    Column {
+                        BiometricSettingsSection()
+                        PrivacySettingsSection()
+                        NotificationSettingsSection(
+                            quietHoursEnabled = quietHoursEnabled,
+                            quietHoursStart = quietHoursStart,
+                            quietHoursEnd = quietHoursEnd,
+                            notifyMissingWeek = notifyMissingWeek,
+                            notifyMaintenance = notifyMaintenance,
+                        )
+                        TelegramSettingsSection()
+                    }
+                },
             )
-            TelegramSettingsSection()
 
             var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
             var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
