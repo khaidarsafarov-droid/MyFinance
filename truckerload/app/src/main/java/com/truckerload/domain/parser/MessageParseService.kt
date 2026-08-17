@@ -20,6 +20,13 @@ class MessageParseService {
             ?: throw IllegalArgumentException("No valid load found in message")
     }
 
+    /** Add-load screen: Relay first, then a looser paste/OCR fallback. */
+    fun parseLoadFromUserInput(rawMessage: String): Result<Load> = runCatching {
+        parseAmazonRelayLoad(rawMessage)?.load
+            ?: FlexibleLoadParser.parseOne(rawMessage)
+            ?: throw IllegalArgumentException("No valid load found in message")
+    }
+
     fun parseAmazonRelayFromMessage(rawMessage: String): Result<AmazonRelayParseResult> = runCatching {
         parseAmazonRelayLoad(rawMessage)
             ?: throw IllegalArgumentException("No valid Amazon Relay load found in message")

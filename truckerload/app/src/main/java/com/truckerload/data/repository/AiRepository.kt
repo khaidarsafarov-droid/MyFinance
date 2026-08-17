@@ -43,6 +43,9 @@ class AiRepository(
     suspend fun parseLoadFromMessage(rawMessage: String): Result<Load> =
         messageParseService.parseLoadFromMessage(rawMessage)
 
+    suspend fun parseLoadFromUserInput(rawMessage: String): Result<Load> =
+        messageParseService.parseLoadFromUserInput(rawMessage)
+
     suspend fun parseAmazonRelayFromMessage(rawMessage: String): Result<AmazonRelayParseResult> =
         messageParseService.parseAmazonRelayFromMessage(rawMessage)
 
