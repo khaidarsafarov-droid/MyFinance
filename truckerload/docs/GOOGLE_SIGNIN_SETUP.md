@@ -1,65 +1,85 @@
 # Настройка входа через Google
 
-Кнопка «Войти через Google» и Google Drive работают только если в **том же**
-проекте Google Cloud есть:
+SHA-1 **нельзя задать в коде**. Это отпечаток ключа, которым подписан APK.
+Google сравнивает: пакет `com.truckerload` + SHA-1 **установленного** файла.
+Несовпадение → `DEVELOPER_ERROR` / status **10**.
 
-1. **Android** OAuth client — package + SHA-1 подписи APK
-2. **Web** OAuth client — его ID кладётся в `local.properties` как `GOOGLE_WEB_CLIENT_ID`
+## Одна правда: friends/release keystore
 
-Приложение само не регистрирует SHA-1. Несовпадение SHA-1 даёт
-`DEVELOPER_ERROR` / status **10**.
+Канонический ключ проекта — `signing/truckerload-friends.keystore`
+(см. `keystore.properties`). Его SHA-1:
 
-## Значения для Console
-
-| Поле | Значение |
-|------|----------|
-| Package name | `com.truckerload` |
-| SHA-1 (этот билд / текущий keystore) | `F3:85:03:A5:AB:66:25:1F:36:2E:81:65:20:A9:86:2F:0D:22:BB:05` |
-| SHA-1 (friends/release keystore) | `66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C` |
-| Web client ID (`GOOGLE_WEB_CLIENT_ID`) | `842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com` |
-
-Нужен **отдельный Android-клиент на каждый SHA-1** (один клиент = один отпечаток).
-Оба отпечатка должны быть в проекте, иначе debug-сборка и friends-APK не могут
-войти одним и тем же OAuth-проектом.
-
-Если приложение ставится из Play Store — добавьте ещё SHA-1
-**App signing key certificate** из Play Console (он часто другой, не upload-ключ).
-
-## Шаги
-
-1. Откройте [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
-2. Выберите проект OAuth (тот, где уже есть Web client `842861516910-…`)
-3. **Create Credentials** → **OAuth client ID** → Application type: **Android**
-4. Package name: `com.truckerload`
-5. SHA-1: `F3:85:03:A5:AB:66:25:1F:36:2E:81:65:20:A9:86:2F:0D:22:BB:05`
-6. **Create**. Повторите шаг 3–5 для friends SHA-1, если такого клиента ещё нет.
-7. Включите **Google Drive API** в том же проекте (для «Сохранить в Drive»).
-8. OAuth consent screen: если статус **Testing**, добавьте Gmail testers в **Test users**,
-   иначе будет `access_denied` / 403.
-9. В `truckerload/local.properties` (не в git):
-
-   ```
-   GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
-   ```
-
-10. Пересоберите и переустановите APK. Google кэширует клиент ~минуты; если ошибка 10
-    остаётся — подождите и переустановите приложение.
-
-Проверить SHA-1 установленного APK:
-
-```bash
-keytool -printcert -jarfile app-debug.apk
-# или в Android Studio: Gradle → :app → signingReport
+```
+66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C
 ```
 
-Отпечаток в Console должен **байт-в-байт** совпасть с подписью того APK, который
-стоит на телефоне.
+Именно его держите в проекте **Track Load** как Android OAuth client.
 
-## Данные, которые получает приложение
+| Что | SHA-1 | Нужен в Track Load? |
+|-----|-------|---------------------|
+| Friends / release APK | `66:46:40:1E:…:27:2C` | **Да — основной** |
+| Debug с чужого компьютера (часто `~/.android/debug.keystore`) | например `F3:85:03:A5:…:BB:05` | Нет, если debug подписываете тем же friends-ключом |
+| Облачный/новый debug.keystore | другой каждый раз | Нет |
 
-- **Email** — адрес почты Google
-- **Имя (givenName)** — имя из профиля
-- **Фамилия (familyName)** — фамилия
-- **Фото (photoUrl)** — ссылка на аватар
+`F3:85:03:…` — это **не** ключ Track Load, а отпечаток другого keystore
+(обычно debug Android Studio). Его не нужно делать «главным».
 
-> Дата рождения **не** передаётся через стандартный Google Sign-In API.
+## Как сделать SHA одинаковым везде (sideload)
+
+1. На компьютере, где лежит `signing/truckerload-friends.keystore`, выполните:
+
+   ```bash
+   cd truckerload
+   keytool -list -v -keystore signing/truckerload-friends.keystore -alias truckerload
+   ```
+
+   В выводе строка `SHA1:` должна быть `66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C`.
+
+2. В Track Load оставьте **один** Android-клиент:
+   - package: `com.truckerload`
+   - SHA-1: `66:46:40:1E:70:B7:3A:9C:28:D6:7E:4B:68:19:76:AD:46:C6:27:2C`  
+   Клиент с `F3:85:03:…` можно удалить.
+
+3. Чтобы **Run из Android Studio** давал тот же SHA-1, подпишите debug тем же ключом.
+   Файл `debug-keystore.properties` (не в git):
+
+   ```
+   storeFile=signing/truckerload-friends.keystore
+   storePassword=<пароль из keystore.properties>
+   keyAlias=truckerload
+   keyPassword=<тот же пароль>
+   ```
+
+   Alias должен быть `truckerload`, не `androiddebugkey`.
+
+4. Пересоберите, удалите старое приложение с телефона, поставьте новый APK.
+   Проверка файла:
+
+   ```bash
+   keytool -printcert -jarfile dist/TruckerLoad-1.5.6-friends.apk
+   # или
+   sh ./gradlew :app:signingReport
+   ```
+
+   SHA-1 APK = SHA-1 в Track Load.
+
+Play Store — отдельный случай: в Play Console возьмите
+**App signing key certificate → SHA-1** и добавьте **второй** Android-клиент.
+Upload-ключ и ключ Google Play часто разные.
+
+## Console
+
+- Клиенты: https://console.cloud.google.com/apis/credentials?project=842861516910
+- Новый Android-клиент: https://console.cloud.google.com/apis/credentials/oauthclient?project=842861516910
+
+Web client ID в `local.properties`:
+
+```
+GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
+```
+
+Включите **Google Drive API**. Если consent **Testing** — добавьте Gmail в Test users.
+
+## Данные от Google
+
+Email, имя, фамилия, фото. Дата рождения не приходит.
