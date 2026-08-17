@@ -53,6 +53,9 @@ fun rememberGoogleSignInLauncher(
     val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val callbacksState = rememberUpdatedState(callbacks)
     var omitIdToken by remember { mutableStateOf(false) }
+    val legacyLauncherRef = remember {
+        arrayOfNulls<androidx.activity.result.ActivityResultLauncher<android.content.Intent>>(1)
+    }
 
     fun saveAndFinish(
         email: String,
@@ -188,9 +191,12 @@ fun rememberGoogleSignInLauncher(
             }
         }
         task.addOnFailureListener { error ->
-            if (GoogleSignInClients.shouldRetryWithoutIdToken(error, alreadyOmittingIdToken = omitIdToken)) {
+            val retryLauncher = legacyLauncherRef[0]
+            if (retryLauncher != null &&
+                GoogleSignInClients.shouldRetryWithoutIdToken(error, alreadyOmittingIdToken = omitIdToken)
+            ) {
                 omitIdToken = true
-                launchLegacyGoogleSignIn(context, legacyLauncher, requestIdToken = false)
+                launchLegacyGoogleSignIn(context, retryLauncher, requestIdToken = false)
                     .onFailure { toastLegacyLaunchFailure(context, it, callbacksState.value.onBusy) }
                 return@addOnFailureListener
             }
@@ -203,6 +209,7 @@ fun rememberGoogleSignInLauncher(
             callbacksState.value.onBusy(false)
         }
     }
+    legacyLauncherRef[0] = legacyLauncher
 
     return GoogleSignInLauncher {
         callbacksState.value.onBusy(true)

@@ -27,6 +27,9 @@ import com.truckerload.presentation.screens.auth.AuthViewModel
 fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
     val context = LocalContext.current
     var omitIdToken by remember { mutableStateOf(false) }
+    val launcherRef = remember {
+        arrayOfNulls<androidx.activity.result.ActivityResultLauncher<android.content.Intent>>(1)
+    }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) { result ->
@@ -58,15 +61,19 @@ fun rememberLegacyGoogleSignInLaunch(viewModel: AuthViewModel): () -> Unit {
             )
         }
         task.addOnFailureListener { error ->
-            if (GoogleSignInClients.shouldRetryWithoutIdToken(error, alreadyOmittingIdToken = omitIdToken)) {
+            val retryLauncher = launcherRef[0]
+            if (retryLauncher != null &&
+                GoogleSignInClients.shouldRetryWithoutIdToken(error, alreadyOmittingIdToken = omitIdToken)
+            ) {
                 omitIdToken = true
-                launchLegacyOrReport(context, launcher, requestIdToken = false, viewModel)
+                launchLegacyOrReport(context, retryLauncher, requestIdToken = false, viewModel)
                 return@addOnFailureListener
             }
             val msg = (error as? ApiException)?.message ?: error.message ?: error.toString()
             viewModel.onLegacyGoogleError(context.getString(R.string.login_google_error, msg))
         }
     }
+    launcherRef[0] = launcher
     return {
         val requestIdToken = !omitIdToken && BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()
         launchLegacyOrReport(context, launcher, requestIdToken, viewModel)
