@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -135,11 +134,6 @@ private fun TabletScaffold(
             currentRoute = currentRoute,
             onNavigate = onNavigate,
             onDrawerNavigate = onDrawerNavigate,
-        )
-        VerticalDivider(
-            modifier = Modifier.fillMaxHeight(),
-            thickness = 0.5.dp,
-            color = BentoGlassTheme.CardBorderMuted,
         )
         Box(
             modifier = Modifier
