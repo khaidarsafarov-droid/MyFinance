@@ -105,9 +105,19 @@ class OsrmDirectionsClientTest {
         val result = client.parseOsrmBody(body)
         assertTrue(result.isRoadNetwork)
         assertEquals(3, result.points.size)
+        assertEquals(38.5, result.points.first().lat, 0.01)
+        assertEquals(-126.453, result.points.last().lng, 0.01)
         assertEquals(80467L, result.distanceMeters)
         assertEquals(3600L, result.durationSeconds)
         assertEquals(OsrmDirectionsClient.PROVIDER_NAME, result.providerName)
+    }
+
+    @Test
+    fun parseNonOkThrows() {
+        val body = """{"code":"NoRoute","message":"No route found"}"""
+        val error = runCatching { client.parseOsrmBody(body) }.exceptionOrNull()
+        assertTrue(error is IllegalStateException || error is Exception)
+        assertTrue(error!!.message!!.contains("NoRoute"))
     }
 }
 

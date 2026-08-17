@@ -11,24 +11,36 @@ class MessageParseService {
 
     fun classify(text: String): MessageType = MessageClassifier.classify(text)
 
-    fun parseLoadsFromMessage(rawMessage: String): Result<List<Load>> = runCatching {
-        LoadMessageParser.parseAll(rawMessage)
+    fun parseLoadsFromMessage(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): Result<List<Load>> = runCatching {
+        LoadMessageParser.parseAll(rawMessage, referenceMillis)
     }
 
-    fun parseLoadFromMessage(rawMessage: String): Result<Load> = runCatching {
-        parseAmazonRelayLoad(rawMessage)?.load
+    fun parseLoadFromMessage(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): Result<Load> = runCatching {
+        parseAmazonRelayLoad(rawMessage, referenceMillis)?.load
             ?: throw IllegalArgumentException("No valid load found in message")
     }
 
     /** Add-load screen: Relay first, then a looser paste/OCR fallback. */
-    fun parseLoadFromUserInput(rawMessage: String): Result<Load> = runCatching {
-        parseAmazonRelayLoad(rawMessage)?.load
-            ?: FlexibleLoadParser.parseOne(rawMessage)
+    fun parseLoadFromUserInput(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): Result<Load> = runCatching {
+        parseAmazonRelayLoad(rawMessage, referenceMillis)?.load
+            ?: FlexibleLoadParser.parseOne(rawMessage, referenceMillis)
             ?: throw IllegalArgumentException("No valid load found in message")
     }
 
-    fun parseAmazonRelayFromMessage(rawMessage: String): Result<AmazonRelayParseResult> = runCatching {
-        parseAmazonRelayLoad(rawMessage)
+    fun parseAmazonRelayFromMessage(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): Result<AmazonRelayParseResult> = runCatching {
+        parseAmazonRelayLoad(rawMessage, referenceMillis)
             ?: throw IllegalArgumentException("No valid Amazon Relay load found in message")
     }
 

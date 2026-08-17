@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
+import com.truckerload.data.remote.TelegramTokenActivator
 import com.truckerload.presentation.components.BotStatusBadge
 import com.truckerload.presentation.screens.auth.BotFatherLinks
 import com.truckerload.presentation.components.TlButton as Button
@@ -143,13 +144,11 @@ fun TelegramSettingsSection() {
                         scope.launch {
                             saving = true
                             dialogError = null
-                            val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+                            // FIX: same shape + Keystore-safe persist as onboarding (no junk getMe)
+                            val result = TelegramTokenActivator.saveAndStart(context, token)
                             saving = false
-                            when {
-                                health.ok -> {
-                                    tokenStore.setToken(token)
-                                    TelegramBotForegroundService.stop(context)
-                                    TelegramBotForegroundService.start(context)
+                            result.fold(
+                                onSuccess = {
                                     hasToken = true
                                     botActive = TelegramBotForegroundService.isRunning()
                                     showTokenDialog = false
@@ -158,15 +157,23 @@ fun TelegramSettingsSection() {
                                     statusMessage = context.getString(
                                         R.string.settings_telegram_saved,
                                     )
-                                }
-                                health.isUnauthorized -> {
-                                    dialogError = context.getString(R.string.settings_telegram_invalid)
-                                }
-                                else -> {
-                                    dialogError = health.error
-                                        ?: context.getString(R.string.settings_telegram_invalid)
-                                }
-                            }
+                                },
+                                onFailure = { err ->
+                                    dialogError = when (err.message) {
+                                        "token_missing" -> context.getString(
+                                            R.string.settings_telegram_token_missing,
+                                        )
+                                        "token_invalid" -> context.getString(
+                                            R.string.settings_telegram_invalid,
+                                        )
+                                        "token_secure_storage" -> context.getString(
+                                            R.string.auth_secure_storage_fallback_banner,
+                                        )
+                                        else -> err.message
+                                            ?: context.getString(R.string.settings_telegram_invalid)
+                                    }
+                                },
+                            )
                         }
                     },
                     enabled = tokenInput.isNotBlank() && !saving,

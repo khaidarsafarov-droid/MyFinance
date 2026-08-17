@@ -36,7 +36,8 @@ class RelayTelegramDateParsingTest {
             YORK, PA 17408
         """.trimIndent()
 
-        val parsed = LoadMessageParser.parseOne(raw)!!.copy(parsedAt = messageMillis)
+        val parsed = LoadMessageParser.parseOne(raw, referenceMillis = messageMillis)!!
+        assertEquals("2025-08-21", parsed.date)
         val repaired = LoadDateRepair.repair(
             parsed,
             anchorYearHint = 2025,
@@ -82,8 +83,9 @@ class RelayTelegramDateParsingTest {
             parsedAt = messageMillis,
             updatedAt = messageMillis,
             stops = listOf(
-                Stop(1, "114HZ2QZK", 1, StopType.PU, "PU1", null, "08/20 08:00 EDT", "EDT", null, "Burlington", "NJ", ""),
-                Stop(2, "114HZ2QZK", 2, StopType.DEL, null, null, "08/21 09:00 EDT", "EDT", null, "Middletown", "PA", ""),
+                // FIX: Stop now requires fullAddress + zip — positional args were one short
+                Stop(1, "114HZ2QZK", 1, StopType.PU, "PU1", null, "08/20 08:00 EDT", "EDT", null, "Burlington, NJ", "Burlington", "NJ", ""),
+                Stop(2, "114HZ2QZK", 2, StopType.DEL, null, null, "08/21 09:00 EDT", "EDT", null, "Middletown, PA", "Middletown", "PA", ""),
             ),
         )
         val repaired = LoadDateRepair.repair(load, anchorYearHint = 2025, referenceMillis = messageMillis)

@@ -25,7 +25,10 @@ class TelegramLoadHandler(
         messageDateSeconds: Long? = null,
         playFeedback: Boolean = true,
     ): String {
-        val parsedLoads = messageParseService.parseLoadsFromMessage(message).getOrNull().orEmpty()
+        val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
+        val parsedLoads = messageParseService.parseLoadsFromMessage(message, referenceMillis)
+            .getOrNull()
+            .orEmpty()
         if (parsedLoads.isEmpty()) {
             return context.getString(R.string.sync_no_new_data)
         }

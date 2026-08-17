@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.sync.LoadAlarmPlanner
 import com.truckerload.sync.LoadAlarmScheduler
@@ -130,7 +131,14 @@ class AddLoadViewModel @Inject constructor(
         saveErrorFormatter: (String) -> String,
         onOptimisticInsert: ((Load) -> Unit)?,
     ) {
-        if (_uiState.value.isSaving) return
+        // FIX: atomic isSaving gate — two taps were able to insert two loads
+        var accepted = false
+        _uiState.update { state ->
+            if (state.isSaving) return@update state
+            accepted = true
+            state.copy(isSaving = true, error = null)
+        }
+        if (!accepted) return
         if (_uiState.value.mode == AddLoadInputMode.MANUAL) {
             saveManual(saveErrorFormatter, onOptimisticInsert)
             return
@@ -220,13 +228,19 @@ class AddLoadViewModel @Inject constructor(
         val rate = fields.parsedRate() ?: 0.0
         if (rate <= 0.0) {
             _uiState.update {
-                it.copy(error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_rate_required))
+                it.copy(
+                    isSaving = false,
+                    error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_rate_required),
+                )
             }
             return
         }
         if (fields.pointA.isBlank() && fields.pointB.isBlank()) {
             _uiState.update {
-                it.copy(error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_address_required))
+                it.copy(
+                    isSaving = false,
+                    error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_address_required),
+                )
             }
             return
         }
@@ -250,8 +264,10 @@ class AddLoadViewModel @Inject constructor(
         onOptimisticInsert: ((Load) -> Unit)?,
     ) {
         val text = _uiState.value.rawText
-        if (text.isBlank()) return
-        _uiState.update { it.copy(isSaving = true, error = null) }
+        if (text.isBlank()) {
+            _uiState.update { it.copy(isSaving = false) }
+            return
+        }
         viewModelScope.launch {
             val cached = _uiState.value.previewLoad
             val parseResult = if (cached != null && cached.rawMessage == text) {
@@ -274,18 +290,33 @@ class AddLoadViewModel @Inject constructor(
         saveErrorFormatter: (String) -> String,
         onOptimisticInsert: ((Load) -> Unit)?,
     ) {
-        _uiState.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             try {
-                loadRepository.insertLoad(load)
-                onOptimisticInsert?.invoke(load)
+                // FIX: same Trip ID must update (unique tripId) instead of crashing / orphaning stops
+                val tripId = load.tripId.trim()
+                val existing = if (tripId.isNotBlank()) {
+                    loadRepository.getByTripId(tripId)
+                        ?: loadRepository.getByTripId(normalizeTripId(tripId))
+                } else {
+                    null
+                }
+                val persisted = if (existing != null) {
+                    val updated = load.copy(id = existing.id, parsedAt = existing.parsedAt)
+                    loadRepository.updateLoad(updated)
+                    updated
+                } else {
+                    loadRepository.insertLoad(load)
+                    load
+                }
+                // FIX: alarm / journal must use the Room row id after an update
+                onOptimisticInsert?.invoke(persisted)
                 savedStateHandle[KEY_RAW] = ""
-                val pickup = getFirstPickUpMillis(load)
+                val pickup = getFirstPickUpMillis(persisted)
                 val offer = pickup?.let { LoadAlarmPlanner.buildOffer(it, System.currentTimeMillis()) }
                 val alarmPrompt = if (offer != null && offer.canOffer) {
                     LoadAlarmPromptState(
-                        loadId = load.id,
-                        tripId = load.tripId,
+                        loadId = persisted.id,
+                        tripId = persisted.tripId,
                         pickupMillis = offer.pickupMillis,
                         availablePresets = offer.availablePresets,
                     )
@@ -295,7 +326,7 @@ class AddLoadViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isSaving = false,
-                        savedLoad = load,
+                        savedLoad = persisted,
                         rawText = "",
                         manual = ManualLoadFields(date = todayIso()),
                         documentName = null,

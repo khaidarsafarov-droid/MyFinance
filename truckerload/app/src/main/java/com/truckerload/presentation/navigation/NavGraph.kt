@@ -94,8 +94,10 @@ fun NavGraph(
                 provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
                 authEmail.isNotBlank() &&
                 emailVerifyStore.isPending(authEmail)
-            needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(context)
-                .shouldPrompt(context)
+            needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(
+                context,
+                authStore.currentUserIdOrNull(),
+            ).shouldPrompt(context)
             launch { socialSyncCoordinator.ensureInitialized() }
             return@LaunchedEffect
         }
@@ -114,8 +116,10 @@ fun NavGraph(
             provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
             authEmail.isNotBlank() &&
             emailVerifyStore.isPending(authEmail)
-        needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(context)
-            .shouldPrompt(context)
+        needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(
+            context,
+            authStore.currentUserIdOrNull(),
+        ).shouldPrompt(context)
     }
     if (needsSetup == true) {
         ProfileSetupScreen(
@@ -132,7 +136,7 @@ fun NavGraph(
                     needsEmailVerify = false
                 }
                 needsTelegramOnboarding = com.truckerload.data.preferences
-                    .TelegramOnboardingStore(context)
+                    .TelegramOnboardingStore(context, authStore.currentUserIdOrNull())
                     .shouldPrompt(context)
             },
         )

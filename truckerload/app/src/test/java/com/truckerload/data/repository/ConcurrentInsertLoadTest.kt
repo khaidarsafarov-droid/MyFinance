@@ -3,6 +3,8 @@ package com.truckerload.data.repository
 import androidx.room.Room
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.Stop
+import com.truckerload.domain.model.StopType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -58,6 +60,30 @@ class ConcurrentInsertLoadTest {
         val all = repo.getAllLoadsOnce()
         assertEquals(8, all.size)
         assertTrue(all.map { it.id }.toSet().size == 8)
+    }
+
+    @Test
+    fun insertLoad_sameIdReplacesStopsWithoutOrphans() = runBlocking {
+        val first = sampleLoad("same").copy(
+            stops = listOf(
+                Stop(0, "same", 1, StopType.PU, null, null, "07/21 08:00 EDT", "EDT", null, "Austin, TX", "Austin", "TX", ""),
+                Stop(0, "same", 2, StopType.DEL, null, null, "07/21 18:00 EDT", "EDT", null, "Dallas, TX", "Dallas", "TX", ""),
+            ),
+        )
+        repo.insertLoad(first, playFeedback = false)
+        repo.insertLoad(
+            first.copy(
+                totalRate = 2000.0,
+                stops = listOf(
+                    Stop(0, "same", 1, StopType.PU, null, null, "07/22 08:00 EDT", "EDT", null, "Houston, TX", "Houston", "TX", ""),
+                ),
+            ),
+            playFeedback = false,
+        )
+        val loaded = repo.getLoadById("same")!!
+        assertEquals(2000.0, loaded.totalRate, 0.01)
+        assertEquals(1, loaded.stops.size)
+        assertEquals("Houston", loaded.stops[0].city)
     }
 
     private fun sampleLoad(id: String) = Load(

@@ -2,12 +2,14 @@ package com.truckerload.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import androidx.core.net.toUri
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.max
 
 /**
  * Turns a photo or PDF into plain text for [com.truckerload.domain.parser.MessageParseService].
@@ -40,21 +42,26 @@ class LoadDocumentTextExtractor(context: Context) {
         val pfd = openDescriptor(uri) ?: error("pdf_open_failed")
         val ocr = OCRService(appContext)
         val pageFiles = mutableListOf<File>()
+        // FIX: PdfRenderer owns the PFD and closes it; only close PFD if construction fails
+        val renderer = try {
+            PdfRenderer(pfd)
+        } catch (t: Throwable) {
+            runCatching { pfd.close() }
+            ocr.close()
+            throw t
+        }
         return try {
-            PdfRenderer(pfd).use { renderer ->
-                val pageCount = renderer.pageCount.coerceAtMost(MAX_PDF_PAGES)
+            renderer.use { pdf ->
+                val pageCount = pdf.pageCount.coerceAtMost(MAX_PDF_PAGES)
                 val parts = ArrayList<String>(pageCount)
                 for (index in 0 until pageCount) {
-                    renderer.openPage(index).use { page ->
-                        val bitmap = Bitmap.createBitmap(
-                            page.width.coerceAtLeast(1),
-                            page.height.coerceAtLeast(1),
-                            Bitmap.Config.ARGB_8888,
-                        )
-                        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    pdf.openPage(index).use { page ->
+                        val (width, height, matrix) = scaledPdfRender(page.width, page.height)
+                        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                        page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                         val file = File(appContext.cacheDir, "load_pdf_page_$index.jpg")
                         FileOutputStream(file).use { out ->
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
                         }
                         bitmap.recycle()
                         pageFiles += file
@@ -66,9 +73,20 @@ class LoadDocumentTextExtractor(context: Context) {
             }
         } finally {
             ocr.close()
-            runCatching { pfd.close() }
             pageFiles.forEach { it.delete() }
         }
+    }
+
+    /** Downscales huge PDF pages so ARGB bitmaps stay under [MAX_PDF_EDGE_PX]. */
+    private fun scaledPdfRender(pageWidth: Int, pageHeight: Int): Triple<Int, Int, Matrix?> {
+        val srcW = pageWidth.coerceAtLeast(1)
+        val srcH = pageHeight.coerceAtLeast(1)
+        val longest = max(srcW, srcH)
+        if (longest <= MAX_PDF_EDGE_PX) return Triple(srcW, srcH, null)
+        val scale = MAX_PDF_EDGE_PX.toFloat() / longest.toFloat()
+        val width = (srcW * scale).toInt().coerceAtLeast(1)
+        val height = (srcH * scale).toInt().coerceAtLeast(1)
+        return Triple(width, height, Matrix().apply { setScale(scale, scale) })
     }
 
     private fun openDescriptor(uri: Uri): ParcelFileDescriptor? {
@@ -82,5 +100,7 @@ class LoadDocumentTextExtractor(context: Context) {
 
     companion object {
         private const val MAX_PDF_PAGES = 8
+        // FIX: full-page ARGB bitmaps on large PDFs can OOM on tablets
+        private const val MAX_PDF_EDGE_PX = 2048
     }
 }
