@@ -101,6 +101,8 @@ android {
         buildConfigField("String", "TURN_URI", "\"$turnUri\"")
         buildConfigField("String", "TURN_USERNAME", "\"$turnUsername\"")
         buildConfigField("String", "TURN_CREDENTIAL", "\"$turnCredential\"")
+        val maxGroupCall = localProps.getProperty("MAX_GROUP_CALL_PARTICIPANTS", "8").toIntOrNull() ?: 8
+        buildConfigField("int", "MAX_GROUP_CALL_PARTICIPANTS", maxGroupCall.coerceIn(2, 50).toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
         // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
         // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a

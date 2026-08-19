@@ -22,6 +22,7 @@ import com.truckerload.presentation.screens.social.StatusScreen
 import com.truckerload.presentation.screens.voice.CallScreen
 import com.truckerload.presentation.screens.voice.VoiceRoomScreen
 import com.truckerload.presentation.screens.voice.VoiceRoomsScreen
+import com.truckerload.presentation.screens.voice.rememberMicCallGate
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 import kotlinx.coroutines.flow.first
@@ -65,6 +66,7 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
             chatId = chatId,
             onBack = { navController.popBackStack() },
             onOpenChat = { navController.navigate(Routes.socialChat(it)) },
+            onOpenVoiceRoom = { roomId -> navController.navigate(Routes.voiceRoom(roomId)) },
         )
     }
     composable(
@@ -76,16 +78,20 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
         val profileRepository = LocalProfileRepository.current
         val scope = rememberCoroutineScope()
         val callerFallbackName = stringResource(R.string.social_you)
+        val startWithMic = rememberMicCallGate()
         PeerProfileScreen(
             peerId = peerId,
             onBack = { navController.popBackStack() },
             onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
             onStartCall = { calleeId, calleeName ->
-                scope.launch {
-                    val callerName = profileRepository.watchMyProfile().first().displayName.ifBlank { callerFallbackName }
-                    voiceRepository.startCall(calleeId, calleeName, callerName)
-                        .getOrNull()
-                        ?.let { call -> navController.navigate(Routes.call(call.callId)) }
+                startWithMic {
+                    scope.launch {
+                        val callerName = profileRepository.watchMyProfile().first().displayName
+                            .ifBlank { callerFallbackName }
+                        voiceRepository.startCall(calleeId, calleeName, callerName)
+                            .getOrNull()
+                            ?.let { call -> navController.navigate(Routes.call(call.callId)) }
+                    }
                 }
             },
         )
@@ -115,10 +121,29 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
         arguments = listOf(navArgument("chatId") { type = NavType.StringType }),
     ) { backStackEntry ->
         val chatId = backStackEntry.arguments?.getString("chatId").orEmpty()
+        val voiceRepository = LocalVoiceRepository.current
+        val profileRepository = LocalProfileRepository.current
+        val scope = rememberCoroutineScope()
+        val callerFallbackName = stringResource(R.string.social_you)
+        val startWithMic = rememberMicCallGate()
         SocialChatScreen(
             chatId = chatId,
             onBack = { navController.popBackStack() },
             onOpenPeerProfile = { peerId -> navController.navigate(Routes.peerProfile(peerId)) },
+            onStartCall = { calleeId, calleeName ->
+                startWithMic {
+                    scope.launch {
+                        val callerName = profileRepository.watchMyProfile().first().displayName
+                            .ifBlank { callerFallbackName }
+                        voiceRepository.startCall(calleeId, calleeName, callerName)
+                            .getOrNull()
+                            ?.let { call -> navController.navigate(Routes.call(call.callId)) }
+                    }
+                }
+            },
+            onOpenVoiceRoom = { roomId ->
+                startWithMic { navController.navigate(Routes.voiceRoom(roomId)) }
+            },
         )
     }
     composable(Routes.VOICE_ROOMS) {
@@ -140,11 +165,13 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
     composable(
         route = Routes.CALL,
         arguments = listOf(navArgument("callId") { type = NavType.StringType }),
-    ) { backStackEntry ->
-        val callId = backStackEntry.arguments?.getString("callId").orEmpty()
+    ) {
         CallScreen(
-            callId = callId,
             onBack = { navController.popBackStack() },
+            onOpenChat = { chatId -> navController.navigate(Routes.socialChat(chatId)) },
+            onRedialNavigate = { newCallId ->
+                navController.navigate(Routes.call(newCallId)) { launchSingleTop = true }
+            },
         )
     }
 }

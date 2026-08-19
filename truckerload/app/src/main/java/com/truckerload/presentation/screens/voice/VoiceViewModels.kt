@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.social.ProfileRepository
-import com.truckerload.domain.voice.CallState
-import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.VoiceRoom
 import com.truckerload.domain.voice.VoiceRoomRole
 import com.truckerload.domain.voice.VoiceTransportKind
@@ -18,12 +16,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -271,6 +267,22 @@ class VoiceRoomViewModel @Inject constructor(
         }
     }
 
+    fun muteAll() {
+        viewModelScope.launch {
+            voiceRepository.muteAll(roomId).onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
+        }
+    }
+
+    fun kick(userId: String) {
+        viewModelScope.launch {
+            voiceRepository.kickParticipant(roomId, userId).onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
+        }
+    }
+
     fun clearError() {
         _local.value = _local.value.copy(errorMessage = null)
     }
@@ -290,108 +302,5 @@ class VoiceRoomViewModel @Inject constructor(
     }
 }
 
-private fun Throwable.toUiMessage(): String =
+internal fun Throwable.toUiMessage(): String =
     localizedMessage ?: message ?: javaClass.simpleName
-
-data class CallUiState(
-    val call: CallState? = null,
-    val isMuted: Boolean = false,
-    val durationSeconds: Long = 0,
-)
-
-@HiltViewModel
-class CallViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    private val voiceRepository: VoiceRepository,
-) : ViewModel() {
-    private val callId = Uri.decode(savedStateHandle.get<String>("callId").orEmpty())
-    private val _local = MutableStateFlow(CallUiState())
-    val uiState: StateFlow<CallUiState> = _local.asStateFlow()
-    private var ticker: Job? = null
-    private var audioStarted = false
-
-    init {
-        viewModelScope.launch {
-            voiceRepository.watchCall(callId).collect { call ->
-                _local.value = _local.value.copy(call = call)
-                if (call?.status == CallStatus.ACTIVE && ticker == null) {
-                    startTicker(call.startedAt)
-                }
-                if (call?.status == CallStatus.ACTIVE && !audioStarted) {
-                    audioStarted = true
-                    voiceRepository.beginCallAudio(
-                        viewModelScope,
-                        callId,
-                        isCaller = call.isIncoming != true,
-                    )
-                }
-            }
-        }
-        viewModelScope.launch {
-            while (isActive) {
-                delay(500)
-                runCatching { voiceRepository.pullRemote() }
-            }
-        }
-    }
-
-    private fun startTicker(startedAt: Long) {
-        ticker?.cancel()
-        ticker = viewModelScope.launch {
-            while (isActive) {
-                val seconds = ((System.currentTimeMillis() - startedAt) / 1000).coerceAtLeast(0)
-                _local.value = _local.value.copy(durationSeconds = seconds)
-                delay(1_000)
-            }
-        }
-    }
-
-    fun toggleMute() {
-        val next = !_local.value.isMuted
-        voiceRepository.setCallMuted(next)
-        _local.value = _local.value.copy(isMuted = next)
-    }
-
-    fun endCall(onEnded: () -> Unit) {
-        viewModelScope.launch {
-            voiceRepository.endCall(callId)
-            onEnded()
-        }
-    }
-
-    override fun onCleared() {
-        ticker?.cancel()
-        super.onCleared()
-    }
-}
-
-@HiltViewModel
-class IncomingCallViewModel @Inject constructor(
-    private val voiceRepository: VoiceRepository,
-) : ViewModel() {
-    val incomingCall: StateFlow<CallState?> =
-        voiceRepository.watchIncomingCall()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    init {
-        viewModelScope.launch {
-            while (isActive) {
-                delay(3_000)
-                runCatching { voiceRepository.pullRemote() }
-            }
-        }
-    }
-
-    fun accept(callId: String, onAccepted: (String) -> Unit) {
-        viewModelScope.launch {
-            voiceRepository.acceptCall(callId).onSuccess {
-                voiceRepository.beginCallAudio(viewModelScope, callId, isCaller = false)
-                onAccepted(callId)
-            }
-        }
-    }
-
-    fun reject(callId: String) {
-        viewModelScope.launch { voiceRepository.rejectCall(callId) }
-    }
-}

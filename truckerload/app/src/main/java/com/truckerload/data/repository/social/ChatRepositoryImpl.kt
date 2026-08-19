@@ -102,6 +102,7 @@ class ChatRepositoryImpl(
             MessageType.IMAGE -> "📷 Photo"
             MessageType.VOICE -> "🎤 Voice"
             MessageType.ANNOUNCEMENT -> "📌 $trimmed"
+            MessageType.CALL -> trimmed.ifBlank { "📞 Call" }
             MessageType.TEXT -> trimmed
         }
         val messageId = UUID.randomUUID().toString()

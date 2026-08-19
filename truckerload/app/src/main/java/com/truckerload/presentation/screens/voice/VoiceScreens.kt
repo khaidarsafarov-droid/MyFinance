@@ -339,6 +339,7 @@ fun VoiceRoomScreen(
                                     showEdit = true
                                 },
                                 onModerator = { showModerator = true },
+                                onMuteAll = { viewModel.muteAll() },
                                 onDelete = { showDelete = true },
                             )
                         }
@@ -348,6 +349,8 @@ fun VoiceRoomScreen(
                     Text(
                         text = if (message == "room_gone") {
                             stringResource(R.string.voice_room_gone)
+                        } else if (message == "room_full") {
+                            stringResource(R.string.voice_room_full)
                         } else {
                             message
                         },
@@ -375,6 +378,11 @@ fun VoiceRoomScreen(
                                 } else {
                                     stringResource(R.string.voice_role_speaker)
                                 }
+                            } else {
+                                null
+                            },
+                            onKick = if (canManage && !participant.isMe) {
+                                { viewModel.kick(participant.userId) }
                             } else {
                                 null
                             },

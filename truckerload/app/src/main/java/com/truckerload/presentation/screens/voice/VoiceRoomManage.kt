@@ -207,6 +207,7 @@ fun VoiceRoomOwnerMenu(
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
     onModerator: () -> Unit,
+    onMuteAll: () -> Unit = {},
     onDelete: () -> Unit,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
@@ -215,6 +216,13 @@ fun VoiceRoomOwnerMenu(
             onClick = {
                 onDismiss()
                 onEdit()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.voice_mute_all)) },
+            onClick = {
+                onDismiss()
+                onMuteAll()
             },
         )
         if (canDelete) {
@@ -255,6 +263,30 @@ fun rememberMicPermission(): Boolean {
 }
 
 @Composable
+fun rememberMicCallGate(): (() -> Unit) -> Unit {
+    val context = LocalContext.current
+    val pending = remember { mutableStateOf<(() -> Unit)?>(null) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { ok ->
+        if (ok) pending.value?.invoke()
+        pending.value = null
+    }
+    return { action ->
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            action()
+        } else {
+            pending.value = action
+            launcher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+}
+
+@Composable
 internal fun MicPermissionPrompt(modifier: Modifier = Modifier) {
     val tc = LocalTruckColors.current
     val launcher = rememberLauncherForActivityResult(
@@ -285,6 +317,7 @@ internal fun VoiceParticipantItem(
     participant: VoiceParticipant,
     isModerator: Boolean = false,
     roleLabel: String? = null,
+    onKick: (() -> Unit)? = null,
 ) {
     val tc = LocalTruckColors.current
     Column(
@@ -342,6 +375,14 @@ internal fun VoiceParticipantItem(
                 contentDescription = null,
                 tint = SoftUiColors.VoiceDanger,
                 modifier = Modifier.size(14.dp),
+            )
+        }
+        if (onKick != null) {
+            Text(
+                text = stringResource(R.string.voice_kick),
+                color = SoftUiColors.VoiceDanger,
+                fontSize = 9.sp,
+                modifier = Modifier.clickable(onClick = onKick),
             )
         }
     }

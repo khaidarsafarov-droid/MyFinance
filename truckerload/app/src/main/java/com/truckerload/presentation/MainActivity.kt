@@ -35,6 +35,7 @@ import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.preferences.CallPrivacyStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.StartupRepairStore
 import com.truckerload.data.preferences.TelegramTokenStore
@@ -50,6 +51,7 @@ import com.truckerload.presentation.di.LocalAiRepository
 import com.truckerload.presentation.di.LocalAnalyticsRepository
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
+import com.truckerload.presentation.di.LocalCallPrivacyStore
 import com.truckerload.presentation.di.LocalDieselRepository
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalMaintenanceRepository
@@ -100,6 +102,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var userComponentManager: UserComponentManager
+
+    @Inject
+    lateinit var callPrivacyStore: CallPrivacyStore
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
@@ -279,6 +284,7 @@ class MainActivity : AppCompatActivity() {
                                     LocalProfileRepository provides deps.profileRepository,
                                     LocalSocialSyncCoordinator provides deps.socialSyncCoordinator,
                                     LocalVoiceRepository provides deps.voiceRepository,
+                                    LocalCallPrivacyStore provides callPrivacyStore,
                                     LocalMaintenanceRepository provides deps.maintenanceRepository,
                                 ) {
                                     com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {

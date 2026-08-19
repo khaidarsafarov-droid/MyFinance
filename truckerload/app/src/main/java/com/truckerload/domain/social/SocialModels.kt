@@ -35,7 +35,7 @@ data class Badge(
 
 enum class ChatType { PRIVATE, GROUP, CHANNEL }
 
-enum class MessageType { TEXT, IMAGE, VOICE, ANNOUNCEMENT }
+enum class MessageType { TEXT, IMAGE, VOICE, ANNOUNCEMENT, CALL }
 
 data class SocialChat(
     val id: String,
