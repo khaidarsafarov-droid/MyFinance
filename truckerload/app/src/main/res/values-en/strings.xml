@@ -114,6 +114,10 @@
     <string name="auth_error_user_exists">A user with these credentials already exists</string>
     <string name="auth_error_network">No internet connection. Check your network.</string>
     <string name="auth_error_login_invalid">Sign-in error. Check your email or password</string>
+    <string name="auth_error_device_slot_phone">This account is already in use on another phone. You can also use one tablet, but not a second phone.</string>
+    <string name="auth_error_device_slot_tablet">This account is already in use on another tablet. You can also use one phone, but not a second tablet.</string>
+    <string name="auth_error_device_slot_unavailable">Couldn’t verify this device. Check your internet connection and try again.</string>
+    <string name="auth_device_limit_hint">You can use this account on one phone and one tablet. Your data syncs between them.</string>
     <string name="auth_error_no_network">No network connection</string>
     <string name="auth_remember_me">Remember me</string>
     <string name="auth_error_email_invalid">Invalid email address</string>

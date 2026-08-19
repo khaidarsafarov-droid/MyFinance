@@ -84,6 +84,36 @@ class RemoteAccountCloudClientTest {
     }
 
     @Test
+    fun `device register posts form factor and maps 409 to slot taken`() = runBlocking {
+        server.enqueue(
+            MockResponse().setResponseCode(200)
+                .setBody(
+                    """{"deviceId":"device-1","formFactor":"phone","registeredAt":1,"lastSeenAt":1}""",
+                ),
+        )
+        client().registerDevice("device-1", "phone")
+        val registered = server.takeRequest()
+        assertEquals("/v1/devices/register", registered.path)
+        assertEquals("POST", registered.method)
+        assertTrue(registered.body.readUtf8().contains("\"formFactor\":\"phone\""))
+
+        server.enqueue(MockResponse().setResponseCode(409).setBody("""{"code":"device_slot_taken"}"""))
+        val denied = assertThrows(DeviceSlotTakenException::class.java) {
+            runBlocking { client().registerDevice("device-1", "phone") }
+        }
+        assertEquals("phone", denied.formFactor)
+    }
+
+    @Test
+    fun `device unregister deletes this device id`() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(204))
+        client().unregisterDevice()
+        val request = server.takeRequest()
+        assertEquals("DELETE", request.method)
+        assertEquals("/v1/devices/register?deviceId=device-1", request.path)
+    }
+
+    @Test
     fun `stale LWW response is not an acknowledgement of outgoing data`() {
         server.enqueue(
             MockResponse().setResponseCode(200)

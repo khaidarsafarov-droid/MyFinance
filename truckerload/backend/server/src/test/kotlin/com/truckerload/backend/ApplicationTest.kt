@@ -3,8 +3,12 @@ package com.truckerload.backend
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.truckerload.contract.AccountCloudSnapshot
+import com.truckerload.contract.ApiError
 import com.truckerload.contract.ContractJson
 import com.truckerload.contract.DevicePushTokenRequest
+import com.truckerload.contract.DeviceRegisterRequest
+import com.truckerload.contract.DeviceRegisterResponse
+import com.truckerload.contract.DeviceSlotPolicy
 import com.truckerload.contract.HealthResponse
 import com.truckerload.contract.MediaKind
 import com.truckerload.contract.MediaListResponse
@@ -367,6 +371,87 @@ class ApplicationTest {
         }
 
         assertEquals(emptyList(), notifier.deliveries)
+    }
+
+    @Test
+    fun `account can register one phone and one tablet but not a second phone`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(AppConfig.test(), AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+        val client = jsonClient()
+
+        val phone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-a", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, phone.status)
+        assertEquals(DeviceSlotPolicy.PHONE, phone.body<DeviceRegisterResponse>().formFactor)
+
+        val samePhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-a", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, samePhone.status)
+
+        val tablet = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("tablet-a", DeviceSlotPolicy.TABLET))
+        }
+        assertEquals(HttpStatusCode.OK, tablet.status)
+
+        val secondPhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-b", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.Conflict, secondPhone.status)
+        assertEquals(DeviceSlotPolicy.SLOT_TAKEN_CODE, secondPhone.body<ApiError>().code)
+
+        val otherUserPhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userTwo))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-b", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, otherUserPhone.status)
+
+        client.delete("/v1/devices/register?deviceId=phone-a") {
+            bearerAuth(token(userTwo))
+        }
+        assertTrue(backend.accountDevices.containsKey(userOne to "phone-a"))
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.delete("/v1/devices/register?deviceId=phone-a") {
+                bearerAuth(token(userOne))
+            }.status,
+        )
+        assertFalse(backend.accountDevices.containsKey(userOne to "phone-a"))
+
+        val replacementPhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-b", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, replacementPhone.status)
+    }
+
+    @Test
+    fun `device registration rejects invalid form factor`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(AppConfig.test(), AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+        val rejected = jsonClient().post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-a", "laptop"))
+        }
+        assertEquals(HttpStatusCode.BadRequest, rejected.status)
+        assertEquals("invalid_form_factor", rejected.body<ApiError>().code)
     }
 
     @Test

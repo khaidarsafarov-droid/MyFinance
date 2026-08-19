@@ -36,6 +36,7 @@ class CloudSyncPolicyTest {
 
     @Test
     fun needsFullHydration_onlyWhenEmptyLocalAndRemoteHasData() {
+        // New tablet (never synced, empty Room) restores the phone's account snapshot.
         assertTrue(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 0, remoteEntityCount = 5))
         assertTrue(CloudSyncPolicy.needsFullHydration(-1L, localEntityCount = 0, remoteEntityCount = 1))
         assertFalse(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 2, remoteEntityCount = 5))

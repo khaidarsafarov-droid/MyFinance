@@ -21,6 +21,7 @@ import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.data.remote.SupabaseAuthService
+import com.truckerload.data.sync.DeviceSlotLogin
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import kotlinx.coroutines.Dispatchers
@@ -65,31 +66,41 @@ fun rememberGoogleSignInLauncher(
         refreshToken: String? = null,
         googleId: String? = null,
     ) {
-        val ok = AuthLogin.tryCompleteLogin(
-            authStore = authStore,
-            userProfileStore = userProfileStore,
-            supabaseUserId = supabaseUserId,
-            profile = UserProfile(
-                email = email,
-                givenName = givenName,
-                familyName = familyName,
-                photoUrl = photoUrl,
-                phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
-                googleId = googleId?.takeIf { it.isNotBlank() },
-            ),
-            rememberMe = true,
-            accessToken = accessToken,
-            refreshToken = refreshToken,
-        )
-        callbacksState.value.onBusy(false)
-        if (ok) {
-            callbacksState.value.onSignedIn()
-        } else {
-            Toast.makeText(
-                context,
-                context.getString(R.string.auth_error_email_required),
-                Toast.LENGTH_LONG,
-            ).show()
+        scope.launch {
+            val persisted = withContext(Dispatchers.IO) {
+                val ok = AuthLogin.tryCompleteLogin(
+                    authStore = authStore,
+                    userProfileStore = userProfileStore,
+                    supabaseUserId = supabaseUserId,
+                    profile = UserProfile(
+                        email = email,
+                        givenName = givenName,
+                        familyName = familyName,
+                        photoUrl = photoUrl,
+                        phoneNumber = phoneNumber?.takeIf { it.isNotBlank() },
+                        googleId = googleId?.takeIf { it.isNotBlank() },
+                    ),
+                    rememberMe = true,
+                    accessToken = accessToken,
+                    refreshToken = refreshToken,
+                )
+                if (!ok) {
+                    Result.failure(IllegalStateException(context.getString(R.string.auth_error_email_required)))
+                } else {
+                    DeviceSlotLogin.afterSessionPersisted(context, authStore)
+                }
+            }
+            callbacksState.value.onBusy(false)
+            persisted.fold(
+                onSuccess = { callbacksState.value.onSignedIn() },
+                onFailure = { error ->
+                    Toast.makeText(
+                        context,
+                        error.message ?: context.getString(R.string.auth_error_email_required),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                },
+            )
         }
     }
 

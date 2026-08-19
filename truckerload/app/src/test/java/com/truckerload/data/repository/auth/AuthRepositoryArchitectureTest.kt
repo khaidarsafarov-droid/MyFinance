@@ -23,6 +23,15 @@ class AuthRepositoryArchitectureTest {
         assertTrue(!source.contains("saveProfileAndLogin"))
     }
 
+    @Test
+    fun cloudLogin_registersDeviceSlotBeforeKeepingSession() {
+        val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
+        assertTrue(auth.contains("DeviceSlotLogin.afterSessionPersisted"))
+        val engine = readMainSource("com/truckerload/data/sync/CloudSyncEngine.kt")
+        assertTrue(engine.contains("DEVICE_SLOT_DENIED"))
+        assertTrue(engine.contains("registerCurrentDevice"))
+    }
+
     private fun readMainSource(relativePath: String): String {
         val candidates = listOf(
             File("src/main/java/$relativePath"),

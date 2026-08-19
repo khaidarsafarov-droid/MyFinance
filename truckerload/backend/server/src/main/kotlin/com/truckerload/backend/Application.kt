@@ -6,6 +6,9 @@ import com.truckerload.contract.AccountCloudSnapshot
 import com.truckerload.contract.ApiError
 import com.truckerload.contract.ContractJson
 import com.truckerload.contract.DevicePushTokenRequest
+import com.truckerload.contract.DeviceRegisterRequest
+import com.truckerload.contract.DeviceRegisterResponse
+import com.truckerload.contract.DeviceSlotPolicy
 import com.truckerload.contract.HealthResponse
 import com.truckerload.contract.MediaKind
 import com.truckerload.contract.MediaListResponse
@@ -356,6 +359,26 @@ private fun io.ktor.server.routing.Route.syncRoutes(
 
 private fun io.ktor.server.routing.Route.deviceRoutes(repositories: Repositories) {
     route("/devices") {
+        post("/register") {
+            val user = call.authenticatedUser(repositories)
+            val request = call.receiveJson<DeviceRegisterRequest>(MAX_SMALL_JSON_BODY_BYTES)
+            val deviceId = validDeviceId(request.deviceId)
+            val formFactor = validFormFactor(request.formFactor)
+            when (val claimed = repositories.accountDevices.claim(user.id, deviceId, formFactor)) {
+                is DeviceClaimResult.Claimed -> call.respond(claimed.record.toRegisterResponse())
+                is DeviceClaimResult.SlotTaken -> throw ApiException(
+                    HttpStatusCode.Conflict,
+                    DeviceSlotPolicy.SLOT_TAKEN_CODE,
+                    "This account already has a registered ${claimed.formFactor}",
+                )
+            }
+        }
+        delete("/register") {
+            val user = call.authenticatedUser(repositories)
+            val deviceId = validDeviceId(call.request.queryParameters["deviceId"])
+            repositories.accountDevices.delete(user.id, deviceId)
+            call.respond(HttpStatusCode.NoContent)
+        }
         put("/push-token") {
             val user = call.authenticatedUser(repositories)
             val request = call.receiveJson<DevicePushTokenRequest>(MAX_SMALL_JSON_BODY_BYTES)
@@ -782,6 +805,21 @@ private fun validDeviceId(value: String?): String {
     }
     return deviceId
 }
+
+private fun validFormFactor(value: String): String =
+    DeviceSlotPolicy.normalize(value)
+        ?: throw ApiException(
+            HttpStatusCode.BadRequest,
+            "invalid_form_factor",
+            "formFactor must be phone or tablet",
+        )
+
+private fun AccountDeviceRecord.toRegisterResponse() = DeviceRegisterResponse(
+    deviceId = deviceId,
+    formFactor = formFactor,
+    registeredAt = registeredAt,
+    lastSeenAt = lastSeenAt,
+)
 
 private fun validPushToken(value: String): String {
     val token = value.trim()

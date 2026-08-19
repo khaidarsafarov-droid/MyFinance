@@ -76,4 +76,17 @@ class ContractsTest {
             ),
         )
     }
+
+    @Test
+    fun `device register contract round trips and classifies tablets by smallest width`() {
+        val request = DeviceRegisterRequest("device-1", DeviceSlotPolicy.TABLET)
+        assertEquals(
+            request,
+            ContractJson.decodeFromString<DeviceRegisterRequest>(ContractJson.encodeToString(request)),
+        )
+        assertEquals(DeviceSlotPolicy.PHONE, DeviceSlotPolicy.fromSmallestWidthDp(599))
+        assertEquals(DeviceSlotPolicy.TABLET, DeviceSlotPolicy.fromSmallestWidthDp(600))
+        assertEquals(DeviceSlotPolicy.PHONE, DeviceSlotPolicy.normalize("PHONE"))
+        assertEquals(null, DeviceSlotPolicy.normalize("laptop"))
+    }
 }

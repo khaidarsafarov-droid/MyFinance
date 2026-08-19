@@ -114,6 +114,10 @@
     <string name="auth_error_user_exists">Пользователь с такими данными уже существует</string>
     <string name="auth_error_network">Нет подключения к интернету. Проверьте сеть.</string>
     <string name="auth_error_login_invalid">Ошибка входа. Проверьте почту или пароль</string>
+    <string name="auth_error_device_slot_phone">Этот аккаунт уже используется на другом телефоне. Можно войти ещё на одном планшете, но не на втором телефоне.</string>
+    <string name="auth_error_device_slot_tablet">Этот аккаунт уже используется на другом планшете. Можно войти ещё на одном телефоне, но не на втором планшете.</string>
+    <string name="auth_error_device_slot_unavailable">Не удалось проверить это устройство. Проверьте интернет и попробуйте снова.</string>
+    <string name="auth_device_limit_hint">Аккаунт можно использовать на одном телефоне и одном планшете. Данные синхронизируются между ними.</string>
     <string name="auth_error_no_network">Нет соединения с сетью</string>
     <string name="auth_remember_me">Запомнить меня</string>
     <string name="auth_error_email_invalid">Некорректный адрес email</string>
