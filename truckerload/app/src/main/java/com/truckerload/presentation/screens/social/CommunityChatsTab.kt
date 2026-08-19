@@ -59,7 +59,7 @@ internal fun ChatsTabContent(
     peers: List<com.truckerload.domain.social.SocialPeerProfile>,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
-    onCreateGroup: (String) -> Unit,
+    onCreateGroup: (String, String) -> Unit,
     onCreatePrivateWithPeer: (String) -> Unit,
     onChatClick: (String) -> Unit,
     onOpenVoiceRooms: () -> Unit,
@@ -78,25 +78,37 @@ internal fun ChatsTabContent(
     var showGroupDialog by remember { mutableStateOf(false) }
     var showPeerPicker by remember { mutableStateOf(false) }
     var chatNameInput by remember { mutableStateOf("") }
+    var chatDescriptionInput by remember { mutableStateOf("") }
 
     if (showGroupDialog) {
         AlertDialog(
             onDismissRequest = { showGroupDialog = false },
             title = { Text(stringResource(R.string.social_create_group)) },
             text = {
-                OutlinedTextField(
-                    value = chatNameInput,
-                    onValueChange = { chatNameInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.social_chat_name_hint)) },
-                    singleLine = true,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = chatNameInput,
+                        onValueChange = { chatNameInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.social_chat_name_hint)) },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = chatDescriptionInput,
+                        onValueChange = { chatDescriptionInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.social_group_description)) },
+                        minLines = 2,
+                        maxLines = 4,
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onCreateGroup(chatNameInput)
+                        onCreateGroup(chatNameInput, chatDescriptionInput)
                         chatNameInput = ""
+                        chatDescriptionInput = ""
                         showGroupDialog = false
                     },
                     enabled = chatNameInput.isNotBlank(),

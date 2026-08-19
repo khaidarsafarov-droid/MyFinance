@@ -52,5 +52,6 @@ class LocalSignalingService(
         sdpMid = sdpMid,
         sdpMLineIndex = sdpMLineIndex,
         timestamp = timestamp,
+        id = id,
     )
 }

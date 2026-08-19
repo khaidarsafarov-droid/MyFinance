@@ -12,6 +12,7 @@ import com.truckerload.data.voice.HybridSignalingService
 import com.truckerload.data.voice.SignalingService
 import com.truckerload.data.voice.WebRtcAudioEngine
 import com.truckerload.data.voice.WebRtcCallManager
+import com.truckerload.data.voice.WebRtcRoomMesh
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.CallType
@@ -42,9 +43,12 @@ class VoiceRepository(
     val signaling: SignalingService = HybridSignalingService(db.voiceSignalDao(), voiceRemote)
     private val hybridSignals = signaling as HybridSignalingService
     private val callManager = WebRtcCallManager(context, signaling, actorId())
+    private val roomMesh = WebRtcRoomMesh(context, signaling, actorId())
 
     private var activeRoomId: String? = null
     private var activeCallId: String? = null
+
+    fun currentUserId(): String = actorId()
 
     suspend fun ensureInitialized() {
         participantDao.deleteAllInRooms(SocialDemoCleanup.DEMO_VOICE_ROOM_IDS)
@@ -54,7 +58,9 @@ class VoiceRepository(
 
     suspend fun pullRemote() {
         if (!voiceRemote.isReady()) return
-        voiceRemote.listRooms().getOrNull().orEmpty().forEach { room ->
+        val remoteRooms = voiceRemote.listRooms().getOrElse { return }
+        val now = System.currentTimeMillis()
+        remoteRooms.forEach { room ->
             roomDao.upsert(
                 VoiceRoomEntity(
                     id = room.id,
@@ -65,21 +71,31 @@ class VoiceRepository(
                     isActive = room.isActive,
                     createdAt = room.createdAt,
                     updatedAt = room.createdAt,
+                    description = room.description,
+                    moderatorId = room.moderatorId,
                 ),
             )
+        }
+        val remoteIds = remoteRooms.map { it.id }
+        val staleBefore = now - 30_000
+        if (remoteIds.isEmpty()) {
+            roomDao.deactivateAllStale(now, staleBefore)
+        } else {
+            roomDao.deactivateNotInStale(remoteIds, now, staleBefore)
         }
         val parts = voiceRemote.listParticipants().getOrNull().orEmpty()
         if (parts.isNotEmpty()) {
             participantDao.upsertAll(
                 parts.map { p ->
+                    val existing = participantDao.get(p.roomId, p.userId)
                     VoiceRoomParticipantEntity(
                         roomId = p.roomId,
                         userId = p.userId,
                         displayName = p.displayName,
                         isMuted = p.muted,
                         isDeafened = p.deafened,
-                        isSpeaking = false,
-                        audioLevel = 0,
+                        isSpeaking = existing?.isSpeaking ?: false,
+                        audioLevel = existing?.audioLevel ?: 0,
                         joinedAt = p.joinedAt,
                     )
                 },
@@ -102,7 +118,7 @@ class VoiceRepository(
                 ),
             )
         }
-        activeRoomId?.let { hybridSignals.pullRemote(it) }
+        activeRoomId?.let { hybridSignals.pullRoom(it) }
         activeCallId?.let { hybridSignals.pullRemote(it) }
     }
 
@@ -140,32 +156,42 @@ class VoiceRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun createRoom(name: String, type: VoiceRoomType = VoiceRoomType.PUBLIC): Result<String> = runCatching {
+    suspend fun createRoom(
+        name: String,
+        type: VoiceRoomType = VoiceRoomType.PUBLIC,
+        description: String = "",
+    ): Result<String> = runCatching {
         val id = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
+        val title = name.ifBlank { "New room" }
+        if (voiceRemote.isReady()) {
+            voiceRemote.createRoom(id, title, description.trim()).getOrThrow()
+        }
         roomDao.upsert(
             VoiceRoomEntity(
                 id = id,
-                name = name.ifBlank { "New room" },
+                name = title,
                 type = type.name,
                 creatorId = actorId(),
                 maxParticipants = 50,
                 isActive = true,
                 createdAt = now,
                 updatedAt = now,
+                description = description.trim(),
+                moderatorId = "",
             ),
         )
-        if (voiceRemote.isReady()) {
-            voiceRemote.createRoom(id, name.ifBlank { "New room" })
-        }
         id
     }
 
-    suspend fun joinRoom(roomId: String, displayName: String): Result<Unit> = runCatching {
+    suspend fun joinRoom(
+        roomId: String,
+        displayName: String,
+        audioScope: CoroutineScope,
+    ): Result<Unit> = runCatching {
         activeRoomId = roomId
         val settings = qualityManager.adjustForNetwork()
-        audioEngine.initialize().getOrThrow()
-        audioEngine.startLocalAudio(settings).getOrThrow()
+        roomMesh.start(audioScope, roomId, settings)
         participantDao.upsert(
             VoiceRoomParticipantEntity(
                 roomId = roomId,
@@ -186,6 +212,10 @@ class VoiceRepository(
         }
     }
 
+    fun syncRoomPeers(remoteUserIds: Collection<String>) {
+        roomMesh.syncPeers(remoteUserIds)
+    }
+
     suspend fun leaveRoom(roomId: String): Result<Unit> = runCatching {
         participantDao.remove(roomId, actorId())
         signaling.sendSignal(
@@ -193,7 +223,7 @@ class VoiceRepository(
             Signal(type = SignalType.LEAVE, fromUserId = actorId()),
         )
         if (activeRoomId == roomId) {
-            audioEngine.stopLocalAudio()
+            roomMesh.stop()
             activeRoomId = null
         }
         if (voiceRemote.isReady()) {
@@ -202,7 +232,7 @@ class VoiceRepository(
     }
 
     suspend fun setMuted(roomId: String, muted: Boolean) {
-        audioEngine.setMuted(muted)
+        roomMesh.setMuted(muted)
         participantDao.setMuted(roomId, actorId(), muted)
         signaling.sendSignal(
             roomId,
@@ -211,21 +241,78 @@ class VoiceRepository(
                 fromUserId = actorId(),
             ),
         )
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateParticipant(roomId, muted = muted)
+        }
     }
 
     suspend fun setDeafened(roomId: String, deafened: Boolean) {
-        audioEngine.setVolumeLevel(if (deafened) 0f else 1f)
+        roomMesh.setDeafened(deafened)
         participantDao.setDeafened(roomId, actorId(), deafened)
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateParticipant(roomId, deafened = deafened)
+        }
     }
 
     suspend fun updateSpeakingLevel(roomId: String) {
-        val level = audioEngine.localAudioLevel()
-        participantDao.setSpeaking(
-            roomId,
-            actorId(),
-            speaking = level > 20,
-            level = level,
+        roomMesh.pollAudioLevels()
+        roomMesh.speakingSnapshot().forEach { (userId, level) ->
+            participantDao.setSpeaking(
+                roomId,
+                userId,
+                speaking = level > 8,
+                level = level,
+            )
+        }
+    }
+
+    suspend fun updateRoom(
+        roomId: String,
+        name: String? = null,
+        description: String? = null,
+        moderatorId: String? = null,
+        clearModerator: Boolean = false,
+    ): Result<Unit> = runCatching {
+        val existing = roomDao.getRoom(roomId) ?: error("Room not found")
+        val me = actorId()
+        if (!existing.toDomain(emptyList()).canManage(me)) error("not allowed")
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateRoom(
+                id = roomId,
+                title = name,
+                description = description,
+                moderatorId = moderatorId,
+                clearModerator = clearModerator,
+            ).getOrThrow()
+        }
+        val nextModerator = when {
+            clearModerator -> ""
+            moderatorId != null -> moderatorId
+            else -> existing.moderatorId
+        }
+        roomDao.upsert(
+            existing.copy(
+                name = name ?: existing.name,
+                description = description ?: existing.description,
+                moderatorId = nextModerator,
+                updatedAt = System.currentTimeMillis(),
+            ),
         )
+    }
+
+    suspend fun deleteRoom(roomId: String): Result<Unit> = runCatching {
+        val existing = roomDao.getRoom(roomId) ?: error("Room not found")
+        if (!existing.toDomain(emptyList()).canDelete(actorId())) error("not creator")
+        if (voiceRemote.isReady()) {
+            voiceRemote.deleteRoom(roomId).getOrThrow()
+        }
+        participantDao.deleteAllInRooms(listOf(roomId))
+        roomDao.deleteByIds(listOf(roomId))
+        signaling.clearSignals(roomId)
+        if (activeRoomId == roomId) {
+            roomMesh.stop()
+            activeRoomId = null
+        }
     }
 
     fun watchIncomingCall(): Flow<CallState?> =
@@ -329,6 +416,7 @@ class VoiceRepository(
 
     fun release() {
         callManager.release()
+        roomMesh.stop()
         audioEngine.release()
         activeRoomId = null
     }
@@ -343,6 +431,8 @@ class VoiceRepository(
         isActive = isActive,
         createdAt = createdAt,
         updatedAt = updatedAt,
+        description = description,
+        moderatorId = moderatorId,
     )
 
     private fun VoiceRoomParticipantEntity.toDomain(isMe: Boolean) = VoiceParticipant(

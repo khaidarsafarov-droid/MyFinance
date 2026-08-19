@@ -1,9 +1,5 @@
 package com.truckerload.presentation.screens.voice
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,23 +24,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -58,13 +54,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.truckerload.R
 import com.truckerload.domain.voice.VoiceParticipant
 import com.truckerload.domain.voice.VoiceRoom
@@ -87,11 +82,21 @@ fun VoiceRoomsScreen(
     val tc = LocalTruckColors.current
     var showCreate by remember { mutableStateOf(false) }
     var newRoomName by remember { mutableStateOf("") }
+    var newRoomDescription by remember { mutableStateOf("") }
+    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
     val micGranted = rememberMicPermission()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
+    LaunchedEffect(state.errorMessage) {
+        val message = state.errorMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.clearError()
+    }
+
+        Scaffold(
             modifier = modifier.fillMaxSize(),
             containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.voice_rooms), color = tc.TextPrimary) },
@@ -124,44 +129,53 @@ fun VoiceRoomsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(state.rooms, key = { it.id }) { room ->
-                    VoiceRoomListItem(room = room, onClick = { onOpenRoom(room.id) })
+                    VoiceRoomListItem(
+                        room = room,
+                        canDelete = room.canDelete(state.currentUserId),
+                        onClick = { onOpenRoom(room.id) },
+                        onDelete = { pendingDeleteId = room.id },
+                    )
                 }
             }
         }
 
     if (showCreate) {
-        AlertDialog(
-            onDismissRequest = { showCreate = false },
-            title = { Text(stringResource(R.string.create_room)) },
-            text = {
-                OutlinedTextField(
-                    value = newRoomName,
-                    onValueChange = { newRoomName = it },
-                    label = { Text(stringResource(R.string.room_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+        VoiceRoomCreateDialog(
+            name = newRoomName,
+            description = newRoomDescription,
+            onNameChange = { newRoomName = it },
+            onDescriptionChange = { newRoomDescription = it },
+            onDismiss = { showCreate = false },
+            onConfirm = {
+                viewModel.createRoom(newRoomName, newRoomDescription) { id ->
+                    showCreate = false
+                    newRoomName = ""
+                    newRoomDescription = ""
+                    onOpenRoom(id)
+                }
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.createRoom(newRoomName) { id ->
-                            showCreate = false
-                            newRoomName = ""
-                            onOpenRoom(id)
-                        }
-                    },
-                ) { Text(stringResource(R.string.join_room)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCreate = false }) { Text(stringResource(android.R.string.cancel)) }
+        )
+    }
+    pendingDeleteId?.let { roomId ->
+        val roomName = state.rooms.firstOrNull { it.id == roomId }?.name.orEmpty()
+        VoiceRoomDeleteDialog(
+            roomName = roomName,
+            onDismiss = { pendingDeleteId = null },
+            onConfirm = {
+                viewModel.deleteRoom(roomId)
+                pendingDeleteId = null
             },
         )
     }
 }
 
 @Composable
-private fun VoiceRoomListItem(room: VoiceRoom, onClick: () -> Unit) {
+private fun VoiceRoomListItem(
+    room: VoiceRoom,
+    canDelete: Boolean,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
     val tc = LocalTruckColors.current
     BentoGlassClickableCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Row(
@@ -179,8 +193,17 @@ private fun VoiceRoomListItem(room: VoiceRoom, onClick: () -> Unit) {
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(room.name, style = AppTypography.CardTitle, color = tc.TextPrimary)
+                if (room.description.isNotBlank()) {
+                    Text(
+                        text = room.description,
+                        style = AppTypography.Subtitle,
+                        color = tc.TextSecondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Text(
-                    text = stringResource(R.string.participants_count, room.participants.size),
+                    text = pluralStringResource(R.plurals.participants_count, room.participants.size, room.participants.size),
                     style = AppTypography.Subtitle,
                     color = tc.TextSecondary,
                 )
@@ -204,6 +227,15 @@ private fun VoiceRoomListItem(room: VoiceRoom, onClick: () -> Unit) {
                     )
                 }
             }
+            if (canDelete) {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.common_delete),
+                        tint = SoftUiColors.VoiceDanger,
+                    )
+                }
+            }
         }
     }
 }
@@ -220,6 +252,14 @@ fun VoiceRoomScreen(
     val tc = LocalTruckColors.current
     val room = state.room
     val micGranted = rememberMicPermission()
+    val canManage = room?.canManage(state.currentUserId) == true
+    val canDelete = room?.canDelete(state.currentUserId) == true
+    var menuExpanded by remember { mutableStateOf(false) }
+    var showEdit by remember { mutableStateOf(false) }
+    var showModerator by remember { mutableStateOf(false) }
+    var showDelete by remember { mutableStateOf(false) }
+    var editName by remember { mutableStateOf("") }
+    var editDescription by remember { mutableStateOf("") }
 
     Box(
         modifier = modifier
@@ -240,29 +280,78 @@ fun VoiceRoomScreen(
                     IconButton(onClick = { viewModel.leave(onBack) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.AccentPrimary)
                     }
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Mic,
-                            contentDescription = null,
-                            tint = tc.AccentPrimary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(
-                            text = room?.name.orEmpty(),
-                            style = AppTypography.CardTitle,
-                            color = tc.AccentPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Mic,
+                                contentDescription = null,
+                                tint = tc.AccentPrimary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(
+                                text = room?.name.orEmpty(),
+                                style = AppTypography.CardTitle,
+                                color = tc.AccentPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (!room?.description.isNullOrBlank()) {
+                            Text(
+                                text = room?.description.orEmpty(),
+                                color = tc.TextSecondary,
+                                fontSize = 11.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                     Text(
-                        text = stringResource(R.string.participants_count, room?.participants?.size ?: 0),
+                        text = pluralStringResource(
+                            R.plurals.participants_count,
+                            room?.participants?.size ?: 0,
+                            room?.participants?.size ?: 0,
+                        ),
                         color = tc.TextSecondary,
                         fontSize = 12.sp,
+                    )
+                    if (canManage) {
+                        Box {
+                            IconButton(onClick = { menuExpanded = true }) {
+                                Icon(
+                                    Icons.Default.MoreVert,
+                                    contentDescription = stringResource(R.string.voice_room_manage),
+                                    tint = tc.AccentPrimary,
+                                )
+                            }
+                            VoiceRoomOwnerMenu(
+                                expanded = menuExpanded,
+                                canDelete = canDelete,
+                                onDismiss = { menuExpanded = false },
+                                onEdit = {
+                                    editName = room?.name.orEmpty()
+                                    editDescription = room?.description.orEmpty()
+                                    showEdit = true
+                                },
+                                onModerator = { showModerator = true },
+                                onDelete = { showDelete = true },
+                            )
+                        }
+                    }
+                }
+                state.errorMessage?.let { message ->
+                    Text(
+                        text = if (message == "room_gone") {
+                            stringResource(R.string.voice_room_gone)
+                        } else {
+                            message
+                        },
+                        color = SoftUiColors.VoiceDanger,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp),
                     )
                 }
 
@@ -274,7 +363,11 @@ fun VoiceRoomScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(room?.participants.orEmpty(), key = { it.userId }) { participant ->
-                        VoiceParticipantItem(participant = participant)
+                        VoiceParticipantItem(
+                            participant = participant,
+                            isModerator = participant.userId.isNotBlank() &&
+                                participant.userId == room?.moderatorId,
+                        )
                     }
                 }
 
@@ -334,10 +427,51 @@ fun VoiceRoomScreen(
                 )
             }
     }
+    if (showEdit) {
+        VoiceRoomEditDialog(
+            name = editName,
+            description = editDescription,
+            onNameChange = { editName = it },
+            onDescriptionChange = { editDescription = it },
+            onDismiss = { showEdit = false },
+            onSave = {
+                viewModel.updateRoom(name = editName.trim(), description = editDescription.trim())
+                showEdit = false
+            },
+        )
+    }
+    if (showModerator) {
+        VoiceRoomModeratorDialog(
+            participants = room?.participants.orEmpty(),
+            currentModeratorId = room?.moderatorId.orEmpty(),
+            onDismiss = { showModerator = false },
+            onPick = { userId ->
+                viewModel.updateRoom(moderatorId = userId)
+                showModerator = false
+            },
+            onClear = {
+                viewModel.updateRoom(clearModerator = true)
+                showModerator = false
+            },
+        )
+    }
+    if (showDelete) {
+        VoiceRoomDeleteDialog(
+            roomName = room?.name.orEmpty(),
+            onDismiss = { showDelete = false },
+            onConfirm = {
+                showDelete = false
+                viewModel.deleteRoom(onBack)
+            },
+        )
+    }
 }
 
 @Composable
-private fun VoiceParticipantItem(participant: VoiceParticipant) {
+private fun VoiceParticipantItem(
+    participant: VoiceParticipant,
+    isModerator: Boolean = false,
+) {
     val tc = LocalTruckColors.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -374,6 +508,13 @@ private fun VoiceParticipantItem(participant: VoiceParticipant) {
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
         )
+        if (isModerator) {
+            Text(
+                text = stringResource(R.string.voice_room_moderator_badge),
+                color = tc.AccentPrimary,
+                fontSize = 9.sp,
+            )
+        }
         if (participant.isMuted) {
             Icon(
                 Icons.Default.MicOff,
@@ -392,61 +533,13 @@ private fun VoiceControlButton(
     tint: Color,
     onClick: () -> Unit,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onClick, modifier = Modifier.size(56.dp)) {
-            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(28.dp))
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick),
+    ) {
+        IconButton(onClick = onClick, modifier = Modifier.size(64.dp)) {
+            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(32.dp))
         }
         Text(label, fontSize = 10.sp, color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
-}
-
-@Composable
-fun rememberMicPermission(): Boolean {
-    val context = LocalContext.current
-    var granted by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                PackageManager.PERMISSION_GRANTED,
-        )
-    }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-    ) { granted = it }
-    LaunchedEffect(Unit) {
-        if (!granted) launcher.launch(Manifest.permission.RECORD_AUDIO)
-    }
-    return granted
-}
-
-@Composable
-internal fun MicPermissionPrompt(modifier: Modifier = Modifier) {
-    val tc = LocalTruckColors.current
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-    ) { }
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(R.string.mic_permission_required),
-            style = AppTypography.CardTitle,
-            color = tc.TextPrimary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = { launcher.launch(Manifest.permission.RECORD_AUDIO) }) {
-            Text(stringResource(R.string.grant_mic_permission), color = tc.AccentPrimary)
-        }
-    }
-}
-
-fun formatVoiceDuration(seconds: Long): String {
-    val m = seconds / 60
-    val s = seconds % 60
-    return "%02d:%02d".format(m, s)
 }

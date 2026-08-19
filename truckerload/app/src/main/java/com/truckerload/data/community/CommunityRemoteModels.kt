@@ -21,6 +21,7 @@ data class RemoteCommunityChat(
     val isPublic: Boolean,
     val lastMessage: String,
     val lastMessageAt: Long,
+    val description: String = "",
 )
 
 data class RemoteCommunityMember(
@@ -63,6 +64,8 @@ data class RemoteVoiceRoom(
     val creatorId: String,
     val isActive: Boolean,
     val createdAt: Long,
+    val description: String = "",
+    val moderatorId: String = "",
 )
 
 data class RemoteVoiceParticipant(

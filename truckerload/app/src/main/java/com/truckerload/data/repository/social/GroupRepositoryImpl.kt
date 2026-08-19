@@ -7,6 +7,7 @@ import com.truckerload.data.community.CommunityRemoteClient
 import com.truckerload.data.local.dao.ChatMemberDao
 import com.truckerload.data.local.dao.DriverProfileDao
 import com.truckerload.data.local.dao.SocialChatDao
+import com.truckerload.data.local.dao.SocialMessageDao
 import com.truckerload.data.local.entities.ChatMemberEntity
 import com.truckerload.data.local.entities.SocialChatEntity
 import com.truckerload.di.UserScope
@@ -24,6 +25,7 @@ import java.util.UUID
 class GroupRepositoryImpl(
     private val chatDao: SocialChatDao,
     private val chatMemberDao: ChatMemberDao,
+    private val messageDao: SocialMessageDao,
     private val profileDao: DriverProfileDao,
     private val appContext: Context,
     private val actorId: () -> String,
@@ -31,9 +33,13 @@ class GroupRepositoryImpl(
     private val inbox: CommunityInboxSync,
 ) : GroupRepository {
 
-    override suspend fun createGroupChat(name: String, category: String): SocialResult<String> = runCatching {
+    override suspend fun createGroupChat(
+        name: String,
+        category: String,
+        description: String,
+    ): SocialResult<String> = runCatching {
         if (remote.isReady()) {
-            val remoteId = remote.createGroup(name, category).getOrElse { err ->
+            val remoteId = remote.createGroup(name, category, description).getOrElse { err ->
                 return SocialResult.Error(
                     socialError(
                         appContext,
@@ -64,6 +70,7 @@ class GroupRepositoryImpl(
                 category = category,
                 creatorId = me,
                 inviteCode = inviteCode,
+                description = description.trim(),
             ),
         )
         chatMemberDao.upsert(
@@ -163,4 +170,60 @@ class GroupRepositoryImpl(
             is SocialResult.Error -> joined
         }
     }
+
+    override suspend fun updateGroupDescription(chatId: String, description: String): SocialResult<Unit> =
+        runCatching {
+            if (remote.isReady()) {
+                remote.updateGroupDescription(chatId, description).getOrElse { err ->
+                    return SocialResult.Error(
+                        socialError(appContext, R.string.social_error_update_group, err),
+                        err,
+                    )
+                }
+            }
+            chatDao.setDescription(chatId, description.trim())
+            SocialResult.Success(Unit)
+        }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_update_group, it), it) }
+
+    override suspend fun deleteGroup(chatId: String): SocialResult<Unit> = runCatching {
+        val chat = chatDao.getChat(chatId)
+            ?: return SocialResult.Error(appContext.getString(R.string.social_error_group_not_found))
+        val me = actorId()
+        val myRole = chatMemberDao.getMember(chatId, me)?.role
+        val isCreator = chat.creatorId == me || myRole == "OWNER"
+        if (!isCreator) {
+            return SocialResult.Error(appContext.getString(R.string.social_error_delete_group))
+        }
+        if (remote.isReady()) {
+            remote.deleteGroup(chatId).getOrElse { err ->
+                return SocialResult.Error(
+                    socialError(appContext, R.string.social_error_delete_group, err),
+                    err,
+                )
+            }
+        }
+        messageDao.deleteAllInChat(chatId)
+        chatMemberDao.deleteAllInChats(listOf(chatId))
+        chatDao.deleteChat(chatId)
+        SocialResult.Success(Unit)
+    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_delete_group, it), it) }
+
+    override suspend fun setModerator(chatId: String, userId: String): SocialResult<Unit> = runCatching {
+        val chat = chatDao.getChat(chatId)
+            ?: return SocialResult.Error(appContext.getString(R.string.social_error_group_not_found))
+        if (chat.creatorId.isNotBlank() && chat.creatorId != actorId()) {
+            return SocialResult.Error(appContext.getString(R.string.social_error_update_group))
+        }
+        if (remote.isReady()) {
+            remote.setGroupModerator(chatId, userId).getOrElse { err ->
+                return SocialResult.Error(
+                    socialError(appContext, R.string.social_error_update_group, err),
+                    err,
+                )
+            }
+        }
+        chatMemberDao.clearModerators(chatId)
+        chatMemberDao.setRole(chatId, userId, "MODERATOR")
+        SocialResult.Success(Unit)
+    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_update_group, it), it) }
 }
