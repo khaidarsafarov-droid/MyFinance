@@ -36,6 +36,18 @@ class MessageParseService {
             ?: throw IllegalArgumentException("No valid load found in message")
     }
 
+    /**
+     * Best-effort fields for the add-load form after paste or OCR.
+     * Always returns a draft (possibly empty) so the UI can show editable boxes.
+     */
+    fun extractLoadFields(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): LoadDraftFields {
+        parseAmazonRelayLoad(rawMessage, referenceMillis)?.load?.let { return LoadDraftFields.fromLoad(it) }
+        return FlexibleLoadParser.extractFields(rawMessage)
+    }
+
     fun parseAmazonRelayFromMessage(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),

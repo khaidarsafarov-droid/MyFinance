@@ -98,8 +98,9 @@ class AddLoadViewModel @Inject constructor(
     fun setManualDate(value: String) = updateManual { it.copy(date = value) }
     fun setManualRate(value: String) = updateManual { it.copy(rate = value) }
     fun setManualMiles(value: String) = updateManual { it.copy(miles = value) }
-    fun setManualPointA(value: String) = updateManual { it.copy(pointA = value) }
-    fun setManualPointB(value: String) = updateManual { it.copy(pointB = value) }
+    fun setManualPoint(index: Int, value: String) = updateManual { it.withPoint(index, value) }
+    fun addManualPoint() = updateManual { it.addPoint() }
+    fun removeManualPoint(index: Int) = updateManual { it.removePoint(index) }
 
     fun importDocument(uri: Uri, mimeType: String?) {
         if (_uiState.value.isExtractingDocument) return
@@ -112,7 +113,7 @@ class AddLoadViewModel @Inject constructor(
                 LoadDocumentTextExtractor(getApplication()).extract(uri, mimeType)
             }
             result
-                .onSuccess { text -> setRawText(text) }
+                .onSuccess { text -> applyDocumentText(text) }
                 .onFailure {
                     _uiState.update {
                         it.copy(
@@ -139,7 +140,9 @@ class AddLoadViewModel @Inject constructor(
             state.copy(isSaving = true, error = null)
         }
         if (!accepted) return
-        if (_uiState.value.mode == AddLoadInputMode.MANUAL) {
+        if (_uiState.value.mode == AddLoadInputMode.MANUAL ||
+            _uiState.value.mode == AddLoadInputMode.DOCUMENT
+        ) {
             saveManual(saveErrorFormatter, onOptimisticInsert)
             return
         }
@@ -181,6 +184,23 @@ class AddLoadViewModel @Inject constructor(
             return false
         }
         return scheduleAlarm(triggerAtMillis)
+    }
+
+    private fun applyDocumentText(text: String) {
+        savedStateHandle[KEY_RAW] = text
+        previewJob?.cancel()
+        val draft = aiRepository.extractLoadFields(text)
+        val fallbackDate = _uiState.value.manual.date.ifBlank { todayIso() }
+        _uiState.update {
+            it.copy(
+                rawText = text,
+                error = null,
+                previewLoad = null,
+                previewHint = null,
+                isParsingPreview = false,
+                manual = ManualLoadFields.fromDraft(draft, fallbackDate),
+            )
+        }
     }
 
     private fun updateManual(transform: (ManualLoadFields) -> ManualLoadFields) {
@@ -235,7 +255,7 @@ class AddLoadViewModel @Inject constructor(
             }
             return
         }
-        if (fields.pointA.isBlank() && fields.pointB.isBlank()) {
+        if (fields.filledPoints().isEmpty()) {
             _uiState.update {
                 it.copy(
                     isSaving = false,
@@ -252,6 +272,12 @@ class AddLoadViewModel @Inject constructor(
                 miles = fields.parsedMiles(),
                 pointA = fields.pointA,
                 pointB = fields.pointB,
+                extraPoints = fields.extraPoints,
+                rawMessage = if (_uiState.value.mode == AddLoadInputMode.DOCUMENT) {
+                    _uiState.value.rawText
+                } else {
+                    ""
+                },
             ),
             saveErrorFormatter,
             onOptimisticInsert,

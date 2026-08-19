@@ -574,11 +574,16 @@
     <string name="add_load_mode_document">Photo / PDF</string>
     <string name="add_load_hint_paste">Paste a Relay, Telegram, or email message. The app reads rate, miles, and addresses for you.</string>
     <string name="add_load_hint_manual">Enter the rate and at least one address. Trip ID can stay empty — the app will create one.</string>
-    <string name="add_load_hint_document">Photograph a rate confirmation or pick a PDF — the app reads the text and saves the load.</string>
+    <string name="add_load_hint_document">Photograph a rate confirmation or pick a PDF — the fields fill in automatically. Check them, edit if needed, and save.</string>
     <string name="add_load_manual_hint">Type the load details. Rate and a pickup or delivery point are required.</string>
+    <string name="add_load_document_fields_hint">Check the recognized fields. Fill in anything missing, then save.</string>
     <string name="add_load_trip_optional">Optional</string>
     <string name="add_load_point_a_placeholder">Pickup city, state</string>
     <string name="add_load_point_b_placeholder">Delivery city, state</string>
+    <string name="add_load_point_more_placeholder">Stop city, state</string>
+    <string name="add_load_point_n">Point %1$s</string>
+    <string name="add_load_add_point">Add point %1$s</string>
+    <string name="add_load_remove_point">Remove point %1$s</string>
     <string name="add_load_manual_rate_required">Enter a rate greater than zero</string>
     <string name="add_load_manual_address_required">Enter a pickup or delivery location</string>
     <string name="add_load_document_hint">Take a photo of the rate confirmation or choose a PDF / gallery image.</string>

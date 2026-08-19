@@ -21,22 +21,24 @@ object ManualLoadFactory {
         miles: Double,
         pointA: String,
         pointB: String,
+        extraPoints: List<String> = emptyList(),
         rawMessage: String = "",
         nowMillis: Long = System.currentTimeMillis(),
     ): Load {
-        val resolvedTrip = tripId.trim().ifBlank { generateTripId(nowMillis, pointA, pointB, rate) }
+        val filled = (listOf(pointA, pointB) + extraPoints)
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+        val originText = filled.firstOrNull().orEmpty()
+        val destText = filled.lastOrNull()?.takeIf { filled.size > 1 }.orEmpty()
+        val resolvedTrip = tripId.trim().ifBlank {
+            generateTripId(nowMillis, originText, destText, rate, extraPoints)
+        }
         val resolvedDate = ParseUtils.normalizeDate(date).takeIf { it.length >= 10 }
             ?: todayIso(nowMillis)
         val sanitizedMiles = ParseUtils.sanitizeLoadedMiles(miles.coerceAtLeast(0.0), rate)
-        val origin = ParseUtils.parseAddressLine(pointA)
-        val dest = ParseUtils.parseAddressLine(pointB)
-        val stops = buildList {
-            if (pointA.isNotBlank()) {
-                add(stop(resolvedTrip, 1, StopType.PU, origin, pointA))
-            }
-            if (pointB.isNotBlank()) {
-                add(stop(resolvedTrip, size + 1, StopType.DEL, dest, pointB))
-            }
+        val stops = filled.mapIndexed { index, address ->
+            val type = if (index == 0) StopType.PU else StopType.DEL
+            stop(resolvedTrip, index + 1, type, ParseUtils.parseAddressLine(address), address)
         }
         val draft = Load(
             id = resolvedTrip,
@@ -44,13 +46,15 @@ object ManualLoadFactory {
             date = resolvedDate,
             totalRate = rate,
             totalMiles = sanitizedMiles,
-            pointA = pointA.trim(),
-            pointB = pointB.trim(),
+            pointA = originText,
+            pointB = destText,
             puCount = stops.count { it.type == StopType.PU },
             delCount = stops.count { it.type == StopType.DEL },
             weekNumber = 0,
             year = 0,
-            rawMessage = rawMessage.ifBlank { formatRaw(resolvedTrip, rate, sanitizedMiles, pointA, pointB) },
+            rawMessage = rawMessage.ifBlank {
+                formatRaw(resolvedTrip, rate, sanitizedMiles, filled)
+            },
             parsedAt = nowMillis,
             updatedAt = nowMillis,
             stops = stops,
@@ -64,9 +68,11 @@ object ManualLoadFactory {
         pointA: String = "",
         pointB: String = "",
         rate: Double = 0.0,
+        extraPoints: List<String> = emptyList(),
     ): String {
         val day = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date(nowMillis))
-        val seed = "$pointA|$pointB|$rate|$nowMillis".hashCode().toUInt().toString(16)
+        val seed = "$pointA|$pointB|${extraPoints.joinToString("|")}|$rate|$nowMillis"
+            .hashCode().toUInt().toString(16)
             .uppercase(Locale.US)
             .padStart(6, '0')
             .take(6)
@@ -99,14 +105,19 @@ object ManualLoadFactory {
         tripId: String,
         rate: Double,
         miles: Double,
-        pointA: String,
-        pointB: String,
+        points: List<String>,
     ): String = buildString {
         appendLine("Trip ID: $tripId")
         appendLine("Total Rate: $rate")
         if (miles > 0) appendLine("Total Loaded Miles: $miles mi")
-        if (pointA.isNotBlank()) appendLine("Pu-address: $pointA")
-        if (pointB.isNotBlank()) appendLine("Del-address: $pointB")
+        points.forEachIndexed { index, address ->
+            val letter = if (index in 0..25) ('A' + index).toString() else (index + 1).toString()
+            when {
+                index == 0 -> appendLine("Pu-address: $address")
+                index == points.lastIndex -> appendLine("Del-address: $address")
+                else -> appendLine("Point $letter: $address")
+            }
+        }
     }.trim()
 
     private fun todayIso(nowMillis: Long): String =

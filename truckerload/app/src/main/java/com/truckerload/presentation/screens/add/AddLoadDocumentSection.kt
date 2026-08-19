@@ -5,15 +5,20 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,9 +34,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
-import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.io.File
 
@@ -41,13 +44,13 @@ fun AddLoadDocumentSection(
     documentName: String?,
     isExtracting: Boolean,
     onDocumentPicked: (Uri, String?) -> Unit,
-    onExtractedTextChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val tc = LocalTruckColors.current
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
     var pendingCameraFile by remember { mutableStateOf<File?>(null) }
+    var ocrExpanded by remember(extractedText, documentName) { mutableStateOf(false) }
 
     val takePictureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture(),
@@ -145,16 +148,37 @@ fun AddLoadDocumentSection(
                 }
             }
             if (extractedText.isNotBlank() && !isExtracting) {
-                OutlinedTextField(
-                    value = extractedText,
-                    onValueChange = onExtractedTextChange,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp),
-                    label = { Text(stringResource(R.string.add_load_document_text_label)) },
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(BentoGlassTheme.CellRadius),
-                    colors = AppTextFieldDefaults.outlined(),
-                )
+                        .clickable { ocrExpanded = !ocrExpanded },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (ocrExpanded) R.string.ocr_hide_text else R.string.ocr_show_text,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.AccentPrimary,
+                    )
+                    Icon(
+                        imageVector = if (ocrExpanded) {
+                            Icons.Default.ExpandLess
+                        } else {
+                            Icons.Default.ExpandMore
+                        },
+                        contentDescription = null,
+                        tint = tc.AccentPrimary,
+                    )
+                }
+                AnimatedVisibility(visible = ocrExpanded) {
+                    Text(
+                        text = extractedText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                    )
+                }
             }
         }
     }
