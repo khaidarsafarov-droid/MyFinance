@@ -10,6 +10,7 @@ import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
@@ -121,6 +122,10 @@ object UserAccountModule {
     @Provides
     fun provideSocialSyncCoordinator(manager: UserComponentManager): SocialSyncCoordinator =
         manager.require().socialSyncCoordinator
+
+    @Provides
+    fun provideCrowdRpmRepository(manager: UserComponentManager): CrowdRpmRepository =
+        manager.require().crowdRpmRepository
 
     @Provides
     fun provideVoiceRepository(manager: UserComponentManager): VoiceRepository =

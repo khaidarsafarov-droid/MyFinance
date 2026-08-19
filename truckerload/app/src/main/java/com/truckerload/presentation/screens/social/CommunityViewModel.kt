@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.domain.crowd.CrowdRpmMapper
+import com.truckerload.domain.crowd.CrowdRpmSnapshot
 import com.truckerload.domain.crowd.CrowdRpmWeekSummary
 import com.truckerload.domain.social.Challenge
 import com.truckerload.domain.social.LeaderboardCategory
@@ -41,12 +43,15 @@ class CommunityViewModel @Inject constructor(
     private val socialSyncCoordinator: SocialSyncCoordinator,
     private val settingsDataStore: SettingsDataStore,
     private val loadRepository: LoadRepository,
+    private val crowdRpmRepository: CrowdRpmRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CommunityUiState())
     val uiState: StateFlow<CommunityUiState> = _state.asStateFlow()
 
     private val leaderboardCategory = MutableStateFlow(LeaderboardCategory.OVERALL)
+    private val _crowdRpm = MutableStateFlow(CrowdRpmSnapshot.Empty)
+    val crowdRpm: StateFlow<CrowdRpmSnapshot> = _crowdRpm.asStateFlow()
 
     val leaderboard = leaderboardCategory
         .flatMapLatest { category -> profileRepository.watchLeaderboard(category) }
@@ -84,6 +89,7 @@ class CommunityViewModel @Inject constructor(
             }.onFailure { error ->
                 _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
             }
+            refreshCrowdRpm()
             while (isActive) {
                 delay(4_000)
                 runCatching {
@@ -93,6 +99,7 @@ class CommunityViewModel @Inject constructor(
                         challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                     )
                 }
+                refreshCrowdRpm()
             }
         }
     }
@@ -128,6 +135,7 @@ class CommunityViewModel @Inject constructor(
             }.onFailure { error ->
                 _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
             }
+            refreshCrowdRpm()
         }
     }
 
@@ -155,5 +163,10 @@ class CommunityViewModel @Inject constructor(
 
     fun clearError() {
         _state.value = _state.value.copy(errorMessage = null)
+    }
+
+    private suspend fun refreshCrowdRpm() {
+        runCatching { crowdRpmRepository.snapshot() }
+            .onSuccess { _crowdRpm.value = it }
     }
 }

@@ -13,6 +13,7 @@ import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
@@ -60,6 +61,7 @@ class UserComponent private constructor(
     val statusRepository: StatusRepository,
     val mediaRepository: MediaRepository,
     val socialSyncCoordinator: SocialSyncCoordinator,
+    val crowdRpmRepository: CrowdRpmRepository,
     val voiceRepository: VoiceRepository,
     val aiRepository: AiRepository,
     val maintenanceRepository: MaintenanceRepository,
@@ -115,6 +117,7 @@ class UserComponent private constructor(
                 statusRepository = social.status,
                 mediaRepository = social.media,
                 socialSyncCoordinator = social.syncCoordinator,
+                crowdRpmRepository = social.crowdRpm,
                 voiceRepository = VoiceRepository(
                     db,
                     context,

@@ -17,8 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.screens.social.friends.FriendsDirectoryPanel
-import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
+import com.truckerload.domain.social.Challenge
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -27,12 +26,11 @@ import com.truckerload.presentation.components.TlButton as Button
 
 @Composable
 internal fun ChallengesTabContent(
-    challenge: com.truckerload.domain.social.Challenge,
+    challenge: Challenge,
     joined: Boolean,
     isJoining: Boolean,
+    showRanking: Boolean,
     onJoin: () -> Unit,
-    onOpenFriends: () -> Unit,
-    friendsDirectoryViewModel: FriendsDirectoryViewModel,
 ) {
     val tc = LocalTruckColors.current
     Column(
@@ -59,26 +57,39 @@ internal fun ChallengesTabContent(
                 }
                 Text(challenge.description, style = AppTypography.Subtitle, color = tc.TextSecondary)
                 Text(
-                    text = stringResource(R.string.my_position) + ": #${challenge.myPosition} (${MoneyFormat.formatNumber(challenge.myScore)} mi)",
+                    text = if (showRanking && challenge.myPosition != null) {
+                        stringResource(
+                            R.string.challenge_ranked_position,
+                            challenge.myPosition,
+                            MoneyFormat.formatNumber(challenge.myScore),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.challenge_personal_progress,
+                            MoneyFormat.formatNumber(challenge.myScore),
+                        )
+                    },
                     style = AppTypography.Subtitle,
                     color = tc.AccentPrimary,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
         }
-        challenge.leaderboard.forEach { entry ->
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "${entry.rank}. ${entry.displayName} — ${MoneyFormat.formatNumber(entry.score)} mi",
-                    modifier = Modifier.padding(16.dp),
-                    style = AppTypography.Subtitle,
-                )
+        if (showRanking) {
+            challenge.leaderboard.forEach { entry ->
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "${entry.rank}. ${entry.displayName} — ${MoneyFormat.formatNumber(entry.score)} mi",
+                        modifier = Modifier.padding(16.dp),
+                        style = AppTypography.Subtitle,
+                    )
+                }
             }
-        }
-        if (challenge.leaderboard.none { !it.isMe }) {
-            FriendsDirectoryPanel(
-                viewModel = friendsDirectoryViewModel,
-                onOpenMap = onOpenFriends,
+        } else {
+            Text(
+                text = stringResource(R.string.community_ranking_locked),
+                style = AppTypography.Subtitle,
+                color = tc.TextSecondary,
             )
         }
         Text(
