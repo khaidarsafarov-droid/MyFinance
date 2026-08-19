@@ -33,9 +33,13 @@ object SoftUiColors {
     val SurfaceLight = Color(0xFFFFFFFF)
     val SurfaceMuted = ShellBg
 
-    val BackgroundDark = Color(0xFF171717)
-    val SurfaceDark = Color(0xFF252525)
-    val SurfaceMutedDark = Color(0xFF2C2C2C)
+    /** Dedicated dark cabin tokens (graphite-green, not inverted light). */
+    val BackgroundDark = Color(0xFF1A2420)
+    val SurfaceDark = Color(0xFF24302A)
+    val SurfaceMutedDark = Color(0xFF2E3C35)
+    /** Bright enough for primary actions on dark backgrounds (AA). */
+    val ForestAccentDark = Color(0xFF8ED4A4)
+    val OnForestAccentDark = Color(0xFF0F1A14)
 
     /** True-black OLED tokens — saves power on AMOLED and reduces night glare. */
     val BackgroundOled = Color(0xFF000000)
@@ -46,9 +50,9 @@ object SoftUiColors {
     val VoiceDanger = Color(0xFFFF3B30)
 
     val TextPrimaryLight = ForestPrimary
-    val TextSecondaryLight = ForestMuted
+    val TextSecondaryLight = Color(0xFF3A5748)
     val TextPrimaryDark = Color(0xFFF2F7F4)
-    val TextSecondaryDark = Color(0xFFA3B899)
+    val TextSecondaryDark = Color(0xFFC5D3C9)
 
     val ShadowTint = Color(0x142F4F3E)
     val ShadowNeutral = Color(0x0D000000)

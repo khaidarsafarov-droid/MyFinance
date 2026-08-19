@@ -125,9 +125,9 @@ internal fun LeaderboardTabContent(
                             modifier = Modifier.size(16.dp),
                         )
                         Text(
-                            text = "${"%.1f".format(entry.rating)}  ${MoneyFormat.formatNumber(entry.score)} ${entry.trend}",
-                            style = AppTypography.Subtitle,
-                            color = tc.TextSecondary,
+                            text = MoneyFormat.formatNumber(entry.score),
+                            style = AppTypography.HeroNumberCompact,
+                            color = tc.TextNumbers,
                         )
                     }
                 }

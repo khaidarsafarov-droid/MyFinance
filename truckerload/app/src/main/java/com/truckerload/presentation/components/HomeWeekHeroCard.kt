@@ -76,10 +76,10 @@ fun HomeWeekHeroCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = weekLabel,
-                    style = AppTypography.Subtitle.copy(color = Color.White.copy(alpha = 0.75f)),
-                )
+            Text(
+                text = weekLabel,
+                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
+            )
             }
             AnimatedCircularProgress(
                 progressPercent = progressPercent,
@@ -92,12 +92,12 @@ fun HomeWeekHeroCard(
             WeekDayDotsRow(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
             Text(
                 text = stringResource(R.string.widget_metric_cpm),
-                style = AppTypography.Caption.copy(color = Color.White.copy(alpha = 0.75f)),
+                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
             )
             if (rpm != null && rpm > 0) {
                 Text(
                     text = String.format(Locale.US, "$%.2f/mi", rpm),
-                    style = AppTypography.AccentNumber.copy(color = Color.White),
+                    style = AppTypography.HeroNumberCompact.copy(color = Color.White),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }

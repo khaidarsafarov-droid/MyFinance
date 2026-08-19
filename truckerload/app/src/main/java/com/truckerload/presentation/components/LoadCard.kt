@@ -43,7 +43,6 @@ import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.UiDimens
@@ -306,14 +305,15 @@ private fun DisputeCardChip(
     load: Load,
     modifier: Modifier = Modifier,
 ) {
-    val label: String
-    val color: androidx.compose.ui.graphics.Color
-    if (load.hadDispute) {
-        label = stringResource(R.string.dispute_was_dispute)
-        color = AppColors.RpmGreen
+    val label = if (load.hadDispute) {
+        stringResource(R.string.dispute_was_dispute)
     } else {
-        label = stringResource(R.string.dispute_active)
-        color = LocalTruckColors.current.AccentExpense
+        stringResource(R.string.dispute_active)
+    }
+    val color = if (load.hadDispute) {
+        LocalTruckColors.current.Success
+    } else {
+        LocalTruckColors.current.Danger
     }
     Row(
         modifier = modifier

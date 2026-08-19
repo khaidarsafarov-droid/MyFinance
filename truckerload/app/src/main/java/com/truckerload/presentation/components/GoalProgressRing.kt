@@ -18,11 +18,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.truckerload.domain.goal.PaceStatus
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
@@ -59,10 +58,7 @@ fun GoalProgressRing(
     val trackColor = if (onDarkBackground) cs.onPrimary.copy(alpha = 0.2f) else tc.ProgressTrack
     val gradientStart = tc.AccentPrimary
     val gradientEnd = tc.AccentProfit
-    val paceMarkerColor = when (paceStatus) {
-        PaceStatus.BEHIND -> tc.AccentWarning
-        else -> tc.AccentProfit
-    }
+    val paceMarkerColor = tc.pace(paceStatus)
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
@@ -117,16 +113,15 @@ fun GoalProgressRing(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = centerLabel,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 36.sp,
-                ),
-                color = if (onDarkBackground) cs.onPrimary else tc.TextPrimary,
+                style = if (onDarkBackground) AppTypography.HeroNumberOnDark else AppTypography.HeroNumber,
             )
             Text(
                 text = centerSubLabel,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (onDarkBackground) cs.onPrimary.copy(alpha = 0.75f) else tc.TextSecondary,
+                style = if (onDarkBackground) {
+                    AppTypography.CaptionMuted.copy(color = cs.onPrimary.copy(alpha = 0.88f))
+                } else {
+                    AppTypography.CaptionMuted
+                },
             )
         }
     }

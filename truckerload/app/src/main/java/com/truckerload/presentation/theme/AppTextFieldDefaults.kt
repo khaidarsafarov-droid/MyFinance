@@ -1,6 +1,7 @@
 package com.truckerload.presentation.theme
 
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChipDefaults
@@ -41,6 +42,8 @@ fun Modifier.appFormFieldSpacing(): Modifier =
 
 object AppFilterChipDefaults {
     private val chipShape = RoundedCornerShape(SoftUiDimens.ChipRadius)
+
+    fun target(): Modifier = Modifier.heightIn(min = UiDimens.TouchTarget)
 
     @Composable
     fun shape() = chipShape

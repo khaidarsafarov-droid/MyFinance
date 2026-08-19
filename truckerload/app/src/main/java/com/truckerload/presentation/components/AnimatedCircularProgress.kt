@@ -107,7 +107,7 @@ fun AnimatedCircularProgress(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = formatUsd(animatedGross.toDouble()),
-                style = if (onDarkBackground) AppTypography.NumbersOnDark else AppTypography.NumbersLarge,
+                style = if (onDarkBackground) AppTypography.HeroNumberOnDark else AppTypography.HeroNumber,
             )
             if (goal > 0) {
                 Text(

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.truckerload.domain.goal.PaceStatus
 
 data class TruckColorPalette(
     val Background: Color,
@@ -19,6 +20,10 @@ data class TruckColorPalette(
     val AccentInfo: Color,
     val AccentWarning: Color,
     val AccentProfit: Color,
+    val Success: Color,
+    val Warning: Color,
+    val Danger: Color,
+    val Neutral: Color,
     val TextPrimary: Color,
     val TextSecondary: Color,
     val TextLabel: Color,
@@ -29,10 +34,19 @@ data class TruckColorPalette(
     val ProgressTrack: Color,
     val HeroBackground: Color,
     val CreamBackground: Color,
-)
+) {
+    fun pace(status: PaceStatus): Color = when (status) {
+        PaceStatus.GOAL_MET, PaceStatus.AHEAD -> Success
+        PaceStatus.ON_TRACK -> Warning
+        PaceStatus.BEHIND -> Danger
+    }
+}
 
 /** Maps [ColorScheme] to the app's semantic palette (RPM, hero, cards, etc.). */
-fun truckPaletteFrom(colorScheme: ColorScheme): TruckColorPalette = TruckColorPalette(
+fun truckPaletteFrom(
+    colorScheme: ColorScheme,
+    semantic: SemanticPalette = SemanticColors.Light,
+): TruckColorPalette = TruckColorPalette(
     Background = colorScheme.background,
     BackgroundBottom = colorScheme.background,
     CardBackground = colorScheme.surface,
@@ -40,15 +54,19 @@ fun truckPaletteFrom(colorScheme: ColorScheme): TruckColorPalette = TruckColorPa
     Divider = colorScheme.outline,
     AccentPrimary = colorScheme.primary,
     AccentSecondary = colorScheme.tertiary,
-    AccentExpense = colorScheme.error,
-    AccentInfo = colorScheme.onSurfaceVariant,
-    AccentWarning = colorScheme.secondary,
-    AccentProfit = colorScheme.tertiary,
+    AccentExpense = semantic.danger,
+    AccentInfo = semantic.neutral,
+    AccentWarning = semantic.warning,
+    AccentProfit = semantic.success,
+    Success = semantic.success,
+    Warning = semantic.warning,
+    Danger = semantic.danger,
+    Neutral = semantic.neutral,
     TextPrimary = colorScheme.onBackground,
-    TextSecondary = colorScheme.onSurfaceVariant,
-    // Labels must stay readable on white cards — not outlineVariant (border mint).
-    TextLabel = colorScheme.onSurface,
-    TextNumbers = colorScheme.onSurface,
+    TextSecondary = semantic.neutral,
+    // Labels stay AA on white cards — never outlineVariant (border mint).
+    TextLabel = semantic.neutral,
+    TextNumbers = semantic.hero,
     TextGold = colorScheme.primary,
     OnAccent = colorScheme.onPrimary,
     GlassBorder = colorScheme.outline,

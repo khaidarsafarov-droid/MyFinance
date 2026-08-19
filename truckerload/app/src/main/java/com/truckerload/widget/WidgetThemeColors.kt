@@ -41,6 +41,17 @@ object WidgetThemeColors {
         ContextCompat.getColor(context, R.color.widget_green)
 
     @ColorInt
-    fun error(context: Context): Int =
-        ContextCompat.getColor(context, R.color.widget_remaining_warning)
+    fun success(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_success)
+
+    @ColorInt
+    fun warning(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_rpm_warn)
+
+    @ColorInt
+    fun danger(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_rpm_bad)
+
+    @ColorInt
+    fun error(context: Context): Int = danger(context)
 }

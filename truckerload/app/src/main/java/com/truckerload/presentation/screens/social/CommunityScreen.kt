@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SnackbarHost
@@ -89,17 +89,17 @@ fun CommunityScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         actions = {
             SoftActionChip(
-                icon = Icons.Default.Star,
+                icon = Icons.Outlined.Star,
                 contentDescription = stringResource(R.string.social_statuses),
                 onClick = onOpenStatus,
             )
             SoftActionChip(
-                icon = Icons.Default.Groups,
+                icon = Icons.Outlined.Groups,
                 contentDescription = stringResource(R.string.social_groups),
                 onClick = onOpenGroups,
             )
             SoftActionChip(
-                icon = Icons.Default.Person,
+                icon = Icons.Outlined.Person,
                 contentDescription = stringResource(R.string.profile),
                 onClick = onOpenProfile,
             )

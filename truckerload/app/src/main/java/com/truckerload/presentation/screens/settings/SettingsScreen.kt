@@ -17,9 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backup
-import java.util.Locale
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.TableChart
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -290,9 +292,9 @@ fun SettingsScreen(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            "📦",
-                            modifier = Modifier,
+                        Icon(
+                            Icons.Outlined.Inventory2,
+                            contentDescription = null,
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.export_loads))
@@ -310,7 +312,7 @@ fun SettingsScreen(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("📊")
+                        Icon(Icons.Outlined.TableChart, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.export_csv))
                     }
@@ -327,7 +329,7 @@ fun SettingsScreen(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("📥")
+                        Icon(Icons.Outlined.Download, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.restore_loads))
                     }
@@ -362,7 +364,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Backup, contentDescription = stringResource(R.string.settings_backup_create))
+                        Icon(Icons.Outlined.Backup, contentDescription = stringResource(R.string.settings_backup_create))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.settings_backup_create))
                     }

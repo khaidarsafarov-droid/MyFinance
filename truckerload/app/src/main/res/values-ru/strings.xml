@@ -27,7 +27,7 @@
 
     <string name="nav_community">Сообщество</string>
 
-    <string name="analytics_title">📊 Аналитика</string>
+    <string name="analytics_title">Аналитика</string>
     <string name="analytics_subtitle">Доход, маршруты и тренды</string>
     <string name="analytics_weekly_revenue">Доход по неделям</string>
     <string name="analytics_top_routes">Лучшие маршруты</string>
@@ -218,10 +218,10 @@
     <string name="goal_pace_ahead_title">Вы опережаете план</string>
     <string name="goal_pace_on_track_title">Вы на правильном пути</string>
     <string name="goal_pace_behind_title">Нужно ускориться</string>
-    <string name="goal_pace_on_track_short">🎯 Темп %1$s/день. До цели %2$d дн.</string>
-    <string name="goal_pace_ahead_short">✅ Темп %1$s/день — выше плана (%2$s).</string>
-    <string name="goal_pace_behind_short">⚠️ Нужно %1$s/день. До цели %2$s.</string>
-    <string name="goal_pace_met_short">✅ Цель достигнута — %1$s за неделю.</string>
+    <string name="goal_pace_on_track_short">Темп %1$s/день. До цели %2$d дн.</string>
+    <string name="goal_pace_ahead_short">Темп %1$s/день — выше плана (%2$s).</string>
+    <string name="goal_pace_behind_short">Нужно %1$s/день. До цели %2$s.</string>
+    <string name="goal_pace_met_short">Цель достигнута — %1$s за неделю.</string>
     <string name="nav_settings">Настройки</string>
 
     <!-- Camera & scanner -->
@@ -370,7 +370,7 @@
     <string name="finance_label_diesel">Дизель</string>
     <string name="finance_month_year_format">%1$s %2$d</string>
     <string name="finance_week_summary_short">%1$d грузов • $%2$s</string>
-    <string name="finance_fuel_analytics_title">⛽ Анализ дизеля — %1$s</string>
+    <string name="finance_fuel_analytics_title">Анализ дизеля — %1$s</string>
     <string name="finance_fuel_analytics_mpg">MPG: %1$s</string>
     <string name="finance_fuel_analytics_price_per_gallon">$%1$s/гал</string>
     <string name="finance_fuel_analytics_spent">Потрачено: $%1$s</string>
@@ -800,9 +800,9 @@
 
     <string name="settings_theme_title">Тема оформления</string>
     <string name="settings_theme_desc">Светлая, тёмная или системная тема. OLED-чёрный доступен в тёмном режиме.</string>
-    <string name="settings_theme_system">📱 Системная</string>
-    <string name="settings_theme_light">☀️ Светлая</string>
-    <string name="settings_theme_dark">🌙 Тёмная</string>
+    <string name="settings_theme_system">Системная</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
 
     <string name="settings_oled_dark_title">OLED чёрный</string>
     <string name="settings_oled_dark_desc">Чисто чёрный фон для экономии батареи и комфорта ночью</string>

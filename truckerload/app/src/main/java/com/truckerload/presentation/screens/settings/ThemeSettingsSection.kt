@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -59,6 +62,18 @@ fun ThemeSettingsSection(
                             settingsDataStore.saveThemeMode(mode)
                             ThemeManager.apply(mode)
                         }
+                    },
+                    modifier = AppFilterChipDefaults.target(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = when (mode) {
+                                AppThemeMode.SYSTEM -> Icons.Outlined.BrightnessAuto
+                                AppThemeMode.LIGHT -> Icons.Outlined.LightMode
+                                AppThemeMode.DARK -> Icons.Outlined.DarkMode
+                            },
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
                     },
                     label = {
                         Text(
@@ -115,7 +130,7 @@ fun ThemeSettingsSection(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Icon(
-                        Icons.Default.DarkMode,
+                        Icons.Outlined.DarkMode,
                         contentDescription = stringResource(R.string.settings_oled_dark_title),
                         tint = tc.AccentPrimary,
                         modifier = Modifier.size(22.dp),

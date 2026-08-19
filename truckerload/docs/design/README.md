@@ -31,18 +31,19 @@ python3 -m http.server 8765
 
 Файл `tokens.json` — исходный набор токенов (синхронизирован с `SoftUiColors` в `SoftUiTheme.kt`).
 
-## Канон в коде (v1.1)
+## Канон в коде (v1.2)
 
 | Слой | Файл / API |
 |------|------------|
 | Цвета / радиусы / elevation | `SoftUiTheme.kt` |
+| Semantic Success/Warning/Danger/Neutral | `SemanticColors.kt` |
 | Material 3 + system bars | `Theme.kt` → `TruckerLoadTheme` |
-| Типографика | **DM Sans** (`Type.kt` / `FontFamilies.kt`) |
+| Типографика | **DM Sans** (`Type.kt` / `AppTypography.HeroNumber`) |
 | Карточки / bento | `BentoGlassCard`, `SoftCard` |
 | Кнопки | `TlButton`, `TlOutlinedButton`, `TlChipButton` |
 | Заголовки | `ForestScreenTitle`, `ForestSectionTitle` |
 | Поля ввода | `AppTextFieldDefaults.outlined()` |
-| Виджет | `res/values{,-night}/widget_colors.xml` (Forest, не purple) |
+| Виджет | `res/values{,-night}/widget_colors.xml` + Glance `ColorProviders` |
 
 Legacy-имена `DarkGlass*`, `NeoGlass*`, `Gold*`, `PurpleStart` — deprecated aliases на Forest.
 
