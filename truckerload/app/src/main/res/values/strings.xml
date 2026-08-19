@@ -446,6 +446,9 @@
     <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
     <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
     <string name="friends_route_truck_toggle">Маршрут для грузовика</string>
+    <string name="friends_route_mode_title">Что показать на карте</string>
+    <string name="friends_route_mode_traveled">Пройденный путь</string>
+    <string name="friends_route_mode_remaining">Оставшийся путь</string>
     <string name="friends_battery_saver_toggle">Экономия батареи (GPS реже)</string>
     <string name="friends_route_road_truck">Маршрут по дорогам · профиль Truck</string>
     <string name="friends_route_road_car">Маршрут по дорогам · легковой</string>

@@ -60,6 +60,16 @@ class RoadRouteGeometryTest {
     }
 
     @Test
+    fun traveledEndsAtCurrentAndStartsAtOrigin() {
+        val current = LatLngPoint(41.0, -98.4)
+        val traveled = RoadRouteGeometry.traveledToCurrent(i80Corridor, current)
+        assertEquals(i80Corridor.first().lat, traveled.first().lat, 1e-9)
+        assertEquals(current.lat, traveled.last().lat, 1e-9)
+        assertEquals(current.lng, traveled.last().lng, 1e-9)
+        assertTrue(traveled.size >= 2)
+    }
+
+    @Test
     fun defaultThresholdIsFiftyMeters() {
         assertEquals(50.0, RoadRouteGeometry.DEFAULT_OFF_ROUTE_METERS, 0.0)
     }
@@ -185,5 +195,34 @@ class FriendRoutePolylineBuilderRoadTest {
         )
         assertEquals(3, split.remaining.size)
         assertEquals(46.0, split.remaining[1].lat, 1e-9)
+    }
+
+    @Test
+    fun usesRoadTraveledWhenProvided() {
+        val route = FriendActiveRoute(
+            userId = "f1",
+            displayName = "Ivan",
+            loadRef = null,
+            originLabel = "A",
+            destinationLabel = "B",
+            origin = LatLngPoint(47.6, -122.3),
+            destination = LatLngPoint(45.5, -122.6),
+            startDate = "2026-07-19",
+            endDate = "2026-07-22",
+            status = SharedLoadStatus.ACTIVE,
+            trackPoints = emptyList(),
+        )
+        val traveled = listOf(
+            LatLngPoint(47.6, -122.3),
+            LatLngPoint(47.0, -122.4),
+            LatLngPoint(46.5, -122.5),
+        )
+        val split = FriendRoutePolylineBuilder.split(
+            route,
+            current = LatLngPoint(46.5, -122.5),
+            roadTraveled = traveled,
+        )
+        assertEquals(3, split.past.size)
+        assertEquals(47.0, split.past[1].lat, 1e-9)
     }
 }

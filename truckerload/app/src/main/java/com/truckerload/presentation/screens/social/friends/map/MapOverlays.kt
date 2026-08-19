@@ -42,6 +42,8 @@ import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.truckerload.R
+import com.truckerload.domain.friends.FriendsRouteDisplay
+import com.truckerload.domain.friends.FriendsRouteDisplayMode
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -63,6 +65,7 @@ fun FullscreenFriendsMapDialog(
     selectedFriendId: String?,
     myLocation: LatLngPoint?,
     myAvatarUrl: String?,
+    routeDisplayMode: FriendsRouteDisplayMode,
     showMyLocationLayer: Boolean,
     centerOnMeNonce: Int,
     isLoading: Boolean,
@@ -90,6 +93,7 @@ fun FullscreenFriendsMapDialog(
                     selectedFriendId = selectedFriendId,
                     myLocation = myLocation,
                     myAvatarUrl = myAvatarUrl,
+                    routeDisplayMode = routeDisplayMode,
                     showMyLocationLayer = showMyLocationLayer,
                     centerOnMeNonce = centerOnMeNonce,
                     interactive = true,
@@ -122,7 +126,13 @@ fun FullscreenFriendsMapDialog(
                     )
                 }
                 Text(
-                    text = stringResource(R.string.friends_map_legend),
+                    text = stringResource(R.string.friends_map_legend) + " · " + stringResource(
+                        if (routeDisplayMode == FriendsRouteDisplayMode.TRAVELED) {
+                            R.string.friends_route_mode_traveled
+                        } else {
+                            R.string.friends_route_mode_remaining
+                        },
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = tc.TextSecondary,
                     modifier = Modifier
@@ -148,6 +158,7 @@ fun FriendsGoogleMap(
     selectedFriendId: String?,
     myLocation: LatLngPoint?,
     myAvatarUrl: String? = null,
+    routeDisplayMode: FriendsRouteDisplayMode = FriendsRouteDisplayMode.REMAINING,
     showMyLocationLayer: Boolean,
     centerOnMeNonce: Int,
     onMarkerClick: (String) -> Unit,
@@ -187,6 +198,7 @@ fun FriendsGoogleMap(
         selectedFriendId,
         myLocation,
         myAvatarUrl,
+        routeDisplayMode,
         showMyLocationLayer,
         interactive,
         mapView,
@@ -224,22 +236,24 @@ fun FriendsGoogleMap(
                     zIndex = 3f,
                 )
             }
-            if (myPathPast.size >= 2) {
+            val visiblePast = FriendsRouteDisplay.pastToDraw(routeDisplayMode, myPathPast)
+            val visibleRemaining = FriendsRouteDisplay.remainingToDraw(routeDisplayMode, myPathRemaining)
+            if (visiblePast.size >= 2) {
                 googleMap.addPolyline(
                     PolylineOptions()
-                        .addAll(myPathPast.map { it.toGms() })
+                        .addAll(visiblePast.map { it.toGms() })
                         .color(COLOR_PAST)
                         .width(12f),
                 )
             }
-            if (myPathRemaining.size >= 2) {
+            if (visibleRemaining.size >= 2) {
                 googleMap.addPolyline(
                     PolylineOptions()
-                        .addAll(myPathRemaining.map { it.toGms() })
+                        .addAll(visibleRemaining.map { it.toGms() })
                         .color(COLOR_REMAINING)
                         .width(12f),
                 )
-                myPathRemaining.lastOrNull()?.let { dest ->
+                visibleRemaining.lastOrNull()?.let { dest ->
                     val destIcon = BitmapDescriptorFactory.fromBitmap(
                         FriendMapMarkerBitmap.createDestination(density, destLabel),
                     )
@@ -271,18 +285,20 @@ fun FriendsGoogleMap(
                     zIndex = if (selected) 2f else 1f,
                 )
                 if (friend.showPath) {
-                    if (friend.past.size >= 2) {
+                    val friendPast = FriendsRouteDisplay.pastToDraw(routeDisplayMode, friend.past)
+                    val friendRemaining = FriendsRouteDisplay.remainingToDraw(routeDisplayMode, friend.remaining)
+                    if (friendPast.size >= 2) {
                         googleMap.addPolyline(
                             PolylineOptions()
-                                .addAll(friend.past.map { it.toGms() })
+                                .addAll(friendPast.map { it.toGms() })
                                 .color(COLOR_PAST)
                                 .width(10f),
                         )
                     }
-                    if (friend.remaining.size >= 2) {
+                    if (friendRemaining.size >= 2) {
                         googleMap.addPolyline(
                             PolylineOptions()
-                                .addAll(friend.remaining.map { it.toGms() })
+                                .addAll(friendRemaining.map { it.toGms() })
                                 .color(COLOR_REMAINING)
                                 .width(10f),
                         )
@@ -295,7 +311,7 @@ fun FriendsGoogleMap(
                 false
             }
             val selected = overlays.firstOrNull { it.presence.userId == selectedFriendId }
-            val routePoints = (myPathPast + myPathRemaining).map { it.toGms() }
+            val routePoints = (visiblePast + visibleRemaining).map { it.toGms() }
             when {
                 selected != null -> {
                     googleMap.moveCamera(

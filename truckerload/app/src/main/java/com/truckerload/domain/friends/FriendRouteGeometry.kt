@@ -21,16 +21,21 @@ object FriendRoutePolylineBuilder {
         route: FriendActiveRoute,
         current: LatLngPoint?,
         roadRemaining: List<LatLngPoint>? = null,
+        roadTraveled: List<LatLngPoint>? = null,
     ): SplitPolylines {
         val origin = route.origin
         val dest = route.destination
         val track = route.trackPoints
 
-        val past = buildList {
-            if (origin != null) add(origin)
-            addAll(track)
-            if (current != null) add(current)
-        }.distinctConsecutive()
+        val past = if (roadTraveled != null && roadTraveled.size >= 2) {
+            roadTraveled.distinctConsecutive()
+        } else {
+            buildList {
+                if (origin != null) add(origin)
+                addAll(track)
+                if (current != null) add(current)
+            }.distinctConsecutive()
+        }
 
         val remaining = if (roadRemaining != null && roadRemaining.size >= 2) {
             roadRemaining.distinctConsecutive()

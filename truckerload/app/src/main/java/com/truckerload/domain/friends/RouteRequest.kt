@@ -37,6 +37,7 @@ data class RoadRouteResult(
     val durationSeconds: Long? = null,
     val providerName: String? = null,
     val failureReason: String? = null,
+    val traveledPoints: List<LatLngPoint> = emptyList(),
 ) {
     companion object {
         fun straight(start: LatLngPoint, destination: LatLngPoint, reason: String?): RoadRouteResult =

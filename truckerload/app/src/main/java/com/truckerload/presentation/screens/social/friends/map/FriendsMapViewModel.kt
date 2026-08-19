@@ -13,6 +13,7 @@ import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendMapLabels
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
+import com.truckerload.domain.friends.FriendsRouteDisplayMode
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.RoadRouteResult
@@ -76,6 +77,13 @@ class FriendsMapViewModel @Inject constructor(
                 _uiState.update { it.copy(routeVehicleTruck = truck) }
                 rebuildRoadSession(truck)
                 rebuildMyPath()
+            }
+        }
+        viewModelScope.launch {
+            settingsDataStore.friendsRouteShowTraveled.collect { traveled ->
+                _uiState.update {
+                    it.copy(routeDisplayMode = FriendsRouteDisplayMode.fromStored(traveled))
+                }
             }
         }
         viewModelScope.launch {
@@ -252,18 +260,23 @@ class FriendsMapViewModel @Inject constructor(
                     val route = byUser[p.userId]
                     val show = p.userId in showPathFor
                     val current = LatLngPoint(p.latitude, p.longitude)
-                    val road = if (show && route != null) {
-                        val start = current
-                        roadRoutes.remainingRoad(
+                    val roadResult = if (show && route != null) {
+                        roadRoutes.remainingRoadResult(
                             cacheKey = p.userId,
-                            currentOrStart = start,
+                            currentOrStart = current,
                             destination = route.destination,
+                            fetchOrigin = route.origin ?: current,
                         )
                     } else {
                         null
                     }
                     val split = if (show && route != null) {
-                        FriendRoutePolylineBuilder.split(route, current, roadRemaining = road)
+                        FriendRoutePolylineBuilder.split(
+                            route,
+                            current,
+                            roadRemaining = roadResult?.points,
+                            roadTraveled = roadResult?.traveledPoints,
+                        )
                     } else {
                         FriendRoutePolylineBuilder.SplitPolylines(emptyList(), emptyList())
                     }
@@ -362,11 +375,13 @@ class FriendsMapViewModel @Inject constructor(
             cacheKey = RoadRouteSession.SELF_CACHE_KEY,
             currentOrStart = start,
             destination = destination,
+            fetchOrigin = origin ?: start,
         )
         val split = FriendRoutePolylineBuilder.split(
             route,
             myLocationPoint,
             roadRemaining = roadResult.points,
+            roadTraveled = roadResult.traveledPoints,
         )
         val summary = listOf(originLabel, destLabel)
             .filter { it.isNotBlank() }
@@ -425,6 +440,12 @@ class FriendsMapViewModel @Inject constructor(
     fun setRouteVehicleTruck(enabled: Boolean) {
         viewModelScope.launch {
             settingsDataStore.saveRouteVehicleTruck(enabled)
+        }
+    }
+
+    fun setRouteDisplayMode(mode: FriendsRouteDisplayMode) {
+        viewModelScope.launch {
+            settingsDataStore.saveFriendsRouteShowTraveled(mode == FriendsRouteDisplayMode.TRAVELED)
         }
     }
 

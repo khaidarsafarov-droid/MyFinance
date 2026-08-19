@@ -4,6 +4,7 @@ import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendPresence
 import com.truckerload.domain.friends.FriendProfileHit
 import com.truckerload.domain.friends.FriendShareLink
+import com.truckerload.domain.friends.FriendsRouteDisplayMode
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.RouteOverlapMatch
 
@@ -38,6 +39,7 @@ data class FriendsMapUiState(
     val myRouteDurationSeconds: Long? = null,
     val locationBatterySaver: Boolean = false,
     val routeVehicleTruck: Boolean = true,
+    val routeDisplayMode: FriendsRouteDisplayMode = FriendsRouteDisplayMode.REMAINING,
     val selectedFriendId: String? = null,
     val overlaps: List<RouteOverlapMatch> = emptyList(),
     val showOverlapsPanel: Boolean = false,

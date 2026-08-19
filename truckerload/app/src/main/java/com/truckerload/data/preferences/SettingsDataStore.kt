@@ -28,6 +28,7 @@ private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_thres
 private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
 private val KEY_LOCATION_BATTERY_SAVER = booleanPreferencesKey("location_battery_saver")
 private val KEY_ROUTE_VEHICLE_TRUCK = booleanPreferencesKey("route_vehicle_truck")
+private val KEY_FRIENDS_ROUTE_TRAVELED = booleanPreferencesKey("friends_route_traveled")
 private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 private val KEY_OLED_DARK = booleanPreferencesKey("oled_dark")
 private val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -131,6 +132,11 @@ class SettingsDataStore(context: Context) {
     /** Preferred routing profile: truck (default) vs car. */
     val routeVehicleTruck: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_ROUTE_VEHICLE_TRUCK] ?: true
+    }
+
+    /** True = show on-road path already driven; false = remaining path only. */
+    val friendsRouteShowTraveled: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_FRIENDS_ROUTE_TRAVELED] ?: false
     }
 
     val quietHoursEnabled: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
@@ -302,6 +308,14 @@ class SettingsDataStore(context: Context) {
     suspend fun saveRouteVehicleTruck(enabled: Boolean) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_ROUTE_VEHICLE_TRUCK] = enabled
+        }
+    }
+
+    suspend fun getFriendsRouteShowTraveledOnce(): Boolean = friendsRouteShowTraveled.first()
+
+    suspend fun saveFriendsRouteShowTraveled(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_FRIENDS_ROUTE_TRAVELED] = enabled
         }
     }
 
