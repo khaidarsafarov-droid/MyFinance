@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/open{?featureName}" />
+            <parameter
+                android:name="feature"
+                android:key="featureName" />
+        </intent>
+    </capability>
+
+    <capability android:name="actions.intent.GET_MESSAGE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/chat{?recipientName}" />
+            <parameter
+                android:name="message.recipient.name"
+                android:key="recipientName" />
+        </intent>
+    </capability>
+
+    <capability android:name="actions.intent.CREATE_MESSAGE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/message{?recipientName,messageText}" />
+            <parameter
+                android:name="message.recipient.name"
+                android:key="recipientName" />
+            <parameter
+                android:name="message.text"
+                android:key="messageText" />
+        </intent>
+    </capability>
+
+    <capability android:name="actions.intent.CREATE_CALL">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/call{?calleeName}" />
+            <parameter
+                android:name="call.callee.name"
+                android:key="calleeName" />
+        </intent>
+    </capability>
+
+    <shortcut
+        android:shortcutId="add_load"
+        android:shortcutShortLabel="@string/add_load_title"
+        android:shortcutLongLabel="@string/add_load_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://app/add_load"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_add_load" />
+        </capability-binding>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="weekly_goal"
+        android:shortcutShortLabel="@string/nav_weekly_goal"
+        android:shortcutLongLabel="@string/nav_weekly_goal">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://app/stats"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_weekly_goal" />
+        </capability-binding>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="community"
+        android:shortcutShortLabel="@string/nav_community"
+        android:shortcutLongLabel="@string/nav_community">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://app/community"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_community" />
+        </capability-binding>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="friends_map"
+        android:shortcutShortLabel="@string/drawer_friends_live"
+        android:shortcutLongLabel="@string/friends_live_map_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://app/friends_live"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_friends" />
+        </capability-binding>
+    </shortcut>
+</shortcuts>

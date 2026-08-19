@@ -313,6 +313,7 @@ fun NavGraph(
                 },
                 modifier = Modifier.align(Alignment.TopCenter),
             )
+            com.truckerload.presentation.voice.VoiceCommandHandler(navController = navController)
         }
     }
 }

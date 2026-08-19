@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
+        handleIncomingIntent(intent)
         WidgetDataUpdater.updateWidgetData(applicationContext)
         requestNotificationPermissionIfNeeded()
         enableEdgeToEdge()
@@ -314,7 +314,15 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
         handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
+        com.truckerload.voice.VoiceIntentReader.parse(intent)?.let { command ->
+            com.truckerload.voice.VoiceCommandBus.offer(command)
+        }
     }
 
     private fun handleDeepLinkRoute(route: String?) {
