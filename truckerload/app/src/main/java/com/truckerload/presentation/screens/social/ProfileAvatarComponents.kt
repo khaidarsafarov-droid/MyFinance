@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ import coil.request.ImageRequest
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.theme.UiDimens
 import java.io.File
 
@@ -270,11 +272,11 @@ fun ProfileAvatarPickerSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
         ) {
             Text(
                 text = stringResource(R.string.profile_change_photo),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 16.dp),
             )
             Button(
                 onClick = {
@@ -287,9 +289,7 @@ fun ProfileAvatarPickerSheet(
             }
             Button(
                 onClick = { launchCamera() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.profile_photo_take_selfie))
             }
@@ -299,9 +299,7 @@ fun ProfileAvatarPickerSheet(
                         onRemove()
                         onDismiss()
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.profile_photo_remove))
                 }

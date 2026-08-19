@@ -152,24 +152,21 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             ),
             style = MaterialTheme.typography.labelSmall,
             color = tc.TextSecondary,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
         )
         if (connectivity == ConnectivityStatus.Offline) {
             Text(
                 text = stringResource(R.string.connectivity_offline_banner),
                 style = MaterialTheme.typography.labelSmall,
                 color = tc.AccentExpense,
-                modifier = Modifier.padding(bottom = 8.dp),
             )
         }
 
         if (busy) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             Text(
                 text = stringResource(R.string.drive_sync_busy),
                 style = MaterialTheme.typography.labelSmall,
                 color = tc.TextSecondary,
-                modifier = Modifier.padding(bottom = 8.dp),
             )
         }
 
@@ -190,7 +187,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             }
         } else {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
@@ -241,7 +238,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     }
                 },
                 enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(48.dp).padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
             ) {
                 Text(stringResource(R.string.drive_sync_restore_now))
             }
@@ -258,7 +255,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     }
                 },
                 enabled = !busy,
-                modifier = Modifier.fillMaxWidth().height(48.dp).padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
             ) {
                 Text(stringResource(R.string.drive_sync_disconnect))
             }
