@@ -9,7 +9,10 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.remote.CompositeDirectionsProvider
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.CommunityFriendsPublisher
 import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendMapLabels
@@ -19,6 +22,9 @@ import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.FriendRequestDirection
 import com.truckerload.domain.friends.FriendRequestSendResult
 import com.truckerload.domain.friends.NicknameValidator
+import com.truckerload.domain.friends.establishesFriendship
+import com.truckerload.domain.friends.friendCommunityLabel
+import com.truckerload.domain.friends.statusKey
 import com.truckerload.domain.friends.RoadRouteResult
 import com.truckerload.domain.friends.RoadRouteSession
 import com.truckerload.domain.friends.RouteIntersectionMatcher
@@ -49,11 +55,14 @@ class FriendsMapViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
     private val profileRepository: ProfileRepository,
+    chatRepository: ChatRepository,
+    socialSyncCoordinator: SocialSyncCoordinator,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
     private val safetyApi = FriendSafetyClient(authStore)
+    private val communityFriends = CommunityFriendsPublisher(chatRepository, socialSyncCoordinator)
     private val locationHelper = LocationHelper(context)
     private val directions = CompositeDirectionsProvider()
     private var roadRoutes = RoadRouteSession(directions)
@@ -177,20 +186,18 @@ class FriendsMapViewModel @Inject constructor(
                 },
             )
             if (result.isSuccess) {
-                val status = when (result.getOrNull()) {
-                    FriendRequestSendResult.SENT -> "request_sent"
-                    FriendRequestSendResult.ALREADY_SENT -> "already_sent"
-                    FriendRequestSendResult.ALREADY_FRIENDS -> "already_friends"
-                    FriendRequestSendResult.ACCEPTED -> "accepted"
-                    FriendRequestSendResult.BLOCKED -> "blocked"
-                    FriendRequestSendResult.ADDED_DIRECT -> "added"
-                    null -> "request_sent"
+                val sendResult = result.getOrNull()
+                if (sendResult?.establishesFriendship() == true) {
+                    communityFriends.onFriendshipEstablished(
+                        hit.userId,
+                        friendCommunityLabel(hit.nickname, hit.displayName),
+                    )
                 }
                 _uiState.update {
                     it.copy(
                         searchHit = null,
                         searchQuery = "",
-                        statusMessage = status,
+                        statusMessage = sendResult?.statusKey() ?: "request_sent",
                     )
                 }
                 refresh(silent = true)
@@ -204,7 +211,14 @@ class FriendsMapViewModel @Inject constructor(
 
     fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
+            val request = _uiState.value.incomingRequests.find { it.id == requestId }
             safetyApi.acceptFriendRequest(requestId).onSuccess {
+                if (request != null) {
+                    communityFriends.onFriendshipEstablished(
+                        request.peerId,
+                        friendCommunityLabel(request.peerNickname),
+                    )
+                }
                 _uiState.update { it.copy(statusMessage = "accepted") }
                 refresh(silent = true)
             }.onFailure { err ->
@@ -265,6 +279,7 @@ class FriendsMapViewModel @Inject constructor(
         viewModelScope.launch {
             val result = friendsApi.removeFriend(friendId)
             if (result.isSuccess) {
+                communityFriends.onFriendshipRemoved(friendId)
                 _uiState.update {
                     it.copy(
                         shareLinks = it.shareLinks.filter { l -> l.friendUserId != friendId },

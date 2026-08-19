@@ -101,6 +101,7 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
             onBack = { navigateToMainRoute(Routes.HOME, navController) },
             onEdit = { navController.navigate(Routes.PROFILE_EDIT) },
             showBack = false,
+            onOpenFriends = { navController.navigate(Routes.FRIENDS_LIVE) },
         )
     }
     composable(Routes.PROFILE_EDIT) {

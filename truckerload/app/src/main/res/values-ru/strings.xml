@@ -497,6 +497,10 @@
     <string name="friends_invite_share_text">Установи Truck Log и зайди через Google — добавь меня по нику, чтобы видеть маршруты друг друга на карте.</string>
     <string name="friends_added_ok">Друг добавлен</string>
     <string name="friends_cannot_add_self">Нельзя добавить самого себя</string>
+    <string name="friends_directory_hint">Найдите водителя по нику. После принятия он появится в чатах, рейтинге, челлендже и на карте.</string>
+    <string name="friends_accepted_title">Ваши друзья</string>
+    <string name="friends_accepted_empty">Пока нет друзей — отправьте заявку по нику.</string>
+    <string name="friends_open_map">Открыть карту друзей</string>
     <string name="friends_sharing_list_title">С кем я делюсь</string>
     <string name="friends_sharing_list_hint">Удалить или настроить: показывать себя / маршрут этому другу</string>
     <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — нажмите + чтобы добавить друга по нику</string>

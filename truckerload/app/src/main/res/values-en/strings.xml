@@ -497,6 +497,10 @@
     <string name="friends_invite_share_text">Install Truck Log and sign in with Google — add me by nickname to see each other\'s routes on the map.</string>
     <string name="friends_added_ok">Friend added</string>
     <string name="friends_cannot_add_self">You can\'t add yourself</string>
+    <string name="friends_directory_hint">Find a driver by nickname. After they accept, they show up in chats, the leaderboard, the challenge, and the map.</string>
+    <string name="friends_accepted_title">Your friends</string>
+    <string name="friends_accepted_empty">No friends yet — send a request by nickname.</string>
+    <string name="friends_open_map">Open friends map</string>
     <string name="friends_sharing_list_title">Who I share with</string>
     <string name="friends_sharing_list_hint">Delete or edit: show yourself / your route to this friend</string>
     <string name="friends_sharing_list_empty">Nobody yet — tap + to add a friend by nickname</string>

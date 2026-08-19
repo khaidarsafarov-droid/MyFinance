@@ -98,3 +98,22 @@ private fun RequestRow(
         }
     }
 }
+
+@Composable
+internal fun FriendRequestStatusText(status: String?) {
+    val message = when (status) {
+        "request_sent" -> stringResource(R.string.friends_request_sent)
+        "already_sent" -> stringResource(R.string.friends_request_already_sent)
+        "already_friends" -> stringResource(R.string.friends_request_already_friends)
+        "accepted" -> stringResource(R.string.friends_request_accepted)
+        "blocked" -> stringResource(R.string.social_user_blocked)
+        "added" -> stringResource(R.string.friends_added_ok)
+        "invalid_search" -> stringResource(R.string.friends_nickname_invalid)
+        else -> return
+    }
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodySmall,
+        color = LocalTruckColors.current.AccentPrimary,
+    )
+}

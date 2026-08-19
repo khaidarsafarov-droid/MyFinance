@@ -13,6 +13,7 @@ import com.truckerload.data.local.entities.ChatMemberEntity
 import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.SocialChatEntity
 import com.truckerload.data.local.entities.SocialMessageEntity
+import com.truckerload.data.local.entities.SocialPeerEntity
 import com.truckerload.data.repository.toDomain
 import com.truckerload.data.social.ContentModerator
 import com.truckerload.data.social.RecommendationService
@@ -268,6 +269,38 @@ class ChatRepositoryImpl(
     override suspend fun privatePeerId(chatId: String): String? {
         SocialIdentity.peerIdFromPrivateChat(chatId)?.let { return it }
         return chatMemberDao.otherMemberId(chatId, actorId())
+    }
+
+    override suspend fun rememberPeer(userId: String, displayName: String) {
+        val id = userId.trim()
+        if (id.isBlank()) return
+        val existing = peerDao.getById(id)
+        val name = displayName.trim().ifBlank { existing?.displayName.orEmpty().ifBlank { id.take(8) } }
+        peerDao.upsertAll(
+            listOf(
+                SocialPeerEntity(
+                    id = id,
+                    displayName = name,
+                    rating = existing?.rating ?: 0.0,
+                    weeklyMiles = existing?.weeklyMiles ?: 0.0,
+                    weeklyRevenue = existing?.weeklyRevenue ?: 0.0,
+                    weeklyLoads = existing?.weeklyLoads ?: 0,
+                    weeklyRpm = existing?.weeklyRpm ?: 0.0,
+                ),
+            ),
+        )
+    }
+
+    override suspend fun rememberPeerIfAbsent(userId: String, displayName: String) {
+        val id = userId.trim()
+        if (id.isBlank()) return
+        if (peerDao.getById(id) == null) rememberPeer(id, displayName)
+    }
+
+    override suspend fun forgetPeer(userId: String) {
+        val id = userId.trim()
+        if (id.isBlank()) return
+        peerDao.deleteByIds(listOf(id))
     }
 
     private suspend fun findPrivateChatForPeer(peerId: String): SocialChatEntity? {

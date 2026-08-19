@@ -1,27 +1,21 @@
 package com.truckerload.presentation.screens.social.friends.map
 
-import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,16 +26,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.friends.FriendShareLink
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.screens.social.friends.FriendsAddByNicknameForm
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppSwitchDefaults
-import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @Composable
@@ -52,7 +45,6 @@ fun FriendsMapManageSection(
     onAddFriendExpandedChange: (Boolean) -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
 
     // Collapse the add panel after a successful add.
     LaunchedEffect(uiState.statusMessage) {
@@ -71,83 +63,16 @@ fun FriendsMapManageSection(
         }
 
         AnimatedVisibility(visible = addFriendExpanded) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.friends_add_by_nickname_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = tc.TextPrimary,
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OutlinedTextField(
-                        value = uiState.searchQuery,
-                        onValueChange = viewModel::setSearchQuery,
-                        label = { Text(stringResource(R.string.friends_search_nickname_label)) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        colors = AppTextFieldDefaults.outlined(),
-                    )
-                    Button(
-                        onClick = { viewModel.searchFriend() },
-                        enabled = !uiState.searchBusy,
-                    ) {
-                        if (uiState.searchBusy) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        } else {
-                            Icon(Icons.Default.PersonAdd, contentDescription = null)
-                        }
-                    }
-                }
-                uiState.searchHit?.let { hit ->
-                    Text(
-                        text = stringResource(R.string.friends_found, hit.nickname),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                    Button(
-                        onClick = { viewModel.addSearchedFriend() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.friends_request_send_button))
-                    }
-                }
-                FriendRequestStatusText(uiState.statusMessage)
-                if (uiState.searchNotFound || uiState.statusMessage == "not_found") {
-                    Text(
-                        text = stringResource(R.string.friends_not_in_app),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextSecondary,
-                    )
-                    OutlinedButton(
-                        onClick = {
-                            val share = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(
-                                    Intent.EXTRA_TEXT,
-                                    context.getString(R.string.friends_invite_share_text),
-                                )
-                            }
-                            context.startActivity(
-                                Intent.createChooser(
-                                    share,
-                                    context.getString(R.string.friends_invite_share_title),
-                                ),
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            Icons.Default.Share,
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 6.dp),
-                        )
-                        Text(stringResource(R.string.friends_invite_share_button))
-                    }
-                }
-            }
+            FriendsAddByNicknameForm(
+                searchQuery = uiState.searchQuery,
+                searchBusy = uiState.searchBusy,
+                searchHit = uiState.searchHit,
+                searchNotFound = uiState.searchNotFound,
+                statusMessage = uiState.statusMessage,
+                onQueryChange = viewModel::setSearchQuery,
+                onSearch = viewModel::searchFriend,
+                onAdd = viewModel::addSearchedFriend,
+            )
         }
 
         FriendRequestsSection(
@@ -361,22 +286,4 @@ fun FriendShareRow(
             }
         }
     }
-}
-
-@Composable
-private fun FriendRequestStatusText(status: String?) {
-    val message = when (status) {
-        "request_sent" -> stringResource(R.string.friends_request_sent)
-        "already_sent" -> stringResource(R.string.friends_request_already_sent)
-        "already_friends" -> stringResource(R.string.friends_request_already_friends)
-        "accepted" -> stringResource(R.string.friends_request_accepted)
-        "blocked" -> stringResource(R.string.social_user_blocked)
-        "added" -> stringResource(R.string.friends_added_ok)
-        else -> return
-    }
-    Text(
-        text = message,
-        style = MaterialTheme.typography.bodySmall,
-        color = LocalTruckColors.current.AccentPrimary,
-    )
 }

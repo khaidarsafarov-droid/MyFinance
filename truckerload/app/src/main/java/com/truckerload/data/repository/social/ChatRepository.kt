@@ -37,4 +37,8 @@ interface ChatRepository {
     suspend fun createPrivateChatWithPeer(peerId: String): SocialResult<String>
     suspend fun archivePrivateChatForPeer(peerId: String)
     suspend fun privatePeerId(chatId: String): String?
+    /** Cache a mutual friend so chats, leaderboard, and DMs see them immediately. */
+    suspend fun rememberPeer(userId: String, displayName: String)
+    suspend fun rememberPeerIfAbsent(userId: String, displayName: String)
+    suspend fun forgetPeer(userId: String)
 }
