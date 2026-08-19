@@ -147,6 +147,36 @@ data class DevicePushTokenRequest(
     val platform: String = PushPlatforms.ANDROID,
 )
 
+/** One phone and one tablet may be registered per account. */
+object DeviceSlotPolicy {
+    const val PHONE = "phone"
+    const val TABLET = "tablet"
+    const val TABLET_SMALLEST_WIDTH_DP = 600
+    const val SLOT_TAKEN_CODE = "device_slot_taken"
+
+    fun normalize(value: String): String? {
+        val form = value.trim().lowercase()
+        return form.takeIf { it == PHONE || it == TABLET }
+    }
+
+    fun fromSmallestWidthDp(smallestScreenWidthDp: Int): String =
+        if (smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP) TABLET else PHONE
+}
+
+@Serializable
+data class DeviceRegisterRequest(
+    val deviceId: String,
+    val formFactor: String,
+)
+
+@Serializable
+data class DeviceRegisterResponse(
+    val deviceId: String,
+    val formFactor: String,
+    val registeredAt: Long,
+    val lastSeenAt: Long,
+)
+
 @Serializable
 data class ApiError(
     val code: String,
