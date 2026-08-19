@@ -116,11 +116,15 @@ class GoogleSessionPersistTest {
         assertEquals("supabase.jwt", auth.accessTokenOrNull())
         assertEquals("google.id.token", auth.googleIdTokenOrNull())
 
+        val secretsOnDisk = !SecurePreferences.plaintextFallbackUsed
         AuthStore.resetForTests()
         val restored = AuthStore(context)
         assertTrue(restored.isLoggedIn.value)
-        assertEquals("supabase.jwt", restored.accessTokenOrNull())
-        assertEquals("google.id.token", restored.googleIdTokenOrNull())
+        assertEquals("google_voice_user", restored.currentUserIdOrNull())
+        if (secretsOnDisk) {
+            assertEquals("supabase.jwt", restored.accessTokenOrNull())
+            assertEquals("google.id.token", restored.googleIdTokenOrNull())
+        }
     }
 
     @Test

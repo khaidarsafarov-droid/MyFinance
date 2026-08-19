@@ -113,7 +113,7 @@ class AuthStore(context: Context) {
         synchronized(lock) {
             liveSessionHealth = health
             _sessionHealth.value = health
-            prefs.edit {
+            prefs.edit(commit = true) {
                 putLong(KEY_LAST_SESSION_CHECK_AT, System.currentTimeMillis())
             }
         }
@@ -125,7 +125,7 @@ class AuthStore(context: Context) {
             if (!liveGoogleSub.isNullOrBlank()) {
                 liveProvider = AuthProvider.GOOGLE
             }
-            prefs.edit {
+            prefs.edit(commit = true) {
                 if (liveGoogleSub == null) remove(KEY_GOOGLE_SUB)
                 else putString(KEY_GOOGLE_SUB, liveGoogleSub)
                 putString(KEY_PROVIDER, liveProvider.name)
@@ -144,7 +144,7 @@ class AuthStore(context: Context) {
                 // when secure storage is temporarily unavailable.
                 return
             }
-            prefs.edit {
+            prefs.edit(commit = true) {
                 if (liveAccessToken == null) remove(KEY_ACCESS_TOKEN)
                 else putString(KEY_ACCESS_TOKEN, liveAccessToken)
                 if (liveRefreshToken == null) remove(KEY_REFRESH_TOKEN)
@@ -214,7 +214,7 @@ class AuthStore(context: Context) {
             _isLoggedIn.value = true
             _sessionHealth.value = liveSessionHealth
             if (persistSession) {
-                prefs.edit {
+                prefs.edit(commit = true) {
                     putBoolean(KEY_LOGGED_IN, true)
                     putString(KEY_USER_ID, id)
                     putString(KEY_EMAIL, mail)
@@ -233,7 +233,7 @@ class AuthStore(context: Context) {
                 }
             } else {
                 // Ephemeral local-only session: memory for this process, cleared on next cold start.
-                prefs.edit {
+                prefs.edit(commit = true) {
                     remove(KEY_LOGGED_IN)
                     remove(KEY_USER_ID)
                     remove(KEY_EMAIL)
@@ -276,7 +276,7 @@ class AuthStore(context: Context) {
             liveGoogleIdToken = null
             liveProvider = AuthProvider.LOCAL
             liveSessionHealth = AuthSessionHealth.VERIFIED
-            prefs.edit {
+            prefs.edit(commit = true) {
                 remove(KEY_LOGGED_IN)
                 remove(KEY_USER_ID)
                 remove(KEY_EMAIL)
