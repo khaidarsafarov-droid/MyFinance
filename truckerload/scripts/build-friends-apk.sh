@@ -32,8 +32,10 @@ else
   echo 'LOCAL_ONLY_MODE=false' >> local.properties
 fi
 
-# Keep cloud API off unless explicitly configured.
-if ! grep -q '^SYNC_BACKEND_URL=' local.properties; then
+# Keep cloud API off unless the operator sets it again after this script.
+if grep -q '^SYNC_BACKEND_URL=' local.properties; then
+  sed -i 's/^SYNC_BACKEND_URL=.*/SYNC_BACKEND_URL=/' local.properties
+else
   echo 'SYNC_BACKEND_URL=' >> local.properties
 fi
 if ! grep -q '^CLOUD_MEDIA_ENABLED=' local.properties; then
