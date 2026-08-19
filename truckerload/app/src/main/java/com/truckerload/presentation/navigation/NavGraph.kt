@@ -37,6 +37,8 @@ import com.truckerload.presentation.utils.useTwoPaneLayout
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.di.LocalVoiceRepository
+import com.truckerload.presentation.screens.voice.ActiveCallBanner
 import com.truckerload.presentation.screens.voice.IncomingCallOverlay
 import com.truckerload.widget.WidgetDeepLink
 import kotlinx.coroutines.launch
@@ -202,8 +204,14 @@ fun NavGraph(
                 onDeepLinkHandled()
             }
             else -> {
-                // Widget camera/scan resolve to attach_pick/{camera|scanner}.
-                if (destination.startsWith("attach_pick/") || destination.startsWith("social_chat/")) {
+                if (
+                    destination.startsWith("attach_pick/") ||
+                    destination.startsWith("social_chat/") ||
+                    destination.startsWith("call/") ||
+                    destination.startsWith("voice_room/") ||
+                    destination.startsWith("profile_peer/") ||
+                    destination.startsWith("group_detail/")
+                ) {
                     navController.navigate(destination) { launchSingleTop = true }
                     onDeepLinkHandled()
                 }
@@ -292,9 +300,18 @@ fun NavGraph(
         }
         }
             IncomingCallOverlay(
+                currentRoute = currentRoute,
+                myUserId = LocalVoiceRepository.current.currentUserId(),
                 onAccept = { callId ->
                     navController.navigate(Routes.call(callId)) { launchSingleTop = true }
                 },
+            )
+            ActiveCallBanner(
+                currentRoute = currentRoute,
+                onReturn = { callId ->
+                    navController.navigate(Routes.call(callId)) { launchSingleTop = true }
+                },
+                modifier = Modifier.align(Alignment.TopCenter),
             )
         }
     }

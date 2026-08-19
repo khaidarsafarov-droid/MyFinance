@@ -65,6 +65,12 @@ interface VoiceRoomParticipantDao {
 
     @Query("SELECT * FROM voice_room_participants WHERE roomId = :roomId AND userId = :userId LIMIT 1")
     suspend fun get(roomId: String, userId: String): VoiceRoomParticipantEntity?
+
+    @Query("SELECT COUNT(*) FROM voice_room_participants WHERE roomId = :roomId")
+    suspend fun countInRoom(roomId: String): Int
+
+    @Query("SELECT * FROM voice_room_participants WHERE roomId = :roomId")
+    suspend fun listInRoom(roomId: String): List<VoiceRoomParticipantEntity>
 }
 
 @Dao
@@ -77,6 +83,9 @@ interface CallSessionDao {
 
     @Query("SELECT * FROM call_sessions WHERE callId = :callId LIMIT 1")
     fun watchCall(callId: String): Flow<CallSessionEntity?>
+
+    @Query("SELECT * FROM call_sessions WHERE status = 'ACTIVE' ORDER BY startedAt DESC LIMIT 1")
+    fun watchActiveCall(): Flow<CallSessionEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(call: CallSessionEntity)

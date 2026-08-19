@@ -54,6 +54,7 @@ internal fun SocialMessageBubble(
     message: SocialMessage,
     onReply: () -> Unit,
     onReaction: (String) -> Unit,
+    onRedial: (() -> Unit)? = null,
 ) {
     val tc = LocalTruckColors.current
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
@@ -191,6 +192,25 @@ internal fun SocialMessageBubble(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = tc.TextPrimary,
                             )
+                        }
+                    }
+                    MessageType.CALL -> {
+                        Column {
+                            Text(
+                                text = message.text.ifBlank { stringResource(R.string.call_missed) },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = tc.TextPrimary,
+                            )
+                            if (onRedial != null) {
+                                Text(
+                                    text = stringResource(R.string.call_redial),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = tc.AccentPrimary,
+                                    modifier = Modifier
+                                        .padding(top = 6.dp)
+                                        .clickable(onClick = onRedial),
+                                )
+                            }
                         }
                     }
                     else -> {

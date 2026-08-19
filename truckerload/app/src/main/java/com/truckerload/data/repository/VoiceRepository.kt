@@ -1,11 +1,13 @@
 package com.truckerload.data.repository
 
 import android.content.Context
+import com.truckerload.BuildConfig
 import com.truckerload.data.community.CommunityVoiceRemote
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.CallSessionEntity
 import com.truckerload.data.local.entities.VoiceRoomEntity
 import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
+import com.truckerload.data.local.toDomain
 import com.truckerload.data.social.SocialDemoCleanup
 import com.truckerload.data.voice.AudioQualityManager
 import com.truckerload.data.voice.HybridSignalingService
@@ -15,6 +17,8 @@ import com.truckerload.data.voice.VoiceTokenClient
 import com.truckerload.data.voice.WebRtcAudioEngine
 import com.truckerload.data.voice.WebRtcCallManager
 import com.truckerload.data.voice.WebRtcRoomMesh
+import com.truckerload.domain.voice.CallConfig
+import com.truckerload.domain.voice.CallPolicy
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.CallType
@@ -53,6 +57,7 @@ class VoiceRepository(
 
     private var activeRoomId: String? = null
     private var activeCallId: String? = null
+    private var mediaCallId: String? = null
     private var transportKind = VoiceTransportKind.NONE
     private var activeRole = VoiceRoomRole.SPEAKER
     private var lastDisplayName: String = ""
@@ -81,7 +86,7 @@ class VoiceRepository(
                     name = room.title,
                     type = "PUBLIC",
                     creatorId = room.creatorId,
-                    maxParticipants = 50,
+                    maxParticipants = BuildConfig.MAX_GROUP_CALL_PARTICIPANTS,
                     isActive = room.isActive,
                     createdAt = room.createdAt,
                     updatedAt = room.createdAt,
@@ -174,8 +179,9 @@ class VoiceRepository(
         name: String,
         type: VoiceRoomType = VoiceRoomType.PUBLIC,
         description: String = "",
+        roomId: String? = null,
     ): Result<String> = runCatching {
-        val id = UUID.randomUUID().toString()
+        val id = roomId?.trim()?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         val title = name.ifBlank { "New room" }
         if (voiceRemote.isReady()) {
@@ -187,7 +193,7 @@ class VoiceRepository(
                 name = title,
                 type = type.name,
                 creatorId = actorId(),
-                maxParticipants = 50,
+                maxParticipants = BuildConfig.MAX_GROUP_CALL_PARTICIPANTS,
                 isActive = true,
                 createdAt = now,
                 updatedAt = now,
@@ -198,12 +204,32 @@ class VoiceRepository(
         id
     }
 
+    suspend fun ensureGroupRoom(chatId: String, title: String): Result<String> = runCatching {
+        val id = CallConfig.groupRoomId(chatId)
+        val existing = roomDao.getRoom(id)
+        if (existing != null) {
+            if (!existing.isActive) {
+                roomDao.upsert(existing.copy(isActive = true, updatedAt = System.currentTimeMillis()))
+            }
+            id
+        } else {
+            createRoom(title.ifBlank { "Group call" }, VoiceRoomType.GROUP, roomId = id).getOrThrow()
+        }
+    }
+
     suspend fun joinRoom(
         roomId: String,
         displayName: String,
         audioScope: CoroutineScope,
         role: VoiceRoomRole = VoiceRoomRole.SPEAKER,
     ): Result<Unit> = runCatching {
+        val room = roomDao.getRoom(roomId)
+        val max = room?.maxParticipants ?: BuildConfig.MAX_GROUP_CALL_PARTICIPANTS
+        val count = participantDao.countInRoom(roomId)
+        val already = participantDao.get(roomId, actorId()) != null
+        if (!CallPolicy.canJoinGroupCall(true, true, count, max, already)) {
+            error("room_full")
+        }
         stopRoomMedia()
         activeRoomId = roomId
         lastDisplayName = displayName
@@ -260,6 +286,12 @@ class VoiceRepository(
         }
         if (voiceRemote.isReady()) {
             voiceRemote.leaveRoom(roomId)
+        }
+        if (CallPolicy.roomEndsWhenLastLeaves(participantDao.countInRoom(roomId))) {
+            roomDao.getRoom(roomId)?.let { row ->
+                roomDao.upsert(row.copy(isActive = false, updatedAt = System.currentTimeMillis()))
+            }
+            if (voiceRemote.isReady()) voiceRemote.deleteRoom(roomId)
         }
     }
 
@@ -389,7 +421,15 @@ class VoiceRepository(
     fun watchCall(callId: String): Flow<CallState?> =
         callDao.watchCall(callId).map { it?.toDomain() }.flowOn(Dispatchers.IO)
 
+    fun watchActiveCall(): Flow<CallState?> =
+        callDao.watchActiveCall().map { it?.toDomain() }.flowOn(Dispatchers.IO)
+
+    fun isBusy(): Boolean = activeCallId != null || activeRoomId != null
+
     suspend fun startCall(calleeId: String, calleeName: String, callerName: String): Result<CallState> = runCatching {
+        val peer = calleeId.trim()
+        require(peer.isNotBlank() && peer != actorId()) { "invalid callee" }
+        if (isBusy()) error("busy")
         val callId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         val state = CallSessionEntity(
@@ -427,11 +467,24 @@ class VoiceRepository(
     }
 
     fun beginCallAudio(scope: CoroutineScope, callId: String, isCaller: Boolean) {
+        if (mediaCallId == callId) return
+        mediaCallId = callId
         activeCallId = callId
         if (isCaller) {
             callManager.startAsCaller(scope, callId)
         } else {
             callManager.startAsCallee(scope, callId)
+        }
+    }
+
+    suspend fun endActiveIfDifferent(incomingCallId: String) {
+        val current = activeCallId
+        if (current != null && current != incomingCallId) {
+            endCall(current)
+        }
+        val room = activeRoomId
+        if (room != null) {
+            leaveRoom(room)
         }
     }
 
@@ -460,6 +513,40 @@ class VoiceRepository(
             voiceRemote.updateCallStatus(callId, CallStatus.REJECTED.name)
         }
         if (activeCallId == callId) activeCallId = null
+        if (mediaCallId == callId) mediaCallId = null
+    }
+
+    suspend fun missCall(callId: String): Result<Unit> = runCatching {
+        val now = System.currentTimeMillis()
+        callDao.updateStatus(callId, CallStatus.MISSED.name, now, 0)
+        signaling.sendSignal(callId, Signal(type = SignalType.LEAVE, fromUserId = actorId()))
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateCallStatus(callId, CallStatus.MISSED.name)
+        }
+        if (activeCallId == callId) {
+            callManager.release()
+            audioEngine.stopLocalAudio()
+            activeCallId = null
+        }
+        if (mediaCallId == callId) mediaCallId = null
+    }
+
+    suspend fun muteAll(roomId: String): Result<Unit> = runCatching {
+        val room = roomDao.getRoom(roomId)?.toDomain(emptyList()) ?: error("Room not found")
+        if (!room.canManage(actorId())) error("not manager")
+        participantDao.listInRoom(roomId).forEach { row ->
+            participantDao.setMuted(roomId, row.userId, true)
+        }
+        setMuted(roomId, true)
+    }
+
+    suspend fun kickParticipant(roomId: String, userId: String): Result<Unit> = runCatching {
+        val room = roomDao.getRoom(roomId)?.toDomain(emptyList()) ?: error("Room not found")
+        if (!room.canManage(actorId())) error("not manager")
+        val target = userId.trim()
+        require(target.isNotBlank() && target != actorId()) { "invalid participant" }
+        participantDao.remove(roomId, target)
+        signaling.sendSignal(roomId, Signal(type = SignalType.LEAVE, fromUserId = actorId()))
     }
 
     suspend fun endCall(callId: String): Result<Unit> = runCatching {
@@ -475,6 +562,7 @@ class VoiceRepository(
         callManager.release()
         audioEngine.stopLocalAudio()
         if (activeCallId == callId) activeCallId = null
+        if (mediaCallId == callId) mediaCallId = null
     }
 
     fun setCallMuted(muted: Boolean) {
@@ -495,43 +583,4 @@ class VoiceRepository(
         transportKind = VoiceTransportKind.NONE
         lastJoinScope = null
     }
-
-    private fun VoiceRoomEntity.toDomain(participants: List<VoiceParticipant>) = VoiceRoom(
-        id = id,
-        name = name,
-        type = runCatching { VoiceRoomType.valueOf(type) }.getOrDefault(VoiceRoomType.PUBLIC),
-        creatorId = creatorId,
-        participants = participants,
-        maxParticipants = maxParticipants,
-        isActive = isActive,
-        createdAt = createdAt,
-        updatedAt = updatedAt,
-        description = description,
-        moderatorId = moderatorId,
-    )
-
-    private fun VoiceRoomParticipantEntity.toDomain(isMe: Boolean) = VoiceParticipant(
-        userId = userId,
-        displayName = displayName,
-        isMuted = isMuted,
-        isDeafened = isDeafened,
-        isSpeaking = isSpeaking,
-        audioLevel = audioLevel,
-        joinedAt = joinedAt,
-        isMe = isMe,
-    )
-
-    private fun CallSessionEntity.toDomain() = CallState(
-        callId = callId,
-        type = runCatching { CallType.valueOf(type) }.getOrDefault(CallType.P2P),
-        status = runCatching { CallStatus.valueOf(status) }.getOrDefault(CallStatus.ENDED),
-        participants = listOfNotNull(callerId, calleeId),
-        startedAt = startedAt,
-        durationMs = durationMs,
-        isIncoming = isIncoming,
-        callerId = callerId,
-        callerName = callerName,
-        calleeId = calleeId,
-        calleeName = calleeName,
-    )
 }

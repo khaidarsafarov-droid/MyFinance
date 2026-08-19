@@ -11,6 +11,13 @@ class AudioQualityManager(private val context: Context) {
 
     fun currentSettings(): VoiceRoomSettings = settings
 
+    fun hasNetwork(): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
     fun adjustForNetwork(): VoiceRoomSettings {
         val kbps = estimateDownloadKbps()
         settings = VoiceRoomSettings(

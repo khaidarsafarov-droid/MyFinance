@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +35,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.di.LocalCallPrivacyStore
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.domain.voice.CallPrivacy
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -89,6 +92,8 @@ fun PrivacySettingsSection(
             status = permissionStatusLabel(notificationsGranted),
             granted = notificationsGranted,
         )
+
+        WhoCanCallRows()
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -185,6 +190,36 @@ private fun PrivacyPermissionRow(
             color = if (granted) tc.AccentProfit else tc.TextSecondary,
             style = MaterialTheme.typography.labelMedium,
         )
+    }
+}
+
+@Composable
+private fun WhoCanCallRows() {
+    val store = LocalCallPrivacyStore.current
+    val privacy by store.privacy.collectAsStateWithLifecycle()
+    val tc = LocalTruckColors.current
+    Text(
+        text = stringResource(R.string.call_who_can_call),
+        color = tc.TextPrimary,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+    CallPrivacy.entries.forEach { option ->
+        val label = when (option) {
+            CallPrivacy.EVERYONE -> stringResource(R.string.call_privacy_everyone)
+            CallPrivacy.CONTACTS -> stringResource(R.string.call_privacy_contacts)
+            CallPrivacy.NOBODY -> stringResource(R.string.call_privacy_nobody)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RadioButton(
+                selected = privacy == option,
+                onClick = { store.setPrivacy(option) },
+            )
+            Text(label, color = tc.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 

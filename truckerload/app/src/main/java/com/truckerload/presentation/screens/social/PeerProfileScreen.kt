@@ -145,12 +145,13 @@ fun PeerProfileScreen(
                         ) {
                             Text(stringResource(R.string.social_message_peer))
                         }
-                        Button(
-                            onClick = { peer?.let { onStartCall(peerId, it.displayName) } },
-                            enabled = !uiState.isBlocked,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.social_call_peer))
+                        if (!uiState.isBlocked) {
+                            Button(
+                                onClick = { peer?.let { onStartCall(peerId, it.displayName) } },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(stringResource(R.string.social_call_peer))
+                            }
                         }
                     }
                     Button(

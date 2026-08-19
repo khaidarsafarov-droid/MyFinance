@@ -4,11 +4,15 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.GroupRepository
 import com.truckerload.data.repository.social.MediaRepository
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.SocialConstants
 import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.data.voice.CallHistory
+import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.CommunityReportReason
 import com.truckerload.domain.social.SocialMessage
 import com.truckerload.domain.social.SocialResult
@@ -19,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -38,6 +43,11 @@ data class SocialChatUiState(
     val replyTo: SocialMessage? = null,
     val errorMessage: String? = null,
     val peerId: String? = null,
+    val isPrivate: Boolean = false,
+    val isBlocked: Boolean = false,
+    val isContact: Boolean = false,
+    val isGroupManager: Boolean = false,
+    val peerName: String = "",
 ) {
     val allMessages: List<SocialMessage> =
         (olderMessages.filter { older -> messages.none { it.id == older.id } } + messages)
@@ -51,6 +61,8 @@ class SocialChatViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val mediaRepository: MediaRepository,
     private val socialSyncCoordinator: SocialSyncCoordinator,
+    private val voiceRepository: VoiceRepository,
+    private val groupRepository: GroupRepository,
 ) : ViewModel() {
 
     private val chatId = Uri.decode(savedStateHandle.get<String>("chatId").orEmpty())
@@ -66,6 +78,11 @@ class SocialChatViewModel @Inject constructor(
         val replyTo: SocialMessage? = null,
         val errorMessage: String? = null,
         val peerId: String? = null,
+        val isPrivate: Boolean = false,
+        val isBlocked: Boolean = false,
+        val isContact: Boolean = false,
+        val isGroupManager: Boolean = false,
+        val peerName: String = "",
     )
 
     private val _input = MutableStateFlow("")
@@ -94,6 +111,11 @@ class SocialChatViewModel @Inject constructor(
                 replyTo = meta.replyTo,
                 errorMessage = meta.errorMessage,
                 peerId = meta.peerId,
+                isPrivate = meta.isPrivate,
+                isBlocked = meta.isBlocked,
+                isContact = meta.isContact,
+                isGroupManager = meta.isGroupManager,
+                peerName = meta.peerName,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SocialChatUiState())
 
@@ -103,13 +125,34 @@ class SocialChatViewModel @Inject constructor(
             chatRepository.markChatRead(chatId)
             val chat = chatRepository.getChat(chatId)
             val peerId = chatRepository.privatePeerId(chatId)
+            val members = if (chat?.type == ChatType.GROUP) {
+                runCatching { groupRepository.watchGroupMembers(chatId).first() }.getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
+            val me = members.find { it.isMe }
             _meta.value = _meta.value.copy(
                 title = chat?.title ?: "",
                 participantCount = chat?.participantCount ?: 0,
                 chatRating = chat?.rating ?: 0.0,
                 onlineCount = chat?.onlineCount ?: 0,
                 peerId = peerId,
+                isPrivate = chat?.type == ChatType.PRIVATE,
+                isGroupManager = me?.role == "OWNER" || me?.role == "MODERATOR" ||
+                    (chat?.creatorId?.isNotBlank() == true && chat.creatorId == me?.userId),
+                peerName = chat?.title.orEmpty(),
             )
+            if (peerId != null) {
+                launch {
+                    combine(
+                        profileRepository.watchIsBlocked(peerId),
+                        profileRepository.watchIsFollowing(peerId),
+                    ) { blocked, following -> blocked to following }
+                        .collect { (blocked, following) ->
+                            _meta.value = _meta.value.copy(isBlocked = blocked, isContact = following)
+                        }
+                }
+            }
             refreshHasMore()
             while (isActive) {
                 delay(2_000)
@@ -218,6 +261,22 @@ class SocialChatViewModel @Inject constructor(
                     _meta.value = _meta.value.copy(isLoadingMore = false)
                 }
             }
+        }
+    }
+
+    fun startGroupCall(onReady: (String) -> Unit) {
+        viewModelScope.launch {
+            val title = uiState.value.chatTitle.ifBlank { "Group call" }
+            voiceRepository.ensureGroupRoom(chatId, title)
+                .onSuccess { roomId ->
+                    runCatching {
+                        CallHistory.recordGroupStart(chatRepository, profileRepository, chatId)
+                    }
+                    onReady(roomId)
+                }
+                .onFailure { error ->
+                    _meta.value = _meta.value.copy(errorMessage = error.message)
+                }
         }
     }
 }

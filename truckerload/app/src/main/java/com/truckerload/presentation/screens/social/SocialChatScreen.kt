@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
@@ -51,6 +52,11 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.community.ActiveCommunityChat
 import com.truckerload.data.social.VoiceNoteRecorder
+import com.truckerload.domain.voice.CallConfig
+import com.truckerload.domain.voice.CallPolicy
+import com.truckerload.domain.voice.CallPrivacy
+import com.truckerload.presentation.di.LocalCallPrivacyStore
+import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -61,6 +67,8 @@ fun SocialChatScreen(
     chatId: String,
     onBack: () -> Unit,
     onOpenPeerProfile: (String) -> Unit = {},
+    onStartCall: (String, String) -> Unit = { _, _ -> },
+    onOpenVoiceRoom: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: SocialChatViewModel = hiltViewModel(),
 ) {
@@ -166,6 +174,34 @@ fun SocialChatScreen(
                     }
                 },
                 actions = {
+                    val privacyStore = LocalCallPrivacyStore.current
+                    val showPrivateCall = uiState.peerId != null && CallPolicy.canShowCallButton(
+                        blocked = uiState.isBlocked,
+                        calleePrivacy = CallPrivacy.EVERYONE,
+                        isContact = uiState.isContact,
+                    )
+                    val showGroupCall = !uiState.isPrivate && uiState.peerId == null &&
+                        CallPolicy.canStartGroupCall(
+                            callsEnabled = privacyStore.groupCallsEnabled(chatId),
+                            adminsOnly = privacyStore.groupAdminsOnly(chatId),
+                            isAdmin = uiState.isGroupManager,
+                            isMember = true,
+                        )
+                    if (showPrivateCall) {
+                        IconButton(
+                            onClick = {
+                                uiState.peerId?.let { onStartCall(it, uiState.peerName.ifBlank { uiState.chatTitle }) }
+                            },
+                        ) {
+                            Icon(Icons.Default.Call, contentDescription = stringResource(R.string.social_call_peer))
+                        }
+                    } else if (showGroupCall || (!uiState.isPrivate && privacyStore.groupCallsEnabled(chatId))) {
+                        IconButton(
+                            onClick = { viewModel.startGroupCall(onOpenVoiceRoom) },
+                        ) {
+                            Icon(Icons.Default.Call, contentDescription = stringResource(R.string.group_start_call))
+                        }
+                    }
                     ChatSafetyMenu(
                         enabled = uiState.peerId != null,
                         onOpenProfile = { uiState.peerId?.let(onOpenPeerProfile) },
@@ -197,6 +233,20 @@ fun SocialChatScreen(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
+            }
+            if (!uiState.isPrivate) {
+                val voice = LocalVoiceRepository.current
+                val groupRoom by voice.watchRoom(CallConfig.groupRoomId(chatId), "")
+                    .collectAsStateWithLifecycle(initialValue = null)
+                val activeGroup = groupRoom
+                if (activeGroup?.isActive == true && activeGroup.participants.isNotEmpty()) {
+                    TextButton(
+                        onClick = { onOpenVoiceRoom(activeGroup.id) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.group_call_join))
+                    }
+                }
             }
             uiState.replyTo?.let { reply ->
                 Row(
@@ -238,6 +288,9 @@ fun SocialChatScreen(
                         message = message,
                         onReply = { viewModel.setReplyTo(message) },
                         onReaction = { emoji -> viewModel.addReaction(message.id, emoji) },
+                        onRedial = uiState.peerId?.let { peer ->
+                            { onStartCall(peer, uiState.peerName.ifBlank { uiState.chatTitle }) }
+                        },
                     )
                 }
             }

@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,6 +39,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.social.ChatMember
+import com.truckerload.domain.voice.CallPolicy
+import com.truckerload.presentation.screens.voice.rememberMicCallGate
+import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -49,6 +53,7 @@ fun GroupDetailScreen(
     chatId: String,
     onBack: () -> Unit,
     onOpenChat: (String) -> Unit,
+    onOpenVoiceRoom: (String) -> Unit = {},
     viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,6 +64,13 @@ fun GroupDetailScreen(
         mutableStateOf(chat?.description.orEmpty())
     }
     var showDelete by remember { mutableStateOf(false) }
+    val startWithMic = rememberMicCallGate()
+    val canStartCall = CallPolicy.canStartGroupCall(
+        callsEnabled = uiState.callsEnabled,
+        adminsOnly = uiState.adminsOnly,
+        isAdmin = uiState.isManager,
+        isMember = uiState.isMember,
+    )
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
@@ -125,6 +137,42 @@ fun GroupDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(stringResource(R.string.social_open_chat))
+                        }
+                        if (canStartCall) {
+                            Button(
+                                onClick = {
+                                    startWithMic { viewModel.startGroupCall(onOpenVoiceRoom) }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(R.string.group_start_call))
+                            }
+                        }
+                        if (uiState.isManager) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(stringResource(R.string.group_calls_enabled), color = tc.TextPrimary)
+                                Switch(
+                                    checked = uiState.callsEnabled,
+                                    onCheckedChange = viewModel::setCallsEnabled,
+                                    colors = AppSwitchDefaults.colors(),
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(stringResource(R.string.group_calls_admins_only), color = tc.TextPrimary)
+                                Switch(
+                                    checked = uiState.adminsOnly,
+                                    onCheckedChange = viewModel::setAdminsOnly,
+                                    colors = AppSwitchDefaults.colors(),
+                                )
+                            }
                         }
                         Button(
                             onClick = { viewModel.leaveGroup(onBack) },
