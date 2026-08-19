@@ -18,14 +18,6 @@ class LoadValidator {
         if (load.stops.isEmpty() && load.pointA.isBlank() && load.pointB.isBlank()) {
             errors.add("No route points found")
         }
-        if (load.stops.isNotEmpty()) {
-            if (load.stops.none { it.type == StopType.PU }) {
-                errors.add("No pickup stops")
-            }
-            if (load.stops.none { it.type == StopType.DEL }) {
-                errors.add("No delivery stops")
-            }
-        }
 
         return ValidationResult(errors.isEmpty(), errors)
     }
