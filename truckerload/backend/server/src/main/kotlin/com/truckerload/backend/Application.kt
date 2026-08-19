@@ -203,7 +203,7 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
         bearer("supabase") {
             realm = "truckerload-api"
             authenticate { credential ->
-                authenticateToken(credential.token, config, tokenVerifier)
+                TokenAuth.principal(credential.token, config, tokenVerifier)
             }
         }
     }
@@ -267,23 +267,6 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
     monitor.subscribe(ApplicationStopped) {
         dependencies.close()
     }
-}
-
-private fun authenticateToken(
-    token: String,
-    config: AppConfig,
-    verifier: com.auth0.jwt.interfaces.JWTVerifier,
-): AppPrincipal? {
-    if (config.environment == AppEnvironment.TEST && config.testAuthEnabled && token.startsWith("test.")) {
-        val id = runCatching { UUID.fromString(token.removePrefix("test.")) }.getOrNull() ?: return null
-        return AppPrincipal(AuthenticatedUser(id, null))
-    }
-    return runCatching {
-        val jwt = verifier.verify(token)
-        val id = UUID.fromString(jwt.subject)
-        val email = jwt.getClaim("email").asString()
-        AppPrincipal(AuthenticatedUser(id, email))
-    }.getOrNull()
 }
 
 private suspend fun ApplicationCall.authenticatedUser(repositories: Repositories): AuthenticatedUser {

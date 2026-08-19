@@ -105,13 +105,16 @@ AEC/ANS/AGC/high-pass — `MediaConstraints`. Сигналинг — сущес�
 
 ## Env
 
-Прод SFU (Droplet `Truck-log`): `LIVEKIT_URL=ws://107.170.0.183:7880`.
+Прод SFU (Droplet `Truck-log`): `LIVEKIT_URL=wss://lk.107.170.0.183.sslip.io`.
+Ktor: `https://107.170.0.183.sslip.io`.
 Ключи только в `/etc/livekit/livekit.yaml` на машине и в env Ktor, не в APK и не в git.
 
 ```
-LIVEKIT_URL=ws://107.170.0.183:7880
+LIVEKIT_URL=wss://lk.107.170.0.183.sslip.io
 LIVEKIT_API_KEY=<from /etc/livekit/livekit.yaml>
 LIVEKIT_API_SECRET=<from /etc/livekit/livekit.yaml>
+SYNC_BACKEND_URL=https://107.170.0.183.sslip.io
+LOCAL_ONLY_MODE=false
 ```
 
 Локально: `ws://localhost:7880` + `devkey` / `secret` (только `--dev`).

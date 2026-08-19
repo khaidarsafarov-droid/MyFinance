@@ -36,7 +36,7 @@ fun Route.voiceRoutes(config: AppConfig, repositories: Repositories) {
                 throw ApiException(HttpStatusCode.BadRequest, "invalid_role", "role must be speaker or listener")
             }
             val canPublish = role == "speaker"
-            val identity = user.id.toString()
+            val identity = user.voiceIdentity.ifBlank { user.id.toString() }
             val displayName = request.displayName.trim().ifBlank { identity.take(8) }
             val roomName = LiveKitAccessToken.roomName(roomId)
             val token = LiveKitAccessToken(config.liveKitApiKey, config.liveKitApiSecret).mint(

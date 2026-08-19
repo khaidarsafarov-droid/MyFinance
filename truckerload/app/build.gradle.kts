@@ -56,6 +56,8 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
         val syncBackendUrl = localProps.getProperty("SYNC_BACKEND_URL", "")
+            .trim()
+            .ifBlank { "https://107.170.0.183.sslip.io" }
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "SYNC_BACKEND_URL", "\"$syncBackendUrl\"")

@@ -8,7 +8,11 @@ import com.truckerload.contract.TelegramInboxItem
 import java.util.UUID
 import kotlinx.serialization.json.JsonObject
 
-data class AuthenticatedUser(val id: UUID, val email: String?)
+data class AuthenticatedUser(
+    val id: UUID,
+    val email: String?,
+    val voiceIdentity: String = id.toString(),
+)
 
 data class MediaRecord(
     val id: UUID,

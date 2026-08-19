@@ -37,6 +37,7 @@ data class AppConfig(
     val liveKitUrl: String = "",
     val liveKitApiKey: String = "",
     val liveKitApiSecret: String = "",
+    val googleWebClientId: String = "",
 ) {
     val liveKitEnabled: Boolean
         get() = liveKitUrl.isNotBlank() && liveKitApiKey.isNotBlank() && liveKitApiSecret.isNotBlank()
@@ -163,6 +164,9 @@ data class AppConfig(
                 liveKitUrl = env["LIVEKIT_URL"]?.trim().orEmpty(),
                 liveKitApiKey = env["LIVEKIT_API_KEY"]?.trim().orEmpty(),
                 liveKitApiSecret = env["LIVEKIT_API_SECRET"]?.trim().orEmpty(),
+                googleWebClientId = env["GOOGLE_WEB_CLIENT_ID"]?.trim().orEmpty().ifBlank {
+                    "842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com"
+                },
             )
         }
 
