@@ -29,6 +29,7 @@ class LegacyDatabaseAbsorbTest {
             val f = context.getDatabasePath(AppDatabase.databaseNameFor(id))
             DatabaseFileCopy.deleteDbTree(f)
         }
+        DatabaseFileCopy.deleteDbTree(context.getDatabasePath(LegacyDatabaseAbsorb.LEGACY_SINGLE_FILE))
     }
 
     @Test
@@ -59,6 +60,24 @@ class LegacyDatabaseAbsorbTest {
         assertFalse(
             "Declined absorb must not re-prompt",
             LegacyDatabaseAbsorb.hasPendingPrompt(context, "cloud-user-2"),
+        )
+    }
+
+    @Test
+    fun notePending_setsPromptWhenLegacySingleFileExists() {
+        val source = context.getDatabasePath(LegacyDatabaseAbsorb.LEGACY_SINGLE_FILE)
+        source.parentFile?.mkdirs()
+        source.writeBytes(ByteArray(64))
+
+        assertEquals(
+            LegacyDatabaseAbsorb.LEGACY_SINGLE_FILE,
+            LegacyDatabaseAbsorb.findCandidateSourceId(context, "cloud-user-1"),
+        )
+        LegacyDatabaseAbsorb.notePendingIfNeeded(context, "cloud-user-1")
+        assertTrue(LegacyDatabaseAbsorb.hasPendingPrompt(context, "cloud-user-1"))
+        assertEquals(
+            LegacyDatabaseAbsorb.LEGACY_SINGLE_FILE,
+            LegacyDatabaseAbsorb.pendingSourceLabel(context),
         )
     }
 }

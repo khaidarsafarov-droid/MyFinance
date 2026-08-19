@@ -3,6 +3,7 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.truckerload.data.local.GoogleAccountUnifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +17,7 @@ private const val KEY_EMAIL = "email"
 private const val KEY_ACCESS_TOKEN = "access_token"
 private const val KEY_REFRESH_TOKEN = "refresh_token"
 private const val KEY_GOOGLE_SUB = "google_sub"
+private const val KEY_GOOGLE_ID_TOKEN = "google_id_token"
 private const val KEY_PROVIDER = "auth_provider"
 private const val KEY_LAST_SESSION_CHECK_AT = "last_session_check_at"
 private const val DEFAULT_LOGGED_IN = false
@@ -49,6 +51,7 @@ class AuthStore(context: Context) {
                     liveAccessToken = prefs.getString(KEY_ACCESS_TOKEN, null)?.takeIf { it.isNotBlank() }
                     liveRefreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)?.takeIf { it.isNotBlank() }
                     liveGoogleSub = prefs.getString(KEY_GOOGLE_SUB, null)?.takeIf { it.isNotBlank() }
+                    liveGoogleIdToken = prefs.getString(KEY_GOOGLE_ID_TOKEN, null)?.takeIf { it.isNotBlank() }
                     liveProvider = prefs.getString(KEY_PROVIDER, null)?.let {
                         runCatching { AuthProvider.valueOf(it) }.getOrNull()
                     } ?: when {
@@ -61,6 +64,15 @@ class AuthStore(context: Context) {
                     }
                     liveLoggedIn = true
                     liveSessionHealth = AuthSessionHealth.VERIFIED
+                    val canonical = GoogleAccountUnifier.canonicalSessionUserId(
+                        appContext,
+                        persistedId,
+                        liveGoogleSub,
+                    )
+                    if (canonical != persistedId) {
+                        liveUserId = canonical
+                        prefs.edit(commit = true) { putString(KEY_USER_ID, canonical) }
+                    }
                 }
                 _isLoggedIn.value = liveLoggedIn
                 _userId.value = liveUserId
@@ -97,15 +109,35 @@ class AuthStore(context: Context) {
 
     fun accessTokenOrNull(): String? = synchronized(lock) { liveAccessToken }
 
+    /**
+     * Google Sign-In ID token (RS256). Used only for Ktor `/v1/voice/token`.
+     * Distinct from [accessTokenOrNull] which may be a Supabase HS256 JWT.
+     */
+    fun googleIdTokenOrNull(): String? = synchronized(lock) { liveGoogleIdToken }
+
     fun authProvider(): AuthProvider = synchronized(lock) { liveProvider }
 
     fun googleSubOrNull(): String? = synchronized(lock) { liveGoogleSub }
+
+    /**
+     * Copies a leftover Supabase-UUID journal/prefs into the canonical Google id
+     * before [UserProfileStore] binds. No-op when [googleSub] is blank.
+     */
+    fun unifyGoogleJournal(googleSub: String?, aliasUserIds: Collection<String> = emptyList()) {
+        val sub = googleSub?.trim().orEmpty()
+        if (sub.isBlank()) return
+        GoogleAccountUnifier.relocateAliases(
+            appContext,
+            AccountIds.fromGoogleSub(sub),
+            aliasUserIds,
+        )
+    }
 
     fun markSessionHealth(health: AuthSessionHealth) {
         synchronized(lock) {
             liveSessionHealth = health
             _sessionHealth.value = health
-            prefs.edit {
+            prefs.edit(commit = true) {
                 putLong(KEY_LAST_SESSION_CHECK_AT, System.currentTimeMillis())
             }
         }
@@ -117,7 +149,7 @@ class AuthStore(context: Context) {
             if (!liveGoogleSub.isNullOrBlank()) {
                 liveProvider = AuthProvider.GOOGLE
             }
-            prefs.edit {
+            prefs.edit(commit = true) {
                 if (liveGoogleSub == null) remove(KEY_GOOGLE_SUB)
                 else putString(KEY_GOOGLE_SUB, liveGoogleSub)
                 putString(KEY_PROVIDER, liveProvider.name)
@@ -136,7 +168,7 @@ class AuthStore(context: Context) {
                 // when secure storage is temporarily unavailable.
                 return
             }
-            prefs.edit {
+            prefs.edit(commit = true) {
                 if (liveAccessToken == null) remove(KEY_ACCESS_TOKEN)
                 else putString(KEY_ACCESS_TOKEN, liveAccessToken)
                 if (liveRefreshToken == null) remove(KEY_REFRESH_TOKEN)
@@ -159,10 +191,36 @@ class AuthStore(context: Context) {
         refreshToken: String? = null,
         googleSub: String? = null,
         provider: AuthProvider = AuthProvider.LOCAL,
+        googleIdToken: String? = null,
+        aliasUserIds: List<String> = emptyList(),
     ) {
-        val id = userId.trim()
+        val requestedId = userId.trim()
+        val id = if (!googleSub.isNullOrBlank()) {
+            AccountIds.fromGoogleSub(googleSub)
+        } else {
+            requestedId
+        }
         require(id.isNotBlank()) { "userId required" }
         val mail = email.trim()
+        val previousId: String?
+        val previousSub: String?
+        synchronized(lock) {
+            previousId = liveUserId
+            previousSub = liveGoogleSub
+        }
+        if (!googleSub.isNullOrBlank()) {
+            val aliases = buildList {
+                addAll(aliasUserIds)
+                if (requestedId.isNotBlank()) add(requestedId)
+                if (!previousId.isNullOrBlank() &&
+                    previousId != id &&
+                    previousSub == googleSub.trim()
+                ) {
+                    add(previousId)
+                }
+            }
+            GoogleAccountUnifier.relocateAliases(appContext, id, aliases)
+        }
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider == AuthProvider.GOOGLE || provider == AuthProvider.EMAIL -> provider
@@ -178,14 +236,21 @@ class AuthStore(context: Context) {
             !googleSub.isNullOrBlank()
         val persistSession = rememberMe || isPersistentAuth
         val canPersistSecrets = persistSession &&
-            (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
+            (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank() || !googleIdToken.isNullOrBlank()) &&
             !SecurePreferences.plaintextFallbackUsed
         synchronized(lock) {
+            val nextGoogleIdToken = when {
+                !googleIdToken.isNullOrBlank() -> googleIdToken.trim()
+                googleIdToken != null -> null
+                id != liveUserId -> null
+                else -> liveGoogleIdToken
+            }
             liveUserId = id
             liveEmail = mail
             liveAccessToken = accessToken?.takeIf { it.isNotBlank() }
             liveRefreshToken = refreshToken?.takeIf { it.isNotBlank() }
             liveGoogleSub = googleSub?.takeIf { it.isNotBlank() }
+            liveGoogleIdToken = nextGoogleIdToken
             liveProvider = resolvedProvider
             liveLoggedIn = true
             liveSessionHealth = if (canPersistSecrets || accessToken.isNullOrBlank()) {
@@ -198,7 +263,7 @@ class AuthStore(context: Context) {
             _isLoggedIn.value = true
             _sessionHealth.value = liveSessionHealth
             if (persistSession) {
-                prefs.edit {
+                prefs.edit(commit = true) {
                     putBoolean(KEY_LOGGED_IN, true)
                     putString(KEY_USER_ID, id)
                     putString(KEY_EMAIL, mail)
@@ -209,16 +274,22 @@ class AuthStore(context: Context) {
                     else putString(KEY_REFRESH_TOKEN, refreshToken)
                     if (googleSub.isNullOrBlank()) remove(KEY_GOOGLE_SUB)
                     else putString(KEY_GOOGLE_SUB, googleSub)
+                    when {
+                        nextGoogleIdToken.isNullOrBlank() -> remove(KEY_GOOGLE_ID_TOKEN)
+                        SecurePreferences.plaintextFallbackUsed -> { /* keep prior encrypted copy */ }
+                        else -> putString(KEY_GOOGLE_ID_TOKEN, nextGoogleIdToken)
+                    }
                 }
             } else {
                 // Ephemeral local-only session: memory for this process, cleared on next cold start.
-                prefs.edit {
+                prefs.edit(commit = true) {
                     remove(KEY_LOGGED_IN)
                     remove(KEY_USER_ID)
                     remove(KEY_EMAIL)
                     remove(KEY_ACCESS_TOKEN)
                     remove(KEY_REFRESH_TOKEN)
                     remove(KEY_GOOGLE_SUB)
+                    remove(KEY_GOOGLE_ID_TOKEN)
                     remove(KEY_PROVIDER)
                 }
             }
@@ -251,15 +322,17 @@ class AuthStore(context: Context) {
             liveAccessToken = null
             liveRefreshToken = null
             liveGoogleSub = null
+            liveGoogleIdToken = null
             liveProvider = AuthProvider.LOCAL
             liveSessionHealth = AuthSessionHealth.VERIFIED
-            prefs.edit {
+            prefs.edit(commit = true) {
                 remove(KEY_LOGGED_IN)
                 remove(KEY_USER_ID)
                 remove(KEY_EMAIL)
                 remove(KEY_ACCESS_TOKEN)
                 remove(KEY_REFRESH_TOKEN)
                 remove(KEY_GOOGLE_SUB)
+                remove(KEY_GOOGLE_ID_TOKEN)
                 remove(KEY_PROVIDER)
             }
             _isLoggedIn.value = false
@@ -275,7 +348,16 @@ class AuthStore(context: Context) {
             return
         }
         val id = currentUserIdOrNull() ?: return
-        login(id, email.value, rememberMe = true, googleSub = liveGoogleSub, provider = liveProvider)
+        login(
+            userId = id,
+            email = email.value,
+            rememberMe = true,
+            accessToken = liveAccessToken,
+            refreshToken = liveRefreshToken,
+            googleSub = liveGoogleSub,
+            provider = liveProvider,
+            googleIdToken = liveGoogleIdToken,
+        )
     }
 
     companion object {
@@ -287,6 +369,7 @@ class AuthStore(context: Context) {
         private var liveAccessToken: String? = null
         private var liveRefreshToken: String? = null
         private var liveGoogleSub: String? = null
+        private var liveGoogleIdToken: String? = null
         private var liveProvider: AuthProvider = AuthProvider.LOCAL
         private var liveSessionHealth: AuthSessionHealth = AuthSessionHealth.VERIFIED
 
@@ -305,6 +388,7 @@ class AuthStore(context: Context) {
                 liveAccessToken = null
                 liveRefreshToken = null
                 liveGoogleSub = null
+                liveGoogleIdToken = null
                 liveProvider = AuthProvider.LOCAL
                 liveSessionHealth = AuthSessionHealth.VERIFIED
                 _isLoggedIn.value = DEFAULT_LOGGED_IN

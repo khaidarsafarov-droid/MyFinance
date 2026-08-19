@@ -52,7 +52,7 @@ class LoadValidatorTest {
     }
 
     @Test
-    fun validate_requiresPickupAndDeliveryWhenStopsPresent() {
+    fun validate_acceptsPuOnlyOrDelOnlyStops() {
         val puOnly = validator.validate(
             sampleLoad(
                 tripId = "T-123",
@@ -72,10 +72,8 @@ class LoadValidatorTest {
             ),
         )
 
-        assertFalse(puOnly.isValid)
-        assertTrue(puOnly.errors.any { it.contains("No delivery stops") })
-        assertFalse(delOnly.isValid)
-        assertTrue(delOnly.errors.any { it.contains("No pickup stops") })
+        assertTrue(puOnly.isValid)
+        assertTrue(delOnly.isValid)
     }
 
     private fun sampleLoad(

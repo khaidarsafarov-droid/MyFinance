@@ -65,6 +65,7 @@ fun rememberGoogleSignInLauncher(
         accessToken: String? = null,
         refreshToken: String? = null,
         googleId: String? = null,
+        googleIdToken: String? = null,
     ) {
         scope.launch {
             val persisted = withContext(Dispatchers.IO) {
@@ -83,6 +84,7 @@ fun rememberGoogleSignInLauncher(
                     rememberMe = true,
                     accessToken = accessToken,
                     refreshToken = refreshToken,
+                    googleIdToken = googleIdToken,
                 )
                 if (!ok) {
                     Result.failure(IllegalStateException(context.getString(R.string.auth_error_email_required)))
@@ -134,6 +136,7 @@ fun rememberGoogleSignInLauncher(
                         accessToken = idToken,
                         googleId = account.id
                             ?: idToken?.let { decodeGoogleIdToken(it)?.optString("sub") },
+                        googleIdToken = idToken,
                     )
                 }
                 if (supabaseAuth.isConfigured() && !idToken.isNullOrBlank()) {
@@ -163,6 +166,7 @@ fun rememberGoogleSignInLauncher(
                                         refreshToken = signIn.refreshToken,
                                         googleId = account.id
                                             ?: decodeGoogleIdToken(idToken)?.optString("sub"),
+                                        googleIdToken = idToken,
                                     )
                                 } else {
                                     Toast.makeText(

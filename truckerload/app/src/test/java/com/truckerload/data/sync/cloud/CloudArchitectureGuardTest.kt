@@ -31,10 +31,21 @@ class CloudArchitectureGuardTest {
     }
 
     @Test
+    fun restoreAndHydration_clearLoadHistory() {
+        val backup = readMain("com/truckerload/utils/BackupService.kt")
+        assertTrue(backup.contains("loadHistoryDao().deleteAll()"))
+        val engine = readMain("com/truckerload/data/sync/CloudSyncEngine.kt")
+        assertTrue(engine.contains("loadHistoryDao().deleteAll()"))
+        val dao = readMain("com/truckerload/data/local/dao/LoadHistoryDao.kt")
+        assertTrue(dao.contains("DELETE FROM load_history"))
+    }
+
+    @Test
     fun roomSchema_tracksCurrentVersion() {
         val db = readMain("com/truckerload/data/local/AppDatabase.kt")
         assertTrue(db.contains("version = 30"))
         assertFalse(db.contains("syncPending"))
+        assertFalse(db.contains("migrateLegacyDatabaseIfNeeded"))
     }
 
     private fun mainExists(relative: String): Boolean =

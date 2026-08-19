@@ -23,7 +23,10 @@ object WeeklyGoalCalculator {
         sqlYield: WeekYieldSnapshot? = null
     ): WeeklyGoalProgress {
         val totals = LoadFilterUseCase().calculateTotals(weekLoads)
-        val currentGross = GoalMoneyMath.roundMoney(sqlYield?.totalGross ?: totals.totalRate)
+        val loadGross = totals.totalRate
+        val sqlGross = sqlYield?.totalGross ?: 0.0
+        // Prefer the larger gross: SQL misses weekNumber=0 rows that isLoadInWeek still includes.
+        val currentGross = GoalMoneyMath.roundMoney(maxOf(sqlGross, loadGross))
         val (_, _, weekLabel) = getWeekRange(weekNumber, year)
 
         val (currentWeek, currentYear) = getCurrentWeekNumberAndYear()

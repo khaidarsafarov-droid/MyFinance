@@ -20,6 +20,8 @@ object LegacyDatabaseAbsorb {
     private const val KEY_PENDING_SOURCE = "legacy_db_pending_absorb_source"
     private const val KEY_PENDING_USER = "legacy_db_pending_absorb_user"
     private const val KEY_ABSORB_DECLINED = "legacy_db_absorb_declined"
+    /** Pre-multi-account single Room file. Copy only after [acceptAndCopy]. */
+    const val LEGACY_SINGLE_FILE = "truckerload_db"
 
     /**
      * Called from [AppDatabase.getInstance]: detect a candidate and mark pending —
@@ -79,7 +81,7 @@ object LegacyDatabaseAbsorb {
         if (target.exists()) {
             DatabaseFileCopy.deleteDbTree(target)
         }
-        val source = app.getDatabasePath(AppDatabase.databaseNameFor(sourceId))
+        val source = sourceFile(app, sourceId)
         if (!source.exists()) {
             decline(app, userId)
             return false
@@ -120,14 +122,23 @@ object LegacyDatabaseAbsorb {
         val app = context.applicationContext
         val email = AuthStore(app).email.value
         val candidates = buildList {
+            if (app.getDatabasePath(LEGACY_SINGLE_FILE).exists()) {
+                add(LEGACY_SINGLE_FILE)
+            }
             add(AccountIds.LOCAL_DEV)
             if (email.isNotBlank()) {
                 add(AccountIds.fromEmail(email))
             }
         }
         return candidates.firstOrNull { candidate ->
-            candidate != userId &&
-                app.getDatabasePath(AppDatabase.databaseNameFor(candidate)).exists()
+            candidate != userId && sourceFile(app, candidate).exists()
         }
     }
+
+    internal fun sourceFile(context: Context, sourceId: String) =
+        if (sourceId == LEGACY_SINGLE_FILE) {
+            context.applicationContext.getDatabasePath(LEGACY_SINGLE_FILE)
+        } else {
+            context.applicationContext.getDatabasePath(AppDatabase.databaseNameFor(sourceId))
+        }
 }

@@ -103,12 +103,11 @@ class StatsViewModel @Inject constructor(
     )
 
     init {
-        val cal = java.util.Calendar.getInstance()
-        val (currentWeek, _) = getCurrentWeekNumberAndYear()
-        val yr = cal.get(java.util.Calendar.YEAR).coerceIn(minYear, maxYear)
+        val (currentWeek, currentWeekYear) = getCurrentWeekNumberAndYear()
+        val weekYear = currentWeekYear.coerceIn(minYear, maxYear)
         val persisted = statsSelectionStore.read(
             defaultWeek = currentWeek.coerceIn(1, 53),
-            defaultYear = yr,
+            defaultYear = weekYear,
             defaultMonth = defaultMonth
         )
         val restoredWeekYear = persisted.weekYear.coerceIn(minYear, maxYear)
@@ -213,16 +212,16 @@ class StatsViewModel @Inject constructor(
     }
 
     fun resetFiltersToDefault() {
-        val cal = java.util.Calendar.getInstance()
-        val (currentWeek, _) = getCurrentWeekNumberAndYear()
-        val yr = cal.get(java.util.Calendar.YEAR).coerceIn(minYear, maxYear)
+        val (currentWeek, currentWeekYear) = getCurrentWeekNumberAndYear()
+        val calendarYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).coerceIn(minYear, maxYear)
+        val weekYear = currentWeekYear.coerceIn(minYear, maxYear)
         _uiState.update {
             it.copy(
                 statsPeriod = StatsPeriod.WEEK,
                 weekNumber = currentWeek.coerceIn(1, 53),
-                year = yr,
+                year = weekYear,
                 calendarMonth = defaultMonth,
-                calendarYear = yr,
+                calendarYear = calendarYear,
                 selectedStateCode = "KY",
                 isLoading = true,
                 errorMessage = null,
@@ -233,13 +232,14 @@ class StatsViewModel @Inject constructor(
         periodCache.clear()
         viewModelScope.launch {
             runCatching {
-                val summaries = weekRepository.getWeeksInMonthSummaries(defaultMonth, yr)
-                val selected = summaries.firstOrNull { it.weekNumber == currentWeek && it.year == yr } ?: summaries.firstOrNull()
+                val summaries = weekRepository.getWeeksInMonthSummaries(defaultMonth, calendarYear)
+                val selected = summaries.firstOrNull { it.weekNumber == currentWeek && it.year == weekYear }
+                    ?: summaries.firstOrNull()
                 _uiState.update {
                     it.copy(
                         weeksInMonth = summaries,
                         weekNumber = selected?.weekNumber ?: currentWeek.coerceIn(1, 53),
-                        year = selected?.year ?: yr,
+                        year = selected?.year ?: weekYear,
                         errorMessage = null,
                     )
                 }

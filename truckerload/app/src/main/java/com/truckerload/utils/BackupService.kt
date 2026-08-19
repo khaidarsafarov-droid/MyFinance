@@ -368,6 +368,7 @@ object BackupService {
             ScanRepository(db).deleteAllScansAndFiles()
             dieselDao.deleteAll()
             paycheckDao.deleteAll()
+            db.loadHistoryDao().deleteAll()
             loadDao.deleteAll()
 
             backup.loads.forEach { load ->

@@ -18,16 +18,17 @@ class AccountIdsTest {
     }
 
     @Test
-    fun `resolve prefers supabase then google then email`() {
+    fun `resolve prefers google sub over supabase uuid`() {
+        val googleId = AccountIds.fromGoogleSub("sub")
         assertEquals(
-            "uuid-1",
+            googleId,
             AccountIds.resolveOrNull("uuid-1", "a@b.com", "sub"),
         )
-        val googleId = AccountIds.resolveOrNull(null, "a@b.com", "google-sub-xyz")
-        assertTrue(googleId!!.startsWith("google_"))
+        assertTrue(googleId.startsWith("google_"))
         val emailId = AccountIds.resolveOrNull(null, "driver@example.com", null)
         assertTrue(emailId!!.startsWith("local_"))
         assertNotEquals(googleId, emailId)
+        assertEquals("uuid-1", AccountIds.resolveOrNull("uuid-1", "a@b.com", null))
         assertNull(AccountIds.resolveOrNull(null, null, null))
         assertNull(AccountIds.resolveOrNull(null, "  ", "  "))
     }

@@ -201,6 +201,7 @@ object CloudSyncEngine {
         db.withTransaction {
             db.dieselDao().deleteAll()
             db.paycheckDao().deleteAll()
+            db.loadHistoryDao().deleteAll()
             db.loadDao().deleteAll()
             backup.loads.forEach { load ->
                 db.loadDao().insert(load.toEntity())

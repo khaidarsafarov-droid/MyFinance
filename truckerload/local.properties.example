@@ -14,7 +14,8 @@ CEREBRAS_API_KEY=
 TELEGRAM_BOT_TOKEN=
 
 # Cloud snapshot/inbox API. Production URLs must use HTTPS.
-# Blank uses the Truck-log droplet: https://107.170.0.183.sslip.io
+# Blank = no Ktor (local-first / friends APK). Example droplet:
+# SYNC_BACKEND_URL=https://107.170.0.183.sslip.io
 SYNC_BACKEND_URL=
 # Durable photo/scan upload and cross-device hydration. Disabled unless explicitly true;
 # also requires SYNC_BACKEND_URL, LOCAL_ONLY_MODE=false, and an authenticated JWT session.
