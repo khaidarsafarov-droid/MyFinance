@@ -8,6 +8,7 @@ import com.truckerload.domain.social.LeaderboardEntry
 import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.Challenge
+import com.truckerload.domain.social.CommunityReportReason
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
@@ -51,6 +52,12 @@ interface ProfileRepository {
     suspend fun unblockUser(blockedId: String): SocialResult<Unit>
     suspend fun isBlocked(targetId: String): Boolean
     fun watchIsBlocked(targetId: String): Flow<Boolean>
+    suspend fun reportUser(
+        reportedUserId: String,
+        reason: CommunityReportReason,
+        details: String = "",
+        chatId: String? = null,
+    ): SocialResult<Unit>
     suspend fun followDriver(targetId: String): SocialResult<Unit>
     suspend fun unfollowDriver(targetId: String): SocialResult<Unit>
     fun watchIsFollowing(targetId: String): Flow<Boolean>

@@ -185,6 +185,11 @@ internal fun ProfileNicknameSection() {
                     color = MaterialTheme.colorScheme.error,
                     style = AppTypography.Subtitle,
                 )
+                SupabaseFriendsRealtimeService.ERROR_NICKNAME_TAKEN -> Text(
+                    stringResource(R.string.friends_nickname_taken),
+                    color = MaterialTheme.colorScheme.error,
+                    style = AppTypography.Subtitle,
+                )
                 null -> Unit
                 else -> Text(feedback, color = MaterialTheme.colorScheme.error, style = AppTypography.Subtitle)
             }

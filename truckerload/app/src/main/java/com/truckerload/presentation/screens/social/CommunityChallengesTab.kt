@@ -17,7 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.data.preferences.CommunityHintArea
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryPanel
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -31,6 +32,7 @@ internal fun ChallengesTabContent(
     isJoining: Boolean,
     onJoin: () -> Unit,
     onOpenFriends: () -> Unit,
+    friendsDirectoryViewModel: FriendsDirectoryViewModel,
 ) {
     val tc = LocalTruckColors.current
     Column(
@@ -74,10 +76,9 @@ internal fun ChallengesTabContent(
             }
         }
         if (challenge.leaderboard.none { !it.isMe }) {
-            CommunityAddFriendsHint(
-                area = CommunityHintArea.CHALLENGES,
-                hasContent = joined,
-                onOpenFriends = onOpenFriends,
+            FriendsDirectoryPanel(
+                viewModel = friendsDirectoryViewModel,
+                onOpenMap = onOpenFriends,
             )
         }
         Text(

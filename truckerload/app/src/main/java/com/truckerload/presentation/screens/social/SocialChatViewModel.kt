@@ -9,6 +9,7 @@ import com.truckerload.data.repository.social.MediaRepository
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.SocialConstants
 import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.CommunityReportReason
 import com.truckerload.domain.social.SocialMessage
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.getOrNull
@@ -36,6 +37,7 @@ data class SocialChatUiState(
     val hasMore: Boolean = false,
     val replyTo: SocialMessage? = null,
     val errorMessage: String? = null,
+    val peerId: String? = null,
 ) {
     val allMessages: List<SocialMessage> =
         (olderMessages.filter { older -> messages.none { it.id == older.id } } + messages)
@@ -63,6 +65,7 @@ class SocialChatViewModel @Inject constructor(
         val hasMore: Boolean = false,
         val replyTo: SocialMessage? = null,
         val errorMessage: String? = null,
+        val peerId: String? = null,
     )
 
     private val _input = MutableStateFlow("")
@@ -90,6 +93,7 @@ class SocialChatViewModel @Inject constructor(
                 hasMore = meta.hasMore,
                 replyTo = meta.replyTo,
                 errorMessage = meta.errorMessage,
+                peerId = meta.peerId,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SocialChatUiState())
 
@@ -98,11 +102,13 @@ class SocialChatViewModel @Inject constructor(
             socialSyncCoordinator.ensureInitialized()
             chatRepository.markChatRead(chatId)
             val chat = chatRepository.getChat(chatId)
+            val peerId = chatRepository.privatePeerId(chatId)
             _meta.value = _meta.value.copy(
                 title = chat?.title ?: "",
                 participantCount = chat?.participantCount ?: 0,
                 chatRating = chat?.rating ?: 0.0,
                 onlineCount = chat?.onlineCount ?: 0,
+                peerId = peerId,
             )
             refreshHasMore()
             while (isActive) {
@@ -165,6 +171,28 @@ class SocialChatViewModel @Inject constructor(
     fun addReaction(messageId: String, reaction: String) {
         viewModelScope.launch {
             chatRepository.addReaction(messageId, reaction)
+        }
+    }
+
+    fun blockPeer(onDone: () -> Unit) {
+        val peer = _meta.value.peerId ?: return
+        viewModelScope.launch {
+            when (val result = profileRepository.blockUser(peer)) {
+                is SocialResult.Success -> onDone()
+                is SocialResult.Error -> _meta.value = _meta.value.copy(errorMessage = result.message)
+            }
+        }
+    }
+
+    fun reportPeer(reason: CommunityReportReason) {
+        val peer = _meta.value.peerId ?: return
+        viewModelScope.launch {
+            when (val result = profileRepository.reportUser(peer, reason, chatId = chatId)) {
+                is SocialResult.Success ->
+                    _meta.value = _meta.value.copy(errorMessage = "reported")
+                is SocialResult.Error ->
+                    _meta.value = _meta.value.copy(errorMessage = result.message)
+            }
         }
     }
 

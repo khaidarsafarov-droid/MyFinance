@@ -40,6 +40,8 @@ import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.SocialChat
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryPanel
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -64,6 +66,7 @@ internal fun ChatsTabContent(
     onChatClick: (String) -> Unit,
     onOpenVoiceRooms: () -> Unit,
     onOpenFriends: () -> Unit,
+    friendsDirectoryViewModel: FriendsDirectoryViewModel,
 ) {
     val tc = LocalTruckColors.current
     val settingsDataStore = LocalSettingsDataStore.current
@@ -153,10 +156,7 @@ internal fun ChatsTabContent(
             },
             confirmButton = {
                 if (peers.isEmpty()) {
-                    TextButton(onClick = {
-                        showPeerPicker = false
-                        onOpenFriends()
-                    }) {
+                    TextButton(onClick = { showPeerPicker = false }) {
                         Text(stringResource(R.string.community_add_friends))
                     }
                 }
@@ -183,6 +183,13 @@ internal fun ChatsTabContent(
                 placeholder = { Text(stringResource(R.string.social_search_chats)) },
                 singleLine = true,
                 colors = AppTextFieldDefaults.outlined(),
+            )
+        }
+        item {
+            Text(
+                text = stringResource(R.string.social_chat_safety_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.TextSecondary,
             )
         }
         item {
@@ -213,6 +220,12 @@ internal fun ChatsTabContent(
             }
         }
         item {
+            FriendsDirectoryPanel(
+                viewModel = friendsDirectoryViewModel,
+                onOpenMap = onOpenFriends,
+            )
+        }
+        item {
             Text(
                 text = stringResource(R.string.group_chat),
                 style = AppTypography.CardTitle,
@@ -220,14 +233,6 @@ internal fun ChatsTabContent(
         }
         items(groupChats, key = { it.id }) { chat ->
             ChatListItem(chat = chat, onClick = { onChatClick(chat.id) })
-        }
-        if (groupChats.isEmpty() && privateChats.isEmpty()) {
-            item {
-                CommunityAddFriendsHint(
-                    area = CommunityHintArea.CHATS,
-                    onOpenFriends = onOpenFriends,
-                )
-            }
         }
         item {
             Text(

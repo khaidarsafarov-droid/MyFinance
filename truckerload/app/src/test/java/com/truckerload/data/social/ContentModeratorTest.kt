@@ -1,5 +1,6 @@
 package com.truckerload.data.social
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,6 +17,18 @@ class ContentModeratorTest {
     @Test
     fun allowsNormalText() {
         assertTrue(ContentModerator.moderateText("Heading to Dallas, ETA 18:00").allowed)
+        assertTrue(ContentModerator.moderateText("850 mi at 2.90 RPM").allowed)
+    }
+
+    @Test
+    fun blocksEmailPhoneAndOffApp() {
+        assertFalse(ContentModerator.moderateText("email me at driver@fleet.com").allowed)
+        assertFalse(ContentModerator.moderateText("call 555-123-4567 tonight").allowed)
+        assertFalse(ContentModerator.moderateText("write in t.me/truckchat").allowed)
+        assertEquals(
+            com.truckerload.domain.social.ModerationCodes.PII_EMAIL,
+            ContentModerator.moderateText("x@y.io hi").reason,
+        )
     }
 
     @Test

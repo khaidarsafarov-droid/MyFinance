@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.truckerload.R
 import com.truckerload.data.community.CommunityRemoteClient
+import com.truckerload.data.community.FriendSafetyClient
 import com.truckerload.data.local.dao.BlockedUserDao
 import com.truckerload.data.local.dao.ChallengeParticipationDao
 import com.truckerload.data.local.dao.DriverFollowDao
@@ -23,6 +24,7 @@ import com.truckerload.di.UserScope
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.Challenge
 import com.truckerload.domain.social.ChallengeType
+import com.truckerload.domain.social.CommunityReportReason
 import com.truckerload.domain.social.CommunityWeekWindow
 import com.truckerload.domain.social.DriverProfile
 import com.truckerload.domain.social.DriverStatus
@@ -54,6 +56,7 @@ class ProfileRepositoryImpl(
     private val onPeerBlocked: suspend (String) -> Unit,
     private val actorId: () -> String,
     private val remote: CommunityRemoteClient,
+    private val safety: FriendSafetyClient,
 ) : ProfileRepository {
 
     override suspend fun syncIdentityFromUserProfile() {
@@ -354,6 +357,24 @@ class ProfileRepositoryImpl(
     override fun watchIsBlocked(targetId: String): Flow<Boolean> =
         blockedUserDao.watchBlockedIds(actorId())
             .map { blockedIds -> targetId in blockedIds }.flowOn(Dispatchers.IO)
+
+    override suspend fun reportUser(
+        reportedUserId: String,
+        reason: CommunityReportReason,
+        details: String,
+        chatId: String?,
+    ): SocialResult<Unit> = runCatching {
+        if (reportedUserId == actorId()) {
+            return SocialResult.Error(appContext.getString(R.string.social_error_cannot_report_self))
+        }
+        safety.submitReport(
+            reportedUserId = reportedUserId,
+            reason = reason,
+            details = details,
+            chatId = chatId,
+        ).getOrThrow()
+        SocialResult.Success(Unit)
+    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_report_user, it), it) }
 
     override suspend fun followDriver(targetId: String): SocialResult<Unit> = runCatching {
         val me = actorId()
