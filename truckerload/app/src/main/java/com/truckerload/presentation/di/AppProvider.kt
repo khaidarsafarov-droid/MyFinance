@@ -55,3 +55,9 @@ val LocalCallPrivacyStore = compositionLocalOf<com.truckerload.data.preferences.
 val LocalMaintenanceRepository = compositionLocalOf<com.truckerload.data.repository.MaintenanceRepository> {
     error("No MaintenanceRepository provided")
 }
+val LocalRegistrationService = compositionLocalOf<com.truckerload.data.repository.account.RegistrationService> {
+    error("No RegistrationService provided")
+}
+val LocalAccountDeletionService = compositionLocalOf<com.truckerload.data.repository.account.AccountDeletionService> {
+    error("No AccountDeletionService provided")
+}

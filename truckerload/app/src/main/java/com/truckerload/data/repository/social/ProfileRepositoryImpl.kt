@@ -143,7 +143,7 @@ class ProfileRepositoryImpl(
                 truckType = truckType.trim().ifBlank { existing.truckType },
                 dateOfBirthEpochDay = dateOfBirthEpochDay ?: existing.dateOfBirthEpochDay,
                 licenseClass = licenseClass.trim().ifBlank { existing.licenseClass },
-                cdlNumber = cdlNumber.trim().ifBlank { existing.cdlNumber },
+                cdlNumber = "",
                 axleCount = if (axleCount > 0) axleCount else existing.axleCount,
                 homeHubCity = homeHubCity.trim().ifBlank { existing.homeHubCity },
                 about = existing.about.takeIf { !it.contains("Дальнобойщик") && !it.contains("открытые дороги") }.orEmpty(),

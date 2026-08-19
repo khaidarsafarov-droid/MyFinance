@@ -11,7 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import com.truckerload.R
+import com.truckerload.presentation.privacy.PermissionRationaleDialog
 
 data class FriendsMapLocationPermission(
     val hasPermission: Boolean,
@@ -31,12 +34,13 @@ fun rememberFriendsMapLocationPermission(
                 PackageManager.PERMISSION_GRANTED,
         )
     }
+    var showRationale by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { result ->
         hasPermission = result.values.any { it }
     }
-    val requestPermission: () -> Unit = remember(permissionLauncher) {
+    val requestSystemPermission: () -> Unit = remember(permissionLauncher) {
         {
             permissionLauncher.launch(
                 arrayOf(
@@ -46,10 +50,26 @@ fun rememberFriendsMapLocationPermission(
             )
         }
     }
+    val requestPermission: () -> Unit = remember(hasPermission) {
+        {
+            if (!hasPermission) showRationale = true
+        }
+    }
     LaunchedEffect(requestOnLaunch) {
         if (requestOnLaunch && !hasPermission) {
-            requestPermission()
+            showRationale = true
         }
+    }
+    if (showRationale && !hasPermission) {
+        PermissionRationaleDialog(
+            title = stringResource(R.string.permission_rationale_location_title),
+            body = stringResource(R.string.permission_rationale_location_body),
+            onContinue = {
+                showRationale = false
+                requestSystemPermission()
+            },
+            onDismiss = { showRationale = false },
+        )
     }
     return FriendsMapLocationPermission(
         hasPermission = hasPermission,

@@ -57,6 +57,8 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.di.LocalPhotoRepository
+import com.truckerload.presentation.di.LocalRegistrationService
+import com.truckerload.presentation.di.LocalAccountDeletionService
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
@@ -286,6 +288,8 @@ class MainActivity : AppCompatActivity() {
                                     LocalVoiceRepository provides deps.voiceRepository,
                                     LocalCallPrivacyStore provides callPrivacyStore,
                                     LocalMaintenanceRepository provides deps.maintenanceRepository,
+                                    LocalRegistrationService provides deps.registrationService,
+                                    LocalAccountDeletionService provides deps.accountDeletionService,
                                 ) {
                                     com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
                                         // Reset Nav/ViewModel stores when the account changes.
