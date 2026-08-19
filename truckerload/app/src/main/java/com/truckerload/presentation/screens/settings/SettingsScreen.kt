@@ -377,6 +377,8 @@ fun SettingsScreen(
 
             GoogleDriveSyncSection(tc = tc)
 
+            DeleteAccountSection()
+
             BentoGlassSection(
                 title = stringResource(R.string.settings_logout_title),
             ) {

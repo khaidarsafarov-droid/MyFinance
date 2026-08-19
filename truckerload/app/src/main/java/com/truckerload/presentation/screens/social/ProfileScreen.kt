@@ -109,6 +109,12 @@ fun ProfileScreen(
                     },
                 )
             }
+            item {
+                ProfileCompletionReminders(
+                    onFillProfessional = onEdit,
+                    onFillCommunity = onEdit,
+                )
+            }
             if (profile.badges.isNotEmpty()) {
                 item { ProfileBadgesSection(profile) }
             }

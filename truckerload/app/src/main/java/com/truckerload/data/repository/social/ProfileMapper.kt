@@ -88,7 +88,6 @@ internal object ProfileMapper {
             joinedDate = base.joinedDate,
             lastActive = base.lastActive.takeIf { it > 0 } ?: System.currentTimeMillis(),
             dateOfBirthEpochDay = base.dateOfBirthEpochDay,
-            cdlNumber = base.cdlNumber,
             axleCount = base.axleCount,
             homeHubCity = base.homeHubCity,
         )

@@ -4,6 +4,7 @@ import android.app.Application
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.ktor.HttpClientProvider
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -15,6 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -31,6 +33,7 @@ class UserComponentManagerTest {
     fun setUp() {
         app = RuntimeEnvironment.getApplication()
         profileStore = mock()
+        whenever(profileStore.setupComplete).thenReturn(MutableStateFlow(false))
         manager = UserComponentManager(app, profileStore, mock<HttpClientProvider>())
     }
 

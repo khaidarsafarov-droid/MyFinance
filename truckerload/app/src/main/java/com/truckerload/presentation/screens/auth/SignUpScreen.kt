@@ -90,11 +90,27 @@ fun SignUpScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var isGoogleLoading by remember { mutableStateOf(false) }
+    var consents by remember { mutableStateOf(RegistrationConsentState()) }
 
     val googleSignIn = rememberGoogleSignInLauncher(
         GoogleAuthCallbacks(
             onBusy = { isGoogleLoading = it },
-            onSignedIn = onSuccess,
+            onSignedIn = {
+                val uid = authStore.currentUserIdOrNull()
+                if (uid != null) {
+                    com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+                        context = context,
+                        userId = uid,
+                        isVerified = true,
+                        consents = com.truckerload.domain.account.AccountConsents(
+                            tosAccepted = consents.tosAccepted,
+                            analyticsAccepted = consents.analyticsAccepted,
+                            ageConfirmed = consents.ageConfirmed,
+                        ),
+                    )
+                }
+                onSuccess()
+            },
         ),
     )
 
@@ -130,6 +146,16 @@ fun SignUpScreen(
                 phoneNumber = phoneFormatted,
             ),
         )
+        com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+            context = context,
+            userId = AccountIds.fromEmail(emailTrimmed),
+            isVerified = true,
+            consents = com.truckerload.domain.account.AccountConsents(
+                tosAccepted = consents.tosAccepted,
+                analyticsAccepted = consents.analyticsAccepted,
+                ageConfirmed = consents.ageConfirmed,
+            ),
+        )
         // No outbound email without Supabase — treat on-device accounts as verified.
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .markVerified(emailTrimmed)
@@ -163,6 +189,16 @@ fun SignUpScreen(
             accessToken = accessToken,
             refreshToken = refreshToken,
         )
+        com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+            context = context,
+            userId = userId,
+            isVerified = false,
+            consents = com.truckerload.domain.account.AccountConsents(
+                tosAccepted = consents.tosAccepted,
+                analyticsAccepted = consents.analyticsAccepted,
+                ageConfirmed = consents.ageConfirmed,
+            ),
+        )
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .beginVerification(emailTrimmed)
         if (profileWarning) {
@@ -193,6 +229,8 @@ fun SignUpScreen(
         val phoneFormatted = CountryCatalog.formatE164(phoneCountry, nationalNumber)
         val phoneDigits = phoneFormatted.filter { it.isDigit() }
         when {
+            !consents.ageConfirmed -> error = context.getString(R.string.signup_error_age_required)
+            !consents.tosAccepted -> error = context.getString(R.string.signup_error_tos_required)
             nameTrimmed.isBlank() -> error = context.getString(R.string.auth_error_name_required)
             phoneDigits.length < 8 -> error = context.getString(R.string.auth_error_phone_required)
             emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
@@ -370,10 +408,21 @@ fun SignUpScreen(
                     },
                     colors = tfColors
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                RegistrationConsentSection(
+                    state = consents,
+                    onChange = { consents = it; error = null },
+                )
                 error?.let { Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
                 Spacer(modifier = Modifier.height(24.dp))
                 GoogleSignInButton(
-                    onClick = { googleSignIn.launch() },
+                    onClick = {
+                        when {
+                            !consents.ageConfirmed -> error = context.getString(R.string.signup_error_age_required)
+                            !consents.tosAccepted -> error = context.getString(R.string.signup_error_tos_required)
+                            else -> googleSignIn.launch()
+                        }
+                    },
                     enabled = !isLoading && !isGoogleLoading,
                     loading = isGoogleLoading,
                     text = stringResource(R.string.signup_with_google),

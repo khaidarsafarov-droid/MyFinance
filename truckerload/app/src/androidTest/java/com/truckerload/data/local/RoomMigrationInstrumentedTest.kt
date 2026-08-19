@@ -34,7 +34,7 @@ class RoomMigrationInstrumentedTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrate6To30_smoke() {
+    fun migrate6To31_smoke() {
         createFixtureDatabase(6) {
             execSQL(V6_LOADS_DDL)
             execSQL(
@@ -55,7 +55,7 @@ class RoomMigrationInstrumentedTest {
 
         // validate=false: pre-v6 core tables (stops/penalties/…) were never created by
         // forward migrations; we assert row survival + key columns via PRAGMA instead.
-        val db = helper.runMigrationsAndValidate(testDb, 30, false, *ALL_MIGRATIONS_FROM_V6)
+        val db = helper.runMigrationsAndValidate(testDb, 31, false, *ALL_MIGRATIONS_FROM_V6)
         db.query("SELECT COUNT(*) FROM loads").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
@@ -66,6 +66,9 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasTable("media_sync_queue"))
         assertTrue(db.hasColumn("voice_rooms", "description"))
         assertTrue(db.hasColumn("voice_rooms", "moderatorId"))
+        assertTrue(db.hasTable("user_accounts"))
+        assertTrue(db.hasTable("driver_professional_profiles"))
+        assertTrue(db.hasTable("community_profiles"))
         db.query("SELECT tripId FROM loads WHERE id = 'id-1'").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals("T-SMOKE", c.getString(0))
@@ -155,9 +158,19 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasColumn("voice_rooms", "moderatorId"))
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate30To31() {
+        helper.createDatabase(testDb, 30).apply { close() }
+        val db = helper.runMigrationsAndValidate(testDb, 31, true, MIGRATION_30_31)
+        assertTrue(db.hasTable("user_accounts"))
+        assertTrue(db.hasTable("driver_professional_profiles"))
+        assertTrue(db.hasTable("community_profiles"))
+    }
+
     /**
      * Builds a named DB at [version] without requiring an exported schema JSON
-     * (historical schemas are not committed; only 28/29/30 are).
+     * (historical schemas are not committed; only 28/29/30/31 are).
      */
     private fun createFixtureDatabase(version: Int, setup: SupportSQLiteDatabase.() -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

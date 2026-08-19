@@ -23,6 +23,10 @@ import com.truckerload.data.repository.WeekRepository
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.GroupRepository
 import com.truckerload.data.repository.social.MediaRepository
+import com.truckerload.data.repository.account.AccountDeletionService
+import com.truckerload.data.repository.account.CommunityProfileRepository
+import com.truckerload.data.repository.account.DriverProfessionalRepository
+import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.data.repository.social.StatusRepository
@@ -59,6 +63,10 @@ class UserComponent private constructor(
     val voiceRepository: VoiceRepository,
     val aiRepository: AiRepository,
     val maintenanceRepository: MaintenanceRepository,
+    val registrationService: RegistrationService,
+    val driverProfessionalRepository: DriverProfessionalRepository,
+    val communityProfileRepository: CommunityProfileRepository,
+    val accountDeletionService: AccountDeletionService,
 ) {
     companion object {
         fun create(
@@ -78,6 +86,12 @@ class UserComponent private constructor(
                 context = context,
                 db = db,
                 loadRepository = loadRepository,
+                userProfileStore = userProfileStore,
+            )
+            val account = AccountGraphModule.create(
+                context = context,
+                userId = id,
+                db = db,
                 userProfileStore = userProfileStore,
             )
             return UserComponent(
@@ -110,6 +124,10 @@ class UserComponent private constructor(
                 ),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),
+                registrationService = account.registration,
+                driverProfessionalRepository = account.professional,
+                communityProfileRepository = account.community,
+                accountDeletionService = account.deletion,
             )
         }
     }

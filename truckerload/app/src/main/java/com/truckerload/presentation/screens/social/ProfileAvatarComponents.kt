@@ -169,6 +169,7 @@ fun ProfileAvatarPickerSheet(
     var cropSource by remember { mutableStateOf<Bitmap?>(null) }
     var awaitingExternalPicker by remember { mutableStateOf(false) }
     var captureFile by remember { mutableStateOf<File?>(null) }
+    var showCameraRationale by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     fun beginCrop(bitmap: Bitmap?) {
@@ -242,6 +243,18 @@ fun ProfileAvatarPickerSheet(
         return
     }
 
+    if (showCameraRationale) {
+        com.truckerload.presentation.privacy.PermissionRationaleDialog(
+            title = stringResource(R.string.permission_rationale_avatar_title),
+            body = stringResource(R.string.permission_rationale_avatar_body),
+            onContinue = {
+                showCameraRationale = false
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            },
+            onDismiss = { showCameraRationale = false },
+        )
+    }
+
     if (!visible) return
 
     fun launchCamera() {
@@ -256,7 +269,7 @@ fun ProfileAvatarPickerSheet(
             awaitingExternalPicker = true
             cameraLauncher.launch(uri)
         } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            showCameraRationale = true
         }
     }
 

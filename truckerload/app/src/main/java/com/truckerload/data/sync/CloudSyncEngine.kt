@@ -5,7 +5,9 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.truckerload.data.backup.BackupData
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
+import com.truckerload.data.privacy.AesGcmSensitiveFieldCipher
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.preferences.AuthStore
@@ -270,13 +272,30 @@ object CloudSyncEngine {
                 homeState = obj.optString("homeState").ifBlank { existing.homeState },
                 truckType = obj.optString("truckType").ifBlank { existing.truckType },
                 licenseClass = obj.optString("licenseClass").ifBlank { existing.licenseClass },
-                cdlNumber = obj.optString("cdlNumber").ifBlank { existing.cdlNumber },
+                cdlNumber = "",
                 axleCount = obj.optInt("axleCount", existing.axleCount),
                 homeHubCity = obj.optString("homeHubCity").ifBlank { existing.homeHubCity },
                 dateOfBirthEpochDay = obj.optLong("dateOfBirthEpochDay")
                     .takeIf { obj.has("dateOfBirthEpochDay") && !obj.isNull("dateOfBirthEpochDay") }
                     ?: existing.dateOfBirthEpochDay,
                 lastActive = System.currentTimeMillis(),
+            ),
+        )
+        val leakedCdl = obj.optString("cdlNumber")
+        if (leakedCdl.isNotBlank()) {
+            absorbLegacyCdl(db, existing.id, leakedCdl)
+        }
+    }
+
+    private suspend fun absorbLegacyCdl(db: AppDatabase, userId: String, plaintext: String) {
+        val existing = db.driverProfessionalDao().get(userId)
+        if (existing?.cdlNumberCiphertext?.startsWith(AesGcmSensitiveFieldCipher.PREFIX_V1) == true) {
+            return
+        }
+        db.driverProfessionalDao().upsert(
+            (existing ?: DriverProfessionalEntity(userId = userId)).copy(
+                cdlNumberCiphertext = AesGcmSensitiveFieldCipher.wrapPlaintextForMigration(plaintext),
+                updatedAt = System.currentTimeMillis(),
             ),
         )
     }
@@ -289,7 +308,6 @@ object CloudSyncEngine {
             .put("homeState", profile.homeState)
             .put("truckType", profile.truckType)
             .put("licenseClass", profile.licenseClass)
-            .put("cdlNumber", profile.cdlNumber)
             .put("axleCount", profile.axleCount)
             .put("homeHubCity", profile.homeHubCity)
             .put("dateOfBirthEpochDay", profile.dateOfBirthEpochDay)
