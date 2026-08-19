@@ -210,10 +210,7 @@ fun SettingsScreen(
             )
 
             BentoGlassSection(title = stringResource(R.string.settings_rpm_thresholds_title)) {
-                RpmColorLegend(
-                    compact = true,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+                RpmColorLegend(compact = true)
                 val fieldColors = AppTextFieldDefaults.outlined()
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -243,10 +240,8 @@ fun SettingsScreen(
                         text = err,
                         color = tc.AccentExpense,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 6.dp),
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
                         val min = minInput.replace(",", ".").toDoubleOrNull()
@@ -275,7 +270,6 @@ fun SettingsScreen(
                     restoreState is SettingsViewModel.RestoreState.Loading
                 ) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(8.dp))
                     val progressText = when {
                         exportState is SettingsViewModel.ExportState.Loading ->
                             stringResource(R.string.exporting_loads)
@@ -286,7 +280,6 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = tc.TextSecondary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
                 Button(
                     onClick = { settingsViewModel.exportLoads() },

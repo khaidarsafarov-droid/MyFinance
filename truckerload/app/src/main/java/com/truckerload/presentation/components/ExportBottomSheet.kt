@@ -1,6 +1,7 @@
 package com.truckerload.presentation.components
 
 import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.di.LocalWeekRepository
 import com.truckerload.presentation.screens.stats.StatsPeriod
+import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.utils.ExportService
 import com.truckerload.utils.ReportGeneratorService
 import com.truckerload.utils.getMonthRange
@@ -75,13 +77,15 @@ fun ExportBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
+        ) {
             Text(stringResource(R.string.export_title), style = MaterialTheme.typography.titleLarge)
             Text(
                 text = exportPeriodParams?.let { stringResource(R.string.export_period_label, it.periodLabel) }
                     ?: stringResource(R.string.export_year_label, year),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
             )
 
             Button(
@@ -95,7 +99,7 @@ fun ExportBottomSheet(
                         onDismiss()
                     }
                 },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.export_csv_button))
             }
@@ -140,7 +144,7 @@ fun ExportBottomSheet(
                         onDismiss()
                     }
                 },
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                modifier = Modifier.fillMaxWidth(),
                 enabled = exportPeriodParams != null
             ) {
                 Text(stringResource(R.string.export_pdf_button))

@@ -38,6 +38,7 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.utils.MoneyFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +96,10 @@ fun PeerProfileScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
+                ) {
                     Text(peer.displayName, style = AppTypography.CardTitle, color = tc.TextPrimary)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

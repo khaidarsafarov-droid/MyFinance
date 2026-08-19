@@ -33,6 +33,7 @@ import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.OneUiTokens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +79,10 @@ fun GroupDetailScreen(
         ) {
             item {
                 BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
+                    ) {
                         Text(chat?.description.orEmpty(), color = tc.TextSecondary)
                         if (!chat?.inviteCode.isNullOrBlank()) {
                             Text(
