@@ -17,10 +17,10 @@ import kotlinx.coroutines.flow.Flow
 interface LoadDao {
 
     /** CDC: возвращает множество Trip ID, уже присутствующих в БД. Для фильтрации входящих данных в памяти. */
-    @Query("SELECT tripId FROM loads WHERE tripId IN (:tripIds)")
+    @Query("SELECT tripId FROM loads WHERE tripId COLLATE NOCASE IN (:tripIds)")
     suspend fun getExistingTripIds(tripIds: List<String>): List<String>
 
-    @Query("SELECT * FROM loads WHERE tripId = :tripId LIMIT 1")
+    @Query("SELECT * FROM loads WHERE tripId = :tripId COLLATE NOCASE LIMIT 1")
     suspend fun getByTripId(tripId: String): LoadEntity?
 
     @Query(
@@ -119,13 +119,17 @@ interface LoadDao {
     @Query(
         """
         UPDATE loads SET
+            tripId = :tripId,
             date = :loadDate,
             totalRate = :totalRate,
             totalMiles = :totalMiles,
             pointA = :pointA,
             pointB = :pointB,
+            puCount = :puCount,
+            delCount = :delCount,
             weekNumber = :weekNumber,
             year = :year,
+            rawMessage = :rawMessage,
             updatedAt = :updatedAt,
             firstPuMillis = :firstPuMillis,
             lastDelMillis = :lastDelMillis,
@@ -144,13 +148,17 @@ interface LoadDao {
     )
     suspend fun update(
         loadId: String,
+        tripId: String,
         loadDate: String,
         totalRate: Double,
         totalMiles: Double,
         pointA: String,
         pointB: String,
+        puCount: Int,
+        delCount: Int,
         weekNumber: Int,
         year: Int,
+        rawMessage: String,
         updatedAt: Long,
         firstPuMillis: Long?,
         lastDelMillis: Long?,

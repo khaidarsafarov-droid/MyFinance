@@ -229,6 +229,9 @@ interface ChatMemberDao {
     @Query("SELECT * FROM chat_members WHERE chatId = :chatId AND userId = :userId LIMIT 1")
     suspend fun getMember(chatId: String, userId: String): ChatMemberEntity?
 
+    @Query("SELECT userId FROM chat_members WHERE chatId = :chatId AND userId != :me LIMIT 1")
+    suspend fun otherMemberId(chatId: String, me: String): String?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(member: ChatMemberEntity)
 

@@ -27,7 +27,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -54,10 +56,12 @@ fun PeerProfileScreen(
     val peer = uiState.peer
     val tc = LocalTruckColors.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val reportSent = stringResource(R.string.social_report_sent)
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
+            val text = if (message == "reported") reportSent else message
+            snackbarHostState.showSnackbar(text)
             viewModel.clearError()
         }
     }
@@ -159,6 +163,23 @@ fun PeerProfileScreen(
                                 stringResource(R.string.social_unblock_user)
                             } else {
                                 stringResource(R.string.social_block_user)
+                            },
+                        )
+                    }
+                    var showReport by remember { mutableStateOf(false) }
+                    Button(
+                        onClick = { showReport = true },
+                        enabled = !uiState.isBlocked,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.social_report_user))
+                    }
+                    if (showReport) {
+                        ReportReasonDialog(
+                            onDismiss = { showReport = false },
+                            onPick = { reason ->
+                                showReport = false
+                                viewModel.reportPeer(reason)
                             },
                         )
                     }

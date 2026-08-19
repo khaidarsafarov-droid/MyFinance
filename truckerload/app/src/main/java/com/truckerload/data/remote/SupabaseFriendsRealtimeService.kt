@@ -75,7 +75,9 @@ class SupabaseFriendsRealtimeService(
                     FriendProfileHit(
                         userId = o.optString("user_id"),
                         nickname = o.optString("nickname"),
-                        displayName = o.optString("full_name").ifBlank { o.optString("nickname") },
+                        displayName = o.optString("nickname").ifBlank {
+                            o.optString("full_name").ifBlank { o.optString("nickname") }
+                        },
                     )
                 }
             }
@@ -354,6 +356,8 @@ class SupabaseFriendsRealtimeService(
                 val msg = err.message.orEmpty()
                 if (isMissingNicknameColumnError(msg)) {
                     Result.failure(IllegalStateException(ERROR_NICKNAME_SCHEMA_MISSING))
+                } else if (isNicknameTakenError(msg)) {
+                    Result.failure(IllegalStateException(ERROR_NICKNAME_TAKEN))
                 } else {
                     Result.failure(err)
                 }
@@ -363,12 +367,20 @@ class SupabaseFriendsRealtimeService(
     companion object {
         /** UI maps this to [R.string.friends_nickname_schema_missing]. */
         const val ERROR_NICKNAME_SCHEMA_MISSING = "schema_nickname_missing"
+        const val ERROR_NICKNAME_TAKEN = "nickname_taken"
 
         fun isMissingNicknameColumnError(message: String): Boolean {
             val m = message.lowercase()
             return m.contains("pgrst204") ||
                 (m.contains("nickname") && m.contains("schema cache")) ||
                 (m.contains("nickname") && m.contains("could not find"))
+        }
+
+        fun isNicknameTakenError(message: String): Boolean {
+            val m = message.lowercase()
+            return m.contains("23505") ||
+                m.contains("duplicate") ||
+                m.contains("profiles_nickname_lower")
         }
     }
 

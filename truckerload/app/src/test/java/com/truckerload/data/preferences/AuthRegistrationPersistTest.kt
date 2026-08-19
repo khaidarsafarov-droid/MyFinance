@@ -121,4 +121,31 @@ class AuthRegistrationPersistTest {
         assertEquals(AccountIds.fromEmail(email), restoredAuth.currentUserIdOrNull())
         assertTrue(restoredCreds.validateCredentials(email, password))
     }
+
+    @Test
+    fun googleCloudLogin_storesIdTokenBesideSupabaseJwt() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+        val profiles = UserProfileStore(context)
+
+        AuthLogin.completeLogin(
+            authStore = auth,
+            userProfileStore = profiles,
+            userId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            profile = UserProfile(
+                email = "cloud-google@example.com",
+                givenName = "Cloud",
+                familyName = "Google",
+                photoUrl = null,
+                googleId = "google-sub-cloud",
+            ),
+            accessToken = "supabase.access.jwt",
+            refreshToken = "supabase.refresh",
+            googleIdToken = "google.id.token",
+        )
+
+        assertEquals("supabase.access.jwt", auth.accessTokenOrNull())
+        assertEquals("google.id.token", auth.googleIdTokenOrNull())
+        assertEquals(AuthProvider.GOOGLE, auth.authProvider())
+    }
 }

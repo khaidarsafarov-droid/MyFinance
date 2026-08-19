@@ -112,4 +112,14 @@ class PeerProfileViewModel @Inject constructor(
     fun clearError() {
         _errorMessage.value = null
     }
+
+    fun reportPeer(reason: com.truckerload.domain.social.CommunityReportReason) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = profileRepository.reportUser(peerId, reason)) {
+                is SocialResult.Success -> _errorMessage.value = "reported"
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
 }

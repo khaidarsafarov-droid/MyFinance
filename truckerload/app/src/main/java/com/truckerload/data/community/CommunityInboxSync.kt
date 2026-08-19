@@ -1,6 +1,7 @@
 package com.truckerload.data.community
 
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.entities.BlockedUserEntity
 import com.truckerload.data.local.entities.ChatMemberEntity
 import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.data.local.entities.SocialChatEntity
@@ -15,6 +16,7 @@ class CommunityInboxSync(
     private val storage: CommunityStorageClient,
     private val cacheDir: File,
     private val notifier: CommunityMessageNotifier? = null,
+    private val safety: FriendSafetyClient? = null,
 ) {
     suspend fun pullAll() {
         if (!remote.isReady()) return
@@ -22,6 +24,7 @@ class CommunityInboxSync(
         pullChats()
         pullMessages()
         pullStatuses()
+        pullBlocks()
     }
 
     suspend fun pullPeers() {
@@ -147,6 +150,18 @@ class CommunityInboxSync(
                     durationMs = status.durationMs,
                 ),
             )
+        }
+    }
+
+    private suspend fun pullBlocks() {
+        val client = safety ?: return
+        val blocked = client.listBlockedIds().getOrElse { return }
+        val me = remote.actorId()
+        if (me.isBlank()) return
+        val dao = db.blockedUserDao()
+        val now = System.currentTimeMillis()
+        blocked.forEach { id ->
+            dao.block(BlockedUserEntity(blockerId = me, blockedId = id, blockedAt = now))
         }
     }
 

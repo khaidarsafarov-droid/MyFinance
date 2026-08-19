@@ -5,11 +5,10 @@ import java.security.MessageDigest
 
 /**
  * Stable account identifiers for multi-user local isolation.
- * Priority: Supabase UUID → Google `sub` → email hash → LOCAL_DEV.
+ * Priority: Google `sub` → Supabase UUID → email hash → LOCAL_DEV.
  *
- * Isolation note: Room DB file name and preference/DataStore file names are keyed by
- * [sanitizeFilePart] of the resolved account id, so two device logins with different
- * emails / Google accounts do not share loads/settings.
+ * One Google account is one TruckerLoad login: Room / prefs are keyed by
+ * [fromGoogleSub], never by a parallel Supabase UUID for the same `sub`.
  */
 object AccountIds {
     /** Single-device offline mode ([com.truckerload.BuildConfig.LOCAL_ONLY_MODE]). */
@@ -42,10 +41,10 @@ object AccountIds {
         email: String?,
         googleSub: String? = null,
     ): String? {
-        val remote = supabaseUserId?.trim().orEmpty()
-        if (remote.isNotBlank()) return remote
         val sub = googleSub?.trim().orEmpty()
         if (sub.isNotBlank()) return fromGoogleSub(sub)
+        val remote = supabaseUserId?.trim().orEmpty()
+        if (remote.isNotBlank()) return remote
         val mail = email?.trim().orEmpty()
         if (mail.isBlank()) return null
         return fromEmail(mail)

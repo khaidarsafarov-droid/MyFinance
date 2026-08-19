@@ -101,6 +101,7 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
             onBack = { navigateToMainRoute(Routes.HOME, navController) },
             onEdit = { navController.navigate(Routes.PROFILE_EDIT) },
             showBack = false,
+            onOpenFriends = { navController.navigate(Routes.FRIENDS_LIVE) },
         )
     }
     composable(Routes.PROFILE_EDIT) {
@@ -117,6 +118,7 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
         SocialChatScreen(
             chatId = chatId,
             onBack = { navController.popBackStack() },
+            onOpenPeerProfile = { peerId -> navController.navigate(Routes.peerProfile(peerId)) },
         )
     }
     composable(Routes.VOICE_ROOMS) {

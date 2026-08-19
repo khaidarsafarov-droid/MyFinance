@@ -13,6 +13,9 @@ In the Supabase SQL editor, in order:
    (safe to re-run if an earlier attempt failed — re-run this latest file
    even if a previous Community script succeeded, so RLS helpers apply)
 
+4. `supabase/migrations/20260819_friend_requests_and_safety.sql`
+   (friend requests, reports, hide email/phone from peer search)
+
 Optional Realtime (Dashboard → Database → Replication):
 
 - `community_messages`
@@ -41,10 +44,11 @@ TURN_CREDENTIAL=...
 ## In-app
 
 1. Sign in (Google / email) so the session has a Supabase JWT UUID.
-2. Profile → set a unique nickname.
-3. Friends on the map → add a friend by nickname.
-4. Community → private chat, groups (invite code), leaderboard, weekly miles
-   challenge (opt-in aggregate stats only), statuses, voice rooms / calls.
+2. Profile → set a unique nickname (phone and email stay private).
+3. Friends on the map → send a friend request by nickname; they accept or decline.
+4. Community → private chat with accepted friends only, groups (invite code),
+   leaderboard, weekly miles challenge (opt-in aggregate stats only),
+   statuses, voice rooms / calls. Block or report from a chat or profile.
 
 Group voice uses LiveKit SFU when the Ktor backend has `LIVEKIT_*` configured
 (see `docs/VOICE_SFU.md`); otherwise the client falls back to P2P mesh.

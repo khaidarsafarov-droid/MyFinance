@@ -32,6 +32,16 @@ class AuthRepositoryArchitectureTest {
         assertTrue(engine.contains("registerCurrentDevice"))
     }
 
+    @Test
+    fun googleSignIn_passesIdTokenThroughCompleteLogin() {
+        val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
+        assertTrue(auth.contains("googleIdToken = idToken"))
+        assertTrue(auth.contains("googleIdToken = googleIdToken"))
+        val login = readMainSource("com/truckerload/data/preferences/AuthLogin.kt")
+        assertTrue(login.contains("googleIdToken: String?"))
+        assertTrue(login.contains("googleIdToken = googleIdToken"))
+    }
+
     private fun readMainSource(relativePath: String): String {
         val candidates = listOf(
             File("src/main/java/$relativePath"),

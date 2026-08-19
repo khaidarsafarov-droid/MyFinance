@@ -15,4 +15,7 @@ interface LoadHistoryDao {
 
     @Query("DELETE FROM load_history WHERE loadId = :loadId")
     suspend fun deleteByLoadId(loadId: String)
+
+    @Query("DELETE FROM load_history")
+    suspend fun deleteAll()
 }

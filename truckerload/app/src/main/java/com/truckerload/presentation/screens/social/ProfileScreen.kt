@@ -24,6 +24,8 @@ import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftEmptyFill
 import com.truckerload.presentation.components.SoftTabletTwoPane
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryPanel
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import com.truckerload.presentation.utils.useNavigationRail
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +35,9 @@ fun ProfileScreen(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
     showBack: Boolean = true,
+    onOpenFriends: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
+    friendsDirectoryViewModel: FriendsDirectoryViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = uiState.profile
@@ -119,6 +123,13 @@ fun ProfileScreen(
             }
             if (profile.phoneNumber != null || profile.telegramUsername != null) {
                 item { ProfileContactsSection(profile) }
+            }
+            item {
+                FriendsDirectoryPanel(
+                    viewModel = friendsDirectoryViewModel,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    onOpenMap = onOpenFriends,
+                )
             }
         }
     }

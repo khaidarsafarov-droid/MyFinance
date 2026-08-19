@@ -3,19 +3,28 @@ package com.truckerload.presentation.screens.social.friends.map
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.community.FriendSafetyClient
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.remote.CompositeDirectionsProvider
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.social.ChatRepository
+import com.truckerload.data.repository.social.CommunityFriendsPublisher
 import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendMapLabels
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
 import com.truckerload.domain.friends.FriendsRouteDisplayMode
 import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.domain.friends.FriendRequestDirection
+import com.truckerload.domain.friends.FriendRequestSendResult
 import com.truckerload.domain.friends.NicknameValidator
+import com.truckerload.domain.friends.establishesFriendship
+import com.truckerload.domain.friends.friendCommunityLabel
+import com.truckerload.domain.friends.statusKey
 import com.truckerload.domain.friends.RoadRouteResult
 import com.truckerload.domain.friends.RoadRouteSession
 import com.truckerload.domain.friends.RouteIntersectionMatcher
@@ -46,10 +55,14 @@ class FriendsMapViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
     private val profileRepository: ProfileRepository,
+    chatRepository: ChatRepository,
+    socialSyncCoordinator: SocialSyncCoordinator,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
+    private val safetyApi = FriendSafetyClient(authStore)
+    private val communityFriends = CommunityFriendsPublisher(chatRepository, socialSyncCoordinator)
     private val locationHelper = LocationHelper(context)
     private val directions = CompositeDirectionsProvider()
     private var roadRoutes = RoadRouteSession(directions)
@@ -161,13 +174,30 @@ class FriendsMapViewModel @Inject constructor(
     fun addSearchedFriend() {
         viewModelScope.launch {
             val hit = _uiState.value.searchHit ?: return@launch
-            val result = friendsApi.addFriend(hit)
+            val send = safetyApi.sendFriendRequest(hit.userId)
+            val result = send.fold(
+                onSuccess = { Result.success(it) },
+                onFailure = { err ->
+                    if (err.message == FriendSafetyClient.ERROR_SAFETY_SCHEMA_MISSING) {
+                        friendsApi.addFriend(hit).map { FriendRequestSendResult.ADDED_DIRECT }
+                    } else {
+                        Result.failure(err)
+                    }
+                },
+            )
             if (result.isSuccess) {
+                val sendResult = result.getOrNull()
+                if (sendResult?.establishesFriendship() == true) {
+                    communityFriends.onFriendshipEstablished(
+                        hit.userId,
+                        friendCommunityLabel(hit.nickname, hit.displayName),
+                    )
+                }
                 _uiState.update {
                     it.copy(
                         searchHit = null,
                         searchQuery = "",
-                        statusMessage = "added",
+                        statusMessage = sendResult?.statusKey() ?: "request_sent",
                     )
                 }
                 refresh(silent = true)
@@ -175,6 +205,44 @@ class FriendsMapViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(errorMessage = result.exceptionOrNull()?.message ?: "add failed")
                 }
+            }
+        }
+    }
+
+    fun acceptFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            val request = _uiState.value.incomingRequests.find { it.id == requestId }
+            safetyApi.acceptFriendRequest(requestId).onSuccess {
+                if (request != null) {
+                    communityFriends.onFriendshipEstablished(
+                        request.peerId,
+                        friendCommunityLabel(request.peerNickname),
+                    )
+                }
+                _uiState.update { it.copy(statusMessage = "accepted") }
+                refresh(silent = true)
+            }.onFailure { err ->
+                _uiState.update { it.copy(errorMessage = err.message) }
+            }
+        }
+    }
+
+    fun declineFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            safetyApi.declineFriendRequest(requestId).onSuccess {
+                refresh(silent = true)
+            }.onFailure { err ->
+                _uiState.update { it.copy(errorMessage = err.message) }
+            }
+        }
+    }
+
+    fun cancelFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            safetyApi.cancelFriendRequest(requestId).onSuccess {
+                refresh(silent = true)
+            }.onFailure { err ->
+                _uiState.update { it.copy(errorMessage = err.message) }
             }
         }
     }
@@ -211,6 +279,7 @@ class FriendsMapViewModel @Inject constructor(
         viewModelScope.launch {
             val result = friendsApi.removeFriend(friendId)
             if (result.isSuccess) {
+                communityFriends.onFriendshipRemoved(friendId)
                 _uiState.update {
                     it.copy(
                         shareLinks = it.shareLinks.filter { l -> l.friendUserId != friendId },
@@ -240,6 +309,11 @@ class FriendsMapViewModel @Inject constructor(
                 _uiState.update { it.copy(supabaseReady = ready) }
                 val links = if (ready) {
                     friendsApi.listMyFriendLinks().getOrElse { emptyList() }
+                } else {
+                    emptyList()
+                }
+                val requests = if (ready) {
+                    safetyApi.listFriendRequests().getOrElse { emptyList() }
                 } else {
                     emptyList()
                 }
@@ -301,6 +375,12 @@ class FriendsMapViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         shareLinks = links,
+                        incomingRequests = requests.filter {
+                            it.direction == FriendRequestDirection.INCOMING
+                        },
+                        outgoingRequests = requests.filter {
+                            it.direction == FriendRequestDirection.OUTGOING
+                        },
                         friends = overlays,
                         myPathPast = myPath.past,
                         myPathRemaining = myPath.remaining,

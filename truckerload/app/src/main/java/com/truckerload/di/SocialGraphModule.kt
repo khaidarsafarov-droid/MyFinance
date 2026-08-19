@@ -5,6 +5,7 @@ import com.truckerload.data.community.CommunityInboxSync
 import com.truckerload.data.community.CommunityMessageNotifier
 import com.truckerload.data.community.CommunityRemoteClient
 import com.truckerload.data.community.CommunityStorageClient
+import com.truckerload.data.community.FriendSafetyClient
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfileStore
@@ -58,6 +59,7 @@ object SocialGraphModule {
         val authStore = AuthStore(appContext)
         val actorId = { SocialIdentity.actorId(authStore.currentUserIdOrNull()) }
         val remote = CommunityRemoteClient(authStore)
+        val safety = FriendSafetyClient(authStore)
         val storage = CommunityStorageClient(authStore)
         val voiceRemote = com.truckerload.data.community.CommunityVoiceRemote(authStore)
         val inbox = CommunityInboxSync(
@@ -66,6 +68,7 @@ object SocialGraphModule {
             storage = storage,
             cacheDir = File(appContext.filesDir, "community_cache").apply { mkdirs() },
             notifier = CommunityMessageNotifier(appContext),
+            safety = safety,
         )
         val chatDao = db.socialChatDao()
         val messageDao = db.socialMessageDao()
@@ -103,6 +106,7 @@ object SocialGraphModule {
             onPeerBlocked = { peerId -> chatRepository.archivePrivateChatForPeer(peerId) },
             actorId = actorId,
             remote = remote,
+            safety = safety,
         )
         chatRepository = ChatRepositoryImpl(
             chatStore = chatStore,

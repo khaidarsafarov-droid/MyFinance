@@ -25,8 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.domain.social.LeaderboardCategory
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryPanel
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -38,6 +39,7 @@ internal fun LeaderboardTabContent(
     onCategoryChange: (LeaderboardCategory) -> Unit,
     onPeerClick: (String) -> Unit,
     onOpenFriends: () -> Unit,
+    friendsDirectoryViewModel: FriendsDirectoryViewModel,
 ) {
     val tc = LocalTruckColors.current
     var categoryIndex by remember { mutableIntStateOf(0) }
@@ -64,9 +66,9 @@ internal fun LeaderboardTabContent(
         }
         if (entries.none { !it.isMe }) {
             item {
-                CommunityAddFriendsHint(
-                    area = CommunityHintArea.LEADERBOARD,
-                    onOpenFriends = onOpenFriends,
+                FriendsDirectoryPanel(
+                    viewModel = friendsDirectoryViewModel,
+                    onOpenMap = onOpenFriends,
                 )
             }
         }

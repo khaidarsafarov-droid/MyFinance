@@ -33,6 +33,7 @@ import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +50,7 @@ fun CommunityScreen(
     modifier: Modifier = Modifier,
     chatsViewModel: ChatsViewModel = hiltViewModel(),
     communityViewModel: CommunityViewModel = hiltViewModel(),
+    friendsDirectoryViewModel: FriendsDirectoryViewModel = hiltViewModel(),
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf(
@@ -133,12 +135,14 @@ fun CommunityScreen(
                     onChatClick = onOpenChat,
                     onOpenVoiceRooms = onOpenVoiceRooms,
                     onOpenFriends = onOpenFriends,
+                    friendsDirectoryViewModel = friendsDirectoryViewModel,
                 )
                 1 -> LeaderboardTabContent(
                     entries = leaderboard,
                     onCategoryChange = communityViewModel::setLeaderboardCategory,
                     onPeerClick = onOpenPeerProfile,
                     onOpenFriends = onOpenFriends,
+                    friendsDirectoryViewModel = friendsDirectoryViewModel,
                 )
 
                 2 -> if (challenge == null) {
@@ -163,6 +167,7 @@ fun CommunityScreen(
                         isJoining = communityState.isJoiningChallenge,
                         onJoin = communityViewModel::joinChallenge,
                         onOpenFriends = onOpenFriends,
+                        friendsDirectoryViewModel = friendsDirectoryViewModel,
                     )
                 }
             }

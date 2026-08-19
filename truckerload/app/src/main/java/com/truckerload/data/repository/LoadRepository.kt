@@ -297,7 +297,7 @@ class LoadRepository(
             load = load.copy(parsedAt = parsedAt),
             referenceMillis = parsedAt,
         )
-        val normalized = repaired.withReportingWeek().withRouteMetrics()
+        val normalized = repaired.copy(tripId = normalizeTripId(repaired.tripId)).withReportingWeek().withRouteMetrics()
         db.withTransaction {
             // FIX: REPLACE on loads would orphan autogen stop/penalty rows
             stopDao.deleteByLoadId(normalized.id)
@@ -327,17 +327,21 @@ class LoadRepository(
     }
 
     suspend fun updateLoad(load: Load) {
-        val normalized = load.withReportingWeek().withRouteMetrics()
+        val normalized = load.copy(tripId = normalizeTripId(load.tripId)).withReportingWeek().withRouteMetrics()
         db.withTransaction {
             loadDao.update(
                 loadId = normalized.id,
+                tripId = normalized.tripId,
                 loadDate = normalized.date,
                 totalRate = normalized.totalRate,
                 totalMiles = normalized.totalMiles,
                 pointA = normalized.pointA,
                 pointB = normalized.pointB,
+                puCount = normalized.puCount,
+                delCount = normalized.delCount,
                 weekNumber = normalized.weekNumber,
                 year = normalized.year,
+                rawMessage = normalized.rawMessage,
                 updatedAt = System.currentTimeMillis(),
                 firstPuMillis = getFirstPickUpMillis(normalized),
                 lastDelMillis = LoadYieldCalculator.resolveFinishMillis(normalized)
@@ -414,6 +418,7 @@ class LoadRepository(
             }
             photoDao.deleteAll()
             scanDao.deleteAll()
+            loadHistoryDao.deleteAll()
             loadDao.deleteAll()
             photos.forEach { runCatching { File(it.filePath).delete() } }
             scans.forEach { runCatching { File(it.filePath).delete() } }
