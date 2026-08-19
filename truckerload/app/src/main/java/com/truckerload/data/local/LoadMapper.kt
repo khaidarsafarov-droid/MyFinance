@@ -40,7 +40,8 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
         disputeCompleted = disputeCompleted,
         actualFinishDate = actualFinishDate,
         stops = stops.map { it.toDomain() },
-        penalties = penalties.map { it.toDomain() }
+        penalties = penalties.map { it.toDomain() },
+        equipmentType = com.truckerload.domain.model.EquipmentType.fromStorage(equipmentType),
     )
 
 fun Load.toEntity(): LoadEntity {
@@ -74,6 +75,7 @@ fun Load.toEntity(): LoadEntity {
         disputeResponseDate = metrics.disputeResponseDate,
         disputeCompleted = metrics.disputeCompleted,
         actualFinishDate = metrics.actualFinishDate,
+        equipmentType = metrics.equipmentType?.name,
     )
 }
 

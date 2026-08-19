@@ -5,8 +5,10 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.ManualLoadFactory
@@ -51,6 +53,7 @@ data class AddLoadUiState(
     val previewLoad: Load? = null,
     val isParsingPreview: Boolean = false,
     val previewHint: String? = null,
+    val equipmentType: EquipmentType? = null,
 )
 
 @HiltViewModel
@@ -58,6 +61,7 @@ class AddLoadViewModel @Inject constructor(
     application: Application,
     private val loadRepository: LoadRepository,
     private val aiRepository: AiRepository,
+    private val settingsDataStore: SettingsDataStore,
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
@@ -74,6 +78,16 @@ class AddLoadViewModel @Inject constructor(
     init {
         val initial = _uiState.value.rawText
         if (initial.isNotBlank()) schedulePreview(initial)
+        viewModelScope.launch {
+            val last = settingsDataStore.getLastEquipmentTypeOnce()
+            if (last != null && _uiState.value.equipmentType == null) {
+                _uiState.update { it.copy(equipmentType = last) }
+            }
+        }
+    }
+
+    fun setEquipmentType(type: EquipmentType?) {
+        _uiState.update { it.copy(equipmentType = type) }
     }
 
     fun setMode(mode: AddLoadInputMode) {
@@ -278,6 +292,7 @@ class AddLoadViewModel @Inject constructor(
                 } else {
                     ""
                 },
+                equipmentType = _uiState.value.equipmentType,
             ),
             saveErrorFormatter,
             onOptimisticInsert,
@@ -318,8 +333,9 @@ class AddLoadViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
+                val typed = load.copy(equipmentType = load.equipmentType ?: _uiState.value.equipmentType)
                 // FIX: same Trip ID must update (unique tripId) instead of crashing / orphaning stops
-                val tripId = load.tripId.trim()
+                val tripId = typed.tripId.trim()
                 val existing = if (tripId.isNotBlank()) {
                     loadRepository.getByTripId(tripId)
                         ?: loadRepository.getByTripId(normalizeTripId(tripId))
@@ -327,15 +343,16 @@ class AddLoadViewModel @Inject constructor(
                     null
                 }
                 val persisted = if (existing != null) {
-                    val updated = load.copy(id = existing.id, parsedAt = existing.parsedAt)
+                    val updated = typed.copy(id = existing.id, parsedAt = existing.parsedAt)
                     loadRepository.updateLoad(updated)
                     updated
                 } else {
-                    loadRepository.insertLoad(load)
-                    load
+                    loadRepository.insertLoad(typed)
+                    typed
                 }
                 // FIX: alarm / journal must use the Room row id after an update
                 onOptimisticInsert?.invoke(persisted)
+                persisted.equipmentType?.let { settingsDataStore.saveLastEquipmentType(it) }
                 savedStateHandle[KEY_RAW] = ""
                 val pickup = getFirstPickUpMillis(persisted)
                 val offer = pickup?.let { LoadAlarmPlanner.buildOffer(it, System.currentTimeMillis()) }

@@ -39,6 +39,11 @@ object CrowdRpmMapper {
             miles = load.totalMiles,
             region = regionOf(from, to),
             weekNumber = isoWeekNumber(at),
+            fromState = from.orEmpty(),
+            toState = to.orEmpty(),
+            week = isoWeekNumber(at),
+            year = isoWeekYear(at),
+            equipmentType = load.equipmentType,
         )
     }
 
@@ -100,6 +105,11 @@ object CrowdRpmMapper {
     fun isoWeekNumber(epochMillis: Long): Int {
         val instant = Instant.ofEpochMilli(epochMillis.coerceAtLeast(0L))
         return instant.atZone(ZoneOffset.UTC).get(WeekFields.ISO.weekOfWeekBasedYear())
+    }
+
+    fun isoWeekYear(epochMillis: Long): Int {
+        val instant = Instant.ofEpochMilli(epochMillis.coerceAtLeast(0L))
+        return instant.atZone(ZoneOffset.UTC).get(WeekFields.ISO.weekBasedYear())
     }
 
     fun regionOf(fromState: String?, toState: String?): String? {

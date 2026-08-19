@@ -8,8 +8,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.ActualFinishDate
+import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.lastDelDateFromStops
 import com.truckerload.domain.model.lastDelDateTimeFromStops
@@ -34,6 +36,7 @@ data class EditLoadUiState(
     val totalMiles: String = "",
     val pointA: String = "",
     val pointB: String = "",
+    val equipmentType: EquipmentType? = null,
     val disputeLoad: Load? = null,
     val focusFinish: Boolean = false,
     val isSaving: Boolean = false,
@@ -45,6 +48,7 @@ data class EditLoadUiState(
 class EditLoadViewModel @Inject constructor(
     application: Application,
     private val loadRepository: LoadRepository,
+    private val settingsDataStore: SettingsDataStore,
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
@@ -113,6 +117,10 @@ class EditLoadViewModel @Inject constructor(
         _uiState.update { it.copy(pointB = value, saveError = null) }
     }
 
+    fun setEquipmentType(type: EquipmentType?) {
+        _uiState.update { it.copy(equipmentType = type, saveError = null) }
+    }
+
     fun setDisputeLoad(updated: Load) {
         _uiState.update { it.copy(disputeLoad = updated, saveError = null) }
     }
@@ -144,6 +152,7 @@ class EditLoadViewModel @Inject constructor(
             totalMiles = parsedMiles,
             pointA = state.pointA,
             pointB = state.pointB,
+            equipmentType = state.equipmentType,
             actualFinishDate = actualFinish,
             updatedAt = System.currentTimeMillis(),
         ).withRouteMetrics()
@@ -151,6 +160,7 @@ class EditLoadViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 loadRepository.updateLoad(updated)
+                updated.equipmentType?.let { settingsDataStore.saveLastEquipmentType(it) }
                 val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: updated
                 onOptimisticUpdate?.invoke(reloaded)
                 _uiState.update {
@@ -227,6 +237,7 @@ class EditLoadViewModel @Inject constructor(
                         totalMiles = totalMiles,
                         pointA = pointA,
                         pointB = pointB,
+                        equipmentType = loaded.equipmentType,
                         disputeLoad = loaded,
                         focusFinish = focusFinish,
                     )

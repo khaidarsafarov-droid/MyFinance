@@ -1,5 +1,7 @@
 package com.truckerload.domain.crowd
 
+import com.truckerload.domain.model.EquipmentType
+
 /**
  * Who contributed a lane rate. Map UI currently uses ME only; FRIEND/NETWORK reserved for later.
  */
@@ -24,6 +26,7 @@ data class CrowdRateReport(
     val source: CrowdRateSource,
     /** Optional short label for friends (never email). */
     val peerLabel: String? = null,
+    val equipmentType: EquipmentType? = null,
 )
 
 enum class CrowdRateSource {
@@ -39,6 +42,7 @@ data class CrowdLaneAggregate(
     val avgRpm: Double,
     val totalRevenue: Double,
     val totalMiles: Double,
+    val equipmentType: EquipmentType? = null,
 )
 
 data class CrowdStateSummary(
@@ -48,4 +52,5 @@ data class CrowdStateSummary(
     val totalRevenue: Double,
     val totalMiles: Double,
     val recent: List<CrowdRateReport>,
+    val sampleInsufficient: Boolean = false,
 )

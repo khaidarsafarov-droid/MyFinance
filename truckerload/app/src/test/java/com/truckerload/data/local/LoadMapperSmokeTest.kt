@@ -111,6 +111,7 @@ class LoadMapperSmokeTest {
             durationDays = 1.0,
             pace = 1800.0,
             stopCount = 0,
+            equipmentType = com.truckerload.domain.model.EquipmentType.AMAZON_RELAY,
         )
 
         val entity = load.toEntity()
@@ -122,6 +123,7 @@ class LoadMapperSmokeTest {
         assertEquals(load.totalMiles, back.totalMiles, 0.0)
         assertEquals(load.route, back.route)
         assertEquals(load.pace, back.pace, 0.0)
+        assertEquals(com.truckerload.domain.model.EquipmentType.AMAZON_RELAY, back.equipmentType)
     }
 
     @Test

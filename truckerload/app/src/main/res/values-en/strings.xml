@@ -1207,6 +1207,7 @@
     <string name="settings_reduce_motion_hint">Disables transitions and pulsing. Also respects the Android system setting.</string>
     <string name="settings_privacy_data_title">Your data</string>
     <string name="settings_privacy_data_loads">Loads, paychecks, and diesel are stored locally on your device.</string>
+    <string name="settings_privacy_crowd_rpm">Anonymous Crowd RPM includes only RPM, miles, state, week, and equipment type — never trip ID, message text, or street addresses.</string>
     <string name="settings_privacy_data_telegram">Telegram token and chat ID are used only for sync if you configure them.</string>
     <string name="settings_privacy_data_backup">Export and backup happen only when you request them.</string>
     <string name="privacy_screen_title">Privacy</string>
@@ -1426,6 +1427,19 @@
     <string name="map_rating_bad">Poor</string>
     <string name="map_rating_neutral">Neutral</string>
     <string name="map_rating_no_data">No data</string>
+    <string name="equipment_type_label">Equipment type (optional)</string>
+    <string name="equipment_filter_title">Trailer type</string>
+    <string name="equipment_filter_all">All</string>
+    <string name="equipment_dry_van">Dry Van</string>
+    <string name="equipment_reefer">Reefer</string>
+    <string name="equipment_flatbed">Flatbed</string>
+    <string name="equipment_power_only">Power Only</string>
+    <string name="equipment_amazon_relay">Amazon Relay</string>
+    <string name="equipment_box_truck">Box Truck</string>
+    <string name="equipment_cargo_van">Cargo Van</string>
+    <string name="equipment_car_hauler">Car Hauler</string>
+    <string name="equipment_other">Other</string>
+    <string name="map_equipment_insufficient">Not enough data (%1$d of %2$d) — average hidden</string>
     <string name="map_state_trips">%1$s (%2$s) • %3$d trip(s)</string>
     <string name="map_rpm_per_mile">$%1$s / mile</string>
     <string name="map_gross_label">Gross: $%1$s</string>

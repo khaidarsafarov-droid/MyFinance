@@ -9,6 +9,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdStateSummary
+import com.truckerload.domain.model.EquipmentType
 import com.truckerload.presentation.components.USStateMetric
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ data class MapUiState(
     val metrics: List<USStateMetric> = emptyList(),
     val selectedStateCode: String = "",
     val period: MapPeriod = MapPeriod.WEEK,
+    val equipmentFilter: EquipmentType? = null,
     val isLoading: Boolean = true,
     val totalReports: Int = 0,
     val stateSummary: CrowdStateSummary? = null,
@@ -57,7 +59,11 @@ class MapViewModel @Inject constructor(
                         windowMs = MapPeriod.YEAR.windowMs,
                     )
                 }
-                applySelection(_uiState.value.selectedStateCode, _uiState.value.period)
+                applySelection(
+                    _uiState.value.selectedStateCode,
+                    _uiState.value.period,
+                    _uiState.value.equipmentFilter,
+                )
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = error.toUiMessage())
@@ -68,27 +74,35 @@ class MapViewModel @Inject constructor(
 
     fun setSelectedState(code: String) {
         selectedStateStore.save(code)
-        applySelection(code, _uiState.value.period)
+        applySelection(code, _uiState.value.period, _uiState.value.equipmentFilter)
     }
 
     fun setPeriod(period: MapPeriod) {
         if (period == _uiState.value.period) return
-        applySelection(_uiState.value.selectedStateCode, period)
+        applySelection(_uiState.value.selectedStateCode, period, _uiState.value.equipmentFilter)
     }
 
-    private fun applySelection(selectedCode: String, period: MapPeriod) {
+    fun setEquipmentFilter(type: EquipmentType?) {
+        if (type == _uiState.value.equipmentFilter) return
+        applySelection(_uiState.value.selectedStateCode, _uiState.value.period, type)
+    }
+
+    private fun applySelection(selectedCode: String, period: MapPeriod, equipmentFilter: EquipmentType?) {
         val now = System.currentTimeMillis()
         val cutoff = now - period.windowMs
-        val reports = allLoadsReports.filter { it.reportedAtMillis >= cutoff }
-        val metrics = CrowdMapAggregator.heatmapFromOutbound(reports)
+        val inPeriod = allLoadsReports.filter { it.reportedAtMillis >= cutoff }
+        val reports = CrowdMapAggregator.filterByEquipment(inPeriod, equipmentFilter)
+        val minSample = if (equipmentFilter == null) 0 else CrowdMapAggregator.MIN_SAMPLE_SIZE
+        val metrics = CrowdMapAggregator.heatmapFromOutbound(reports, minSampleSize = minSample)
         val summary = selectedCode.takeIf { it.isNotBlank() }?.let {
-            CrowdMapAggregator.stateSummary(reports, it)
+            CrowdMapAggregator.stateSummary(reports, it, minSampleSize = minSample)
         }
         _uiState.update {
             it.copy(
                 metrics = metrics,
                 selectedStateCode = selectedCode,
                 period = period,
+                equipmentFilter = equipmentFilter,
                 totalReports = reports.size,
                 stateSummary = summary,
                 topLanes = CrowdMapAggregator.topLanes(reports),

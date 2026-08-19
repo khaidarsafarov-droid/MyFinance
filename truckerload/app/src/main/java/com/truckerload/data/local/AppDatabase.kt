@@ -102,7 +102,7 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         DriverProfessionalEntity::class,
         CommunityProfileEntity::class,
     ],
-    version = 31,
+    version = 32,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -1,10 +1,12 @@
 package com.truckerload.presentation.screens.map
 
+import com.truckerload.domain.crowd.AnonymizedRpmSample
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdRateSource
 import com.truckerload.domain.crowd.CrowdRpmMapper
 import com.truckerload.domain.crowd.CrowdStateSummary
+import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.USHeatLevel
@@ -19,10 +21,16 @@ import java.util.concurrent.TimeUnit
  * They never use `Load.id` / `tripId` as report ids. `CrowdRateReport.rate` is
  * reconstructed as `rpm * miles` for local coloring only — it is not a Crowd RPM
  * share field. See `docs/CROWD_RPM_PRIVACY.md`.
+ *
+ * Crowd RPM buckets are (fromState) when equipment filter is null (all types),
+ * or (fromState, equipmentType) when a trailer filter is selected.
  */
 object CrowdMapAggregator {
 
     val WEEK_MS: Long = CrowdRpmMapper.WEEK_MS
+
+    /** Below this many samples, a filtered (state, equipment) cell is NO_DATA. */
+    const val MIN_SAMPLE_SIZE = 5
 
     fun reportsFromLoads(
         loads: List<Load>,
@@ -49,17 +57,41 @@ object CrowdMapAggregator {
                 miles = sample.miles,
                 reportedAtMillis = at,
                 source = CrowdRateSource.ME,
+                equipmentType = load.equipmentType,
             )
         }
     }
 
+    fun filterByEquipment(
+        reports: List<CrowdRateReport>,
+        equipmentType: EquipmentType?,
+    ): List<CrowdRateReport> =
+        if (equipmentType == null) reports else reports.filter { it.equipmentType == equipmentType }
+
+    fun toAnonymizedSample(report: CrowdRateReport, week: Int, year: Int): AnonymizedRpmSample =
+        AnonymizedRpmSample(
+            rpm = report.rpm,
+            miles = report.miles,
+            region = CrowdRpmMapper.regionOf(report.fromState, report.toState),
+            weekNumber = week,
+            fromState = report.fromState,
+            toState = report.toState,
+            week = week,
+            year = year,
+            equipmentType = report.equipmentType,
+        )
+
     fun filterMeOnly(reports: List<CrowdRateReport>): List<CrowdRateReport> =
         reports.filter { it.source == CrowdRateSource.ME }
 
-    fun heatmapFromOutbound(reports: List<CrowdRateReport>): List<USStateMetric> {
+    fun heatmapFromOutbound(
+        reports: List<CrowdRateReport>,
+        minSampleSize: Int = 0,
+    ): List<USStateMetric> {
         val known = getUsStateCodes()
         data class Agg(val revenue: Double, val trips: Int, val miles: Double) {
             val rpm: Double get() = if (miles > 0) revenue / miles else 0.0
+            fun enough(): Boolean = minSampleSize <= 0 || trips == 0 || trips >= minSampleSize
         }
         val byState = reports.groupBy { it.fromState }.mapValues { (_, list) ->
             Agg(
@@ -69,7 +101,7 @@ object CrowdMapAggregator {
             )
         }
         val ranked = byState.entries
-            .filter { it.value.rpm > 0 }
+            .filter { it.value.rpm > 0 && it.value.enough() }
             .sortedByDescending { it.value.rpm }
         val n = ranked.size
         val goodCount = if (n > 0) maxOf(1, (n * 0.33).toInt()) else 0
@@ -78,26 +110,27 @@ object CrowdMapAggregator {
 
         return known.map { code ->
             val q = byState[code] ?: Agg(0.0, 0, 0.0)
+            val insufficient = q.trips > 0 && minSampleSize > 0 && q.trips < minSampleSize
             val rank = rpmRank[code] ?: n
             val level = when {
-                q.trips == 0 -> USHeatLevel.LOW
+                q.trips == 0 || insufficient -> USHeatLevel.LOW
                 rank < goodCount -> USHeatLevel.HIGH
                 rank < n - badCount -> USHeatLevel.MEDIUM
                 else -> USHeatLevel.LOW
             }
             val rating = when {
-                q.trips == 0 -> StateRating.NO_DATA
+                q.trips == 0 || insufficient -> StateRating.NO_DATA
                 rank < goodCount -> StateRating.GOOD
                 rank >= n - badCount && badCount > 0 -> StateRating.BAD
                 else -> StateRating.NEUTRAL
             }
             USStateMetric(
                 code = code,
-                revenue = q.revenue,
+                revenue = if (insufficient) 0.0 else q.revenue,
                 trips = q.trips,
                 level = level,
-                revenuePerMile = q.rpm,
-                avgMilesPerTrip = if (q.trips > 0) q.miles / q.trips else 0.0,
+                revenuePerMile = if (insufficient) 0.0 else q.rpm,
+                avgMilesPerTrip = if (!insufficient && q.trips > 0) q.miles / q.trips else 0.0,
                 rating = rating,
             )
         }.sortedByDescending { it.revenue }
@@ -107,17 +140,20 @@ object CrowdMapAggregator {
         reports: List<CrowdRateReport>,
         stateCode: String,
         recentLimit: Int = 12,
+        minSampleSize: Int = 0,
     ): CrowdStateSummary {
         val outbound = reports.filter { it.fromState == stateCode }
         val miles = outbound.sumOf { it.miles }
         val revenue = outbound.sumOf { it.rate }
+        val insufficient = outbound.isNotEmpty() && minSampleSize > 0 && outbound.size < minSampleSize
         return CrowdStateSummary(
             stateCode = stateCode,
             outboundTrips = outbound.size,
-            avgOutboundRpm = if (miles > 0) revenue / miles else 0.0,
-            totalRevenue = revenue,
-            totalMiles = miles,
+            avgOutboundRpm = if (!insufficient && miles > 0) revenue / miles else 0.0,
+            totalRevenue = if (insufficient) 0.0 else revenue,
+            totalMiles = if (insufficient) 0.0 else miles,
             recent = outbound.sortedByDescending { it.reportedAtMillis }.take(recentLimit),
+            sampleInsufficient = insufficient,
         )
     }
 

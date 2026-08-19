@@ -34,7 +34,7 @@ class RoomMigrationInstrumentedTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrate6To31_smoke() {
+    fun migrate6To32_smoke() {
         createFixtureDatabase(6) {
             execSQL(V6_LOADS_DDL)
             execSQL(
@@ -55,14 +55,16 @@ class RoomMigrationInstrumentedTest {
 
         // validate=false: pre-v6 core tables (stops/penalties/…) were never created by
         // forward migrations; we assert row survival + key columns via PRAGMA instead.
-        val db = helper.runMigrationsAndValidate(testDb, 31, false, *ALL_MIGRATIONS_FROM_V6)
+        val db = helper.runMigrationsAndValidate(testDb, 32, false, *ALL_MIGRATIONS_FROM_V6)
         db.query("SELECT COUNT(*) FROM loads").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
         }
         assertTrue(db.hasColumn("loads", "firstPuMillis"))
         assertTrue(db.hasColumn("loads", "actualFinishDate"))
+        assertTrue(db.hasColumn("loads", "equipmentType"))
         assertTrue(db.hasTable("crowd_rates"))
+        assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
         assertTrue(db.hasTable("media_sync_queue"))
         assertTrue(db.hasColumn("voice_rooms", "description"))
         assertTrue(db.hasColumn("voice_rooms", "moderatorId"))
@@ -168,9 +170,18 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasTable("community_profiles"))
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate31To32() {
+        helper.createDatabase(testDb, 31).apply { close() }
+        val db = helper.runMigrationsAndValidate(testDb, 32, true, MIGRATION_31_32)
+        assertTrue(db.hasColumn("loads", "equipmentType"))
+        assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
+    }
+
     /**
      * Builds a named DB at [version] without requiring an exported schema JSON
-     * (historical schemas are not committed; only 28/29/30/31 are).
+     * (historical schemas are not committed; only 28/29/30/31/32 are).
      */
     private fun createFixtureDatabase(version: Int, setup: SupportSQLiteDatabase.() -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

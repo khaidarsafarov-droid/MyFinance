@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→30 (startVersion 25..29). */
+/** Room migrations for schema versions 25→32 (startVersion 25..31). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -278,5 +278,18 @@ val MIGRATION_30_31 = object : Migration(30, 31) {
             )
             db.execLogged("UPDATE driver_profile SET cdlNumber = ''")
         }
+    }
+}
+
+/** Optional equipment type on loads and anonymized crowd rates. */
+val MIGRATION_31_32 = object : Migration(31, 32) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("loads", "equipmentType", "TEXT")
+        db.addColumnIfMissing("crowd_rates", "equipmentType", "TEXT")
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS " +
+                "index_crowd_rates_fromState_equipmentType_reportedAtMillis " +
+                "ON crowd_rates(fromState, equipmentType, reportedAtMillis)",
+        )
     }
 }

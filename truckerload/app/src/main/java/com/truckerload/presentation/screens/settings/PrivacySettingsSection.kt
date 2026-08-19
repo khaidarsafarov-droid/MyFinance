@@ -139,6 +139,23 @@ fun PrivacySettingsSection(
 
         WhoCanCallRows()
 
+        Text(
+            text = stringResource(R.string.settings_privacy_data_title),
+            color = tc.TextPrimary,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            text = stringResource(R.string.settings_privacy_data_loads),
+            color = tc.TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Text(
+            text = stringResource(R.string.settings_privacy_crowd_rpm),
+            color = tc.TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
