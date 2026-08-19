@@ -1,7 +1,10 @@
 package com.truckerload.presentation.screens.social
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +43,7 @@ internal fun PremiumProfileHeader(
     profile: EnhancedDriverProfile,
     isUploadingAvatar: Boolean = false,
     onAvatarClick: (() -> Unit)? = null,
+    onNameClick: (() -> Unit)? = null,
 ) {
     val tc = LocalTruckColors.current
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -72,7 +76,28 @@ internal fun PremiumProfileHeader(
                             profile.displayName.ifBlank { stringResource(R.string.profile_name_placeholder) },
                             style = AppTypography.CardTitle,
                             color = tc.TextPrimary,
+                            modifier = if (onNameClick != null) {
+                                Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = onNameClick,
+                                )
+                            } else {
+                                Modifier
+                            },
                         )
+                        if (onAvatarClick != null) {
+                            Text(
+                                stringResource(R.string.profile_change_photo),
+                                style = AppTypography.Caption,
+                                color = tc.AccentPrimary,
+                                modifier = Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = onAvatarClick,
+                                ),
+                            )
+                        }
                         val truckMeta = buildList {
                             if (profile.truckType != com.truckerload.domain.social.TruckType.OTHER) {
                                 add("${profile.truckType.emoji} ${profile.truckType.label}")

@@ -96,6 +96,7 @@ fun ProfileScreen(
                             profile = profile,
                             isUploadingAvatar = uiState.isUploadingAvatar,
                             onAvatarClick = { showAvatarPicker = true },
+                            onNameClick = onEdit,
                         )
                     },
                     end = {

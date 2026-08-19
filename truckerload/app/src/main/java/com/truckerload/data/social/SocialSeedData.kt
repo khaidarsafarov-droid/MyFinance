@@ -1,6 +1,7 @@
 package com.truckerload.data.social
 
 import com.truckerload.data.local.entities.DriverProfileEntity
+import com.truckerload.data.preferences.ProfileIdentity
 
 /**
  * Ensures a local driver profile row exists. Does not seed chats, peers, or messages —
@@ -8,20 +9,23 @@ import com.truckerload.data.local.entities.DriverProfileEntity
  */
 object SocialSeedData {
 
-    private val PLACEHOLDER_NAMES = setOf("", "Водитель", "Driver", "User")
-
     suspend fun ensureLocalProfile(
         profileDao: com.truckerload.data.local.dao.DriverProfileDao,
         defaultDisplayName: String,
         defaultAvatarUrl: String? = null,
         defaultPhone: String? = null,
+        customPhoto: Boolean = false,
     ) {
         val existing = profileDao.getProfile()
         if (existing == null) {
             profileDao.upsert(
                 DriverProfileEntity(
-                    displayName = defaultDisplayName.takeIf { it !in PLACEHOLDER_NAMES }.orEmpty(),
-                    avatarUrl = defaultAvatarUrl?.takeIf { it.isNotBlank() },
+                    displayName = defaultDisplayName.takeIf { !ProfileIdentity.isPlaceholderName(it) }.orEmpty(),
+                    avatarUrl = ProfileIdentity.mergeRoomAvatar(
+                        existingAvatar = null,
+                        providerPhotoUrl = defaultAvatarUrl,
+                        customPhoto = customPhoto,
+                    ),
                     phoneNumber = defaultPhone?.takeIf { it.isNotBlank() },
                     truckType = "",
                     experienceYears = 0,
@@ -34,13 +38,15 @@ object SocialSeedData {
         } else {
             profileDao.upsert(
                 existing.copy(
-                    displayName = when {
-                        existing.displayName !in PLACEHOLDER_NAMES -> existing.displayName
-                        defaultDisplayName !in PLACEHOLDER_NAMES -> defaultDisplayName
-                        else -> existing.displayName
-                    },
-                    avatarUrl = existing.avatarUrl?.takeIf { it.isNotBlank() }
-                        ?: defaultAvatarUrl?.takeIf { it.isNotBlank() },
+                    displayName = ProfileIdentity.mergeRoomDisplayName(
+                        existing.displayName,
+                        defaultDisplayName,
+                    ),
+                    avatarUrl = ProfileIdentity.mergeRoomAvatar(
+                        existingAvatar = existing.avatarUrl,
+                        providerPhotoUrl = defaultAvatarUrl,
+                        customPhoto = customPhoto,
+                    ),
                     phoneNumber = existing.phoneNumber?.takeIf { it.isNotBlank() }
                         ?: defaultPhone?.takeIf { it.isNotBlank() },
                 ),
