@@ -3,47 +3,46 @@ package com.truckerload
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.Configuration
-import androidx.hilt.work.HiltWorkerFactory
-import com.truckerload.BuildConfig
+import com.google.android.material.color.DynamicColors
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.StartupRepairStore
 import com.truckerload.data.preferences.TelegramTokenStore
-import com.google.android.material.color.DynamicColors
-import com.truckerload.data.preferences.AppThemeMode
-import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
-import com.truckerload.sync.TelegramBotForegroundService
-import com.truckerload.sync.ServerTelegramInboxWorker
+import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.sync.PushTokenRegistrationWorker
-import com.truckerload.sync.TelegramSyncWorker
-import com.truckerload.sync.TelegramSyncMode
+import com.truckerload.sync.ServerTelegramInboxWorker
 import com.truckerload.sync.SmartNotificationWorker
+import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramSyncMode
+import com.truckerload.sync.TelegramSyncWorker
+import com.truckerload.utils.AppLocale
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
-import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetRefresh
+import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetUpdateWorker
-import com.truckerload.utils.AppLocale
 import dagger.hilt.android.HiltAndroidApp
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import android.widget.Toast
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 @HiltAndroidApp
 class TruckerLoadApp : Application(), Configuration.Provider {
@@ -123,6 +122,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
 
             override fun onStop(owner: LifecycleOwner) {
+                if (!TelegramSyncMode.isServer()) {
+                    TelegramBotForegroundService.stop(this@TruckerLoadApp)
+                }
                 WidgetRefresh.paintCached(this@TruckerLoadApp)
                 appScope.launch(Dispatchers.IO) {
                     runCatching { WidgetStatsLoader.refresh(this@TruckerLoadApp) }

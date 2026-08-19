@@ -3,14 +3,19 @@ package com.truckerload.backend
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.truckerload.contract.AccountCloudSnapshot
+import com.truckerload.contract.ApiError
 import com.truckerload.contract.ContractJson
 import com.truckerload.contract.DevicePushTokenRequest
+import com.truckerload.contract.DeviceRegisterRequest
+import com.truckerload.contract.DeviceRegisterResponse
+import com.truckerload.contract.DeviceSlotPolicy
 import com.truckerload.contract.HealthResponse
 import com.truckerload.contract.MediaKind
 import com.truckerload.contract.MediaListResponse
 import com.truckerload.contract.MediaMetadata
 import com.truckerload.contract.MediaUploadRequest
 import com.truckerload.contract.MediaUploadResponse
+import com.truckerload.contract.PushPlatforms
 import com.truckerload.contract.TelegramInboxListResponse
 import com.truckerload.contract.TelegramLinkTokenResponse
 import io.ktor.client.call.body
@@ -315,6 +320,163 @@ class ApplicationTest {
             bearerAuth(token(userOne))
         }
         assertTrue(backend.pushTokens.isEmpty())
+    }
+
+    @Test
+    fun `push token accepts ios and rejects unknown platforms`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(
+                AppConfig.test(),
+                AppDependencies(backend.repositories, FakeObjectStorage())
+            )
+        }
+        val client = jsonClient()
+        val iosRequest = DevicePushTokenRequest(
+            deviceId = "device-ios",
+            token = "opaque-apns-token-ios1",
+            platform = PushPlatforms.IOS,
+        )
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.put("/v1/devices/push-token") {
+                bearerAuth(token(userOne))
+                contentType(ContentType.Application.Json)
+                setBody(iosRequest)
+            }.status,
+        )
+        assertEquals(PushPlatforms.IOS, backend.pushTokens[userOne to "device-ios"]?.platform)
+
+        val rejected = client.put("/v1/devices/push-token") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(iosRequest.copy(deviceId = "device-web", platform = "web"))
+        }
+        assertEquals(HttpStatusCode.BadRequest, rejected.status)
+    }
+
+    @Test
+    fun `snapshot wake-ups skip stored ios tokens until APNs exists`() = testApplication {
+        val backend = InMemoryBackend()
+        val notifier = RecordingPushNotifier()
+        application {
+            configureApplication(
+                AppConfig.test(),
+                AppDependencies(backend.repositories, FakeObjectStorage(), notifier),
+            )
+        }
+        val client = jsonClient()
+        listOf(
+            DevicePushTokenRequest(
+                "device-android",
+                "opaque-fcm-token-android",
+                PushPlatforms.ANDROID
+            ),
+            DevicePushTokenRequest("device-ios", "opaque-apns-token-ios1", PushPlatforms.IOS),
+        ).forEach { request ->
+            client.put("/v1/devices/push-token") {
+                bearerAuth(token(userOne))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+        }
+
+        client.put("/v1/sync/snapshot") {
+            bearerAuth(token(userOne))
+            header("X-Device-Id", "device-android")
+            contentType(ContentType.Application.Json)
+            setBody(snapshot(userOne, updatedAt = 200))
+        }
+
+        assertEquals(emptyList(), notifier.deliveries)
+    }
+
+    @Test
+    fun `account can register one phone and one tablet but not a second phone`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(
+                AppConfig.test(),
+                AppDependencies(backend.repositories, FakeObjectStorage())
+            )
+        }
+        val client = jsonClient()
+
+        val phone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-a", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, phone.status)
+        assertEquals(DeviceSlotPolicy.PHONE, phone.body<DeviceRegisterResponse>().formFactor)
+
+        val samePhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-a", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, samePhone.status)
+
+        val tablet = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("tablet-a", DeviceSlotPolicy.TABLET))
+        }
+        assertEquals(HttpStatusCode.OK, tablet.status)
+
+        val secondPhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-b", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.Conflict, secondPhone.status)
+        assertEquals(DeviceSlotPolicy.SLOT_TAKEN_CODE, secondPhone.body<ApiError>().code)
+
+        val otherUserPhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userTwo))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-b", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, otherUserPhone.status)
+
+        client.delete("/v1/devices/register?deviceId=phone-a") {
+            bearerAuth(token(userTwo))
+        }
+        assertTrue(backend.accountDevices.containsKey(userOne to "phone-a"))
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            client.delete("/v1/devices/register?deviceId=phone-a") {
+                bearerAuth(token(userOne))
+            }.status,
+        )
+        assertFalse(backend.accountDevices.containsKey(userOne to "phone-a"))
+
+        val replacementPhone = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-b", DeviceSlotPolicy.PHONE))
+        }
+        assertEquals(HttpStatusCode.OK, replacementPhone.status)
+    }
+
+    @Test
+    fun `device registration rejects invalid form factor`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(
+                AppConfig.test(),
+                AppDependencies(backend.repositories, FakeObjectStorage())
+            )
+        }
+        val rejected = jsonClient().post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("phone-a", "laptop"))
+        }
+        assertEquals(HttpStatusCode.BadRequest, rejected.status)
+        assertEquals("invalid_form_factor", rejected.body<ApiError>().code)
     }
 
     @Test

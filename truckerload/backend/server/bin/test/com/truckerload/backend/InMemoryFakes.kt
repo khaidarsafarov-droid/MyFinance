@@ -16,6 +16,7 @@ class InMemoryBackend {
     val inbox = ConcurrentHashMap<Long, TelegramInboxRecord>()
     val media = ConcurrentHashMap<UUID, MediaRecord>()
     val pushTokens = ConcurrentHashMap<Pair<UUID, String>, DevicePushTokenRecord>()
+    val accountDevices = ConcurrentHashMap<Pair<UUID, String>, AccountDeviceRecord>()
 
     val repositories = Repositories(
         users = object : UserRepository {
@@ -201,6 +202,43 @@ class InMemoryBackend {
             ): List<DevicePushTokenRecord> = pushTokens.values.filter {
                 it.userId == userId && it.deviceId != excludingDeviceId
             }
+        },
+        accountDevices = object : AccountDeviceRepository {
+            override suspend fun claim(
+                userId: UUID,
+                deviceId: String,
+                formFactor: String,
+            ): DeviceClaimResult = synchronized(accountDevices) {
+                val now = System.currentTimeMillis()
+                val self = accountDevices[userId to deviceId]
+                val occupant = accountDevices.values.firstOrNull {
+                    it.userId == userId && it.formFactor == formFactor
+                }
+                when (
+                    val decision = AccountDeviceClaims.decide(
+                        self,
+                        occupant,
+                        userId,
+                        deviceId,
+                        formFactor,
+                        now,
+                    )
+                ) {
+                    is DeviceClaimResult.SlotTaken -> decision
+                    is DeviceClaimResult.Claimed -> {
+                        if (self != null && self.formFactor != formFactor) {
+                            accountDevices.remove(userId to deviceId)
+                        }
+                        accountDevices[userId to deviceId] = decision.record
+                        decision
+                    }
+                }
+            }
+
+            override suspend fun delete(userId: UUID, deviceId: String): Boolean =
+                synchronized(accountDevices) {
+                    accountDevices.remove(userId to deviceId) != null
+                }
         },
         health = object : DatabaseHealth {
             override suspend fun isReady(): Boolean = true
