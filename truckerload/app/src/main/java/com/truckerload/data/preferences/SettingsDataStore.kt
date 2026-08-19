@@ -185,6 +185,19 @@ class SettingsDataStore(context: Context) {
         accountScopedBool(prefs, "notify_maintenance", KEY_NOTIFY_MAINTENANCE, default = true)
     }
 
+    /**
+     * Opt-in to anonymized Crowd RPM (rpm + miles + optional region). Default off.
+     * Account-scoped; never inherit another user's consent.
+     */
+    val crowdStatsOptIn: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[boolKey("crowd_stats_opt_in", accountPart())] ?: false
+    }
+
+    /** True after the user answered the Community Crowd RPM consent dialog (or used Settings). */
+    val crowdStatsPromptSeen: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[boolKey("crowd_stats_prompt_seen", accountPart())] ?: false
+    }
+
     private fun accountScopedBool(
         prefs: Preferences,
         base: String,
@@ -430,6 +443,25 @@ class SettingsDataStore(context: Context) {
         val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
             prefs[boolKey("notify_maintenance", account)] = enabled
+        }
+    }
+
+    suspend fun getCrowdStatsOptInOnce(): Boolean = crowdStatsOptIn.first()
+
+    suspend fun saveCrowdStatsOptIn(enabled: Boolean) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[boolKey("crowd_stats_opt_in", account)] = enabled
+            prefs[boolKey("crowd_stats_prompt_seen", account)] = true
+        }
+    }
+
+    suspend fun isCrowdStatsPromptSeenOnce(): Boolean = crowdStatsPromptSeen.first()
+
+    suspend fun markCrowdStatsPromptSeen() {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[boolKey("crowd_stats_prompt_seen", account)] = true
         }
     }
 

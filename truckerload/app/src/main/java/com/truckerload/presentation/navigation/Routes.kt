@@ -26,6 +26,7 @@ object Routes {
     const val MAINTENANCE = "maintenance"
     const val FINANCIAL_ADVISOR = "financial_advisor"
     const val SETTINGS = "settings"
+    const val PRIVACY_SETTINGS = "privacy_settings"
     const val ABOUT = "about"
     const val FRIENDS_LIVE = "friends_live"
     const val CAMERA = "camera"

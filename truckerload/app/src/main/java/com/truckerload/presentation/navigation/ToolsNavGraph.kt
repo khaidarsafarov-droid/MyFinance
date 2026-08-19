@@ -20,6 +20,7 @@ import com.truckerload.presentation.screens.social.friends.map.FriendsLiveMapScr
 import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
+import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.stats.StatsScreen
 import com.truckerload.presentation.theme.tabEnterTransition
@@ -99,7 +100,20 @@ fun NavGraphBuilder.toolsNavGraph(
     ) {
         SettingsScreen(
             onBack = { navController.popBackStack() },
-            showBack = !tablet
+            showBack = !tablet,
+            onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+        )
+    }
+    composable(
+        route = Routes.PRIVACY_SETTINGS,
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
+    ) {
+        PrivacySettingsScreen(
+            onBack = { navController.popBackStack() },
+            showBack = !tablet,
         )
     }
     composable(Routes.ABOUT) {

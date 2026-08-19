@@ -67,6 +67,7 @@ import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalScanRepository
+import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.utils.ShareHelper
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -84,6 +85,7 @@ fun LoadDetailScreen(
     onEditFinish: () -> Unit,
     onDelete: () -> Unit,
     onPhotoClick: (String) -> Unit = {},
+    onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
@@ -123,10 +125,13 @@ fun LoadDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        uiState.load?.tripId ?: stringResource(R.string.load_detail_title),
-                        color = tc.TextPrimary,
-                    )
+                    Column {
+                        Text(
+                            uiState.load?.tripId ?: stringResource(R.string.load_detail_title),
+                            color = tc.TextPrimary,
+                        )
+                        PrivacyTrustBadge(onClick = onOpenPrivacy)
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {

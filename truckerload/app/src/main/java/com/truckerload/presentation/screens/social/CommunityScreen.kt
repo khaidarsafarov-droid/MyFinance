@@ -33,6 +33,7 @@ import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.screens.privacy.CrowdStatsConsentDialog
 import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import kotlinx.coroutines.launch
 
@@ -61,6 +62,7 @@ fun CommunityScreen(
     val chatsState by chatsViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val leaderboard by communityViewModel.leaderboard.collectAsStateWithLifecycle()
+    val crowdWeekSummary by communityViewModel.crowdWeekSummary.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val challenge = communityState.challenge
     val snackbarHostState = remember { SnackbarHostState() }
@@ -81,6 +83,13 @@ fun CommunityScreen(
             snackbarHostState.showSnackbar(message)
             communityViewModel.clearError()
         }
+    }
+
+    if (communityState.showCrowdConsent) {
+        CrowdStatsConsentDialog(
+            onParticipate = communityViewModel::acceptCrowdStats,
+            onNotNow = communityViewModel::declineCrowdStats,
+        )
     }
 
     SoftAppPageScaffold(
@@ -143,6 +152,7 @@ fun CommunityScreen(
                     onPeerClick = onOpenPeerProfile,
                     onOpenFriends = onOpenFriends,
                     friendsDirectoryViewModel = friendsDirectoryViewModel,
+                    crowdWeekSummary = crowdWeekSummary,
                 )
 
                 2 -> if (challenge == null) {

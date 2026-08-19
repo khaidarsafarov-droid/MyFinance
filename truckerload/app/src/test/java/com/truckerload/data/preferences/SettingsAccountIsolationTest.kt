@@ -40,9 +40,12 @@ class SettingsAccountIsolationTest {
         settings.saveSharePathWithFriends(true)
         settings.saveParserAutoUpdate(false)
         settings.saveQuietHoursEnabled(true)
+        settings.saveCrowdStatsOptIn(true)
         assertTrue(settings.getSharePathWithFriendsOnce())
         assertFalse(settings.getParserAutoUpdateOnce())
         assertTrue(settings.getQuietHoursEnabledOnce())
+        assertTrue(settings.getCrowdStatsOptInOnce())
+        assertTrue(settings.isCrowdStatsPromptSeenOnce())
 
         authStore.logout()
         loginAs("user-b", "b@example.com")
@@ -57,6 +60,10 @@ class SettingsAccountIsolationTest {
         assertFalse(
             "User B must not inherit User A quiet hours",
             settings.getQuietHoursEnabledOnce(),
+        )
+        assertFalse(
+            "User B must not inherit User A crowd RPM opt-in",
+            settings.getCrowdStatsOptInOnce(),
         )
 
         settings.saveSharePathWithFriends(true)

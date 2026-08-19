@@ -287,6 +287,7 @@ fun NavGraph(
                         onLoadScan = { loadId, tripId, loadDate ->
                             navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
                         },
+                        onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
                     )
                 }
             }

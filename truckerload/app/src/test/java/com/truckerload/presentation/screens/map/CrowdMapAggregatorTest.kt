@@ -5,6 +5,7 @@ import com.truckerload.domain.crowd.CrowdRateSource
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.StateRating
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -29,6 +30,9 @@ class CrowdMapAggregatorTest {
         assertEquals("OR", reports[0].toState)
         assertEquals(3.0, reports[0].rpm, 0.01)
         assertEquals(CrowdRateSource.ME, reports[0].source)
+        assertEquals("anon:0", reports[0].id)
+        assertFalse(reports[0].id.contains(load.id))
+        assertFalse(reports[0].id.contains(load.tripId))
     }
 
     @Test
