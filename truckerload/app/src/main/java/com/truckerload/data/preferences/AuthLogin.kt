@@ -32,13 +32,11 @@ object AuthLogin {
             aliasUserIds = aliasUserIds + requestedId,
         )
         userProfileStore.bindUser(id)
-        // Preserve / prefer cloud nickname; never wipe a stored handle with a blank login payload.
-        val existingNick = userProfileStore.profile.value?.nickname
-        val merged = when {
-            !profile.nickname.isNullOrBlank() -> profile
-            !existingNick.isNullOrBlank() -> profile.copy(nickname = existingNick)
-            else -> profile
-        }
+        // Preserve nickname, and any name/photo the driver set in the app (Google is seed-only).
+        val merged = ProfileIdentity.mergeLoginProfile(
+            incoming = profile,
+            existing = userProfileStore.profile.value,
+        )
         userProfileStore.saveProfile(merged)
         // Always persist identity on disk — next cold start must not ask for login again.
         authStore.login(

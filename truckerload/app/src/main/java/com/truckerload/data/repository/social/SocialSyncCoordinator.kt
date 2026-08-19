@@ -32,6 +32,7 @@ class SocialSyncCoordinator(
                 displayName,
                 userProfile?.photoUrl,
                 userProfile?.phoneNumber,
+                customPhoto = userProfile?.customPhoto == true,
             )
             profileRepository.syncIdentityFromUserProfile()
             profileRepository.maybeMarkSetupCompleteFromExistingProfile()

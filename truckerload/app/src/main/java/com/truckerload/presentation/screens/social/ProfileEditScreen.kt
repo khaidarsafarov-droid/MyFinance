@@ -57,9 +57,10 @@ fun ProfileEditScreen(
     var showAvatarPicker by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.avatarError) {
-        uiState.avatarError?.let { message ->
-            snackbarHostState.showSnackbar(message)
+    LaunchedEffect(uiState.avatarError, uiState.saveError) {
+        val message = uiState.avatarError ?: uiState.saveError
+        message?.let {
+            snackbarHostState.showSnackbar(it)
             viewModel.clearAvatarError()
         }
     }
@@ -72,29 +73,40 @@ fun ProfileEditScreen(
         onRemove = viewModel::removeAvatar,
     )
 
-    var displayName by remember(profile) { mutableStateOf(profile?.displayName.orEmpty()) }
-    var truckType by remember(profile) {
-        mutableStateOf(
-            profile?.truckType
-                ?.takeIf { it != TruckType.OTHER }
-                ?.label
-                .orEmpty(),
-        )
+    var hydrated by remember { mutableStateOf(false) }
+    var displayName by remember { mutableStateOf("") }
+    var truckType by remember { mutableStateOf("") }
+    var experienceYears by remember { mutableStateOf("") }
+    var homeCountry by remember { mutableStateOf(CountryCatalog.default) }
+    var routes by remember { mutableStateOf("") }
+    var about by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf(DriverStatus.ONLINE) }
+    var licenseClass by remember { mutableStateOf("") }
+    var phoneCountry by remember { mutableStateOf(CountryCatalog.default) }
+    var nationalNumber by remember { mutableStateOf("") }
+    var telegramUsername by remember { mutableStateOf("") }
+    var whatsappNumber by remember { mutableStateOf("") }
+    var specialties by remember { mutableStateOf("") }
+
+    LaunchedEffect(profile?.id, profile != null) {
+        val loaded = profile ?: return@LaunchedEffect
+        if (hydrated) return@LaunchedEffect
+        displayName = loaded.displayName
+        truckType = loaded.truckType.takeIf { it != TruckType.OTHER }?.label.orEmpty()
+        experienceYears = loaded.experienceYears.takeIf { it > 0 }?.toString().orEmpty()
+        homeCountry = CountryCatalog.byIso2(loaded.homeState) ?: CountryCatalog.default
+        routes = loaded.preferredRoutes.joinToString(", ")
+        about = loaded.about
+        status = loaded.status
+        licenseClass = loaded.licenseClass
+        val parsedPhone = CountryCatalog.parsePhone(loaded.phoneNumber)
+        phoneCountry = parsedPhone.first
+        nationalNumber = parsedPhone.second
+        telegramUsername = loaded.telegramUsername.orEmpty()
+        whatsappNumber = loaded.whatsappNumber.orEmpty()
+        specialties = loaded.specialties.joinToString(", ")
+        hydrated = true
     }
-    var experienceYears by remember(profile) { mutableStateOf(profile?.experienceYears?.takeIf { it > 0 }?.toString().orEmpty()) }
-    var homeCountry by remember(profile) {
-        mutableStateOf(CountryCatalog.byIso2(profile?.homeState) ?: CountryCatalog.default)
-    }
-    var routes by remember(profile) { mutableStateOf(profile?.preferredRoutes?.joinToString(", ").orEmpty()) }
-    var about by remember(profile) { mutableStateOf(profile?.about.orEmpty()) }
-    var status by remember(profile) { mutableStateOf(profile?.status ?: DriverStatus.ONLINE) }
-    var licenseClass by remember(profile) { mutableStateOf(profile?.licenseClass.orEmpty()) }
-    val parsedPhone = remember(profile?.phoneNumber) { CountryCatalog.parsePhone(profile?.phoneNumber) }
-    var phoneCountry by remember(profile) { mutableStateOf(parsedPhone.first) }
-    var nationalNumber by remember(profile) { mutableStateOf(parsedPhone.second) }
-    var telegramUsername by remember(profile) { mutableStateOf(profile?.telegramUsername.orEmpty()) }
-    var whatsappNumber by remember(profile) { mutableStateOf(profile?.whatsappNumber.orEmpty()) }
-    var specialties by remember(profile) { mutableStateOf(profile?.specialties?.joinToString(", ").orEmpty()) }
 
     Scaffold(
         modifier = modifier,
@@ -237,10 +249,11 @@ fun ProfileEditScreen(
                         telegramUsername = telegramUsername,
                         whatsappNumber = whatsappNumber,
                         specialties = specialties,
+                        onResult = { ok -> if (ok) onSaved() },
                     )
-                    onSaved()
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isSaving && displayName.isNotBlank(),
             ) {
                 Text(stringResource(R.string.common_save))
             }
