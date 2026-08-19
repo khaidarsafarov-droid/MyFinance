@@ -49,18 +49,21 @@ class TelegramApi(private val token: String) {
     suspend fun sendMessage(
         chatId: String,
         text: String,
-        replyMarkup: JSONObject? = null
-    ): Result<Unit> = sendMessageReturningId(chatId, text, replyMarkup).map { }
+        replyMarkup: JSONObject? = null,
+        parseMode: String? = null,
+    ): Result<Unit> = sendMessageReturningId(chatId, text, replyMarkup, parseMode).map { }
 
     suspend fun sendMessageReturningId(
         chatId: String,
         text: String,
         replyMarkup: JSONObject? = null,
+        parseMode: String? = null,
     ): Result<Long> = withContext(Dispatchers.IO) {
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("Bot token not set"))
         val body = FormBody.Builder()
             .add("chat_id", chatId)
             .add("text", text)
+        parseMode?.let { body.add("parse_mode", it) }
         replyMarkup?.let { body.add("reply_markup", it.toString()) }
         val request = Request.Builder()
             .url("$baseUrl/sendMessage")
