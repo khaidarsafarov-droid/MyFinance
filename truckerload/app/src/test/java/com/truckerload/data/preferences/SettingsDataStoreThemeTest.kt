@@ -73,6 +73,7 @@ class SettingsDataStoreThemeTest {
 
     @Test
     fun crowdStatsOptIn_defaultsFalseThenRoundTrips() = runBlocking {
+        AuthStore(RuntimeEnvironment.getApplication()).logout()
         assertEquals(false, store.getCrowdStatsOptInOnce())
         assertEquals(false, store.isCrowdStatsPromptSeenOnce())
         store.saveCrowdStatsOptIn(true)
