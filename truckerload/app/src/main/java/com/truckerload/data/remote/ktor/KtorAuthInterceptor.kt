@@ -33,7 +33,7 @@ class KtorAuthInterceptor @Inject constructor(
             createClientPlugin("KtorAuthBearer") {
                 onRequest { request, _ ->
                     val token = KtorBearerToken.select(
-                        encodedPath = request.url.encodedPath,
+                        encodedPath = request.url.pathSegments.joinToString("/"),
                         googleIdToken = authStore.googleIdTokenOrNull(),
                         accessToken = authStore.accessTokenOrNull(),
                     )
