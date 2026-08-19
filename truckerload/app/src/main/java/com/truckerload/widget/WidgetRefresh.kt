@@ -14,6 +14,12 @@ private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 object WidgetRefresh {
 
+    private val providers: List<Pair<Class<out android.appwidget.AppWidgetProvider>, WidgetKind>> =
+        listOf(
+            TruckerLoadWidgetReceiver::class.java to WidgetKind.SQUARE,
+            TruckerLoadWideWidgetReceiver::class.java to WidgetKind.WIDE,
+        )
+
     suspend fun refreshAndUpdate(context: Context) {
         val appContext = context.applicationContext
         val cached = WidgetDataStore.load(appContext)
@@ -31,20 +37,24 @@ object WidgetRefresh {
         }
 
         val manager = AppWidgetManager.getInstance(appContext)
-        val component = ComponentName(appContext, TruckerLoadWidgetReceiver::class.java)
-        val widgetIds = manager.getAppWidgetIds(component)
-        if (widgetIds.isEmpty()) {
-            Log.d(TAG, "No widget instances on home screen")
+        var updated = 0
+        providers.forEach { (clazz, kind) ->
+            val widgetIds = manager.getAppWidgetIds(ComponentName(appContext, clazz))
+            widgetIds.forEach { id ->
+                runCatching {
+                    val views = WidgetRemoteViews.build(appContext, id, stats, kind)
+                    manager.updateAppWidget(id, views)
+                    updated++
+                }.onFailure { Log.e(TAG, "Failed to update widget $id", it) }
+            }
+        }
+        runCatching { com.truckerload.widget.glance.OneUiGlanceWidgets.updateAll(appContext) }
+            .onFailure { Log.e(TAG, "Glance widget update failed", it) }
+        if (updated == 0) {
+            Log.d(TAG, "No RemoteViews widget instances on home screen")
             return
         }
-
-        widgetIds.forEach { id ->
-            runCatching {
-                val views = WidgetRemoteViews.build(appContext, id, stats)
-                manager.updateAppWidget(id, views)
-            }.onFailure { Log.e(TAG, "Failed to update widget $id", it) }
-        }
-        Log.d(TAG, "Updated ${widgetIds.size} widget(s), hasData=${stats.hasData()}")
+        Log.d(TAG, "Updated $updated widget(s), hasData=${stats.hasData()}")
     }
 
     fun refreshAndUpdateAsync(context: Context) {
@@ -55,17 +65,23 @@ object WidgetRefresh {
     }
 
     /** Paint widgets immediately from disk cache (no Room). Always paints — safe defaults when empty. */
-    fun paintCached(context: Context, appWidgetIds: IntArray? = null) {
+    fun paintCached(
+        context: Context,
+        appWidgetIds: IntArray? = null,
+        kind: WidgetKind = WidgetKind.SQUARE,
+    ) {
         val appContext = context.applicationContext
         val stats = WidgetDataStore.load(appContext)
         val manager = AppWidgetManager.getInstance(appContext)
-        val ids = appWidgetIds ?: manager.getAppWidgetIds(
-            ComponentName(appContext, TruckerLoadWidgetReceiver::class.java)
-        )
+        val clazz = when (kind) {
+            WidgetKind.SQUARE -> TruckerLoadWidgetReceiver::class.java
+            WidgetKind.WIDE -> TruckerLoadWideWidgetReceiver::class.java
+        }
+        val ids = appWidgetIds ?: manager.getAppWidgetIds(ComponentName(appContext, clazz))
         if (ids.isEmpty()) return
         ids.forEach { id ->
             runCatching {
-                val views = WidgetRemoteViews.build(appContext, id, stats)
+                val views = WidgetRemoteViews.build(appContext, id, stats, kind)
                 manager.updateAppWidget(id, views)
             }.onFailure { Log.e(TAG, "Failed to paint widget $id", it) }
         }

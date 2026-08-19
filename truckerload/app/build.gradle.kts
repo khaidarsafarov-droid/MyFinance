@@ -332,6 +332,10 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose:1.15.0")
     implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
 
+    // Glance App Widgets — One UI 2×2 / 4×2 with Material You colors
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-material3:1.1.1")
+
     // HTML parsing (Ksoup — Kotlin port of Jsoup)
     implementation("com.fleeksoft.ksoup:ksoup:0.2.4")
 

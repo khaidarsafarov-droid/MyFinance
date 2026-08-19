@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.truckerload.presentation.theme.SoftUiColors
 
 data class TruckColorPalette(
     val Background: Color,
@@ -97,25 +96,25 @@ object DarkGlassGradients {
 
     val screenDark: Brush @Composable get() = screen
 
-    val cta: Brush
+        val cta: Brush
         @Composable get() {
             val cs = MaterialTheme.colorScheme
-            return Brush.horizontalGradient(listOf(cs.primary, SoftUiColors.ForestPrimary))
+            return Brush.horizontalGradient(listOf(cs.primary, cs.primary))
         }
 
     val button: Brush @Composable get() = cta
     val ctaGold: Brush @Composable get() = cta
     val horizontal: Brush @Composable get() = cta
-    val vertical: Brush
+        val vertical: Brush
         @Composable get() {
             val cs = MaterialTheme.colorScheme
-            return Brush.verticalGradient(listOf(cs.primary, SoftUiColors.ForestPrimary))
+            return Brush.verticalGradient(listOf(cs.primary, cs.tertiary))
         }
 
-    val cardShine: Brush
+        val cardShine: Brush
         @Composable get() {
             val cs = MaterialTheme.colorScheme
-            return Brush.linearGradient(listOf(SoftUiColors.ForestPrimary, cs.primary))
+            return Brush.linearGradient(listOf(cs.primary, cs.tertiary))
         }
 
     val chartFill: Brush
@@ -130,7 +129,7 @@ object DarkGlassGradients {
         @Composable get() {
             val cs = MaterialTheme.colorScheme
             return Brush.sweepGradient(
-                listOf(cs.primary, SoftUiColors.ForestMuted, cs.primary),
+                listOf(cs.primary, cs.tertiary, cs.primary),
             )
         }
 }

@@ -39,9 +39,10 @@ val Typography = Typography(
     ),
     headlineMedium = TextStyle(
         fontFamily = DmSansFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 26.sp,
-        lineHeight = 30.sp,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
+        letterSpacing = (-0.2).sp,
     ),
     headlineSmall = TextStyle(
         fontFamily = DmSansFontFamily,

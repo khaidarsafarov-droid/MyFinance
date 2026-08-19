@@ -40,11 +40,11 @@ internal fun WidgetLivePreview(
         WidgetThemeMode.LIGHT -> false
         WidgetThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    val bg = if (dark) Color(0xFF1E2A24) else Color.White
-    val textPrimary = if (dark) SoftUiColors.TextPrimaryDark else SoftUiColors.ForestPrimary
-    val textSecondary = if (dark) SoftUiColors.TextSecondaryDark else SoftUiColors.ForestMuted
+    val bg = if (dark) Color(0xFF252525) else Color.White
+    val textPrimary = if (dark) Color(0xFFF2F2F2) else Color(0xFF010101)
+    val textSecondary = if (dark) Color(0x99F2F2F2) else Color(0x99010101)
     val accent = SoftUiColors.ForestAccent
-    val track = if (dark) Color(0xFF364840) else SoftUiColors.Sage
+    val track = if (dark) Color(0xFF3A3A3A) else Color(0xFFE8E8E8)
     val height = when (sizeMode) {
         WidgetSizeMode.SMALL -> 96.dp
         WidgetSizeMode.MEDIUM, WidgetSizeMode.AUTO -> 132.dp

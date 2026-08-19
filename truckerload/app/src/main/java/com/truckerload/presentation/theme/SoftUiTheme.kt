@@ -18,9 +18,9 @@ object SoftUiColors {
     val SageBorder = Color(0xFFD2E0D7)
     val SageBorderStrong = Color(0xFFC5D3C9)
     val CardBorder = Color(0xFFE1EAE4)
-    val ContentBg = Color(0xFFF9FBFA)
-    val ShellBg = Color(0xFFF2F7F4)
-    val OuterBg = Color(0xFFD8E2DC)
+    val ContentBg = Color(0xFFF6F6F6)
+    val ShellBg = Color(0xFFEEEEEE)
+    val OuterBg = Color(0xFFE4E4E4)
 
     /** Legacy names kept as aliases so existing call sites pick up the forest theme. */
     val PurpleStart = ForestAccent
@@ -33,9 +33,9 @@ object SoftUiColors {
     val SurfaceLight = Color(0xFFFFFFFF)
     val SurfaceMuted = ShellBg
 
-    val BackgroundDark = Color(0xFF1A2420)
-    val SurfaceDark = Color(0xFF24302A)
-    val SurfaceMutedDark = Color(0xFF2E3C35)
+    val BackgroundDark = Color(0xFF171717)
+    val SurfaceDark = Color(0xFF252525)
+    val SurfaceMutedDark = Color(0xFF2C2C2C)
 
     /** True-black OLED tokens — saves power on AMOLED and reduces night glare. */
     val BackgroundOled = Color(0xFF000000)
@@ -58,10 +58,10 @@ object SoftUiColors {
  * Shared soft-UI shape dimensions used by cards, buttons, chips, and navigation surfaces.
  */
 object SoftUiDimens {
-    val ChipRadius = 16.dp
-    val ButtonRadius = 16.dp
-    val CardRadius = 24.dp
-    val CardLargeRadius = 24.dp
+    val ChipRadius = OneUiTokens.CornerChip
+    val ButtonRadius = OneUiTokens.CornerButton
+    val CardRadius = OneUiTokens.CornerCard
+    val CardLargeRadius = OneUiTokens.CornerCardLarge
 }
 
 /**
