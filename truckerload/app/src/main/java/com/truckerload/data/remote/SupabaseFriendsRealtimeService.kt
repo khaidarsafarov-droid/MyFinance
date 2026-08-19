@@ -373,6 +373,11 @@ class SupabaseFriendsRealtimeService(
         const val ERROR_NICKNAME_SCHEMA_MISSING = "schema_nickname_missing"
         const val ERROR_NICKNAME_TAKEN = "nickname_taken"
 
+        private val sharedClient: OkHttpClient = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+
         fun isMissingNicknameColumnError(message: String): Boolean {
             val m = message.lowercase()
             return m.contains("pgrst204") ||
@@ -443,11 +448,4 @@ class SupabaseFriendsRealtimeService(
 
     private fun parseInstantMillis(raw: String): Long =
         runCatching { Instant.parse(raw).toEpochMilli() }.getOrDefault(0L)
-
-    companion object {
-        private val sharedClient: OkHttpClient = OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
-    }
 }
