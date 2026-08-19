@@ -44,4 +44,5 @@ data class FriendsMapUiState(
     val statusMessage: String? = null,
     val errorMessage: String? = null,
     val lastRefreshAt: Long = 0L,
+    val myAvatarUrl: String? = null,
 )

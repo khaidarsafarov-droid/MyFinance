@@ -116,6 +116,7 @@ fun FriendsLiveMapScreen(
             myPathRemaining = uiState.myPathRemaining,
             selectedFriendId = uiState.selectedFriendId,
             myLocation = myLocation,
+            myAvatarUrl = uiState.myAvatarUrl,
             showMyLocationLayer = hasLocationPermission,
             centerOnMeNonce = centerOnMeNonce,
             isLoading = uiState.isLoading && uiState.friends.isEmpty() && myLocation == null,
@@ -264,11 +265,12 @@ fun FriendsLiveMapScreen(
                         ) {
                             if (!mapExpanded) {
                                 FriendsGoogleMap(
-                                    overlays = emptyList(),
+                                    overlays = uiState.friends,
                                     myPathPast = uiState.myPathPast,
                                     myPathRemaining = uiState.myPathRemaining,
-                                    selectedFriendId = null,
+                                    selectedFriendId = uiState.selectedFriendId,
                                     myLocation = myLocation,
+                                    myAvatarUrl = uiState.myAvatarUrl,
                                     showMyLocationLayer = hasLocationPermission,
                                     centerOnMeNonce = 0,
                                     interactive = false,

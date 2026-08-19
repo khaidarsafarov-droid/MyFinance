@@ -28,6 +28,7 @@ data class FriendPresence(
     val longitude: Double,
     val updatedAtMillis: Long,
     val sharePathEnabled: Boolean,
+    val avatarUrl: String? = null,
 )
 
 data class FriendActiveRoute(

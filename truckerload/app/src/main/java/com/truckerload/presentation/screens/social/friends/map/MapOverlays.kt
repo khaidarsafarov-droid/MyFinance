@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -33,6 +34,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -44,6 +46,8 @@ import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 internal val COLOR_PAST = 0xFF9CA3AF.toInt()
 internal val COLOR_REMAINING = 0xFF2563EB.toInt()
@@ -58,6 +62,7 @@ fun FullscreenFriendsMapDialog(
     myPathRemaining: List<LatLngPoint>,
     selectedFriendId: String?,
     myLocation: LatLngPoint?,
+    myAvatarUrl: String?,
     showMyLocationLayer: Boolean,
     centerOnMeNonce: Int,
     isLoading: Boolean,
@@ -84,6 +89,7 @@ fun FullscreenFriendsMapDialog(
                     myPathRemaining = myPathRemaining,
                     selectedFriendId = selectedFriendId,
                     myLocation = myLocation,
+                    myAvatarUrl = myAvatarUrl,
                     showMyLocationLayer = showMyLocationLayer,
                     centerOnMeNonce = centerOnMeNonce,
                     interactive = true,
@@ -141,14 +147,17 @@ fun FriendsGoogleMap(
     myPathRemaining: List<LatLngPoint> = emptyList(),
     selectedFriendId: String?,
     myLocation: LatLngPoint?,
+    myAvatarUrl: String? = null,
     showMyLocationLayer: Boolean,
     centerOnMeNonce: Int,
     onMarkerClick: (String) -> Unit,
     interactive: Boolean = true,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
     val meLabel = stringResource(R.string.friends_me_marker)
     val destLabel = stringResource(R.string.friends_my_destination_marker)
+    val friendFallback = stringResource(R.string.friends_map_friend_fallback)
     var mapView by remember { mutableStateOf<MapView?>(null) }
 
     DisposableEffect(lifecycleOwner) {
@@ -177,11 +186,20 @@ fun FriendsGoogleMap(
         myPathRemaining,
         selectedFriendId,
         myLocation,
+        myAvatarUrl,
         showMyLocationLayer,
         interactive,
         mapView,
     ) {
         val map = mapView ?: return@LaunchedEffect
+        val density = context.resources.displayMetrics.density
+        val avatarPx = (48 * density).toInt().coerceAtLeast(40)
+        val mePhoto = withContext(Dispatchers.IO) { FriendMapMarkerBitmap.loadPhoto(myAvatarUrl, avatarPx) }
+        val friendPhotos = withContext(Dispatchers.IO) {
+            overlays.associate { friend ->
+                friend.presence.userId to FriendMapMarkerBitmap.loadPhoto(friend.presence.avatarUrl, avatarPx)
+            }
+        }
         map.getMapAsync { googleMap ->
             googleMap.clear()
             googleMap.uiSettings.isZoomControlsEnabled = interactive
@@ -191,14 +209,19 @@ fun FriendsGoogleMap(
             googleMap.uiSettings.isTiltGesturesEnabled = interactive
             googleMap.uiSettings.isMyLocationButtonEnabled = false
             runCatching {
-                googleMap.isMyLocationEnabled = showMyLocationLayer && interactive
+                // Custom "I am" avatar replaces the default Google blue dot.
+                googleMap.isMyLocationEnabled = showMyLocationLayer && interactive && myLocation == null
             }
             myLocation?.let { me ->
-                googleMap.addMarker(
-                    MarkerOptions()
-                        .position(me.toGms())
-                        .title(meLabel)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)),
+                addPersonMarker(
+                    map = googleMap,
+                    position = me.toGms(),
+                    title = meLabel,
+                    density = density,
+                    ringColor = FriendMapMarkerBitmap.RING_ME,
+                    photo = mePhoto,
+                    tag = null,
+                    zIndex = 3f,
                 )
             }
             if (myPathPast.size >= 2) {
@@ -217,31 +240,36 @@ fun FriendsGoogleMap(
                         .width(12f),
                 )
                 myPathRemaining.lastOrNull()?.let { dest ->
+                    val destIcon = BitmapDescriptorFactory.fromBitmap(
+                        FriendMapMarkerBitmap.createDestination(density, destLabel),
+                    )
                     googleMap.addMarker(
                         MarkerOptions()
                             .position(dest.toGms())
                             .title(destLabel)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)),
+                            .icon(destIcon)
+                            .anchor(0.5f, 1f)
+                            .zIndex(0.5f),
                     )
                 }
             }
             overlays.forEach { friend ->
                 val pos = LatLng(friend.presence.latitude, friend.presence.longitude)
-                val marker = googleMap.addMarker(
-                    MarkerOptions()
-                        .position(pos)
-                        .title(friend.presence.displayName)
-                        .icon(
-                            BitmapDescriptorFactory.defaultMarker(
-                                if (friend.presence.userId == selectedFriendId) {
-                                    BitmapDescriptorFactory.HUE_AZURE
-                                } else {
-                                    BitmapDescriptorFactory.HUE_ORANGE
-                                },
-                            ),
-                        ),
+                val selected = friend.presence.userId == selectedFriendId
+                addPersonMarker(
+                    map = googleMap,
+                    position = pos,
+                    title = friend.presence.displayName.ifBlank { friendFallback },
+                    density = density,
+                    ringColor = if (selected) {
+                        FriendMapMarkerBitmap.RING_FRIEND_SELECTED
+                    } else {
+                        FriendMapMarkerBitmap.RING_FRIEND
+                    },
+                    photo = friendPhotos[friend.presence.userId],
+                    tag = friend.presence.userId,
+                    zIndex = if (selected) 2f else 1f,
                 )
-                marker?.tag = friend.presence.userId
                 if (friend.showPath) {
                     if (friend.past.size >= 2) {
                         googleMap.addPolyline(
@@ -281,11 +309,27 @@ fun FriendsGoogleMap(
                     val bounds = LatLngBounds.builder().also { b ->
                         routePoints.forEach(b::include)
                         myLocation?.let { b.include(it.toGms()) }
+                        overlays.forEach { friend ->
+                            b.include(LatLng(friend.presence.latitude, friend.presence.longitude))
+                        }
                     }.build()
                     runCatching {
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 80))
                     }.onFailure {
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(routePoints.first(), 7f))
+                    }
+                }
+                myLocation != null && overlays.isNotEmpty() && centerOnMeNonce == 0 -> {
+                    val bounds = LatLngBounds.builder().also { b ->
+                        b.include(myLocation.toGms())
+                        overlays.forEach { friend ->
+                            b.include(LatLng(friend.presence.latitude, friend.presence.longitude))
+                        }
+                    }.build()
+                    runCatching {
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 80))
+                    }.onFailure {
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation.toGms(), 12f))
                     }
                 }
                 myLocation != null && centerOnMeNonce == 0 -> {
@@ -319,4 +363,28 @@ fun FriendsGoogleMap(
         },
         modifier = Modifier.fillMaxSize(),
     )
+}
+
+private fun addPersonMarker(
+    map: GoogleMap,
+    position: LatLng,
+    title: String,
+    density: Float,
+    ringColor: Int,
+    photo: android.graphics.Bitmap?,
+    tag: String?,
+    zIndex: Float,
+) {
+    val icon = BitmapDescriptorFactory.fromBitmap(
+        FriendMapMarkerBitmap.createPerson(density, title, ringColor, photo),
+    )
+    val marker = map.addMarker(
+        MarkerOptions()
+            .position(position)
+            .title(title)
+            .icon(icon)
+            .anchor(0.5f, 1f)
+            .zIndex(zIndex),
+    )
+    marker?.tag = tag
 }

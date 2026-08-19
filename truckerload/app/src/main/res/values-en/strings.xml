@@ -496,8 +496,9 @@
     <string name="friends_share_off_map_hint">Your spot is shown to you on the map. To let friends see you, turn the toggle on and add them by nickname.</string>
     <string name="friends_need_location_permission">Location permission is needed to show you on the map</string>
     <string name="friends_grant_location">Allow location</string>
-    <string name="friends_map_legend">Green — you · orange — friends online</string>
-    <string name="friends_me_marker">Me</string>
+    <string name="friends_map_legend">Green ring — you · orange ring — friends online</string>
+    <string name="friends_me_marker">I am</string>
+    <string name="friends_map_friend_fallback">Friend</string>
     <string name="friends_center_on_me">Center on me</string>
     <string name="friends_map_tap_open">Tap to open the full map</string>
     <string name="friends_map_close">Close map</string>

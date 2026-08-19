@@ -8,8 +8,10 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.remote.CompositeDirectionsProvider
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.friends.ActiveLoadSelector
 import com.truckerload.domain.friends.FriendActiveRoute
+import com.truckerload.domain.friends.FriendMapLabels
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
 import com.truckerload.domain.friends.LatLngPoint
 import com.truckerload.domain.friends.NicknameValidator
@@ -42,6 +44,7 @@ class FriendsMapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val settingsDataStore: SettingsDataStore,
     private val authStore: AuthStore,
+    private val profileRepository: ProfileRepository,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -73,6 +76,13 @@ class FriendsMapViewModel @Inject constructor(
                 _uiState.update { it.copy(routeVehicleTruck = truck) }
                 rebuildRoadSession(truck)
                 rebuildMyPath()
+            }
+        }
+        viewModelScope.launch {
+            profileRepository.watchMyProfile().collect { profile ->
+                _uiState.update {
+                    it.copy(myAvatarUrl = profile.avatarUrl?.takeIf { url -> url.isNotBlank() })
+                }
             }
         }
         refresh()
@@ -237,6 +247,7 @@ class FriendsMapViewModel @Inject constructor(
                 }
                 val byUser = routes.associateBy { it.userId }
                 val nickById = links.associate { it.friendUserId to it.friendNickname }
+                val nameById = links.associate { it.friendUserId to it.friendDisplayName }
                 val overlays = presence.map { p ->
                     val route = byUser[p.userId]
                     val show = p.userId in showPathFor
@@ -257,9 +268,11 @@ class FriendsMapViewModel @Inject constructor(
                         FriendRoutePolylineBuilder.SplitPolylines(emptyList(), emptyList())
                     }
                     val labeled = p.copy(
-                        displayName = nickById[p.userId]?.takeIf { it.isNotBlank() }
-                            ?.let { "@$it" }
-                            ?: p.displayName,
+                        displayName = FriendMapLabels.friendVisibleName(
+                            presenceDisplayName = p.displayName,
+                            linkDisplayName = nameById[p.userId],
+                            nickname = nickById[p.userId],
+                        ),
                     )
                     FriendMapOverlay(
                         presence = labeled,
