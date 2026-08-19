@@ -283,6 +283,6 @@ object AppVoiceActions {
     )
     private val CHAT_WITH = Regex("^(?:чат с|chat with)\\s+(.+)$")
     private val ADD_FRIEND_PREFIX = Regex(
-        "^(?:добав(?:ь|ить) друз(?:а|ей)|add friends?)(?:\\s+.+)?$",
+        "^(?:добав(?:ь|ить) дру(?:га|зей|г)|add friends?)(?:\\s+.+)?$",
     )
 }
