@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.truckerload.domain.model.EquipmentType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -401,4 +403,20 @@ class SettingsDataStore(context: Context) {
             prefs[booleanPreferencesKey(area.prefKey)] = true
         }
     }
+
+    fun lastEquipmentType(): Flow<EquipmentType?> = appContext.settingsDataStore.data.map { prefs ->
+        EquipmentType.fromStorage(prefs[stringKey("last_equipment_type", accountPart())])
+    }
+
+    suspend fun getLastEquipmentTypeOnce(): EquipmentType? = lastEquipmentType().first()
+
+    suspend fun saveLastEquipmentType(type: EquipmentType) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[stringKey("last_equipment_type", account)] = type.name
+        }
+    }
+
+    private fun stringKey(base: String, account: String?) =
+        stringPreferencesKey(if (account != null) "${base}_$account" else base)
 }

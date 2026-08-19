@@ -12,6 +12,7 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["fromState", "reportedAtMillis"]),
         Index(value = ["source", "reportedAtMillis"]),
+        Index(value = ["fromState", "equipmentType", "reportedAtMillis"]),
     ],
 )
 data class CrowdRateEntity(
@@ -26,4 +27,6 @@ data class CrowdRateEntity(
     val source: String,
     val peerLabel: String? = null,
     val syncedAtMillis: Long = System.currentTimeMillis(),
+    /** Trailer type name; null = unknown / mixed. */
+    val equipmentType: String? = null,
 )

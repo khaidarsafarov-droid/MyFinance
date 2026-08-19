@@ -93,7 +93,7 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         MaintenanceArchiveEntity::class,
         CrowdRateEntity::class,
     ],
-    version = 30,
+    version = 31,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

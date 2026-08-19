@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→30 (startVersion 25..29). */
+/** Room migrations for schema versions 25→31 (startVersion 25..30). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -165,5 +165,18 @@ val MIGRATION_29_30 = object : Migration(29, 30) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.addColumnIfMissing("voice_rooms", "description", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("voice_rooms", "moderatorId", "TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+/** Optional equipment type on loads and anonymized crowd rates. */
+val MIGRATION_30_31 = object : Migration(30, 31) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("loads", "equipmentType", "TEXT")
+        db.addColumnIfMissing("crowd_rates", "equipmentType", "TEXT")
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS " +
+                "index_crowd_rates_fromState_equipmentType_reportedAtMillis " +
+                "ON crowd_rates(fromState, equipmentType, reportedAtMillis)",
+        )
     }
 }

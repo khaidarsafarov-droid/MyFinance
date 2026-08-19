@@ -49,10 +49,10 @@ import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
 import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.screens.add.EquipmentTypeChipRow
 import com.truckerload.presentation.components.getStateDisplayName
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.UiDimens
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -140,6 +140,14 @@ private fun MapScreenBody(
             onSelect = viewModel::setPeriod,
         )
 
+        EquipmentTypeChipRow(
+            selected = uiState.equipmentFilter,
+            onSelect = viewModel::setEquipmentFilter,
+            includeAllChip = true,
+            allowClear = false,
+            title = stringResource(R.string.equipment_filter_title),
+        )
+
         MapMetaRow(
             period = uiState.period,
             tripCount = uiState.totalReports,
@@ -193,11 +201,19 @@ private fun MapScreenBody(
             )
             IconLabeledBody(
                 icon = Icons.Filled.Speed,
-                text = stringResource(
-                    R.string.map_crowd_state_avg,
-                    String.format(Locale.getDefault(), "%.2f", summary.avgOutboundRpm),
-                    summary.outboundTrips,
-                ),
+                text = if (summary.sampleInsufficient) {
+                    stringResource(
+                        R.string.map_equipment_insufficient,
+                        summary.outboundTrips,
+                        CrowdMapAggregator.MIN_SAMPLE_SIZE,
+                    )
+                } else {
+                    stringResource(
+                        R.string.map_crowd_state_avg,
+                        String.format(Locale.getDefault(), "%.2f", summary.avgOutboundRpm),
+                        summary.outboundTrips,
+                    )
+                },
             )
             Spacer(Modifier.height(2.dp))
             IconLabeledTitle(

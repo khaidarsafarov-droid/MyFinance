@@ -20,9 +20,9 @@ import org.robolectric.annotation.Config
 class RoomMigrationRobolectricTest {
 
     @Test
-    fun migrate6To30_smoke() {
+    fun migrate6To31_smoke() {
         val context = RuntimeEnvironment.getApplication()
-        val dbName = "robo-migration-6-30"
+        val dbName = "robo-migration-6-31"
         context.deleteDatabase(dbName)
 
         val config = SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -105,13 +105,15 @@ class RoomMigrationRobolectricTest {
                     db.version = version
                 }
             }
-            assertEquals(30, version)
+            assertEquals(31, version)
             db.query("SELECT COUNT(*) FROM loads").use { c ->
                 assertTrue(c.moveToFirst())
                 assertEquals(1, c.getInt(0))
             }
             assertTrue(db.hasColumn("loads", "firstPuMillis"))
             assertTrue(db.hasColumn("loads", "actualFinishDate"))
+            assertTrue(db.hasColumn("loads", "equipmentType"))
+            assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
             assertTrue(db.hasTable("crowd_rates"))
             assertTrue(db.hasTable("media_sync_queue"))
             assertTrue(db.hasTable("maintenance_archive"))

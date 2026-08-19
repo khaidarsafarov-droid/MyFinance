@@ -1141,6 +1141,7 @@
     <string name="settings_reduce_motion_hint">Отключает переходы и пульсацию. Учитывает также системную настройку Android.</string>
     <string name="settings_privacy_data_title">Ваши данные</string>
     <string name="settings_privacy_data_loads">Грузы, зарплаты и дизель хранятся локально на устройстве.</string>
+    <string name="settings_privacy_crowd_rpm">В анонимный Crowd RPM уходят только RPM, мили, штат, неделя и тип оборудования — без Trip ID, текста сообщения и точных адресов.</string>
     <string name="settings_privacy_data_telegram">Токен Telegram и chat ID используются только для синхронизации, если вы их указали.</string>
     <string name="settings_privacy_data_backup">Экспорт и бэкап — только по вашему запросу.</string>
     <string name="home_delete_undo_message">Груз %1$s удалён</string>
@@ -1342,6 +1343,19 @@
     <string name="map_rating_bad">Плохо</string>
     <string name="map_rating_neutral">Нейтрально</string>
     <string name="map_rating_no_data">Нет данных</string>
+    <string name="equipment_type_label">Тип оборудования (необязательно)</string>
+    <string name="equipment_filter_title">Тип трейлера</string>
+    <string name="equipment_filter_all">Все</string>
+    <string name="equipment_dry_van">Dry Van</string>
+    <string name="equipment_reefer">Reefer</string>
+    <string name="equipment_flatbed">Flatbed</string>
+    <string name="equipment_power_only">Power Only</string>
+    <string name="equipment_amazon_relay">Amazon Relay</string>
+    <string name="equipment_box_truck">Box Truck</string>
+    <string name="equipment_cargo_van">Cargo Van</string>
+    <string name="equipment_car_hauler">Car Hauler</string>
+    <string name="equipment_other">Другое</string>
+    <string name="map_equipment_insufficient">Недостаточно данных (%1$d из %2$d) — среднее скрыто</string>
     <string name="map_state_trips">%1$s (%2$s) • %3$d рейс(ов)</string>
     <string name="map_rpm_per_mile">$%1$s / милю</string>
     <string name="map_gross_label">Гросс: $%1$s</string>
