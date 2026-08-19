@@ -284,38 +284,48 @@ internal fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = null,
-                        tint = tc.TextSecondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "%.1f".format(chat.rating),
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                    )
-                    Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
-                    Icon(
-                        imageVector = Icons.Filled.People,
-                        contentDescription = null,
-                        tint = tc.TextSecondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = chat.participantCount.toString(),
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                    )
-                    Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
-                    Text(
-                        text = chat.lastMessage,
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (chat.rating > 0) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "%.1f".format(chat.rating),
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                    if (chat.participantCount > 0) {
+                        if (chat.rating > 0) {
+                            Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.People,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = chat.participantCount.toString(),
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                    if (chat.lastMessage.isNotBlank()) {
+                        if (chat.rating > 0 || chat.participantCount > 0) {
+                            Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
+                        }
+                        Text(
+                            text = chat.lastMessage,
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
                 if (chat.description.isNotBlank()) {
                     Text(
@@ -328,7 +338,9 @@ internal fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(time, style = AppTypography.Subtitle, color = tc.TextSecondary)
+                if (chat.lastMessageAt > 0L) {
+                    Text(time, style = AppTypography.Subtitle, color = tc.TextSecondary)
+                }
                 if (chat.unreadCount > 0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

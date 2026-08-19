@@ -28,6 +28,7 @@ import com.truckerload.sync.ServerTelegramInboxWorker
 import com.truckerload.sync.PushTokenRegistrationWorker
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.sync.TelegramSyncMode
+import com.truckerload.sync.CommunityInboxWorker
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
@@ -40,7 +41,10 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.widget.Toast
@@ -66,6 +70,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             .build()
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var communityInboxJob: Job? = null
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
@@ -100,6 +105,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
+        CommunityInboxWorker.enqueuePeriodic(this)
         WidgetUpdateWorker.schedule(this)
         // One deferred widget paint at cold start; periodic worker keeps it fresh.
         WidgetUpdateWorker.refreshNow(this)
@@ -109,6 +115,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 val userId = authStore.currentUserIdOrNull()
                 if (userId != null) {
                     PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
+                    CommunityInboxWorker.enqueue(this@TruckerLoadApp)
+                    startCommunityInboxPolling()
                     if (TelegramSyncMode.isServer()) {
                         ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
                     } else {
@@ -123,6 +131,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
 
             override fun onStop(owner: LifecycleOwner) {
+                communityInboxJob?.cancel()
+                communityInboxJob = null
                 WidgetRefresh.paintCached(this@TruckerLoadApp)
                 appScope.launch(Dispatchers.IO) {
                     runCatching { WidgetStatsLoader.refresh(this@TruckerLoadApp) }
@@ -130,6 +140,21 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 }
             }
         })
+    }
+
+    private fun startCommunityInboxPolling() {
+        if (communityInboxJob?.isActive == true) return
+        communityInboxJob = appScope.launch(Dispatchers.IO) {
+            while (isActive) {
+                val userId = authStore.currentUserIdOrNull()
+                if (userId != null) {
+                    runCatching {
+                        userComponentManager.startSession(userId).socialSyncCoordinator.pullRemote()
+                    }
+                }
+                delay(COMMUNITY_INBOX_POLL_MS)
+            }
+        }
     }
 
     private fun initializeCrashReporting() {
@@ -224,5 +249,6 @@ class TruckerLoadApp : Application(), Configuration.Provider {
 
     companion object {
         private const val TAG = "TruckerLoadApp"
+        private const val COMMUNITY_INBOX_POLL_MS = 20_000L
     }
 }

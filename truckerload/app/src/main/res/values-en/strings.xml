@@ -891,6 +891,9 @@
     <string name="push_notification_channel_name">Truck Log updates</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">A new update is available</string>
+    <string name="community_message_channel_name">Community messages</string>
+    <string name="community_message_notification_more">%d new messages</string>
+    <string name="community_message_notification_empty">New message</string>
     <string name="settings_battery_title">Background operation</string>
     <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for Truck Log.</string>
     <string name="settings_battery_button">Disable battery optimization</string>
@@ -1180,6 +1183,7 @@
     <string name="social_favorite_routes">Favorite routes</string>
     <string name="social_join_challenge">Join challenge</string>
     <string name="social_participants">participants</string>
+    <string name="social_pick_reaction">Add reaction</string>
     <string name="social_message_hint">Message…</string>
     <string name="social_send">Send</string>
     <string name="social_search_chats">Search chats…</string>

@@ -43,6 +43,7 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
                 CloudSyncWorker.enqueue(applicationContext)
                 MediaSyncWorker.enqueue(applicationContext)
                 ServerTelegramInboxWorker.enqueue(applicationContext)
+                CommunityInboxWorker.enqueue(applicationContext)
             }
             return
         }

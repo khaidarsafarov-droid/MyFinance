@@ -202,7 +202,7 @@ fun NavGraph(
             }
             else -> {
                 // Widget camera/scan resolve to attach_pick/{camera|scanner}.
-                if (destination.startsWith("attach_pick/")) {
+                if (destination.startsWith("attach_pick/") || destination.startsWith("social_chat/")) {
                     navController.navigate(destination) { launchSingleTop = true }
                     onDeepLinkHandled()
                 }

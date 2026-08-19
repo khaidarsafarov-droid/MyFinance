@@ -891,6 +891,9 @@
     <string name="push_notification_channel_name">Обновления Truck Log</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">Доступно новое обновление</string>
+    <string name="community_message_channel_name">Сообщения сообщества</string>
+    <string name="community_message_notification_more">%d новых сообщений</string>
+    <string name="community_message_notification_empty">Новое сообщение</string>
     <string name="settings_battery_title">Фоновая работа</string>
     <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для Truck Log.</string>
     <string name="settings_battery_button">Отключить оптимизацию батареи</string>
@@ -1180,6 +1183,7 @@
     <string name="social_favorite_routes">Любимые маршруты</string>
     <string name="social_join_challenge">Присоединиться к челленджу</string>
     <string name="social_participants">участников</string>
+    <string name="social_pick_reaction">Реакция</string>
     <string name="social_message_hint">Сообщение…</string>
     <string name="social_send">Отправить</string>
     <string name="social_search_chats">Поиск чатов…</string>
