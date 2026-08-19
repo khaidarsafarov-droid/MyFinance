@@ -2,6 +2,7 @@ package com.truckerload.presentation.screens.voice
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -48,6 +48,7 @@ import com.truckerload.R
 import com.truckerload.domain.voice.CallPolicy
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
+import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -96,19 +97,7 @@ fun IncomingCallScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(UiDimens.AvatarCallLarge)
-                        .clip(CircleShape)
-                        .background(SoftUiColors.SurfaceDark),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = callState.callerName.take(1).uppercase(),
-                        color = SoftUiColors.ForestAccent,
-                        fontSize = 48.sp,
-                    )
-                }
+                CallPeerAvatar(name = callState.callerName, size = UiDimens.AvatarCallLarge)
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(text = callState.callerName, style = AppTypography.CardTitle, color = Color.White)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -193,15 +182,7 @@ fun CallScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(UiDimens.AvatarCallActive)
-                    .clip(CircleShape)
-                    .background(SoftUiColors.SurfaceDark),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(peerName.take(1).uppercase(), color = tc.AccentPrimary, fontSize = 40.sp)
-            }
+            CallPeerAvatar(name = peerName, size = UiDimens.AvatarCallActive)
             Spacer(modifier = Modifier.height(16.dp))
             Text(peerName, style = AppTypography.CardTitle, color = Color.White)
             Spacer(modifier = Modifier.height(8.dp))
@@ -232,15 +213,21 @@ fun CallScreen(
             }
             Spacer(modifier = Modifier.height(32.dp))
             if (state.offerVoiceMessage) {
-                TextButton(onClick = { viewModel.openPeerChat(onOpenChat) }) {
-                    Text(stringResource(R.string.call_leave_voice), color = tc.AccentPrimary)
+                Button(
+                    onClick = { viewModel.openPeerChat(onOpenChat) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.call_leave_voice))
                 }
             }
             if (call?.status == CallStatus.MISSED || call?.status == CallStatus.ENDED ||
                 call?.status == CallStatus.REJECTED
             ) {
-                TextButton(onClick = { viewModel.redial(onRedialNavigate) }) {
-                    Text(stringResource(R.string.call_redial), color = tc.AccentPrimary)
+                Button(
+                    onClick = { viewModel.redial(onRedialNavigate) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.call_redial))
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -296,7 +283,7 @@ fun ActiveCallBanner(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(28.dp))
             .background(SoftUiColors.VoiceSuccess.copy(alpha = 0.9f))
             .clickable { onReturn(active.callId) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -305,6 +292,25 @@ fun ActiveCallBanner(
     ) {
         Text(name, color = Color.White, style = AppTypography.Subtitle)
         Text(stringResource(R.string.call_return), color = Color.White, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun CallPeerAvatar(name: String, size: androidx.compose.ui.unit.Dp) {
+    val tc = LocalTruckColors.current
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .border(3.dp, tc.AccentPrimary.copy(alpha = 0.85f), CircleShape)
+            .background(SoftUiColors.SurfaceDark),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = name.take(1).uppercase().ifBlank { "·" },
+            color = tc.AccentPrimary,
+            fontSize = if (size >= UiDimens.AvatarCallLarge) 48.sp else 40.sp,
+        )
     }
 }
 
