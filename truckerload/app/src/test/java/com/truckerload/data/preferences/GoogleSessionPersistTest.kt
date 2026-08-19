@@ -1,10 +1,13 @@
 package com.truckerload.data.preferences
 
 import com.truckerload.data.auth.SilentAuthRestorer
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -14,6 +17,18 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class GoogleSessionPersistTest {
+
+    @Before
+    fun setUp() {
+        AuthStore.resetForTests()
+        SecurePreferences.resetFallbackForTests()
+    }
+
+    @After
+    fun tearDown() {
+        AuthStore.resetForTests()
+        SecurePreferences.resetFallbackForTests()
+    }
 
     @Test
     fun googleLoginPersistsEvenWhenRememberMeFalse() {
@@ -80,5 +95,97 @@ class GoogleSessionPersistTest {
         )
         assertTrue(auth.isLoggedIn.value)
         assertFalse(auth.userId.value.isNullOrBlank())
+    }
+
+    @Test
+    fun googleIdTokenSurvivesColdStartAlongsideSupabaseJwt() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+
+        auth.login(
+            userId = "google_voice_user",
+            email = "voice@example.com",
+            rememberMe = true,
+            accessToken = "supabase.jwt",
+            refreshToken = "supabase.refresh",
+            googleSub = "google-sub-voice",
+            provider = AuthProvider.GOOGLE,
+            googleIdToken = "google.id.token",
+        )
+
+        assertEquals("supabase.jwt", auth.accessTokenOrNull())
+        assertEquals("google.id.token", auth.googleIdTokenOrNull())
+
+        AuthStore.resetForTests()
+        val restored = AuthStore(context)
+        assertTrue(restored.isLoggedIn.value)
+        assertEquals("supabase.jwt", restored.accessTokenOrNull())
+        assertEquals("google.id.token", restored.googleIdTokenOrNull())
+    }
+
+    @Test
+    fun updateTokensDoesNotWipeGoogleIdToken() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+        auth.login(
+            userId = "google_refresh_user",
+            email = "refresh@example.com",
+            rememberMe = true,
+            accessToken = "old.jwt",
+            refreshToken = "old.refresh",
+            googleSub = "sub-refresh",
+            provider = AuthProvider.GOOGLE,
+            googleIdToken = "google.id.token",
+        )
+
+        auth.updateTokens("new.jwt", "new.refresh")
+
+        assertEquals("new.jwt", auth.accessTokenOrNull())
+        assertEquals("google.id.token", auth.googleIdTokenOrNull())
+    }
+
+    @Test
+    fun logoutAndNextUserDoNotInheritGoogleIdToken() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+        auth.login(
+            userId = "google_user_a",
+            email = "a@example.com",
+            rememberMe = true,
+            accessToken = "a.jwt",
+            googleSub = "sub-a",
+            provider = AuthProvider.GOOGLE,
+            googleIdToken = "google.id.a",
+        )
+        auth.logout()
+        assertNull(auth.googleIdTokenOrNull())
+        assertNull(auth.accessTokenOrNull())
+
+        auth.login(
+            userId = "email_user_b",
+            email = "b@example.com",
+            rememberMe = true,
+            provider = AuthProvider.EMAIL,
+        )
+        assertNull(auth.googleIdTokenOrNull())
+        assertEquals("email_user_b", auth.currentUserIdOrNull())
+    }
+
+    @Test
+    fun sameUserReloginWithoutGoogleTokenPreservesIt() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+        auth.login(
+            userId = "google_keep",
+            email = "keep@example.com",
+            rememberMe = true,
+            accessToken = "jwt",
+            googleSub = "sub-keep",
+            provider = AuthProvider.GOOGLE,
+            googleIdToken = "google.id.keep",
+        )
+        auth.setLoggedIn(true)
+        assertEquals("google.id.keep", auth.googleIdTokenOrNull())
+        assertEquals("jwt", auth.accessTokenOrNull())
     }
 }

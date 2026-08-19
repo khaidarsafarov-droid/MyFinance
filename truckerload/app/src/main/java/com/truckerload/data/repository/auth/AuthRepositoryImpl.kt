@@ -102,6 +102,7 @@ class AuthRepositoryImpl @Inject constructor(
                                 supabaseUserId = u.id,
                                 accessToken = signInResult.accessToken,
                                 refreshToken = signInResult.refreshToken,
+                                googleIdToken = idToken,
                                 toasts = toasts,
                             )
                         },
@@ -134,6 +135,7 @@ class AuthRepositoryImpl @Inject constructor(
         return completeLoginResult(
             profile = profile,
             accessToken = credential.idToken,
+            googleIdToken = credential.idToken,
             toasts = toasts,
         )
     }
@@ -280,6 +282,7 @@ class AuthRepositoryImpl @Inject constructor(
         supabaseUserId: String? = null,
         accessToken: String? = null,
         refreshToken: String? = null,
+        googleIdToken: String? = null,
         toasts: List<String> = emptyList(),
         biometricEnabled: Boolean = false,
     ): Result<AuthSignInResult> {
@@ -292,6 +295,7 @@ class AuthRepositoryImpl @Inject constructor(
             rememberMe = true,
             accessToken = accessToken,
             refreshToken = refreshToken,
+            googleIdToken = googleIdToken,
         )
         if (!ok) {
             return Result.failure(

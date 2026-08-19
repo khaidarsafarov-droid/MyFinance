@@ -13,6 +13,7 @@ object AuthLogin {
         rememberMe: Boolean = true,
         accessToken: String? = null,
         refreshToken: String? = null,
+        googleIdToken: String? = null,
         provider: AuthProvider = when {
             !profile.googleId.isNullOrBlank() -> AuthProvider.GOOGLE
             else -> AuthProvider.EMAIL
@@ -41,6 +42,7 @@ object AuthLogin {
             refreshToken = refreshToken,
             googleSub = profile.googleId,
             provider = provider,
+            googleIdToken = googleIdToken,
         )
     }
 
@@ -56,6 +58,7 @@ object AuthLogin {
         rememberMe: Boolean = true,
         accessToken: String? = null,
         refreshToken: String? = null,
+        googleIdToken: String? = null,
     ): Boolean {
         val userId = AccountIds.resolveOrNull(
             supabaseUserId = supabaseUserId,
@@ -70,6 +73,7 @@ object AuthLogin {
             rememberMe = rememberMe,
             accessToken = accessToken,
             refreshToken = refreshToken,
+            googleIdToken = googleIdToken,
         )
         return true
     }

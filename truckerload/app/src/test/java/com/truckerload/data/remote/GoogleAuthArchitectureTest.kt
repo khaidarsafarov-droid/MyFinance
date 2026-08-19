@@ -75,6 +75,23 @@ class GoogleAuthArchitectureTest {
         assertFalse(launcher.contains("CredentialManagerGoogleSignIn.getGoogleIdToken"))
     }
 
+    @Test
+    fun googleCloudLogin_persistsIdTokenForVoiceBearer() {
+        val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
+        assertTrue(launcher.contains("googleIdToken = idToken"))
+        assertTrue(launcher.contains("googleIdToken = googleIdToken"))
+
+        val repo = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
+        assertTrue(repo.contains("googleIdToken = idToken"))
+        assertTrue(repo.contains("googleIdToken = credential.idToken"))
+
+        val interceptor = readMainSource("com/truckerload/data/remote/ktor/KtorAuthInterceptor.kt")
+        assertTrue(interceptor.contains("v1/voice/token"))
+        assertTrue(interceptor.contains("googleIdTokenOrNull"))
+        assertTrue(interceptor.contains("KtorBearerToken.select"))
+        assertTrue(interceptor.contains("request.headers.remove(HttpHeaders.Authorization)"))
+    }
+
     private fun readMainSource(relativePath: String): String {
         val candidates = listOf(
             File("src/main/java/$relativePath"),
