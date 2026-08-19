@@ -11,6 +11,7 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.SupabaseAuthService
+import com.truckerload.data.sync.DeviceSlotLogin
 import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -292,6 +293,9 @@ class AuthRepositoryImpl @Inject constructor(
             return Result.failure(
                 IllegalStateException(appContext.getString(R.string.auth_error_email_required)),
             )
+        }
+        DeviceSlotLogin.afterSessionPersisted(appContext, authStore).exceptionOrNull()?.let { denied ->
+            return Result.failure(denied)
         }
         val userId = authStore.currentUserIdOrNull().orEmpty()
         return Result.success(

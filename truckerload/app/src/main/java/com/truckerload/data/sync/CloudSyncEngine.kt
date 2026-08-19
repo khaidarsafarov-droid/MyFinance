@@ -37,7 +37,7 @@ object CloudSyncEngine {
         val message: String = "",
         val retryableFailure: Boolean = false,
     ) {
-        enum class Mode { SKIPPED, PUSH, PULL, FULL_HYDRATE, PUSH_AND_PULL }
+        enum class Mode { SKIPPED, PUSH, PULL, FULL_HYDRATE, PUSH_AND_PULL, DEVICE_SLOT_DENIED }
     }
 
     /**
@@ -55,6 +55,17 @@ object CloudSyncEngine {
             mode = SyncResult.Mode.SKIPPED,
             message = "no_session",
         )
+        when (val gate = DeviceSlotBinder(app).registerCurrentDevice(required = false)) {
+            is DeviceSlotResult.SlotTaken -> {
+                val message = DeviceSlotBinder(app).userMessage(gate)
+                DeviceSlotDenialStore(app).save(message)
+                return SyncResult(
+                    mode = SyncResult.Mode.DEVICE_SLOT_DENIED,
+                    message = message,
+                )
+            }
+            DeviceSlotResult.Allowed, DeviceSlotResult.Skipped, is DeviceSlotResult.Unavailable -> Unit
+        }
         val db = AppDatabase.getInstance(app, userId)
         val cursor = CloudSyncCursorStore(app)
         val backend = AccountCloudBackendFactory.create(app)

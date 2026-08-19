@@ -12,6 +12,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.hilt.work.HiltWorker
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.sync.CloudSyncEngine
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -31,6 +32,10 @@ class CloudSyncWorker @AssistedInject constructor(
             OutboundSyncWorker.enqueue(applicationContext)
             val result = CloudSyncEngine.onSessionReady(applicationContext)
             Log.i(TAG, "Cloud sync: $result")
+            if (result.mode == CloudSyncEngine.SyncResult.Mode.DEVICE_SLOT_DENIED) {
+                AuthStore(applicationContext).logout()
+                return Result.success()
+            }
             if (result.retryableFailure) Result.retry() else Result.success()
         }.getOrElse {
             Log.w(TAG, "Cloud sync failed", it)

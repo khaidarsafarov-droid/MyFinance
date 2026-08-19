@@ -60,6 +60,7 @@ fun LoginScreen(
     var showBiometricOffer by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        viewModel.consumeDeviceSlotDenial(context)
         viewModel.events.collect { event ->
             when (event) {
                 is AuthUiEvent.ShowToast ->
@@ -97,6 +98,24 @@ fun LoginScreen(
                         color = tc.TextSecondary,
                         textAlign = TextAlign.Center,
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.auth_device_limit_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                        textAlign = TextAlign.Center,
+                    )
+                    uiState.errorMessage?.let { message ->
+                        if (!uiState.showEmailFields) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.AccentExpense,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(32.dp))
 
                     GoogleSignInButton(

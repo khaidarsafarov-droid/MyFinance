@@ -47,6 +47,7 @@ import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.SupabaseAuthService
+import com.truckerload.data.sync.DeviceSlotLogin
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.presentation.auth.BiometricOptInDialog
 import com.truckerload.presentation.auth.GoogleAuthCallbacks
@@ -171,7 +172,18 @@ fun SignUpScreen(
                 android.widget.Toast.LENGTH_LONG,
             ).show()
         }
-        completeSignUp()
+        scope.launch {
+            val gate = withContext(Dispatchers.IO) {
+                DeviceSlotLogin.afterSessionPersisted(context, authStore)
+            }
+            isLoading = false
+            gate.fold(
+                onSuccess = { completeSignUp() },
+                onFailure = { denied ->
+                    error = denied.message ?: context.getString(R.string.auth_error_device_slot_unavailable)
+                },
+            )
+        }
     }
 
     fun performSignUp() {
@@ -230,7 +242,6 @@ fun SignUpScreen(
                                             r.user.email ?: emailTrimmed,
                                         )
                                         withContext(Dispatchers.Main) {
-                                            isLoading = false
                                             // Always persist local credentials + session after a
                                             // successful Supabase signUp — profile RPC failure must
                                             // not force the user to register again.

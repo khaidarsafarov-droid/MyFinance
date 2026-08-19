@@ -8,6 +8,7 @@ import com.truckerload.data.repository.auth.AuthRepository
 import com.truckerload.data.repository.auth.AuthSignInResult
 import com.truckerload.data.repository.auth.GoogleAuthCredential
 import com.truckerload.data.repository.auth.GoogleTokenRequestResult
+import com.truckerload.data.sync.DeviceSlotDenialStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,6 +44,14 @@ class AuthViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<AuthUiEvent>(extraBufferCapacity = 8)
     val events: SharedFlow<AuthUiEvent> = _events.asSharedFlow()
+
+    fun consumeDeviceSlotDenial(context: Context) {
+        val message = DeviceSlotDenialStore(context).consume() ?: return
+        viewModelScope.launch {
+            _events.emit(AuthUiEvent.ShowToast(message))
+            _uiState.update { it.copy(errorMessage = message) }
+        }
+    }
 
     fun showEmailFields() {
         _uiState.update { it.copy(showEmailFields = true, errorMessage = null) }

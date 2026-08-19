@@ -3,6 +3,7 @@ package com.truckerload.sync
 import android.content.Context
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.remote.GoogleSignInClients
+import com.truckerload.data.sync.DeviceSlotBinder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -18,6 +19,7 @@ object SessionTeardown {
      */
     suspend fun beforeLogout(context: Context) {
         val app = context.applicationContext
+        runCatching { DeviceSlotBinder(app).unregisterCurrentDevice() }
         FriendsLocationShareService.stopForLogout(app)
         TelegramBotForegroundService.stopForLogout(app)
         delay(300)

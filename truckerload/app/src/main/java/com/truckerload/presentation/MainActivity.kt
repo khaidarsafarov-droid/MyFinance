@@ -165,6 +165,17 @@ class MainActivity : AppCompatActivity() {
                                 android.util.Log.w("MainActivity", "Load repair failed", e)
                             }
                             if (!BuildConfig.LOCAL_ONLY_MODE) {
+                                val syncResult = runCatching {
+                                    com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                                }.onFailure { e ->
+                                    android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
+                                }.getOrNull()
+                                if (syncResult?.mode ==
+                                    com.truckerload.data.sync.CloudSyncEngine.SyncResult.Mode.DEVICE_SLOT_DENIED
+                                ) {
+                                    authStore.logout()
+                                    return@withContext
+                                }
                                 com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                                 com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
                                 com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
@@ -173,11 +184,6 @@ class MainActivity : AppCompatActivity() {
                                 ServerTelegramInboxWorker.enqueue(applicationContext)
                                 ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
                                 PushTokenRegistrationWorker.enqueue(applicationContext)
-                                runCatching {
-                                    com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
-                                }.onFailure { e ->
-                                    android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
-                                }
                                 runCatching {
                                     com.truckerload.data.backup.GoogleDriveBackupService
                                         .pushAutoBackupIfEnabled(applicationContext)

@@ -3,6 +3,8 @@ package com.truckerload.data.sync
 import android.content.Context
 import com.truckerload.BuildConfig
 import com.truckerload.contract.DevicePushTokenRequest
+import com.truckerload.contract.DeviceRegisterRequest
+import com.truckerload.contract.DeviceSlotPolicy
 import com.truckerload.contract.TelegramInboxListResponse
 import com.truckerload.contract.TelegramLinkTokenResponse
 import com.truckerload.data.preferences.AuthStore
@@ -180,6 +182,36 @@ class RemoteAccountCloudClient(
         ).execute()
         response.use {
             if (it.code != 204) throw IOException("Push token registration failed with HTTP ${it.code}")
+        }
+    }
+
+    suspend fun registerDevice(deviceId: String, formFactor: String) = withContext(Dispatchers.IO) {
+        val request = DeviceRegisterRequest(deviceId = deviceId, formFactor = formFactor)
+        val body = AccountCloudSnapshotCodec.gson.toJson(request).toRequestBody(JSON)
+        val response = client.newCall(
+            authorizedRequest(endpoint("v1", "devices", "register"))
+                .post(body)
+                .build(),
+        ).execute()
+        response.use {
+            if (it.isSuccessful) return@withContext
+            if (it.code == 409) {
+                throw DeviceSlotTakenException(
+                    formFactor = DeviceSlotPolicy.normalize(formFactor) ?: formFactor,
+                    message = "device_slot_taken",
+                )
+            }
+            throw IOException("Device registration failed with HTTP ${it.code}")
+        }
+    }
+
+    suspend fun unregisterDevice() = withContext(Dispatchers.IO) {
+        val url = endpoint("v1", "devices", "register").newBuilder()
+            .addQueryParameter("deviceId", deviceId)
+            .build()
+        val response = client.newCall(authorizedRequest(url).delete().build()).execute()
+        response.use {
+            if (it.code != 204) throw IOException("Device unregistration failed with HTTP ${it.code}")
         }
     }
 

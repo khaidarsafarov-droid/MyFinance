@@ -8,6 +8,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import java.sql.Connection
 import java.sql.ResultSet
+import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
@@ -47,6 +48,7 @@ fun jdbcRepositories(dataSource: DataSource): Repositories = Repositories(
     telegram = JdbcTelegramRepository(dataSource),
     media = JdbcMediaRepository(dataSource),
     pushTokens = JdbcPushTokenRepository(dataSource),
+    accountDevices = JdbcAccountDeviceRepository(dataSource),
     health = JdbcDatabaseHealth(dataSource),
 )
 
@@ -649,3 +651,111 @@ private fun ResultSet.toTelegramInbox(): TelegramInboxRecord = TelegramInboxReco
     receivedAt = getTimestamp("received_at").time,
     acknowledgedAt = getTimestamp("acknowledged_at")?.time,
 )
+
+private class JdbcAccountDeviceRepository(private val dataSource: DataSource) : AccountDeviceRepository {
+    override suspend fun claim(userId: UUID, deviceId: String, formFactor: String): DeviceClaimResult =
+        dataSource.query { connection ->
+            try {
+                connection.transaction {
+                    val occupant = connection.selectDevice(userId, formFactor = formFactor)
+                    val self = connection.selectDevice(userId, deviceId = deviceId)
+                    val now = System.currentTimeMillis()
+                    when (val decision = AccountDeviceClaims.decide(self, occupant, userId, deviceId, formFactor, now)) {
+                        is DeviceClaimResult.SlotTaken -> decision
+                        is DeviceClaimResult.Claimed -> {
+                            connection.upsertDevice(decision.record)
+                            decision
+                        }
+                    }
+                }
+            } catch (error: SQLException) {
+                if (isUniqueViolation(error)) {
+                    DeviceClaimResult.SlotTaken(formFactor, occupantDeviceId = "")
+                } else {
+                    throw error
+                }
+            }
+        }
+
+    override suspend fun delete(userId: UUID, deviceId: String): Boolean =
+        dataSource.query { connection ->
+            connection.prepareStatement(
+                "DELETE FROM account_devices WHERE user_id = ? AND device_id = ?",
+            ).use {
+                it.setObject(1, userId)
+                it.setString(2, deviceId)
+                it.executeUpdate() > 0
+            }
+        }
+
+    private fun Connection.selectDevice(
+        userId: UUID,
+        deviceId: String? = null,
+        formFactor: String? = null,
+    ): AccountDeviceRecord? {
+        val sql = if (deviceId != null) {
+            """
+            SELECT user_id, device_id, form_factor, registered_at, last_seen_at
+            FROM account_devices
+            WHERE user_id = ? AND device_id = ?
+            FOR UPDATE
+            """.trimIndent()
+        } else {
+            """
+            SELECT user_id, device_id, form_factor, registered_at, last_seen_at
+            FROM account_devices
+            WHERE user_id = ? AND form_factor = ?
+            FOR UPDATE
+            """.trimIndent()
+        }
+        return prepareStatement(sql).use { statement ->
+            statement.setObject(1, userId)
+            statement.setString(2, deviceId ?: formFactor)
+            statement.executeQuery().use { result ->
+                if (result.next()) result.toAccountDevice() else null
+            }
+        }
+    }
+
+    private fun Connection.upsertDevice(record: AccountDeviceRecord) {
+        prepareStatement(
+            """
+            INSERT INTO account_devices (user_id, device_id, form_factor, registered_at, last_seen_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (user_id, device_id) DO UPDATE
+            SET form_factor = EXCLUDED.form_factor,
+                last_seen_at = EXCLUDED.last_seen_at
+            """.trimIndent(),
+        ).use { statement ->
+            statement.setObject(1, record.userId)
+            statement.setString(2, record.deviceId)
+            statement.setString(3, record.formFactor)
+            statement.setTimestamp(4, Timestamp.from(Instant.ofEpochMilli(record.registeredAt)))
+            statement.setTimestamp(5, Timestamp.from(Instant.ofEpochMilli(record.lastSeenAt)))
+            statement.executeUpdate()
+        }
+    }
+}
+
+private fun ResultSet.toAccountDevice(): AccountDeviceRecord = AccountDeviceRecord(
+    userId = getObject("user_id", UUID::class.java),
+    deviceId = getString("device_id"),
+    formFactor = getString("form_factor"),
+    registeredAt = getTimestamp("registered_at").time,
+    lastSeenAt = getTimestamp("last_seen_at").time,
+)
+
+private fun isUniqueViolation(error: SQLException): Boolean {
+    var current: SQLException? = error
+    while (current != null) {
+        if (current.sqlState == "23505") return true
+        current = current.nextException
+    }
+    var cause = error.cause
+    while (cause != null) {
+        if (cause is SQLException && cause.sqlState == "23505") return true
+        cause = cause.cause
+    }
+    return false
+}
+
