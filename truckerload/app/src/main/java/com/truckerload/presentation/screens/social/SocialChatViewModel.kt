@@ -37,7 +37,9 @@ data class SocialChatUiState(
     val replyTo: SocialMessage? = null,
     val errorMessage: String? = null,
 ) {
-    val allMessages: List<SocialMessage> = olderMessages + messages
+    val allMessages: List<SocialMessage> =
+        (olderMessages.filter { older -> messages.none { it.id == older.id } } + messages)
+            .sortedWith(compareBy({ it.sentAt }, { it.id }))
 }
 
 @HiltViewModel

@@ -312,7 +312,8 @@ class CommunityRemoteClient(
                         replyToId = o.optString("reply_to_id").takeIf { it.isNotBlank() },
                         locationLabel = o.optString("location_label").takeIf { it.isNotBlank() },
                         durationMs = o.optLong("duration_ms"),
-                        sentAt = o.optEpochMillis("sent_at"),
+                        sentAt = o.optEpochMillis("sent_at").takeIf { it > 0L }
+                            ?: o.optEpochMillis("created_at"),
                     ),
                 )
             }

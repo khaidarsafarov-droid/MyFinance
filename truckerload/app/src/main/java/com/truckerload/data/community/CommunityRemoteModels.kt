@@ -84,5 +84,10 @@ data class RemoteCall(
     val createdAt: Long,
 )
 
-internal fun JSONObject.optEpochMillis(key: String): Long =
-    CommunityTime.parseMillis(optString(key))
+internal fun JSONObject.optEpochMillis(key: String): Long {
+    if (!has(key) || isNull(key)) return 0L
+    return when (val value = opt(key)) {
+        is Number -> CommunityTime.parseMillis(value.toLong().toString())
+        else -> CommunityTime.parseMillis(value?.toString().orEmpty())
+    }
+}
