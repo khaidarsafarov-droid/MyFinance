@@ -71,6 +71,7 @@ import com.truckerload.utils.ShareHelper
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.theme.UiDimens
 import java.util.Locale
 
@@ -398,7 +399,7 @@ private fun ActualFinishSection(
     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
         ) {
             Text(
                 stringResource(R.string.load_detail_finish_title),

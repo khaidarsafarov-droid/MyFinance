@@ -21,6 +21,7 @@ data class RemoteCommunityChat(
     val isPublic: Boolean,
     val lastMessage: String,
     val lastMessageAt: Long,
+    val description: String = "",
 )
 
 data class RemoteCommunityMember(
@@ -63,6 +64,8 @@ data class RemoteVoiceRoom(
     val creatorId: String,
     val isActive: Boolean,
     val createdAt: Long,
+    val description: String = "",
+    val moderatorId: String = "",
 )
 
 data class RemoteVoiceParticipant(
@@ -84,5 +87,10 @@ data class RemoteCall(
     val createdAt: Long,
 )
 
-internal fun JSONObject.optEpochMillis(key: String): Long =
-    CommunityTime.parseMillis(optString(key))
+internal fun JSONObject.optEpochMillis(key: String): Long {
+    if (!has(key) || isNull(key)) return 0L
+    return when (val value = opt(key)) {
+        is Number -> CommunityTime.parseMillis(value.toLong().toString())
+        else -> CommunityTime.parseMillis(value?.toString().orEmpty())
+    }
+}

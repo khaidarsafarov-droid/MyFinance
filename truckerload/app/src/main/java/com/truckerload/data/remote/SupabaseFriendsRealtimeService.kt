@@ -272,6 +272,7 @@ class SupabaseFriendsRealtimeService(
                 longitude = o.optDouble("longitude"),
                 updatedAtMillis = parseInstantMillis(o.optString("updated_at")),
                 sharePathEnabled = o.optBoolean("share_path_enabled", true),
+                avatarUrl = o.optString("avatar_url").takeIf { it.isNotBlank() },
             )
         }
         Result.success(out)

@@ -1,7 +1,6 @@
 package com.truckerload.presentation.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -37,40 +36,38 @@ fun FeedbackSettingsSection(
         title = stringResource(R.string.settings_feedback_title),
         modifier = modifier,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SettingsToggleRow(
-                icon = {
-                    Icon(
-                        Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = stringResource(R.string.settings_sound_title),
-                        tint = tc.AccentPrimary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                },
-                label = stringResource(R.string.settings_sound_title),
-                checked = soundEnabled,
-                onCheckedChange = {
-                    soundEnabled = it
-                    settingsViewModel.setSoundEnabled(it)
-                },
-            )
-            SettingsToggleRow(
-                icon = {
-                    Icon(
-                        Icons.Default.Vibration,
-                        contentDescription = stringResource(R.string.settings_vibration_title),
-                        tint = tc.AccentPrimary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                },
-                label = stringResource(R.string.settings_vibration_title),
-                checked = vibrationEnabled,
-                onCheckedChange = {
-                    vibrationEnabled = it
-                    settingsViewModel.setVibrationEnabled(it)
-                },
-            )
-        }
+        SettingsToggleRow(
+            icon = {
+                Icon(
+                    Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = stringResource(R.string.settings_sound_title),
+                    tint = tc.AccentPrimary,
+                    modifier = Modifier.size(22.dp),
+                )
+            },
+            label = stringResource(R.string.settings_sound_title),
+            checked = soundEnabled,
+            onCheckedChange = {
+                soundEnabled = it
+                settingsViewModel.setSoundEnabled(it)
+            },
+        )
+        SettingsToggleRow(
+            icon = {
+                Icon(
+                    Icons.Default.Vibration,
+                    contentDescription = stringResource(R.string.settings_vibration_title),
+                    tint = tc.AccentPrimary,
+                    modifier = Modifier.size(22.dp),
+                )
+            },
+            label = stringResource(R.string.settings_vibration_title),
+            checked = vibrationEnabled,
+            onCheckedChange = {
+                vibrationEnabled = it
+                settingsViewModel.setVibrationEnabled(it)
+            },
+        )
     }
 }
 

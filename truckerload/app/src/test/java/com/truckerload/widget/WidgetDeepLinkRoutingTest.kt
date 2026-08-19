@@ -46,4 +46,9 @@ class WidgetDeepLinkRoutingTest {
     fun resolveNavRoute_unknown_returnsNull() {
         assertNull(WidgetDeepLink.resolveNavRoute("nope"))
     }
+
+    @Test
+    fun resolveNavRoute_socialChat_passthrough() {
+        assertEquals("social_chat/abc%2Fdef", WidgetDeepLink.resolveNavRoute("social_chat/abc%2Fdef"))
+    }
 }

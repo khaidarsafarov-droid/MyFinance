@@ -56,6 +56,8 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
         val syncBackendUrl = localProps.getProperty("SYNC_BACKEND_URL", "")
+            .trim()
+            .ifBlank { "https://107.170.0.183.sslip.io" }
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "SYNC_BACKEND_URL", "\"$syncBackendUrl\"")
@@ -326,6 +328,9 @@ dependencies {
 
     // WebRTC audio — 1.3.10+ ships 16 KB-aligned libjingle_peerconnection_so.so (arm64)
     implementation("io.getstream:stream-webrtc-android:1.3.10")
+    // LiveKit SFU for group rooms. If Gradle reports duplicate org.webrtc classes,
+    // drop stream-webrtc-android and keep LiveKit's bundled WebRTC for mesh/1:1 too.
+    implementation("io.livekit:livekit-android:2.23.0")
 
     // Media session for call notifications
     implementation("androidx.media:media:1.7.0")

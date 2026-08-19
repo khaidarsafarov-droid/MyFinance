@@ -17,6 +17,8 @@ data class VoiceRoomEntity(
     val isActive: Boolean,
     val createdAt: Long,
     val updatedAt: Long,
+    val description: String = "",
+    val moderatorId: String = "",
 )
 
 @Entity(

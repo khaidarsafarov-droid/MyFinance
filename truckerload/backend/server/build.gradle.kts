@@ -27,6 +27,9 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jvm:3.5.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
     implementation("com.auth0:java-jwt:4.6.0")
+    implementation("com.auth0:jwks-rsa:0.22.2")
+    // Official LiveKit Kotlin server SDK: AccessToken + RoomService API.
+    implementation("io.livekit:livekit-server:0.14.0")
 
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.13")

@@ -10,7 +10,14 @@ data class VoiceRoom(
     val isActive: Boolean = true,
     val createdAt: Long,
     val updatedAt: Long,
-)
+    val description: String = "",
+    val moderatorId: String = "",
+) {
+    fun canDelete(userId: String): Boolean = creatorId.isNotBlank() && creatorId == userId
+
+    fun canManage(userId: String): Boolean =
+        canDelete(userId) || (moderatorId.isNotBlank() && moderatorId == userId)
+}
 
 enum class VoiceRoomType { PUBLIC, PRIVATE, GROUP }
 
@@ -27,8 +34,8 @@ data class VoiceParticipant(
 )
 
 data class VoiceRoomSettings(
-    val bitrate: Int = 64_000,
-    val sampleRate: Int = 48_000,
+    val bitrate: Int = VoiceAudioBudget.SPEECH_BPS,
+    val sampleRate: Int = 16_000,
     val echoCancellation: Boolean = true,
     val noiseSuppression: Boolean = true,
     val autoGainControl: Boolean = true,
@@ -60,6 +67,7 @@ data class Signal(
     val sdpMid: String? = null,
     val sdpMLineIndex: Int? = null,
     val timestamp: Long = System.currentTimeMillis(),
+    val id: String = "",
 )
 
 enum class SignalType {

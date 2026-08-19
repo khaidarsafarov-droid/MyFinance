@@ -24,6 +24,8 @@ data class GroupDetailUiState(
     val members: List<com.truckerload.domain.social.ChatMember> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val isCreator: Boolean = false,
+    val isManager: Boolean = false,
 )
 
 @HiltViewModel
@@ -41,11 +43,17 @@ class GroupDetailViewModel @Inject constructor(
             groupRepository.watchGroupMembers(chatId),
             _errorMessage,
         ) { chat, members, errorMessage ->
+            val me = members.find { it.isMe }
+            val isCreator = (chat?.creatorId?.isNotBlank() == true && chat.creatorId == me?.userId) ||
+                me?.role == "OWNER"
+            val isManager = isCreator || me?.role == "MODERATOR"
             GroupDetailUiState(
                 chat = chat,
                 members = members,
                 isLoading = false,
                 errorMessage = errorMessage,
+                isCreator = isCreator,
+                isManager = isManager,
             )
         }.catch { error ->
             emit(GroupDetailUiState(isLoading = false, errorMessage = error.toUiMessage()))
@@ -56,6 +64,36 @@ class GroupDetailViewModel @Inject constructor(
             _errorMessage.value = null
             when (val result = groupRepository.leaveGroup(chatId)) {
                 is SocialResult.Success -> onLeft()
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
+
+    fun updateDescription(description: String) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = groupRepository.updateGroupDescription(chatId, description)) {
+                is SocialResult.Success -> Unit
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
+
+    fun deleteGroup(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = groupRepository.deleteGroup(chatId)) {
+                is SocialResult.Success -> onDeleted()
+                is SocialResult.Error -> _errorMessage.value = result.message
+            }
+        }
+    }
+
+    fun setModerator(userId: String) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            when (val result = groupRepository.setModerator(chatId, userId)) {
+                is SocialResult.Success -> Unit
                 is SocialResult.Error -> _errorMessage.value = result.message
             }
         }

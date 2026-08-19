@@ -22,12 +22,7 @@ class WebRtcAudioEngine(private val context: Context) {
 
     fun initialize(): Result<Unit> = runCatching {
         if (initialized.get()) return@runCatching
-        PeerConnectionFactory.initialize(
-            PeerConnectionFactory.InitializationOptions.builder(context.applicationContext)
-                .setEnableInternalTracer(false)
-                .createInitializationOptions(),
-        )
-        factory = PeerConnectionFactory.builder().createPeerConnectionFactory()
+        factory = WebRtcInitializer.createFactory(context)
         initialized.set(true)
     }
 

@@ -14,6 +14,7 @@ class AccountIdsTest {
         val b = AccountIds.fromGoogleSub("abc123sub")
         assertEquals(a, b)
         assertTrue(a.startsWith("google_"))
+        assertEquals("google_1e4ed2e693f5094efd23d1619187358f", a)
     }
 
     @Test

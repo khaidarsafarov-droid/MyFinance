@@ -29,6 +29,7 @@ import com.truckerload.presentation.theme.tabExitTransition
 import com.truckerload.presentation.components.AdaptiveScaffold
 import com.truckerload.presentation.components.DrawerDestination
 import com.truckerload.presentation.components.navigateToMainRoute
+import com.truckerload.presentation.components.shouldShowPhoneBottomBar
 import com.truckerload.presentation.utils.AdaptiveScreenContainer
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.useNavigationRail
@@ -202,7 +203,7 @@ fun NavGraph(
             }
             else -> {
                 // Widget camera/scan resolve to attach_pick/{camera|scanner}.
-                if (destination.startsWith("attach_pick/")) {
+                if (destination.startsWith("attach_pick/") || destination.startsWith("social_chat/")) {
                     navController.navigate(destination) { launchSingleTop = true }
                     onDeepLinkHandled()
                 }
@@ -212,7 +213,6 @@ fun NavGraph(
 
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val phoneMainRoutes = listOf(Routes.HOME, Routes.STATS, Routes.COMMUNITY, Routes.PROFILE)
     val showMainNavigation = if (tablet) {
         currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
@@ -223,7 +223,7 @@ fun NavGraph(
             !currentRoute.orEmpty().startsWith("profile_peer") &&
             !currentRoute.orEmpty().startsWith("social_chat")
     } else {
-        currentRoute in phoneMainRoutes
+        shouldShowPhoneBottomBar(currentRoute)
     }
 
     val reduceMotion = rememberReduceMotion()

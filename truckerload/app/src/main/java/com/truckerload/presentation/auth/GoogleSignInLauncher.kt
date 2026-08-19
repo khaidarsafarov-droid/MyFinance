@@ -131,6 +131,7 @@ fun rememberGoogleSignInLauncher(
                         account.givenName.orEmpty(),
                         account.familyName.orEmpty(),
                         resolveGooglePhotoUrl(null, idToken, account.photoUrl?.toString()),
+                        accessToken = idToken,
                         googleId = account.id
                             ?: idToken?.let { decodeGoogleIdToken(it)?.optString("sub") },
                     )

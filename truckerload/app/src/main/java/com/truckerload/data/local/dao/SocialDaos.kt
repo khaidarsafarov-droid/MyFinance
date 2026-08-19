@@ -68,6 +68,9 @@ interface SocialChatDao {
     @Query("DELETE FROM social_chats WHERE id = :chatId")
     suspend fun deleteChat(chatId: String)
 
+    @Query("UPDATE social_chats SET description = :description WHERE id = :chatId")
+    suspend fun setDescription(chatId: String, description: String)
+
     @Query("SELECT COUNT(*) FROM social_chats WHERE archived = 0")
     suspend fun count(): Int
 
@@ -223,6 +226,9 @@ interface ChatMemberDao {
     @Query("SELECT COUNT(*) > 0 FROM chat_members WHERE chatId = :chatId AND userId = :userId")
     suspend fun isMember(chatId: String, userId: String): Boolean
 
+    @Query("SELECT * FROM chat_members WHERE chatId = :chatId AND userId = :userId LIMIT 1")
+    suspend fun getMember(chatId: String, userId: String): ChatMemberEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(member: ChatMemberEntity)
 
@@ -243,6 +249,12 @@ interface ChatMemberDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(members: List<ChatMemberEntity>)
+
+    @Query("UPDATE chat_members SET role = :role WHERE chatId = :chatId AND userId = :userId")
+    suspend fun setRole(chatId: String, userId: String, role: String)
+
+    @Query("UPDATE chat_members SET role = 'MEMBER' WHERE chatId = :chatId AND role = 'MODERATOR'")
+    suspend fun clearModerators(chatId: String)
 }
 
 @Dao

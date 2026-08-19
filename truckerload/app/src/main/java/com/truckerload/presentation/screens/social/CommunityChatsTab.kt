@@ -59,7 +59,7 @@ internal fun ChatsTabContent(
     peers: List<com.truckerload.domain.social.SocialPeerProfile>,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
-    onCreateGroup: (String) -> Unit,
+    onCreateGroup: (String, String) -> Unit,
     onCreatePrivateWithPeer: (String) -> Unit,
     onChatClick: (String) -> Unit,
     onOpenVoiceRooms: () -> Unit,
@@ -78,25 +78,37 @@ internal fun ChatsTabContent(
     var showGroupDialog by remember { mutableStateOf(false) }
     var showPeerPicker by remember { mutableStateOf(false) }
     var chatNameInput by remember { mutableStateOf("") }
+    var chatDescriptionInput by remember { mutableStateOf("") }
 
     if (showGroupDialog) {
         AlertDialog(
             onDismissRequest = { showGroupDialog = false },
             title = { Text(stringResource(R.string.social_create_group)) },
             text = {
-                OutlinedTextField(
-                    value = chatNameInput,
-                    onValueChange = { chatNameInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.social_chat_name_hint)) },
-                    singleLine = true,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = chatNameInput,
+                        onValueChange = { chatNameInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.social_chat_name_hint)) },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = chatDescriptionInput,
+                        onValueChange = { chatDescriptionInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.social_group_description)) },
+                        minLines = 2,
+                        maxLines = 4,
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onCreateGroup(chatNameInput)
+                        onCreateGroup(chatNameInput, chatDescriptionInput)
                         chatNameInput = ""
+                        chatDescriptionInput = ""
                         showGroupDialog = false
                     },
                     enabled = chatNameInput.isNotBlank(),
@@ -284,38 +296,48 @@ internal fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = null,
-                        tint = tc.TextSecondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "%.1f".format(chat.rating),
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                    )
-                    Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
-                    Icon(
-                        imageVector = Icons.Filled.People,
-                        contentDescription = null,
-                        tint = tc.TextSecondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = chat.participantCount.toString(),
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                    )
-                    Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
-                    Text(
-                        text = chat.lastMessage,
-                        style = AppTypography.Subtitle,
-                        color = tc.TextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (chat.rating > 0) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "%.1f".format(chat.rating),
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                    if (chat.participantCount > 0) {
+                        if (chat.rating > 0) {
+                            Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.People,
+                            contentDescription = null,
+                            tint = tc.TextSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = chat.participantCount.toString(),
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                    if (chat.lastMessage.isNotBlank()) {
+                        if (chat.rating > 0 || chat.participantCount > 0) {
+                            Text("·", style = AppTypography.Subtitle, color = tc.TextSecondary)
+                        }
+                        Text(
+                            text = chat.lastMessage,
+                            style = AppTypography.Subtitle,
+                            color = tc.TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
                 if (chat.description.isNotBlank()) {
                     Text(
@@ -328,7 +350,9 @@ internal fun ChatListItem(chat: SocialChat, onClick: () -> Unit) {
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(time, style = AppTypography.Subtitle, color = tc.TextSecondary)
+                if (chat.lastMessageAt > 0L) {
+                    Text(time, style = AppTypography.Subtitle, color = tc.TextSecondary)
+                }
                 if (chat.unreadCount > 0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

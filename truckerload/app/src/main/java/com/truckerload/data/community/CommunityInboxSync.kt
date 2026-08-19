@@ -14,6 +14,7 @@ class CommunityInboxSync(
     private val remote: CommunityRemoteClient,
     private val storage: CommunityStorageClient,
     private val cacheDir: File,
+    private val notifier: CommunityMessageNotifier? = null,
 ) {
     suspend fun pullAll() {
         if (!remote.isReady()) return
@@ -64,7 +65,7 @@ class CommunityInboxSync(
                     onlineCount = existing?.onlineCount ?: 0,
                     category = chat.category,
                     archived = existing?.archived ?: false,
-                    description = existing?.description.orEmpty(),
+                    description = chat.description.ifBlank { existing?.description.orEmpty() },
                     rating = existing?.rating ?: 0.0,
                     isPublic = chat.isPublic,
                     creatorId = chat.creatorId,
@@ -88,9 +89,14 @@ class CommunityInboxSync(
     suspend fun pullMessages() {
         val messages = remote.listMessages().getOrElse { return }
         val me = remote.actorId()
+        val incomingByChat = linkedMapOf<String, MutableList<RemoteCommunityMessage>>()
         messages.forEach { msg ->
-            val existed = db.socialMessageDao().getMessage(msg.id) != null
+            val existing = db.socialMessageDao().getMessage(msg.id)
+            val existed = existing != null
             val localPath = cacheAttachment(msg.attachmentUrl)
+            val sentAt = msg.sentAt.takeIf { it > 0L }
+                ?: existing?.sentAt?.takeIf { it > 0L }
+                ?: if (existed) existing?.sentAt ?: 0L else System.currentTimeMillis()
             db.socialMessageDao().insert(
                 SocialMessageEntity(
                     id = msg.id,
@@ -98,7 +104,7 @@ class CommunityInboxSync(
                     senderId = msg.senderId,
                     senderName = msg.senderName,
                     text = msg.text,
-                    sentAt = msg.sentAt,
+                    sentAt = sentAt,
                     messageType = msg.messageType,
                     attachmentUrl = localPath ?: msg.attachmentUrl,
                     replyToId = msg.replyToId,
@@ -106,9 +112,21 @@ class CommunityInboxSync(
                     durationMs = msg.durationMs,
                 ),
             )
-            if (!existed && msg.senderId != me) {
-                db.socialChatDao().incrementUnread(msg.chatId)
+            if (!existed && msg.senderId != me && msg.chatId.isNotBlank()) {
+                if (ActiveCommunityChat.chatId != msg.chatId) {
+                    db.socialChatDao().incrementUnread(msg.chatId)
+                    incomingByChat.getOrPut(msg.chatId) { mutableListOf() }.add(msg)
+                }
             }
+        }
+        incomingByChat.forEach { (chatId, incoming) ->
+            val last = incoming.last()
+            notifier?.notifyNewMessage(
+                chatId = chatId,
+                senderName = last.senderName,
+                text = last.text,
+                extraCount = incoming.size,
+            )
         }
     }
 

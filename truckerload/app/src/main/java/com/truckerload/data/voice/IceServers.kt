@@ -6,7 +6,9 @@ import org.webrtc.PeerConnection
 object IceServers {
     fun list(): List<PeerConnection.IceServer> {
         val servers = mutableListOf(
-            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer(),
+            stun("stun:stun.l.google.com:19302"),
+            stun("stun:stun1.l.google.com:19302"),
+            stun("stun:stun.cloudflare.com:3478"),
         )
         val turn = BuildConfig.TURN_URI.trim()
         if (turn.isNotBlank()) {
@@ -19,4 +21,7 @@ object IceServers {
         }
         return servers
     }
+
+    private fun stun(uri: String): PeerConnection.IceServer =
+        PeerConnection.IceServer.builder(uri).createIceServer()
 }

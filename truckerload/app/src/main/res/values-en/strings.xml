@@ -446,6 +446,9 @@
     <string name="friends_share_path_toggle">Show my path to friends</string>
     <string name="friends_share_path_hint">Off = do not send GPS or path history to Supabase</string>
     <string name="friends_route_truck_toggle">Truck routing</string>
+    <string name="friends_route_mode_title">What to show on the map</string>
+    <string name="friends_route_mode_traveled">Roads I drove</string>
+    <string name="friends_route_mode_remaining">Remaining route</string>
     <string name="friends_battery_saver_toggle">Battery saver (slower GPS)</string>
     <string name="friends_route_road_truck">Road route · Truck profile</string>
     <string name="friends_route_road_car">Road route · Car</string>
@@ -496,8 +499,9 @@
     <string name="friends_share_off_map_hint">Your spot is shown to you on the map. To let friends see you, turn the toggle on and add them by nickname.</string>
     <string name="friends_need_location_permission">Location permission is needed to show you on the map</string>
     <string name="friends_grant_location">Allow location</string>
-    <string name="friends_map_legend">Green — you · orange — friends online</string>
-    <string name="friends_me_marker">Me</string>
+    <string name="friends_map_legend">Green ring — you · orange ring — friends online</string>
+    <string name="friends_me_marker">I am</string>
+    <string name="friends_map_friend_fallback">Friend</string>
     <string name="friends_center_on_me">Center on me</string>
     <string name="friends_map_tap_open">Tap to open the full map</string>
     <string name="friends_map_close">Close map</string>
@@ -891,6 +895,9 @@
     <string name="push_notification_channel_name">Truck Log updates</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">A new update is available</string>
+    <string name="community_message_channel_name">Community messages</string>
+    <string name="community_message_notification_more">%d new messages</string>
+    <string name="community_message_notification_empty">New message</string>
     <string name="settings_battery_title">Background operation</string>
     <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for Truck Log.</string>
     <string name="settings_battery_button">Disable battery optimization</string>
@@ -1148,7 +1155,30 @@
     <string name="join_room">Join</string>
     <string name="leave_room">Leave</string>
     <string name="room_name">Room name</string>
-    <string name="participants_count">%d participants</string>
+    <plurals name="participants_count">
+        <item quantity="one">%d participant</item>
+        <item quantity="other">%d participants</item>
+    </plurals>
+    <string name="voice_room_description">Room description</string>
+    <string name="voice_room_edit">Edit room</string>
+    <string name="voice_room_manage">Room settings</string>
+    <string name="voice_room_delete_title">Delete room?</string>
+    <string name="voice_room_delete_message">Room \"%s\" will be deleted from the server for everyone.</string>
+    <string name="voice_room_assign_moderator">Assign moderator</string>
+    <string name="voice_room_moderator_current">%s (moderator)</string>
+    <string name="voice_room_clear_moderator">Remove moderator</string>
+    <string name="voice_room_no_other_participants">No other participants yet</string>
+    <string name="voice_room_moderator_badge">moderator</string>
+    <string name="voice_room_gone">This room was deleted</string>
+    <string name="social_group_description">Group description</string>
+    <string name="social_group_delete">Delete group</string>
+    <string name="social_group_delete_title">Delete group?</string>
+    <string name="social_group_delete_message">Group \"%s\" will be deleted from the server along with its messages.</string>
+    <string name="social_group_make_moderator">Make moderator</string>
+    <string name="social_group_moderator">Moderator</string>
+    <string name="social_group_owner">Owner</string>
+    <string name="social_error_delete_group">Could not delete group</string>
+    <string name="social_error_update_group">Could not update group</string>
     <string name="incoming_call">Incoming call</string>
     <string name="call_ended">Call ended</string>
     <string name="call_duration">Duration: %s</string>
@@ -1162,6 +1192,11 @@
     <string name="reject_call">Reject</string>
     <string name="audio_call">Audio call</string>
     <string name="bitrate">Bitrate: %d kbps</string>
+    <string name="voice_listener_bitrate">Listener · no uplink audio</string>
+    <string name="voice_role_speaker">Speaker</string>
+    <string name="voice_role_listener">Listener</string>
+    <string name="voice_transport_sfu">SFU</string>
+    <string name="voice_transport_mesh">P2P</string>
     <string name="mic_permission_required">Microphone access is required for voice chat</string>
     <string name="grant_mic_permission">Grant microphone</string>
     <string name="group_chat">Group chat</string>
@@ -1180,6 +1215,7 @@
     <string name="social_favorite_routes">Favorite routes</string>
     <string name="social_join_challenge">Join challenge</string>
     <string name="social_participants">participants</string>
+    <string name="social_pick_reaction">Add reaction</string>
     <string name="social_message_hint">Message…</string>
     <string name="social_send">Send</string>
     <string name="social_search_chats">Search chats…</string>

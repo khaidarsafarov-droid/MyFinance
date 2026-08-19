@@ -2,6 +2,7 @@ package com.truckerload.di
 
 import android.content.Context
 import com.truckerload.data.community.CommunityInboxSync
+import com.truckerload.data.community.CommunityMessageNotifier
 import com.truckerload.data.community.CommunityRemoteClient
 import com.truckerload.data.community.CommunityStorageClient
 import com.truckerload.data.local.AppDatabase
@@ -64,6 +65,7 @@ object SocialGraphModule {
             remote = remote,
             storage = storage,
             cacheDir = File(appContext.filesDir, "community_cache").apply { mkdirs() },
+            notifier = CommunityMessageNotifier(appContext),
         )
         val chatDao = db.socialChatDao()
         val messageDao = db.socialMessageDao()
@@ -119,6 +121,7 @@ object SocialGraphModule {
         val groupRepository = GroupRepositoryImpl(
             chatDao = chatDao,
             chatMemberDao = chatMemberDao,
+            messageDao = messageDao,
             profileDao = profileDao,
             appContext = appContext,
             actorId = actorId,

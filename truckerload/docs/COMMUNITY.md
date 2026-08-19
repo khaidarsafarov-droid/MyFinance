@@ -46,6 +46,9 @@ TURN_CREDENTIAL=...
 4. Community → private chat, groups (invite code), leaderboard, weekly miles
    challenge (opt-in aggregate stats only), statuses, voice rooms / calls.
 
+Group voice uses LiveKit SFU when the Ktor backend has `LIVEKIT_*` configured
+(see `docs/VOICE_SFU.md`); otherwise the client falls back to P2P mesh.
+
 Groups are invite-code only (not a public directory). Share the code from
 the group screen. Without friends, Community shows an empty-state CTA
 instead of demo users.

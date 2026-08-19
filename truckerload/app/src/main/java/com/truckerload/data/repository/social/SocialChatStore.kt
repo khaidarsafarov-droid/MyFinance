@@ -93,7 +93,9 @@ class SocialChatStore(
             reactionDao.watchReactionsForChat(chatId),
         ) { messages, reactions ->
             val byId = messages.associateBy { it.id }
-            messages.map { entity ->
+            messages
+                .sortedWith(compareBy({ it.sentAt }, { it.id }))
+                .map { entity ->
                 entity.toDomain(
                     isMine = SocialIdentity.isMine(entity.senderId, me),
                     reactions = summarizeReactions(

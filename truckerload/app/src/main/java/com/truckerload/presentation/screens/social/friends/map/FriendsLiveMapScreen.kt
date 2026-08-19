@@ -116,6 +116,8 @@ fun FriendsLiveMapScreen(
             myPathRemaining = uiState.myPathRemaining,
             selectedFriendId = uiState.selectedFriendId,
             myLocation = myLocation,
+            myAvatarUrl = uiState.myAvatarUrl,
+            routeDisplayMode = uiState.routeDisplayMode,
             showMyLocationLayer = hasLocationPermission,
             centerOnMeNonce = centerOnMeNonce,
             isLoading = uiState.isLoading && uiState.friends.isEmpty() && myLocation == null,
@@ -226,6 +228,11 @@ fun FriendsLiveMapScreen(
                         colors = AppSwitchDefaults.colors(),
                     )
                 }
+                FriendsRouteModeSelector(
+                    selected = uiState.routeDisplayMode,
+                    onSelect = viewModel::setRouteDisplayMode,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -264,11 +271,13 @@ fun FriendsLiveMapScreen(
                         ) {
                             if (!mapExpanded) {
                                 FriendsGoogleMap(
-                                    overlays = emptyList(),
+                                    overlays = uiState.friends,
                                     myPathPast = uiState.myPathPast,
                                     myPathRemaining = uiState.myPathRemaining,
-                                    selectedFriendId = null,
+                                    selectedFriendId = uiState.selectedFriendId,
                                     myLocation = myLocation,
+                                    myAvatarUrl = uiState.myAvatarUrl,
+                                    routeDisplayMode = uiState.routeDisplayMode,
                                     showMyLocationLayer = hasLocationPermission,
                                     centerOnMeNonce = 0,
                                     interactive = false,

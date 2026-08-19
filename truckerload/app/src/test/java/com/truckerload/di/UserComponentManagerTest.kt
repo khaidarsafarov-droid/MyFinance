@@ -3,6 +3,7 @@ package com.truckerload.di
 import android.app.Application
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
+import com.truckerload.data.remote.ktor.HttpClientProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -30,7 +31,7 @@ class UserComponentManagerTest {
     fun setUp() {
         app = RuntimeEnvironment.getApplication()
         profileStore = mock()
-        manager = UserComponentManager(app, profileStore)
+        manager = UserComponentManager(app, profileStore, mock<HttpClientProvider>())
     }
 
     @After
