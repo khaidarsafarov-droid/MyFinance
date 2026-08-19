@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.domain.social.LeaderboardCategory
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -63,7 +64,10 @@ internal fun LeaderboardTabContent(
         }
         if (entries.none { !it.isMe }) {
             item {
-                CommunityAddFriendsHint(onOpenFriends = onOpenFriends)
+                CommunityAddFriendsHint(
+                    area = CommunityHintArea.LEADERBOARD,
+                    onOpenFriends = onOpenFriends,
+                )
             }
         }
         items(entries, key = { "${it.rank}_${it.displayName}" }) { entry ->

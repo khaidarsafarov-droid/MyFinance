@@ -38,7 +38,6 @@ fun NotificationSettingsSection(
 
     BentoGlassSection(
         title = stringResource(R.string.settings_notifications_title),
-        subtitle = stringResource(R.string.settings_notifications_desc),
         modifier = modifier,
     ) {
         SettingsToggleRow(
@@ -61,11 +60,6 @@ fun NotificationSettingsSection(
             onCheckedChange = { enabled ->
                 scope.launch { settingsDataStore.saveQuietHoursEnabled(enabled) }
             },
-        )
-        Text(
-            text = stringResource(R.string.settings_quiet_hours_desc),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
         )
         if (quietHoursEnabled) {
             QuietHourSlider(

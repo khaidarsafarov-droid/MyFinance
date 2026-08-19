@@ -750,6 +750,7 @@
     <string name="drive_sync_last">Last sync: %1$s</string>
     <string name="drive_sync_last_never">never</string>
     <string name="drive_sync_connect">Connect Google Drive</string>
+    <string name="drive_sync_now">Sync with Google Drive</string>
     <string name="drive_sync_disconnect">Disconnect</string>
     <string name="drive_sync_backup_now">Save to Drive</string>
     <string name="drive_sync_restore_now">Restore from Drive</string>

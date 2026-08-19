@@ -63,7 +63,6 @@ fun PrivacySettingsSection(
 
     BentoGlassSection(
         title = stringResource(R.string.settings_privacy_title),
-        subtitle = stringResource(R.string.settings_privacy_desc),
         modifier = modifier,
     ) {
         PrivacyPermissionRow(
@@ -104,11 +103,6 @@ fun PrivacySettingsSection(
                     color = tc.TextPrimary,
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                Text(
-                    text = stringResource(R.string.settings_privacy_share_path_desc),
-                    color = tc.TextSecondary,
-                    style = MaterialTheme.typography.bodySmall,
-                )
             }
             Switch(
                 checked = sharePath,
@@ -131,11 +125,6 @@ fun PrivacySettingsSection(
                     text = stringResource(R.string.settings_privacy_battery_saver),
                     color = tc.TextPrimary,
                     style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = stringResource(R.string.settings_privacy_battery_saver_desc),
-                    color = tc.TextSecondary,
-                    style = MaterialTheme.typography.bodySmall,
                 )
             }
             Switch(

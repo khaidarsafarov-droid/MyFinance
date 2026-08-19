@@ -36,11 +36,6 @@ fun AddLoadModeSelector(
             style = MaterialTheme.typography.titleSmall,
             color = tc.TextPrimary,
         )
-        Text(
-            text = stringResource(R.string.add_load_mode_subtitle),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
-        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

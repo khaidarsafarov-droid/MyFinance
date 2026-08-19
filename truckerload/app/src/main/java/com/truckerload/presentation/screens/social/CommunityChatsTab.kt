@@ -24,9 +24,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,8 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.SocialChat
+import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -44,6 +48,7 @@ import com.truckerload.presentation.theme.UiDimens
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
 
@@ -61,6 +66,15 @@ internal fun ChatsTabContent(
     onOpenFriends: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val settingsDataStore = LocalSettingsDataStore.current
+    val hintScope = rememberCoroutineScope()
+    fun markChatsUsed() {
+        hintScope.launch { settingsDataStore.markCommunityHintUsed(CommunityHintArea.CHATS) }
+    }
+    val hasChats = groupChats.isNotEmpty() || privateChats.isNotEmpty()
+    LaunchedEffect(hasChats) {
+        if (hasChats) settingsDataStore.markCommunityHintUsed(CommunityHintArea.CHATS)
+    }
     var showGroupDialog by remember { mutableStateOf(false) }
     var showPeerPicker by remember { mutableStateOf(false) }
     var chatNameInput by remember { mutableStateOf("") }
@@ -166,6 +180,7 @@ internal fun ChatsTabContent(
             ) {
                 Button(
                     onClick = {
+                        markChatsUsed()
                         chatNameInput = ""
                         showGroupDialog = true
                     },
@@ -175,6 +190,7 @@ internal fun ChatsTabContent(
                 }
                 Button(
                     onClick = {
+                        markChatsUsed()
                         chatNameInput = ""
                         showPeerPicker = true
                     },
@@ -195,7 +211,10 @@ internal fun ChatsTabContent(
         }
         if (groupChats.isEmpty() && privateChats.isEmpty()) {
             item {
-                CommunityAddFriendsHint(onOpenFriends = onOpenFriends)
+                CommunityAddFriendsHint(
+                    area = CommunityHintArea.CHATS,
+                    onOpenFriends = onOpenFriends,
+                )
             }
         }
         item {
@@ -223,18 +242,12 @@ internal fun ChatsTabContent(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp),
                     )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.voice_rooms),
-                            style = AppTypography.CardTitle,
-                            color = tc.TextPrimary,
-                        )
-                        Text(
-                            text = stringResource(R.string.voice_rooms_subtitle),
-                            style = AppTypography.Subtitle,
-                            color = tc.TextSecondary,
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.voice_rooms),
+                        style = AppTypography.CardTitle,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         }

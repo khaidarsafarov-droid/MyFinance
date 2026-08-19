@@ -45,7 +45,6 @@ fun BiometricSettingsSection(
 
     BentoGlassSection(
         title = stringResource(R.string.settings_biometric_title),
-        subtitle = stringResource(R.string.settings_biometric_desc),
         modifier = modifier,
     ) {
         Row(

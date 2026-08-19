@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.domain.social.SocialChat
+import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -56,6 +58,16 @@ fun GroupsScreen(
     val displayName = profileState.profile?.displayName.orEmpty()
     val tc = LocalTruckColors.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val settingsDataStore = LocalSettingsDataStore.current
+
+    LaunchedEffect(uiState.publicGroups, uiState.recommendedGroups, uiState.inviteCode) {
+        if (uiState.publicGroups.isNotEmpty() ||
+            uiState.recommendedGroups.isNotEmpty() ||
+            uiState.inviteCode.isNotBlank()
+        ) {
+            settingsDataStore.markCommunityHintUsed(CommunityHintArea.GROUPS)
+        }
+    }
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
@@ -110,9 +122,13 @@ fun GroupsScreen(
             item {
                 Text(stringResource(R.string.social_public_groups), style = MaterialTheme.typography.titleMedium, color = tc.TextPrimary)
             }
-            if (uiState.publicGroups.isEmpty()) {
+            if (uiState.publicGroups.isEmpty() && uiState.recommendedGroups.isEmpty()) {
                 item {
-                    CommunityEmptyHint(stringResource(R.string.community_empty_groups))
+                    CommunityFirstUseHint(
+                        area = CommunityHintArea.GROUPS,
+                        message = stringResource(R.string.community_empty_groups),
+                        hasContent = uiState.inviteCode.isNotBlank(),
+                    )
                 }
             }
             items(uiState.publicGroups, key = { it.id }) { group ->

@@ -53,4 +53,12 @@ class SettingsDataStoreThemeTest {
         assertEquals(false, store.getNotifyMissingWeekOnce())
         assertEquals(false, store.getNotifyMaintenanceOnce())
     }
+
+    @Test
+    fun communityHints_defaultUnusedThenMarkUsed() = runBlocking {
+        assertEquals(false, store.isCommunityHintUsedOnce(CommunityHintArea.CHATS))
+        store.markCommunityHintUsed(CommunityHintArea.CHATS)
+        assertEquals(true, store.isCommunityHintUsedOnce(CommunityHintArea.CHATS))
+        assertEquals(false, store.isCommunityHintUsedOnce(CommunityHintArea.STATUS))
+    }
 }
