@@ -502,7 +502,7 @@
     <string name="friends_accepted_empty">Пока нет друзей — отправьте заявку по нику.</string>
     <string name="friends_open_map">Открыть карту друзей</string>
     <string name="friends_sharing_list_title">С кем я делюсь</string>
-    <string name="friends_sharing_list_hint">Удалить или настроить: показывать себя / маршрут этому другу</string>
+    <string name="friends_sharing_list_hint">Нажмите ⋯: путь, фокус, шаринг или удалить друга</string>
     <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — нажмите + чтобы добавить друга по нику</string>
     <string name="friends_add_friend_cd">Добавить друга</string>
     <string name="friends_add_friend_close_cd">Закрыть добавление друга</string>
@@ -523,6 +523,15 @@
     <string name="friends_map_close">Закрыть карту</string>
     <string name="friends_manage_section">Друзья и доступ</string>
     <string name="friends_online_count">Онлайн: %1$d</string>
+    <string name="friends_presence_summary">Онлайн: %1$d · недавно: %2$d</string>
+    <string name="friends_status_online">Онлайн</string>
+    <string name="friends_status_recent">Недавно в сети</string>
+    <string name="friends_status_offline">Офлайн</string>
+    <string name="friends_friend_menu_cd">Действия с другом</string>
+    <string name="friends_section_menu_cd">Ещё</string>
+    <string name="friends_settings_section">Настройки карты</string>
+    <string name="friends_settings_hint_share">путь друзьям</string>
+    <string name="friends_settings_hint_battery">экономия батареи</string>
     <string name="stats_ai_keyword_diesel">дизел</string>
     <string name="stats_ai_keyword_profit">прибыл</string>
     <string name="calendar_prev_month_cd">Предыдущий месяц</string>

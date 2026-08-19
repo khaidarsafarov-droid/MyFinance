@@ -502,7 +502,7 @@
     <string name="friends_accepted_empty">No friends yet — send a request by nickname.</string>
     <string name="friends_open_map">Open friends map</string>
     <string name="friends_sharing_list_title">Who I share with</string>
-    <string name="friends_sharing_list_hint">Delete or edit: show yourself / your route to this friend</string>
+    <string name="friends_sharing_list_hint">Tap ⋯ for path, focus, sharing, or remove</string>
     <string name="friends_sharing_list_empty">Nobody yet — tap + to add a friend by nickname</string>
     <string name="friends_add_friend_cd">Add friend</string>
     <string name="friends_add_friend_close_cd">Close add friend</string>
@@ -523,6 +523,15 @@
     <string name="friends_map_close">Close map</string>
     <string name="friends_manage_section">Friends &amp; sharing</string>
     <string name="friends_online_count">Online: %1$d</string>
+    <string name="friends_presence_summary">Online: %1$d · recently: %2$d</string>
+    <string name="friends_status_online">Online</string>
+    <string name="friends_status_recent">Recently online</string>
+    <string name="friends_status_offline">Offline</string>
+    <string name="friends_friend_menu_cd">Friend actions</string>
+    <string name="friends_section_menu_cd">More</string>
+    <string name="friends_settings_section">Map settings</string>
+    <string name="friends_settings_hint_share">path sharing</string>
+    <string name="friends_settings_hint_battery">battery saver</string>
     <string name="stats_ai_keyword_diesel">diesel</string>
     <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>
