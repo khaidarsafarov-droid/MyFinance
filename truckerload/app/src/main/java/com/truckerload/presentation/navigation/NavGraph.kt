@@ -296,6 +296,7 @@ fun NavGraph(
                     navController.navigate(Routes.call(callId)) { launchSingleTop = true }
                 },
             )
+            com.truckerload.presentation.voice.VoiceCommandHandler(navController = navController)
         }
     }
 }

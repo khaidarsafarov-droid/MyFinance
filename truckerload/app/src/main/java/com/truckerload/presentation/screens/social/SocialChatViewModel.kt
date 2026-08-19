@@ -98,6 +98,9 @@ class SocialChatViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SocialChatUiState())
 
     init {
+        com.truckerload.voice.VoicePendingDraft.consumeChatText()?.let { draft ->
+            _input.value = draft
+        }
         viewModelScope.launch {
             socialSyncCoordinator.ensureInitialized()
             chatRepository.markChatRead(chatId)

@@ -84,6 +84,7 @@ The backend serves `/health/live`, dependency-aware `/health/ready`,
 - Geotagged camera, gallery, PDFs, and load attachments
 - Google/email account flow with local-only development mode
 - Device or server Telegram ingestion
+- Google Assistant / Gemini: App Actions for real Truck Log screens (loads, goal, community, friends map, chat/call with a friend). See [docs/VOICE_ASSISTANTS.md](docs/VOICE_ASSISTANTS.md).
 - Optional FCM and Crashlytics only when `app/google-services.json` is present
 - Durable photo/scan cloud queue and verified cross-device download, gated off by
   default with `CLOUD_MEDIA_ENABLED=false`
