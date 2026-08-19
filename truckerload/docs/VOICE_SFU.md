@@ -15,8 +15,8 @@ Truck Passe / Truck Logi — тот же модуль `:app`. Отдельног
 | **LiveKit SFU** | **один** поток 12–20 kbps | нет (токен с Ktor) | свой сервер (OSS) |
 | Agora Voice SDK | один поток | App ID / сертификат | нет (их облако) |
 
-LiveKit выбран как основной путь: открытый SFU, Opus + DTX, AEC/ANS WebRTC,
-токен **только на бэкенде**, комнаты уже есть в `community_voice_*`.
+Ktor depends on `io.livekit:livekit-server` (`AccessToken` in
+`LiveKitAccessToken`). The API secret stays in `LIVEKIT_API_SECRET`.
 
 Mesh остаётся fallback, если `SYNC_BACKEND_URL` пустой, `LOCAL_ONLY_MODE=true`,
 или `POST /v1/voice/token` отвечает 503 (LiveKit не настроен).

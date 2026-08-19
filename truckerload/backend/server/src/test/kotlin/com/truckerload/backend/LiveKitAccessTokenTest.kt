@@ -24,7 +24,7 @@ class LiveKitAccessTokenTest {
             .build()
             .verify(jwt)
         assertEquals("11111111-1111-4111-8111-111111111111", decoded.subject)
-        assertEquals("devkey", decoded.keyId)
+        assertEquals("devkey", decoded.issuer)
         assertEquals("Alex", decoded.getClaim("name").asString())
         val video = decoded.getClaim("video").asMap()
         assertEquals(true, video["roomJoin"])
