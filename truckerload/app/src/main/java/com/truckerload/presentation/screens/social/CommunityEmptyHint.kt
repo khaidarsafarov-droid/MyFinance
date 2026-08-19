@@ -28,9 +28,10 @@ internal fun CommunityEmptyHint(
     message: String,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
-    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+    BentoGlassCard(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(message, style = AppTypography.Subtitle, color = tc.TextSecondary)
             if (actionLabel != null && onAction != null) {

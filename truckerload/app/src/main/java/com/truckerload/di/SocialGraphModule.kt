@@ -10,6 +10,7 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.ChatRepositoryImpl
 import com.truckerload.data.repository.social.GroupRepository
@@ -46,6 +47,7 @@ object SocialGraphModule {
         val syncCoordinator: SocialSyncCoordinator,
         val remote: CommunityRemoteClient,
         val voiceRemote: com.truckerload.data.community.CommunityVoiceRemote,
+        val crowdRpm: CrowdRpmRepository,
         val actorId: () -> String,
     )
 
@@ -155,6 +157,7 @@ object SocialGraphModule {
             remote = remote,
             inbox = inbox,
         )
+        val crowdRpm = CrowdRpmRepository(db = db, remote = remote)
         return Bundle(
             profile = profileRepository,
             chat = chatRepository,
@@ -164,6 +167,7 @@ object SocialGraphModule {
             syncCoordinator = syncCoordinator,
             remote = remote,
             voiceRemote = voiceRemote,
+            crowdRpm = crowdRpm,
             actorId = actorId,
         )
     }

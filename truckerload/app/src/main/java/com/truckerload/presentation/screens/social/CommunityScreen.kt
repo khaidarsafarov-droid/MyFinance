@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.preferences.CommunityHintArea
+import com.truckerload.domain.crowd.CommunityCompetitive
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.di.LocalSettingsDataStore
@@ -61,6 +62,10 @@ fun CommunityScreen(
     val chatsState by chatsViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val leaderboard by communityViewModel.leaderboard.collectAsStateWithLifecycle()
+    val crowdRpm by communityViewModel.crowdRpm.collectAsStateWithLifecycle()
+    val friendsState by friendsDirectoryViewModel.uiState.collectAsStateWithLifecycle()
+    val friendsCount = friendsState.acceptedFriends.size
+    val showRanking = CommunityCompetitive.showFriendRanking(friendsCount)
     val context = LocalContext.current
     val challenge = communityState.challenge
     val snackbarHostState = remember { SnackbarHostState() }
@@ -103,6 +108,7 @@ fun CommunityScreen(
                 contentDescription = stringResource(R.string.profile),
                 onClick = onOpenProfile,
             )
+            CommunityOverflowMenu(onOpenVoiceRooms = onOpenVoiceRooms)
         },
     ) { padding ->
         Column(
@@ -110,6 +116,10 @@ fun CommunityScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
+            AddFriendsBanner(
+                visible = !showRanking,
+                onOpenFriends = onOpenFriends,
+            )
             PrimaryTabRow(selectedTabIndex = tabIndex) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -133,16 +143,15 @@ fun CommunityScreen(
                         chatsViewModel.createPrivateChatWithPeer(peerId) { chatId -> onOpenChat(chatId) }
                     },
                     onChatClick = onOpenChat,
-                    onOpenVoiceRooms = onOpenVoiceRooms,
                     onOpenFriends = onOpenFriends,
                     friendsDirectoryViewModel = friendsDirectoryViewModel,
                 )
                 1 -> LeaderboardTabContent(
                     entries = leaderboard,
+                    crowdRpm = crowdRpm,
+                    showRanking = showRanking,
                     onCategoryChange = communityViewModel::setLeaderboardCategory,
                     onPeerClick = onOpenPeerProfile,
-                    onOpenFriends = onOpenFriends,
-                    friendsDirectoryViewModel = friendsDirectoryViewModel,
                 )
 
                 2 -> if (challenge == null) {
@@ -165,9 +174,8 @@ fun CommunityScreen(
                         challenge = challenge,
                         joined = communityState.challengeJoined,
                         isJoining = communityState.isJoiningChallenge,
+                        showRanking = showRanking,
                         onJoin = communityViewModel::joinChallenge,
-                        onOpenFriends = onOpenFriends,
-                        friendsDirectoryViewModel = friendsDirectoryViewModel,
                     )
                 }
             }
