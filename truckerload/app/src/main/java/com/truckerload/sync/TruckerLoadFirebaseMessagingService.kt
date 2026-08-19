@@ -16,6 +16,7 @@ import com.truckerload.R
 import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.data.sync.cloud.SyncModeStore
 import com.truckerload.data.voice.CallNotifications
+import com.truckerload.domain.friends.FriendsLocationSharePolicy
 import com.truckerload.presentation.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -47,6 +48,10 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
                 ServerTelegramInboxWorker.enqueue(applicationContext)
                 CommunityInboxWorker.enqueue(applicationContext)
             }
+            return
+        }
+        if (type == FriendsLocationSharePolicy.FCM_WATCH_TYPE) {
+            FriendsLocationShareScheduler.startLiveSession(applicationContext, fromUserToggle = false)
             return
         }
         if (handleCallPush(type, message.data)) return

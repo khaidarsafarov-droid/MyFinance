@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -54,7 +55,7 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.sync.FriendsLocationShareService
+import com.truckerload.sync.FriendsLocationShareScheduler
 import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -101,11 +102,15 @@ fun FriendsLiveMapScreen(
         }
     }
 
-    LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
-        if (uiState.sharePathEnabled && uiState.supabaseReady && hasLocationPermission) {
-            FriendsLocationShareService.start(context)
+    DisposableEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
+        val liveMap = uiState.sharePathEnabled && uiState.supabaseReady && hasLocationPermission
+        if (liveMap) {
+            FriendsLocationShareScheduler.onFriendsMapOpened(context)
         } else {
-            FriendsLocationShareService.stop(context)
+            FriendsLocationShareScheduler.sync(context)
+        }
+        onDispose {
+            FriendsLocationShareScheduler.onFriendsMapClosed(context)
         }
     }
 
