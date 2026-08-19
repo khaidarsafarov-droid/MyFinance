@@ -34,7 +34,8 @@ AEC / ANS / AGC / high-pass включены в `LocalAudioTrackOptions` (LiveKi
 
 1. Поднять **свой** LiveKit OSS рядом с Ktor (`LIVEKIT_URL=wss://…`).
    Облачные подписки (Agora / Zego / LiveKit Cloud) не используются.
-   Пример: https://docs.livekit.io/home/self-hosting/local/
+   Локально: `docker compose up livekit` или `sh ./scripts/run-livekit.sh`
+   (`ws://localhost:7880`, ключи `--dev`: `devkey` / `secret`).
 2. Выдать API Key + Secret, положить **только** в env бэкенда:
    `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`.
 3. Задеплоить Ktor. Проверка: авторизованный

@@ -2,7 +2,7 @@
 
 ## Local Docker Compose
 
-Requirements: JDK 21, Docker with Compose v2, and ports 8080, 9000, and 9001
+Requirements: JDK 21, Docker with Compose v2, and ports 8080, 7880, 9000, and 9001
 available.
 
 ```bash
@@ -12,7 +12,9 @@ cp .env.example .env
 
 Replace every `change-me` value in `.env`. Use random development-only values; never
 reuse production credentials. The Compose stack supplies PostgreSQL, MinIO, bucket
-creation, and the Ktor backend:
+creation, the Ktor backend, and a LiveKit SFU (`--dev` on port 7880,
+keys `devkey`/`secret` via `LIVEKIT_*` in `.env.example`). Without Docker:
+`sh ./scripts/run-livekit.sh`.
 
 ```bash
 docker compose config --quiet
