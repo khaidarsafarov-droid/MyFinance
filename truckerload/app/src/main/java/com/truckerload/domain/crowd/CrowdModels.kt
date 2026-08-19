@@ -8,7 +8,10 @@ enum class CrowdScope {
 }
 
 /**
- * One lane rate: RPM observed on a from→to state lane at a point in time.
+ * Local map heatmap row (on-device only). Not the Crowd RPM share payload.
+ *
+ * Shareable fields live on [AnonymizedRpmSample]. [rate] is reconstructed as
+ * `rpm * miles` for local coloring — never log this type as a network body.
  */
 data class CrowdRateReport(
     val id: String,

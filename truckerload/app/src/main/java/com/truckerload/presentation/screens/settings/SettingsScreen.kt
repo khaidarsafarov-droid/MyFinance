@@ -70,7 +70,8 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    showBack: Boolean = false
+    showBack: Boolean = false,
+    onOpenPrivacy: () -> Unit = {},
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
     val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
@@ -196,7 +197,7 @@ fun SettingsScreen(
                 end = {
                     Column {
                         BiometricSettingsSection()
-                        PrivacySettingsSection()
+                        PrivacySettingsSection(onOpenPrivacy = onOpenPrivacy)
                         NotificationSettingsSection(
                             quietHoursEnabled = quietHoursEnabled,
                             quietHoursStart = quietHoursStart,

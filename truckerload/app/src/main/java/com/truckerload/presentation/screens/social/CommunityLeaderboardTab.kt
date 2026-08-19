@@ -40,6 +40,7 @@ internal fun LeaderboardTabContent(
     onPeerClick: (String) -> Unit,
     onOpenFriends: () -> Unit,
     friendsDirectoryViewModel: FriendsDirectoryViewModel,
+    crowdWeekSummary: com.truckerload.domain.crowd.CrowdRpmWeekSummary? = null,
 ) {
     val tc = LocalTruckColors.current
     var categoryIndex by remember { mutableIntStateOf(0) }
@@ -50,6 +51,11 @@ internal fun LeaderboardTabContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        crowdWeekSummary?.let { summary ->
+            item(key = "crowd_rpm") {
+                CommunityCrowdRpmSection(summary = summary)
+            }
+        }
         item {
             PrimaryTabRow(selectedTabIndex = categoryIndex) {
                 categories.forEachIndexed { index, category ->

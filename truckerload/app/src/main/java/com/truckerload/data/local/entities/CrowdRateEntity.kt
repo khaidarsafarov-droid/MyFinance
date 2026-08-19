@@ -5,7 +5,9 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * Cached anonymized crowd rate (friend or network). Local "me" rates are derived from loads.
+ * Cached anonymized crowd rate (friend or network). Local "me" rates are derived from loads
+ * via [com.truckerload.domain.crowd.CrowdRpmMapper] — never persist tripId, rawMessage,
+ * or exact addresses here. Do not log row contents.
  */
 @Entity(
     tableName = "crowd_rates",

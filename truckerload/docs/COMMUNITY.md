@@ -57,3 +57,6 @@ Groups are invite-code only (not a public directory). Share the code from
 the group screen. Without friends, Community shows an empty-state CTA
 instead of demo users.
 Without a cloud JWT, Community stays on-device only (local sandbox).
+
+Crowd RPM (anonymized weekly RPM + miles) is **opt-in** and never includes
+trip ids, raw messages, addresses, or user names. See `docs/CROWD_RPM_PRIVACY.md`.

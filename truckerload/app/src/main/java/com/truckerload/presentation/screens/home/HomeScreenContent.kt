@@ -51,6 +51,7 @@ import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.ForestSectionTitle
@@ -82,6 +83,7 @@ internal fun HomeScreenContent(
     onAddLoad: () -> Unit = {},
     onOpenWeeklyGoal: () -> Unit = {},
     periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
+    onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     var showYearSelector by remember { mutableStateOf(false) }
@@ -189,13 +191,21 @@ internal fun HomeScreenContent(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item(key = "search") {
-                if (uiState.isSearchExpanded || searchQuery.isNotBlank()) {
-                    BentoGlassSearchField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.setSearchQuery(it) },
-                        placeholder = stringResource(R.string.home_search_hint),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
+                Column {
+                    if (tabletChrome) {
+                        PrivacyTrustBadge(
+                            onClick = onOpenPrivacy,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                    }
+                    if (uiState.isSearchExpanded || searchQuery.isNotBlank()) {
+                        BentoGlassSearchField(
+                            value = searchQuery,
+                            onValueChange = { viewModel.setSearchQuery(it) },
+                            placeholder = stringResource(R.string.home_search_hint),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
                 }
             }
 
@@ -369,6 +379,7 @@ internal fun HomeScreenTopBar(
     filter: LoadFilter,
     openDrawer: () -> Unit,
     onSearchToggle: () -> Unit,
+    onOpenPrivacy: () -> Unit = {},
 ) {
     val subtitle = buildString {
         if (welcomeName.isNotBlank()) {
@@ -381,9 +392,10 @@ internal fun HomeScreenTopBar(
             append(week)
         }
     }
-    OneUiLargeTitleHeader(
-        title = stringResource(R.string.home_brand_title),
-        subtitle = subtitle,
+    Column {
+        OneUiLargeTitleHeader(
+            title = stringResource(R.string.home_brand_title),
+            subtitle = subtitle,
         navigationIcon = {
             IconButton(onClick = openDrawer) {
                 Icon(
@@ -405,7 +417,12 @@ internal fun HomeScreenTopBar(
                 )
             }
         },
-    )
+        )
+        PrivacyTrustBadge(
+            onClick = onOpenPrivacy,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+        )
+    }
 }
 
 @Composable

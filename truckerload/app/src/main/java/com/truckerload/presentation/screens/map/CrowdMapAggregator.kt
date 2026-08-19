@@ -3,24 +3,26 @@ package com.truckerload.presentation.screens.map
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdRateSource
+import com.truckerload.domain.crowd.CrowdRpmMapper
 import com.truckerload.domain.crowd.CrowdStateSummary
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.USHeatLevel
 import com.truckerload.presentation.components.USStateMetric
 import com.truckerload.presentation.components.getUsStateCodes
-import com.truckerload.utils.extractStateFromLocation
-import java.time.LocalDate
-import java.time.ZoneOffset
-import java.time.format.DateTimeParseException
 import java.util.concurrent.TimeUnit
 
 /**
- * Pure map math from the driver's own loads: lane reports → outbound heatmap + recent feed.
+ * Pure **local** map math from the driver's own loads.
+ *
+ * Heatmap rows are built from [CrowdRpmMapper] (rpm + miles + 2-letter states).
+ * They never use `Load.id` / `tripId` as report ids. `CrowdRateReport.rate` is
+ * reconstructed as `rpm * miles` for local coloring only — it is not a Crowd RPM
+ * share field. See `docs/CROWD_RPM_PRIVACY.md`.
  */
 object CrowdMapAggregator {
 
-    val WEEK_MS: Long = TimeUnit.DAYS.toMillis(7)
+    val WEEK_MS: Long = CrowdRpmMapper.WEEK_MS
 
     fun reportsFromLoads(
         loads: List<Load>,
@@ -28,20 +30,23 @@ object CrowdMapAggregator {
         windowMs: Long = WEEK_MS,
     ): List<CrowdRateReport> {
         val cutoff = nowMillis - windowMs
+        val skew = nowMillis + TimeUnit.HOURS.toMillis(1)
         val known = getUsStateCodes()
-        return loads.mapNotNull { load ->
-            val from = extractStateFromLocation(load.pointA)?.takeIf { it in known } ?: return@mapNotNull null
-            val to = extractStateFromLocation(load.pointB)?.takeIf { it in known } ?: return@mapNotNull null
-            if (load.totalMiles <= 0.0 || load.totalRate <= 0.0) return@mapNotNull null
-            val at = reportTimeMillis(load)
-            if (at < cutoff || at > nowMillis + TimeUnit.HOURS.toMillis(1)) return@mapNotNull null
+        return loads.mapIndexedNotNull { index, load ->
+            val at = CrowdRpmMapper.eventTimeMillis(load)
+            if (at < cutoff || at > skew) return@mapIndexedNotNull null
+            val sample = CrowdRpmMapper.fromLoad(load) ?: return@mapIndexedNotNull null
+            val from = CrowdRpmMapper.originState(load)?.takeIf { it in known }
+                ?: return@mapIndexedNotNull null
+            val to = CrowdRpmMapper.destState(load)?.takeIf { it in known }
+                ?: return@mapIndexedNotNull null
             CrowdRateReport(
-                id = "me:${load.id}",
+                id = "anon:$index",
                 fromState = from,
                 toState = to,
-                rpm = load.totalRate / load.totalMiles,
-                rate = load.totalRate,
-                miles = load.totalMiles,
+                rpm = sample.rpm,
+                rate = sample.rpm * sample.miles,
+                miles = sample.miles,
                 reportedAtMillis = at,
                 source = CrowdRateSource.ME,
             )
@@ -132,17 +137,4 @@ object CrowdMapAggregator {
             }
             .sortedByDescending { it.tripCount }
             .take(limit)
-
-    private fun reportTimeMillis(load: Load): Long {
-        if (load.parsedAt > 0L) return load.parsedAt
-        if (load.updatedAt > 0L) return load.updatedAt
-        return try {
-            LocalDate.parse(load.date)
-                .atStartOfDay()
-                .toInstant(ZoneOffset.UTC)
-                .toEpochMilli()
-        } catch (_: DateTimeParseException) {
-            0L
-        }
-    }
 }
