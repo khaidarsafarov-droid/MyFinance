@@ -2,10 +2,8 @@ package com.truckerload.data.repository.crowd
 
 import com.truckerload.data.community.CommunityRemoteClient
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.local.entities.CrowdRateEntity
 import com.truckerload.data.local.entities.LoadEntity
-import com.truckerload.domain.crowd.CrowdRateReport
-import com.truckerload.domain.crowd.CrowdRateSource
+import com.truckerload.data.local.toReport
 import com.truckerload.domain.crowd.CrowdRpmMath
 import com.truckerload.domain.crowd.CrowdRpmSnapshot
 import com.truckerload.domain.social.CommunityWeekWindow
@@ -53,18 +51,6 @@ class CrowdRpmRepository(
         )
     }
 }
-
-internal fun CrowdRateEntity.toReport(): CrowdRateReport = CrowdRateReport(
-    id = id,
-    fromState = fromState,
-    toState = toState,
-    rpm = rpm,
-    rate = rate,
-    miles = miles,
-    reportedAtMillis = reportedAtMillis,
-    source = runCatching { CrowdRateSource.valueOf(source) }.getOrDefault(CrowdRateSource.NETWORK),
-    peerLabel = peerLabel,
-)
 
 internal fun laneOf(load: LoadEntity): Pair<String, String>? {
     val from = extractStateFromLocation(load.pointA)
