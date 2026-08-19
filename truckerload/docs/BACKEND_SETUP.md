@@ -107,8 +107,8 @@ configuration is:
 | `UPLOAD_EXPIRY_SECONDS`, `DOWNLOAD_EXPIRY_SECONDS` | short-lived signed URL TTLs (default 900) |
 | `FIREBASE_PROJECT_ID` | optional FCM project |
 | `FIREBASE_CREDENTIALS_JSON` | optional encrypted service-account JSON |
-| `LIVEKIT_URL` | optional `wss://` / `https://` LiveKit Cloud or self-host URL |
-| `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | optional; all three LiveKit vars must be set together. Mints `/v1/voice/token`. Secret never goes to the APK |
+| `LIVEKIT_URL` | optional `wss://` / `ws://` LiveKit URL. Production droplet: `ws://107.170.0.183:7880` |
+| `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | optional; all three LiveKit vars must be set together. Mints `/v1/voice/token`. Secret never goes to the APK or git; copy from `/etc/livekit/livekit.yaml` on the droplet |
 
 `TEST_AUTH_ENABLED` must be absent. Local object-storage variables are unnecessary
 with S3. App Platform terminates TLS and forwards to port 8080.
