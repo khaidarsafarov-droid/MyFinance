@@ -44,7 +44,13 @@ fun NavGraphBuilder.toolsNavGraph(
             onOpenMap = { navController.navigate(Routes.MAP) },
         )
     }
-    composable(Routes.ADVANCED_STATS) {
+    composable(
+        route = Routes.ADVANCED_STATS,
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
+    ) {
         StatsScreen(
             onBack = { navController.popBackStack() },
             showBack = !tablet,
@@ -64,7 +70,13 @@ fun NavGraphBuilder.toolsNavGraph(
     ) {
         WeeklyGoalScreen()
     }
-    composable(Routes.MAP) {
+    composable(
+        route = Routes.MAP,
+        enterTransition = { tabEnterTransition(reduceMotion) },
+        exitTransition = { tabExitTransition(reduceMotion) },
+        popEnterTransition = { tabEnterTransition(reduceMotion) },
+        popExitTransition = { tabExitTransition(reduceMotion) },
+    ) {
         MapScreen(onBack = { navController.popBackStack() })
     }
     composable(Routes.FRIENDS_LIVE) {

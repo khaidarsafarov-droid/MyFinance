@@ -1,59 +1,27 @@
 package com.truckerload.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.LocalShipping
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import com.truckerload.R
-import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.OneUiTokens
-import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.WindowSizeClass
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.adaptiveVerticalPadding
 import com.truckerload.presentation.utils.rememberWindowSizeClass
 import com.truckerload.presentation.utils.useNavigationRail
-import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.launch
 
 val LocalOpenDrawer = staticCompositionLocalOf<() -> Unit> { {} }
@@ -175,171 +143,5 @@ private fun PhoneScaffold(
         Box(modifier = Modifier.padding(padding)) {
             content(PaddingValues(0.dp))
         }
-    }
-}
-
-@Composable
-private fun SoftBottomBar(
-    currentRoute: String?,
-    onNavigate: (String) -> Unit,
-) {
-    val pillShape = remember { OneUiTokens.ChipShape }
-    val cs = MaterialTheme.colorScheme
-
-    Column(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(
-                start = OneUiTokens.BottomBarHorizontalInset,
-                end = OneUiTokens.BottomBarHorizontalInset,
-                bottom = OneUiTokens.BottomBarBottomInset,
-            ),
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = OneUiTokens.BottomBarShape,
-            color = cs.surface,
-            tonalElevation = 3.dp,
-            shadowElevation = 8.dp,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(UiDimens.NavBarHeight)
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BottomNavItem(
-                    route = Routes.HOME,
-                    icon = Icons.Outlined.LocalShipping,
-                    labelRes = R.string.nav_logbook,
-                    currentRoute = currentRoute,
-                    onNavigate = onNavigate,
-                    pillShape = pillShape,
-                    modifier = Modifier.weight(1f),
-                )
-                BottomNavItem(
-                    route = Routes.STATS,
-                    icon = Icons.Outlined.Flag,
-                    labelRes = R.string.nav_weekly_goal,
-                    currentRoute = currentRoute,
-                    onNavigate = onNavigate,
-                    pillShape = pillShape,
-                    modifier = Modifier.weight(1f),
-                )
-                BottomNavItem(
-                    route = Routes.COMMUNITY,
-                    icon = Icons.Outlined.Groups,
-                    labelRes = R.string.nav_community,
-                    currentRoute = currentRoute,
-                    onNavigate = onNavigate,
-                    pillShape = pillShape,
-                    modifier = Modifier.weight(1f),
-                )
-                BottomNavItem(
-                    route = Routes.PROFILE,
-                    icon = Icons.Outlined.Person,
-                    labelRes = R.string.nav_profile,
-                    currentRoute = currentRoute,
-                    onNavigate = onNavigate,
-                    pillShape = pillShape,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BottomNavItem(
-    route: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    labelRes: Int,
-    currentRoute: String?,
-    onNavigate: (String) -> Unit,
-    pillShape: RoundedCornerShape,
-    modifier: Modifier = Modifier,
-) {
-    val selected = isPhoneDestinationSelected(currentRoute, route)
-    val label = stringResource(labelRes)
-    val cs = MaterialTheme.colorScheme
-    val selectedColor = cs.onPrimaryContainer
-    val unselectedColor = cs.onSurfaceVariant
-    val selectedBg = cs.secondaryContainer
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(pillShape)
-            .then(
-                if (selected) Modifier.background(selectedBg) else Modifier,
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    FeedbackManager.onNavSelect()
-                    onNavigate(route)
-                },
-            )
-            .touchTarget()
-            .padding(horizontal = 2.dp, vertical = 6.dp),
-    ) {
-        Icon(
-            icon,
-            contentDescription = label,
-            modifier = Modifier.size(UiDimens.IconNavCompact),
-            tint = if (selected) selectedColor else unselectedColor,
-        )
-        Text(
-            text = label,
-            color = if (selected) selectedColor else unselectedColor,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp),
-        )
-    }
-}
-
-private fun isPhoneDestinationSelected(currentRoute: String?, targetRoute: String): Boolean {
-    if (currentRoute == null) return false
-    return when (targetRoute) {
-        Routes.HOME -> currentRoute == Routes.HOME ||
-            currentRoute.startsWith("load_detail") ||
-            currentRoute.startsWith("edit_load") ||
-            currentRoute == Routes.ADD_LOAD
-        Routes.STATS -> currentRoute == Routes.STATS
-        Routes.COMMUNITY -> currentRoute == Routes.COMMUNITY ||
-            currentRoute.startsWith("social_chat") ||
-            currentRoute.startsWith("voice_room") ||
-            currentRoute == Routes.VOICE_ROOMS ||
-            currentRoute.startsWith("call") ||
-            currentRoute == Routes.STATUS ||
-            currentRoute == Routes.GROUPS ||
-            currentRoute.startsWith("group_detail")
-        Routes.PROFILE -> currentRoute == Routes.PROFILE ||
-            currentRoute == Routes.PROFILE_EDIT ||
-            currentRoute.startsWith("profile_peer")
-        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS
-        Routes.SETTINGS -> currentRoute == Routes.SETTINGS
-        else -> currentRoute == targetRoute
-    }
-}
-
-fun navigateToMainRoute(
-    route: String,
-    navController: NavHostController,
-) {
-    navController.navigate(route) {
-        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
     }
 }
