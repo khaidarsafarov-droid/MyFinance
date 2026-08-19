@@ -144,7 +144,7 @@ data class TelegramInboxListResponse(
 data class DevicePushTokenRequest(
     val deviceId: String,
     val token: String,
-    val platform: String = "android",
+    val platform: String = PushPlatforms.ANDROID,
 )
 
 @Serializable

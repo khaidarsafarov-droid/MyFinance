@@ -6,16 +6,12 @@ Android-приложение для учёта лоудов (Amazon Relay), за
 
 ```
 truckerload/
-├── .gitignore
-├── build.gradle.kts
-├── settings.gradle.kts
-├── gradle/
-├── gradlew / gradlew.bat
-├── local.properties          # секреты (не в git)
-├── local.properties.example
-├── proguard-rules.pro
-├── src/
-└── docs/
+├── app/                      # Android client
+├── shared/contract/          # KMP API contracts
+├── shared/domain/            # KMP portable domain
+├── backend/server/           # Ktor API
+├── docs/
+└── gradle/
 ```
 
 ## Запуск
@@ -27,6 +23,7 @@ truckerload/
 ## Стек
 
 Kotlin, Jetpack Compose, Room v8, WorkManager, Telegram Bot API (long-poll на устройстве).
+Общий код для будущего iOS — Kotlin Multiplatform (`shared/contract`, `shared/domain`).
 
 ## Ключевые пакеты
 

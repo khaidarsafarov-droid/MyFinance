@@ -2,13 +2,16 @@
 
 ```mermaid
 flowchart LR
-    A[Native Android\nKotlin + Jetpack Compose] -->|Supabase JWT| K[Ktor API\nDigitalOcean App Platform]
+    S[shared/contract + shared/domain\nKMP: JVM always, iOS on macOS]
+    A[Native Android\nKotlin + Jetpack Compose] -->|uses| S
+    I[Future iOS client] -.->|uses| S
+    A -->|Supabase JWT| K[Ktor API\nDigitalOcean App Platform]
     A -->|sign in| U[Supabase Auth]
     A <-->|local-first| R[(Room per account)]
     T[Telegram Bot API] -->|secret webhook| K
     K --> P[(DigitalOcean Managed PostgreSQL)]
-    K -->|presigned upload metadata| S[DigitalOcean Spaces / S3]
-    A -->|direct presigned upload| S
+    K -->|presigned upload metadata| S3[DigitalOcean Spaces / S3]
+    A -->|direct presigned upload| S3
     K -->|data-only sync push| F[Firebase Cloud Messaging]
     F --> A
     O[Prometheus-compatible scraper] -->|Bearer /metrics| K
@@ -18,6 +21,8 @@ flowchart LR
 
 - Keep the native Android application. Kotlin, Room, WorkManager, and Jetpack Compose
   remain the offline-first client. There is no Expo or React Native migration.
+  Portable domain and API contracts live in Kotlin Multiplatform modules
+  (`:shared:contract`, `:shared:domain`) so an iOS client can share them later.
 - Ktor on JDK 21 is the stateless API and Telegram webhook receiver.
 - Supabase Auth remains the identity provider. Android obtains the JWT; Ktor validates
   issuer, audience, signature, and UUID subject. Supabase is not the application
@@ -35,13 +40,16 @@ flowchart LR
 - Telegram runs server-side only when `TELEGRAM_SYNC_MODE=server`; the authenticated
   inbox is idempotent by Telegram `update_id`. Device mode remains the rollback path.
 - FCM is a wake-up signal, not a data channel. A push contains only `type=sync`; clients
-  fetch authenticated state from Ktor.
+  fetch authenticated state from Ktor. Stored `platform=ios` tokens are ignored by the
+  FCM sender until an APNs notifier exists.
 - Do not add Valkey/Redis yet. The initial single backend instance and PostgreSQL
   constraints provide sufficient coordination. Add a cache or distributed lock only
   after measured contention, rate-limiting, or queue requirements cannot be met safely
   in PostgreSQL.
-- Do not add Apple services until an iOS client exists. There is no APNs credential,
-  iOS schema branch, or Apple sign-in surface in the current target.
+- Do not add Sign in with Apple, APNs credentials, or an Xcode app until the Apple
+  Developer Program account is enrolled at publication. The API already accepts
+  `platform=ios` push-token rows so that client can register later. See
+  [KMP_IOS_ROADMAP.md](KMP_IOS_ROADMAP.md).
 
 ## Android dependency scopes
 

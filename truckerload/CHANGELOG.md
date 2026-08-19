@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] — KMP foundation
+
+- Convert `:shared:contract` to Kotlin Multiplatform (JVM always; iOS targets on macOS).
+- Add `:shared:domain` with portable weekly-goal math and `PlatformTime`.
+- Accept `platform=ios` push tokens in the API/schema; FCM still notifies Android only.
+- Sign in with Apple is reserved (`AuthProvider.APPLE`) and not implemented.
+- Roadmap: `docs/KMP_IOS_ROADMAP.md`.
+
 ## [1.6.0] — Legacy audit complete (`v1.6.0-legacy-audit-complete`)
 
 End-to-end quality/architecture pass: Room migration hardening, Hilt account scope,

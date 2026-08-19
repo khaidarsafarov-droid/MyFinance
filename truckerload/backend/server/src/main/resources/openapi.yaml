@@ -150,7 +150,7 @@ components:
       properties:
         deviceId: { type: string, minLength: 1, maxLength: 128 }
         token: { type: string, minLength: 16, maxLength: 4096 }
-        platform: { type: string, enum: [android] }
+        platform: { type: string, enum: [android, ios] }
   responses:
     Error:
       description: API error

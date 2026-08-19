@@ -205,6 +205,7 @@ ksp {
 
 dependencies {
     implementation(project(":shared:contract"))
+    implementation(project(":shared:domain"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(libs.androidx.core.ktx)
     implementation("androidx.appcompat:appcompat:1.7.1")

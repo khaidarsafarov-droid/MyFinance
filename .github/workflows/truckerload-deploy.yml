@@ -36,7 +36,7 @@ jobs:
       - name: Verify backend and contracts
         run: >-
           sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME"
-          :shared:contract:test :backend:server:test --no-daemon
+          :shared:contract:jvmTest :shared:domain:jvmTest :backend:server:test --no-daemon
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:

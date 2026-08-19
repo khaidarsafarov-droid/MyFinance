@@ -126,7 +126,8 @@ No database, Docker daemon, Firebase credential, Supabase secret, or Telegram to
 needed for the unit suites:
 
 ```bash
-sh ./gradlew :shared:contract:test \
+sh ./gradlew :shared:contract:jvmTest \
+  :shared:domain:jvmTest \
   :backend:server:test \
   :app:testDebugUnitTest \
   :app:assembleDebug
