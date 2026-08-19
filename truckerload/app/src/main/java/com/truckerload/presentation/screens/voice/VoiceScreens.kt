@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.voice.VoiceParticipant
 import com.truckerload.domain.voice.VoiceRoom
+import com.truckerload.domain.voice.VoiceRoomRole
+import com.truckerload.domain.voice.VoiceTransportKind
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -367,6 +369,15 @@ fun VoiceRoomScreen(
                             participant = participant,
                             isModerator = participant.userId.isNotBlank() &&
                                 participant.userId == room?.moderatorId,
+                            roleLabel = if (participant.isMe) {
+                                if (state.role == VoiceRoomRole.LISTENER) {
+                                    stringResource(R.string.voice_role_listener)
+                                } else {
+                                    stringResource(R.string.voice_role_speaker)
+                                }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }
@@ -376,13 +387,31 @@ fun VoiceRoomScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                 ) {
+                    val transportLabel = when (state.transport) {
+                        VoiceTransportKind.LIVEKIT -> stringResource(R.string.voice_transport_sfu)
+                        VoiceTransportKind.MESH -> stringResource(R.string.voice_transport_mesh)
+                        VoiceTransportKind.NONE -> ""
+                    }
+                    val bitrateText = if (state.role == VoiceRoomRole.LISTENER) {
+                        stringResource(R.string.voice_listener_bitrate)
+                    } else {
+                        stringResource(R.string.bitrate, state.audioBitrate / 1000)
+                    }
                     Text(
-                        text = stringResource(R.string.bitrate, state.audioBitrate / 1000),
+                        text = listOf(bitrateText, transportLabel).filter { it.isNotBlank() }.joinToString(" · "),
                         color = tc.TextSecondary,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     )
                 }
+
+                VoiceRoleToggle(
+                    role = state.role,
+                    onRoleChange = viewModel::setRole,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -397,6 +426,7 @@ fun VoiceRoomScreen(
                         label = if (state.isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute),
                         tint = if (state.isMuted) SoftUiColors.VoiceDanger else tc.AccentPrimary,
                         onClick = { viewModel.toggleMute() },
+                        enabled = state.role == VoiceRoomRole.SPEAKER,
                     )
                     VoiceControlButton(
                         icon = if (state.isDeafened) {
@@ -467,79 +497,3 @@ fun VoiceRoomScreen(
     }
 }
 
-@Composable
-private fun VoiceParticipantItem(
-    participant: VoiceParticipant,
-    isModerator: Boolean = false,
-) {
-    val tc = LocalTruckColors.current
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(8.dp),
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Box(
-                modifier = Modifier
-                    .size(UiDimens.AvatarVoiceGrid)
-                    .clip(CircleShape)
-                    .background(SoftUiColors.SurfaceDark),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = participant.displayName.take(1).uppercase(),
-                    color = if (participant.isMe) tc.AccentPrimary else Color.White,
-                    fontSize = 22.sp,
-                )
-            }
-            if (participant.isSpeaking) {
-                Box(
-                    modifier = Modifier
-                        .size(UiDimens.AvatarVoiceSpeakingRing)
-                        .border(2.dp, SoftUiColors.VoiceSuccess, CircleShape),
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = if (participant.isMe) "${participant.displayName} (${stringResource(R.string.social_you)})" else participant.displayName,
-            color = if (participant.isMe) tc.AccentPrimary else tc.TextPrimary,
-            fontSize = 11.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
-        if (isModerator) {
-            Text(
-                text = stringResource(R.string.voice_room_moderator_badge),
-                color = tc.AccentPrimary,
-                fontSize = 9.sp,
-            )
-        }
-        if (participant.isMuted) {
-            Icon(
-                Icons.Default.MicOff,
-                contentDescription = null,
-                tint = SoftUiColors.VoiceDanger,
-                modifier = Modifier.size(14.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun VoiceControlButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    tint: Color,
-    onClick: () -> Unit,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick),
-    ) {
-        IconButton(onClick = onClick, modifier = Modifier.size(64.dp)) {
-            Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(32.dp))
-        }
-        Text(label, fontSize = 10.sp, color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}

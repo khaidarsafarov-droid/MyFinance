@@ -67,7 +67,16 @@ class VoiceModelsSmokeTest {
     fun voiceRoomSettings_defaultsAreSensible() {
         val settings = VoiceRoomSettings()
 
-        assertEquals(64_000, settings.bitrate)
+        assertEquals(VoiceAudioBudget.SPEECH_BPS, settings.bitrate)
         assertTrue(settings.echoCancellation)
+    }
+
+    @Test
+    fun voiceAudioBudget_capsHighwayBitrate() {
+        assertEquals(VoiceAudioBudget.SPEECH_BPS, VoiceAudioBudget.bitrateForEstimatedKbps(2_000))
+        assertEquals(VoiceAudioBudget.HIGHWAY_BPS, VoiceAudioBudget.bitrateForEstimatedKbps(150))
+        assertEquals(VoiceAudioBudget.TELEPHONE_BPS, VoiceAudioBudget.bitrateForEstimatedKbps(40))
+        assertEquals(VoiceRoomRole.LISTENER, VoiceRoomRole.fromApi("listener"))
+        assertEquals("speaker", VoiceRoomRole.SPEAKER.apiValue())
     }
 }

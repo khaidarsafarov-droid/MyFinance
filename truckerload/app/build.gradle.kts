@@ -326,6 +326,9 @@ dependencies {
 
     // WebRTC audio — 1.3.10+ ships 16 KB-aligned libjingle_peerconnection_so.so (arm64)
     implementation("io.getstream:stream-webrtc-android:1.3.10")
+    // LiveKit SFU for group rooms. If Gradle reports duplicate org.webrtc classes,
+    // drop stream-webrtc-android and keep LiveKit's bundled WebRTC for mesh/1:1 too.
+    implementation("io.livekit:livekit-android:2.23.0")
 
     // Media session for call notifications
     implementation("androidx.media:media:1.7.0")

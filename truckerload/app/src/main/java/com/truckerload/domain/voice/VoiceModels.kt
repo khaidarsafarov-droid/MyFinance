@@ -34,8 +34,8 @@ data class VoiceParticipant(
 )
 
 data class VoiceRoomSettings(
-    val bitrate: Int = 64_000,
-    val sampleRate: Int = 48_000,
+    val bitrate: Int = VoiceAudioBudget.SPEECH_BPS,
+    val sampleRate: Int = 16_000,
     val echoCancellation: Boolean = true,
     val noiseSuppression: Boolean = true,
     val autoGainControl: Boolean = true,

@@ -1187,6 +1187,11 @@
     <string name="reject_call">Отклонить</string>
     <string name="audio_call">Аудиозвонок</string>
     <string name="bitrate">Битрейт: %d kbps</string>
+    <string name="voice_listener_bitrate">Слушатель · без исходящего голоса</string>
+    <string name="voice_role_speaker">Спикер</string>
+    <string name="voice_role_listener">Слушатель</string>
+    <string name="voice_transport_sfu">SFU</string>
+    <string name="voice_transport_mesh">P2P</string>
     <string name="mic_permission_required">Для голосового общения нужен доступ к микрофону</string>
     <string name="grant_mic_permission">Разрешить микрофон</string>
     <string name="group_chat">Групповой чат</string>

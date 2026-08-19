@@ -3,6 +3,7 @@ package com.truckerload.data.voice
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.content.Context
+import com.truckerload.domain.voice.VoiceAudioBudget
 import com.truckerload.domain.voice.VoiceRoomSettings
 
 class AudioQualityManager(private val context: Context) {
@@ -12,12 +13,10 @@ class AudioQualityManager(private val context: Context) {
 
     fun adjustForNetwork(): VoiceRoomSettings {
         val kbps = estimateDownloadKbps()
-        settings = when {
-            kbps >= 1000 -> VoiceRoomSettings(bitrate = 128_000, sampleRate = 48_000)
-            kbps >= 500 -> VoiceRoomSettings(bitrate = 64_000, sampleRate = 44_100)
-            kbps >= 100 -> VoiceRoomSettings(bitrate = 32_000, sampleRate = 32_000)
-            else -> VoiceRoomSettings(bitrate = 16_000, sampleRate = 16_000)
-        }
+        settings = VoiceRoomSettings(
+            bitrate = VoiceAudioBudget.bitrateForEstimatedKbps(kbps),
+            sampleRate = 16_000,
+        )
         return settings
     }
 

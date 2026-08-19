@@ -9,6 +9,8 @@ import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.VoiceRoom
+import com.truckerload.domain.voice.VoiceRoomRole
+import com.truckerload.domain.voice.VoiceTransportKind
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -103,8 +105,10 @@ data class VoiceRoomUiState(
     val isMuted: Boolean = false,
     val isDeafened: Boolean = false,
     val durationSeconds: Long = 0,
-    val audioBitrate: Int = 64_000,
+    val audioBitrate: Int = 16_000,
     val currentUserId: String = "",
+    val role: VoiceRoomRole = VoiceRoomRole.SPEAKER,
+    val transport: VoiceTransportKind = VoiceTransportKind.NONE,
 )
 
 @HiltViewModel
@@ -154,12 +158,16 @@ class VoiceRoomViewModel @Inject constructor(
                 voiceRepository.syncRoomPeers(
                     room?.participants.orEmpty().filterNot { it.isMe }.map { it.userId },
                 )
+                val role = voiceRepository.currentRole()
                 _local.value = _local.value.copy(
                     room = room,
                     isLoading = false,
                     errorMessage = if (joined && room == null && _local.value.room != null) "room_gone" else null,
                     audioBitrate = voiceRepository.qualityManager.currentSettings().bitrate,
                     currentUserId = voiceRepository.currentUserId(),
+                    role = role,
+                    transport = voiceRepository.currentTransport(),
+                    isMuted = if (role == VoiceRoomRole.LISTENER) true else _local.value.isMuted,
                 )
             }
         }
@@ -188,11 +196,29 @@ class VoiceRoomViewModel @Inject constructor(
     }
 
     fun toggleMute() {
+        if (_local.value.role == VoiceRoomRole.LISTENER) return
         viewModelScope.launch {
             runCatching {
                 val next = !_local.value.isMuted
                 voiceRepository.setMuted(roomId, next)
                 _local.value = _local.value.copy(isMuted = next, errorMessage = null)
+            }.onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
+        }
+    }
+
+    fun setRole(role: VoiceRoomRole) {
+        viewModelScope.launch {
+            runCatching {
+                voiceRepository.setRoomRole(roomId, role)
+                _local.value = _local.value.copy(
+                    role = role,
+                    isMuted = role == VoiceRoomRole.LISTENER || _local.value.isMuted,
+                    transport = voiceRepository.currentTransport(),
+                    audioBitrate = voiceRepository.qualityManager.currentSettings().bitrate,
+                    errorMessage = null,
+                )
             }.onFailure { error ->
                 _local.value = _local.value.copy(errorMessage = error.toUiMessage())
             }

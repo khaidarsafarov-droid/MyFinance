@@ -1185,6 +1185,11 @@
     <string name="reject_call">Reject</string>
     <string name="audio_call">Audio call</string>
     <string name="bitrate">Bitrate: %d kbps</string>
+    <string name="voice_listener_bitrate">Listener · no uplink audio</string>
+    <string name="voice_role_speaker">Speaker</string>
+    <string name="voice_role_listener">Listener</string>
+    <string name="voice_transport_sfu">SFU</string>
+    <string name="voice_transport_mesh">P2P</string>
     <string name="mic_permission_required">Microphone access is required for voice chat</string>
     <string name="grant_mic_permission">Grant microphone</string>
     <string name="group_chat">Group chat</string>

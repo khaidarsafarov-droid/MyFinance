@@ -265,14 +265,19 @@ class WebRtcRoomMesh(
             object : SimpleSdpObserver() {
                 override fun onCreateSuccess(description: SessionDescription?) {
                     description ?: return
-                    peer.connection?.setLocalDescription(SimpleSdpObserver(), description)
+                    val tuned = SessionDescription(
+                        description.type,
+                        OpusAudioTune.constrainSdp(description.description),
+                    )
+                    peer.connection?.setLocalDescription(SimpleSdpObserver(), tuned)
+                    OpusAudioTune.capSenderBitrate(peer.connection)
                     scope?.launch {
                         signaling.sendSignal(
                             peer.sessionId,
                             Signal(
                                 type = SignalType.OFFER,
                                 fromUserId = localUserId,
-                                sdp = description.description,
+                                sdp = tuned.description,
                             ),
                         )
                     }
@@ -288,14 +293,19 @@ class WebRtcRoomMesh(
             object : SimpleSdpObserver() {
                 override fun onCreateSuccess(description: SessionDescription?) {
                     description ?: return
-                    peer.connection?.setLocalDescription(SimpleSdpObserver(), description)
+                    val tuned = SessionDescription(
+                        description.type,
+                        OpusAudioTune.constrainSdp(description.description),
+                    )
+                    peer.connection?.setLocalDescription(SimpleSdpObserver(), tuned)
+                    OpusAudioTune.capSenderBitrate(peer.connection)
                     scope?.launch {
                         signaling.sendSignal(
                             peer.sessionId,
                             Signal(
                                 type = SignalType.ANSWER,
                                 fromUserId = localUserId,
-                                sdp = description.description,
+                                sdp = tuned.description,
                             ),
                         )
                     }

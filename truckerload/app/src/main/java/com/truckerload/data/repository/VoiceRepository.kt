@@ -9,7 +9,9 @@ import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
 import com.truckerload.data.social.SocialDemoCleanup
 import com.truckerload.data.voice.AudioQualityManager
 import com.truckerload.data.voice.HybridSignalingService
+import com.truckerload.data.voice.LiveKitVoiceSession
 import com.truckerload.data.voice.SignalingService
+import com.truckerload.data.voice.VoiceTokenClient
 import com.truckerload.data.voice.WebRtcAudioEngine
 import com.truckerload.data.voice.WebRtcCallManager
 import com.truckerload.data.voice.WebRtcRoomMesh
@@ -20,7 +22,9 @@ import com.truckerload.domain.voice.Signal
 import com.truckerload.domain.voice.SignalType
 import com.truckerload.domain.voice.VoiceParticipant
 import com.truckerload.domain.voice.VoiceRoom
+import com.truckerload.domain.voice.VoiceRoomRole
 import com.truckerload.domain.voice.VoiceRoomType
+import com.truckerload.domain.voice.VoiceTransportKind
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +38,7 @@ class VoiceRepository(
     context: Context,
     private val voiceRemote: CommunityVoiceRemote,
     private val actorId: () -> String,
+    private val tokenClient: VoiceTokenClient? = null,
 ) {
     private val roomDao = db.voiceRoomDao()
     private val participantDao = db.voiceRoomParticipantDao()
@@ -44,11 +49,20 @@ class VoiceRepository(
     private val hybridSignals = signaling as HybridSignalingService
     private val callManager = WebRtcCallManager(context, signaling, actorId())
     private val roomMesh = WebRtcRoomMesh(context, signaling, actorId())
+    private val liveKit = LiveKitVoiceSession(context)
 
     private var activeRoomId: String? = null
     private var activeCallId: String? = null
+    private var transportKind = VoiceTransportKind.NONE
+    private var activeRole = VoiceRoomRole.SPEAKER
+    private var lastDisplayName: String = ""
+    private var lastJoinScope: CoroutineScope? = null
 
     fun currentUserId(): String = actorId()
+
+    fun currentTransport(): VoiceTransportKind = transportKind
+
+    fun currentRole(): VoiceRoomRole = activeRole
 
     suspend fun ensureInitialized() {
         participantDao.deleteAllInRooms(SocialDemoCleanup.DEMO_VOICE_ROOM_IDS)
@@ -188,16 +202,29 @@ class VoiceRepository(
         roomId: String,
         displayName: String,
         audioScope: CoroutineScope,
+        role: VoiceRoomRole = VoiceRoomRole.SPEAKER,
     ): Result<Unit> = runCatching {
+        stopRoomMedia()
         activeRoomId = roomId
+        lastDisplayName = displayName
+        lastJoinScope = audioScope
+        activeRole = role
         val settings = qualityManager.adjustForNetwork()
-        roomMesh.start(audioScope, roomId, settings)
+        val creds = runCatching { tokenClient?.fetch(roomId, displayName, role) }.getOrNull()
+        if (creds != null) {
+            liveKit.connect(audioScope, creds, settings, role, muted = role == VoiceRoomRole.LISTENER)
+            transportKind = VoiceTransportKind.LIVEKIT
+        } else {
+            roomMesh.start(audioScope, roomId, settings)
+            if (role == VoiceRoomRole.LISTENER) roomMesh.setMuted(true)
+            transportKind = VoiceTransportKind.MESH
+        }
         participantDao.upsert(
             VoiceRoomParticipantEntity(
                 roomId = roomId,
                 userId = actorId(),
                 displayName = displayName.ifBlank { "You" },
-                isMuted = false,
+                isMuted = role == VoiceRoomRole.LISTENER,
                 isDeafened = false,
                 isSpeaking = false,
                 audioLevel = 0,
@@ -209,11 +236,16 @@ class VoiceRepository(
         }
         if (voiceRemote.isReady()) {
             voiceRemote.joinRoom(roomId, displayName)
+            if (role == VoiceRoomRole.LISTENER) {
+                voiceRemote.updateParticipant(roomId, muted = true)
+            }
         }
     }
 
     fun syncRoomPeers(remoteUserIds: Collection<String>) {
-        roomMesh.syncPeers(remoteUserIds)
+        if (transportKind == VoiceTransportKind.MESH) {
+            roomMesh.syncPeers(remoteUserIds)
+        }
     }
 
     suspend fun leaveRoom(roomId: String): Result<Unit> = runCatching {
@@ -223,7 +255,7 @@ class VoiceRepository(
             Signal(type = SignalType.LEAVE, fromUserId = actorId()),
         )
         if (activeRoomId == roomId) {
-            roomMesh.stop()
+            stopRoomMedia()
             activeRoomId = null
         }
         if (voiceRemote.isReady()) {
@@ -232,7 +264,12 @@ class VoiceRepository(
     }
 
     suspend fun setMuted(roomId: String, muted: Boolean) {
-        roomMesh.setMuted(muted)
+        if (activeRole == VoiceRoomRole.LISTENER && !muted) return
+        if (transportKind == VoiceTransportKind.LIVEKIT) {
+            liveKit.setMuted(muted)
+        } else {
+            roomMesh.setMuted(muted)
+        }
         participantDao.setMuted(roomId, actorId(), muted)
         signaling.sendSignal(
             roomId,
@@ -247,16 +284,47 @@ class VoiceRepository(
     }
 
     suspend fun setDeafened(roomId: String, deafened: Boolean) {
-        roomMesh.setDeafened(deafened)
+        if (transportKind == VoiceTransportKind.LIVEKIT) {
+            liveKit.setDeafened(deafened)
+        } else {
+            roomMesh.setDeafened(deafened)
+        }
         participantDao.setDeafened(roomId, actorId(), deafened)
         if (voiceRemote.isReady()) {
             voiceRemote.updateParticipant(roomId, deafened = deafened)
         }
     }
 
+    suspend fun setRoomRole(roomId: String, role: VoiceRoomRole) {
+        val scope = lastJoinScope
+        if (role == activeRole) return
+        if (transportKind == VoiceTransportKind.LIVEKIT && scope != null) {
+            val settings = qualityManager.adjustForNetwork()
+            val creds = runCatching { tokenClient?.fetch(roomId, lastDisplayName, role) }.getOrNull()
+            if (creds != null) {
+                liveKit.connect(scope, creds, settings, role, muted = role == VoiceRoomRole.LISTENER)
+            } else {
+                liveKit.setMuted(role == VoiceRoomRole.LISTENER)
+            }
+        } else if (role == VoiceRoomRole.LISTENER) {
+            roomMesh.setMuted(true)
+        }
+        activeRole = role
+        val muted = role == VoiceRoomRole.LISTENER
+        participantDao.setMuted(roomId, actorId(), muted)
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateParticipant(roomId, muted = muted)
+        }
+    }
+
     suspend fun updateSpeakingLevel(roomId: String) {
-        roomMesh.pollAudioLevels()
-        roomMesh.speakingSnapshot().forEach { (userId, level) ->
+        if (transportKind == VoiceTransportKind.LIVEKIT) {
+            liveKit.pollAudioLevels()
+            liveKit.speakingSnapshot()
+        } else {
+            roomMesh.pollAudioLevels()
+            roomMesh.speakingSnapshot()
+        }.forEach { (userId, level) ->
             participantDao.setSpeaking(
                 roomId,
                 userId,
@@ -310,7 +378,7 @@ class VoiceRepository(
         roomDao.deleteByIds(listOf(roomId))
         signaling.clearSignals(roomId)
         if (activeRoomId == roomId) {
-            roomMesh.stop()
+            stopRoomMedia()
             activeRoomId = null
         }
     }
@@ -416,9 +484,16 @@ class VoiceRepository(
 
     fun release() {
         callManager.release()
-        roomMesh.stop()
+        stopRoomMedia()
         audioEngine.release()
         activeRoomId = null
+    }
+
+    private fun stopRoomMedia() {
+        liveKit.stop()
+        roomMesh.stop()
+        transportKind = VoiceTransportKind.NONE
+        lastJoinScope = null
     }
 
     private fun VoiceRoomEntity.toDomain(participants: List<VoiceParticipant>) = VoiceRoom(
