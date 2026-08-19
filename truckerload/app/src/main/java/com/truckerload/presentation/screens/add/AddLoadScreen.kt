@@ -136,15 +136,28 @@ fun AddLoadScreen(
                     onPointA = viewModel::setManualPointA,
                     onPointB = viewModel::setManualPointB,
                 )
-                AddLoadInputMode.DOCUMENT -> AddLoadDocumentSection(
-                    extractedText = uiState.rawText,
-                    documentName = uiState.documentName,
-                    isExtracting = uiState.isExtractingDocument,
-                    onDocumentPicked = viewModel::importDocument,
-                    onExtractedTextChange = viewModel::setRawText,
-                )
+                AddLoadInputMode.DOCUMENT -> {
+                    AddLoadDocumentSection(
+                        extractedText = uiState.rawText,
+                        documentName = uiState.documentName,
+                        isExtracting = uiState.isExtractingDocument,
+                        onDocumentPicked = viewModel::importDocument,
+                    )
+                    if (uiState.rawText.isNotBlank() && !uiState.isExtractingDocument) {
+                        AddLoadManualForm(
+                            fields = uiState.manual,
+                            onTripId = viewModel::setManualTripId,
+                            onDate = viewModel::setManualDate,
+                            onRate = viewModel::setManualRate,
+                            onMiles = viewModel::setManualMiles,
+                            onPointA = viewModel::setManualPointA,
+                            onPointB = viewModel::setManualPointB,
+                            hintRes = R.string.add_load_document_fields_hint,
+                        )
+                    }
+                }
             }
-            if (uiState.mode != AddLoadInputMode.MANUAL) {
+            if (uiState.mode == AddLoadInputMode.PASTE) {
                 LoadParsePreviewCard(
                     preview = uiState.previewLoad,
                     isParsing = uiState.isParsingPreview,
@@ -153,8 +166,8 @@ fun AddLoadScreen(
             }
             val preview = uiState.previewLoad
             val saveEnabled = !uiState.isSaving && !uiState.isExtractingDocument && when (uiState.mode) {
-                AddLoadInputMode.MANUAL -> uiState.manual.canSave()
-                AddLoadInputMode.PASTE, AddLoadInputMode.DOCUMENT -> uiState.rawText.isNotBlank()
+                AddLoadInputMode.MANUAL, AddLoadInputMode.DOCUMENT -> uiState.manual.canSave()
+                AddLoadInputMode.PASTE -> uiState.rawText.isNotBlank()
             }
             Button(
                 onClick = {
@@ -169,7 +182,13 @@ fun AddLoadScreen(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 enabled = saveEnabled,
             ) {
-                Text(saveButtonLabel(uiState.isSaving, preview))
+                Text(
+                    saveButtonLabel(
+                        isSaving = uiState.isSaving,
+                        preview = preview,
+                        manual = uiState.manual.takeIf { uiState.mode != AddLoadInputMode.PASTE },
+                    ),
+                )
             }
             Text(
                 stringResource(
@@ -209,13 +228,21 @@ private fun PasteLoadCard(rawText: String, onRawText: (String) -> Unit) {
 }
 
 @Composable
-private fun saveButtonLabel(isSaving: Boolean, preview: com.truckerload.domain.model.Load?): String =
-    when {
-        isSaving -> stringResource(R.string.add_load_saving)
-        preview != null && preview.totalRate > 0 -> stringResource(
+private fun saveButtonLabel(
+    isSaving: Boolean,
+    preview: com.truckerload.domain.model.Load?,
+    manual: ManualLoadFields?,
+): String {
+    if (isSaving) return stringResource(R.string.add_load_saving)
+    val rate = preview?.totalRate?.takeIf { it > 0 } ?: manual?.parsedRate()?.takeIf { it > 0 }
+    val miles = preview?.totalMiles ?: manual?.parsedMiles() ?: 0.0
+    return if (rate != null) {
+        stringResource(
             R.string.add_load_save_with_preview,
-            MoneyFormat.formatCurrency(preview.totalRate),
-            MoneyFormat.formatNumber(preview.totalMiles),
+            MoneyFormat.formatCurrency(rate),
+            MoneyFormat.formatNumber(miles),
         )
-        else -> stringResource(R.string.add_load_save_offline)
+    } else {
+        stringResource(R.string.add_load_save_offline)
     }
+}

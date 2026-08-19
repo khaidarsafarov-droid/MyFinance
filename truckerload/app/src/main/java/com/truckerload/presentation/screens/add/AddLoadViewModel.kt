@@ -112,7 +112,7 @@ class AddLoadViewModel @Inject constructor(
                 LoadDocumentTextExtractor(getApplication()).extract(uri, mimeType)
             }
             result
-                .onSuccess { text -> setRawText(text) }
+                .onSuccess { text -> applyDocumentText(text) }
                 .onFailure {
                     _uiState.update {
                         it.copy(
@@ -139,7 +139,9 @@ class AddLoadViewModel @Inject constructor(
             state.copy(isSaving = true, error = null)
         }
         if (!accepted) return
-        if (_uiState.value.mode == AddLoadInputMode.MANUAL) {
+        if (_uiState.value.mode == AddLoadInputMode.MANUAL ||
+            _uiState.value.mode == AddLoadInputMode.DOCUMENT
+        ) {
             saveManual(saveErrorFormatter, onOptimisticInsert)
             return
         }
@@ -181,6 +183,23 @@ class AddLoadViewModel @Inject constructor(
             return false
         }
         return scheduleAlarm(triggerAtMillis)
+    }
+
+    private fun applyDocumentText(text: String) {
+        savedStateHandle[KEY_RAW] = text
+        previewJob?.cancel()
+        val draft = aiRepository.extractLoadFields(text)
+        val fallbackDate = _uiState.value.manual.date.ifBlank { todayIso() }
+        _uiState.update {
+            it.copy(
+                rawText = text,
+                error = null,
+                previewLoad = null,
+                previewHint = null,
+                isParsingPreview = false,
+                manual = ManualLoadFields.fromDraft(draft, fallbackDate),
+            )
+        }
     }
 
     private fun updateManual(transform: (ManualLoadFields) -> ManualLoadFields) {
@@ -252,6 +271,11 @@ class AddLoadViewModel @Inject constructor(
                 miles = fields.parsedMiles(),
                 pointA = fields.pointA,
                 pointB = fields.pointB,
+                rawMessage = if (_uiState.value.mode == AddLoadInputMode.DOCUMENT) {
+                    _uiState.value.rawText
+                } else {
+                    ""
+                },
             ),
             saveErrorFormatter,
             onOptimisticInsert,

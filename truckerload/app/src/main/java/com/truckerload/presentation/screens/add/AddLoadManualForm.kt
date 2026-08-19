@@ -30,6 +30,7 @@ fun AddLoadManualForm(
     onPointA: (String) -> Unit,
     onPointB: (String) -> Unit,
     modifier: Modifier = Modifier,
+    hintRes: Int = R.string.add_load_manual_hint,
 ) {
     val tc = LocalTruckColors.current
     val colors = AppTextFieldDefaults.outlined()
@@ -39,7 +40,7 @@ fun AddLoadManualForm(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = stringResource(R.string.add_load_manual_hint),
+                text = stringResource(hintRes),
                 style = MaterialTheme.typography.bodySmall,
                 color = tc.TextSecondary,
             )
