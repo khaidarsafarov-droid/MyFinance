@@ -5,6 +5,7 @@ import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import com.truckerload.domain.parser.LoadMessageParser
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -107,6 +108,41 @@ class WeekUtilsTest {
         assertEquals(delWeek.first, anchored.weekNumber)
         assertEquals(delWeek.second, anchored.year)
         assertNotNull(getDeliveryDate(load))
+    }
+
+    @Test
+    fun spanningWeekBelongsToSaturdayMonthOnly() {
+        // Sun 2025-01-26 … Sat 2025-02-01
+        val spanning = getWeekNumberAndYearFromDate("2025-01-26")
+        assertEquals(spanning, getWeekNumberAndYearFromDate("2025-02-01"))
+        val (_, end, _) = getWeekRange(spanning.first, spanning.second)
+        assertEquals("2025-02-01", end)
+        assertFalse(getWeeksInMonth(2025, 1).contains(spanning))
+        assertTrue(getWeeksInMonth(2025, 2).contains(spanning))
+    }
+
+    @Test
+    fun decemberWeek1OfNextYearBelongsToJanuary() {
+        val week1 = getWeekNumberAndYearFromDate("2025-12-28")
+        assertEquals(1, week1.first)
+        assertEquals(2026, week1.second)
+        assertFalse(getWeeksInMonth(2025, 12).contains(week1))
+        assertTrue(getWeeksInMonth(2026, 1).contains(week1))
+        val year2025 = weeksEndingInRange("2025-01-01", "2025-12-31")
+        val year2026 = weeksEndingInRange("2026-01-01", "2026-12-31")
+        assertFalse(year2025.contains(week1))
+        assertTrue(year2026.contains(week1))
+    }
+
+    @Test
+    fun monthsDoNotShareReportingWeeks() {
+        val jan = getWeeksInMonth(2025, 1)
+        val feb = getWeeksInMonth(2025, 2)
+        assertTrue(jan.intersect(feb.toSet()).isEmpty())
+        val yearWeeks = weeksEndingInRange("2025-01-01", "2025-12-31")
+        val monthWeeks = (1..12).flatMap { getWeeksInMonth(2025, it) }
+        assertEquals(yearWeeks.toSet(), monthWeeks.toSet())
+        assertEquals(yearWeeks.size, monthWeeks.size)
     }
 
     private fun weekSortKey(week: Pair<Int, Int>): Long = week.second * 100L + week.first

@@ -255,6 +255,9 @@ interface LoadDao {
     @Query("SELECT * FROM loads WHERE weekNumber = :weekNumber AND year = :year ORDER BY parsedAt DESC")
     suspend fun getLoadsByWeekOnce(weekNumber: Int, year: Int): List<LoadEntity>
 
+    @Query("SELECT * FROM loads WHERE year = :weekYear ORDER BY date DESC, parsedAt DESC")
+    suspend fun getLoadsByWeekYearOnce(weekYear: Int): List<LoadEntity>
+
     @Query(
         """
         SELECT

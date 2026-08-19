@@ -424,38 +424,34 @@ fun enumerateRecentWeekSlots(count: Int): List<Pair<Int, Int>> {
 fun enumerateYearWeekSlots(year: Int, throughWeek: Int): List<Pair<Int, Int>> =
     (1..throughWeek.coerceAtLeast(1)).map { it to year }
 
-/** Недели, пересекающие месяц. Возвращает список (weekNumber, year) для календаря. Неделя с воскресенья. */
-fun getWeeksInMonth(year: Int, month: Int): List<Pair<Int, Int>> {
+/**
+ * Reporting weeks whose Saturday falls in [startDate]…[endDate] (inclusive).
+ * A Sun–Sat week is owned by exactly one calendar month/year — no overlap.
+ */
+fun weeksEndingInRange(startDate: String, endDate: String): List<Pair<Int, Int>> {
+    val startParts = parseIsoDateParts(startDate) ?: return emptyList()
+    val endParts = parseIsoDateParts(endDate) ?: return emptyList()
     val cal = truckingWeekCalendar()
-    cal.set(Calendar.YEAR, year)
-    cal.set(Calendar.MONTH, month - 1)
-    cal.set(Calendar.DAY_OF_MONTH, 1)
-    cal.set(Calendar.HOUR_OF_DAY, 0)
-    cal.set(Calendar.MINUTE, 0)
-    cal.set(Calendar.SECOND, 0)
-    cal.set(Calendar.MILLISECOND, 0)
-    val firstDayOfWeek = Calendar.SUNDAY
-    var diff = (cal.get(Calendar.DAY_OF_WEEK) - firstDayOfWeek + 7) % 7
-    cal.add(Calendar.DAY_OF_YEAR, -diff)
+    cal.clear()
+    cal.set(startParts.first, startParts.second - 1, startParts.third)
+    val endCal = truckingWeekCalendar()
+    endCal.clear()
+    endCal.set(endParts.first, endParts.second - 1, endParts.third)
+    if (cal.after(endCal)) return emptyList()
+    val daysUntilSaturday = (Calendar.SATURDAY - cal.get(Calendar.DAY_OF_WEEK) + 7) % 7
+    cal.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
     val result = mutableListOf<Pair<Int, Int>>()
-    val targetMonth = month - 1
-    val lastDay = Calendar.getInstance().apply {
-        set(Calendar.YEAR, year)
-        set(Calendar.MONTH, targetMonth)
-        set(Calendar.DAY_OF_MONTH, 1)
-    }.getActualMaximum(Calendar.DAY_OF_MONTH)
-    while (cal.get(Calendar.YEAR) < year || cal.get(Calendar.MONTH) < targetMonth ||
-        (cal.get(Calendar.MONTH) == targetMonth && cal.get(Calendar.DAY_OF_MONTH) <= lastDay)) {
-        val endOfWeek = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 6) }
-        if (cal.get(Calendar.MONTH) == targetMonth || endOfWeek.get(Calendar.MONTH) == targetMonth) {
-            // FIX: store week-year so December week-1 maps to the next year key
-            result.add(Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear()))
-        }
+    while (!cal.after(endCal)) {
+        result.add(cal.get(Calendar.WEEK_OF_YEAR) to cal.truckingWeekYear())
         cal.add(Calendar.DAY_OF_YEAR, 7)
-        if (cal.get(Calendar.YEAR) > year) break
-        if (cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) > targetMonth) break
     }
-    return result.distinct()
+    return result
+}
+
+/** Недели, принадлежащие месяцу (суббота недели внутри месяца). Неделя с воскресенья. */
+fun getWeeksInMonth(year: Int, month: Int): List<Pair<Int, Int>> {
+    val (start, end) = getMonthRange(month, year)
+    return weeksEndingInRange(start, end)
 }
 
 /** Возвращает (startDate, endDate) для месяца. */
