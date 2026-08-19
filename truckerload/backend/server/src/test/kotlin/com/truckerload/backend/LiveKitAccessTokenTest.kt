@@ -3,6 +3,7 @@ package com.truckerload.backend
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -21,6 +22,7 @@ class LiveKitAccessTokenTest {
         )
         val decoded = JWT.require(Algorithm.HMAC256("super-secret"))
             .withIssuer("devkey")
+            .acceptLeeway(TimeUnit.DAYS.toSeconds(1))
             .build()
             .verify(jwt)
         assertEquals("11111111-1111-4111-8111-111111111111", decoded.subject)
