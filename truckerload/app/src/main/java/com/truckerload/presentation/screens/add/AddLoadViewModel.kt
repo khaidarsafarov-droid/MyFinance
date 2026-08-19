@@ -98,8 +98,9 @@ class AddLoadViewModel @Inject constructor(
     fun setManualDate(value: String) = updateManual { it.copy(date = value) }
     fun setManualRate(value: String) = updateManual { it.copy(rate = value) }
     fun setManualMiles(value: String) = updateManual { it.copy(miles = value) }
-    fun setManualPointA(value: String) = updateManual { it.copy(pointA = value) }
-    fun setManualPointB(value: String) = updateManual { it.copy(pointB = value) }
+    fun setManualPoint(index: Int, value: String) = updateManual { it.withPoint(index, value) }
+    fun addManualPoint() = updateManual { it.addPoint() }
+    fun removeManualPoint(index: Int) = updateManual { it.removePoint(index) }
 
     fun importDocument(uri: Uri, mimeType: String?) {
         if (_uiState.value.isExtractingDocument) return
@@ -254,7 +255,7 @@ class AddLoadViewModel @Inject constructor(
             }
             return
         }
-        if (fields.pointA.isBlank() && fields.pointB.isBlank()) {
+        if (fields.filledPoints().isEmpty()) {
             _uiState.update {
                 it.copy(
                     isSaving = false,
@@ -271,6 +272,7 @@ class AddLoadViewModel @Inject constructor(
                 miles = fields.parsedMiles(),
                 pointA = fields.pointA,
                 pointB = fields.pointB,
+                extraPoints = fields.extraPoints,
                 rawMessage = if (_uiState.value.mode == AddLoadInputMode.DOCUMENT) {
                     _uiState.value.rawText
                 } else {

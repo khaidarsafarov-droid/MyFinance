@@ -580,6 +580,10 @@
     <string name="add_load_trip_optional">Необязательно</string>
     <string name="add_load_point_a_placeholder">Город, штат погрузки</string>
     <string name="add_load_point_b_placeholder">Город, штат выгрузки</string>
+    <string name="add_load_point_more_placeholder">Город, штат остановки</string>
+    <string name="add_load_point_n">Point %1$s</string>
+    <string name="add_load_add_point">Добавить точку %1$s</string>
+    <string name="add_load_remove_point">Убрать точку %1$s</string>
     <string name="add_load_manual_rate_required">Укажите ставку больше нуля</string>
     <string name="add_load_manual_address_required">Укажите пункт погрузки или выгрузки</string>
     <string name="add_load_document_hint">Сделайте фото rate confirmation или выберите PDF / снимок из галереи.</string>

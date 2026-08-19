@@ -133,8 +133,9 @@ fun AddLoadScreen(
                     onDate = viewModel::setManualDate,
                     onRate = viewModel::setManualRate,
                     onMiles = viewModel::setManualMiles,
-                    onPointA = viewModel::setManualPointA,
-                    onPointB = viewModel::setManualPointB,
+                    onPointChange = viewModel::setManualPoint,
+                    onAddPoint = viewModel::addManualPoint,
+                    onRemovePoint = viewModel::removeManualPoint,
                 )
                 AddLoadInputMode.DOCUMENT -> {
                     AddLoadDocumentSection(
@@ -150,8 +151,9 @@ fun AddLoadScreen(
                             onDate = viewModel::setManualDate,
                             onRate = viewModel::setManualRate,
                             onMiles = viewModel::setManualMiles,
-                            onPointA = viewModel::setManualPointA,
-                            onPointB = viewModel::setManualPointB,
+                            onPointChange = viewModel::setManualPoint,
+                            onAddPoint = viewModel::addManualPoint,
+                            onRemovePoint = viewModel::removeManualPoint,
                             hintRes = R.string.add_load_document_fields_hint,
                         )
                     }

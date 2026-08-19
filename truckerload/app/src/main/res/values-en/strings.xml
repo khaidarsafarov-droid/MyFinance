@@ -580,6 +580,10 @@
     <string name="add_load_trip_optional">Optional</string>
     <string name="add_load_point_a_placeholder">Pickup city, state</string>
     <string name="add_load_point_b_placeholder">Delivery city, state</string>
+    <string name="add_load_point_more_placeholder">Stop city, state</string>
+    <string name="add_load_point_n">Point %1$s</string>
+    <string name="add_load_add_point">Add point %1$s</string>
+    <string name="add_load_remove_point">Remove point %1$s</string>
     <string name="add_load_manual_rate_required">Enter a rate greater than zero</string>
     <string name="add_load_manual_address_required">Enter a pickup or delivery location</string>
     <string name="add_load_document_hint">Take a photo of the rate confirmation or choose a PDF / gallery image.</string>
