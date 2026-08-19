@@ -359,4 +359,18 @@ class SettingsDataStore(context: Context) {
             prefs[boolKey("notify_maintenance", account)] = enabled
         }
     }
+
+    fun communityHintUsed(area: CommunityHintArea): Flow<Boolean> =
+        appContext.settingsDataStore.data.map { prefs ->
+            prefs[booleanPreferencesKey(area.prefKey)] ?: false
+        }
+
+    suspend fun isCommunityHintUsedOnce(area: CommunityHintArea): Boolean =
+        communityHintUsed(area).first()
+
+    suspend fun markCommunityHintUsed(area: CommunityHintArea) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[booleanPreferencesKey(area.prefKey)] = true
+        }
+    }
 }

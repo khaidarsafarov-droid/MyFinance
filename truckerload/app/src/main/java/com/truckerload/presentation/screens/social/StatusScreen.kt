@@ -54,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.truckerload.R
+import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.data.social.VoiceNoteRecorder
 import com.truckerload.domain.social.DriverStatusPost
 import com.truckerload.domain.social.StatusType
@@ -178,7 +179,12 @@ fun StatusScreen(
             ) {
                 if (uiState.statuses.isEmpty()) {
                     item {
-                        CommunityEmptyHint(stringResource(R.string.community_empty_status))
+                        CommunityFirstUseHint(
+                            area = CommunityHintArea.STATUS,
+                            message = stringResource(R.string.community_empty_status),
+                            hasContent = uiState.statuses.isNotEmpty() ||
+                                uiState.inputText.isNotBlank(),
+                        )
                     }
                 }
                 items(uiState.statuses, key = { it.id }) { status ->

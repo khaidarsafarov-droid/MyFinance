@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -73,7 +74,11 @@ internal fun ChallengesTabContent(
             }
         }
         if (challenge.leaderboard.none { !it.isMe }) {
-            CommunityAddFriendsHint(onOpenFriends = onOpenFriends)
+            CommunityAddFriendsHint(
+                area = CommunityHintArea.CHALLENGES,
+                hasContent = joined,
+                onOpenFriends = onOpenFriends,
+            )
         }
         Text(
             text = if (joined) {

@@ -14,10 +14,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,8 +28,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.data.preferences.CommunityHintArea
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.di.LocalSettingsDataStore
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +61,8 @@ fun CommunityScreen(
     val context = LocalContext.current
     val challenge = communityState.challenge
     val snackbarHostState = remember { SnackbarHostState() }
+    val settingsDataStore = LocalSettingsDataStore.current
+    val hintScope = rememberCoroutineScope()
 
     LaunchedEffect(chatsState.errorMessage) {
         chatsState.errorMessage?.let { message ->
@@ -134,7 +141,20 @@ fun CommunityScreen(
                 )
 
                 2 -> if (challenge == null) {
-                    CommunityEmptyHint(stringResource(R.string.community_empty_challenge))
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            hintScope.launch {
+                                settingsDataStore.markCommunityHintUsed(CommunityHintArea.CHALLENGES)
+                            }
+                        }
+                    }
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        CommunityFirstUseHint(
+                            area = CommunityHintArea.CHALLENGES,
+                            message = stringResource(R.string.community_empty_challenge),
+                            hasContent = false,
+                        )
+                    }
                 } else {
                     ChallengesTabContent(
                         challenge = challenge,

@@ -276,16 +276,14 @@ internal fun HomeScreenContent(
                                 style = MaterialTheme.typography.titleMedium,
                                 color = tc.TextPrimary,
                             )
-                            Text(
-                                if (uiState.filter == LoadFilter.ALL) {
-                                    stringResource(R.string.ux_home_empty_reciprocity)
-                                } else {
-                                    stringResource(R.string.home_empty_filtered_body)
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = tc.TextSecondary,
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
+                            if (uiState.filter != LoadFilter.ALL) {
+                                Text(
+                                    stringResource(R.string.home_empty_filtered_body),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = tc.TextSecondary,
+                                    modifier = Modifier.padding(top = 8.dp),
+                                )
+                            }
                         }
                     }
                 }

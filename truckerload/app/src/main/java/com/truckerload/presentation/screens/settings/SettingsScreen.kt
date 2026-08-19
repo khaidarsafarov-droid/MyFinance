@@ -8,7 +8,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,9 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import java.util.Locale
-import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +29,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.truckerload.BuildConfig
@@ -56,7 +52,6 @@ import com.truckerload.presentation.screens.settings.ThemeSettingsSection
 import com.truckerload.presentation.screens.settings.LanguageSettingsSection
 import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
@@ -208,65 +203,6 @@ fun SettingsScreen(
                     }
                 },
             )
-
-            var soundEnabled by remember { mutableStateOf(settingsViewModel.isSoundEnabled()) }
-            var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
-            BentoGlassSection(
-                title = stringResource(R.string.settings_sound_title),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                ) {
-                    Row(
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = stringResource(R.string.settings_sound_title),
-                            tint = tc.AccentPrimary,
-                            modifier = Modifier.size(22.dp),
-                        )
-                        Text(stringResource(R.string.settings_sound_title), color = tc.TextPrimary)
-                    }
-                    Switch(
-                        checked = soundEnabled,
-                        onCheckedChange = {
-                            soundEnabled = it
-                            settingsViewModel.setSoundEnabled(it)
-                        },
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                ) {
-                    Row(
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.Vibration,
-                            contentDescription = stringResource(R.string.settings_vibration_title),
-                            tint = tc.AccentPrimary,
-                            modifier = Modifier.size(22.dp),
-                        )
-                        Text(stringResource(R.string.settings_vibration_title), color = tc.TextPrimary)
-                    }
-                    Switch(
-                        checked = vibrationEnabled,
-                        onCheckedChange = {
-                            vibrationEnabled = it
-                            settingsViewModel.setVibrationEnabled(it)
-                        },
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                }
-            }
 
             BentoGlassSection(title = stringResource(R.string.settings_rpm_thresholds_title)) {
                 RpmColorLegend(
