@@ -68,8 +68,10 @@ class RoadRouteSession(
         currentOrStart: LatLngPoint?,
         destination: LatLngPoint?,
         nowMs: Long = System.currentTimeMillis(),
+        fetchOrigin: LatLngPoint? = null,
     ): RoadRouteResult {
-        if (destination == null || currentOrStart == null) {
+        val requestOrigin = fetchOrigin ?: currentOrStart
+        if (destination == null || requestOrigin == null) {
             val points = straight(currentOrStart, destination)
             return RoadRouteResult(
                 points = points,
@@ -83,9 +85,10 @@ class RoadRouteSession(
         if (destChanged) cache.remove(cacheKey)
 
         var cached = cache[cacheKey]
+        val probe = currentOrStart ?: requestOrigin
         if (cached != null) {
             val off = RoadRouteGeometry.isOffRoute(
-                currentOrStart,
+                probe,
                 cached.points,
                 offRouteThresholdMeters,
             )
@@ -112,8 +115,10 @@ class RoadRouteSession(
 
         if (needFetch) {
             lastFetchAttemptMs[cacheKey] = nowMs
+            val originForFetch =
+                if (snapshot != null && offRouteSince != null) probe else requestOrigin
             val request = RouteRequest(
-                origin = currentOrStart,
+                origin = originForFetch,
                 destination = destination,
                 vehicleMode = vehicleMode,
                 truck = truckParams,
@@ -123,7 +128,7 @@ class RoadRouteSession(
             if (road != null && road.points.size >= 2 && road.isRoadNetwork) {
                 cache[cacheKey] = CachedRoute(
                     destination = destination,
-                    fetchOrigin = currentOrStart,
+                    fetchOrigin = requestOrigin,
                     points = road.points,
                     fetchedAtMs = nowMs,
                     isRoadNetwork = true,
@@ -144,7 +149,8 @@ class RoadRouteSession(
 
         val road = cache[cacheKey]
         if (road != null && road.points.size >= 2) {
-            val remaining = RoadRouteGeometry.remainingFromCurrent(road.points, currentOrStart)
+            val remaining = RoadRouteGeometry.remainingFromCurrent(road.points, probe)
+            val traveled = RoadRouteGeometry.traveledToCurrent(road.points, probe)
             return RoadRouteResult(
                 points = remaining,
                 isRoadNetwork = road.isRoadNetwork,
@@ -152,10 +158,11 @@ class RoadRouteSession(
                 durationSeconds = road.durationSeconds,
                 providerName = road.providerName,
                 failureReason = if (road.isRoadNetwork) null else lastFailures[cacheKey],
+                traveledPoints = traveled,
             )
         }
         val reason = lastFailures[cacheKey] ?: "directions_unavailable"
-        return RoadRouteResult.straight(currentOrStart, destination, reason)
+        return RoadRouteResult.straight(probe, destination, reason)
     }
 
     private fun straight(start: LatLngPoint?, dest: LatLngPoint?): List<LatLngPoint> =

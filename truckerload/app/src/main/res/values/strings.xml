@@ -446,6 +446,9 @@
     <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
     <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
     <string name="friends_route_truck_toggle">Маршрут для грузовика</string>
+    <string name="friends_route_mode_title">Что показать на карте</string>
+    <string name="friends_route_mode_traveled">Пройденный путь</string>
+    <string name="friends_route_mode_remaining">Оставшийся путь</string>
     <string name="friends_battery_saver_toggle">Экономия батареи (GPS реже)</string>
     <string name="friends_route_road_truck">Маршрут по дорогам · профиль Truck</string>
     <string name="friends_route_road_car">Маршрут по дорогам · легковой</string>
@@ -496,8 +499,9 @@
     <string name="friends_share_off_map_hint">Ваша точка на карте видна вам. Чтобы друзья видели вас — включите переключатель и добавьте их по нику.</string>
     <string name="friends_need_location_permission">Нужен доступ к геолокации, чтобы показать ваше место на карте</string>
     <string name="friends_grant_location">Разрешить геолокацию</string>
-    <string name="friends_map_legend">Зелёный — вы · оранжевый — друзья онлайн</string>
+    <string name="friends_map_legend">Зелёный ободок — вы · оранжевый — друзья онлайн</string>
     <string name="friends_me_marker">Я</string>
+    <string name="friends_map_friend_fallback">Друг</string>
     <string name="friends_center_on_me">К моему местоположению</string>
     <string name="friends_map_tap_open">Нажмите, чтобы открыть карту</string>
     <string name="friends_map_close">Закрыть карту</string>

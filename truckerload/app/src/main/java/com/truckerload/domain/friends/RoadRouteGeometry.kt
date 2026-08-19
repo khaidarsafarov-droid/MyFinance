@@ -68,6 +68,21 @@ object RoadRouteGeometry {
         }
     }
 
+    /**
+     * On-road points already driven: start of [route] through near [current].
+     * Always ends with [current] so the polyline attaches to the driver's marker.
+     */
+    fun traveledToCurrent(route: List<LatLngPoint>, current: LatLngPoint): List<LatLngPoint> {
+        if (route.isEmpty()) return listOf(current)
+        val idx = nearestVertexIndex(current, route).coerceAtLeast(0)
+        val behind = route.subList(0, (idx + 1).coerceAtMost(route.size))
+        return buildList {
+            addAll(behind)
+            val last = lastOrNull()
+            if (last == null || last.lat != current.lat || last.lng != current.lng) add(current)
+        }
+    }
+
     fun samePoint(a: LatLngPoint?, b: LatLngPoint?, epsMeters: Double = 80.0): Boolean {
         if (a == null || b == null) return a == null && b == null
         return RouteIntersectionMatcher.haversineKm(a, b) * 1000.0 <= epsMeters

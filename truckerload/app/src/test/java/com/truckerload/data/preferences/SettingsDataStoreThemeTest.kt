@@ -55,6 +55,15 @@ class SettingsDataStoreThemeTest {
     }
 
     @Test
+    fun friendsRouteShowTraveled_defaultsFalseThenRoundTrips() = runBlocking {
+        assertEquals(false, store.getFriendsRouteShowTraveledOnce())
+        store.saveFriendsRouteShowTraveled(true)
+        assertEquals(true, store.getFriendsRouteShowTraveledOnce())
+        store.saveFriendsRouteShowTraveled(false)
+        assertEquals(false, store.getFriendsRouteShowTraveledOnce())
+    }
+
+    @Test
     fun communityHints_defaultUnusedThenMarkUsed() = runBlocking {
         assertEquals(false, store.isCommunityHintUsedOnce(CommunityHintArea.CHATS))
         store.markCommunityHintUsed(CommunityHintArea.CHATS)
