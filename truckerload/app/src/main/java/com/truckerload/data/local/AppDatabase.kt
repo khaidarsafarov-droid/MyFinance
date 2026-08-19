@@ -1,11 +1,9 @@
 package com.truckerload.data.local
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.truckerload.utils.CrashReporting
 import com.truckerload.data.local.dao.BlockedUserDao
 import com.truckerload.data.local.dao.CallSessionDao
 import com.truckerload.data.local.dao.ChallengeParticipationDao
@@ -128,12 +126,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun crowdRateDao(): com.truckerload.data.local.dao.CrowdRateDao
 
     companion object {
-        private const val LEGACY_DB_NAME = "truckerload_db"
-        private const val META_PREFS = LegacyDatabaseAbsorb.META_PREFS
-        private const val KEY_LEGACY_DB_MIGRATED = "legacy_db_migrated"
-        private const val KEY_LEGACY_DB_OWNER = LegacyDatabaseAbsorb.KEY_LEGACY_DB_OWNER
-        private const val KEY_LEGACY_DB_CLAIMED = LegacyDatabaseAbsorb.KEY_LEGACY_DB_CLAIMED
-
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -147,7 +139,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Opens the Room database for [userId]. Each account has its own file
          * (`truckerload_<userId>`), so loads / Telegram inbox never leak across users.
          *
-         * Legacy single-file `truckerload_db` is copied once to the first logged-in account.
+         * Legacy `truckerload_db` is never auto-copied; [LegacyDatabaseAbsorb] asks first.
          */
         fun getInstance(context: Context, userId: String): AppDatabase {
             val id = userId.trim()
@@ -160,8 +152,6 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE?.close()
                 INSTANCE = null
                 currentUserId = null
-                migrateLegacyDatabaseIfNeeded(context.applicationContext, id)
-                // Stage3: never auto-copy another account's DB — prompt via LegacyAbsorbDialog
                 LegacyDatabaseAbsorb.notePendingIfNeeded(context.applicationContext, id)
                 val dbName = databaseNameFor(id)
                 val db = Room.databaseBuilder(
@@ -216,60 +206,5 @@ abstract class AppDatabase : RoomDatabase() {
             "truckerload_${com.truckerload.data.preferences.AccountIds.sanitizeFilePart(userId)}"
 
         fun applicationContext(): Context? = appContext
-
-        private fun migrateLegacyDatabaseIfNeeded(context: Context, userId: String) {
-            val meta = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
-            if (meta.getBoolean(KEY_LEGACY_DB_MIGRATED, false)) return
-            val legacy = context.getDatabasePath(LEGACY_DB_NAME)
-            if (!legacy.exists()) {
-                meta.edit().putBoolean(KEY_LEGACY_DB_MIGRATED, true).apply()
-                return
-            }
-            val target = context.getDatabasePath(databaseNameFor(userId))
-            if (target.exists() && DatabaseFileCopy.isHealthyDatabase(target)) {
-                meta.edit()
-                    .putBoolean(KEY_LEGACY_DB_MIGRATED, true)
-                    .putString(KEY_LEGACY_DB_OWNER, userId)
-                    .apply()
-                return
-            }
-            // Broken leftover from a previous failed copy — remove and retry.
-            if (target.exists()) {
-                DatabaseFileCopy.deleteDbTree(target)
-            }
-            val copied = copyDatabaseOrReport(
-                source = legacy,
-                target = target,
-                userId = userId,
-                op = "legacy_copy",
-            )
-            if (copied) {
-                meta.edit()
-                    .putBoolean(KEY_LEGACY_DB_MIGRATED, true)
-                    .putString(KEY_LEGACY_DB_OWNER, userId)
-                    .apply()
-            }
-            // On failure: do NOT set the migrated flag so the next open retries.
-        }
-
-        private fun copyDatabaseOrReport(
-            source: java.io.File,
-            target: java.io.File,
-            userId: String,
-            op: String,
-        ): Boolean {
-            val result = DatabaseFileCopy.copyWithSidecars(source, target)
-            if (result.isSuccess) return true
-            val error = result.exceptionOrNull()
-                ?: IllegalStateException("$op failed without exception")
-            Log.e(TAG, "$op failed for user=$userId", error)
-            CrashReporting.setCustomKey("db_copy_op", op)
-            CrashReporting.setCustomKey("legacy_copy_user", userId)
-            CrashReporting.setCustomKey("legacy_db_size", source.length())
-            CrashReporting.recordException(error)
-            return false
-        }
-
-        private const val TAG = "AppDatabase"
     }
 }

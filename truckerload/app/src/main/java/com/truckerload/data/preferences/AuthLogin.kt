@@ -1,8 +1,8 @@
 package com.truckerload.data.preferences
 
 /**
- * Completes a multi-user login: bind profile namespace, save identity, then open the session.
- * Order matters so [UserProfileStore] is bound before [AuthStore.login] triggers DB switch.
+ * Completes a multi-user login: unify a leftover Google UUID journal, bind profile, then open the session.
+ * Google `sub` always wins over a Supabase UUID so one Google account is one TruckerLoad login.
  */
 object AuthLogin {
     fun completeLogin(
@@ -14,16 +14,23 @@ object AuthLogin {
         accessToken: String? = null,
         refreshToken: String? = null,
         googleIdToken: String? = null,
+        aliasUserIds: List<String> = emptyList(),
         provider: AuthProvider = when {
             !profile.googleId.isNullOrBlank() -> AuthProvider.GOOGLE
             else -> AuthProvider.EMAIL
         },
     ) {
-        val id = userId.trim()
-        require(id.isNotBlank()) { "userId required" }
+        val requestedId = userId.trim()
+        require(requestedId.isNotBlank()) { "userId required" }
+        val googleSub = profile.googleId?.trim()?.takeIf { it.isNotBlank() }
+        val id = if (googleSub != null) AccountIds.fromGoogleSub(googleSub) else requestedId
         require(profile.email.isNotBlank() || id.startsWith("local_") || id.startsWith("google_") || id == AccountIds.LOCAL_DEV) {
             "email required for account session"
         }
+        authStore.unifyGoogleJournal(
+            googleSub = googleSub,
+            aliasUserIds = aliasUserIds + requestedId,
+        )
         userProfileStore.bindUser(id)
         // Preserve / prefer cloud nickname; never wipe a stored handle with a blank login payload.
         val existingNick = userProfileStore.profile.value?.nickname
@@ -40,9 +47,10 @@ object AuthLogin {
             rememberMe = true,
             accessToken = accessToken,
             refreshToken = refreshToken,
-            googleSub = profile.googleId,
+            googleSub = googleSub,
             provider = provider,
             googleIdToken = googleIdToken,
+            aliasUserIds = aliasUserIds + requestedId,
         )
     }
 
@@ -74,6 +82,9 @@ object AuthLogin {
             accessToken = accessToken,
             refreshToken = refreshToken,
             googleIdToken = googleIdToken,
+            aliasUserIds = listOfNotNull(
+                supabaseUserId?.trim()?.takeIf { it.isNotBlank() && it != userId },
+            ),
         )
         return true
     }

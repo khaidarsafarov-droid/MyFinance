@@ -50,7 +50,7 @@ class GoogleSessionPersistTest {
         assertNotNull(auth.sessionOrNull())
 
         // Google OAuth must survive process death even if the checkbox was unchecked.
-        assertEquals("google_sub_persist_1", auth.currentUserIdOrNull())
+        assertEquals(AccountIds.fromGoogleSub("google-sub-1"), auth.currentUserIdOrNull())
         assertEquals("refresh-token", auth.sessionOrNull()?.refreshToken)
     }
 
@@ -120,7 +120,7 @@ class GoogleSessionPersistTest {
         AuthStore.resetForTests()
         val restored = AuthStore(context)
         assertTrue(restored.isLoggedIn.value)
-        assertEquals("google_voice_user", restored.currentUserIdOrNull())
+        assertEquals(AccountIds.fromGoogleSub("google-sub-voice"), restored.currentUserIdOrNull())
         if (secretsOnDisk) {
             assertEquals("supabase.jwt", restored.accessTokenOrNull())
             assertEquals("google.id.token", restored.googleIdTokenOrNull())
@@ -191,5 +191,80 @@ class GoogleSessionPersistTest {
         auth.setLoggedIn(true)
         assertEquals("google.id.keep", auth.googleIdTokenOrNull())
         assertEquals("jwt", auth.accessTokenOrNull())
+    }
+
+    @Test
+    fun googleUuidSessionRewritesToCanonicalGoogleIdOnColdStart() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+        val sub = "unify-cold-sub"
+        auth.login(
+            userId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            email = "voice@example.com",
+            rememberMe = true,
+            googleSub = sub,
+            provider = AuthProvider.GOOGLE,
+        )
+        AuthStore.resetForTests()
+        val restored = AuthStore(context)
+        assertEquals(AccountIds.fromGoogleSub(sub), restored.currentUserIdOrNull())
+        assertTrue(restored.isLoggedIn.value)
+    }
+
+    @Test
+    fun googleLoginWithSupabaseUuidCopiesJournalToCanonicalId() {
+        val context = RuntimeEnvironment.getApplication()
+        val uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        val sub = "unify-login-sub"
+        val source = context.getDatabasePath(
+            com.truckerload.data.local.AppDatabase.databaseNameFor(uuid),
+        )
+        source.parentFile?.mkdirs()
+        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(source, null).use { db ->
+            db.execSQL("CREATE TABLE t(id INTEGER PRIMARY KEY)")
+            db.execSQL("INSERT INTO t VALUES (7)")
+        }
+
+        val auth = AuthStore(context)
+        auth.login(
+            userId = uuid,
+            email = "same@example.com",
+            rememberMe = true,
+            googleSub = sub,
+            provider = AuthProvider.GOOGLE,
+        )
+
+        val canonical = AccountIds.fromGoogleSub(sub)
+        assertEquals(canonical, auth.currentUserIdOrNull())
+        assertTrue(
+            com.truckerload.data.local.DatabaseFileCopy.isHealthyDatabase(
+                context.getDatabasePath(
+                    com.truckerload.data.local.AppDatabase.databaseNameFor(canonical),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun tryCompleteLogin_oneGoogleAccountIgnoresSupabaseUuid() {
+        val context = RuntimeEnvironment.getApplication()
+        val auth = AuthStore(context)
+        val profiles = UserProfileStore(context)
+        val sub = "one-google-one-login"
+        val ok = AuthLogin.tryCompleteLogin(
+            authStore = auth,
+            userProfileStore = profiles,
+            supabaseUserId = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+            profile = UserProfile(
+                email = "driver@example.com",
+                givenName = "D",
+                familyName = "R",
+                photoUrl = null,
+                googleId = sub,
+            ),
+        )
+        assertTrue(ok)
+        assertEquals(AccountIds.fromGoogleSub(sub), auth.currentUserIdOrNull())
+        assertEquals(AccountIds.fromGoogleSub(sub), profiles.boundUserIdOrNull)
     }
 }

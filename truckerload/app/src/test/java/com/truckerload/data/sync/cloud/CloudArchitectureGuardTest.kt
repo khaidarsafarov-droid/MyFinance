@@ -45,6 +45,7 @@ class CloudArchitectureGuardTest {
         val db = readMain("com/truckerload/data/local/AppDatabase.kt")
         assertTrue(db.contains("version = 30"))
         assertFalse(db.contains("syncPending"))
+        assertFalse(db.contains("migrateLegacyDatabaseIfNeeded"))
     }
 
     private fun mainExists(relative: String): Boolean =

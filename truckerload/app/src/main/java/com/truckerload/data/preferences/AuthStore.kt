@@ -3,6 +3,7 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.truckerload.data.local.GoogleAccountUnifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,6 +64,15 @@ class AuthStore(context: Context) {
                     }
                     liveLoggedIn = true
                     liveSessionHealth = AuthSessionHealth.VERIFIED
+                    val canonical = GoogleAccountUnifier.canonicalSessionUserId(
+                        appContext,
+                        persistedId,
+                        liveGoogleSub,
+                    )
+                    if (canonical != persistedId) {
+                        liveUserId = canonical
+                        prefs.edit(commit = true) { putString(KEY_USER_ID, canonical) }
+                    }
                 }
                 _isLoggedIn.value = liveLoggedIn
                 _userId.value = liveUserId
@@ -108,6 +118,20 @@ class AuthStore(context: Context) {
     fun authProvider(): AuthProvider = synchronized(lock) { liveProvider }
 
     fun googleSubOrNull(): String? = synchronized(lock) { liveGoogleSub }
+
+    /**
+     * Copies a leftover Supabase-UUID journal/prefs into the canonical Google id
+     * before [UserProfileStore] binds. No-op when [googleSub] is blank.
+     */
+    fun unifyGoogleJournal(googleSub: String?, aliasUserIds: Collection<String> = emptyList()) {
+        val sub = googleSub?.trim().orEmpty()
+        if (sub.isBlank()) return
+        GoogleAccountUnifier.relocateAliases(
+            appContext,
+            AccountIds.fromGoogleSub(sub),
+            aliasUserIds,
+        )
+    }
 
     fun markSessionHealth(health: AuthSessionHealth) {
         synchronized(lock) {
@@ -168,10 +192,35 @@ class AuthStore(context: Context) {
         googleSub: String? = null,
         provider: AuthProvider = AuthProvider.LOCAL,
         googleIdToken: String? = null,
+        aliasUserIds: List<String> = emptyList(),
     ) {
-        val id = userId.trim()
+        val requestedId = userId.trim()
+        val id = if (!googleSub.isNullOrBlank()) {
+            AccountIds.fromGoogleSub(googleSub)
+        } else {
+            requestedId
+        }
         require(id.isNotBlank()) { "userId required" }
         val mail = email.trim()
+        val previousId: String?
+        val previousSub: String?
+        synchronized(lock) {
+            previousId = liveUserId
+            previousSub = liveGoogleSub
+        }
+        if (!googleSub.isNullOrBlank()) {
+            val aliases = buildList {
+                addAll(aliasUserIds)
+                if (requestedId.isNotBlank()) add(requestedId)
+                if (!previousId.isNullOrBlank() &&
+                    previousId != id &&
+                    previousSub == googleSub.trim()
+                ) {
+                    add(previousId)
+                }
+            }
+            GoogleAccountUnifier.relocateAliases(appContext, id, aliases)
+        }
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider == AuthProvider.GOOGLE || provider == AuthProvider.EMAIL -> provider
