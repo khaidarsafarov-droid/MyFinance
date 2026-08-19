@@ -750,6 +750,7 @@
     <string name="drive_sync_last">Последняя синхронизация: %1$s</string>
     <string name="drive_sync_last_never">ещё не было</string>
     <string name="drive_sync_connect">Подключить Google Drive</string>
+    <string name="drive_sync_now">Синхронизировать с Google Drive</string>
     <string name="drive_sync_disconnect">Отключить</string>
     <string name="drive_sync_backup_now">Сохранить в Drive</string>
     <string name="drive_sync_restore_now">Восстановить из Drive</string>

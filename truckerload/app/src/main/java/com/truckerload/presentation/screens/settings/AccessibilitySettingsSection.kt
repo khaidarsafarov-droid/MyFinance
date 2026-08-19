@@ -34,7 +34,6 @@ fun AccessibilitySettingsSection(
 
     BentoGlassSection(
         title = stringResource(R.string.settings_accessibility_title),
-        subtitle = stringResource(R.string.settings_accessibility_desc),
         modifier = modifier,
     ) {
         Row(
@@ -67,10 +66,5 @@ fun AccessibilitySettingsSection(
                 colors = AppSwitchDefaults.colors(),
             )
         }
-        Text(
-            text = stringResource(R.string.settings_reduce_motion_desc),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
-        )
     }
 }

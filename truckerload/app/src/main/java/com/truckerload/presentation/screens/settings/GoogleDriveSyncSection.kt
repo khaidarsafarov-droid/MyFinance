@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,21 +70,6 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     var restoreConflict by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
 
-    val driveSignInLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
-            return@rememberLauncherForActivityResult
-        }
-        val ok = GoogleDriveBackupService.onSignInResult(context, result.data)
-        if (ok) {
-            linkedEmail = prefs.accountEmail
-            Toast.makeText(context, context.getString(R.string.drive_sync_connected), Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, context.getString(R.string.drive_sync_connect_failed), Toast.LENGTH_SHORT).show()
-        }
-    }
-
     fun toastResult(result: Result<String>) {
         result.fold(
             onSuccess = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() },
@@ -102,9 +86,54 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         )
     }
 
+    suspend fun pushToDrive() {
+        busy = true
+        val result = withContext(Dispatchers.IO) {
+            GoogleDriveBackupService.backupNow(context)
+        }
+        lastSyncAt = prefs.lastSyncAt
+        linkedEmail = GoogleDriveBackupService.linkedAccountEmail(context) ?: prefs.accountEmail
+        busy = false
+        toastResult(result)
+    }
+
+    val driveSignInLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            return@rememberLauncherForActivityResult
+        }
+        val ok = GoogleDriveBackupService.onSignInResult(context, result.data)
+        if (ok) {
+            linkedEmail = prefs.accountEmail
+            Toast.makeText(context, context.getString(R.string.drive_sync_connected), Toast.LENGTH_SHORT).show()
+            scope.launch { pushToDrive() }
+        } else {
+            Toast.makeText(context, context.getString(R.string.drive_sync_connect_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun startDriveSync() {
+        val host = activity ?: context.findActivity()
+        if (host == null) {
+            Toast.makeText(context, context.getString(R.string.drive_sync_need_activity), Toast.LENGTH_LONG).show()
+            return
+        }
+        GoogleDriveBackupService.syncLinkedAccountFromGoogle(host)
+        if (GoogleDriveBackupService.isDriveScopeGranted(host)) {
+            linkedEmail = GoogleDriveBackupService.linkedAccountEmail(host) ?: prefs.accountEmail
+            scope.launch { pushToDrive() }
+            return
+        }
+        runCatching {
+            driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(host))
+        }.onFailure {
+            Toast.makeText(context, context.getString(R.string.drive_sync_connect_failed), Toast.LENGTH_LONG).show()
+        }
+    }
+
     BentoGlassSection(
         title = stringResource(R.string.drive_sync_title),
-        subtitle = stringResource(R.string.drive_sync_desc),
     ) {
         Text(
             text = if (linkedEmail.isNullOrBlank()) {
@@ -146,26 +175,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
 
         if (linkedEmail.isNullOrBlank()) {
             Button(
-                onClick = {
-                    val host = activity ?: context.findActivity()
-                    if (host == null) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.drive_sync_need_activity),
-                            Toast.LENGTH_LONG,
-                        ).show()
-                        return@Button
-                    }
-                    runCatching {
-                        driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(host))
-                    }.onFailure {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.drive_sync_connect_failed),
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
-                },
+                onClick = { startDriveSync() },
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
@@ -173,9 +183,9 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_connect))
+                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.drive_sync_connect))
+                    Text(stringResource(R.string.drive_sync_now))
                 }
             }
         } else {
@@ -184,18 +194,12 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(
-                        text = stringResource(R.string.drive_sync_auto),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.drive_sync_auto_desc),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = tc.TextSecondary,
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.drive_sync_auto),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextPrimary,
+                    modifier = Modifier.weight(1f).padding(end = 12.dp),
+                )
                 Switch(
                     checked = autoSync,
                     onCheckedChange = {
@@ -208,21 +212,18 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             }
 
             Button(
-                onClick = {
-                    scope.launch {
-                        busy = true
-                        val result = withContext(Dispatchers.IO) {
-                            GoogleDriveBackupService.backupNow(context)
-                        }
-                        lastSyncAt = prefs.lastSyncAt
-                        busy = false
-                        toastResult(result)
-                    }
-                },
+                onClick = { startDriveSync() },
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
-                Text(stringResource(R.string.drive_sync_backup_now))
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.drive_sync_now))
+                }
             }
             OutlinedButton(
                 onClick = {

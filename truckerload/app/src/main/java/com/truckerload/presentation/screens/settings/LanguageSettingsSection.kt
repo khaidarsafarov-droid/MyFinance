@@ -34,7 +34,6 @@ fun LanguageSettingsSection(
 
     BentoGlassSection(
         title = stringResource(R.string.settings_language_title),
-        subtitle = stringResource(R.string.settings_language_desc),
         modifier = modifier,
     ) {
         FlowRow(

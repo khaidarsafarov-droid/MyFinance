@@ -33,14 +33,24 @@ object GoogleSignInClients {
     fun loginIntent(activity: Activity, requestIdToken: Boolean): Intent =
         GoogleSignIn.getClient(activity, loginOptions(requestIdToken)).signInIntent
 
-    fun driveOptions(): GoogleSignInOptions =
-        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+    fun driveOptions(accountEmail: String? = null): GoogleSignInOptions {
+        val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestScopes(Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE))
-            .build()
+        accountEmail?.trim()?.takeIf { it.isNotBlank() }?.let { builder.setAccountName(it) }
+        return builder.build()
+    }
 
-    fun driveSignInIntent(activity: Activity): Intent =
-        GoogleSignIn.getClient(activity, driveOptions()).signInIntent
+    /**
+     * Opens Google account picker, or re-consents Drive app-data for the account
+     * already signed in on the device (setAccountName). Using the last email is
+     * required — a second sign-in without it often returns the old account and
+     * skips the Drive permission screen.
+     */
+    fun driveSignInIntent(activity: Activity): Intent {
+        val email = GoogleSignIn.getLastSignedInAccount(activity)?.email
+        return GoogleSignIn.getClient(activity, driveOptions(email)).signInIntent
+    }
 
     fun isDeveloperError(error: Throwable): Boolean {
         val api = error as? ApiException ?: error.cause as? ApiException

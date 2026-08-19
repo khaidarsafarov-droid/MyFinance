@@ -35,7 +35,6 @@ fun FeedbackSettingsSection(
     var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
     BentoGlassSection(
         title = stringResource(R.string.settings_feedback_title),
-        subtitle = stringResource(R.string.settings_feedback_desc),
         modifier = modifier,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -40,6 +40,15 @@ class GoogleAuthArchitectureTest {
         assertTrue(source.contains("findActivity()"))
         assertFalse(source.contains("context as? Activity"))
         assertTrue(source.contains("linkedAccountEmail"))
+        assertTrue(source.contains("startDriveSync"))
+        assertTrue(source.contains("drive_sync_now"))
+    }
+
+    @Test
+    fun driveSignInIntent_reconsentsLastAccountForAppDataScope() {
+        val clients = readMainSource("com/truckerload/data/remote/GoogleSignInClients.kt")
+        assertTrue(clients.contains("setAccountName"))
+        assertTrue(clients.contains("getLastSignedInAccount"))
     }
 
     @Test

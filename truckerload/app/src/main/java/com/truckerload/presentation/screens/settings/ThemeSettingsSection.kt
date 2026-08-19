@@ -43,7 +43,6 @@ fun ThemeSettingsSection(
 
     BentoGlassSection(
         title = stringResource(R.string.settings_theme_title),
-        subtitle = stringResource(R.string.settings_theme_desc),
         modifier = modifier,
     ) {
         FlowRow(
@@ -108,11 +107,6 @@ fun ThemeSettingsSection(
                     colors = AppSwitchDefaults.colors(),
                 )
             }
-            Text(
-                text = stringResource(R.string.settings_oled_dark_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
         }
     }
 }

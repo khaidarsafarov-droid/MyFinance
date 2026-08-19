@@ -213,7 +213,6 @@ fun SettingsScreen(
             var vibrationEnabled by remember { mutableStateOf(settingsViewModel.isVibrationEnabled()) }
             BentoGlassSection(
                 title = stringResource(R.string.settings_sound_title),
-                subtitle = stringResource(R.string.settings_sound_desc),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -330,7 +329,6 @@ fun SettingsScreen(
 
             BentoGlassSection(
                 title = stringResource(R.string.export_loads),
-                subtitle = stringResource(R.string.export_loads_description)
             ) {
                 if (exportState is SettingsViewModel.ExportState.Loading ||
                     restoreState is SettingsViewModel.RestoreState.Loading
@@ -400,17 +398,10 @@ fun SettingsScreen(
                         Text(stringResource(R.string.restore_loads))
                     }
                 }
-                Text(
-                    text = stringResource(R.string.restore_loads_description),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
             }
 
             BentoGlassSection(
                 title = stringResource(R.string.settings_backup_title),
-                subtitle = stringResource(R.string.settings_backup_desc)
             ) {
                 Button(
                     onClick = {
@@ -448,19 +439,12 @@ fun SettingsScreen(
                 ) {
                     Text(stringResource(R.string.settings_backup_restore))
                 }
-                Text(
-                    text = stringResource(R.string.settings_backup_restore_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
             }
 
             GoogleDriveSyncSection(tc = tc)
 
             BentoGlassSection(
                 title = stringResource(R.string.settings_logout_title),
-                subtitle = stringResource(R.string.settings_logout_desc)
             ) {
                 OutlinedButton(
                     onClick = { showLogoutConfirm = true },
