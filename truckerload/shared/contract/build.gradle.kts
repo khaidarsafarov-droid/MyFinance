@@ -1,25 +1,50 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
     jvmToolchain(21)
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+    jvm {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+    }
+    truckerloadIosTargets("TruckerLoadContract")
+
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+    }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+tasks.register("test") {
+    group = "verification"
+    description = "Runs JVM tests (iOS targets are macOS-only)."
+    dependsOn("jvmTest")
 }
 
-dependencies {
-    api(libs.kotlinx.serialization.json)
-    testImplementation(kotlin("test"))
+private fun org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension.truckerloadIosTargets(
+    frameworkBaseName: String,
+) {
+    if (!truckerloadIosEnabled()) return
+    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
+        target.binaries.framework {
+            baseName = frameworkBaseName
+            isStatic = true
+        }
+    }
 }
 
-tasks.test {
-    useJUnitPlatform()
+private fun truckerloadIosEnabled(): Boolean {
+    val override = findProperty("truckerload.enableIos")?.toString()?.lowercase()
+    return when (override) {
+        "true" -> true
+        "false" -> false
+        else -> System.getProperty("os.name").orEmpty().startsWith("Mac", ignoreCase = true)
+    }
 }

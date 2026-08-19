@@ -23,4 +23,5 @@ dependencyResolutionManagement {
 rootProject.name = "TruckerLoad"
 include(":app")
 include(":shared:contract")
+include(":shared:domain")
 include(":backend:server")

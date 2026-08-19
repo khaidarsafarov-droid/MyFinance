@@ -3,6 +3,7 @@ package com.truckerload.data.sync
 import android.content.Context
 import com.truckerload.BuildConfig
 import com.truckerload.contract.DevicePushTokenRequest
+import com.truckerload.contract.PushPlatforms
 import com.truckerload.contract.TelegramInboxListResponse
 import com.truckerload.contract.TelegramLinkTokenResponse
 import com.truckerload.data.preferences.AuthStore
@@ -171,7 +172,11 @@ class RemoteAccountCloudClient(
     }
 
     suspend fun registerPushToken(token: String) = withContext(Dispatchers.IO) {
-        val request = DevicePushTokenRequest(deviceId = deviceId, token = token)
+        val request = DevicePushTokenRequest(
+            deviceId = deviceId,
+            token = token,
+            platform = PushPlatforms.ANDROID,
+        )
         val body = AccountCloudSnapshotCodec.gson.toJson(request).toRequestBody(JSON)
         val response = client.newCall(
             authorizedRequest(endpoint("v1", "devices", "push-token"))

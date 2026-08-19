@@ -101,7 +101,7 @@ Do not pass the metrics token in a URL or enable shell tracing around this comma
 The OpenAPI document is served at `/openapi.yaml`; `/docs` redirects to it.
 
 ```bash
-sh ./gradlew :shared:contract:test :backend:server:test :app:testDebugUnitTest :app:assembleDebug
+sh ./gradlew :shared:contract:jvmTest :shared:domain:jvmTest :backend:server:test :app:testDebugUnitTest :app:assembleDebug
 ```
 
 Tests use in-memory repository and storage fakes and do not require Docker.

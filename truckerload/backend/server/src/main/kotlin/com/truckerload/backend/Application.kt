@@ -13,6 +13,7 @@ import com.truckerload.contract.MediaMetadata
 import com.truckerload.contract.MediaUploadCompleteRequest
 import com.truckerload.contract.MediaUploadRequest
 import com.truckerload.contract.MediaUploadResponse
+import com.truckerload.contract.PushPlatforms
 import com.truckerload.contract.SyncCursor
 import com.truckerload.contract.TelegramInboxListResponse
 import com.truckerload.contract.TelegramLinkTokenResponse
@@ -326,8 +327,12 @@ private fun io.ktor.server.routing.Route.syncRoutes(
             val stored = repositories.snapshots.putLww(user.id, normalized, checksum)
             metrics.recordSnapshot(stored.accepted)
             if (stored.accepted && sourceDeviceId != null) {
-                val tokens = repositories.pushTokens.listForUser(user.id, sourceDeviceId).map { it.token }
-                metrics.recordPushFailures(pushNotifier.notifySync(tokens))
+                val tokens = repositories.pushTokens.listForUser(user.id, sourceDeviceId)
+                    .filter { it.platform == PushPlatforms.ANDROID }
+                    .map { it.token }
+                if (tokens.isNotEmpty()) {
+                    metrics.recordPushFailures(pushNotifier.notifySync(tokens))
+                }
             }
             call.respond(stored.snapshot)
         }
@@ -356,8 +361,12 @@ private fun io.ktor.server.routing.Route.deviceRoutes(repositories: Repositories
             val request = call.receiveJson<DevicePushTokenRequest>(MAX_SMALL_JSON_BODY_BYTES)
             val deviceId = validDeviceId(request.deviceId)
             val token = validPushToken(request.token)
-            if (request.platform != "android") {
-                throw ApiException(HttpStatusCode.BadRequest, "invalid_platform", "platform must be android")
+            if (!PushPlatforms.isSupported(request.platform)) {
+                throw ApiException(
+                    HttpStatusCode.BadRequest,
+                    "invalid_platform",
+                    "platform must be android or ios",
+                )
             }
             repositories.pushTokens.upsert(
                 DevicePushTokenRecord(
