@@ -88,13 +88,25 @@ data class DevicePushTokenRecord(
     val updatedAt: Long,
 )
 
+data class AccountDeviceRecord(
+    val userId: UUID,
+    val deviceId: String,
+    val formFactor: String,
+    val registeredAt: Long,
+    val lastSeenAt: Long,
+)
+
+sealed class DeviceClaimResult {
+    data class Claimed(val record: AccountDeviceRecord) : DeviceClaimResult()
+    data class SlotTaken(val formFactor: String, val occupantDeviceId: String) : DeviceClaimResult()
+}
+
 interface UserRepository {
     suspend fun upsert(user: AuthenticatedUser)
 }
 
 interface SnapshotRepository {
     suspend fun get(userId: UUID): AccountCloudSnapshot?
-
     /** Returns the row after applying strict last-write-wins semantics. */
     suspend fun putLww(
         userId: UUID,
@@ -141,7 +153,6 @@ interface MediaRepository {
         checksum: String?,
         completedAt: Long
     ): MediaRecord?
-
     suspend fun softDelete(userId: UUID, mediaId: UUID, deletedAt: Long): MediaRecord?
 }
 
@@ -149,6 +160,11 @@ interface PushTokenRepository {
     suspend fun upsert(record: DevicePushTokenRecord)
     suspend fun delete(userId: UUID, deviceId: String): Boolean
     suspend fun listForUser(userId: UUID, excludingDeviceId: String?): List<DevicePushTokenRecord>
+}
+
+interface AccountDeviceRepository {
+    suspend fun claim(userId: UUID, deviceId: String, formFactor: String): DeviceClaimResult
+    suspend fun delete(userId: UUID, deviceId: String): Boolean
 }
 
 interface DatabaseHealth {
@@ -162,5 +178,6 @@ data class Repositories(
     val telegram: TelegramRepository,
     val media: MediaRepository,
     val pushTokens: PushTokenRepository,
+    val accountDevices: AccountDeviceRepository,
     val health: DatabaseHealth,
 )

@@ -1,6 +1,5 @@
 package com.truckerload.sync
 
-import androidx.core.content.edit
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,15 +12,15 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.truckerload.R
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramApi
-import com.truckerload.R
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.LogRedactor
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,17 +29,15 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Держит long-polling Telegram активным, пока приложение установлено.
- * Работает в фоне даже когда приложение закрыто (stopWithTask=false).
- *
- * Shows a single quiet ongoing notification (Android requires one for FGS).
- * The notification is min-importance, silent, and never re-alerted on restarts.
+ * Runs Telegram long-polling only while the app is in the foreground.
+ * Stopped automatically when the app goes to background; background sync
+ * is handled by [TelegramSyncWorker] via WorkManager (every ~15 min).
  *
  * Android 15 (targetSdk 35) caps [dataSync] FGS at ~6h / 24h in the background.
- * [onTimeout] must [stopSelf] immediately or the system crashes the process with
- * "Truck Log keeps stopping".
+ * [onTimeout] must [stopSelf] immediately or the system crashes the process.
  */
 class TelegramBotForegroundService : Service() {
 
@@ -92,7 +89,7 @@ class TelegramBotForegroundService : Service() {
                 TelegramPollCoordinator.markForegroundPolling(false)
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     /**
@@ -107,7 +104,6 @@ class TelegramBotForegroundService : Service() {
 
     /** Stop after startForeground(); optionally suppress AlarmManager restart. */
     private fun stopQuietly(restart: Boolean) {
-        suppressRestart = !restart
         startRequested.set(false)
         isRunningFlag.set(false)
         pollJob?.cancel()
@@ -117,12 +113,8 @@ class TelegramBotForegroundService : Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        if (TelegramSyncMode.isServer() || TelegramFgsQuota.isPaused(applicationContext)) {
-            super.onTaskRemoved(rootIntent)
-            return
-        }
-        Log.w(TAG, "Task removed — scheduling bot service restart")
-        TelegramServiceRestarter.schedule(applicationContext)
+        Log.i(TAG, "Task removed — stopping FGS (background sync via WorkManager)")
+        stopQuietly(restart = false)
         super.onTaskRemoved(rootIntent)
     }
 
@@ -131,12 +123,7 @@ class TelegramBotForegroundService : Service() {
         startRequested.set(false)
         pollJob?.cancel()
         scope.cancel()
-        if (!suppressRestart && !TelegramSyncMode.isServer() && !TelegramFgsQuota.isPaused(applicationContext)) {
-            Log.w(TAG, "Service destroyed — scheduling restart")
-            TelegramServiceRestarter.schedule(applicationContext)
-        } else {
-            Log.i(TAG, "Service destroyed — restart suppressed")
-        }
+        Log.i(TAG, "Service destroyed — background sync handled by WorkManager")
         super.onDestroy()
     }
 
@@ -249,9 +236,6 @@ class TelegramBotForegroundService : Service() {
         private const val NOTIFICATION_ID = 4101
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
 
-        @Volatile
-        private var suppressRestart = false
-
         private val isRunningFlag = AtomicBoolean(false)
         private val startRequested = AtomicBoolean(false)
 
@@ -287,7 +271,6 @@ class TelegramBotForegroundService : Service() {
                 startRequested.set(false)
                 return
             }
-            suppressRestart = false
             val intent = Intent(context, TelegramBotForegroundService::class.java)
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -306,7 +289,6 @@ class TelegramBotForegroundService : Service() {
         }
 
         fun stop(context: Context) {
-            suppressRestart = true
             startRequested.set(false)
             TelegramPollCoordinator.markForegroundPolling(false)
             isRunningFlag.set(false)

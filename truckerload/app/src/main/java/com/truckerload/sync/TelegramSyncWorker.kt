@@ -1,6 +1,8 @@
 package com.truckerload.sync
 
 import android.content.Context
+import android.util.Log
+import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -8,15 +10,14 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import androidx.hilt.work.HiltWorker
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
-import android.util.Log
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
 /**
- * Ensures [TelegramBotForegroundService] is running. Polling only happens in the service (single client).
+ * Background Telegram poll via WorkManager (~15 min periodic).
+ * Skips if the foreground service is already active (app in foreground).
  */
 @HiltWorker
 class TelegramSyncWorker @AssistedInject constructor(
@@ -59,21 +60,26 @@ class TelegramSyncWorker @AssistedInject constructor(
         if (TelegramSyncMode.isServer()) return Result.success()
         val userId = authStore.currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
-            Log.w("TelegramSync", "No active user — skip ensuring Telegram service")
+            Log.w("TelegramSync", "No active user — skip background poll")
             return Result.success()
         }
         val token = TelegramTokenStore(applicationContext, userId).getToken()
         if (token.isBlank()) {
-            Log.w("TelegramSync", "No bot token — set TELEGRAM_BOT_TOKEN in local.properties or Settings")
+            Log.w("TelegramSync", "No bot token — skip background poll")
             return Result.success()
         }
-        // Quota pause: start() no-ops until the app is foregrounded again.
-        if (TelegramFgsQuota.isPaused()) {
-            Log.i("TelegramSync", "dataSync quota paused — skip ensure-service until foreground")
+        if (TelegramBotForegroundService.isRunning()) {
+            Log.d("TelegramSync", "FGS is active (app in foreground) — skip background poll")
             return Result.success()
         }
-        if (!TelegramPollCoordinator.isForegroundPolling()) {
-            TelegramBotForegroundService.start(applicationContext)
+        TelegramPollCoordinator.withPollLock {
+            try {
+                val engine = TelegramBotSyncEngine(applicationContext)
+                engine.runOnce(token, expectedUserId = userId)
+                Log.d("TelegramSync", "Background poll completed")
+            } catch (e: Exception) {
+                Log.w("TelegramSync", "Background poll failed", e)
+            }
         }
         return Result.success()
     }
