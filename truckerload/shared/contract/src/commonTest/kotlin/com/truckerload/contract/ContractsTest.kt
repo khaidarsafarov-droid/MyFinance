@@ -88,4 +88,25 @@ class ContractsTest {
         assertEquals(DeviceSlotPolicy.PHONE, DeviceSlotPolicy.normalize("PHONE"))
         assertEquals(null, DeviceSlotPolicy.normalize("laptop"))
     }
+
+    @Test
+    fun `voice token contract round trips`() {
+        val request = VoiceTokenRequest("room-1", "Alex", "listener")
+        assertEquals(
+            request,
+            ContractJson.decodeFromString<VoiceTokenRequest>(ContractJson.encodeToString(request)),
+        )
+        val response = VoiceTokenResponse(
+            url = "wss://voice.example.livekit.cloud",
+            token = "jwt",
+            roomName = "tl-voice-room-1",
+            identity = "user-1",
+            role = "listener",
+            audioBitrate = 0,
+        )
+        assertEquals(
+            response,
+            ContractJson.decodeFromString<VoiceTokenResponse>(ContractJson.encodeToString(response)),
+        )
+    }
 }

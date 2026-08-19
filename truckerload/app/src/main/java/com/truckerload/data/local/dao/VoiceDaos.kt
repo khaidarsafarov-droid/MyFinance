@@ -26,6 +26,12 @@ interface VoiceRoomDao {
 
     @Query("DELETE FROM voice_rooms WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<String>)
+
+    @Query("UPDATE voice_rooms SET isActive = 0, updatedAt = :now WHERE isActive = 1 AND updatedAt < :staleBefore")
+    suspend fun deactivateAllStale(now: Long, staleBefore: Long)
+
+    @Query("UPDATE voice_rooms SET isActive = 0, updatedAt = :now WHERE isActive = 1 AND id NOT IN (:keepIds) AND updatedAt < :staleBefore")
+    suspend fun deactivateNotInStale(keepIds: List<String>, now: Long, staleBefore: Long)
 }
 
 @Dao
@@ -56,6 +62,9 @@ interface VoiceRoomParticipantDao {
 
     @Query("UPDATE voice_room_participants SET isSpeaking = :speaking, audioLevel = :level WHERE roomId = :roomId AND userId = :userId")
     suspend fun setSpeaking(roomId: String, userId: String, speaking: Boolean, level: Int)
+
+    @Query("SELECT * FROM voice_room_participants WHERE roomId = :roomId AND userId = :userId LIMIT 1")
+    suspend fun get(roomId: String, userId: String): VoiceRoomParticipantEntity?
 }
 
 @Dao

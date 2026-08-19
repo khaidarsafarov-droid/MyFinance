@@ -36,12 +36,7 @@ class WebRtcCallManager(
 
     fun initialize(): Result<Unit> = runCatching {
         if (initialized.get()) return@runCatching
-        PeerConnectionFactory.initialize(
-            PeerConnectionFactory.InitializationOptions.builder(context.applicationContext)
-                .setEnableInternalTracer(false)
-                .createInitializationOptions(),
-        )
-        factory = PeerConnectionFactory.builder().createPeerConnectionFactory()
+        factory = WebRtcInitializer.createFactory(context)
         initialized.set(true)
     }
 
@@ -98,6 +93,7 @@ class WebRtcCallManager(
             mandatory.add(MediaConstraints.KeyValuePair("googEchoCancellation", "true"))
             mandatory.add(MediaConstraints.KeyValuePair("googNoiseSuppression", "true"))
             mandatory.add(MediaConstraints.KeyValuePair("googAutoGainControl", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("googHighpassFilter", "true"))
         }
         val source = factory?.createAudioSource(constraints) ?: error("Factory not ready")
         audioSource = source
@@ -146,6 +142,7 @@ class WebRtcCallManager(
         localAudioTrack?.let { track ->
             peerConnection?.addTrack(track, listOf("call_stream"))
         }
+        OpusAudioTune.capSenderBitrate(peerConnection)
     }
 
     private fun createOffer() {
@@ -156,7 +153,12 @@ class WebRtcCallManager(
         peerConnection?.createOffer(object : org.webrtc.SdpObserver {
             override fun onCreateSuccess(description: SessionDescription?) {
                 description ?: return
-                peerConnection?.setLocalDescription(SimpleSdpObserver(), description)
+                val tuned = SessionDescription(
+                    description.type,
+                    OpusAudioTune.constrainSdp(description.description),
+                )
+                peerConnection?.setLocalDescription(SimpleSdpObserver(), tuned)
+                OpusAudioTune.capSenderBitrate(peerConnection)
                 val sessionId = activeSessionId ?: return
                 callScope?.launch {
                     signaling.sendSignal(
@@ -164,7 +166,7 @@ class WebRtcCallManager(
                         Signal(
                             type = SignalType.OFFER,
                             fromUserId = localUserId,
-                            sdp = description.description,
+                            sdp = tuned.description,
                         ),
                     )
                 }
@@ -183,7 +185,12 @@ class WebRtcCallManager(
         peerConnection?.createAnswer(object : org.webrtc.SdpObserver {
             override fun onCreateSuccess(description: SessionDescription?) {
                 description ?: return
-                peerConnection?.setLocalDescription(SimpleSdpObserver(), description)
+                val tuned = SessionDescription(
+                    description.type,
+                    OpusAudioTune.constrainSdp(description.description),
+                )
+                peerConnection?.setLocalDescription(SimpleSdpObserver(), tuned)
+                OpusAudioTune.capSenderBitrate(peerConnection)
                 val sessionId = activeSessionId ?: return
                 callScope?.launch {
                     signaling.sendSignal(
@@ -191,7 +198,7 @@ class WebRtcCallManager(
                         Signal(
                             type = SignalType.ANSWER,
                             fromUserId = localUserId,
-                            sdp = description.description,
+                            sdp = tuned.description,
                         ),
                     )
                 }

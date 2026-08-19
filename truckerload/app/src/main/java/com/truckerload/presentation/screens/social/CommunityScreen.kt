@@ -124,8 +124,8 @@ fun CommunityScreen(
                     peers = chatsState.peers,
                     searchQuery = chatsState.searchQuery,
                     onSearchChange = chatsViewModel::setSearchQuery,
-                    onCreateGroup = { name ->
-                        chatsViewModel.createGroupChat(name) { chatId -> onOpenGroupDetail(chatId) }
+                    onCreateGroup = { name, description ->
+                        chatsViewModel.createGroupChat(name, description) { chatId -> onOpenGroupDetail(chatId) }
                     },
                     onCreatePrivateWithPeer = { peerId ->
                         chatsViewModel.createPrivateChatWithPeer(peerId) { chatId -> onOpenChat(chatId) }

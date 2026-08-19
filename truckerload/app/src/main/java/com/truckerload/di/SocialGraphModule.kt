@@ -121,6 +121,7 @@ object SocialGraphModule {
         val groupRepository = GroupRepositoryImpl(
             chatDao = chatDao,
             chatMemberDao = chatMemberDao,
+            messageDao = messageDao,
             profileDao = profileDao,
             appContext = appContext,
             actorId = actorId,

@@ -131,7 +131,11 @@ class AuthRepositoryImpl @Inject constructor(
                 ?: claims?.optString("sub")
                 ?: decodeGoogleIdToken(credential.idToken.orEmpty())?.optString("sub"),
         )
-        return completeLoginResult(profile = profile, toasts = toasts)
+        return completeLoginResult(
+            profile = profile,
+            accessToken = credential.idToken,
+            toasts = toasts,
+        )
     }
 
     override suspend fun signInWithEmail(email: String, password: String): Result<AuthSignInResult> =

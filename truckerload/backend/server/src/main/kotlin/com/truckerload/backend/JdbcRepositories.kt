@@ -24,7 +24,7 @@ fun createDataSource(config: AppConfig): HikariDataSource {
         jdbcUrl = config.databaseUrl
         config.databaseUser?.let { username = it }
         config.databasePassword?.let { password = it }
-        maximumPoolSize = 10
+        maximumPoolSize = 4
         minimumIdle = 1
         connectionTimeout = 10_000
         validationTimeout = 3_000

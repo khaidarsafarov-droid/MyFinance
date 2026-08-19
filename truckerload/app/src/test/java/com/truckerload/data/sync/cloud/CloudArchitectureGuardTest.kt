@@ -31,9 +31,9 @@ class CloudArchitectureGuardTest {
     }
 
     @Test
-    fun roomSchema_notBumpedInThisChange() {
+    fun roomSchema_tracksCurrentVersion() {
         val db = readMain("com/truckerload/data/local/AppDatabase.kt")
-        assertTrue(db.contains("version = 29"))
+        assertTrue(db.contains("version = 30"))
         assertFalse(db.contains("syncPending"))
     }
 

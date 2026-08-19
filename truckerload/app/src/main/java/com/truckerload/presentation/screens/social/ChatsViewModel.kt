@@ -77,12 +77,12 @@ class ChatsViewModel @Inject constructor(
         searchQuery.value = query
     }
 
-    fun createGroupChat(name: String, onCreated: (String) -> Unit) {
+    fun createGroupChat(name: String, description: String = "", onCreated: (String) -> Unit) {
         val trimmed = name.trim()
         if (trimmed.isBlank()) return
         viewModelScope.launch {
             _errorMessage.value = null
-            when (val result = groupRepository.createGroupChat(trimmed)) {
+            when (val result = groupRepository.createGroupChat(trimmed, description = description.trim())) {
                 is SocialResult.Success -> onCreated(result.data)
                 is SocialResult.Error -> _errorMessage.value = result.message
             }

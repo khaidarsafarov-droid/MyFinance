@@ -8,6 +8,7 @@ import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.StatsSelectionStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
+import com.truckerload.data.remote.ktor.HttpClientProvider
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
@@ -17,6 +18,7 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.data.repository.VoiceRepository
+import com.truckerload.data.voice.VoiceTokenClient
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.GroupRepository
@@ -63,6 +65,7 @@ class UserComponent private constructor(
             context: Context,
             userId: String,
             userProfileStore: UserProfileStore,
+            httpClientProvider: HttpClientProvider? = null,
         ): UserComponent {
             val id = userId.trim()
             require(id.isNotBlank()) { "userId required" }
@@ -98,7 +101,13 @@ class UserComponent private constructor(
                 statusRepository = social.status,
                 mediaRepository = social.media,
                 socialSyncCoordinator = social.syncCoordinator,
-                voiceRepository = VoiceRepository(db, context, social.voiceRemote, social.actorId),
+                voiceRepository = VoiceRepository(
+                    db,
+                    context,
+                    social.voiceRemote,
+                    social.actorId,
+                    httpClientProvider?.let(::VoiceTokenClient),
+                ),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),
             )

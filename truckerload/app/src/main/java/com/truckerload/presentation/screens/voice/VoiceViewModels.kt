@@ -9,6 +9,8 @@ import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.VoiceRoom
+import com.truckerload.domain.voice.VoiceRoomRole
+import com.truckerload.domain.voice.VoiceTransportKind
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +32,7 @@ data class VoiceRoomsUiState(
     val rooms: List<VoiceRoom> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val currentUserId: String = "",
 )
 
 @HiltViewModel
@@ -56,14 +59,18 @@ class VoiceRoomsViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = error.toUiMessage())
                 }
                 .collect { rooms ->
-                    _uiState.value = VoiceRoomsUiState(rooms = rooms, isLoading = false)
+                    _uiState.value = VoiceRoomsUiState(
+                        rooms = rooms,
+                        isLoading = false,
+                        currentUserId = voiceRepository.currentUserId(),
+                    )
                 }
         }
     }
 
-    fun createRoom(name: String, onCreated: (String) -> Unit) {
+    fun createRoom(name: String, description: String = "", onCreated: (String) -> Unit) {
         viewModelScope.launch {
-            voiceRepository.createRoom(name)
+            voiceRepository.createRoom(name, description = description)
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(errorMessage = null)
                     onCreated(it)
@@ -72,6 +79,22 @@ class VoiceRoomsViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(errorMessage = error.toUiMessage())
                 }
         }
+    }
+
+    fun deleteRoom(roomId: String) {
+        viewModelScope.launch {
+            voiceRepository.deleteRoom(roomId)
+                .onSuccess {
+                    _uiState.value = _uiState.value.copy(errorMessage = null)
+                }
+                .onFailure { error ->
+                    _uiState.value = _uiState.value.copy(errorMessage = error.toUiMessage())
+                }
+        }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 }
 
@@ -82,7 +105,10 @@ data class VoiceRoomUiState(
     val isMuted: Boolean = false,
     val isDeafened: Boolean = false,
     val durationSeconds: Long = 0,
-    val audioBitrate: Int = 64_000,
+    val audioBitrate: Int = 16_000,
+    val currentUserId: String = "",
+    val role: VoiceRoomRole = VoiceRoomRole.SPEAKER,
+    val transport: VoiceTransportKind = VoiceTransportKind.NONE,
 )
 
 @HiltViewModel
@@ -116,7 +142,7 @@ class VoiceRoomViewModel @Inject constructor(
                 _local.value = _local.value.copy(isLoading = false, errorMessage = error.toUiMessage())
             }.collect { (displayName, room) ->
                 if (!joined) {
-                    val joinResult = voiceRepository.joinRoom(roomId, displayName)
+                    val joinResult = voiceRepository.joinRoom(roomId, displayName, viewModelScope)
                     if (joinResult.isFailure) {
                         _local.value = _local.value.copy(
                             isLoading = false,
@@ -129,11 +155,19 @@ class VoiceRoomViewModel @Inject constructor(
                     startTicker()
                     startLevelMonitor()
                 }
+                voiceRepository.syncRoomPeers(
+                    room?.participants.orEmpty().filterNot { it.isMe }.map { it.userId },
+                )
+                val role = voiceRepository.currentRole()
                 _local.value = _local.value.copy(
                     room = room,
                     isLoading = false,
-                    errorMessage = null,
+                    errorMessage = if (joined && room == null && _local.value.room != null) "room_gone" else null,
                     audioBitrate = voiceRepository.qualityManager.currentSettings().bitrate,
+                    currentUserId = voiceRepository.currentUserId(),
+                    role = role,
+                    transport = voiceRepository.currentTransport(),
+                    isMuted = if (role == VoiceRoomRole.LISTENER) true else _local.value.isMuted,
                 )
             }
         }
@@ -154,6 +188,7 @@ class VoiceRoomViewModel @Inject constructor(
         levelJob?.cancel()
         levelJob = viewModelScope.launch {
             while (isActive) {
+                runCatching { voiceRepository.pullRemote() }
                 voiceRepository.updateSpeakingLevel(roomId)
                 delay(500)
             }
@@ -161,11 +196,29 @@ class VoiceRoomViewModel @Inject constructor(
     }
 
     fun toggleMute() {
+        if (_local.value.role == VoiceRoomRole.LISTENER) return
         viewModelScope.launch {
             runCatching {
                 val next = !_local.value.isMuted
                 voiceRepository.setMuted(roomId, next)
                 _local.value = _local.value.copy(isMuted = next, errorMessage = null)
+            }.onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
+        }
+    }
+
+    fun setRole(role: VoiceRoomRole) {
+        viewModelScope.launch {
+            runCatching {
+                voiceRepository.setRoomRole(roomId, role)
+                _local.value = _local.value.copy(
+                    role = role,
+                    isMuted = role == VoiceRoomRole.LISTENER || _local.value.isMuted,
+                    transport = voiceRepository.currentTransport(),
+                    audioBitrate = voiceRepository.qualityManager.currentSettings().bitrate,
+                    errorMessage = null,
+                )
             }.onFailure { error ->
                 _local.value = _local.value.copy(errorMessage = error.toUiMessage())
             }
@@ -192,6 +245,34 @@ class VoiceRoomViewModel @Inject constructor(
                     _local.value = _local.value.copy(errorMessage = error.toUiMessage())
                 }
         }
+    }
+
+    fun updateRoom(name: String? = null, description: String? = null, moderatorId: String? = null, clearModerator: Boolean = false) {
+        viewModelScope.launch {
+            voiceRepository.updateRoom(
+                roomId = roomId,
+                name = name,
+                description = description,
+                moderatorId = moderatorId,
+                clearModerator = clearModerator,
+            ).onFailure { error ->
+                _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+            }
+        }
+    }
+
+    fun deleteRoom(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            voiceRepository.deleteRoom(roomId)
+                .onSuccess { onDeleted() }
+                .onFailure { error ->
+                    _local.value = _local.value.copy(errorMessage = error.toUiMessage())
+                }
+        }
+    }
+
+    fun clearError() {
+        _local.value = _local.value.copy(errorMessage = null)
     }
 
     override fun onCleared() {

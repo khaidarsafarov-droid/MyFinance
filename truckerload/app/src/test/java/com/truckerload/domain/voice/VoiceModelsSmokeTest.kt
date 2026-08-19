@@ -1,6 +1,7 @@
 package com.truckerload.domain.voice
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -27,6 +28,14 @@ class VoiceModelsSmokeTest {
 
         assertEquals(VoiceRoomType.PUBLIC, room.type)
         assertTrue(room.participants.single().isMe)
+        assertEquals("", room.description)
+        assertEquals("", room.moderatorId)
+        assertTrue(room.canDelete("user-1"))
+        assertFalse(room.canDelete("user-2"))
+        assertTrue(room.canManage("user-1"))
+        val moderated = room.copy(moderatorId = "user-2")
+        assertTrue(moderated.canManage("user-2"))
+        assertFalse(moderated.canDelete("user-2"))
     }
 
     @Test
@@ -58,7 +67,16 @@ class VoiceModelsSmokeTest {
     fun voiceRoomSettings_defaultsAreSensible() {
         val settings = VoiceRoomSettings()
 
-        assertEquals(64_000, settings.bitrate)
+        assertEquals(VoiceAudioBudget.SPEECH_BPS, settings.bitrate)
         assertTrue(settings.echoCancellation)
+    }
+
+    @Test
+    fun voiceAudioBudget_capsHighwayBitrate() {
+        assertEquals(VoiceAudioBudget.SPEECH_BPS, VoiceAudioBudget.bitrateForEstimatedKbps(2_000))
+        assertEquals(VoiceAudioBudget.HIGHWAY_BPS, VoiceAudioBudget.bitrateForEstimatedKbps(150))
+        assertEquals(VoiceAudioBudget.TELEPHONE_BPS, VoiceAudioBudget.bitrateForEstimatedKbps(40))
+        assertEquals(VoiceRoomRole.LISTENER, VoiceRoomRole.fromApi("listener"))
+        assertEquals("speaker", VoiceRoomRole.SPEAKER.apiValue())
     }
 }

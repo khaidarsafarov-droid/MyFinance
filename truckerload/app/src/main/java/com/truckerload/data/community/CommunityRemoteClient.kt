@@ -62,13 +62,44 @@ class CommunityRemoteClient(
         }
     }
 
-    suspend fun createGroup(title: String, category: String): Result<String> =
+    suspend fun createGroup(title: String, category: String, description: String = ""): Result<String> =
         withContext(Dispatchers.IO) {
             if (!rest.isReady()) return@withContext Result.failure(IllegalStateException("community offline"))
             rest.rpc(
                 "create_community_group",
                 JSONObject().put("p_title", title).put("p_category", category),
             ).mapCatching { raw -> rest.parseUuid(raw).ifBlank { error("empty group id") } }
+                .onSuccess { id ->
+                    if (description.isNotBlank()) {
+                        rest.patch(
+                            "community_chats?id=eq.$id",
+                            JSONObject().put("description", description),
+                        )
+                    }
+                }
+        }
+
+    suspend fun updateGroupDescription(chatId: String, description: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            if (!rest.isReady()) return@withContext Result.success(Unit)
+            rest.patch(
+                "community_chats?id=eq.$chatId",
+                JSONObject().put("description", description),
+            ).map { }
+        }
+
+    suspend fun deleteGroup(chatId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!rest.isReady()) return@withContext Result.success(Unit)
+        rest.rpc("delete_community_group", JSONObject().put("p_chat", chatId)).map { }
+    }
+
+    suspend fun setGroupModerator(chatId: String, userId: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            if (!rest.isReady()) return@withContext Result.success(Unit)
+            rest.rpc(
+                "set_community_group_moderator",
+                JSONObject().put("p_chat", chatId).put("p_user", userId),
+            ).map { }
         }
 
     suspend fun joinByInvite(code: String): Result<String> = withContext(Dispatchers.IO) {
@@ -271,6 +302,7 @@ class CommunityRemoteClient(
                         isPublic = o.optBoolean("is_public"),
                         lastMessage = o.optString("last_message"),
                         lastMessageAt = o.optEpochMillis("last_message_at"),
+                        description = o.optString("description"),
                     ),
                 )
             }

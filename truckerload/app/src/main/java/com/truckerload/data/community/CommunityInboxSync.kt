@@ -65,7 +65,7 @@ class CommunityInboxSync(
                     onlineCount = existing?.onlineCount ?: 0,
                     category = chat.category,
                     archived = existing?.archived ?: false,
-                    description = existing?.description.orEmpty(),
+                    description = chat.description.ifBlank { existing?.description.orEmpty() },
                     rating = existing?.rating ?: 0.0,
                     isPublic = chat.isPublic,
                     creatorId = chat.creatorId,

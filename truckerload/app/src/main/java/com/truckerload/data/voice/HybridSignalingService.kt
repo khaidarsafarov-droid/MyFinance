@@ -43,7 +43,14 @@ class HybridSignalingService(
     }
 
     suspend fun pullRemote(sessionId: String) {
-        val rows = remote.listSignals(sessionId).getOrElse { return }
+        ingest(remote.listSignals(sessionId).getOrElse { return })
+    }
+
+    suspend fun pullRoom(roomId: String) {
+        ingest(remote.listRoomSignals(roomId).getOrElse { return })
+    }
+
+    private suspend fun ingest(rows: List<org.json.JSONObject>) {
         rows.forEach { o ->
             val id = o.optString("id").ifBlank { UUID.randomUUID().toString() }
             signalDao.insert(
@@ -57,9 +64,7 @@ class HybridSignalingService(
                     sdpMid = o.optString("sdp_mid").takeIf { it.isNotBlank() },
                     sdpMLineIndex = if (o.has("sdp_mline_index")) o.optInt("sdp_mline_index") else null,
                     timestamp = com.truckerload.data.community.CommunityTime.parseMillis(
-                        o.optString(
-                            "created_at"
-                        )
+                        o.optString("created_at"),
                     ),
                 ),
             )
@@ -74,5 +79,6 @@ class HybridSignalingService(
         sdpMid = sdpMid,
         sdpMLineIndex = sdpMLineIndex,
         timestamp = timestamp,
+        id = id,
     )
 }
