@@ -1,22 +1,26 @@
 package com.truckerload.presentation.screens.social.friends.map
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material3.FilterChip
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,161 +33,206 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.domain.friends.FriendShareLink
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.domain.friends.FriendLiveStatus
+import com.truckerload.domain.friends.sortShareLinksByLiveStatus
 import com.truckerload.presentation.screens.social.friends.FriendsAddByNicknameForm
-import com.truckerload.presentation.theme.AppFilterChipDefaults
-import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @Composable
 fun FriendsMapManageSection(
     uiState: FriendsMapUiState,
     viewModel: FriendsMapViewModel,
+    manageExpanded: Boolean,
+    onManageExpandedChange: (Boolean) -> Unit,
     addFriendExpanded: Boolean,
     onAddFriendExpandedChange: (Boolean) -> Unit,
+    onFocusFriend: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val nowMillis = uiState.lastRefreshAt.takeIf { it > 0L } ?: System.currentTimeMillis()
+    val overlayById = remember(uiState.friends) {
+        uiState.friends.associateBy { it.presence.userId }
+    }
+    val sortedLinks = remember(uiState.shareLinks, overlayById, nowMillis) {
+        sortShareLinksByLiveStatus(
+            links = uiState.shareLinks,
+            updatedAtByUserId = overlayById.mapValues { it.value.presence.updatedAtMillis },
+            nowMillis = nowMillis,
+        )
+    }
 
-    // Collapse the add panel after a successful add.
     LaunchedEffect(uiState.statusMessage) {
         if (uiState.statusMessage in setOf("added", "request_sent", "accepted")) {
             onAddFriendExpandedChange(false)
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (!uiState.supabaseReady) {
-            Text(
-                text = stringResource(R.string.friends_live_need_supabase),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.AccentPrimary,
-            )
-        }
-
-        AnimatedVisibility(visible = addFriendExpanded) {
-            FriendsAddByNicknameForm(
-                searchQuery = uiState.searchQuery,
-                searchBusy = uiState.searchBusy,
-                searchHit = uiState.searchHit,
-                searchNotFound = uiState.searchNotFound,
-                statusMessage = uiState.statusMessage,
-                onQueryChange = viewModel::setSearchQuery,
-                onSearch = viewModel::searchFriend,
-                onAdd = viewModel::addSearchedFriend,
-            )
-        }
-
-        FriendRequestsSection(
-            incoming = uiState.incomingRequests,
-            outgoing = uiState.outgoingRequests,
-            onAccept = viewModel::acceptFriendRequest,
-            onDecline = viewModel::declineFriendRequest,
-            onCancel = viewModel::cancelFriendRequest,
-        )
-
-        OutlinedButton(onClick = { viewModel.setShowOverlapsPanel(!uiState.showOverlapsPanel) }) {
-            Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
-            Text(stringResource(R.string.friends_overlap_button))
-        }
-        if (uiState.showOverlapsPanel) {
-            if (uiState.overlaps.isEmpty()) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(14.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    text = stringResource(R.string.friends_overlap_empty),
+                    text = stringResource(R.string.friends_manage_section),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onManageExpandedChange(!manageExpanded) }
+                        .padding(vertical = 8.dp),
+                )
+                FriendsAddFriendHeaderButton(
+                    expanded = addFriendExpanded,
+                    onClick = {
+                        if (!addFriendExpanded) {
+                            onManageExpandedChange(true)
+                            onAddFriendExpandedChange(true)
+                        } else {
+                            onAddFriendExpandedChange(false)
+                        }
+                    },
+                )
+                FriendsSectionOverflowMenu(
+                    onOverlap = {
+                        onManageExpandedChange(true)
+                        viewModel.setShowOverlapsPanel(!uiState.showOverlapsPanel)
+                    },
+                )
+                IconButton(onClick = { onManageExpandedChange(!manageExpanded) }) {
+                    Icon(
+                        if (manageExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = stringResource(R.string.friends_manage_section),
+                        tint = tc.TextSecondary,
+                    )
+                }
+            }
+        }
+
+        if (manageExpanded || addFriendExpanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (!uiState.supabaseReady) {
+                    Text(
+                        text = stringResource(R.string.friends_live_need_supabase),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.AccentPrimary,
+                    )
+                }
+
+                AnimatedVisibility(visible = addFriendExpanded) {
+                    FriendsAddByNicknameForm(
+                        searchQuery = uiState.searchQuery,
+                        searchBusy = uiState.searchBusy,
+                        searchHit = uiState.searchHit,
+                        searchNotFound = uiState.searchNotFound,
+                        statusMessage = uiState.statusMessage,
+                        onQueryChange = viewModel::setSearchQuery,
+                        onSearch = viewModel::searchFriend,
+                        onAdd = viewModel::addSearchedFriend,
+                    )
+                }
+
+                FriendRequestsSection(
+                    incoming = uiState.incomingRequests,
+                    outgoing = uiState.outgoingRequests,
+                    onAccept = viewModel::acceptFriendRequest,
+                    onDecline = viewModel::declineFriendRequest,
+                    onCancel = viewModel::cancelFriendRequest,
+                )
+
+                if (uiState.showOverlapsPanel) {
+                    Text(
+                        text = stringResource(R.string.friends_overlap_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = tc.TextPrimary,
+                    )
+                    if (uiState.overlaps.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.friends_overlap_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                        )
+                    } else {
+                        uiState.overlaps.forEach { match ->
+                            Text(
+                                text = "${match.friendDisplayName}: ${match.reason}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.friends_sharing_list_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                )
+                Text(
+                    text = stringResource(R.string.friends_sharing_list_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = tc.TextSecondary,
                 )
-            } else {
-                uiState.overlaps.forEach { match ->
+                if (sortedLinks.isEmpty()) {
                     Text(
-                        text = "${match.friendDisplayName}: ${match.reason}",
+                        text = stringResource(R.string.friends_sharing_list_empty),
                         style = MaterialTheme.typography.bodySmall,
                         color = tc.TextSecondary,
                     )
                 }
-            }
-        }
-
-        Text(
-            text = stringResource(R.string.friends_sharing_list_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        if (uiState.shareLinks.isEmpty()) {
-            Text(
-                text = stringResource(R.string.friends_sharing_list_empty),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-        }
-        uiState.shareLinks.forEach { link ->
-            FriendShareRow(
-                link = link,
-                editing = uiState.editingFriendId == link.friendUserId,
-                onEdit = { viewModel.setEditingFriend(link.friendUserId) },
-                onCloseEdit = { viewModel.setEditingFriend(null) },
-                onSavePrefs = { loc, route ->
-                    viewModel.updateSharePrefs(link.friendUserId, loc, route)
-                },
-                onDelete = { viewModel.removeFriend(link.friendUserId) },
-                onFocusMap = {
-                    viewModel.selectFriend(link.friendUserId)
-                    viewModel.toggleShowPath(link.friendUserId)
-                },
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.friends_list_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = tc.TextPrimary,
-        )
-        if (uiState.friends.isEmpty()) {
-            Text(
-                text = stringResource(R.string.friends_list_empty),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-            )
-        }
-        uiState.friends.forEach { friend ->
-            val selected = friend.presence.userId == uiState.selectedFriendId
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = friend.presence.displayName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (selected) tc.AccentPrimary else tc.TextPrimary,
-                )
-                friend.route?.let { route ->
-                    Text(
-                        text = "${route.originLabel} → ${route.destinationLabel}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextSecondary,
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = friend.showPath,
-                        onClick = { viewModel.toggleShowPath(friend.presence.userId) },
-                        label = {
-                            Text(
-                                if (friend.showPath) {
-                                    stringResource(R.string.friends_hide_path)
-                                } else {
-                                    stringResource(R.string.friends_show_path)
-                                },
-                            )
+                sortedLinks.forEach { link ->
+                    val overlay = overlayById[link.friendUserId]
+                    FriendShareRow(
+                        link = link,
+                        overlay = overlay,
+                        liveStatus = FriendLiveStatus.fromUpdatedAt(
+                            overlay?.presence?.updatedAtMillis,
+                            nowMillis,
+                        ),
+                        selected = overlay?.presence?.userId == uiState.selectedFriendId,
+                        editing = uiState.editingFriendId == link.friendUserId,
+                        onEdit = { viewModel.setEditingFriend(link.friendUserId) },
+                        onCloseEdit = { viewModel.setEditingFriend(null) },
+                        onSavePrefs = { loc, route ->
+                            viewModel.updateSharePrefs(link.friendUserId, loc, route)
                         },
-                        colors = AppFilterChipDefaults.colors(),
-                    )
-                    FilterChip(
-                        selected = selected,
-                        onClick = { viewModel.selectFriend(friend.presence.userId) },
-                        label = { Text(stringResource(R.string.friends_focus)) },
-                        colors = AppFilterChipDefaults.colors(),
+                        onDelete = { viewModel.removeFriend(link.friendUserId) },
+                        onTogglePath = { viewModel.toggleShowPath(link.friendUserId) },
+                        onFocusMap = { onFocusFriend(link.friendUserId) },
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FriendsSectionOverflowMenu(
+    onOverlap: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { menuOpen = true }) {
+            Icon(
+                Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.friends_section_menu_cd),
+                tint = LocalTruckColors.current.TextSecondary,
+            )
+        }
+        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.friends_overlap_button)) },
+                onClick = {
+                    menuOpen = false
+                    onOverlap()
+                },
+            )
         }
     }
 }
@@ -202,88 +251,5 @@ fun FriendsAddFriendHeaderButton(
             ),
             tint = LocalTruckColors.current.TextPrimary,
         )
-    }
-}
-
-@Composable
-fun FriendShareRow(
-    link: FriendShareLink,
-    editing: Boolean,
-    onEdit: () -> Unit,
-    onCloseEdit: () -> Unit,
-    onSavePrefs: (Boolean, Boolean) -> Unit,
-    onDelete: () -> Unit,
-    onFocusMap: () -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    var shareLoc by remember(link.friendUserId, link.shareMyLocation) { mutableStateOf(link.shareMyLocation) }
-    var shareRoute by remember(link.friendUserId, link.shareMyRoute) { mutableStateOf(link.shareMyRoute) }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "@${link.friendNickname.ifBlank { "Driver" }}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = tc.TextPrimary,
-                )
-                Text(
-                    text = stringResource(
-                        R.string.friends_share_summary,
-                        if (link.shareMyLocation) "✓" else "—",
-                        if (link.shareMyRoute) "✓" else "—",
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tc.TextSecondary,
-                )
-            }
-            IconButton(onClick = onFocusMap) {
-                Icon(Icons.Default.Groups, contentDescription = stringResource(R.string.friends_show_path))
-            }
-            IconButton(onClick = { if (editing) onCloseEdit() else onEdit() }) {
-                Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.friends_edit_share))
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.friends_remove))
-            }
-        }
-        if (editing) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(stringResource(R.string.friends_pref_show_me), color = tc.TextPrimary)
-                Switch(
-                    checked = shareLoc,
-                    onCheckedChange = { shareLoc = it },
-                    colors = AppSwitchDefaults.colors(),
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(stringResource(R.string.friends_pref_show_route), color = tc.TextPrimary)
-                Switch(
-                    checked = shareRoute,
-                    onCheckedChange = { shareRoute = it },
-                    colors = AppSwitchDefaults.colors(),
-                )
-            }
-            Button(
-                onClick = {
-                    onSavePrefs(shareLoc, shareRoute)
-                    onCloseEdit()
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.friends_prefs_save))
-            }
-        }
     }
 }
