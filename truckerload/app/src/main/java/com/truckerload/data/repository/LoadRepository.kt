@@ -188,7 +188,7 @@ class LoadRepository(
     }
 
     suspend fun getLoadsByYear(year: Int): List<Load> =
-        getLoadsByDateRange("$year-01-01", "$year-12-31").first()
+        hydrateLoads(loadDao.getLoadsByWeekYearOnce(year))
 
     suspend fun getLoadsByDateRangeOnce(startDate: String, endDate: String): List<Load> =
         getLoadsByDateRange(startDate, endDate).first()
