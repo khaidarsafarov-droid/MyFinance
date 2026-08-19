@@ -20,6 +20,9 @@ There is no iOS or web/Expo client yet. The Telegram bot runs in the Android
 foreground service in device mode or through the Ktor webhook in server mode.
 iOS sharing plan: [docs/KMP_IOS_ROADMAP.md](docs/KMP_IOS_ROADMAP.md).
 
+Send this one file to Cloud Code / Claude Code for product context:
+[docs/CLOUD_CODE_BRIEF.md](docs/CLOUD_CODE_BRIEF.md).
+
 ## Share with friends (no server)
 
 Local-first APK for friends: data stays on the phone; optional file / Google Drive
