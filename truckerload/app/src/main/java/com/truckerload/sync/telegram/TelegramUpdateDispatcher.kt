@@ -42,6 +42,17 @@ class TelegramUpdateDispatcher(
         }
 
         if (update.isCallbackQuery && update.callbackQueryId != null) {
+            if (TelegramReceiptKeyboard.isReceiptCallback(update.text)) {
+                ingest().handleCallback(
+                    data = update.text,
+                    chatId = update.chatId,
+                    paycheckRepository = paycheckRepository,
+                    dieselRepository = dieselRepository,
+                    prefs = prefs,
+                    callbackQueryId = update.callbackQueryId,
+                )
+                return
+            }
             val cmd = TelegramBotFeatures.menuButtonToCommand(update.text)
                 ?: update.text.takeIf { it.startsWith("cmd:") }
                     ?.removePrefix("cmd:")
@@ -107,6 +118,7 @@ class TelegramUpdateDispatcher(
                 } else {
                     false
                 }
+                TelegramReceiptConfirmStore(prefs).clear(update.chatId)
                 val message = when {
                     importCancelled && restoreCancelled ->
                         context.getString(R.string.sync_import_and_restore_cancelled)
@@ -145,11 +157,7 @@ class TelegramUpdateDispatcher(
                 )
                 return
             }
-            rawText.isBlank() && update.photoFileId != null -> {
-                apiClient.sendMessage(update.chatId, context.getString(R.string.sync_ocr_disabled))
-                return
-            }
-            rawText.isBlank() && update.documentFileId != null -> {
+            rawText.isBlank() && (update.photoFileId != null || update.documentFileId != null) -> {
                 handleDocumentUpdate(
                     update = update,
                     loadRepository = loadRepository,
@@ -163,6 +171,17 @@ class TelegramUpdateDispatcher(
                 apiClient.sendMessage(update.chatId, context.getString(R.string.sync_no_new_data))
                 return
             }
+        }
+
+        if (update.photoFileId != null || update.documentFileId != null) {
+            handleDocumentUpdate(
+                update = update,
+                loadRepository = loadRepository,
+                paycheckRepository = paycheckRepository,
+                dieselRepository = dieselRepository,
+                prefs = prefs,
+            )
+            return
         }
 
         val importSessions = ImportSessionManager(prefs)
@@ -191,16 +210,14 @@ class TelegramUpdateDispatcher(
         apiClient.sendMessage(update.chatId, context.getString(R.string.sync_processing))
             .onFailure { e -> Log.e(TAG, "ack failed: ${LogRedactor.redact(e.message)}") }
 
-        val reply = messageParser.processMessage(
+        ingest().applyText(
+            chatId = update.chatId,
             text = rawText,
+            fileName = null,
             messageDateSeconds = update.messageDateSeconds,
             loadRepository = loadRepository,
-            paycheckRepository = paycheckRepository,
-            dieselRepository = dieselRepository,
             prefs = prefs,
         )
-        apiClient.sendMessage(update.chatId, reply)
-            .onFailure { e -> Log.e(TAG, "reply failed: ${LogRedactor.redact(e.message)}") }
     }
 
     private suspend fun handleDocumentUpdate(
@@ -211,86 +228,90 @@ class TelegramUpdateDispatcher(
         prefs: SharedPreferences,
     ) {
         val importSessions = ImportSessionManager(prefs)
-        val fileId = update.documentFileId ?: return
-        val isHtml = ImportDocumentHandler.isSupportedHtml(
-            update.documentFileName,
-            update.documentMimeType,
-        )
-        val isJson = ImportDocumentHandler.isSupportedJson(
-            update.documentFileName,
-            update.documentMimeType,
-        )
-
-        if (isHtml || isJson) {
-            if (!importSessions.isActive(update.chatId)) {
-                importSessions.startSession(update.chatId)
-            }
-            val reply = messageParser.importDocumentHandler(loadRepository, prefs).handle(
-                chatId = update.chatId,
-                fileId = fileId,
-                fileName = update.documentFileName,
-                mimeType = update.documentMimeType,
-                fileSize = update.documentFileSize,
-                telegramApi = apiClient.api(),
+        val fileId = update.documentFileId
+        if (fileId != null) {
+            val isHtml = ImportDocumentHandler.isSupportedHtml(
+                update.documentFileName,
+                update.documentMimeType,
             )
-            if (reply.isNotBlank()) {
-                apiClient.sendWithMenu(update.chatId, reply)
-            }
-            return
-        }
-
-        if (importSessions.isActive(update.chatId)) {
-            if (messageParser.isExportTextDocument(update)) {
-                val declaredSize = update.documentFileSize
-                if (declaredSize != null && declaredSize > TelegramApi.MAX_DOWNLOAD_BYTES) {
-                    apiClient.sendWithMenu(
-                        update.chatId,
-                        context.getString(
-                            R.string.sync_import_file_too_large,
-                            (TelegramApi.MAX_DOWNLOAD_BYTES / (1024 * 1024)).toInt(),
-                        ),
-                    )
-                    return
+            val isJson = ImportDocumentHandler.isSupportedJson(
+                update.documentFileName,
+                update.documentMimeType,
+            )
+            if (isHtml || isJson) {
+                if (!importSessions.isActive(update.chatId)) {
+                    importSessions.startSession(update.chatId)
                 }
-                val bytes = apiClient.downloadFile(fileId).getOrElse {
-                    apiClient.sendWithMenu(
-                        update.chatId,
-                        context.getString(R.string.sync_import_error, it.message ?: "?"),
-                    )
-                    return
-                }
-                val text = bytes.toString(Charsets.UTF_8)
-                val reply = messageParser.importMessageHandler(loadRepository, prefs)
-                    .handle(update.chatId, text, apiClient.api())
+                val reply = messageParser.importDocumentHandler(loadRepository, prefs).handle(
+                    chatId = update.chatId,
+                    fileId = fileId,
+                    fileName = update.documentFileName,
+                    mimeType = update.documentMimeType,
+                    fileSize = update.documentFileSize,
+                    telegramApi = apiClient.api(),
+                )
                 if (reply.isNotBlank()) {
                     apiClient.sendWithMenu(update.chatId, reply)
                 }
                 return
             }
+            if (importSessions.isActive(update.chatId) && messageParser.isExportTextDocument(update)) {
+                ingestExportText(update, fileId, loadRepository, prefs)
+                return
+            }
+            if (messageParser.isExportTextDocument(update)) {
+                val reply = messageParser.importExportDocument(
+                    telegramApi = apiClient.api(),
+                    update = update,
+                    loadRepository = loadRepository,
+                    paycheckRepository = paycheckRepository,
+                    dieselRepository = dieselRepository,
+                )
+                apiClient.sendWithMenu(update.chatId, reply)
+                return
+            }
+        }
+        ingest().handleMedia(
+            update = update,
+            loadRepository = loadRepository,
+            prefs = prefs,
+        )
+    }
+
+    private suspend fun ingestExportText(
+        update: TelegramUpdate,
+        fileId: String,
+        loadRepository: LoadRepository,
+        prefs: SharedPreferences,
+    ) {
+        val declaredSize = update.documentFileSize
+        if (declaredSize != null && declaredSize > TelegramApi.MAX_DOWNLOAD_BYTES) {
             apiClient.sendWithMenu(
                 update.chatId,
-                context.getString(R.string.sync_import_unsupported_file),
+                context.getString(
+                    R.string.sync_import_file_too_large,
+                    (TelegramApi.MAX_DOWNLOAD_BYTES / (1024 * 1024)).toInt(),
+                ),
             )
             return
         }
-        if (messageParser.isExportTextDocument(update)) {
-            val reply = messageParser.importExportDocument(
-                telegramApi = apiClient.api(),
-                update = update,
-                loadRepository = loadRepository,
-                paycheckRepository = paycheckRepository,
-                dieselRepository = dieselRepository,
+        val bytes = apiClient.downloadFile(fileId).getOrElse {
+            apiClient.sendWithMenu(
+                update.chatId,
+                context.getString(R.string.sync_import_error, it.message ?: "?"),
             )
+            return
+        }
+        val text = bytes.toString(Charsets.UTF_8)
+        val reply = messageParser.importMessageHandler(loadRepository, prefs)
+            .handle(update.chatId, text, apiClient.api())
+        if (reply.isNotBlank()) {
             apiClient.sendWithMenu(update.chatId, reply)
-            return
         }
-        val msg = if (update.documentMimeType?.startsWith("image/") == true) {
-            context.getString(R.string.sync_ocr_disabled)
-        } else {
-            context.getString(R.string.sync_doc_not_supported)
-        }
-        apiClient.sendMessage(update.chatId, msg)
     }
+
+    private fun ingest(): TelegramFileIngestHandler =
+        TelegramFileIngestHandler(context, apiClient, messageParser)
 
     suspend fun handleCommand(
         command: String,
@@ -337,6 +358,7 @@ class TelegramUpdateDispatcher(
                 } else {
                     false
                 }
+                TelegramReceiptConfirmStore(prefs).clear(chatId)
                 val message = when {
                     importCancelled && restoreCancelled ->
                         context.getString(R.string.sync_import_and_restore_cancelled)
