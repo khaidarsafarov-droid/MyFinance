@@ -1,18 +1,9 @@
 package com.truckerload.presentation.screens.social
 
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.MediaRepository
 import com.truckerload.data.repository.social.ProfileRepository
@@ -21,6 +12,16 @@ import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.domain.social.SocialMessage
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.getOrNull
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class SocialChatUiState(
     val chatTitle: String = "",
@@ -102,6 +103,10 @@ class SocialChatViewModel @Inject constructor(
                 onlineCount = chat?.onlineCount ?: 0,
             )
             refreshHasMore()
+            while (isActive) {
+                delay(2_000)
+                runCatching { socialSyncCoordinator.pullRemote() }
+            }
         }
     }
 

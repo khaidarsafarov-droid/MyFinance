@@ -36,8 +36,6 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.SocialChat
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -46,6 +44,8 @@ import com.truckerload.presentation.theme.UiDimens
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlTextButton as TextButton
 
 @Composable
 internal fun ChatsTabContent(
@@ -58,6 +58,7 @@ internal fun ChatsTabContent(
     onCreatePrivateWithPeer: (String) -> Unit,
     onChatClick: (String) -> Unit,
     onOpenVoiceRooms: () -> Unit,
+    onOpenFriends: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
     var showGroupDialog by remember { mutableStateOf(false) }
@@ -102,25 +103,38 @@ internal fun ChatsTabContent(
             onDismissRequest = { showPeerPicker = false },
             title = { Text(stringResource(R.string.social_select_peer)) },
             text = {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(peers, key = { it.id }) { peer ->
-                        BentoGlassClickableCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                onCreatePrivateWithPeer(peer.id)
-                                showPeerPicker = false
-                            },
-                        ) {
-                            Text(
-                                text = peer.displayName,
-                                modifier = Modifier.padding(16.dp),
-                                color = tc.TextPrimary,
-                            )
+                if (peers.isEmpty()) {
+                    Text(stringResource(R.string.community_empty_peers))
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(peers, key = { it.id }) { peer ->
+                            BentoGlassClickableCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    onCreatePrivateWithPeer(peer.id)
+                                    showPeerPicker = false
+                                },
+                            ) {
+                                Text(
+                                    text = peer.displayName,
+                                    modifier = Modifier.padding(16.dp),
+                                    color = tc.TextPrimary,
+                                )
+                            }
                         }
                     }
                 }
             },
-            confirmButton = {},
+            confirmButton = {
+                if (peers.isEmpty()) {
+                    TextButton(onClick = {
+                        showPeerPicker = false
+                        onOpenFriends()
+                    }) {
+                        Text(stringResource(R.string.community_add_friends))
+                    }
+                }
+            },
             dismissButton = {
                 TextButton(onClick = { showPeerPicker = false }) {
                     Text(stringResource(R.string.common_cancel))
@@ -178,6 +192,11 @@ internal fun ChatsTabContent(
         }
         items(groupChats, key = { it.id }) { chat ->
             ChatListItem(chat = chat, onClick = { onChatClick(chat.id) })
+        }
+        if (groupChats.isEmpty() && privateChats.isEmpty()) {
+            item {
+                CommunityAddFriendsHint(onOpenFriends = onOpenFriends)
+            }
         }
         item {
             Text(

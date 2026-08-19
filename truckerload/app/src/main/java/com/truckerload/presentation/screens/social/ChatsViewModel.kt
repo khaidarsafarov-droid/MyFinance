@@ -4,15 +4,6 @@ package com.truckerload.presentation.screens.social
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.GroupRepository
 import com.truckerload.data.repository.social.SocialSyncCoordinator
@@ -20,6 +11,17 @@ import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.SocialChat
 import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ChatsUiState(
     val chats: List<SocialChat> = emptyList(),
@@ -62,7 +64,13 @@ class ChatsViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChatsUiState())
 
     init {
-        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
+        viewModelScope.launch {
+            socialSyncCoordinator.ensureInitialized()
+            while (isActive) {
+                delay(4_000)
+                runCatching { socialSyncCoordinator.pullRemote() }
+            }
+        }
     }
 
     fun setSearchQuery(query: String) {

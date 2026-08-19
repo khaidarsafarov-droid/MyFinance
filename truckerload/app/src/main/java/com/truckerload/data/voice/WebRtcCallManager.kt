@@ -105,9 +105,7 @@ class WebRtcCallManager(
     }
 
     private fun createPeerConnection(sessionId: String, isCaller: Boolean, onConnected: () -> Unit) {
-        val iceServers = listOf(
-            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer(),
-        )
+        val iceServers = IceServers.list()
         val rtcConfig = PeerConnection.RTCConfiguration(iceServers)
         val observer = object : PeerConnection.Observer {
             override fun onSignalingChange(state: PeerConnection.SignalingState?) = Unit

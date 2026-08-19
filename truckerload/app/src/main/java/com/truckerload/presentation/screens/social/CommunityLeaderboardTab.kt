@@ -36,6 +36,7 @@ internal fun LeaderboardTabContent(
     entries: List<com.truckerload.domain.social.LeaderboardEntry>,
     onCategoryChange: (LeaderboardCategory) -> Unit,
     onPeerClick: (String) -> Unit,
+    onOpenFriends: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
     var categoryIndex by remember { mutableIntStateOf(0) }
@@ -58,6 +59,11 @@ internal fun LeaderboardTabContent(
                         text = { Text(category.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     )
                 }
+            }
+        }
+        if (entries.none { !it.isMe }) {
+            item {
+                CommunityAddFriendsHint(onOpenFriends = onOpenFriends)
             }
         }
         items(entries, key = { "${it.rank}_${it.displayName}" }) { entry ->

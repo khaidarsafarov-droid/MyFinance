@@ -3,6 +3,7 @@ package com.truckerload.data.repository.social
 import android.content.Context
 import android.graphics.Bitmap
 import com.truckerload.R
+import com.truckerload.data.community.CommunityRemoteClient
 import com.truckerload.data.local.dao.BlockedUserDao
 import com.truckerload.data.local.dao.ChallengeParticipationDao
 import com.truckerload.data.local.dao.DriverFollowDao
@@ -22,6 +23,7 @@ import com.truckerload.di.UserScope
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.Challenge
 import com.truckerload.domain.social.ChallengeType
+import com.truckerload.domain.social.CommunityWeekWindow
 import com.truckerload.domain.social.DriverProfile
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.EnhancedDriverProfile
@@ -50,6 +52,8 @@ class ProfileRepositoryImpl(
     private val avatarStorage: AvatarStorage,
     private val appContext: Context,
     private val onPeerBlocked: suspend (String) -> Unit,
+    private val actorId: () -> String,
+    private val remote: CommunityRemoteClient,
 ) : ProfileRepository {
 
     override suspend fun syncIdentityFromUserProfile() {
@@ -322,38 +326,43 @@ class ProfileRepositoryImpl(
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_upload_avatar, it), it) }
 
     override suspend fun blockUser(blockedId: String): SocialResult<Unit> = runCatching {
+        val me = actorId()
         blockedUserDao.block(
             BlockedUserEntity(
-                blockerId = DriverProfileEntity.LOCAL_USER_ID,
+                blockerId = me,
                 blockedId = blockedId,
                 blockedAt = System.currentTimeMillis(),
             ),
         )
-        followDao.unfollow(DriverProfileEntity.LOCAL_USER_ID, blockedId)
+        followDao.unfollow(me, blockedId)
         onPeerBlocked(blockedId)
+        if (remote.isReady()) remote.blockUser(blockedId)
         updateFollowCounts()
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_block_user, it), it) }
 
     override suspend fun unblockUser(blockedId: String): SocialResult<Unit> = runCatching {
-        blockedUserDao.unblock(DriverProfileEntity.LOCAL_USER_ID, blockedId)
+        val me = actorId()
+        blockedUserDao.unblock(me, blockedId)
+        if (remote.isReady()) remote.unblockUser(blockedId)
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_unblock_user, it), it) }
 
     override suspend fun isBlocked(targetId: String): Boolean =
-        blockedUserDao.isBlocked(DriverProfileEntity.LOCAL_USER_ID, targetId)
+        blockedUserDao.isBlocked(actorId(), targetId)
 
     override fun watchIsBlocked(targetId: String): Flow<Boolean> =
-        blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID)
+        blockedUserDao.watchBlockedIds(actorId())
             .map { blockedIds -> targetId in blockedIds }.flowOn(Dispatchers.IO)
 
     override suspend fun followDriver(targetId: String): SocialResult<Unit> = runCatching {
-        if (targetId == DriverProfileEntity.LOCAL_USER_ID) {
+        val me = actorId()
+        if (targetId == me) {
             return SocialResult.Error(appContext.getString(R.string.social_error_cannot_follow_self))
         }
         followDao.follow(
             DriverFollowEntity(
-                followerId = DriverProfileEntity.LOCAL_USER_ID,
+                followerId = me,
                 followingId = targetId,
                 followedAt = System.currentTimeMillis(),
             ),
@@ -363,13 +372,13 @@ class ProfileRepositoryImpl(
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_follow, it), it) }
 
     override suspend fun unfollowDriver(targetId: String): SocialResult<Unit> = runCatching {
-        followDao.unfollow(DriverProfileEntity.LOCAL_USER_ID, targetId)
+        followDao.unfollow(actorId(), targetId)
         updateFollowCounts()
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_unfollow, it), it) }
 
     override fun watchIsFollowing(targetId: String): Flow<Boolean> =
-        followDao.watchIsFollowing(DriverProfileEntity.LOCAL_USER_ID, targetId).flowOn(Dispatchers.IO)
+        followDao.watchIsFollowing(actorId(), targetId).flowOn(Dispatchers.IO)
 
     override fun watchPeer(peerId: String): Flow<SocialPeerProfile?> =
         peerDao.watchById(peerId).map { entity -> entity?.toPeerProfile() }.flowOn(Dispatchers.IO)
@@ -382,7 +391,7 @@ class ProfileRepositoryImpl(
         return combine(
             loadRepository.watchWeeklyLoadStats(week, year),
             peerDao.watchAll(),
-            blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID),
+            blockedUserDao.watchBlockedIds(actorId()),
         ) { weekStats, peers, blockedIds ->
             val blockedSet = blockedIds.toSet()
             buildLeaderboard(weekStats, peers.filter { it.id !in blockedSet }, category)
@@ -393,47 +402,81 @@ class ProfileRepositoryImpl(
         val (week, year) = getCurrentWeekNumberAndYear()
         val weekStats = loadRepository.getWeeklyLoadStatsOnce(week, year)
         val peers = peerDao.getAll()
-        val blockedIds = blockedUserDao.watchBlockedIds(DriverProfileEntity.LOCAL_USER_ID).first().toSet()
+        val blockedIds = blockedUserDao.watchBlockedIds(actorId()).first().toSet()
         return buildLeaderboard(weekStats, peers.filter { it.id !in blockedIds }, category)
     }
 
     override suspend fun hasJoinedWeeklyChallenge(): Boolean =
-        challengeDao.getParticipation(SocialConstants.WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID) != null
+        challengeDao.getParticipation(SocialConstants.WEEKLY_CHALLENGE_ID, actorId()) != null
 
     override suspend fun refreshMyChallengeScore() {
-        val (week, year) = getCurrentWeekNumberAndYear()
-        val miles = loadRepository.getWeeklyLoadStatsOnce(week, year).totalMiles
-        val existing = challengeDao.getParticipation(SocialConstants.WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID)
+        val window = CommunityWeekWindow.current()
+        val stats = loadRepository.getWeeklyLoadStatsOnce(window.week, window.year)
+        val me = actorId()
+        val existing = challengeDao.getParticipation(SocialConstants.WEEKLY_CHALLENGE_ID, me)
         if (existing != null) {
-            challengeDao.updateScore(SocialConstants.WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID, miles)
+            challengeDao.updateScore(SocialConstants.WEEKLY_CHALLENGE_ID, me, stats.totalMiles)
+        }
+        val rpm = if (stats.totalMiles > 0) stats.totalRevenue / stats.totalMiles else 0.0
+        if (remote.isReady()) {
+            remote.upsertWeeklyStats(
+                window = window,
+                miles = stats.totalMiles,
+                loads = stats.loadCount,
+                revenue = stats.totalRevenue,
+                rpm = rpm,
+                shareEnabled = existing != null,
+            )
         }
     }
 
     override suspend fun joinWeeklyChallenge(): SocialResult<Unit> = runCatching {
-        val (week, year) = getCurrentWeekNumberAndYear()
-        val miles = loadRepository.getWeeklyLoadStatsOnce(week, year).totalMiles
+        val window = CommunityWeekWindow.current()
+        val stats = loadRepository.getWeeklyLoadStatsOnce(window.week, window.year)
+        val me = actorId()
         challengeDao.join(
             ChallengeParticipationEntity(
                 challengeId = SocialConstants.WEEKLY_CHALLENGE_ID,
-                userId = DriverProfileEntity.LOCAL_USER_ID,
-                score = miles,
+                userId = me,
+                score = stats.totalMiles,
                 joinedAt = System.currentTimeMillis(),
             ),
         )
+        if (remote.isReady()) {
+            remote.setShareWeeklyStats(true)
+            remote.joinChallenge(SocialConstants.WEEKLY_CHALLENGE_ID, stats.totalMiles)
+                .getOrElse { err ->
+                    return SocialResult.Error(
+                        socialError(
+                            appContext,
+                            R.string.social_error_join_chat,
+                            err
+                        ), err
+                    )
+                }
+            remote.upsertWeeklyStats(
+                window = window,
+                miles = stats.totalMiles,
+                loads = stats.loadCount,
+                revenue = stats.totalRevenue,
+                rpm = if (stats.totalMiles > 0) stats.totalRevenue / stats.totalMiles else 0.0,
+                shareEnabled = true,
+            )
+        }
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_join_chat, it), it) }
 
     override suspend fun weeklyChallenge(): Challenge {
-        val (week, year) = getCurrentWeekNumberAndYear()
-        val weekStats = loadRepository.getWeeklyLoadStatsOnce(week, year)
+        val window = CommunityWeekWindow.current()
+        val weekStats = loadRepository.getWeeklyLoadStatsOnce(window.week, window.year)
         val myMiles = weekStats.totalMiles
         val myName = profileDao.getProfile()?.displayName
             ?: userProfileStore.profile.value?.displayName
             ?: "You"
         refreshMyChallengeScore()
-        val participation = challengeDao.getParticipation(SocialConstants.WEEKLY_CHALLENGE_ID, DriverProfileEntity.LOCAL_USER_ID)
+        val me = actorId()
+        val participation = challengeDao.getParticipation(SocialConstants.WEEKLY_CHALLENGE_ID, me)
         val score = participation?.score ?: myMiles
-        val now = System.currentTimeMillis()
         val peers = peerDao.getAll()
         val peerBoard = peers.map { peer ->
             LeaderboardEntry(
@@ -449,9 +492,10 @@ class ProfileRepositoryImpl(
             rank = 0,
             displayName = myName,
             score = score,
-            rating = 4.8,
+            rating = 0.0,
             trend = if (score > 0) "⬆" else "—",
             isMe = true,
+            userId = me,
         )
         val merged = (peerBoard + myEntry).sortedByDescending { it.score }
             .mapIndexed { index, entry -> entry.copy(rank = index + 1) }
@@ -459,11 +503,15 @@ class ProfileRepositoryImpl(
         return Challenge(
             id = SocialConstants.WEEKLY_CHALLENGE_ID,
             title = appContext.getString(R.string.social_challenge_king_miles_title),
-            description = appContext.getString(R.string.social_challenge_king_miles_desc, week, year),
+            description = appContext.getString(
+                R.string.social_challenge_king_miles_desc,
+                window.week,
+                window.year
+            ),
             type = ChallengeType.MILES,
             goal = 3000.0,
-            startDate = now - 4 * 24 * 60 * 60_000L,
-            endDate = now + 3 * 24 * 60 * 60_000L,
+            startDate = window.startMillis,
+            endDate = window.endMillis,
             leaderboard = merged.take(10),
             myPosition = myPosition,
             myScore = score,
@@ -483,8 +531,8 @@ class ProfileRepositoryImpl(
         val existing = profileDao.getProfile() ?: return
         profileDao.upsert(
             existing.copy(
-                followers = followDao.countFollowers(DriverProfileEntity.LOCAL_USER_ID),
-                following = followDao.countFollowing(DriverProfileEntity.LOCAL_USER_ID),
+                followers = followDao.countFollowers(actorId()),
+                following = followDao.countFollowing(actorId()),
             ),
         )
     }

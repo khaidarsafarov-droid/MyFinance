@@ -1,5 +1,7 @@
 package com.truckerload.data.repository.social
 
+import com.truckerload.data.community.CommunityInboxSync
+import com.truckerload.data.community.CommunityRemoteClient
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.social.SocialDemoCleanup
@@ -14,6 +16,8 @@ class SocialSyncCoordinator(
     private val userProfileStore: UserProfileStore,
     private val profileRepository: ProfileRepository,
     private val statusRepository: StatusRepository,
+    private val remote: CommunityRemoteClient,
+    private val inbox: CommunityInboxSync,
 ) {
     private val initMutex = Mutex()
 
@@ -22,7 +26,6 @@ class SocialSyncCoordinator(
             val profileDao = db.driverProfileDao()
             val userProfile = userProfileStore.profile.value
             val displayName = userProfile?.displayName.orEmpty()
-            // Strip prototype chats/peers/voice rooms left by older builds.
             SocialDemoCleanup.purge(db)
             SocialSeedData.ensureLocalProfile(
                 profileDao,
@@ -33,7 +36,19 @@ class SocialSyncCoordinator(
             profileRepository.syncIdentityFromUserProfile()
             profileRepository.maybeMarkSetupCompleteFromExistingProfile()
             statusRepository.purgeExpired()
+            pullRemoteLocked()
             profileRepository.refreshMyChallengeScore()
         }
+    }
+
+    suspend fun pullRemote() {
+        initMutex.withLock { pullRemoteLocked() }
+    }
+
+    fun isLive(): Boolean = remote.isReady()
+
+    private suspend fun pullRemoteLocked() {
+        if (!remote.isReady()) return
+        inbox.pullAll()
     }
 }

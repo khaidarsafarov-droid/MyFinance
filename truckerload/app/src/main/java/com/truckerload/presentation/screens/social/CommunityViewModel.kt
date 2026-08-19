@@ -4,20 +4,22 @@ package com.truckerload.presentation.screens.social
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.social.Challenge
+import com.truckerload.domain.social.LeaderboardCategory
+import com.truckerload.domain.social.SocialResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import com.truckerload.data.repository.social.ProfileRepository
-import com.truckerload.data.repository.social.SocialSyncCoordinator
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.LeaderboardCategory
-import com.truckerload.domain.social.SocialResult
+import javax.inject.Inject
 
 data class CommunityUiState(
     val challenge: Challenge? = null,
@@ -55,6 +57,16 @@ class CommunityViewModel @Inject constructor(
                 )
             }.onFailure { error ->
                 _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
+            }
+            while (isActive) {
+                delay(4_000)
+                runCatching {
+                    socialSyncCoordinator.pullRemote()
+                    _state.value = _state.value.copy(
+                        challenge = profileRepository.weeklyChallenge(),
+                        challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
+                    )
+                }
             }
         }
     }

@@ -2,11 +2,14 @@ package com.truckerload.data.repository.social
 
 import android.content.Context
 import com.truckerload.R
+import com.truckerload.data.community.CommunityInboxSync
+import com.truckerload.data.community.CommunityRemoteClient
+import com.truckerload.data.local.dao.ChatMemberDao
 import com.truckerload.data.local.dao.MessageReactionDao
 import com.truckerload.data.local.dao.SocialChatDao
 import com.truckerload.data.local.dao.SocialMessageDao
 import com.truckerload.data.local.dao.SocialPeerDao
-import com.truckerload.data.local.entities.DriverProfileEntity
+import com.truckerload.data.local.entities.ChatMemberEntity
 import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.SocialChatEntity
 import com.truckerload.data.local.entities.SocialMessageEntity
@@ -17,6 +20,7 @@ import com.truckerload.di.UserScope
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.MessageType
 import com.truckerload.domain.social.SocialChat
+import com.truckerload.domain.social.SocialIdentity
 import com.truckerload.domain.social.SocialMessage
 import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
@@ -34,9 +38,13 @@ class ChatRepositoryImpl(
     private val messageDao: SocialMessageDao,
     private val reactionDao: MessageReactionDao,
     private val peerDao: SocialPeerDao,
+    private val chatMemberDao: ChatMemberDao,
     private val recommendations: RecommendationService,
     private val appContext: Context,
     private val isBlocked: suspend (String) -> Boolean,
+    private val actorId: () -> String,
+    private val remote: CommunityRemoteClient,
+    private val inbox: CommunityInboxSync,
 ) : ChatRepository {
 
     override fun watchChats(): Flow<List<SocialChat>> = chatStore.watchChats().flowOn(Dispatchers.IO)
@@ -58,8 +66,9 @@ class ChatRepositoryImpl(
         beforeSentAt: Long,
         limit: Int,
     ): SocialResult<List<SocialMessage>> = runCatching {
+        val me = actorId()
         val older = messageDao.getMessagesBefore(chatId, beforeSentAt, limit)
-            .map { it.toDomain(isMine = it.senderId == SocialConstants.LOCAL_SENDER_ID) }
+            .map { it.toDomain(isMine = SocialIdentity.isMine(it.senderId, me)) }
         SocialResult.Success(older)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_load_messages, it), it) }
 
@@ -93,21 +102,46 @@ class ChatRepositoryImpl(
             MessageType.ANNOUNCEMENT -> "📌 $trimmed"
             MessageType.TEXT -> trimmed
         }
-        val message = SocialMessageEntity(
-            id = UUID.randomUUID().toString(),
-            chatId = chatId,
-            senderId = SocialConstants.LOCAL_SENDER_ID,
-            senderName = senderName,
-            text = trimmed.ifBlank { preview },
-            sentAt = now,
-            messageType = messageType.name,
-            attachmentUrl = attachmentUrl,
-            replyToId = replyToId,
-            locationLabel = locationLabel,
-            isAnnouncement = messageType == MessageType.ANNOUNCEMENT,
-            durationMs = durationMs,
+        val messageId = UUID.randomUUID().toString()
+        val body = trimmed.ifBlank { preview }
+        if (remote.isReady()) {
+            remote.sendMessage(
+                id = messageId,
+                chatId = chatId,
+                senderName = senderName,
+                text = body,
+                messageType = messageType.name,
+                attachmentUrl = attachmentUrl,
+                replyToId = replyToId,
+                locationLabel = locationLabel,
+                durationMs = durationMs,
+                sentAt = now,
+            ).onFailure { err ->
+                return SocialResult.Error(
+                    socialError(
+                        appContext,
+                        R.string.social_error_send_message,
+                        err
+                    ), err
+                )
+            }
+        }
+        messageDao.insert(
+            SocialMessageEntity(
+                id = messageId,
+                chatId = chatId,
+                senderId = actorId(),
+                senderName = senderName,
+                text = body,
+                sentAt = now,
+                messageType = messageType.name,
+                attachmentUrl = attachmentUrl,
+                replyToId = replyToId,
+                locationLabel = locationLabel,
+                isAnnouncement = messageType == MessageType.ANNOUNCEMENT,
+                durationMs = durationMs,
+            ),
         )
-        messageDao.insert(message)
         val chat = chatDao.getChat(chatId)
             ?: return SocialResult.Error(appContext.getString(R.string.social_error_chat_not_found))
         chatDao.upsert(
@@ -124,11 +158,14 @@ class ChatRepositoryImpl(
         reactionDao.upsert(
             MessageReactionEntity(
                 messageId = messageId,
-                userId = DriverProfileEntity.LOCAL_USER_ID,
+                userId = actorId(),
                 reaction = reaction,
                 reactedAt = System.currentTimeMillis(),
             ),
         )
+        if (remote.isReady()) {
+            remote.addReaction(messageId, reaction)
+        }
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_add_reaction, it), it) }
 
@@ -164,16 +201,30 @@ class ChatRepositoryImpl(
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_create_chat, it), it) }
 
     override suspend fun createPrivateChatWithPeer(peerId: String): SocialResult<String> = runCatching {
-        if (peerId == DriverProfileEntity.LOCAL_USER_ID) {
+        val me = actorId()
+        if (peerId == me) {
             return SocialResult.Error(appContext.getString(R.string.social_error_cannot_message_self))
         }
         if (isBlocked(peerId)) {
             return SocialResult.Error(appContext.getString(R.string.social_user_blocked))
         }
+        if (remote.isReady()) {
+            val remoteId = remote.createDm(peerId).getOrElse { err ->
+                return SocialResult.Error(
+                    socialError(
+                        appContext,
+                        R.string.social_error_create_chat,
+                        err
+                    ), err
+                )
+            }
+            inbox.pullChats()
+            return SocialResult.Success(remoteId)
+        }
         findPrivateChatForPeer(peerId)?.let { return SocialResult.Success(it.id) }
         val peer = peerDao.getById(peerId)
             ?: return SocialResult.Error(appContext.getString(R.string.social_peer_not_found))
-        val chatId = privateChatIdForPeer(peerId)
+        val chatId = SocialIdentity.privateChatIdForPeer(peerId)
         val now = System.currentTimeMillis()
         chatDao.upsert(
             SocialChatEntity(
@@ -188,6 +239,24 @@ class ChatRepositoryImpl(
                 onlineCount = 1,
             ),
         )
+        chatMemberDao.upsert(
+            ChatMemberEntity(
+                chatId = chatId,
+                userId = me,
+                displayName = "You",
+                role = "MEMBER",
+                joinedAt = now
+            ),
+        )
+        chatMemberDao.upsert(
+            ChatMemberEntity(
+                chatId = chatId,
+                userId = peerId,
+                displayName = peer.displayName,
+                role = "MEMBER",
+                joinedAt = now,
+            ),
+        )
         SocialResult.Success(chatId)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_create_chat, it), it) }
 
@@ -195,10 +264,8 @@ class ChatRepositoryImpl(
         findPrivateChatForPeer(peerId)?.let { chatDao.archiveChat(it.id) }
     }
 
-    private fun privateChatIdForPeer(peerId: String): String = "dm_$peerId"
-
     private suspend fun findPrivateChatForPeer(peerId: String): SocialChatEntity? {
-        chatDao.getChat(privateChatIdForPeer(peerId))?.let { return it }
+        chatDao.getChat(SocialIdentity.privateChatIdForPeer(peerId))?.let { return it }
         val peer = peerDao.getById(peerId) ?: return null
         return findPrivateChatByTitle(peer.displayName)
     }

@@ -43,6 +43,7 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
             onOpenGroups = { navController.navigate(Routes.GROUPS) },
             onOpenGroupDetail = { chatId -> navController.navigate(Routes.groupDetail(chatId)) },
             onOpenPeerProfile = { peerId -> navController.navigate(Routes.peerProfile(peerId)) },
+            onOpenFriends = { navController.navigate(Routes.FRIENDS_LIVE) },
         )
     }
     composable(Routes.STATUS) {

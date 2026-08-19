@@ -3,15 +3,17 @@ package com.truckerload.presentation.screens.voice
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.VoiceRepository
+import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.VoiceRoom
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,13 +21,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.CoroutineScope
+import javax.inject.Inject
 
 data class VoiceRoomsUiState(
     val rooms: List<VoiceRoom> = emptyList(),
@@ -46,6 +45,10 @@ class VoiceRoomsViewModel @Inject constructor(
                 .onFailure { error ->
                     _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = error.toUiMessage())
                 }
+            while (isActive) {
+                delay(3_000)
+                runCatching { voiceRepository.pullRemote() }
+            }
         }
         viewModelScope.launch {
             voiceRepository.watchRooms()
@@ -243,6 +246,12 @@ class CallViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            while (isActive) {
+                delay(500)
+                runCatching { voiceRepository.pullRemote() }
+            }
+        }
     }
 
     private fun startTicker(startedAt: Long) {
@@ -282,6 +291,15 @@ class IncomingCallViewModel @Inject constructor(
     val incomingCall: StateFlow<CallState?> =
         voiceRepository.watchIncomingCall()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    init {
+        viewModelScope.launch {
+            while (isActive) {
+                delay(3_000)
+                runCatching { voiceRepository.pullRemote() }
+            }
+        }
+    }
 
     fun accept(callId: String, onAccepted: (String) -> Unit) {
         viewModelScope.launch {

@@ -1,18 +1,17 @@
 package com.truckerload.data.repository
 
 import android.content.Context
+import com.truckerload.data.community.CommunityVoiceRemote
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.CallSessionEntity
-import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.VoiceRoomEntity
 import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
-import com.truckerload.data.voice.AudioQualityManager
-import com.truckerload.data.voice.LocalSignalingService
-import com.truckerload.data.voice.SignalingService
 import com.truckerload.data.social.SocialDemoCleanup
-import com.truckerload.data.voice.WebRtcCallManager
-import kotlinx.coroutines.CoroutineScope
+import com.truckerload.data.voice.AudioQualityManager
+import com.truckerload.data.voice.HybridSignalingService
+import com.truckerload.data.voice.SignalingService
 import com.truckerload.data.voice.WebRtcAudioEngine
+import com.truckerload.data.voice.WebRtcCallManager
 import com.truckerload.domain.voice.CallState
 import com.truckerload.domain.voice.CallStatus
 import com.truckerload.domain.voice.CallType
@@ -21,31 +20,90 @@ import com.truckerload.domain.voice.SignalType
 import com.truckerload.domain.voice.VoiceParticipant
 import com.truckerload.domain.voice.VoiceRoom
 import com.truckerload.domain.voice.VoiceRoomType
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
 class VoiceRepository(
     db: AppDatabase,
     context: Context,
+    private val voiceRemote: CommunityVoiceRemote,
+    private val actorId: () -> String,
 ) {
     private val roomDao = db.voiceRoomDao()
     private val participantDao = db.voiceRoomParticipantDao()
     private val callDao = db.callSessionDao()
     val audioEngine = WebRtcAudioEngine(context)
     val qualityManager = AudioQualityManager(context)
-    val signaling: SignalingService = LocalSignalingService(db.voiceSignalDao())
-    private val callManager = WebRtcCallManager(context, signaling, DriverProfileEntity.LOCAL_USER_ID)
+    val signaling: SignalingService = HybridSignalingService(db.voiceSignalDao(), voiceRemote)
+    private val hybridSignals = signaling as HybridSignalingService
+    private val callManager = WebRtcCallManager(context, signaling, actorId())
 
     private var activeRoomId: String? = null
+    private var activeCallId: String? = null
 
     suspend fun ensureInitialized() {
-        // Community voice starts empty; purge legacy demo rooms if present.
         participantDao.deleteAllInRooms(SocialDemoCleanup.DEMO_VOICE_ROOM_IDS)
         roomDao.deleteByIds(SocialDemoCleanup.DEMO_VOICE_ROOM_IDS)
+        pullRemote()
+    }
+
+    suspend fun pullRemote() {
+        if (!voiceRemote.isReady()) return
+        voiceRemote.listRooms().getOrNull().orEmpty().forEach { room ->
+            roomDao.upsert(
+                VoiceRoomEntity(
+                    id = room.id,
+                    name = room.title,
+                    type = "PUBLIC",
+                    creatorId = room.creatorId,
+                    maxParticipants = 50,
+                    isActive = room.isActive,
+                    createdAt = room.createdAt,
+                    updatedAt = room.createdAt,
+                ),
+            )
+        }
+        val parts = voiceRemote.listParticipants().getOrNull().orEmpty()
+        if (parts.isNotEmpty()) {
+            participantDao.upsertAll(
+                parts.map { p ->
+                    VoiceRoomParticipantEntity(
+                        roomId = p.roomId,
+                        userId = p.userId,
+                        displayName = p.displayName,
+                        isMuted = p.muted,
+                        isDeafened = p.deafened,
+                        isSpeaking = false,
+                        audioLevel = 0,
+                        joinedAt = p.joinedAt,
+                    )
+                },
+            )
+        }
+        voiceRemote.listIncomingCalls().getOrNull().orEmpty().forEach { call ->
+            callDao.upsert(
+                CallSessionEntity(
+                    callId = call.id,
+                    type = CallType.P2P.name,
+                    status = call.status,
+                    callerId = call.callerId,
+                    callerName = call.callerName,
+                    calleeId = call.calleeId,
+                    calleeName = call.calleeName,
+                    isIncoming = call.calleeId == actorId(),
+                    startedAt = call.createdAt,
+                    endedAt = null,
+                    durationMs = 0,
+                ),
+            )
+        }
+        activeRoomId?.let { hybridSignals.pullRemote(it) }
+        activeCallId?.let { hybridSignals.pullRemote(it) }
     }
 
     fun watchRooms(): Flow<List<VoiceRoom>> =
@@ -56,7 +114,7 @@ class VoiceRepository(
             rooms.map { room ->
                 val participants = allParticipants
                     .filter { it.roomId == room.id }
-                    .map { it.toDomain(it.userId == DriverProfileEntity.LOCAL_USER_ID) }
+                    .map { it.toDomain(it.userId == actorId()) }
                 room.toDomain(participants)
             }
         }.flowOn(Dispatchers.IO)
@@ -67,11 +125,11 @@ class VoiceRepository(
             participantDao.watchParticipants(roomId),
         ) { room, participants ->
             room?.toDomain(
-                participants.map { it.toDomain(it.userId == DriverProfileEntity.LOCAL_USER_ID) },
+                participants.map { it.toDomain(it.userId == actorId()) },
             )?.let { voiceRoom ->
                 val me = voiceRoom.participants.find { it.isMe }
                     ?: VoiceParticipant(
-                        userId = DriverProfileEntity.LOCAL_USER_ID,
+                        userId = actorId(),
                         displayName = myName.ifBlank { "You" },
                         joinedAt = System.currentTimeMillis(),
                         isMe = true,
@@ -83,20 +141,23 @@ class VoiceRepository(
         }.flowOn(Dispatchers.IO)
 
     suspend fun createRoom(name: String, type: VoiceRoomType = VoiceRoomType.PUBLIC): Result<String> = runCatching {
-        val id = "voice_${UUID.randomUUID()}"
+        val id = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         roomDao.upsert(
             VoiceRoomEntity(
                 id = id,
                 name = name.ifBlank { "New room" },
                 type = type.name,
-                creatorId = DriverProfileEntity.LOCAL_USER_ID,
+                creatorId = actorId(),
                 maxParticipants = 50,
                 isActive = true,
                 createdAt = now,
                 updatedAt = now,
             ),
         )
+        if (voiceRemote.isReady()) {
+            voiceRemote.createRoom(id, name.ifBlank { "New room" })
+        }
         id
     }
 
@@ -108,7 +169,7 @@ class VoiceRepository(
         participantDao.upsert(
             VoiceRoomParticipantEntity(
                 roomId = roomId,
-                userId = DriverProfileEntity.LOCAL_USER_ID,
+                userId = actorId(),
                 displayName = displayName.ifBlank { "You" },
                 isMuted = false,
                 isDeafened = false,
@@ -120,42 +181,48 @@ class VoiceRepository(
         roomDao.getRoom(roomId)?.let { room ->
             roomDao.upsert(room.copy(updatedAt = System.currentTimeMillis()))
         }
+        if (voiceRemote.isReady()) {
+            voiceRemote.joinRoom(roomId, displayName)
+        }
     }
 
     suspend fun leaveRoom(roomId: String): Result<Unit> = runCatching {
-        participantDao.remove(roomId, DriverProfileEntity.LOCAL_USER_ID)
+        participantDao.remove(roomId, actorId())
         signaling.sendSignal(
             roomId,
-            Signal(type = SignalType.LEAVE, fromUserId = DriverProfileEntity.LOCAL_USER_ID),
+            Signal(type = SignalType.LEAVE, fromUserId = actorId()),
         )
         if (activeRoomId == roomId) {
             audioEngine.stopLocalAudio()
             activeRoomId = null
         }
+        if (voiceRemote.isReady()) {
+            voiceRemote.leaveRoom(roomId)
+        }
     }
 
     suspend fun setMuted(roomId: String, muted: Boolean) {
         audioEngine.setMuted(muted)
-        participantDao.setMuted(roomId, DriverProfileEntity.LOCAL_USER_ID, muted)
+        participantDao.setMuted(roomId, actorId(), muted)
         signaling.sendSignal(
             roomId,
             Signal(
                 type = if (muted) SignalType.MUTE else SignalType.UNMUTE,
-                fromUserId = DriverProfileEntity.LOCAL_USER_ID,
+                fromUserId = actorId(),
             ),
         )
     }
 
     suspend fun setDeafened(roomId: String, deafened: Boolean) {
         audioEngine.setVolumeLevel(if (deafened) 0f else 1f)
-        participantDao.setDeafened(roomId, DriverProfileEntity.LOCAL_USER_ID, deafened)
+        participantDao.setDeafened(roomId, actorId(), deafened)
     }
 
     suspend fun updateSpeakingLevel(roomId: String) {
         val level = audioEngine.localAudioLevel()
         participantDao.setSpeaking(
             roomId,
-            DriverProfileEntity.LOCAL_USER_ID,
+            actorId(),
             speaking = level > 20,
             level = level,
         )
@@ -168,13 +235,13 @@ class VoiceRepository(
         callDao.watchCall(callId).map { it?.toDomain() }.flowOn(Dispatchers.IO)
 
     suspend fun startCall(calleeId: String, calleeName: String, callerName: String): Result<CallState> = runCatching {
-        val callId = "call_${UUID.randomUUID()}"
+        val callId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         val state = CallSessionEntity(
             callId = callId,
             type = CallType.P2P.name,
             status = CallStatus.RINGING.name,
-            callerId = DriverProfileEntity.LOCAL_USER_ID,
+            callerId = actorId(),
             callerName = callerName,
             calleeId = calleeId,
             calleeName = calleeName,
@@ -189,12 +256,23 @@ class VoiceRepository(
         audioEngine.startLocalAudio(settings).getOrThrow()
         signaling.sendSignal(
             callId,
-            Signal(type = SignalType.OFFER, fromUserId = DriverProfileEntity.LOCAL_USER_ID, sdp = "pending"),
+            Signal(type = SignalType.OFFER, fromUserId = actorId(), sdp = "pending"),
         )
+        if (voiceRemote.isReady()) {
+            voiceRemote.upsertCall(
+                callId,
+                calleeId,
+                callerName,
+                calleeName,
+                CallStatus.RINGING.name
+            )
+        }
+        activeCallId = callId
         state.toDomain()
     }
 
     fun beginCallAudio(scope: CoroutineScope, callId: String, isCaller: Boolean) {
+        activeCallId = callId
         if (isCaller) {
             callManager.startAsCaller(scope, callId)
         } else {
@@ -208,7 +286,13 @@ class VoiceRepository(
         val settings = qualityManager.adjustForNetwork()
         audioEngine.initialize().getOrThrow()
         audioEngine.startLocalAudio(settings).getOrThrow()
-        signaling.sendSignal(callId, Signal(type = SignalType.ANSWER, fromUserId = DriverProfileEntity.LOCAL_USER_ID, sdp = "pending"))
+        signaling.sendSignal(
+            callId,
+            Signal(type = SignalType.ANSWER, fromUserId = actorId(), sdp = "pending")
+        )
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateCallStatus(callId, CallStatus.ACTIVE.name)
+        }
         callDao.updateStatus(callId, CallStatus.ACTIVE.name, null, 0)
         existing.copy(status = CallStatus.ACTIVE.name, startedAt = now).toDomain()
     }
@@ -216,7 +300,11 @@ class VoiceRepository(
     suspend fun rejectCall(callId: String): Result<Unit> = runCatching {
         val now = System.currentTimeMillis()
         callDao.updateStatus(callId, CallStatus.REJECTED.name, now, 0)
-        signaling.sendSignal(callId, Signal(type = SignalType.LEAVE, fromUserId = DriverProfileEntity.LOCAL_USER_ID))
+        signaling.sendSignal(callId, Signal(type = SignalType.LEAVE, fromUserId = actorId()))
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateCallStatus(callId, CallStatus.REJECTED.name)
+        }
+        if (activeCallId == callId) activeCallId = null
     }
 
     suspend fun endCall(callId: String): Result<Unit> = runCatching {
@@ -224,10 +312,14 @@ class VoiceRepository(
         val now = System.currentTimeMillis()
         val duration = existing?.let { now - it.startedAt } ?: 0L
         callDao.updateStatus(callId, CallStatus.ENDED.name, now, duration)
-        signaling.sendSignal(callId, Signal(type = SignalType.LEAVE, fromUserId = DriverProfileEntity.LOCAL_USER_ID))
+        signaling.sendSignal(callId, Signal(type = SignalType.LEAVE, fromUserId = actorId()))
         signaling.clearSignals(callId)
+        if (voiceRemote.isReady()) {
+            voiceRemote.updateCallStatus(callId, CallStatus.ENDED.name)
+        }
         callManager.release()
         audioEngine.stopLocalAudio()
+        if (activeCallId == callId) activeCallId = null
     }
 
     fun setCallMuted(muted: Boolean) {

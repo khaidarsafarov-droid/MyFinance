@@ -1,7 +1,11 @@
 package com.truckerload.di
 
 import android.content.Context
+import com.truckerload.data.community.CommunityInboxSync
+import com.truckerload.data.community.CommunityRemoteClient
+import com.truckerload.data.community.CommunityStorageClient
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.social.ChatRepository
@@ -19,6 +23,8 @@ import com.truckerload.data.repository.social.StatusRepositoryImpl
 import com.truckerload.data.social.AvatarStorage
 import com.truckerload.data.social.ChatAttachmentStorage
 import com.truckerload.data.social.RecommendationService
+import com.truckerload.domain.social.SocialIdentity
+import java.io.File
 
 /**
  * Account-scoped social graph wiring.
@@ -36,6 +42,9 @@ object SocialGraphModule {
         val status: StatusRepository,
         val media: MediaRepository,
         val syncCoordinator: SocialSyncCoordinator,
+        val remote: CommunityRemoteClient,
+        val voiceRemote: com.truckerload.data.community.CommunityVoiceRemote,
+        val actorId: () -> String,
     )
 
     fun create(
@@ -45,6 +54,17 @@ object SocialGraphModule {
         userProfileStore: UserProfileStore,
     ): Bundle {
         val appContext = context.applicationContext
+        val authStore = AuthStore(appContext)
+        val actorId = { SocialIdentity.actorId(authStore.currentUserIdOrNull()) }
+        val remote = CommunityRemoteClient(authStore)
+        val storage = CommunityStorageClient(authStore)
+        val voiceRemote = com.truckerload.data.community.CommunityVoiceRemote(authStore)
+        val inbox = CommunityInboxSync(
+            db = db,
+            remote = remote,
+            storage = storage,
+            cacheDir = File(appContext.filesDir, "community_cache").apply { mkdirs() },
+        )
         val chatDao = db.socialChatDao()
         val messageDao = db.socialMessageDao()
         val blockedUserDao = db.blockedUserDao()
@@ -61,6 +81,7 @@ object SocialGraphModule {
             peerDao = peerDao,
             messageDao = messageDao,
             reactionDao = reactionDao,
+            actorId = actorId,
         )
         val avatarStorage = AvatarStorage(context)
         val attachmentStorage = ChatAttachmentStorage(context)
@@ -78,6 +99,8 @@ object SocialGraphModule {
             avatarStorage = avatarStorage,
             appContext = appContext,
             onPeerBlocked = { peerId -> chatRepository.archivePrivateChatForPeer(peerId) },
+            actorId = actorId,
+            remote = remote,
         )
         chatRepository = ChatRepositoryImpl(
             chatStore = chatStore,
@@ -85,31 +108,45 @@ object SocialGraphModule {
             messageDao = messageDao,
             reactionDao = reactionDao,
             peerDao = peerDao,
+            chatMemberDao = chatMemberDao,
             recommendations = recommendations,
             appContext = appContext,
             isBlocked = { targetId -> profileRepository.isBlocked(targetId) },
+            actorId = actorId,
+            remote = remote,
+            inbox = inbox,
         )
         val groupRepository = GroupRepositoryImpl(
             chatDao = chatDao,
             chatMemberDao = chatMemberDao,
             profileDao = profileDao,
             appContext = appContext,
+            actorId = actorId,
+            remote = remote,
+            inbox = inbox,
         )
         val statusRepository = StatusRepositoryImpl(
             driverStatusDao = driverStatusDao,
             blockedUserDao = blockedUserDao,
             attachmentStorage = attachmentStorage,
             appContext = appContext,
+            actorId = actorId,
+            remote = remote,
+            storage = storage,
         )
         val mediaRepository = MediaRepositoryImpl(
             attachmentStorage = attachmentStorage,
             chatRepository = chatRepository,
+            storage = storage,
+            actorId = actorId,
         )
         val syncCoordinator = SocialSyncCoordinator(
             db = db,
             userProfileStore = userProfileStore,
             profileRepository = profileRepository,
             statusRepository = statusRepository,
+            remote = remote,
+            inbox = inbox,
         )
         return Bundle(
             profile = profileRepository,
@@ -118,6 +155,9 @@ object SocialGraphModule {
             status = statusRepository,
             media = mediaRepository,
             syncCoordinator = syncCoordinator,
+            remote = remote,
+            voiceRemote = voiceRemote,
+            actorId = actorId,
         )
     }
 }

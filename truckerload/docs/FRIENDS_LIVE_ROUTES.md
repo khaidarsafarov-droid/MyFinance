@@ -3,7 +3,10 @@
 ## Apply SQL
 Run in Supabase SQL editor (in order):
 1. `supabase/migrations/20260730_friends_live_routes.sql`
-2. `supabase/migrations/20260731_friend_nicknames.sql` (nicknames + friend_links + RLS)
+2. `supabase/migrations/20260731_friend_nicknames.sql`
+3. `supabase/migrations/20260818_community_live.sql` (Community chats / leaderboard / voice)
+
+See `docs/COMMUNITY.md`.
 
 ### Fix: `Could not find the 'nickname' column of 'profiles'`
 That HTTP 400 / `PGRST204` means migration **#2 was not applied** on the Supabase project.

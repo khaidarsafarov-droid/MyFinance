@@ -1,7 +1,7 @@
 # Copy to local.properties and fill in your keys
 # sdk.dir is auto-added by Android Studio
 #
-# LOCAL_ONLY_MODE=true only disables cloud workers / Supabase client.
+# LOCAL_ONLY_MODE=false only disables cloud workers / Supabase client.
 # It no longer skips the login screen — entry is always Google Auth on Android.
 LOCAL_ONLY_MODE=false
 
@@ -31,6 +31,11 @@ GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.goog
 # Нужен для общего аккаунта между устройствами / friends live sync.
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+
+# Optional TURN for Community voice calls across symmetric NAT.
+# TURN_URI=turn:turn.example.com:3478
+# TURN_USERNAME=
+# TURN_CREDENTIAL=
 
 # Google Drive backup (Settings → Google Drive): enable Drive API in Google Cloud
 # for the same project as GOOGLE_WEB_CLIENT_ID / Android OAuth client.

@@ -1252,6 +1252,11 @@
     <string name="social_error_cannot_follow_self">Cannot follow yourself</string>
     <string name="social_challenge_king_miles_title">King of Miles</string>
     <string name="social_challenge_king_miles_desc">Who drives the most miles this week %1$d/%2$d</string>
+    <string name="community_empty_peers">Add a friend by nickname. Chats, the leaderboard, and the weekly challenge work between real drivers.</string>
+    <string name="community_add_friends">Add friends</string>
+    <string name="community_empty_challenge">The weekly challenge appears after you sign in with a cloud account.</string>
+    <string name="community_empty_status">No statuses yet. Post what is happening on the road — friends see it for 24 hours.</string>
+    <string name="community_empty_groups">No groups yet. Create one from Chats or join with a friend\'s invite code.</string>
 <string name="friends_nickname_schema_missing">Server is missing the profiles.nickname column. In Supabase SQL Editor run supabase/migrations/20260731_friend_nicknames.sql (includes schema reload).</string>
     <string name="friends_my_route_label">My route: %1$s</string>
     <string name="friends_route_road_ok">Road route</string>

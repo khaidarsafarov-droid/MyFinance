@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.social
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,7 +25,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
-import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +39,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +50,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.data.social.VoiceNoteRecorder
@@ -65,6 +64,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.truckerload.presentation.components.TlButton as Button
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -176,6 +176,11 @@ fun StatusScreen(
                 contentPadding = PaddingValues(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                if (uiState.statuses.isEmpty()) {
+                    item {
+                        CommunityEmptyHint(stringResource(R.string.community_empty_status))
+                    }
+                }
                 items(uiState.statuses, key = { it.id }) { status ->
                     StatusItem(status = status, onView = { viewModel.markViewed(status.id) })
                 }
@@ -192,10 +197,10 @@ private fun StatusItem(status: DriverStatusPost, onView: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onView,
-                ),
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onView,
+            ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(

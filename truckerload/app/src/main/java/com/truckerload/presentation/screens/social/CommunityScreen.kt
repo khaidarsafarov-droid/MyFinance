@@ -39,6 +39,7 @@ fun CommunityScreen(
     onOpenGroups: () -> Unit = {},
     onOpenGroupDetail: (String) -> Unit = {},
     onOpenPeerProfile: (String) -> Unit = {},
+    onOpenFriends: () -> Unit = {},
     modifier: Modifier = Modifier,
     chatsViewModel: ChatsViewModel = hiltViewModel(),
     communityViewModel: CommunityViewModel = hiltViewModel(),
@@ -123,18 +124,24 @@ fun CommunityScreen(
                     },
                     onChatClick = onOpenChat,
                     onOpenVoiceRooms = onOpenVoiceRooms,
+                    onOpenFriends = onOpenFriends,
                 )
                 1 -> LeaderboardTabContent(
                     entries = leaderboard,
                     onCategoryChange = communityViewModel::setLeaderboardCategory,
                     onPeerClick = onOpenPeerProfile,
+                    onOpenFriends = onOpenFriends,
                 )
-                2 -> challenge?.let { activeChallenge ->
+
+                2 -> if (challenge == null) {
+                    CommunityEmptyHint(stringResource(R.string.community_empty_challenge))
+                } else {
                     ChallengesTabContent(
-                        challenge = activeChallenge,
+                        challenge = challenge,
                         joined = communityState.challengeJoined,
                         isJoining = communityState.isJoiningChallenge,
                         onJoin = communityViewModel::joinChallenge,
+                        onOpenFriends = onOpenFriends,
                     )
                 }
             }

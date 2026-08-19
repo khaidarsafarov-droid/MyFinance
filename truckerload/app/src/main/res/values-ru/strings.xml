@@ -1252,6 +1252,11 @@
     <string name="social_error_cannot_follow_self">Нельзя подписаться на себя</string>
     <string name="social_challenge_king_miles_title">Король миль</string>
     <string name="social_challenge_king_miles_desc">Кто проедет больше всех миль за неделю %1$d/%2$d</string>
+    <string name="community_empty_peers">Добавьте друга по никнейму — чаты, таблица лидеров и челлендж работают между реальными водителями.</string>
+    <string name="community_add_friends">Добавить друзей</string>
+    <string name="community_empty_challenge">Недельный челлендж появится после входа в облачный аккаунт.</string>
+    <string name="community_empty_status">Пока нет статусов. Напишите, что у вас на дороге — друзья увидят пост 24 часа.</string>
+    <string name="community_empty_groups">Нет групп. Создайте группу в чатах или вступите по коду друга.</string>
 <string name="friends_nickname_schema_missing">На сервере нет колонки nickname. Откройте Supabase → SQL → выполните supabase/migrations/20260731_friend_nicknames.sql (и Notify reload schema).</string>
     <string name="friends_my_route_label">Мой путь: %1$s</string>
     <string name="friends_route_road_ok">Маршрут по дорогам</string>

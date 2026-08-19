@@ -88,6 +88,18 @@ android {
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_DIRECTIONS_API_KEY", "\"$googleDirectionsApiKey\"")
+        val turnUri = localProps.getProperty("TURN_URI", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        val turnUsername = localProps.getProperty("TURN_USERNAME", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        val turnCredential = localProps.getProperty("TURN_CREDENTIAL", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "TURN_URI", "\"$turnUri\"")
+        buildConfigField("String", "TURN_USERNAME", "\"$turnUsername\"")
+        buildConfigField("String", "TURN_CREDENTIAL", "\"$turnCredential\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
         // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
         // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a

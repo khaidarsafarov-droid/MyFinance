@@ -98,7 +98,7 @@ class UserComponent private constructor(
                 statusRepository = social.status,
                 mediaRepository = social.media,
                 socialSyncCoordinator = social.syncCoordinator,
-                voiceRepository = VoiceRepository(db, context),
+                voiceRepository = VoiceRepository(db, context, social.voiceRemote, social.actorId),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),
             )

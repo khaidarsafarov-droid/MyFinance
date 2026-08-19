@@ -56,6 +56,9 @@ interface SocialChatDao {
     @Query("UPDATE social_chats SET unreadCount = 0 WHERE id = :chatId")
     suspend fun markRead(chatId: String)
 
+    @Query("UPDATE social_chats SET unreadCount = unreadCount + 1 WHERE id = :chatId")
+    suspend fun incrementUnread(chatId: String)
+
     @Query("UPDATE social_chats SET archived = 1 WHERE id = :chatId")
     suspend fun archiveChat(chatId: String)
 
@@ -234,6 +237,12 @@ interface ChatMemberDao {
 
     @Query("SELECT chatId FROM chat_members WHERE userId = :userId")
     fun watchMemberChatIds(userId: String): Flow<List<String>>
+
+    @Query("SELECT * FROM chat_members")
+    fun watchAll(): Flow<List<ChatMemberEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(members: List<ChatMemberEntity>)
 }
 
 @Dao
@@ -249,6 +258,9 @@ interface SocialPeerDao {
 
     @Query("SELECT COUNT(*) FROM social_peers")
     suspend fun count(): Int
+
+    @Query("DELETE FROM social_peers")
+    suspend fun deleteAll()
 
     @Query("DELETE FROM social_peers WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<String>)

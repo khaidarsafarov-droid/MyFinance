@@ -121,7 +121,7 @@ internal object ProfileMapper {
             rank = 0,
             displayName = localDisplayName,
             score = myScore,
-            rating = 4.8,
+            rating = 0.0,
             trend = if (myScore > 0) "⬆" else "—",
             isMe = true,
         )
