@@ -508,6 +508,7 @@ class FriendsMapViewModel @Inject constructor(
     fun setSharePathEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsDataStore.saveSharePathWithFriends(enabled)
+            com.truckerload.sync.FriendsLocationShareScheduler.sync(context)
         }
     }
 

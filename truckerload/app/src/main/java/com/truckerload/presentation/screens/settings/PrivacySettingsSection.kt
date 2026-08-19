@@ -110,7 +110,10 @@ fun PrivacySettingsSection(
             Switch(
                 checked = sharePath,
                 onCheckedChange = { enabled ->
-                    scope.launch { settingsDataStore.saveSharePathWithFriends(enabled) }
+                    scope.launch {
+                        settingsDataStore.saveSharePathWithFriends(enabled)
+                        com.truckerload.sync.FriendsLocationShareScheduler.sync(context)
+                    }
                 },
                 colors = AppSwitchDefaults.colors(),
             )

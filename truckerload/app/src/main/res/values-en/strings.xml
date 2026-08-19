@@ -457,6 +457,7 @@
     <string name="friends_share_location_channel">Location sharing</string>
     <string name="friends_share_location_title">Truck Log is sharing your path</string>
     <string name="friends_share_location_text">Friends can see your position while the toggle is on</string>
+    <string name="friends_share_location_live_text">Live mode · up to 15 minutes, then every 15–60 min</string>
     <string name="friends_overlap_button">Who intersects my route</string>
     <string name="friends_overlap_title">Route overlaps</string>
     <string name="friends_overlap_empty">No friends with an overlapping active load yet</string>
@@ -745,6 +746,12 @@
     <string name="settings_privacy_not_granted">Not allowed</string>
     <string name="settings_privacy_share_path">Share route with friends</string>
     <string name="settings_privacy_share_path_desc">When off, friends cannot see your live path on the map</string>
+    <string name="settings_friends_location_title">Friends location</string>
+    <string name="settings_friends_location_interval">Background update interval</string>
+    <string name="settings_friends_location_interval_option">%d min</string>
+    <string name="settings_friends_location_interval_hint">When you are still, the interval stretches to 60 min. Continuous GPS is not used.</string>
+    <string name="settings_friends_live_mode">Live mode</string>
+    <string name="settings_friends_live_mode_desc">Ongoing notification and GPS every 30s for 15 minutes. Off by default.</string>
     <string name="settings_privacy_battery_saver">Battery saver</string>
     <string name="settings_privacy_battery_saver_desc">Refresh GPS on the map every 10s instead of 5s (foreground only)</string>
     <string name="settings_privacy_system_settings">Open system app settings</string>

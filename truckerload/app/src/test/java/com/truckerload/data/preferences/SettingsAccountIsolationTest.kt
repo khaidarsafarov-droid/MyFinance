@@ -2,6 +2,7 @@ package com.truckerload.data.preferences
 
 import android.content.Context
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -65,6 +66,22 @@ class SettingsAccountIsolationTest {
         loginAs("user-a", "a@example.com")
         assertTrue(settings.getSharePathWithFriendsOnce())
         assertFalse(settings.getParserAutoUpdateOnce())
+    }
+
+    @Test
+    fun friendsLocationInterval_andLiveMode_defaultAndIsolated() = runBlocking {
+        loginAs("user-a", "a@example.com")
+        assertEquals(30, settings.getFriendsLocationIntervalMinutesOnce())
+        assertFalse(settings.getFriendsLiveModeOnce())
+        settings.saveFriendsLocationIntervalMinutes(15)
+        settings.saveFriendsLiveMode(true)
+        assertEquals(15, settings.getFriendsLocationIntervalMinutesOnce())
+        assertTrue(settings.getFriendsLiveModeOnce())
+
+        authStore.logout()
+        loginAs("user-b", "b@example.com")
+        assertEquals(30, settings.getFriendsLocationIntervalMinutesOnce())
+        assertFalse(settings.getFriendsLiveModeOnce())
     }
 
     private fun loginAs(userId: String, email: String) {

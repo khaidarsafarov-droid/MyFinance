@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.truckerload.domain.friends.BalancedLocationFix
 import com.truckerload.domain.friends.LatLngPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -36,24 +37,38 @@ class LocationHelper(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): LocationData? = withContext(Dispatchers.IO) {
+        val fix = getBalancedCurrentLocation() ?: return@withContext null
+        val geo = reverseGeocode(fix.latitude, fix.longitude)
+        LocationData(
+            latitude = fix.latitude,
+            longitude = fix.longitude,
+            city = geo?.first ?: "",
+            state = geo?.second ?: "",
+            zipCode = geo?.third ?: "",
+        )
+    }
+
+    /**
+     * One-shot fix via [FusedLocationProviderClient.getCurrentLocation] with
+     * [Priority.PRIORITY_BALANCED_POWER_ACCURACY]. No lastLocation shortcut and
+     * no reverse-geocode (workers must stay cheap).
+     */
+    @SuppressLint("MissingPermission")
+    suspend fun getBalancedCurrentLocation(): BalancedLocationFix? = withContext(Dispatchers.IO) {
         if (!hasLocationPermission()) return@withContext null
         try {
-            val location = fusedLocationClient.lastLocation.await()
-                ?: fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                    CancellationTokenSource().token,
-                ).await()
-            location ?: return@withContext null
-            val geo = reverseGeocode(location.latitude, location.longitude)
-            LocationData(
+            val location = fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                CancellationTokenSource().token,
+            ).await() ?: return@withContext null
+            BalancedLocationFix(
                 latitude = location.latitude,
                 longitude = location.longitude,
-                city = geo?.first ?: "",
-                state = geo?.second ?: "",
-                zipCode = geo?.third ?: "",
+                accuracyMeters = location.accuracy,
+                timestampMillis = location.time.takeIf { it > 0L } ?: System.currentTimeMillis(),
             )
         } catch (e: Exception) {
-            android.util.Log.w("LocationHelper", "getCurrentLocation failed", e)
+            android.util.Log.w("LocationHelper", "balanced location failed", e)
             null
         }
     }

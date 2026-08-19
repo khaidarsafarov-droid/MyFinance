@@ -457,6 +457,7 @@
     <string name="friends_share_location_channel">Шаринг локации</string>
     <string name="friends_share_location_title">Truck Log делится путём</string>
     <string name="friends_share_location_text">Друзья видят вашу позицию, пока переключатель включён</string>
+    <string name="friends_share_location_live_text">Живой режим · до 15 минут, затем обновление раз в 15–60 мин</string>
     <string name="friends_overlap_button">С кем пересекается мой путь</string>
     <string name="friends_overlap_title">Совпадения маршрутов</string>
     <string name="friends_overlap_empty">Пока нет друзей с пересекающимся активным грузом</string>
@@ -745,6 +746,12 @@
     <string name="settings_privacy_not_granted">Не разрешено</string>
     <string name="settings_privacy_share_path">Делиться маршрутом с друзьями</string>
     <string name="settings_privacy_share_path_desc">Если выключено, друзья не видят ваш путь на карте</string>
+    <string name="settings_friends_location_title">Геолокация для друзей</string>
+    <string name="settings_friends_location_interval">Интервал фонового обновления</string>
+    <string name="settings_friends_location_interval_option">%d мин</string>
+    <string name="settings_friends_location_interval_hint">Пока вы стоите, интервал сам растягивается до 60 мин. Постоянный GPS не используется.</string>
+    <string name="settings_friends_live_mode">Живой режим</string>
+    <string name="settings_friends_live_mode_desc">Постоянное уведомление и GPS каждые 30 с на 15 минут. По умолчанию выключено.</string>
     <string name="settings_privacy_battery_saver">Экономия батареи</string>
     <string name="settings_privacy_battery_saver_desc">Обновлять GPS на карте каждые 10 с вместо 5 с (только в открытом приложении)</string>
     <string name="settings_privacy_system_settings">Открыть системные настройки</string>

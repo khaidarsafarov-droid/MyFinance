@@ -26,10 +26,7 @@ import java.util.concurrent.TimeUnit
 class SupabaseFriendsRealtimeService(
     private val authStore: AuthStore,
 ) {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val client: OkHttpClient get() = sharedClient
 
     fun isConfigured(): Boolean =
         !BuildConfig.LOCAL_ONLY_MODE &&
@@ -193,19 +190,26 @@ class SupabaseFriendsRealtimeService(
         sharePathEnabled: Boolean,
         heading: Double? = null,
         speedMps: Double? = null,
+        accuracyMeters: Float? = null,
+        timestampMillis: Long? = null,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val userId = authStore.currentUserIdOrNull() ?: return@withContext Result.failure(IllegalStateException("no user"))
         val token = authStore.accessTokenOrNull().orEmpty()
         if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
+        val updatedAt = timestampMillis
+            ?.takeIf { it > 0L }
+            ?.let { Instant.ofEpochMilli(it).toString() }
+            ?: Instant.now().toString()
         val body = JSONObject()
             .put("user_id", userId)
             .put("display_name", displayName)
             .put("latitude", lat)
             .put("longitude", lng)
             .put("share_path_enabled", sharePathEnabled)
-            .put("updated_at", Instant.now().toString())
+            .put("updated_at", updatedAt)
         if (heading != null) body.put("heading", heading)
         if (speedMps != null) body.put("speed_mps", speedMps)
+        if (accuracyMeters != null) body.put("accuracy_m", accuracyMeters.toDouble())
         upsert("driver_presence", body, token)
     }
 
@@ -368,6 +372,11 @@ class SupabaseFriendsRealtimeService(
         /** UI maps this to [R.string.friends_nickname_schema_missing]. */
         const val ERROR_NICKNAME_SCHEMA_MISSING = "schema_nickname_missing"
         const val ERROR_NICKNAME_TAKEN = "nickname_taken"
+
+        private val sharedClient: OkHttpClient = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
 
         fun isMissingNicknameColumnError(message: String): Boolean {
             val m = message.lowercase()
