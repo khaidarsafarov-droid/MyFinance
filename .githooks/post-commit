@@ -1,0 +1,5 @@
+#!/bin/sh
+# Auto-push to GitHub after each commit (Android Studio / git CLI).
+branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null)" || exit 0
+[ -n "$branch" ] || exit 0
+git push origin "$branch" 2>/dev/null || true
