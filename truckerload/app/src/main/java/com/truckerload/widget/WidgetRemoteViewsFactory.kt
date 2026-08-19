@@ -14,11 +14,14 @@ import com.truckerload.R
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.AppLocale
 
+enum class WidgetKind { SQUARE, WIDE }
+
 object WidgetRemoteViewsFactory {
 
   private const val TAG = "TruckLogWidget"
   private const val THRESHOLD_COMPACT_HEIGHT_DP = 90
-  private const val THRESHOLD_EXPANDED_WIDTH_DP = 180
+  const val THRESHOLD_EXPANDED_WIDTH_DP = 180
+  const val THRESHOLD_WIDE_HEIGHT_DP = 180
 
   enum class LayoutTier { COMPACT, STANDARD, EXPANDED }
 
@@ -32,10 +35,15 @@ object WidgetRemoteViewsFactory {
     R.id.widget_day_6,
   )
 
-  fun build(context: Context, appWidgetId: Int, stats: WidgetStats): RemoteViews {
+  fun build(
+    context: Context,
+    appWidgetId: Int,
+    stats: WidgetStats,
+    kind: WidgetKind = WidgetKind.SQUARE,
+  ): RemoteViews {
     val appContext = AppLocale.wrap(context.applicationContext)
     val prefs = WidgetPrefsStore.load(appContext, appWidgetId)
-    val tier = resolveTier(appContext, appWidgetId, prefs)
+    val tier = resolveTier(appContext, appWidgetId, prefs, kind)
     val layoutRes = layoutResFor(tier)
     val views = RemoteViews(appContext.packageName, layoutRes)
     val dark = isDarkTheme(appContext, prefs.themeMode)
@@ -62,24 +70,32 @@ object WidgetRemoteViewsFactory {
     context: Context,
     appWidgetId: Int,
     prefs: WidgetPrefs,
+    kind: WidgetKind,
   ): LayoutTier {
     return when (prefs.sizeMode) {
       WidgetSizeMode.SMALL -> LayoutTier.COMPACT
       WidgetSizeMode.MEDIUM -> LayoutTier.STANDARD
       WidgetSizeMode.LARGE -> LayoutTier.EXPANDED
-      WidgetSizeMode.AUTO -> resolveTierFromOptions(context, appWidgetId)
+      WidgetSizeMode.AUTO -> resolveTierFromOptions(context, appWidgetId, kind)
     }
   }
 
-  private fun resolveTierFromOptions(context: Context, appWidgetId: Int): LayoutTier {
+  private fun resolveTierFromOptions(
+    context: Context,
+    appWidgetId: Int,
+    kind: WidgetKind,
+  ): LayoutTier {
     if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-      return LayoutTier.STANDARD
+      return if (kind == WidgetKind.WIDE) LayoutTier.STANDARD else LayoutTier.COMPACT
     }
     val options = AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId)
-    return resolveTierFromOptions(options)
+    return resolveTierFromOptions(options, kind)
   }
 
-  fun resolveTierFromOptions(options: Bundle): LayoutTier {
+  fun resolveTierFromOptions(options: Bundle): LayoutTier =
+    resolveTierFromOptions(options, WidgetKind.SQUARE)
+
+  fun resolveTierFromOptions(options: Bundle, kind: WidgetKind): LayoutTier {
     val widthDp = options.getInt(
       AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,
       options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110),
@@ -88,13 +104,25 @@ object WidgetRemoteViewsFactory {
       AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,
       options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110),
     )
+    return resolveTierFromSize(widthDp, heightDp, kind)
+  }
 
-    Log.d(TAG, "Widget size: ${widthDp}dp x ${heightDp}dp")
-
-    return when {
-      heightDp < THRESHOLD_COMPACT_HEIGHT_DP -> LayoutTier.COMPACT
-      widthDp >= THRESHOLD_EXPANDED_WIDTH_DP -> LayoutTier.EXPANDED
-      else -> LayoutTier.STANDARD
+  fun resolveTierFromSize(
+    widthDp: Int,
+    heightDp: Int,
+    kind: WidgetKind = WidgetKind.SQUARE,
+  ): LayoutTier {
+    return when (kind) {
+      WidgetKind.SQUARE -> when {
+        heightDp < THRESHOLD_COMPACT_HEIGHT_DP || widthDp < THRESHOLD_EXPANDED_WIDTH_DP ->
+          LayoutTier.COMPACT
+        heightDp >= THRESHOLD_WIDE_HEIGHT_DP -> LayoutTier.EXPANDED
+        else -> LayoutTier.STANDARD
+      }
+      WidgetKind.WIDE -> when {
+        heightDp >= THRESHOLD_WIDE_HEIGHT_DP -> LayoutTier.EXPANDED
+        else -> LayoutTier.STANDARD
+      }
     }
   }
 
@@ -115,7 +143,7 @@ object WidgetRemoteViewsFactory {
   }
 
   private fun applyTheme(context: Context, views: RemoteViews) {
-    views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_soft_gradient)
+    views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_oneui_plate)
 
     val primary = ContextCompat.getColor(context, R.color.widget_text_primary)
     val secondary = ContextCompat.getColor(context, R.color.widget_text_secondary)

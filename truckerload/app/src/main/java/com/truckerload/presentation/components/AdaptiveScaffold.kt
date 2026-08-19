@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Groups
@@ -45,6 +46,7 @@ import androidx.navigation.NavHostController
 import com.truckerload.R
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.WindowSizeClass
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -181,23 +183,30 @@ private fun SoftBottomBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
 ) {
-    val pillShape = remember { RoundedCornerShape(16.dp) }
+    val pillShape = remember { OneUiTokens.ChipShape }
+    val cs = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .navigationBarsPadding(),
+            .navigationBarsPadding()
+            .padding(
+                start = OneUiTokens.BottomBarHorizontalInset,
+                end = OneUiTokens.BottomBarHorizontalInset,
+                bottom = OneUiTokens.BottomBarBottomInset,
+            ),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = OneUiTokens.BottomBarShape,
+            color = cs.surface,
+            tonalElevation = 3.dp,
+            shadowElevation = 8.dp,
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(UiDimens.NavBarHeight),
+                    .height(UiDimens.NavBarHeight)
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BottomNavItem(

@@ -17,14 +17,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.SoftUiColors
@@ -45,10 +41,8 @@ import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.useNavigationRail
 
 /**
- * App-wide soft tablet page chrome: large title when the forest sidebar is visible,
- * phone TopAppBar (menu/back) otherwise.
+ * App-wide page chrome: One UI large title on phone, oversized header on tablet.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoftAppPageScaffold(
     title: String,
@@ -79,33 +73,12 @@ fun SoftAppPageScaffold(
                     actions = actions,
                 )
             } else {
-                TopAppBar(
-                    title = {
-                        Column {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                color = tc.TextPrimary,
-                            )
-                            subtitle?.takeIf { it.isNotBlank() }?.let {
-                                Text(it, style = AppTypography.Subtitle, color = tc.TextSecondary)
-                            }
-                        }
-                    },
+                OneUiLargeTitleHeader(
+                    title = title,
+                    subtitle = subtitle,
                     navigationIcon = {
                         when {
-                            showBack && onBack != null -> {
-                                IconButton(
-                                    onClick = onBack,
-                                    modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
-                                ) {
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = stringResource(R.string.common_back),
-                                        tint = tc.TextPrimary,
-                                    )
-                                }
-                            }
+                            showBack && onBack != null -> OneUiBackButton(onBack = onBack)
                             showPhoneMenu -> {
                                 IconButton(onClick = openDrawer) {
                                     Icon(
@@ -118,12 +91,6 @@ fun SoftAppPageScaffold(
                         }
                     },
                     actions = actions,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = BentoGlassTheme.ScreenBackground,
-                        titleContentColor = tc.TextPrimary,
-                        actionIconContentColor = tc.TextPrimary,
-                        navigationIconContentColor = tc.TextPrimary,
-                    ),
                 )
             }
         },

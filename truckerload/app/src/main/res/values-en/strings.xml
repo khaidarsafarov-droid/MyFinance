@@ -776,6 +776,8 @@
 
     <string name="settings_oled_dark_title">OLED black</string>
     <string name="settings_oled_dark_desc">True black background for AMOLED battery savings and night comfort</string>
+    <string name="settings_dynamic_color_title">Dynamic colors</string>
+    <string name="settings_dynamic_color_desc">Accents follow the system theme (Material You / One UI)</string>
     <string name="settings_accessibility_title">Accessibility</string>
     <string name="settings_accessibility_desc">Less motion for a calmer interface</string>
     <string name="settings_biometric_unlock_label">Biometric unlock</string>
@@ -793,8 +795,10 @@
     <string name="quick_actions_title">Quick actions</string>
     <string name="quick_actions_diesel">Add diesel</string>
     <string name="home_load_deleted_snackbar">Load deleted</string>
-    <string name="widget_description">Truck Log — gross, pace, and weekly goal on your home screen</string>
-    <string name="widget_label">Truck Log</string>
+    <string name="widget_description">Truck Log 2×2 — gross and weekly goal</string>
+    <string name="widget_description_wide">Truck Log 4×2 — gross, RPM, and weekly goal</string>
+    <string name="widget_label">Truck Log 2×2</string>
+    <string name="widget_label_wide">Truck Log 4×2</string>
     <string name="widget_brand_title">📝🚛 TRUCK LOG</string>
     <string name="widget_brand_title_plain">TRUCK LOG</string>
     <string name="widget_goal_out_of">out of %1$s</string>

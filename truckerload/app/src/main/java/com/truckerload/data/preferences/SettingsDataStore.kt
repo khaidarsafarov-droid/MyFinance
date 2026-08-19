@@ -30,6 +30,7 @@ private val KEY_LOCATION_BATTERY_SAVER = booleanPreferencesKey("location_battery
 private val KEY_ROUTE_VEHICLE_TRUCK = booleanPreferencesKey("route_vehicle_truck")
 private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 private val KEY_OLED_DARK = booleanPreferencesKey("oled_dark")
+private val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
 private val KEY_QUIET_HOURS_ENABLED = booleanPreferencesKey("quiet_hours_enabled")
 private val KEY_QUIET_HOURS_START = intPreferencesKey("quiet_hours_start")
 private val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
@@ -95,6 +96,11 @@ class SettingsDataStore(context: Context) {
 
     val oledDark: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_OLED_DARK] ?: false
+    }
+
+    /** Material You / Samsung dynamic color. Default on so One UI accents follow the system. */
+    val dynamicColor: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[KEY_DYNAMIC_COLOR] ?: true
     }
 
     // FIX Stage3: account-scoped parser / quiet hours / notify / share-path
@@ -312,6 +318,14 @@ class SettingsDataStore(context: Context) {
     suspend fun saveOledDark(enabled: Boolean) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_OLED_DARK] = enabled
+        }
+    }
+
+    suspend fun getDynamicColorOnce(): Boolean = dynamicColor.first()
+
+    suspend fun saveDynamicColor(enabled: Boolean) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_DYNAMIC_COLOR] = enabled
         }
     }
 

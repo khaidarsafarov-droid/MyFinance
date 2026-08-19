@@ -80,6 +80,7 @@ fun SettingsScreen(
     val settingsDataStore = LocalSettingsDataStore.current
     val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
     val oledDark by settingsDataStore.oledDark.collectAsStateWithLifecycle(initialValue = false)
+    val dynamicColor by settingsDataStore.dynamicColor.collectAsStateWithLifecycle(initialValue = true)
     val reduceMotion by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(initialValue = false)
     val quietHoursEnabled by settingsDataStore.quietHoursEnabled.collectAsStateWithLifecycle(initialValue = false)
     val quietHoursStart by settingsDataStore.quietHoursStart.collectAsStateWithLifecycle(initialValue = 22)
@@ -187,7 +188,11 @@ fun SettingsScreen(
             SoftTabletTwoPane(
                 start = {
                     Column {
-                        ThemeSettingsSection(selected = themeMode, oledDark = oledDark)
+                        ThemeSettingsSection(
+                            selected = themeMode,
+                            oledDark = oledDark,
+                            dynamicColor = dynamicColor,
+                        )
                         AccessibilitySettingsSection(reduceMotion = reduceMotion)
                         LanguageSettingsSection(selected = appLanguage)
                         FeedbackSettingsSection(settingsViewModel = settingsViewModel)

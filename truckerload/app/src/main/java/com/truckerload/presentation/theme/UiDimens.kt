@@ -32,6 +32,8 @@ object UiDimens {
     val LoadCardMinHeight = 120.dp
     val StatCardMinHeight = 80.dp
     val GoalHeroMinHeight = 150.dp
+    val OneUiCardRadius = OneUiTokens.CornerCard
+    val OneUiScreenPadding = OneUiTokens.ScreenHorizontal
     val ProfileHeaderMinHeight = 200.dp
     val ChatListItemMinHeight = 80.dp
 

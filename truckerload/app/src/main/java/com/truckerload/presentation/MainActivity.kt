@@ -201,6 +201,9 @@ class MainActivity : AppCompatActivity() {
             val oledDark by settingsDataStore.oledDark.collectAsStateWithLifecycle(
                 initialValue = false,
             )
+            val dynamicColor by settingsDataStore.dynamicColor.collectAsStateWithLifecycle(
+                initialValue = true,
+            )
             val reduceMotionPref by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(
                 initialValue = false,
             )
@@ -212,6 +215,7 @@ class MainActivity : AppCompatActivity() {
             TruckerLoadTheme(
                 darkTheme = darkTheme,
                 themeMode = themeMode,
+                dynamicColor = dynamicColor,
                 oledDark = oledDark,
                 reduceMotion = reduceMotionPref,
             ) {

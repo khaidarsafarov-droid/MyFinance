@@ -34,12 +34,14 @@ import kotlinx.coroutines.launch
 fun ThemeSettingsSection(
     selected: AppThemeMode,
     oledDark: Boolean,
+    dynamicColor: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
     val settingsDataStore = LocalSettingsDataStore.current
     val scope = rememberCoroutineScope()
     val darkActive = selected == AppThemeMode.DARK || selected == AppThemeMode.SYSTEM
+    val showDynamicColor = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
 
     BentoGlassSection(
         title = stringResource(R.string.settings_theme_title),
@@ -77,6 +79,31 @@ fun ThemeSettingsSection(
                     ),
                 )
             }
+        }
+        if (showDynamicColor) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_dynamic_color_title),
+                    color = tc.TextPrimary,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Switch(
+                    checked = dynamicColor,
+                    onCheckedChange = { enabled ->
+                        scope.launch { settingsDataStore.saveDynamicColor(enabled) }
+                    },
+                    colors = AppSwitchDefaults.colors(),
+                )
+            }
+            Text(
+                text = stringResource(R.string.settings_dynamic_color_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.TextSecondary,
+            )
         }
         if (darkActive) {
             Row(

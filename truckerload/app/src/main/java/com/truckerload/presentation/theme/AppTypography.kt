@@ -21,10 +21,10 @@ object AppTypography {
         )
 
     val ScreenTitle: TextStyle
-        @Composable get() = MaterialTheme.typography.headlineSmall.copy(
+        @Composable get() = MaterialTheme.typography.headlineMedium.copy(
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = 1.4.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.sp,
         )
 
     val Headline: TextStyle

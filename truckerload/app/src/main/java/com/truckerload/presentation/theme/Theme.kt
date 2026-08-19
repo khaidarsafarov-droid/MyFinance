@@ -14,13 +14,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.truckerload.data.preferences.AppThemeMode
 
-/** Mindwell Forest static scheme (Gemini Truck Log prototype). */
+/** One UI light fallback when Material You is off or API < 31. */
 private fun staticLightColorScheme(): ColorScheme = lightColorScheme(
     primary = SoftUiColors.ForestAccent,
     onPrimary = Color.White,
@@ -46,10 +45,10 @@ private fun staticLightColorScheme(): ColorScheme = lightColorScheme(
     outlineVariant = SoftUiColors.SageBorder,
 )
 
-private fun staticDarkColorScheme(oled: Boolean): ColorScheme {
-    val background = if (oled) SoftUiColors.BackgroundOled else SoftUiColors.BackgroundDark
-    val surface = if (oled) SoftUiColors.SurfaceOled else SoftUiColors.SurfaceDark
-    val surfaceVariant = if (oled) SoftUiColors.SurfaceMutedOled else SoftUiColors.SurfaceMutedDark
+private fun staticDarkColorScheme(): ColorScheme {
+    val background = SoftUiColors.BackgroundDark
+    val surface = SoftUiColors.SurfaceDark
+    val surfaceVariant = SoftUiColors.SurfaceMutedDark
     return darkColorScheme(
         primary = SoftUiColors.ForestAccent,
         onPrimary = Color.White,
@@ -80,33 +79,35 @@ private fun staticDarkColorScheme(oled: Boolean): ColorScheme {
 private fun resolveColorScheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
-    oledDark: Boolean,
 ): ColorScheme {
     val context = LocalContext.current
     return when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> staticDarkColorScheme(oled = oledDark)
+        darkTheme -> staticDarkColorScheme()
         else -> staticLightColorScheme()
     }
 }
 
 /**
- * App-level Compose theme that applies Material 3 colors, typography, and TruckLoad semantic colors.
+ * App-level Compose theme: One UI shapes, Material You accents, and OLED-safe dark mode.
  */
 @Composable
 fun TruckerLoadTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
     oledDark: Boolean = false,
     reduceMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val systemReduced = MotionPolicy.isSystemReducedMotion(LocalContext.current)
     val effectiveReduceMotion = reduceMotion || systemReduced
-    val colorScheme = resolveColorScheme(darkTheme, dynamicColor, oledDark = oledDark && darkTheme)
+    val colorScheme = overlayOledIfNeeded(
+        resolveColorScheme(darkTheme, dynamicColor),
+        oled = oledDark && darkTheme,
+    )
     val truckColors = truckPaletteFrom(colorScheme)
 
     val view = LocalView.current
@@ -114,18 +115,12 @@ fun TruckerLoadTheme(
         SideEffect {
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
-            val barColor = if (darkTheme) {
-                if (oledDark) SoftUiColors.BackgroundOled else SoftUiColors.BackgroundDark
-            } else {
-                SoftUiColors.Sage
-            }
             if (Build.VERSION.SDK_INT < 35) {
                 @Suppress("DEPRECATION")
-                window.statusBarColor = barColor.toArgb()
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
                 @Suppress("DEPRECATION")
-                window.navigationBarColor = barColor.toArgb()
+                window.navigationBarColor = android.graphics.Color.TRANSPARENT
             }
-            // Light icons on dark bars; dark icons on sage/light bars.
             val lightBars = !darkTheme
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = lightBars
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = lightBars

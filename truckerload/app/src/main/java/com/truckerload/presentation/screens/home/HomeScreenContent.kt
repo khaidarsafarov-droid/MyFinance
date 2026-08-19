@@ -27,8 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -41,9 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -51,13 +47,13 @@ import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.ForestSectionTitle
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -376,48 +372,29 @@ internal fun HomeScreenTopBar(
     openDrawer: () -> Unit,
     onSearchToggle: () -> Unit,
 ) {
-    TopAppBar(
-        title = {
-            Column {
-                Text(
-                    text = stringResource(R.string.home_brand_title).uppercase(),
-                    style = AppTypography.ScreenTitle.copy(
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 1.5.sp,
-                    ),
-                )
-                if (welcomeName.isNotBlank()) {
-                    Text(
-                        stringResource(R.string.home_welcome, welcomeName),
-                        style = AppTypography.Caption.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                    )
-                } else {
-                    Text(
-                        stringResource(R.string.app_tagline),
-                        style = AppTypography.Caption.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                    )
-                }
-                weekLabel.takeIf { it.isNotBlank() && filter != LoadFilter.THIS_WEEK }?.let { week ->
-                    Text(week, style = AppTypography.Caption.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
-                }
-            }
-        },
+    val subtitle = buildString {
+        if (welcomeName.isNotBlank()) {
+            append(stringResource(R.string.home_welcome, welcomeName))
+        } else {
+            append(stringResource(R.string.app_tagline))
+        }
+        weekLabel.takeIf { it.isNotBlank() && filter != LoadFilter.THIS_WEEK }?.let { week ->
+            append(" · ")
+            append(week)
+        }
+    }
+    OneUiLargeTitleHeader(
+        title = stringResource(R.string.home_brand_title),
+        subtitle = subtitle,
         navigationIcon = {
             IconButton(onClick = openDrawer) {
                 Icon(
                     Icons.Default.Menu,
                     contentDescription = stringResource(R.string.common_menu),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
         actions = {
             IconButton(
                 onClick = onSearchToggle,
@@ -426,10 +403,10 @@ internal fun HomeScreenTopBar(
                 Icon(
                     Icons.Default.Search,
                     contentDescription = stringResource(R.string.home_cd_search),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
-        }
+        },
     )
 }
 

@@ -776,6 +776,8 @@
 
     <string name="settings_oled_dark_title">OLED чёрный</string>
     <string name="settings_oled_dark_desc">Чисто чёрный фон для экономии батареи и комфорта ночью</string>
+    <string name="settings_dynamic_color_title">Динамические цвета</string>
+    <string name="settings_dynamic_color_desc">Акценты подстраиваются под тему системы (Material You / One UI)</string>
     <string name="settings_accessibility_title">Доступность</string>
     <string name="settings_accessibility_desc">Меньше движения — спокойнее интерфейс</string>
     <string name="settings_biometric_unlock_label">Разблокировка по биометрии</string>
@@ -793,8 +795,10 @@
     <string name="quick_actions_title">Быстрые действия</string>
     <string name="quick_actions_diesel">Добавить дизель</string>
     <string name="home_load_deleted_snackbar">Груз удалён</string>
-    <string name="widget_description">Truck Log — гросс, темп и цель недели на главном экране</string>
-    <string name="widget_label">Truck Log</string>
+    <string name="widget_description">Truck Log 2×2 — гросс и цель недели</string>
+    <string name="widget_description_wide">Truck Log 4×2 — гросс, RPM и цель недели</string>
+    <string name="widget_label">Truck Log 2×2</string>
+    <string name="widget_label_wide">Truck Log 4×2</string>
     <string name="widget_brand_title">📝🚛 TRUCK LOG</string>
     <string name="widget_brand_title_plain">TRUCK LOG</string>
     <string name="widget_goal_out_of">из %1$s</string>

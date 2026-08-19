@@ -4,9 +4,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
-/** Shape tokens aligned with SoftUi / Mindwell Forest (16 chip, 24 card). */
+/** Shape tokens aligned with One UI (16 chip, 20 button, 26–28 card). */
 object AppShapes {
-    val Small = RoundedCornerShape(12.dp)
+    val Small = RoundedCornerShape(OneUiTokens.CornerChip)
     val Medium = SoftUiShapes.Chip
     val Large = SoftUiShapes.Card
     val XLarge = SoftUiShapes.CardLarge
