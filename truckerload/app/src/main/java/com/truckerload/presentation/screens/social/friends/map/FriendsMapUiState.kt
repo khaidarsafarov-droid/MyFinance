@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.social.friends.map
 import com.truckerload.domain.friends.FriendActiveRoute
 import com.truckerload.domain.friends.FriendPresence
 import com.truckerload.domain.friends.FriendProfileHit
+import com.truckerload.domain.friends.FriendRequest
 import com.truckerload.domain.friends.FriendShareLink
 import com.truckerload.domain.friends.FriendsRouteDisplayMode
 import com.truckerload.domain.friends.LatLngPoint
@@ -43,6 +44,8 @@ data class FriendsMapUiState(
     val selectedFriendId: String? = null,
     val overlaps: List<RouteOverlapMatch> = emptyList(),
     val showOverlapsPanel: Boolean = false,
+    val incomingRequests: List<FriendRequest> = emptyList(),
+    val outgoingRequests: List<FriendRequest> = emptyList(),
     val statusMessage: String? = null,
     val errorMessage: String? = null,
     val lastRefreshAt: Long = 0L,

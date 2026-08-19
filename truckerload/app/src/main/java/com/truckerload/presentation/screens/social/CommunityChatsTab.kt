@@ -186,6 +186,13 @@ internal fun ChatsTabContent(
             )
         }
         item {
+            Text(
+                text = stringResource(R.string.social_chat_safety_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.TextSecondary,
+            )
+        }
+        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

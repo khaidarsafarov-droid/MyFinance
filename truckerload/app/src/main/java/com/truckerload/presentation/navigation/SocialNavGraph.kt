@@ -117,6 +117,7 @@ fun NavGraphBuilder.socialNavGraph(navController: NavHostController, reduceMotio
         SocialChatScreen(
             chatId = chatId,
             onBack = { navController.popBackStack() },
+            onOpenPeerProfile = { peerId -> navController.navigate(Routes.peerProfile(peerId)) },
         )
     }
     composable(Routes.VOICE_ROOMS) {

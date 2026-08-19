@@ -56,7 +56,7 @@ fun FriendsMapManageSection(
 
     // Collapse the add panel after a successful add.
     LaunchedEffect(uiState.statusMessage) {
-        if (uiState.statusMessage == "added") {
+        if (uiState.statusMessage in setOf("added", "request_sent", "accepted")) {
             onAddFriendExpandedChange(false)
         }
     }
@@ -103,7 +103,7 @@ fun FriendsMapManageSection(
                 }
                 uiState.searchHit?.let { hit ->
                     Text(
-                        text = stringResource(R.string.friends_found, hit.displayName, hit.nickname),
+                        text = stringResource(R.string.friends_found, hit.nickname),
                         style = MaterialTheme.typography.bodyMedium,
                         color = tc.TextPrimary,
                     )
@@ -111,9 +111,10 @@ fun FriendsMapManageSection(
                         onClick = { viewModel.addSearchedFriend() },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(stringResource(R.string.friends_add_button))
+                        Text(stringResource(R.string.friends_request_send_button))
                     }
                 }
+                FriendRequestStatusText(uiState.statusMessage)
                 if (uiState.searchNotFound || uiState.statusMessage == "not_found") {
                     Text(
                         text = stringResource(R.string.friends_not_in_app),
@@ -148,6 +149,14 @@ fun FriendsMapManageSection(
                 }
             }
         }
+
+        FriendRequestsSection(
+            incoming = uiState.incomingRequests,
+            outgoing = uiState.outgoingRequests,
+            onAccept = viewModel::acceptFriendRequest,
+            onDecline = viewModel::declineFriendRequest,
+            onCancel = viewModel::cancelFriendRequest,
+        )
 
         OutlinedButton(onClick = { viewModel.setShowOverlapsPanel(!uiState.showOverlapsPanel) }) {
             Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
@@ -292,14 +301,9 @@ fun FriendShareRow(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "@${link.friendNickname}",
+                    text = "@${link.friendNickname.ifBlank { "Driver" }}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = tc.TextPrimary,
-                )
-                Text(
-                    text = link.friendDisplayName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tc.TextSecondary,
                 )
                 Text(
                     text = stringResource(
@@ -357,4 +361,22 @@ fun FriendShareRow(
             }
         }
     }
+}
+
+@Composable
+private fun FriendRequestStatusText(status: String?) {
+    val message = when (status) {
+        "request_sent" -> stringResource(R.string.friends_request_sent)
+        "already_sent" -> stringResource(R.string.friends_request_already_sent)
+        "already_friends" -> stringResource(R.string.friends_request_already_friends)
+        "accepted" -> stringResource(R.string.friends_request_accepted)
+        "blocked" -> stringResource(R.string.social_user_blocked)
+        "added" -> stringResource(R.string.friends_added_ok)
+        else -> return
+    }
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodySmall,
+        color = LocalTruckColors.current.AccentPrimary,
+    )
 }

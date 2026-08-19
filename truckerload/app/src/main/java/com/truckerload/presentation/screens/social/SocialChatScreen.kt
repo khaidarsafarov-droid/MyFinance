@@ -60,6 +60,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 fun SocialChatScreen(
     chatId: String,
     onBack: () -> Unit,
+    onOpenPeerProfile: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: SocialChatViewModel = hiltViewModel(),
 ) {
@@ -164,6 +165,14 @@ fun SocialChatScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
+                actions = {
+                    ChatSafetyMenu(
+                        enabled = uiState.peerId != null,
+                        onOpenProfile = { uiState.peerId?.let(onOpenPeerProfile) },
+                        onBlock = { viewModel.blockPeer(onBack) },
+                        onReport = viewModel::reportPeer,
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BentoGlassTheme.ScreenBackground,
                     titleContentColor = tc.TextPrimary,
@@ -176,6 +185,19 @@ fun SocialChatScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
+            val feedback = uiState.errorMessage
+            if (!feedback.isNullOrBlank()) {
+                Text(
+                    text = if (feedback == "reported") {
+                        stringResource(R.string.social_report_sent)
+                    } else {
+                        feedback
+                    },
+                    color = if (feedback == "reported") tc.AccentPrimary else MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
             uiState.replyTo?.let { reply ->
                 Row(
                     modifier = Modifier

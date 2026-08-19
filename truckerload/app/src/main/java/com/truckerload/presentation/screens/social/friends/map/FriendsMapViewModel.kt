@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.social.friends.map
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.community.FriendSafetyClient
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.remote.CompositeDirectionsProvider
@@ -15,6 +16,8 @@ import com.truckerload.domain.friends.FriendMapLabels
 import com.truckerload.domain.friends.FriendRoutePolylineBuilder
 import com.truckerload.domain.friends.FriendsRouteDisplayMode
 import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.domain.friends.FriendRequestDirection
+import com.truckerload.domain.friends.FriendRequestSendResult
 import com.truckerload.domain.friends.NicknameValidator
 import com.truckerload.domain.friends.RoadRouteResult
 import com.truckerload.domain.friends.RoadRouteSession
@@ -50,6 +53,7 @@ class FriendsMapViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val friendsApi = SupabaseFriendsRealtimeService(authStore)
+    private val safetyApi = FriendSafetyClient(authStore)
     private val locationHelper = LocationHelper(context)
     private val directions = CompositeDirectionsProvider()
     private var roadRoutes = RoadRouteSession(directions)
@@ -161,13 +165,32 @@ class FriendsMapViewModel @Inject constructor(
     fun addSearchedFriend() {
         viewModelScope.launch {
             val hit = _uiState.value.searchHit ?: return@launch
-            val result = friendsApi.addFriend(hit)
+            val send = safetyApi.sendFriendRequest(hit.userId)
+            val result = send.fold(
+                onSuccess = { Result.success(it) },
+                onFailure = { err ->
+                    if (err.message == FriendSafetyClient.ERROR_SAFETY_SCHEMA_MISSING) {
+                        friendsApi.addFriend(hit).map { FriendRequestSendResult.ADDED_DIRECT }
+                    } else {
+                        Result.failure(err)
+                    }
+                },
+            )
             if (result.isSuccess) {
+                val status = when (result.getOrNull()) {
+                    FriendRequestSendResult.SENT -> "request_sent"
+                    FriendRequestSendResult.ALREADY_SENT -> "already_sent"
+                    FriendRequestSendResult.ALREADY_FRIENDS -> "already_friends"
+                    FriendRequestSendResult.ACCEPTED -> "accepted"
+                    FriendRequestSendResult.BLOCKED -> "blocked"
+                    FriendRequestSendResult.ADDED_DIRECT -> "added"
+                    null -> "request_sent"
+                }
                 _uiState.update {
                     it.copy(
                         searchHit = null,
                         searchQuery = "",
-                        statusMessage = "added",
+                        statusMessage = status,
                     )
                 }
                 refresh(silent = true)
@@ -175,6 +198,37 @@ class FriendsMapViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(errorMessage = result.exceptionOrNull()?.message ?: "add failed")
                 }
+            }
+        }
+    }
+
+    fun acceptFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            safetyApi.acceptFriendRequest(requestId).onSuccess {
+                _uiState.update { it.copy(statusMessage = "accepted") }
+                refresh(silent = true)
+            }.onFailure { err ->
+                _uiState.update { it.copy(errorMessage = err.message) }
+            }
+        }
+    }
+
+    fun declineFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            safetyApi.declineFriendRequest(requestId).onSuccess {
+                refresh(silent = true)
+            }.onFailure { err ->
+                _uiState.update { it.copy(errorMessage = err.message) }
+            }
+        }
+    }
+
+    fun cancelFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            safetyApi.cancelFriendRequest(requestId).onSuccess {
+                refresh(silent = true)
+            }.onFailure { err ->
+                _uiState.update { it.copy(errorMessage = err.message) }
             }
         }
     }
@@ -243,6 +297,11 @@ class FriendsMapViewModel @Inject constructor(
                 } else {
                     emptyList()
                 }
+                val requests = if (ready) {
+                    safetyApi.listFriendRequests().getOrElse { emptyList() }
+                } else {
+                    emptyList()
+                }
                 val presence = if (ready) {
                     friendsApi.fetchFriendPresence().getOrElse { emptyList() }
                 } else {
@@ -301,6 +360,12 @@ class FriendsMapViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         shareLinks = links,
+                        incomingRequests = requests.filter {
+                            it.direction == FriendRequestDirection.INCOMING
+                        },
+                        outgoingRequests = requests.filter {
+                            it.direction == FriendRequestDirection.OUTGOING
+                        },
                         friends = overlays,
                         myPathPast = myPath.past,
                         myPathRemaining = myPath.remaining,

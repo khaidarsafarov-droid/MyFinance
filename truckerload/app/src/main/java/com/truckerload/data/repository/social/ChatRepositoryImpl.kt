@@ -19,6 +19,7 @@ import com.truckerload.data.social.RecommendationService
 import com.truckerload.di.UserScope
 import com.truckerload.domain.social.ChatType
 import com.truckerload.domain.social.MessageType
+import com.truckerload.domain.social.ModerationCodes
 import com.truckerload.domain.social.SocialChat
 import com.truckerload.domain.social.SocialIdentity
 import com.truckerload.domain.social.SocialMessage
@@ -89,11 +90,11 @@ class ChatRepositoryImpl(
         if (trimmed.isEmpty() && attachmentUrl.isNullOrBlank()) {
             return SocialResult.Error(appContext.getString(R.string.social_error_empty_message))
         }
-        val moderation = ContentModerator.moderateText(trimmed)
-        if (!moderation.allowed) {
-            return SocialResult.Error(
-                moderation.reason ?: appContext.getString(R.string.social_error_message_rejected),
-            )
+        if (trimmed.isNotEmpty()) {
+            val moderation = ContentModerator.moderateText(trimmed)
+            if (!moderation.allowed) {
+                return SocialResult.Error(moderationMessage(appContext, moderation.reason))
+            }
         }
         val now = System.currentTimeMillis()
         val preview = when (messageType) {
@@ -264,6 +265,11 @@ class ChatRepositoryImpl(
         findPrivateChatForPeer(peerId)?.let { chatDao.archiveChat(it.id) }
     }
 
+    override suspend fun privatePeerId(chatId: String): String? {
+        SocialIdentity.peerIdFromPrivateChat(chatId)?.let { return it }
+        return chatMemberDao.otherMemberId(chatId, actorId())
+    }
+
     private suspend fun findPrivateChatForPeer(peerId: String): SocialChatEntity? {
         chatDao.getChat(SocialIdentity.privateChatIdForPeer(peerId))?.let { return it }
         val peer = peerDao.getById(peerId) ?: return null
@@ -273,4 +279,14 @@ class ChatRepositoryImpl(
     private suspend fun findPrivateChatByTitle(title: String): SocialChatEntity? =
         chatDao.watchChats().first()
             .firstOrNull { it.type == ChatType.PRIVATE.name && it.title.equals(title, ignoreCase = true) }
+}
+
+private fun moderationMessage(context: Context, code: String?): String {
+    val res = when (code) {
+        ModerationCodes.PII_EMAIL, ModerationCodes.PII_PHONE -> R.string.social_error_hide_pii
+        ModerationCodes.LINK, ModerationCodes.OFF_APP -> R.string.social_error_keep_in_app
+        ModerationCodes.EMPTY -> R.string.social_error_empty_message
+        else -> R.string.social_error_message_rejected
+    }
+    return context.getString(res)
 }

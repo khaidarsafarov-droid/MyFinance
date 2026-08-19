@@ -36,4 +36,5 @@ interface ChatRepository {
     suspend fun createPrivateChat(peerName: String): SocialResult<String>
     suspend fun createPrivateChatWithPeer(peerId: String): SocialResult<String>
     suspend fun archivePrivateChatForPeer(peerId: String)
+    suspend fun privatePeerId(chatId: String): String?
 }
