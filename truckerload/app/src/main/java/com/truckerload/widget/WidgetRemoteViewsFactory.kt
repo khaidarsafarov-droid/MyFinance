@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
@@ -225,6 +226,7 @@ object WidgetRemoteViewsFactory {
       themed,
       stats.goalPaceStatus,
       goalMet,
+      stats.goalDaysRemaining,
     )
     val ringBitmap = runCatching {
       WidgetProgressRingBitmap.create(
@@ -243,17 +245,20 @@ object WidgetRemoteViewsFactory {
       views.setViewVisibility(R.id.widget_progress_ring, View.GONE)
     }
 
+    val amount = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate)
+    val amountSp = WidgetStatsFormatter.amountSp(
+      amount,
+      when (tier) {
+        LayoutTier.COMPACT -> 22f
+        LayoutTier.STANDARD -> 22f
+        LayoutTier.EXPANDED -> 26f
+      },
+    )
     if (tier == LayoutTier.COMPACT) {
-      views.setTextViewText(
-        R.id.widget_gross_hero,
-        WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
-      )
+      views.setTextViewText(R.id.widget_gross_hero, amount)
       views.setViewVisibility(R.id.widget_goal_subtitle, View.GONE)
     } else {
-      views.setTextViewText(
-        R.id.widget_gross_hero,
-        WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
-      )
+      views.setTextViewText(R.id.widget_gross_hero, amount)
       val goalSubtitle = when {
         !prefs.showGoal || !goalSet ->
           context.getString(R.string.widget_goal_not_set)
@@ -265,14 +270,24 @@ object WidgetRemoteViewsFactory {
       views.setViewVisibility(R.id.widget_goal_subtitle, View.VISIBLE)
       views.setTextViewText(R.id.widget_goal_subtitle, goalSubtitle)
     }
+    views.setTextViewTextSize(R.id.widget_gross_hero, TypedValue.COMPLEX_UNIT_SP, amountSp)
 
-    views.setTextViewText(
+    val percentLabel = if (goalSet) {
+      context.getString(R.string.widget_ring_percent_decimal, progress.toDouble())
+    } else {
+      WidgetStatsFormatter.formatProgressPercent(0f)
+    }
+    views.setTextViewText(R.id.widget_ring_percent, percentLabel)
+    views.setTextViewTextSize(
       R.id.widget_ring_percent,
-      if (goalSet) {
-        context.getString(R.string.widget_ring_percent_decimal, progress.toDouble())
-      } else {
-        WidgetStatsFormatter.formatProgressPercent(0f)
-      },
+      TypedValue.COMPLEX_UNIT_SP,
+      WidgetStatsFormatter.percentSp(
+        when (tier) {
+          LayoutTier.COMPACT -> 10f
+          LayoutTier.STANDARD -> 13f
+          LayoutTier.EXPANDED -> 16f
+        },
+      ),
     )
   }
 

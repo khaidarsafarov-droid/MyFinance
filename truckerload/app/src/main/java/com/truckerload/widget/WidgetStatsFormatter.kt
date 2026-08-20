@@ -55,4 +55,18 @@ object WidgetStatsFormatter {
             String.format(Locale.US, "$%,.0f/day", value)
         }
     }
+
+    /**
+     * RemoteViews has no auto-size on API 24–25. Shrink the hero amount so
+     * `$50,000` still fits beside the ring without changing widget bounds.
+     */
+    fun amountSp(formattedUsd: String, defaultSp: Float): Float = when {
+        formattedUsd.length >= 10 -> (defaultSp * 0.55f).coerceAtLeast(12f)
+        formattedUsd.length >= 8 -> (defaultSp * 0.68f).coerceAtLeast(13f)
+        formattedUsd.length >= 7 -> (defaultSp * 0.80f).coerceAtLeast(14f)
+        else -> defaultSp
+    }
+
+    /** Percent inside the ring (`24.8%` / `100.0%`) — always a short string. */
+    fun percentSp(defaultSp: Float): Float = defaultSp.coerceIn(8f, 16f)
 }

@@ -62,13 +62,26 @@ object WidgetProgressRingBitmap {
     }
 
     @ColorRes
-    fun progressColorResForStatus(paceStatus: String, goalMet: Boolean): Int = when {
+    fun progressColorResForStatus(
+        paceStatus: String,
+        goalMet: Boolean,
+        daysRemaining: Int = Int.MAX_VALUE,
+    ): Int = when {
         goalMet || paceStatus == "GOAL_MET" || paceStatus == "AHEAD" -> R.color.widget_success
-        paceStatus == "ON_TRACK" -> R.color.widget_rpm_warn
-        paceStatus == "BEHIND" -> R.color.widget_rpm_bad
+        // On-track is healthy — Success, not Warning (yellow would look like a problem).
+        paceStatus == "ON_TRACK" -> R.color.widget_success
+        paceStatus == "BEHIND" && daysRemaining <= 1 -> R.color.widget_rpm_bad
+        paceStatus == "BEHIND" -> R.color.widget_rpm_warn
         else -> R.color.widget_primary
     }
 
-    fun progressColorForStatus(context: Context, paceStatus: String, goalMet: Boolean): Int =
-        ContextCompat.getColor(context, progressColorResForStatus(paceStatus, goalMet))
+    fun progressColorForStatus(
+        context: Context,
+        paceStatus: String,
+        goalMet: Boolean,
+        daysRemaining: Int = Int.MAX_VALUE,
+    ): Int = ContextCompat.getColor(
+        context,
+        progressColorResForStatus(paceStatus, goalMet, daysRemaining),
+    )
 }

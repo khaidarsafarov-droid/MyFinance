@@ -61,4 +61,22 @@ class WidgetStatsFormatterTest {
         assertEquals("$607/day", WidgetStatsFormatter.formatDailyPace(607.0))
         assertTrue(WidgetStatsFormatter.formatDailyPace(607.5).endsWith("/day"))
     }
+
+    @Test
+    fun amountSp_shrinksLongUsdStrings() {
+        assertEquals(22f, WidgetStatsFormatter.amountSp("$7,109", 22f), 0.01f)
+        assertTrue(WidgetStatsFormatter.amountSp("$15,000", 22f) < 22f)
+        assertTrue(
+            WidgetStatsFormatter.amountSp("$100,000", 22f)
+                < WidgetStatsFormatter.amountSp("$15,000", 22f),
+        )
+        assertTrue(WidgetStatsFormatter.amountSp("$100,000", 22f) >= 12f)
+    }
+
+    @Test
+    fun percentSp_staysInsideRingBounds() {
+        assertEquals(13f, WidgetStatsFormatter.percentSp(13f), 0.01f)
+        assertEquals(16f, WidgetStatsFormatter.percentSp(20f), 0.01f)
+        assertEquals(8f, WidgetStatsFormatter.percentSp(4f), 0.01f)
+    }
 }

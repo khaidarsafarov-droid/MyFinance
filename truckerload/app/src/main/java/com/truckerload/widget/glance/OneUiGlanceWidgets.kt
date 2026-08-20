@@ -112,6 +112,7 @@ private fun SquareContent(context: Context, stats: WidgetStats) {
                 context,
                 stats.goalPaceStatus,
                 stats.weeklyProfitGoal > 0 && stats.totalLoadRate >= stats.weeklyProfitGoal,
+                stats.goalDaysRemaining,
             ),
         )
     }.getOrNull()
@@ -230,6 +231,7 @@ private fun WideContent(context: Context, stats: WidgetStats) {
                 WidgetProgressRingBitmap.progressColorResForStatus(
                     stats.goalPaceStatus,
                     stats.weeklyProfitGoal > 0 && stats.totalLoadRate >= stats.weeklyProfitGoal,
+                    stats.goalDaysRemaining,
                 ),
             ),
             backgroundColor = ColorProvider(R.color.widget_progress_track),

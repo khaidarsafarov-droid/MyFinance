@@ -71,39 +71,20 @@
                     android:contentDescription="@null"
                     android:scaleType="fitCenter" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/widget_gross_hero"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/widget_hero_number"
-                        android:fontFeatureSettings="tnum"
-                        android:textSize="@dimen/widget_amount_expanded"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/widget_goal_subtitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/widget_goal_out_of_placeholder"
-                        android:textColor="@color/widget_text_secondary"
-                        android:textSize="@dimen/widget_subtitle_expanded" />
-
-                    <TextView
-                        android:id="@+id/widget_ring_percent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/widget_text_hint"
-                        android:textSize="@dimen/widget_percent_expanded" />
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/widget_ring_percent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="22dp"
+                    android:autoSizeMaxTextSize="18sp"
+                    android:autoSizeMinTextSize="10sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textColor="@color/widget_text_hint"
+                    android:textSize="@dimen/widget_percent_expanded" />
             </FrameLayout>
 
             <LinearLayout
@@ -112,13 +93,40 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/widget_spacing_expanded"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
+                android:gravity="top|start"
                 android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_gross_hero"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autoSizeMaxTextSize="26sp"
+                    android:autoSizeMinTextSize="12sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:ellipsize="end"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textColor="@color/widget_hero_number"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_goal_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/widget_goal_out_of_placeholder"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="@dimen/widget_subtitle_expanded" />
 
                 <ImageView
                     android:id="@+id/widget_week_days"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/widget_week_days_height_expanded"
+                    android:layout_marginTop="8dp"
                     android:contentDescription="@null"
                     android:scaleType="fitXY" />
 
