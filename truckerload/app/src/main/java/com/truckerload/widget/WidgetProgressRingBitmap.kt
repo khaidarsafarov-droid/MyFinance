@@ -18,11 +18,22 @@ object WidgetProgressRingBitmap {
         progressPercent: Float,
         sizePx: Int,
         progressColor: Int,
+    ): Bitmap = create(
+        progressPercent = progressPercent,
+        sizePx = sizePx,
+        progressColor = progressColor,
+        trackColor = WidgetThemeColors.surfaceVariant(context),
+    )
+
+    fun create(
+        progressPercent: Float,
+        sizePx: Int,
+        progressColor: Int,
+        trackColor: Int,
     ): Bitmap {
         val safeSize = sizePx.coerceAtLeast(48)
         val bitmap = createBitmap(safeSize, safeSize)
         val canvas = Canvas(bitmap)
-        val trackColor = WidgetThemeColors.surfaceVariant(context)
         val stroke = (safeSize * 0.13f).coerceIn(safeSize * 0.10f, safeSize * 0.16f)
         val inset = stroke / 2f + 1.5f
         val arcBounds = RectF(inset, inset, safeSize - inset, safeSize - inset)
