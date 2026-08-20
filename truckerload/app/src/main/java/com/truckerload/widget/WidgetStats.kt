@@ -16,6 +16,11 @@ data class WidgetStats(
     val goalActualDailyYield: Double = 0.0,
     val goalDaysRemaining: Int = 0,
     val goalPaceStatus: String = "",
+    /**
+     * Bitmask of Sun–Sat days in the current trucking week that have at least one load
+     * (bit 0 = Sunday). Built from [com.truckerload.domain.model.Load.date] and PU date.
+     */
+    val weekLoadMask: Int = 0,
     /** Sum of PU→finish active days (respects actualFinishDate). */
     val totalActiveDays: Double = 0.0,
     val updatedAtMillis: Long = 0L,

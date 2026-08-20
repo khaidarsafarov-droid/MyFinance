@@ -27,6 +27,7 @@ object WidgetDataStore {
     private const val KEY_GOAL_ACTUAL = "goal_actual_daily"
     private const val KEY_GOAL_DAYS = "goal_days_remaining"
     private const val KEY_GOAL_PACE = "goal_pace_status"
+    private const val KEY_WEEK_LOAD_MASK = "week_load_mask"
     private const val KEY_ACTIVE_DAYS = "total_active_days"
     private const val KEY_UPDATED = "updated_at"
 
@@ -83,6 +84,7 @@ object WidgetDataStore {
             putFloat(KEY_GOAL_ACTUAL, stats.goalActualDailyYield.toFloat())
             putInt(KEY_GOAL_DAYS, stats.goalDaysRemaining)
             putString(KEY_GOAL_PACE, stats.goalPaceStatus)
+            putInt(KEY_WEEK_LOAD_MASK, stats.weekLoadMask)
             putFloat(KEY_ACTIVE_DAYS, stats.totalActiveDays.toFloat())
             putLong(KEY_UPDATED, stats.updatedAtMillis)
         }
@@ -106,6 +108,7 @@ object WidgetDataStore {
             goalActualDailyYield = prefs.getFloat(KEY_GOAL_ACTUAL, 0f).toDouble(),
             goalDaysRemaining = prefs.getInt(KEY_GOAL_DAYS, 0),
             goalPaceStatus = prefs.getString(KEY_GOAL_PACE, "").orEmpty(),
+            weekLoadMask = prefs.getInt(KEY_WEEK_LOAD_MASK, 0),
             totalActiveDays = prefs.getFloat(KEY_ACTIVE_DAYS, 0f).toDouble(),
             updatedAtMillis = prefs.getLong(KEY_UPDATED, 0L)
         )

@@ -14,10 +14,12 @@ import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getPickUpDate
 import com.truckerload.utils.getWeekRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.util.Locale
 
 object WidgetStatsLoader {
@@ -33,8 +35,14 @@ object WidgetStatsLoader {
             DieselRepository(db),
         )
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
-        val (_, _, weekLabel) = getWeekRange(weekNumber, year)
+        val (weekStartIso, _, weekLabel) = getWeekRange(weekNumber, year)
         val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
+        val weekStart = runCatching { LocalDate.parse(weekStartIso.take(10)) }
+            .getOrElse { WidgetWeekDayHelper.sundayOfWeek() }
+        val weekDateHints = weekLoads.flatMap { load ->
+            listOfNotNull(load.date, getPickUpDate(load))
+        }
+        val weekLoadMask = WidgetWeekDayHelper.maskFromIsoDates(weekDateHints, weekStart)
         val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
         val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)
@@ -75,6 +83,7 @@ object WidgetStatsLoader {
             goalActualDailyYield = goalProgress.actualDailyYield,
             goalDaysRemaining = goalProgress.daysRemainingInWeek,
             goalPaceStatus = goalProgress.paceStatus.name,
+            weekLoadMask = weekLoadMask,
             totalActiveDays = sqlYield.totalActiveDays.takeIf { it > 0.0 }
                 ?: LoadYieldCalculator.totalActiveDays(weekLoads),
             updatedAtMillis = System.currentTimeMillis()
