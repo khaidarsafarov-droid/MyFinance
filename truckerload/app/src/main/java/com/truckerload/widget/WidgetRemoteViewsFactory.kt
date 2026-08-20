@@ -52,7 +52,7 @@ object WidgetRemoteViewsFactory {
     applyTheme(themed, views)
     bindHeader(appContext, views, stats, tier)
     bindRingHero(appContext, views, stats, prefs, tier, themed)
-    bindWeekDays(appContext, views, appWidgetId, tier, themed)
+    bindWeekDays(appContext, views, appWidgetId, stats, tier, themed)
     bindRpmBlock(appContext, views, stats, tier, themed)
     bindEmptyState(appContext, views, stats, prefs, tier)
     bindQuickActions(appContext, views, tier)
@@ -280,17 +280,26 @@ object WidgetRemoteViewsFactory {
     context: Context,
     views: RemoteViews,
     appWidgetId: Int,
+    stats: WidgetStats,
     tier: LayoutTier,
     themed: Context,
   ) {
-    val statuses = WidgetWeekDayHelper.statusesForCurrentCalendarWeek()
+    val chips = WidgetWeekDayHelper.chips(stats.weekLoadMask)
 
     when (tier) {
       LayoutTier.COMPACT -> {
         views.setViewVisibility(R.id.widget_day_dots_row, View.VISIBLE)
         compactDayIds.forEachIndexed { index, viewId ->
-          val drawable = dayDrawableFor(statuses.getOrElse(index) { WidgetWeekDayHelper.DayStatus.FUTURE })
-          views.setImageViewResource(viewId, drawable)
+          val chip = chips.getOrElse(index) {
+            WidgetWeekDayHelper.DayChip(
+              label = WidgetWeekDayHelper.dayLabels.getOrElse(index) { "?" },
+              date = java.time.LocalDate.now(),
+              hasLoad = false,
+              isToday = false,
+              isFuture = true,
+            )
+          }
+          views.setImageViewResource(viewId, dayDrawableFor(chip))
         }
       }
       LayoutTier.STANDARD, LayoutTier.EXPANDED -> {
@@ -320,13 +329,7 @@ object WidgetRemoteViewsFactory {
           else -> WidgetWeekDaysBitmap.rowHeightPx(context, compact = true)
         }
         val bitmap = runCatching {
-          WidgetWeekDaysBitmap.create(
-            themed,
-            statuses,
-            WidgetWeekDayHelper.dayLabels,
-            width,
-            height,
-          )
+          WidgetWeekDaysBitmap.create(themed, chips, width, height)
         }.getOrElse { error ->
           Log.e(TAG, "Week days bitmap failed", error)
           null
@@ -369,10 +372,12 @@ object WidgetRemoteViewsFactory {
     views.setTextColor(R.id.widget_rpm_value, rpmColor)
   }
 
-  private fun dayDrawableFor(status: WidgetWeekDayHelper.DayStatus): Int = when (status) {
-    WidgetWeekDayHelper.DayStatus.PAST -> R.drawable.widget_day_past
-    WidgetWeekDayHelper.DayStatus.TODAY -> R.drawable.widget_day_today
-    WidgetWeekDayHelper.DayStatus.FUTURE -> R.drawable.widget_day_future
+  private fun dayDrawableFor(chip: WidgetWeekDayHelper.DayChip): Int = when {
+    chip.hasLoad && chip.isToday -> R.drawable.widget_day_has_load_today
+    chip.hasLoad -> R.drawable.widget_day_has_load
+    chip.isToday -> R.drawable.widget_day_today
+    chip.isPast -> R.drawable.widget_day_past
+    else -> R.drawable.widget_day_future
   }
 
   private fun bindEmptyState(

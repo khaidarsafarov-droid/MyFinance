@@ -225,8 +225,13 @@ private fun WideContent(context: Context, stats: WidgetStats) {
         Spacer(modifier = GlanceModifier.height(10.dp))
         LinearProgressIndicator(
             progress = progress,
-            modifier = GlanceModifier.fillMaxWidth().height(6.dp),
-            color = GlanceTheme.colors.primary,
+            modifier = GlanceModifier.fillMaxWidth().height(8.dp),
+            color = ColorProvider(
+                WidgetProgressRingBitmap.progressColorResForStatus(
+                    stats.goalPaceStatus,
+                    stats.weeklyProfitGoal > 0 && stats.totalLoadRate >= stats.weeklyProfitGoal,
+                ),
+            ),
             backgroundColor = ColorProvider(R.color.widget_progress_track),
         )
     }
