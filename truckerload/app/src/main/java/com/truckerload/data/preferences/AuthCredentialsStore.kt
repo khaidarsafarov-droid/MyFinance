@@ -77,6 +77,19 @@ class AuthCredentialsStore(context: Context) {
 
     fun hasCredentialsFor(email: String): Boolean = !passwordFor(email).isNullOrBlank()
 
+    fun clearCredentials(email: String) {
+        val key = normalizeEmail(email)
+        if (key.isBlank()) return
+        prefs.edit {
+            remove(pwdKey(key))
+            if (getEmail() == key) {
+                remove(KEY_LAST_EMAIL)
+                remove(KEY_EMAIL)
+                remove(KEY_PASSWORD)
+            }
+        }
+    }
+
     companion object {
         private const val PREFS_NAME = "truckerload_auth_credentials_enc"
         private const val LEGACY_PREFS_NAME = "truckerload_auth_credentials"

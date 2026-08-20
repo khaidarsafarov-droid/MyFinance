@@ -3,6 +3,7 @@ package com.truckerload.data.repository.social
 import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.SocialPeerEntity
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
+import com.truckerload.data.preferences.ProfileIdentity
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.domain.social.BadgeEngine
 import com.truckerload.domain.social.DriverStatus
@@ -54,10 +55,11 @@ internal object ProfileMapper {
         val displayName = base.displayName
             .takeIf { it.isNotBlank() && it !in setOf("Водитель", "Driver", "User") }
             ?: loginName.orEmpty()
+        val customPhoto = userProfileStore.profile.value?.customPhoto == true
         return EnhancedDriverProfile(
             id = base.id,
             displayName = displayName,
-            avatarUrl = base.avatarUrl ?: avatarUrl,
+            avatarUrl = ProfileIdentity.displayPhotoUrl(base.avatarUrl, avatarUrl, customPhoto),
             coverImageUrl = base.coverImageUrl,
             truckType = TruckType.fromLabel(base.truckType),
             experienceYears = base.experienceYears,
@@ -88,7 +90,6 @@ internal object ProfileMapper {
             joinedDate = base.joinedDate,
             lastActive = base.lastActive.takeIf { it > 0 } ?: System.currentTimeMillis(),
             dateOfBirthEpochDay = base.dateOfBirthEpochDay,
-            cdlNumber = base.cdlNumber,
             axleCount = base.axleCount,
             homeHubCity = base.homeHubCity,
         )

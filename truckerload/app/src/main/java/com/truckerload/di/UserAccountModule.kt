@@ -10,12 +10,17 @@ import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
+import com.truckerload.data.repository.account.AccountDeletionService
+import com.truckerload.data.repository.account.CommunityProfileRepository
+import com.truckerload.data.repository.account.DriverProfessionalRepository
+import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.data.repository.social.ChatRepository
 import com.truckerload.data.repository.social.GroupRepository
 import com.truckerload.data.repository.social.MediaRepository
@@ -119,6 +124,10 @@ object UserAccountModule {
         manager.require().socialSyncCoordinator
 
     @Provides
+    fun provideCrowdRpmRepository(manager: UserComponentManager): CrowdRpmRepository =
+        manager.require().crowdRpmRepository
+
+    @Provides
     fun provideVoiceRepository(manager: UserComponentManager): VoiceRepository =
         manager.require().voiceRepository
 
@@ -129,4 +138,20 @@ object UserAccountModule {
     @Provides
     fun provideMaintenanceRepository(manager: UserComponentManager): MaintenanceRepository =
         manager.require().maintenanceRepository
+
+    @Provides
+    fun provideRegistrationService(manager: UserComponentManager): RegistrationService =
+        manager.require().registrationService
+
+    @Provides
+    fun provideDriverProfessionalRepository(manager: UserComponentManager): DriverProfessionalRepository =
+        manager.require().driverProfessionalRepository
+
+    @Provides
+    fun provideCommunityProfileRepository(manager: UserComponentManager): CommunityProfileRepository =
+        manager.require().communityProfileRepository
+
+    @Provides
+    fun provideAccountDeletionService(manager: UserComponentManager): AccountDeletionService =
+        manager.require().accountDeletionService
 }

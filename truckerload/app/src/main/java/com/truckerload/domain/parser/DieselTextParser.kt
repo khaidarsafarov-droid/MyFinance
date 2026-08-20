@@ -16,7 +16,10 @@ object DieselTextParser {
     private val vendorPattern = Regex("""(?:Merchant|Vendor)\s*[:\s]*([^\n]+)""", RegexOption.IGNORE_CASE)
 
     fun looksLikeDiesel(text: String): Boolean {
-        val hasFuelKeyword = Regex("""diesel|fuel|gallons?|gal\b|топлив|дизел""", RegexOption.IGNORE_CASE).containsMatchIn(text)
+        val hasFuelKeyword = Regex(
+            """diesel|fuel|gallons?|gal\b|топлив|дизел|\bdef\b|ad[\s\-]?blue""",
+            RegexOption.IGNORE_CASE,
+        ).containsMatchIn(text)
         val hasAmount = totalPatterns.any { it.containsMatchIn(text) }
         return hasFuelKeyword && hasAmount
     }

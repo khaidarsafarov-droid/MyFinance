@@ -17,19 +17,13 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.truckerload.R
-import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.preferences.FriendsLocationShareStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.remote.SupabaseFriendsRealtimeService
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.domain.friends.ActiveLoadSelector
-import com.truckerload.domain.friends.FriendActiveRoute
-import com.truckerload.domain.friends.LatLngPoint
-import com.truckerload.domain.friends.SharedLoadStatus
+import com.truckerload.domain.friends.FriendsLocationSharePolicy
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.CrashReporting
-import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,14 +33,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Publishes GPS presence + active route to Supabase while privacy toggle is ON.
- * Stops publishing (and clears presence) when privacy is OFF.
- *
- * Uses [START_NOT_STICKY]: a location-type FGS must not be auto-restarted from the
- * background on Android 14+ (SecurityException → "keeps stopping" dialog). The friends
- * map UI restarts sharing when the user returns with the toggle still on.
+ * Time-boxed live sharing only. Background presence uses [FriendsLocationShareWorker].
  */
 class FriendsLocationShareService : Service() {
 
@@ -58,128 +48,64 @@ class FriendsLocationShareService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                scope.launch {
-                    clearRemote()
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    stopSelf()
-                }
+                running.set(false)
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
                 return START_NOT_STICKY
             }
         }
         ensureNotificationChannel()
         if (!hasLocationPermission(this)) {
             Log.w(TAG, "No location permission — satisfying FGS contract then stopping")
-            // Still call startForeground so startForegroundService() does not crash the app.
             promoteForeground(allowLocationType = false)
+            running.set(false)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return START_NOT_STICKY
         }
         val promoted = promoteForeground(allowLocationType = true)
         if (!promoted) {
+            running.set(false)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return START_NOT_STICKY
         }
+        running.set(true)
         if (loopJob?.isActive != true) {
-            loopJob = scope.launch { publishLoop() }
+            loopJob = scope.launch { liveLoop() }
         }
-        // Do not sticky-restart from background — location FGS is while-in-use only.
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        running.set(false)
         loopJob?.cancel()
         scope.cancel()
         super.onDestroy()
     }
 
-    private suspend fun publishLoop() {
+    private suspend fun liveLoop() {
         val settings = SettingsDataStore(this)
-        val auth = AuthStore(this)
-        val api = SupabaseFriendsRealtimeService(auth)
-        val locationHelper = LocationHelper(this)
-        val track = ArrayList<LatLngPoint>()
+        val runtime = FriendsLocationShareStore(this)
+        val publisher = FriendsLocationSharePublisher(this)
         while (scope.isActive) {
             val sharing = settings.getSharePathWithFriendsOnce()
-            if (!sharing || !api.isConfigured()) {
-                clearRemote()
-                delay(15_000)
-                continue
+            val keepLive = FriendsLocationShareScheduler.isMapVisible() ||
+                runtime.isLiveSessionActive()
+            if (!sharing || !keepLive) {
+                if (settings.getFriendsLiveModeOnce() && !runtime.isLiveSessionActive()) {
+                    settings.saveFriendsLiveMode(false)
+                }
+                running.set(false)
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+                return
             }
-            val loc = locationHelper.getCurrentLocation()
-            val lat = loc?.latitude
-            val lng = loc?.longitude
-            if (lat != null && lng != null) {
-                val point = LatLngPoint(lat, lng)
-                track += point
-                if (track.size > 200) track.removeAt(0)
-                val profile = UserProfileStore(this).profile.value
-                val name = listOfNotNull(profile?.givenName, profile?.familyName)
-                    .joinToString(" ")
-                    .ifBlank { profile?.email ?: "Driver" }
-                api.upsertPresence(
-                    displayName = name,
-                    lat = lat,
-                    lng = lng,
-                    sharePathEnabled = true,
-                )
-                publishActiveRoute(api, track)
-            }
-            delay(30_000)
+            publisher.publishOnce(FriendsLocationSharePublisher.Mode.LIVE)
+            delay(FriendsLocationSharePolicy.LIVE_GPS_PERIOD_MS)
         }
     }
 
-    private suspend fun publishActiveRoute(
-        api: SupabaseFriendsRealtimeService,
-        track: List<LatLngPoint>,
-    ) {
-        val db = AppDatabase.getInstanceForActiveUser(this) ?: return
-        val loads = LoadRepository(db).getAllLoadsOnce()
-        val active = ActiveLoadSelector.selectActive(loads)
-        if (active == null) {
-            // Finished / no in-progress load — remove stale route from friends' maps.
-            api.clearActiveRoute()
-            return
-        }
-        val originLabel = active.pointA.ifBlank { active.firstPuCityState }
-        val destLabel = active.pointB.ifBlank { active.lastDelCityState }
-        val helper = LocationHelper(this)
-        val geocodedOrigin = helper.geocodeAddress(originLabel)
-        val geocodedDest = helper.geocodeAddress(destLabel)
-        val origin = geocodedOrigin ?: track.firstOrNull()
-        val destination = geocodedDest
-        api.upsertActiveRoute(
-            FriendActiveRoute(
-                userId = AuthStore(this).currentUserIdOrNull().orEmpty(),
-                displayName = "",
-                loadRef = active.id,
-                originLabel = originLabel,
-                destinationLabel = destLabel,
-                origin = origin,
-                destination = destination,
-                startDate = ActiveLoadSelector.startDateIso(active),
-                endDate = ActiveLoadSelector.endDateIso(active),
-                status = SharedLoadStatus.ACTIVE,
-                trackPoints = track.toList(),
-            ),
-            sharePathEnabled = true,
-        )
-    }
-
-    private suspend fun clearRemote() {
-        val api = SupabaseFriendsRealtimeService(AuthStore(this))
-        if (api.isConfigured()) {
-            api.clearPresence()
-            api.clearActiveRoute()
-        }
-    }
-
-    /**
-     * @return true if [ServiceCompat.startForeground] succeeded.
-     * When [allowLocationType] is false (or location start fails), falls back to dataSync
-     * so the startForegroundService() contract is still met.
-     */
     private fun promoteForeground(allowLocationType: Boolean): Boolean {
         val notification = buildNotification()
         if (allowLocationType && Build.VERSION.SDK_INT >= 34) {
@@ -235,7 +161,7 @@ class FriendsLocationShareService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentTitle(getString(R.string.friends_share_location_title))
-            .setContentText(getString(R.string.friends_share_location_text))
+            .setContentText(getString(R.string.friends_share_location_live_text))
             .setContentIntent(open)
             .setOngoing(true)
             .build()
@@ -246,6 +172,9 @@ class FriendsLocationShareService : Service() {
         private const val TAG = "FriendsLocationShare"
         private const val CHANNEL_ID = "friends_location_share"
         private const val NOTIFICATION_ID = 4721
+        private val running = AtomicBoolean(false)
+
+        fun isRunning(): Boolean = running.get()
 
         fun hasLocationPermission(context: Context): Boolean {
             val fine = ContextCompat.checkSelfPermission(
@@ -278,11 +207,11 @@ class FriendsLocationShareService : Service() {
         }
 
         fun stop(context: Context) {
+            running.set(false)
             try {
                 val i = Intent(context, FriendsLocationShareService::class.java).setAction(ACTION_STOP)
                 context.startService(i)
             } catch (e: Exception) {
-                // App may be backgrounded; force-stop if startService is blocked.
                 Log.w(TAG, "stop via intent failed, falling back to stopService", e)
                 runCatching {
                     context.stopService(Intent(context, FriendsLocationShareService::class.java))
@@ -290,13 +219,8 @@ class FriendsLocationShareService : Service() {
             }
         }
 
-        /**
-         * Clears remote presence/route while auth is still valid, then stops the FGS.
-         * Call from logout **before** wiping tokens.
-         */
         suspend fun stopForLogout(context: Context) {
             val app = context.applicationContext
-            // FIX: logout previously left FGS running and stale presence visible to friends
             withContext(Dispatchers.IO) {
                 runCatching {
                     val api = SupabaseFriendsRealtimeService(AuthStore(app))
@@ -304,8 +228,8 @@ class FriendsLocationShareService : Service() {
                         api.clearPresence()
                         api.clearActiveRoute()
                     }
-                }.onFailure { e ->
-                    Log.w(TAG, "clear presence on logout failed", e)
+                }.onFailure {
+                    Log.w(TAG, "clear presence on logout failed")
                 }
             }
             stop(app)

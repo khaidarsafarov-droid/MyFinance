@@ -20,7 +20,7 @@ object SessionTeardown {
     suspend fun beforeLogout(context: Context) {
         val app = context.applicationContext
         runCatching { DeviceSlotBinder(app).unregisterCurrentDevice() }
-        FriendsLocationShareService.stopForLogout(app)
+        FriendsLocationShareScheduler.stopAndClear(app)
         TelegramBotForegroundService.stopForLogout(app)
         delay(300)
     }

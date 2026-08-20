@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.truckerload.R
+import com.truckerload.data.preferences.ProfileIdentity
 import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.navigation.Routes
@@ -96,8 +97,11 @@ fun TruckLogNavigationRail(
                 ?.takeIf { it.isNotBlank() && it != userProfile?.email }
             ?: defaultDriverName
     }
-    val photoUrl = socialProfile?.avatarUrl?.takeIf { it.isNotBlank() }
-        ?: userProfile?.photoUrl?.takeIf { it.isNotBlank() }
+    val photoUrl = ProfileIdentity.displayPhotoUrl(
+        roomAvatar = socialProfile?.avatarUrl,
+        providerPhotoUrl = userProfile?.photoUrl,
+        customPhoto = userProfile?.customPhoto == true,
+    )
 
     Column(
         modifier = modifier

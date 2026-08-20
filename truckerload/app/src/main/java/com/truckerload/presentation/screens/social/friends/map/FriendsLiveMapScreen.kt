@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,8 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,12 +21,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -46,15 +42,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.domain.friends.FriendLiveStatus
 import com.truckerload.domain.friends.LatLngPoint
-import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.ForestScreenTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.sync.FriendsLocationShareService
+import com.truckerload.sync.FriendsLocationShareScheduler
 import com.truckerload.utils.LocationHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -101,11 +97,15 @@ fun FriendsLiveMapScreen(
         }
     }
 
-    LaunchedEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
-        if (uiState.sharePathEnabled && uiState.supabaseReady && hasLocationPermission) {
-            FriendsLocationShareService.start(context)
+    DisposableEffect(uiState.sharePathEnabled, hasLocationPermission, uiState.supabaseReady) {
+        val liveMap = uiState.sharePathEnabled && uiState.supabaseReady && hasLocationPermission
+        if (liveMap) {
+            FriendsLocationShareScheduler.onFriendsMapOpened(context)
         } else {
-            FriendsLocationShareService.stop(context)
+            FriendsLocationShareScheduler.sync(context)
+        }
+        onDispose {
+            FriendsLocationShareScheduler.onFriendsMapClosed(context)
         }
     }
 
@@ -179,79 +179,18 @@ fun FriendsLiveMapScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = stringResource(R.string.friends_share_path_toggle),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(
-                        checked = uiState.sharePathEnabled,
-                        onCheckedChange = { enabled ->
-                            if (enabled && !hasLocationPermission) {
-                                locationPermission.requestPermission()
-                            }
-                            viewModel.setSharePathEnabled(enabled)
-                        },
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                }
-                if (!hasLocationPermission) {
-                    Text(
-                        text = stringResource(R.string.friends_need_location_permission),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.AccentPrimary,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = stringResource(R.string.friends_route_truck_toggle),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(
-                        checked = uiState.routeVehicleTruck,
-                        onCheckedChange = viewModel::setRouteVehicleTruck,
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                }
-                FriendsRouteModeSelector(
-                    selected = uiState.routeDisplayMode,
-                    onSelect = viewModel::setRouteDisplayMode,
-                    modifier = Modifier.padding(top = 8.dp),
+                FriendsMapSettingsCard(
+                    sharePathEnabled = uiState.sharePathEnabled,
+                    routeVehicleTruck = uiState.routeVehicleTruck,
+                    routeDisplayMode = uiState.routeDisplayMode,
+                    locationBatterySaver = uiState.locationBatterySaver,
+                    hasLocationPermission = hasLocationPermission,
+                    onSharePathEnabled = viewModel::setSharePathEnabled,
+                    onNeedLocationPermission = { locationPermission.requestPermission() },
+                    onRouteVehicleTruck = viewModel::setRouteVehicleTruck,
+                    onRouteDisplayMode = viewModel::setRouteDisplayMode,
+                    onLocationBatterySaver = viewModel::setLocationBatterySaver,
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = stringResource(R.string.friends_battery_saver_toggle),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Switch(
-                        checked = uiState.locationBatterySaver,
-                        onCheckedChange = viewModel::setLocationBatterySaver,
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                }
             }
 
             uiState.errorMessage?.let { err ->
@@ -345,9 +284,23 @@ fun FriendsLiveMapScreen(
                                 )
                             }
                         }
-                        if (uiState.friends.isNotEmpty()) {
+                        val nowMillis = uiState.lastRefreshAt.takeIf { it > 0L }
+                            ?: System.currentTimeMillis()
+                        val stamps = uiState.friends.map { it.presence.updatedAtMillis }
+                        val onlineCount = FriendLiveStatus.onlineCount(stamps, nowMillis)
+                        val recentCount = FriendLiveStatus.recentCount(stamps, nowMillis)
+                        if (onlineCount > 0 || recentCount > 0) {
+                            val presenceText = if (recentCount > 0) {
+                                stringResource(
+                                    R.string.friends_presence_summary,
+                                    onlineCount,
+                                    recentCount,
+                                )
+                            } else {
+                                stringResource(R.string.friends_online_count, onlineCount)
+                            }
                             Text(
-                                text = stringResource(R.string.friends_online_count, uiState.friends.size),
+                                text = presenceText,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = tc.TextSecondary,
                                 modifier = Modifier.padding(top = 2.dp),
@@ -358,59 +311,21 @@ fun FriendsLiveMapScreen(
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(14.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.friends_manage_section),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = tc.TextPrimary,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable { manageExpanded = !manageExpanded }
-                                    .padding(vertical = 8.dp),
-                            )
-                            FriendsAddFriendHeaderButton(
-                                expanded = addFriendExpanded,
-                                onClick = {
-                                    if (!addFriendExpanded) {
-                                        manageExpanded = true
-                                        addFriendExpanded = true
-                                    } else {
-                                        addFriendExpanded = false
-                                    }
-                                },
-                            )
-                            IconButton(onClick = { manageExpanded = !manageExpanded }) {
-                                Icon(
-                                    if (manageExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                    contentDescription = null,
-                                    tint = tc.TextSecondary,
-                                )
-                            }
-                        }
-                    }
-                    if (manageExpanded || addFriendExpanded) {
-                        FriendsMapManageSection(
-                            uiState = uiState,
-                            viewModel = viewModel,
-                            addFriendExpanded = addFriendExpanded,
-                            onAddFriendExpandedChange = { expanded ->
-                                addFriendExpanded = expanded
-                                if (expanded) manageExpanded = true
-                            },
-                        )
-                    }
-                }
+                FriendsMapManageSection(
+                    uiState = uiState,
+                    viewModel = viewModel,
+                    manageExpanded = manageExpanded,
+                    onManageExpandedChange = { manageExpanded = it },
+                    addFriendExpanded = addFriendExpanded,
+                    onAddFriendExpandedChange = { expanded ->
+                        addFriendExpanded = expanded
+                        if (expanded) manageExpanded = true
+                    },
+                    onFocusFriend = { friendId ->
+                        viewModel.selectFriend(friendId)
+                        mapExpanded = true
+                    },
+                )
             }
 
             item { Spacer(Modifier.height(24.dp)) }

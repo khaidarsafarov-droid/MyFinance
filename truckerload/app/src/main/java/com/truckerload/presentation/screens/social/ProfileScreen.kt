@@ -96,6 +96,7 @@ fun ProfileScreen(
                             profile = profile,
                             isUploadingAvatar = uiState.isUploadingAvatar,
                             onAvatarClick = { showAvatarPicker = true },
+                            onNameClick = onEdit,
                         )
                     },
                     end = {
@@ -107,6 +108,12 @@ fun ProfileScreen(
                             ProfileAuthSyncSection()
                         }
                     },
+                )
+            }
+            item {
+                ProfileCompletionReminders(
+                    onFillProfessional = onEdit,
+                    onFillCommunity = onEdit,
                 )
             }
             if (profile.badges.isNotEmpty()) {

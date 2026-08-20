@@ -82,7 +82,8 @@
                         android:id="@+id/widget_gross_hero"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/widget_text_primary"
+                        android:textColor="@color/widget_hero_number"
+                        android:fontFeatureSettings="tnum"
                         android:textSize="@dimen/widget_amount_expanded"
                         android:textStyle="bold" />
 

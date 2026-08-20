@@ -29,6 +29,7 @@ import com.truckerload.utils.ReportGeneratorService
 import com.truckerload.utils.getMonthRange
 import com.truckerload.utils.getWeekRange
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -121,7 +122,12 @@ fun ExportBottomSheet(
                                     "%04d-12-31".format(params.calendarYear)
                                 )
                             }
-                            val loads = loadRepo.getLoadsByDateRangeOnce(startDate, endDate)
+                            val loads = when (params.statsPeriod) {
+                                StatsPeriod.WEEK ->
+                                    loadRepo.getLoadsByWeek(params.weekNumber, params.year).first()
+                                StatsPeriod.MONTH, StatsPeriod.YEAR ->
+                                    weekRepo.getPeriodLoadsOnce(startDate, endDate)
+                            }
                             val driverName = paycheckRepo.getAllPaychecksOnce()
                                 .lastOrNull { it.driverName?.isNotBlank() == true }?.driverName
 

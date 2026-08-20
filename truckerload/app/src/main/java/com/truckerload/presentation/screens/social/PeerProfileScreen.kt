@@ -8,15 +8,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.PersonRemove
 import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,12 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.theme.AppTypography
-import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassMetricCell
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.utils.MoneyFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +73,7 @@ fun PeerProfileScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(peer?.displayName ?: stringResource(R.string.profile)) },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
@@ -92,102 +94,80 @@ fun PeerProfileScreen(
             }
             return@Scaffold
         }
+        var showReport by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
+            PeerIdentityHeader(displayName = peer.displayName, rating = peer.rating)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                OutlinedButton(
+                    onClick = { viewModel.startPrivateChat(onOpenChat) },
+                    enabled = !uiState.isBlocked,
+                    modifier = Modifier.weight(1f),
                 ) {
-                    Text(peer.displayName, style = AppTypography.CardTitle, color = tc.TextPrimary)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    Text(stringResource(R.string.social_message_peer))
+                }
+                if (!uiState.isBlocked) {
+                    Button(
+                        onClick = { onStartCall(peerId, peer.displayName) },
+                        modifier = Modifier.weight(1f),
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Star,
+                            Icons.Outlined.Call,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.padding(end = 6.dp),
                         )
-                        Text(
-                            "%.1f".format(peer.rating),
-                            style = AppTypography.Subtitle,
-                            color = tc.TextSecondary,
-                        )
-                    }
-                    Button(
-                        onClick = viewModel::toggleFollow,
-                        enabled = !uiState.isUpdatingFollow && !uiState.isBlocked,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            if (uiState.isFollowing) {
-                                stringResource(R.string.social_unfollow)
-                            } else {
-                                stringResource(R.string.social_follow)
-                            },
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Button(
-                            onClick = { viewModel.startPrivateChat(onOpenChat) },
-                            enabled = !uiState.isBlocked,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.social_message_peer))
-                        }
-                        if (!uiState.isBlocked) {
-                            Button(
-                                onClick = { peer?.let { onStartCall(peerId, it.displayName) } },
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Text(stringResource(R.string.social_call_peer))
-                            }
-                        }
-                    }
-                    Button(
-                        onClick = viewModel::toggleBlock,
-                        enabled = !uiState.isBlocking,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            if (uiState.isBlocked) {
-                                stringResource(R.string.social_unblock_user)
-                            } else {
-                                stringResource(R.string.social_block_user)
-                            },
-                        )
-                    }
-                    var showReport by remember { mutableStateOf(false) }
-                    Button(
-                        onClick = { showReport = true },
-                        enabled = !uiState.isBlocked,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.social_report_user))
-                    }
-                    if (showReport) {
-                        ReportReasonDialog(
-                            onDismiss = { showReport = false },
-                            onPick = { reason ->
-                                showReport = false
-                                viewModel.reportPeer(reason)
-                            },
-                        )
+                        Text(stringResource(R.string.social_call_peer))
                     }
                 }
             }
+            PeerActionsCard {
+                PeerActionRow(
+                    icon = if (uiState.isFollowing) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAdd,
+                    label = stringResource(
+                        if (uiState.isFollowing) R.string.social_unfollow else R.string.social_follow,
+                    ),
+                    enabled = !uiState.isUpdatingFollow && !uiState.isBlocked,
+                    onClick = viewModel::toggleFollow,
+                )
+                PeerActionRow(
+                    icon = Icons.Outlined.Block,
+                    label = stringResource(
+                        if (uiState.isBlocked) R.string.social_unblock_user else R.string.social_block_user,
+                    ),
+                    enabled = !uiState.isBlocking,
+                    onClick = viewModel::toggleBlock,
+                )
+                PeerActionRow(
+                    icon = Icons.Outlined.Flag,
+                    label = stringResource(R.string.social_report_user),
+                    enabled = !uiState.isBlocked,
+                    onClick = { showReport = true },
+                )
+            }
+            if (showReport) {
+                ReportReasonDialog(
+                    onDismiss = { showReport = false },
+                    onPick = { reason ->
+                        showReport = false
+                        viewModel.reportPeer(reason)
+                    },
+                )
+            }
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 BentoGlassMetricCell(
@@ -204,7 +184,9 @@ fun PeerProfileScreen(
                 )
             }
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 BentoGlassMetricCell(

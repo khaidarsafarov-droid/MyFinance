@@ -15,7 +15,7 @@ object UiDimens {
 
     // Touch targets (Material minimum; tablet-friendly 48dp)
     val TouchTarget = 48.dp
-    val TouchTargetCompact = 40.dp
+    val TouchTargetCompact = 48.dp
     val FabSize = 56.dp
     val InputMinHeight = 48.dp
     val DialogMaxWidth = 672.dp // ~ max-w-2xl
@@ -56,6 +56,6 @@ object UiDimens {
 
     // Bottom navigation bar
     val NavBarHeight = 64.dp
-    val NavBarActionSize = 36.dp
+    val NavBarActionSize = 48.dp
     val NavBarActionIcon = 18.dp
 }

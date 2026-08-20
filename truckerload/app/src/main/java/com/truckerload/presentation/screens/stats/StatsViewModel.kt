@@ -367,9 +367,9 @@ class StatsViewModel @Inject constructor(
         val (prevM, prevY) = getPreviousMonth(month, year)
         val (prevStart, prevEnd) = getMonthRange(prevM, prevY)
         val prevSummary = weekRepository.getPeriodSummaryOnce(prevStart, prevEnd, "")
-        val prevLoads = loadRepository.getLoadsByDateRangeOnce(prevStart, prevEnd)
+        val prevLoads = weekRepository.getPeriodLoadsOnce(prevStart, prevEnd)
         applyPeriodResult(
-            loads = loadRepository.getLoadsByDateRangeOnce(startDate, endDate),
+            loads = weekRepository.getPeriodLoadsOnce(startDate, endDate),
             totalPaycheck = summary.paycheckAmount,
             totalMiles = summary.totalMiles,
             loadCount = summary.loadsCount,
@@ -396,9 +396,9 @@ class StatsViewModel @Inject constructor(
         val prevStart = "%04d-01-01".format(prevY)
         val prevEnd = "%04d-12-31".format(prevY)
         val prevSummary = weekRepository.getPeriodSummaryOnce(prevStart, prevEnd, "")
-        val prevLoads = loadRepository.getLoadsByDateRangeOnce(prevStart, prevEnd)
+        val prevLoads = weekRepository.getPeriodLoadsOnce(prevStart, prevEnd)
         applyPeriodResult(
-            loads = loadRepository.getLoadsByDateRangeOnce(startDate, endDate),
+            loads = weekRepository.getPeriodLoadsOnce(startDate, endDate),
             totalPaycheck = summary.paycheckAmount,
             totalMiles = summary.totalMiles,
             loadCount = summary.loadsCount,

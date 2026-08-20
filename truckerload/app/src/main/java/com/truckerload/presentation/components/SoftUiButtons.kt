@@ -103,7 +103,7 @@ fun TlTextButton(
 ) {
     TextButton(
         onClick = onClick,
-        modifier = modifier.defaultMinSize(minHeight = 40.dp),
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         enabled = enabled,
         shape = SoftUiShapes.Chip,
         colors = ButtonDefaults.textButtonColors(

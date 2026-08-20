@@ -1,5 +1,7 @@
 package com.truckerload.domain.crowd
 
+import com.truckerload.domain.model.EquipmentType
+
 /**
  * Who contributed a lane rate. Map UI currently uses ME only; FRIEND/NETWORK reserved for later.
  */
@@ -8,7 +10,10 @@ enum class CrowdScope {
 }
 
 /**
- * One lane rate: RPM observed on a from→to state lane at a point in time.
+ * Local map heatmap row (on-device only). Not the Crowd RPM share payload.
+ *
+ * Shareable fields live on [AnonymizedRpmSample]. [rate] is reconstructed as
+ * `rpm * miles` for local coloring — never log this type as a network body.
  */
 data class CrowdRateReport(
     val id: String,
@@ -21,6 +26,7 @@ data class CrowdRateReport(
     val source: CrowdRateSource,
     /** Optional short label for friends (never email). */
     val peerLabel: String? = null,
+    val equipmentType: EquipmentType? = null,
 )
 
 enum class CrowdRateSource {
@@ -36,6 +42,7 @@ data class CrowdLaneAggregate(
     val avgRpm: Double,
     val totalRevenue: Double,
     val totalMiles: Double,
+    val equipmentType: EquipmentType? = null,
 )
 
 data class CrowdStateSummary(
@@ -45,4 +52,5 @@ data class CrowdStateSummary(
     val totalRevenue: Double,
     val totalMiles: Double,
     val recent: List<CrowdRateReport>,
+    val sampleInsufficient: Boolean = false,
 )

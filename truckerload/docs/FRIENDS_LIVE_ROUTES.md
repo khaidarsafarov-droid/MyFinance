@@ -58,8 +58,13 @@ an in-app warning.
 2. Set **мой никнейм** (unique handle)
 3. Search friend by nickname → Add, or invite if not found
 4. List **С кем я делюсь**: edit (show me / show route) or delete
-5. Toggle **Показывать мой путь друзьям** (starts location FGS)
+5. Toggle **Показывать мой путь друзьям** (фоновые пинги через WorkManager, не постоянный GPS)
 6. Markers = live positions; **Показать его путь** = gray (past) + blue (remaining)
+
+Фон: один GPS-фикс каждые **15 / 30 / 60 мин** (`PRIORITY_BALANCED_POWER_ACCURACY`),
+WorkManager + `requiresBatteryNotLow`. Пока устройство STILL — интервал 60 мин.
+Foreground service висит **только** в живом режиме (экран карты открыт, toggle
+«Живой режим», или FCM `type=friends_watch`) и сам гаснет через 15 минут.
 
 ## Active load rule
 Today ∈ [startDate, endDate], not finished early (`actualFinishDate`), not future.

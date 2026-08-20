@@ -41,6 +41,37 @@ object WidgetThemeColors {
         ContextCompat.getColor(context, R.color.widget_green)
 
     @ColorInt
-    fun error(context: Context): Int =
-        ContextCompat.getColor(context, R.color.widget_remaining_warning)
+    fun success(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_success)
+
+    @ColorInt
+    fun warning(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_rpm_warn)
+
+    @ColorInt
+    fun danger(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_rpm_bad)
+
+    @ColorInt
+    fun error(context: Context): Int = danger(context)
+
+    /** Filled past day with no load — lighter than the plate, not Success. */
+    @ColorInt
+    fun dayPastEmpty(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_day_past_empty)
+
+    /** Outline for a future day with no load. */
+    @ColorInt
+    fun dayFutureStroke(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_day_future_stroke)
+
+    /** Accent ring drawn on top of any chip that is today. */
+    @ColorInt
+    fun dayTodayStroke(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_day_today_stroke)
+
+    /** Label on a Success-filled (has-load) chip. */
+    @ColorInt
+    fun onAccent(context: Context): Int =
+        ContextCompat.getColor(context, R.color.widget_on_accent)
 }

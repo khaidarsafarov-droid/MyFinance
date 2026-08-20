@@ -21,6 +21,10 @@ data class UserProfile(
     val googleId: String? = null,
     /** Unique Truck Log handle for finding friends (@nickname). */
     val nickname: String? = null,
+    /** True after the driver sets a display name in the app (not Google's name). */
+    val customDisplayName: Boolean = false,
+    /** True after the driver uploads or removes a profile photo in the app. */
+    val customPhoto: Boolean = false,
 ) {
     val displayName: String
         get() = listOf(givenName, familyName).filter { it.isNotBlank() }.joinToString(" ")
@@ -72,6 +76,8 @@ class UserProfileStore(context: Context) {
             else putString(KEY_GOOGLE_ID, profile.googleId)
             if (profile.nickname.isNullOrBlank()) remove(KEY_NICKNAME)
             else putString(KEY_NICKNAME, profile.nickname)
+            putBoolean(KEY_CUSTOM_DISPLAY_NAME, profile.customDisplayName)
+            putBoolean(KEY_CUSTOM_PHOTO, profile.customPhoto)
         }
         _profile.value = profile
     }
@@ -104,6 +110,8 @@ class UserProfileStore(context: Context) {
             phoneNumber = prefs.getString(KEY_PHONE, null)?.takeIf { it.isNotBlank() },
             googleId = prefs.getString(KEY_GOOGLE_ID, null)?.takeIf { it.isNotBlank() },
             nickname = prefs.getString(KEY_NICKNAME, null)?.takeIf { it.isNotBlank() },
+            customDisplayName = prefs.getBoolean(KEY_CUSTOM_DISPLAY_NAME, false),
+            customPhoto = prefs.getBoolean(KEY_CUSTOM_PHOTO, false),
         )
     }
 
@@ -144,6 +152,8 @@ class UserProfileStore(context: Context) {
         private const val KEY_PHONE = "phone_number"
         private const val KEY_GOOGLE_ID = "google_id"
         private const val KEY_NICKNAME = "nickname"
+        private const val KEY_CUSTOM_DISPLAY_NAME = "custom_display_name"
+        private const val KEY_CUSTOM_PHOTO = "custom_photo"
         private const val KEY_SETUP_COMPLETE = "profile_setup_complete"
 
         fun prefsName(userId: String): String =

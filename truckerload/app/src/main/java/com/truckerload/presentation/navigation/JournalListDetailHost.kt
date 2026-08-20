@@ -48,6 +48,7 @@ fun JournalListDetailHost(
                 onLoadScan = { loadId, tripId, loadDate ->
                     navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
                 },
+                onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
             )
         },
         detailContent = {
@@ -77,6 +78,7 @@ fun JournalListDetailHost(
                             detailNavController.popBackStack(PANE_EMPTY, inclusive = false)
                         },
                         onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                        onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
                     )
                 }
             }

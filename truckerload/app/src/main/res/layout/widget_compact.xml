@@ -34,7 +34,8 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/widget_text_primary"
+            android:textColor="@color/widget_hero_number"
+            android:fontFeatureSettings="tnum"
             android:textSize="@dimen/widget_amount_compact"
             android:textStyle="bold" />
 

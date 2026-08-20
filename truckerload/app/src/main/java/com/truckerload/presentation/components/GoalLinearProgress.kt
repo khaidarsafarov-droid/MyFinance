@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.goal.PaceStatus
 import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
 
 /**
@@ -35,17 +36,14 @@ fun GoalLinearProgress(
     modifier: Modifier = Modifier,
 ) {
     val cs = MaterialTheme.colorScheme
+    val tc = LocalTruckColors.current
     val animatedProgress by animateFloatAsState(
         targetValue = (progressPercent / 100f).coerceIn(0f, 1f),
         animationSpec = tween(800),
         label = "goalLinearProgress",
     )
     val trackColor = cs.onPrimary.copy(alpha = 0.2f)
-    val fillColor = when (paceStatus) {
-        PaceStatus.BEHIND -> cs.error
-        PaceStatus.GOAL_MET, PaceStatus.AHEAD -> cs.tertiary
-        PaceStatus.ON_TRACK -> cs.primaryContainer
-    }
+    val fillColor = tc.pace(paceStatus)
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(

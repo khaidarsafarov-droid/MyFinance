@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.domain.model.MaintenanceArchiveEntry
-import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.io.File
@@ -163,7 +162,7 @@ private fun ArchiveCard(
                     Icon(
                         Icons.Default.Photo,
                         contentDescription = stringResource(R.string.maintenance_receipt_photo),
-                        tint = AppColors.RpmGreen,
+                        tint = LocalTruckColors.current.Success,
                     )
                 }
             }
@@ -176,6 +175,7 @@ private fun ArchiveCard(
 
 @Composable
 private fun ReceiptAttachedBadge(onClick: () -> Unit) {
+    val tc = LocalTruckColors.current
     Row(
         modifier = Modifier
             .clip(CircleShape)
@@ -192,11 +192,11 @@ private fun ReceiptAttachedBadge(onClick: () -> Unit) {
             modifier = Modifier
                 .size(8.dp)
                 .clip(CircleShape)
-                .background(AppColors.RpmGreen),
+                .background(tc.Success),
         )
         Text(
             text = stringResource(R.string.maintenance_has_receipt),
-            color = AppColors.RpmGreen,
+            color = tc.Success,
             style = MaterialTheme.typography.labelSmall,
         )
     }

@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→30 (startVersion 25..29). */
+/** Room migrations for schema versions 25→32 (startVersion 25..31). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -165,5 +165,131 @@ val MIGRATION_29_30 = object : Migration(29, 30) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.addColumnIfMissing("voice_rooms", "description", "TEXT NOT NULL DEFAULT ''")
         db.addColumnIfMissing("voice_rooms", "moderatorId", "TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+/**
+ * Split User / professional DriverProfile / CommunityProfile.
+ * CDL plaintext is copied as `plain:` ciphertext for app-level re-encrypt, then wiped.
+ */
+val MIGRATION_30_31 = object : Migration(30, 31) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execLogged(
+            """
+            CREATE TABLE IF NOT EXISTS `user_accounts` (
+                `id` TEXT NOT NULL,
+                `phone` TEXT,
+                `email` TEXT,
+                `authProvider` TEXT NOT NULL,
+                `displayName` TEXT NOT NULL,
+                `createdAt` INTEGER NOT NULL,
+                `isVerified` INTEGER NOT NULL,
+                `ageConfirmed` INTEGER NOT NULL,
+                `acceptedTosAt` INTEGER,
+                `analyticsConsentAt` INTEGER,
+                PRIMARY KEY(`id`)
+            )
+            """.trimIndent(),
+        )
+        db.execLogged(
+            """
+            CREATE TABLE IF NOT EXISTS `driver_professional_profiles` (
+                `userId` TEXT NOT NULL,
+                `role` TEXT NOT NULL,
+                `companyName` TEXT,
+                `cdlNumberCiphertext` TEXT,
+                `cdlDocumentUrlCiphertext` TEXT,
+                `vehicleType` TEXT NOT NULL,
+                `primaryRegion` TEXT NOT NULL,
+                `dispatcherUserId` TEXT,
+                `skipped` INTEGER NOT NULL,
+                `updatedAt` INTEGER NOT NULL,
+                PRIMARY KEY(`userId`)
+            )
+            """.trimIndent(),
+        )
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS `index_driver_professional_profiles_dispatcherUserId` " +
+                "ON `driver_professional_profiles` (`dispatcherUserId`)",
+        )
+        db.execLogged(
+            """
+            CREATE TABLE IF NOT EXISTS `community_profiles` (
+                `userId` TEXT NOT NULL,
+                `nickname` TEXT NOT NULL,
+                `avatarUrl` TEXT,
+                `bio` TEXT,
+                `visibilityJson` TEXT NOT NULL,
+                `skipped` INTEGER NOT NULL,
+                `updatedAt` INTEGER NOT NULL,
+                PRIMARY KEY(`userId`)
+            )
+            """.trimIndent(),
+        )
+        if (db.hasTable("driver_profile")) {
+            db.execLogged(
+                """
+                INSERT OR IGNORE INTO user_accounts (
+                    id, phone, email, authProvider, displayName, createdAt,
+                    isVerified, ageConfirmed, acceptedTosAt, analyticsConsentAt
+                )
+                SELECT
+                    id, phoneNumber, NULL, 'EMAIL', displayName,
+                    COALESCE(joinedDate, 0), 0, 0, NULL, NULL
+                FROM driver_profile
+                """.trimIndent(),
+            )
+            db.execLogged(
+                """
+                INSERT OR IGNORE INTO driver_professional_profiles (
+                    userId, role, companyName, cdlNumberCiphertext, cdlDocumentUrlCiphertext,
+                    vehicleType, primaryRegion, dispatcherUserId, skipped, updatedAt
+                )
+                SELECT
+                    id,
+                    'OWNER_OPERATOR',
+                    NULL,
+                    CASE WHEN cdlNumber IS NULL OR cdlNumber = '' THEN NULL
+                         ELSE 'plain:' || cdlNumber END,
+                    NULL,
+                    COALESCE(truckType, ''),
+                    COALESCE(homeState, ''),
+                    NULL,
+                    0,
+                    COALESCE(lastActive, 0)
+                FROM driver_profile
+                """.trimIndent(),
+            )
+            db.execLogged(
+                """
+                INSERT OR IGNORE INTO community_profiles (
+                    userId, nickname, avatarUrl, bio, visibilityJson, skipped, updatedAt
+                )
+                SELECT
+                    id,
+                    COALESCE(displayName, ''),
+                    avatarUrl,
+                    about,
+                    '{"nickname":true,"bio":false,"avatar":true}',
+                    0,
+                    COALESCE(lastActive, 0)
+                FROM driver_profile
+                """.trimIndent(),
+            )
+            db.execLogged("UPDATE driver_profile SET cdlNumber = ''")
+        }
+    }
+}
+
+/** Optional equipment type on loads and anonymized crowd rates. */
+val MIGRATION_31_32 = object : Migration(31, 32) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("loads", "equipmentType", "TEXT")
+        db.addColumnIfMissing("crowd_rates", "equipmentType", "TEXT")
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS " +
+                "index_crowd_rates_fromState_equipmentType_reportedAtMillis " +
+                "ON crowd_rates(fromState, equipmentType, reportedAtMillis)",
+        )
     }
 }

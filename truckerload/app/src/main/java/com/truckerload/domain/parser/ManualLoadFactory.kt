@@ -1,5 +1,6 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
@@ -24,6 +25,7 @@ object ManualLoadFactory {
         extraPoints: List<String> = emptyList(),
         rawMessage: String = "",
         nowMillis: Long = System.currentTimeMillis(),
+        equipmentType: EquipmentType? = null,
     ): Load {
         val filled = (listOf(pointA, pointB) + extraPoints)
             .map { it.trim() }
@@ -58,6 +60,7 @@ object ManualLoadFactory {
             parsedAt = nowMillis,
             updatedAt = nowMillis,
             stops = stops,
+            equipmentType = equipmentType,
         )
         val (week, year) = getLoadReportingWeek(draft)
         return draft.copy(weekNumber = week, year = year).withRouteMetrics()

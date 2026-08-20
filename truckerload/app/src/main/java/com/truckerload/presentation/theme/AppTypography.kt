@@ -60,12 +60,30 @@ object AppTypography {
         )
 
     val CaptionMuted: TextStyle
-        @Composable get() = MaterialTheme.typography.labelSmall.copy(
-            // Never use outline/outlineVariant here — those are border tokens (~#E1EAE4)
-            // and wash out labels on white cards.
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium,
+        @Composable get() = MaterialTheme.typography.bodySmall.copy(
+            // AA-safe muted label — never ForestSoft / outlineVariant on light cards.
+            color = LocalTruckColors.current.TextLabel,
+            fontWeight = FontWeight.Normal,
         )
+
+    /** Week gross, RPM, rate, paycheck total — glanceable from the cab. */
+    val HeroNumber: TextStyle
+        @Composable get() = MaterialTheme.typography.displayLarge.copy(
+            fontWeight = FontWeight.Bold,
+            fontFeatureSettings = "tnum",
+            color = LocalTruckColors.current.TextNumbers,
+        )
+
+    /** Compact hero (load cards, leaderboard rows, widget-sized slots). */
+    val HeroNumberCompact: TextStyle
+        @Composable get() = MaterialTheme.typography.displayMedium.copy(
+            fontWeight = FontWeight.Bold,
+            fontFeatureSettings = "tnum",
+            color = LocalTruckColors.current.TextNumbers,
+        )
+
+    val HeroNumberOnDark: TextStyle
+        @Composable get() = HeroNumber.copy(color = MaterialTheme.colorScheme.onPrimary)
 
     val SectionTitle: TextStyle
         @Composable get() = MaterialTheme.typography.labelLarge.copy(
@@ -93,10 +111,7 @@ object AppTypography {
         )
 
     val NumbersOnDark: TextStyle
-        @Composable get() = MaterialTheme.typography.headlineMedium.copy(
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontFeatureSettings = "tnum",
-        )
+        @Composable get() = HeroNumberOnDark
 
     val AccentNumber: TextStyle
         @Composable get() = MaterialTheme.typography.titleLarge.copy(

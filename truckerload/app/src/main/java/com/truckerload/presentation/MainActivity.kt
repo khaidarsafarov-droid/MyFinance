@@ -57,6 +57,8 @@ import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.presentation.di.LocalPaycheckRepository
 import com.truckerload.presentation.di.LocalPhotoRepository
+import com.truckerload.presentation.di.LocalRegistrationService
+import com.truckerload.presentation.di.LocalAccountDeletionService
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
@@ -114,7 +116,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
+        handleIncomingIntent(intent)
         WidgetDataUpdater.updateWidgetData(applicationContext)
         requestNotificationPermissionIfNeeded()
         enableEdgeToEdge()
@@ -286,6 +288,8 @@ class MainActivity : AppCompatActivity() {
                                     LocalVoiceRepository provides deps.voiceRepository,
                                     LocalCallPrivacyStore provides callPrivacyStore,
                                     LocalMaintenanceRepository provides deps.maintenanceRepository,
+                                    LocalRegistrationService provides deps.registrationService,
+                                    LocalAccountDeletionService provides deps.accountDeletionService,
                                 ) {
                                     com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
                                         // Reset Nav/ViewModel stores when the account changes.
@@ -314,7 +318,15 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
         handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
+        com.truckerload.voice.VoiceIntentReader.parse(intent)?.let { command ->
+            com.truckerload.voice.VoiceCommandBus.offer(command)
+        }
     }
 
     private fun handleDeepLinkRoute(route: String?) {

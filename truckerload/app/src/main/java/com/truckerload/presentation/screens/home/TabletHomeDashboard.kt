@@ -179,6 +179,7 @@ internal fun TabletHomeDashboard(
                     tint = Color(0xFFF7F0D9),
                     label = stringResource(R.string.tablet_stat_rpm),
                     value = rpmLabel,
+                    hero = true,
                 )
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
@@ -186,6 +187,7 @@ internal fun TabletHomeDashboard(
                     tint = Color(0xFFE8E4F5),
                     label = stringResource(R.string.tablet_stat_gross),
                     value = gross,
+                    hero = true,
                 )
             }
         }
@@ -241,7 +243,7 @@ private fun SoftHeroCard(
                 spotColor = SoftUiColors.ShadowNeutral,
             )
             .clip(SoftUiShapes.Card)
-            .background(SoftUiColors.ForestAccent),
+            .background(MaterialTheme.colorScheme.primary),
     ) {
         Icon(
             imageVector = Icons.Outlined.LocalShipping,
@@ -255,20 +257,16 @@ private fun SoftHeroCard(
         Column(modifier = Modifier.padding(22.dp)) {
             Text(
                 text = periodLabel.uppercase(),
-                style = AppTypography.Caption.copy(color = SoftUiColors.Sage),
+                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
             )
             Text(
                 text = gross,
-                style = AppTypography.NumbersLarge.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Black,
-                ),
+                style = AppTypography.HeroNumberOnDark,
                 modifier = Modifier.padding(top = 4.dp),
             )
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = SoftUiColors.Sage,
+                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
                 modifier = Modifier.padding(top = 4.dp, bottom = 14.dp),
             )
             Row(
@@ -308,6 +306,7 @@ private fun SoftStatCard(
     tint: Color,
     label: String,
     value: String,
+    hero: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
     Column(
@@ -334,15 +333,14 @@ private fun SoftStatCard(
         }
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = tc.TextPrimary,
+            style = if (hero) AppTypography.HeroNumberCompact else AppTypography.NumbersMetric,
+            color = tc.TextNumbers,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
+            style = AppTypography.CaptionMuted,
         )
     }
 }

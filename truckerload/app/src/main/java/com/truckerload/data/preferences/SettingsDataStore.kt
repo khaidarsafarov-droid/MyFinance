@@ -8,7 +8,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.truckerload.domain.friends.FriendsLocationSharePolicy
+import com.truckerload.domain.model.EquipmentType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -37,6 +40,8 @@ private val KEY_QUIET_HOURS_START = intPreferencesKey("quiet_hours_start")
 private val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
 private val KEY_NOTIFY_MISSING_WEEK = booleanPreferencesKey("notify_missing_week")
 private val KEY_NOTIFY_MAINTENANCE = booleanPreferencesKey("notify_maintenance")
+private val KEY_FRIENDS_LOCATION_INTERVAL = intPreferencesKey("friends_location_interval_min")
+private val KEY_FRIENDS_LIVE_MODE = booleanPreferencesKey("friends_live_mode")
 
 class SettingsDataStore(context: Context) {
 
@@ -124,6 +129,29 @@ class SettingsDataStore(context: Context) {
         }
     }
 
+    /** Background share interval: 15 / 30 / 60 minutes. Default 30. */
+    val friendsLocationIntervalMinutes: Flow<Int> = appContext.settingsDataStore.data.map { prefs ->
+        val account = accountPart()
+        val raw = if (account != null) {
+            prefs[intKey("friends_location_interval_min", account)]
+        } else {
+            prefs[KEY_FRIENDS_LOCATION_INTERVAL]
+        }
+        FriendsLocationSharePolicy.clampIntervalMinutes(
+            raw ?: FriendsLocationSharePolicy.DEFAULT_INTERVAL_MINUTES,
+        )
+    }
+
+    /** Explicit live-mode consent. Default off; sessions still expire after 15 min. */
+    val friendsLiveMode: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        val account = accountPart()
+        if (account != null) {
+            prefs[boolKey("friends_live_mode", account)] ?: false
+        } else {
+            prefs[KEY_FRIENDS_LIVE_MODE] ?: false
+        }
+    }
+
     /** When on, GPS / share updates slow to ~10 s (battery-friendly foreground mode). */
     val locationBatterySaver: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[KEY_LOCATION_BATTERY_SAVER] ?: false
@@ -157,6 +185,19 @@ class SettingsDataStore(context: Context) {
 
     val notifyMaintenance: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         accountScopedBool(prefs, "notify_maintenance", KEY_NOTIFY_MAINTENANCE, default = true)
+    }
+
+    /**
+     * Opt-in to anonymized Crowd RPM (rpm + miles + optional region). Default off.
+     * Account-scoped; never inherit another user's consent.
+     */
+    val crowdStatsOptIn: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[boolKey("crowd_stats_opt_in", accountPart())] ?: false
+    }
+
+    /** True after the user answered the Community Crowd RPM consent dialog (or used Settings). */
+    val crowdStatsPromptSeen: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
+        prefs[boolKey("crowd_stats_prompt_seen", accountPart())] ?: false
     }
 
     private fun accountScopedBool(
@@ -295,6 +336,25 @@ class SettingsDataStore(context: Context) {
         }
     }
 
+    suspend fun getFriendsLocationIntervalMinutesOnce(): Int = friendsLocationIntervalMinutes.first()
+
+    suspend fun saveFriendsLocationIntervalMinutes(minutes: Int) {
+        val account = accountPart()
+        val clamped = FriendsLocationSharePolicy.clampIntervalMinutes(minutes)
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[intKey("friends_location_interval_min", account)] = clamped
+        }
+    }
+
+    suspend fun getFriendsLiveModeOnce(): Boolean = friendsLiveMode.first()
+
+    suspend fun saveFriendsLiveMode(enabled: Boolean) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[boolKey("friends_live_mode", account)] = enabled
+        }
+    }
+
     suspend fun getLocationBatterySaverOnce(): Boolean = locationBatterySaver.first()
 
     suspend fun saveLocationBatterySaver(enabled: Boolean) {
@@ -388,6 +448,25 @@ class SettingsDataStore(context: Context) {
         }
     }
 
+    suspend fun getCrowdStatsOptInOnce(): Boolean = crowdStatsOptIn.first()
+
+    suspend fun saveCrowdStatsOptIn(enabled: Boolean) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[boolKey("crowd_stats_opt_in", account)] = enabled
+            prefs[boolKey("crowd_stats_prompt_seen", account)] = true
+        }
+    }
+
+    suspend fun isCrowdStatsPromptSeenOnce(): Boolean = crowdStatsPromptSeen.first()
+
+    suspend fun markCrowdStatsPromptSeen() {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[boolKey("crowd_stats_prompt_seen", account)] = true
+        }
+    }
+
     fun communityHintUsed(area: CommunityHintArea): Flow<Boolean> =
         appContext.settingsDataStore.data.map { prefs ->
             prefs[booleanPreferencesKey(area.prefKey)] ?: false
@@ -401,4 +480,20 @@ class SettingsDataStore(context: Context) {
             prefs[booleanPreferencesKey(area.prefKey)] = true
         }
     }
+
+    fun lastEquipmentType(): Flow<EquipmentType?> = appContext.settingsDataStore.data.map { prefs ->
+        EquipmentType.fromStorage(prefs[stringKey("last_equipment_type", accountPart())])
+    }
+
+    suspend fun getLastEquipmentTypeOnce(): EquipmentType? = lastEquipmentType().first()
+
+    suspend fun saveLastEquipmentType(type: EquipmentType) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[stringKey("last_equipment_type", account)] = type.name
+        }
+    }
+
+    private fun stringKey(base: String, account: String?) =
+        stringPreferencesKey(if (account != null) "${base}_$account" else base)
 }

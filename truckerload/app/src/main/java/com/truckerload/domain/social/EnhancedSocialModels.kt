@@ -34,7 +34,6 @@ data class EnhancedDriverProfile(
     val joinedDate: Long,
     val lastActive: Long,
     val dateOfBirthEpochDay: Long? = null,
-    val cdlNumber: String = "",
     val axleCount: Int = 0,
     val homeHubCity: String = "",
 )

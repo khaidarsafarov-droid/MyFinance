@@ -64,6 +64,7 @@ fun HomeScreen(
     onAddDiesel: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
+    onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
@@ -216,6 +217,7 @@ fun HomeScreen(
                     filter = uiState.filter,
                     openDrawer = openDrawer,
                     onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
+                    onOpenPrivacy = onOpenPrivacy,
                 )
             }
         },
@@ -281,6 +283,7 @@ fun HomeScreen(
                         onAddLoad = onAddLoad,
                         onOpenWeeklyGoal = onStats,
                         periodTotals = totals,
+                        onOpenPrivacy = onOpenPrivacy,
                     )
                 }
                 if (isInitialLoading) {

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -46,6 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PrivacySettingsSection(
     modifier: Modifier = Modifier,
+    onOpenPrivacy: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val tc = LocalTruckColors.current
@@ -68,6 +72,46 @@ fun PrivacySettingsSection(
         title = stringResource(R.string.settings_privacy_title),
         modifier = modifier,
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenPrivacy)
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f),
+            ) {
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = tc.AccentPrimary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Column {
+                    Text(
+                        text = stringResource(R.string.privacy_screen_title),
+                        color = tc.TextPrimary,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = stringResource(R.string.privacy_settings_row_subtitle),
+                        color = tc.TextSecondary,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+            }
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = tc.TextSecondary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+
         PrivacyPermissionRow(
             icon = Icons.Default.LocationOn,
             title = stringResource(R.string.settings_privacy_location),
@@ -95,6 +139,23 @@ fun PrivacySettingsSection(
 
         WhoCanCallRows()
 
+        Text(
+            text = stringResource(R.string.settings_privacy_data_title),
+            color = tc.TextPrimary,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            text = stringResource(R.string.settings_privacy_data_loads),
+            color = tc.TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Text(
+            text = stringResource(R.string.settings_privacy_crowd_rpm),
+            color = tc.TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,7 +171,10 @@ fun PrivacySettingsSection(
             Switch(
                 checked = sharePath,
                 onCheckedChange = { enabled ->
-                    scope.launch { settingsDataStore.saveSharePathWithFriends(enabled) }
+                    scope.launch {
+                        settingsDataStore.saveSharePathWithFriends(enabled)
+                        com.truckerload.sync.FriendsLocationShareScheduler.sync(context)
+                    }
                 },
                 colors = AppSwitchDefaults.colors(),
             )

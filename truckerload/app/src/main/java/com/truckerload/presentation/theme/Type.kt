@@ -36,6 +36,7 @@ val Typography = Typography(
         fontSize = 30.sp,
         lineHeight = 34.sp,
         letterSpacing = 0.sp,
+        fontFeatureSettings = "tnum",
     ),
     headlineMedium = TextStyle(
         fontFamily = DmSansFontFamily,
@@ -43,6 +44,7 @@ val Typography = Typography(
         fontSize = 32.sp,
         lineHeight = 38.sp,
         letterSpacing = (-0.2).sp,
+        fontFeatureSettings = "tnum",
     ),
     headlineSmall = TextStyle(
         fontFamily = DmSansFontFamily,

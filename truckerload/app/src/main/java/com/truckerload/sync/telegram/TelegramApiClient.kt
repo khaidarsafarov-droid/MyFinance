@@ -12,6 +12,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import org.json.JSONObject
 
 /**
  * Thin wrapper around [TelegramApi] for the sync engine: create client, poll, reply with menu.
@@ -35,6 +36,18 @@ class TelegramApiClient(
 
     suspend fun sendMessage(chatId: String, text: String) =
         telegramApi.sendMessage(chatId, text)
+
+    suspend fun sendHtml(
+        chatId: String,
+        html: String,
+        replyMarkup: JSONObject? = null,
+    ) {
+        telegramApi.sendMessage(chatId, html, replyMarkup, parseMode = "HTML")
+            .onFailure { e ->
+                Log.e(TAG, "html reply failed: ${LogRedactor.redact(e.message)}")
+                sendWithMenu(chatId, html.replace(Regex("<[^>]+>"), ""))
+            }
+    }
 
     suspend fun answerCallbackQuery(callbackQueryId: String, text: String = "OK") =
         telegramApi.answerCallbackQuery(callbackQueryId, text)

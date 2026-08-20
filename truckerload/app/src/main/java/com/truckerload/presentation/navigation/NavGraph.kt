@@ -80,6 +80,8 @@ fun NavGraph(
     val emailVerifyStore = remember(context) {
         com.truckerload.data.preferences.EmailVerificationStore(context.applicationContext)
     }
+    val registrationService = com.truckerload.presentation.di.LocalRegistrationService.current
+    val registrationScope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(isLoggedIn, setupComplete, authEmail) {
         if (!isLoggedIn) {
             needsSetup = null
@@ -87,15 +89,15 @@ fun NavGraph(
             needsTelegramOnboarding = null
             return@LaunchedEffect
         }
-        // Fast path for returning users: show journal first, seed social data in background.
-        if (setupComplete) {
-            needsSetup = false
-            val provider = authStore.authProvider()
-            // Soft on-device code — show whenever pending (no email is sent by the app).
-            needsEmailVerify =
-                provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
+        val provider = authStore.authProvider()
+        val emailPending =
+            provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
                 authEmail.isNotBlank() &&
                 emailVerifyStore.isPending(authEmail)
+        // Step 2 (verification) happens before the profile wizard.
+        needsEmailVerify = emailPending
+        if (setupComplete) {
+            needsSetup = false
             needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(
                 context,
                 authStore.currentUserIdOrNull(),
@@ -104,37 +106,39 @@ fun NavGraph(
             return@LaunchedEffect
         }
         socialSyncCoordinator.ensureInitialized()
-        val setup = profileRepository.needsProfileSetup()
-        needsSetup = setup
-        if (setup) {
-            needsEmailVerify = false
-            needsTelegramOnboarding = false
-            return@LaunchedEffect
+        needsSetup = registrationService.needsRequiredOnboarding() ||
+            profileRepository.needsProfileSetup()
+        needsTelegramOnboarding = if (needsSetup == true) {
+            false
+        } else {
+            com.truckerload.data.preferences.TelegramOnboardingStore(
+                context,
+                authStore.currentUserIdOrNull(),
+            ).shouldPrompt(context)
         }
-        val provider = authStore.authProvider()
-        needsEmailVerify =
-            provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
-            authEmail.isNotBlank() &&
-            emailVerifyStore.isPending(authEmail)
-        needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(
-            context,
-            authStore.currentUserIdOrNull(),
-        ).shouldPrompt(context)
+    }
+    if (needsEmailVerify == true) {
+        com.truckerload.presentation.screens.auth.EmailVerificationScreen(
+            email = authEmail,
+            onVerified = {
+                needsEmailVerify = false
+                registrationScope.launch {
+                    runCatching { registrationService.markVerified() }
+                }
+            },
+            onSkip = {
+                needsEmailVerify = false
+                registrationScope.launch {
+                    runCatching { registrationService.skipVerificationForNow() }
+                }
+            },
+        )
+        return
     }
     if (needsSetup == true) {
         ProfileSetupScreen(
             onCompleted = {
                 needsSetup = false
-                // After wizard, start soft email verification for email accounts.
-                if (authStore.authProvider() == com.truckerload.data.preferences.AuthProvider.EMAIL &&
-                    authEmail.isNotBlank() &&
-                    !emailVerifyStore.isVerified(authEmail)
-                ) {
-                    emailVerifyStore.beginVerification(authEmail)
-                    needsEmailVerify = true
-                } else {
-                    needsEmailVerify = false
-                }
                 needsTelegramOnboarding = com.truckerload.data.preferences
                     .TelegramOnboardingStore(context, authStore.currentUserIdOrNull())
                     .shouldPrompt(context)
@@ -150,14 +154,6 @@ fun NavGraph(
         ) {
             CircularProgressIndicator()
         }
-        return
-    }
-    if (needsEmailVerify == true) {
-        com.truckerload.presentation.screens.auth.EmailVerificationScreen(
-            email = authEmail,
-            onVerified = { needsEmailVerify = false },
-            onSkip = { needsEmailVerify = false },
-        )
         return
     }
     if (needsTelegramOnboarding == true) {
@@ -291,6 +287,7 @@ fun NavGraph(
                         onLoadScan = { loadId, tripId, loadDate ->
                             navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
                         },
+                        onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
                     )
                 }
             }
@@ -313,6 +310,7 @@ fun NavGraph(
                 },
                 modifier = Modifier.align(Alignment.TopCenter),
             )
+            com.truckerload.presentation.voice.VoiceCommandHandler(navController = navController)
         }
     }
 }

@@ -12,6 +12,7 @@ class TelegramBootReceiver : BroadcastReceiver() {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
         val appContext = context.applicationContext
         LoadAlarmScheduler.rescheduleAll(appContext)
+        FriendsLocationShareScheduler.sync(appContext)
         if (TelegramSyncMode.isServer()) {
             ServerTelegramInboxWorker.enqueue(appContext)
             ServerTelegramInboxWorker.enqueuePeriodic(appContext)

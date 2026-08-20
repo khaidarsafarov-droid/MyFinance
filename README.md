@@ -7,6 +7,7 @@ snapshots, server Telegram ingestion, FCM wake-ups, and S3-compatible media APIs
 
 Start with:
 
+- [Cloud Code / Claude Code brief](truckerload/docs/CLOUD_CODE_BRIEF.md) — one-file product + architecture context
 - [project README](truckerload/README.md)
 - [target architecture](truckerload/docs/TARGET_ARCHITECTURE.md)
 - [backend setup](truckerload/docs/BACKEND_SETUP.md)

@@ -15,6 +15,7 @@ import com.truckerload.data.local.entities.ChallengeParticipationEntity
 import com.truckerload.data.local.entities.DriverFollowEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.SocialPeerEntity
+import com.truckerload.data.preferences.ProfileIdentity
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.toPeerProfile
@@ -63,26 +64,18 @@ class ProfileRepositoryImpl(
         val user = userProfileStore.profile.value ?: return
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
         val loginName = user.displayName.takeIf { it.isNotBlank() && it != user.email }.orEmpty()
-        val placeholder = existing.displayName.isBlank() ||
-            existing.displayName == "Водитель" ||
-            existing.displayName == "Driver" ||
-            existing.displayName == "User"
-        val mergedName = when {
-            !placeholder -> existing.displayName
-            loginName.isNotBlank() -> loginName
-            else -> existing.displayName
+        val mergedName = if (user.customDisplayName && !ProfileIdentity.isPlaceholderName(existing.displayName)) {
+            existing.displayName
+        } else {
+            ProfileIdentity.mergeRoomDisplayName(existing.displayName, loginName)
         }
         val mergedPhone = existing.phoneNumber?.takeIf { it.isNotBlank() }
             ?: user.phoneNumber?.takeIf { it.isNotBlank() }
-        val existingAvatar = existing.avatarUrl
-        val mergedAvatar = when {
-            !existingAvatar.isNullOrBlank() &&
-                !existingAvatar.startsWith("http://") &&
-                !existingAvatar.startsWith("https://") -> existingAvatar
-            !existingAvatar.isNullOrBlank() -> existingAvatar
-            !user.photoUrl.isNullOrBlank() -> user.photoUrl
-            else -> null
-        }
+        val mergedAvatar = ProfileIdentity.mergeRoomAvatar(
+            existingAvatar = existing.avatarUrl,
+            providerPhotoUrl = user.photoUrl,
+            customPhoto = user.customPhoto,
+        )
         val demoAbout = existing.about.contains("Дальнобойщик") || existing.about.contains("открытые дороги")
         val demoLanguages = existing.languagesJson == "Русский,Английский"
         profileDao.upsert(
@@ -150,7 +143,7 @@ class ProfileRepositoryImpl(
                 truckType = truckType.trim().ifBlank { existing.truckType },
                 dateOfBirthEpochDay = dateOfBirthEpochDay ?: existing.dateOfBirthEpochDay,
                 licenseClass = licenseClass.trim().ifBlank { existing.licenseClass },
-                cdlNumber = cdlNumber.trim().ifBlank { existing.cdlNumber },
+                cdlNumber = "",
                 axleCount = if (axleCount > 0) axleCount else existing.axleCount,
                 homeHubCity = homeHubCity.trim().ifBlank { existing.homeHubCity },
                 about = existing.about.takeIf { !it.contains("Дальнобойщик") && !it.contains("открытые дороги") }.orEmpty(),
@@ -178,6 +171,7 @@ class ProfileRepositoryImpl(
                     givenName = parts.firstOrNull().orEmpty(),
                     familyName = parts.getOrNull(1).orEmpty(),
                     phoneNumber = phone,
+                    customDisplayName = true,
                 ),
             )
         } else {
@@ -189,6 +183,7 @@ class ProfileRepositoryImpl(
                     familyName = parts.getOrNull(1).orEmpty(),
                     photoUrl = null,
                     phoneNumber = phone,
+                    customDisplayName = true,
                 ),
             )
         }
@@ -289,6 +284,7 @@ class ProfileRepositoryImpl(
                     givenName = parts.firstOrNull().orEmpty(),
                     familyName = parts.getOrNull(1).orEmpty(),
                     phoneNumber = phoneNumber?.trim()?.ifBlank { null },
+                    customDisplayName = true,
                 ),
             )
         }
@@ -313,6 +309,11 @@ class ProfileRepositoryImpl(
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
         avatarStorage.deleteAvatar(existing.avatarUrl)
         profileDao.upsert(existing.copy(avatarUrl = path))
+        userProfileStore.profile.value?.let { profile ->
+            userProfileStore.saveProfile(
+                profile.copy(photoUrl = path, customPhoto = true),
+            )
+        }
         SocialResult.Success(path)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_upload_avatar, it), it) }
 
@@ -321,9 +322,7 @@ class ProfileRepositoryImpl(
         avatarStorage.deleteAvatar(existing.avatarUrl)
         profileDao.upsert(existing.copy(avatarUrl = null))
         userProfileStore.profile.value?.let { profile ->
-            if (!profile.photoUrl.isNullOrBlank()) {
-                userProfileStore.saveProfile(profile.copy(photoUrl = null))
-            }
+            userProfileStore.saveProfile(profile.copy(photoUrl = null, customPhoto = true))
         }
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_upload_avatar, it), it) }

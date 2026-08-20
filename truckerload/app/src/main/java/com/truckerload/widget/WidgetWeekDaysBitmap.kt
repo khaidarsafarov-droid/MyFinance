@@ -3,22 +3,16 @@ package com.truckerload.widget
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.Shader
 import android.graphics.RectF
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
-import com.truckerload.R
 
-/** Renders Sun–Sat floating soft chips for App Widget [RemoteViews]. */
+/** Sun–Sat chips: Success fill when a load exists; accent ring marks today. */
 object WidgetWeekDaysBitmap {
 
     fun create(
         context: Context,
-        statuses: List<WidgetWeekDayHelper.DayStatus>,
-        labels: List<String>,
+        chips: List<WidgetWeekDayHelper.DayChip>,
         widthPx: Int,
         heightPx: Int,
     ): Bitmap {
@@ -31,63 +25,88 @@ object WidgetWeekDaysBitmap {
         val gap = safeWidth * 0.02f
         val cellWidth = (safeWidth - gap * (count - 1)) / count
         val baseCircleSize = minOf(cellWidth * 0.82f, safeHeight * 0.78f)
+
+        val success = WidgetThemeColors.success(context)
+        val pastEmpty = WidgetThemeColors.dayPastEmpty(context)
+        val futureStroke = WidgetThemeColors.dayFutureStroke(context)
+        val todayStroke = WidgetThemeColors.dayTodayStroke(context)
+        val onSuccess = WidgetThemeColors.onAccent(context)
+        val labelMuted = WidgetThemeColors.onSurfaceVariant(context)
+
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+        }
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER
             isFakeBoldText = true
         }
 
-        val blueStart = ContextCompat.getColor(context, R.color.widget_primary)
-        val purpleEnd = ContextCompat.getColor(context, R.color.widget_secondary)
-        val futureFill = ContextCompat.getColor(context, R.color.widget_day_future)
-        val labelOnAccent = Color.WHITE
-        val labelOnFuture = ContextCompat.getColor(context, R.color.widget_text_hint)
-        val shadowColor = Color.argb(36, 100, 116, 139)
-
         for (index in 0 until count) {
-            val status = statuses.getOrElse(index) { WidgetWeekDayHelper.DayStatus.FUTURE }
-            val label = labels.getOrElse(index) { "?" }
+            val chip = chips.getOrElse(index) {
+                WidgetWeekDayHelper.DayChip(
+                    label = WidgetWeekDayHelper.dayLabels.getOrElse(index) { "?" },
+                    date = java.time.LocalDate.now(),
+                    hasLoad = false,
+                    isToday = false,
+                    isFuture = true,
+                )
+            }
             val left = index * (cellWidth + gap)
             val cx = left + cellWidth / 2f
             val cy = safeHeight / 2f
-
-            val circleSize = when (status) {
-                WidgetWeekDayHelper.DayStatus.TODAY -> baseCircleSize * 1.08f
-                else -> baseCircleSize
-            }
+            val circleSize = if (chip.isToday) baseCircleSize * 1.06f else baseCircleSize
             val radius = circleSize / 2f
+            val strokeWidth = (radius * 0.16f).coerceIn(2f, 4.5f)
             val bounds = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
 
-            val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = shadowColor
-            }
-            canvas.drawOval(
-                RectF(bounds.left, bounds.top + 2f, bounds.right, bounds.bottom + 3f),
-                shadowPaint,
-            )
-
-            val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-            when (status) {
-                WidgetWeekDayHelper.DayStatus.PAST,
-                WidgetWeekDayHelper.DayStatus.TODAY -> {
-                    fillPaint.shader = LinearGradient(
-                        bounds.left, bounds.top, bounds.right, bounds.bottom,
-                        blueStart, purpleEnd,
-                        Shader.TileMode.CLAMP,
+            when {
+                chip.hasLoad -> {
+                    fillPaint.color = success
+                    canvas.drawOval(bounds, fillPaint)
+                    textPaint.color = onSuccess
+                }
+                chip.isPast -> {
+                    fillPaint.color = pastEmpty
+                    canvas.drawOval(bounds, fillPaint)
+                    textPaint.color = labelMuted
+                }
+                else -> {
+                    strokePaint.color = futureStroke
+                    strokePaint.strokeWidth = strokeWidth
+                    val inset = strokeWidth / 2f
+                    canvas.drawOval(
+                        RectF(
+                            bounds.left + inset,
+                            bounds.top + inset,
+                            bounds.right - inset,
+                            bounds.bottom - inset,
+                        ),
+                        strokePaint,
                     )
-                    textPaint.color = labelOnAccent
-                    textPaint.textSize = circleSize * 0.38f
-                }
-                WidgetWeekDayHelper.DayStatus.FUTURE -> {
-                    fillPaint.color = futureFill
-                    textPaint.color = labelOnFuture
-                    textPaint.textSize = circleSize * 0.40f
+                    textPaint.color = labelMuted
                 }
             }
 
-            canvas.drawOval(bounds, fillPaint)
+            if (chip.isToday) {
+                strokePaint.color = todayStroke
+                strokePaint.strokeWidth = strokeWidth
+                val inset = strokeWidth / 2f + 0.5f
+                canvas.drawOval(
+                    RectF(
+                        bounds.left + inset,
+                        bounds.top + inset,
+                        bounds.right - inset,
+                        bounds.bottom - inset,
+                    ),
+                    strokePaint,
+                )
+            }
 
+            textPaint.textSize = circleSize * 0.38f
             val textY = cy - (textPaint.descent() + textPaint.ascent()) / 2f
-            canvas.drawText(label, cx, textY, textPaint)
+            canvas.drawText(chip.label, cx, textY, textPaint)
         }
 
         return bitmap

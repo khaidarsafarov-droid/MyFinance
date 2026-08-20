@@ -70,4 +70,17 @@ class SettingsDataStoreThemeTest {
         assertEquals(true, store.isCommunityHintUsedOnce(CommunityHintArea.CHATS))
         assertEquals(false, store.isCommunityHintUsedOnce(CommunityHintArea.STATUS))
     }
+
+    @Test
+    fun crowdStatsOptIn_defaultsFalseThenRoundTrips() = runBlocking {
+        AuthStore(RuntimeEnvironment.getApplication()).logout()
+        assertEquals(false, store.getCrowdStatsOptInOnce())
+        assertEquals(false, store.isCrowdStatsPromptSeenOnce())
+        store.saveCrowdStatsOptIn(true)
+        assertEquals(true, store.getCrowdStatsOptInOnce())
+        assertEquals(true, store.isCrowdStatsPromptSeenOnce())
+        store.saveCrowdStatsOptIn(false)
+        assertEquals(false, store.getCrowdStatsOptInOnce())
+        assertEquals(true, store.isCrowdStatsPromptSeenOnce())
+    }
 }

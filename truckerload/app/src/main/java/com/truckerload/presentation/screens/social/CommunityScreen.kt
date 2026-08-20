@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SnackbarHost
@@ -30,9 +30,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.preferences.CommunityHintArea
+import com.truckerload.domain.crowd.CommunityCompetitive
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.screens.privacy.CrowdStatsConsentDialog
 import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import kotlinx.coroutines.launch
 
@@ -61,6 +63,11 @@ fun CommunityScreen(
     val chatsState by chatsViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val leaderboard by communityViewModel.leaderboard.collectAsStateWithLifecycle()
+    val crowdWeekSummary by communityViewModel.crowdWeekSummary.collectAsStateWithLifecycle()
+    val crowdRpm by communityViewModel.crowdRpm.collectAsStateWithLifecycle()
+    val friendsState by friendsDirectoryViewModel.uiState.collectAsStateWithLifecycle()
+    val friendsCount = friendsState.acceptedFriends.size
+    val showRanking = CommunityCompetitive.showFriendRanking(friendsCount)
     val context = LocalContext.current
     val challenge = communityState.challenge
     val snackbarHostState = remember { SnackbarHostState() }
@@ -83,26 +90,34 @@ fun CommunityScreen(
         }
     }
 
+    if (communityState.showCrowdConsent) {
+        CrowdStatsConsentDialog(
+            onParticipate = communityViewModel::acceptCrowdStats,
+            onNotNow = communityViewModel::declineCrowdStats,
+        )
+    }
+
     SoftAppPageScaffold(
         title = stringResource(R.string.community),
         modifier = modifier,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         actions = {
             SoftActionChip(
-                icon = Icons.Default.Star,
+                icon = Icons.Outlined.Star,
                 contentDescription = stringResource(R.string.social_statuses),
                 onClick = onOpenStatus,
             )
             SoftActionChip(
-                icon = Icons.Default.Groups,
+                icon = Icons.Outlined.Groups,
                 contentDescription = stringResource(R.string.social_groups),
                 onClick = onOpenGroups,
             )
             SoftActionChip(
-                icon = Icons.Default.Person,
+                icon = Icons.Outlined.Person,
                 contentDescription = stringResource(R.string.profile),
                 onClick = onOpenProfile,
             )
+            CommunityOverflowMenu(onOpenVoiceRooms = onOpenVoiceRooms)
         },
     ) { padding ->
         Column(
@@ -110,6 +125,10 @@ fun CommunityScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
+            AddFriendsBanner(
+                visible = !showRanking,
+                onOpenFriends = onOpenFriends,
+            )
             PrimaryTabRow(selectedTabIndex = tabIndex) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -133,16 +152,16 @@ fun CommunityScreen(
                         chatsViewModel.createPrivateChatWithPeer(peerId) { chatId -> onOpenChat(chatId) }
                     },
                     onChatClick = onOpenChat,
-                    onOpenVoiceRooms = onOpenVoiceRooms,
                     onOpenFriends = onOpenFriends,
                     friendsDirectoryViewModel = friendsDirectoryViewModel,
                 )
                 1 -> LeaderboardTabContent(
                     entries = leaderboard,
+                    crowdRpm = crowdRpm,
+                    showRanking = showRanking,
                     onCategoryChange = communityViewModel::setLeaderboardCategory,
                     onPeerClick = onOpenPeerProfile,
-                    onOpenFriends = onOpenFriends,
-                    friendsDirectoryViewModel = friendsDirectoryViewModel,
+                    crowdWeekSummary = crowdWeekSummary,
                 )
 
                 2 -> if (challenge == null) {
@@ -165,9 +184,8 @@ fun CommunityScreen(
                         challenge = challenge,
                         joined = communityState.challengeJoined,
                         isJoining = communityState.isJoiningChallenge,
+                        showRanking = showRanking,
                         onJoin = communityViewModel::joinChallenge,
-                        onOpenFriends = onOpenFriends,
-                        friendsDirectoryViewModel = friendsDirectoryViewModel,
                     )
                 }
             }

@@ -28,6 +28,7 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
             onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
             onDelete = { navController.popBackStack() },
             onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+            onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
         )
     }
     composable(Routes.ADD_LOAD) { addLoadEntry ->

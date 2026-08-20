@@ -4,22 +4,29 @@ package com.truckerload.presentation.screens.social
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.SocialSyncCoordinator
+import com.truckerload.domain.crowd.CrowdRpmMapper
+import com.truckerload.domain.crowd.CrowdRpmSnapshot
+import com.truckerload.domain.crowd.CrowdRpmWeekSummary
 import com.truckerload.domain.social.Challenge
 import com.truckerload.domain.social.LeaderboardCategory
 import com.truckerload.domain.social.SocialResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class CommunityUiState(
     val challenge: Challenge? = null,
@@ -27,24 +34,48 @@ data class CommunityUiState(
     val isJoiningChallenge: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val showCrowdConsent: Boolean = false,
 )
 
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val socialSyncCoordinator: SocialSyncCoordinator,
+    private val settingsDataStore: SettingsDataStore,
+    private val loadRepository: LoadRepository,
+    private val crowdRpmRepository: CrowdRpmRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CommunityUiState())
     val uiState: StateFlow<CommunityUiState> = _state.asStateFlow()
 
     private val leaderboardCategory = MutableStateFlow(LeaderboardCategory.OVERALL)
+    private val _crowdRpm = MutableStateFlow(CrowdRpmSnapshot.Empty)
+    val crowdRpm: StateFlow<CrowdRpmSnapshot> = _crowdRpm.asStateFlow()
 
     val leaderboard = leaderboardCategory
         .flatMapLatest { category -> profileRepository.watchLeaderboard(category) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val crowdStatsOptIn: StateFlow<Boolean> = settingsDataStore.crowdStatsOptIn.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        false,
+    )
+
+    val crowdWeekSummary: StateFlow<CrowdRpmWeekSummary?> = combine(
+        crowdStatsOptIn,
+        loadRepository.watchLoads(),
+    ) { optedIn, loads ->
+        if (!optedIn) null else CrowdRpmMapper.weekSummary(loads)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     init {
+        viewModelScope.launch {
+            if (!settingsDataStore.isCrowdStatsPromptSeenOnce()) {
+                _state.value = _state.value.copy(showCrowdConsent = true)
+            }
+        }
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, errorMessage = null)
             runCatching {
@@ -58,6 +89,7 @@ class CommunityViewModel @Inject constructor(
             }.onFailure { error ->
                 _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
             }
+            refreshCrowdRpm()
             while (isActive) {
                 delay(4_000)
                 runCatching {
@@ -67,7 +99,22 @@ class CommunityViewModel @Inject constructor(
                         challengeJoined = profileRepository.hasJoinedWeeklyChallenge(),
                     )
                 }
+                refreshCrowdRpm()
             }
+        }
+    }
+
+    fun acceptCrowdStats() {
+        viewModelScope.launch {
+            settingsDataStore.saveCrowdStatsOptIn(true)
+            _state.value = _state.value.copy(showCrowdConsent = false)
+        }
+    }
+
+    fun declineCrowdStats() {
+        viewModelScope.launch {
+            settingsDataStore.saveCrowdStatsOptIn(false)
+            _state.value = _state.value.copy(showCrowdConsent = false)
         }
     }
 
@@ -88,6 +135,7 @@ class CommunityViewModel @Inject constructor(
             }.onFailure { error ->
                 _state.value = _state.value.copy(isLoading = false, errorMessage = error.toUiMessage())
             }
+            refreshCrowdRpm()
         }
     }
 
@@ -115,5 +163,10 @@ class CommunityViewModel @Inject constructor(
 
     fun clearError() {
         _state.value = _state.value.copy(errorMessage = null)
+    }
+
+    private suspend fun refreshCrowdRpm() {
+        runCatching { crowdRpmRepository.snapshot() }
+            .onSuccess { _crowdRpm.value = it }
     }
 }

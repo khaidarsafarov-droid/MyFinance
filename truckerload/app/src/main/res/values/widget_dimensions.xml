@@ -9,9 +9,9 @@
     <dimen name="widget_circle_expanded">160dp</dimen>
 
     <!-- Hero amount inside ring -->
-    <dimen name="widget_amount_compact">14sp</dimen>
-    <dimen name="widget_amount_standard">24sp</dimen>
-    <dimen name="widget_amount_expanded">28sp</dimen>
+    <dimen name="widget_amount_compact">22sp</dimen>
+    <dimen name="widget_amount_standard">32sp</dimen>
+    <dimen name="widget_amount_expanded">36sp</dimen>
 
     <!-- "out of $goal" subtitle -->
     <dimen name="widget_subtitle_compact">0sp</dimen>

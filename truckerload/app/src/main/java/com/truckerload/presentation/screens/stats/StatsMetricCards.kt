@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.SoftCard
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @Composable
@@ -40,10 +41,9 @@ internal fun HeroNetProfitCard(netProfit: Double, change: Double?, sparkline: Li
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 stringResource(R.string.stats_label_net_profit),
-                style = MaterialTheme.typography.titleMedium,
-                color = tc.TextPrimary
+                style = AppTypography.CaptionMuted,
             )
-            Text("$${formatMoney(netProfit)}", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("$${formatMoney(netProfit)}", style = AppTypography.HeroNumber)
             TrendText(change = change, goodWhenUp = false)
             Sparkline(values = sparkline, color = tc.AccentPrimary)
         }
@@ -68,7 +68,7 @@ internal fun MetricCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(title, style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                Text(title, style = AppTypography.CaptionMuted)
                 if (onClick != null) {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -77,7 +77,7 @@ internal fun MetricCard(
                     )
                 }
             }
-            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = tc.TextPrimary)
+            Text(value, style = AppTypography.HeroNumberCompact)
             TrendText(change = change, goodWhenUp = goodWhenUp)
             sparkline?.let {
                 val sparkColor = when {
@@ -99,8 +99,8 @@ internal fun RpmCard(modifier: Modifier = Modifier, rpm: Double, target: Double)
     val progress = (rpm / target).toFloat().coerceIn(0f, 1f)
     SoftCard(modifier = modifier) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.stats_label_avg_rpm), color = tc.TextSecondary)
-            Text("$${"%.2f".format(rpm)}/mi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.stats_label_avg_rpm), style = AppTypography.CaptionMuted)
+            Text("$${"%.2f".format(rpm)}/mi", style = AppTypography.HeroNumberCompact)
             Text(
                 stringResource(R.string.stats_rpm_goal, target),
                 style = MaterialTheme.typography.labelSmall,

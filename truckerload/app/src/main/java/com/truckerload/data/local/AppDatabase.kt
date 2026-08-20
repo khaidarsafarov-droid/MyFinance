@@ -8,8 +8,10 @@ import com.truckerload.data.local.dao.BlockedUserDao
 import com.truckerload.data.local.dao.CallSessionDao
 import com.truckerload.data.local.dao.ChallengeParticipationDao
 import com.truckerload.data.local.dao.ChatMemberDao
+import com.truckerload.data.local.dao.CommunityProfileDao
 import com.truckerload.data.local.dao.DieselDao
 import com.truckerload.data.local.dao.DriverFollowDao
+import com.truckerload.data.local.dao.DriverProfessionalDao
 import com.truckerload.data.local.dao.DriverProfileDao
 import com.truckerload.data.local.dao.DriverStatusDao
 import com.truckerload.data.local.dao.LoadDao
@@ -27,6 +29,7 @@ import com.truckerload.data.local.dao.SocialPeerDao
 import com.truckerload.data.local.dao.StopDao
 import com.truckerload.data.local.dao.SyncOutboxDao
 import com.truckerload.data.local.dao.TelegramInboxDao
+import com.truckerload.data.local.dao.UserAccountDao
 import com.truckerload.data.local.dao.VoiceRoomDao
 import com.truckerload.data.local.dao.VoiceRoomParticipantDao
 import com.truckerload.data.local.dao.VoiceSignalDao
@@ -35,7 +38,9 @@ import com.truckerload.data.local.entities.BlockedUserEntity
 import com.truckerload.data.local.entities.CallSessionEntity
 import com.truckerload.data.local.entities.ChallengeParticipationEntity
 import com.truckerload.data.local.entities.ChatMemberEntity
+import com.truckerload.data.local.entities.CommunityProfileEntity
 import com.truckerload.data.local.entities.DieselEntity
+import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.DriverFollowEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.DriverStatusEntity
@@ -55,6 +60,7 @@ import com.truckerload.data.local.entities.SocialPeerEntity
 import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.SyncOutboxEntity
 import com.truckerload.data.local.entities.TelegramInboxEntity
+import com.truckerload.data.local.entities.UserAccountEntity
 import com.truckerload.data.local.entities.VoiceRoomEntity
 import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
 import com.truckerload.data.local.entities.VoiceSignalEntity
@@ -92,8 +98,11 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         MaintenanceTaskEntity::class,
         MaintenanceArchiveEntity::class,
         CrowdRateEntity::class,
+        UserAccountEntity::class,
+        DriverProfessionalEntity::class,
+        CommunityProfileEntity::class,
     ],
-    version = 30,
+    version = 32,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -124,6 +133,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun mediaSyncQueueDao(): MediaSyncQueueDao
     abstract fun maintenanceDao(): MaintenanceDao
     abstract fun crowdRateDao(): com.truckerload.data.local.dao.CrowdRateDao
+    abstract fun userAccountDao(): UserAccountDao
+    abstract fun driverProfessionalDao(): DriverProfessionalDao
+    abstract fun communityProfileDao(): CommunityProfileDao
 
     companion object {
         @Volatile

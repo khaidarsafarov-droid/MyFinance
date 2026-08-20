@@ -1,9 +1,11 @@
 package com.truckerload.data.repository
 
+import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PeriodSummary
 import com.truckerload.domain.model.WeekSummary
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getWeeksInMonth
+import com.truckerload.utils.weeksEndingInRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -80,31 +82,36 @@ class WeekRepository(
         return weeks.map { (wn, wy) -> getWeekSummaryOnce(wn, wy) }
     }
 
-    /** Summary for an arbitrary date range (month/year view). */
+    /**
+     * Month/year totals from reporting weeks whose Saturday falls in [startDate]…[endDate].
+     * Same week math as [getWeekSummaryOnce], so a spanning Sun–Sat week is counted once.
+     */
     suspend fun getPeriodSummaryOnce(
         startDate: String,
         endDate: String,
         periodLabel: String
     ): PeriodSummary {
-        val loadList = loadRepository.getLoadsByDateRangeOnce(startDate, endDate)
-        val allPaychecks = paycheckRepository.getAllPaychecksOnce()
-        val allDiesel = dieselRepository.getAllDieselOnce()
-        val paychecksInRange = allPaychecks.filter { it.weekEndDate >= startDate && it.weekStartDate <= endDate }
-        val dieselInRange = allDiesel.filter { it.weekEndDate >= startDate && it.weekStartDate <= endDate }
-        val totalLoadRate = loadList.sumOf { it.totalRate }
-        val totalMiles = loadList.sumOf { it.totalMiles }
-        val paycheckAmount = paychecksInRange.sumOf { it.netAmount }
-        val dieselAmount = dieselInRange.sumOf { it.totalAmount }
+        val summaries = weeksEndingInRange(startDate, endDate).map { (wn, wy) ->
+            getWeekSummaryOnce(wn, wy)
+        }
+        val paycheckAmount = summaries.sumOf { it.paycheckAmount }
+        val dieselAmount = summaries.sumOf { it.dieselAmount }
         return PeriodSummary(
             periodLabel = periodLabel,
-            startDate = startDate,
-            endDate = endDate,
-            loadsCount = loadList.size,
-            totalLoadRate = totalLoadRate,
-            totalMiles = totalMiles,
+            startDate = summaries.minOfOrNull { it.weekStartDate } ?: startDate,
+            endDate = summaries.maxOfOrNull { it.weekEndDate } ?: endDate,
+            loadsCount = summaries.sumOf { it.loadsCount },
+            totalLoadRate = summaries.sumOf { it.totalLoadRate },
+            totalMiles = summaries.sumOf { it.totalMiles },
             paycheckAmount = paycheckAmount,
             dieselAmount = dieselAmount,
             netProfit = paycheckAmount - dieselAmount
         )
     }
+
+    /** Loads whose reporting week is owned by [startDate]…[endDate] (Saturday in range). */
+    suspend fun getPeriodLoadsOnce(startDate: String, endDate: String): List<Load> =
+        weeksEndingInRange(startDate, endDate).flatMap { (wn, wy) ->
+            loadRepository.getLoadsByWeek(wn, wy).first()
+        }
 }

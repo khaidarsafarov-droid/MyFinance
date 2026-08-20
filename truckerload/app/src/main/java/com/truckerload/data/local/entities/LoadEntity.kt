@@ -49,4 +49,6 @@ data class LoadEntity(
     val disputeCompleted: Boolean = false,
     /** Фактическая дата окончания (YYYY-MM-DD); null = из последнего DEL. */
     val actualFinishDate: String? = null,
+    /** Trailer type; null = not set (legacy rows). Stored as [EquipmentType] name. */
+    val equipmentType: String? = null,
 )

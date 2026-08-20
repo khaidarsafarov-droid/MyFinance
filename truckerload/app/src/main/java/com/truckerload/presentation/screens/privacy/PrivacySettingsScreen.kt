@@ -1,0 +1,80 @@
+package com.truckerload.presentation.screens.privacy
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.truckerload.R
+import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.theme.AppSwitchDefaults
+import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.utils.useNavigationRail
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrivacySettingsScreen(
+    onBack: () -> Unit,
+    showBack: Boolean = true,
+    viewModel: PrivacySettingsViewModel = hiltViewModel(),
+) {
+    val crowdOptIn by viewModel.crowdStatsOptIn.collectAsStateWithLifecycle()
+    val cloudBackup by viewModel.cloudBackupEnabled.collectAsStateWithLifecycle()
+    val tabletChrome = useNavigationRail()
+
+    SoftAppPageScaffold(
+        title = stringResource(R.string.privacy_screen_title),
+        showBack = showBack && !tabletChrome,
+        onBack = onBack,
+        showPhoneMenu = false,
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            PrivacyTrustCard(
+                icon = Icons.Filled.Lock,
+                title = stringResource(R.string.privacy_card_loads_title),
+                body = stringResource(
+                    if (cloudBackup) R.string.privacy_card_loads_body_cloud
+                    else R.string.privacy_card_loads_body_device,
+                ),
+            )
+            PrivacyTrustCard(
+                icon = Icons.Filled.Groups,
+                title = stringResource(R.string.privacy_card_crowd_title),
+                body = stringResource(R.string.privacy_card_crowd_body),
+                trailing = {
+                    Switch(
+                        checked = crowdOptIn,
+                        onCheckedChange = viewModel::setCrowdStatsOptIn,
+                        colors = AppSwitchDefaults.colors(),
+                    )
+                },
+            )
+            PrivacyTrustCard(
+                icon = Icons.Filled.Person,
+                title = stringResource(R.string.privacy_card_friends_title),
+                body = stringResource(R.string.privacy_card_friends_body),
+            )
+        }
+    }
+}

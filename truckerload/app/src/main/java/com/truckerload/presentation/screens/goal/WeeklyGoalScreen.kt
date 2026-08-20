@@ -20,6 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Timeline
+import androidx.compose.material.icons.outlined.WarningAmber
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
 import com.truckerload.presentation.components.TlButton as Button
@@ -358,10 +361,7 @@ private fun GoalHeroCard(
 @Composable
 private fun GoalPaceMetrics(progress: com.truckerload.domain.goal.WeeklyGoalProgress) {
     val tc = LocalTruckColors.current
-    val daysAccent = when (progress.paceStatus) {
-        PaceStatus.BEHIND -> tc.AccentExpense
-        else -> tc.TextSecondary
-    }
+    val daysAccent = tc.pace(progress.paceStatus)
     val paceMatched = kotlin.math.abs(progress.actualDailyYield - progress.dailyTargetNeeded) < 1.0
 
     Row(
@@ -431,7 +431,7 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
         PaceStatus.GOAL_MET -> Triple(
             stringResource(R.string.goal_pace_met_title),
             stringResource(R.string.goal_pace_met_short, MoneyFormat.formatCurrency(progress.currentGross)),
-            FinanceCockpitColors.NetProfitStart,
+            tc.Success,
         )
         PaceStatus.AHEAD -> Triple(
             stringResource(R.string.goal_pace_ahead_title),
@@ -440,7 +440,7 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
                 MoneyFormat.formatCurrency(progress.actualDailyYield),
                 MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
             ),
-            FinanceCockpitColors.NetProfitStart,
+            tc.Success,
         )
         PaceStatus.ON_TRACK -> Triple(
             stringResource(R.string.goal_pace_on_track_title),
@@ -449,7 +449,7 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
                 MoneyFormat.formatCurrency(progress.actualDailyYield),
                 progress.daysRemainingInWeek,
             ),
-            FinanceCockpitColors.SalaryAccent,
+            tc.Warning,
         )
         PaceStatus.BEHIND -> Triple(
             stringResource(R.string.ux_loss_goal_behind_title),
@@ -459,8 +459,14 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
                 progress.daysRemainingInWeek,
                 MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
             ),
-            tc.AccentWarning,
+            tc.Danger,
         )
+    }
+
+    val paceIcon = when (progress.paceStatus) {
+        PaceStatus.GOAL_MET, PaceStatus.AHEAD -> Icons.Outlined.CheckCircle
+        PaceStatus.ON_TRACK -> Icons.Outlined.Timeline
+        PaceStatus.BEHIND -> Icons.Outlined.WarningAmber
     }
 
     BentoGlassCard(
@@ -468,7 +474,18 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
         useCream = true,
         content = {
             Column(modifier = Modifier.padding(18.dp)) {
-                Text(title, style = AppTypography.CardTitle.copy(color = accent))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        imageVector = paceIcon,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(22.dp),
+                    )
+                    Text(title, style = AppTypography.CardTitle.copy(color = accent))
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(body, style = AppTypography.Body)
             }
