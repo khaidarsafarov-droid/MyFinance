@@ -7,8 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -19,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.friends.FriendProfileHit
@@ -40,9 +43,16 @@ fun FriendsAddByNicknameForm(
     onSearch: () -> Unit,
     onAdd: () -> Unit,
     modifier: Modifier = Modifier,
+    addBusy: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val actionsLocked = searchBusy || addBusy
+    fun runSearch() {
+        focusManager.clearFocus()
+        onSearch()
+    }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.friends_add_by_nickname_title),
@@ -64,17 +74,20 @@ fun FriendsAddByNicknameForm(
                 onValueChange = onQueryChange,
                 label = { Text(stringResource(R.string.friends_search_nickname_label)) },
                 singleLine = true,
+                enabled = !addBusy,
                 modifier = Modifier.weight(1f),
                 colors = AppTextFieldDefaults.outlined(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { runSearch() }),
             )
             Button(
-                onClick = onSearch,
-                enabled = !searchBusy,
+                onClick = { runSearch() },
+                enabled = !actionsLocked,
             ) {
                 if (searchBusy) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(Icons.Default.PersonAdd, contentDescription = null)
+                    Text(stringResource(R.string.common_search))
                 }
             }
         }
@@ -86,9 +99,14 @@ fun FriendsAddByNicknameForm(
             )
             Button(
                 onClick = onAdd,
+                enabled = !actionsLocked,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(R.string.friends_request_send_button))
+                if (addBusy) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Text(stringResource(R.string.friends_request_send_button))
+                }
             }
         }
         FriendRequestStatusText(statusMessage)

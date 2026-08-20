@@ -48,6 +48,7 @@ fun FriendsDirectoryPanel(
                 onQueryChange = viewModel::setSearchQuery,
                 onSearch = viewModel::searchFriend,
                 onAdd = viewModel::addSearchedFriend,
+                addBusy = uiState.addBusy,
             )
             FriendRequestsSection(
                 incoming = uiState.incomingRequests,

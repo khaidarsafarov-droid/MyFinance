@@ -174,11 +174,12 @@ class FriendsMapViewModel @Inject constructor(
     fun addSearchedFriend() {
         viewModelScope.launch {
             val hit = _uiState.value.searchHit ?: return@launch
+            _uiState.update { it.copy(addBusy = true, errorMessage = null) }
             val send = safetyApi.sendFriendRequest(hit.userId)
             val result = send.fold(
                 onSuccess = { Result.success(it) },
                 onFailure = { err ->
-                    if (err.message == FriendSafetyClient.ERROR_SAFETY_SCHEMA_MISSING) {
+                    if (FriendSafetyClient.shouldFallbackToDirectAdd(err.message)) {
                         friendsApi.addFriend(hit).map { FriendRequestSendResult.ADDED_DIRECT }
                     } else {
                         Result.failure(err)
@@ -197,13 +198,17 @@ class FriendsMapViewModel @Inject constructor(
                     it.copy(
                         searchHit = null,
                         searchQuery = "",
+                        addBusy = false,
                         statusMessage = sendResult?.statusKey() ?: "request_sent",
                     )
                 }
                 refresh(silent = true)
             } else {
                 _uiState.update {
-                    it.copy(errorMessage = result.exceptionOrNull()?.message ?: "add failed")
+                    it.copy(
+                        addBusy = false,
+                        errorMessage = result.exceptionOrNull()?.message ?: "add failed",
+                    )
                 }
             }
         }

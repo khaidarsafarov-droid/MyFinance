@@ -109,6 +109,15 @@ class FriendSafetyClient(
                 (m.contains("does not exist") && m.contains("friend_request"))
         }
 
+        /** When the request RPC is unavailable, callers may insert a direct friend_links row. */
+        fun shouldFallbackToDirectAdd(errorMessage: String?): Boolean {
+            val msg = errorMessage.orEmpty()
+            if (msg == ERROR_SAFETY_SCHEMA_MISSING || msg.equals("offline", ignoreCase = true)) {
+                return true
+            }
+            return isMissingRpc(msg)
+        }
+
         internal fun parseRequests(json: String): List<FriendRequest> {
             val arr = JSONArray(json.ifBlank { "[]" })
             return buildList {

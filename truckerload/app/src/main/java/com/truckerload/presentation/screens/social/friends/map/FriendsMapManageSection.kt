@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.social.friends.map
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
@@ -23,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.friends.FriendLiveStatus
 import com.truckerload.domain.friends.sortShareLinksByLiveStatus
-import com.truckerload.presentation.screens.social.friends.FriendsAddByNicknameForm
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @Composable
@@ -44,8 +39,6 @@ fun FriendsMapManageSection(
     viewModel: FriendsMapViewModel,
     manageExpanded: Boolean,
     onManageExpandedChange: (Boolean) -> Unit,
-    addFriendExpanded: Boolean,
-    onAddFriendExpandedChange: (Boolean) -> Unit,
     onFocusFriend: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
@@ -59,12 +52,6 @@ fun FriendsMapManageSection(
             updatedAtByUserId = overlayById.mapValues { it.value.presence.updatedAtMillis },
             nowMillis = nowMillis,
         )
-    }
-
-    LaunchedEffect(uiState.statusMessage) {
-        if (uiState.statusMessage in setOf("added", "request_sent", "accepted")) {
-            onAddFriendExpandedChange(false)
-        }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -88,17 +75,6 @@ fun FriendsMapManageSection(
                         .clickable { onManageExpandedChange(!manageExpanded) }
                         .padding(vertical = 8.dp),
                 )
-                FriendsAddFriendHeaderButton(
-                    expanded = addFriendExpanded,
-                    onClick = {
-                        if (!addFriendExpanded) {
-                            onManageExpandedChange(true)
-                            onAddFriendExpandedChange(true)
-                        } else {
-                            onAddFriendExpandedChange(false)
-                        }
-                    },
-                )
                 FriendsSectionOverflowMenu(
                     onOverlap = {
                         onManageExpandedChange(true)
@@ -115,37 +91,8 @@ fun FriendsMapManageSection(
             }
         }
 
-        if (manageExpanded || addFriendExpanded) {
+        if (manageExpanded) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (!uiState.supabaseReady) {
-                    Text(
-                        text = stringResource(R.string.friends_live_need_supabase),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.AccentPrimary,
-                    )
-                }
-
-                AnimatedVisibility(visible = addFriendExpanded) {
-                    FriendsAddByNicknameForm(
-                        searchQuery = uiState.searchQuery,
-                        searchBusy = uiState.searchBusy,
-                        searchHit = uiState.searchHit,
-                        searchNotFound = uiState.searchNotFound,
-                        statusMessage = uiState.statusMessage,
-                        onQueryChange = viewModel::setSearchQuery,
-                        onSearch = viewModel::searchFriend,
-                        onAdd = viewModel::addSearchedFriend,
-                    )
-                }
-
-                FriendRequestsSection(
-                    incoming = uiState.incomingRequests,
-                    outgoing = uiState.outgoingRequests,
-                    onAccept = viewModel::acceptFriendRequest,
-                    onDecline = viewModel::declineFriendRequest,
-                    onCancel = viewModel::cancelFriendRequest,
-                )
-
                 if (uiState.showOverlapsPanel) {
                     Text(
                         text = stringResource(R.string.friends_overlap_title),
@@ -234,22 +181,5 @@ private fun FriendsSectionOverflowMenu(
                 },
             )
         }
-    }
-}
-
-/** Compact + / close control for the manage-section header. */
-@Composable
-fun FriendsAddFriendHeaderButton(
-    expanded: Boolean,
-    onClick: () -> Unit,
-) {
-    IconButton(onClick = onClick) {
-        Icon(
-            imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
-            contentDescription = stringResource(
-                if (expanded) R.string.friends_add_friend_close_cd else R.string.friends_add_friend_cd,
-            ),
-            tint = LocalTruckColors.current.TextPrimary,
-        )
     }
 }

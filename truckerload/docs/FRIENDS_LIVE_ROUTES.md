@@ -5,6 +5,8 @@ Run in Supabase SQL editor (in order):
 1. `supabase/migrations/20260730_friends_live_routes.sql`
 2. `supabase/migrations/20260731_friend_nicknames.sql`
 3. `supabase/migrations/20260818_community_live.sql` (Community chats / leaderboard / voice)
+4. `supabase/migrations/20260819_friend_requests_and_safety.sql`
+5. `supabase/migrations/20260820_search_nickname_community_profiles.sql`
 
 See `docs/COMMUNITY.md`.
 
@@ -56,7 +58,7 @@ an in-app warning.
 ## In-app
 1. Menu → **Друзья на карте** (иконка «добавить человека»)
 2. Set **мой никнейм** (unique handle)
-3. Search friend by nickname → Add, or invite if not found
+3. Search friend by nickname in the form on the map → Send request, or invite if not found
 4. List **С кем я делюсь**: edit (show me / show route) or delete
 5. Toggle **Показывать мой путь друзьям** (фоновые пинги через WorkManager, не постоянный GPS)
 6. Markers = live positions; **Показать его путь** = gray (past) + blue (remaining)

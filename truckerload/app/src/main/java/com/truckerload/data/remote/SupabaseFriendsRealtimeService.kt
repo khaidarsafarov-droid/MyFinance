@@ -45,7 +45,13 @@ class SupabaseFriendsRealtimeService(
                 .put("id", userId)
                 .put("nickname", handle)
             if (!fullName.isNullOrBlank()) body.put("full_name", fullName)
-            upsert("profiles", body, token, onConflict = "id").mapSchemaErrors()
+            val profiles = upsert("profiles", body, token, onConflict = "id").mapSchemaErrors()
+            val community = JSONObject()
+                .put("user_id", userId)
+                .put("nickname", handle)
+                .put("updated_at", Instant.now().toString())
+            upsert("community_profiles", community, token, onConflict = "user_id")
+            profiles
         }
 
     suspend fun searchByNickname(nickname: String): Result<FriendProfileHit?> =
@@ -54,31 +60,42 @@ class SupabaseFriendsRealtimeService(
             if (token.isBlank()) return@withContext Result.failure(IllegalStateException("no token"))
             val handle = NicknameValidator.sanitizeOrNull(nickname)
                 ?: return@withContext Result.success(null)
-            val body = JSONObject().put("p_nickname", handle).toString()
-            val req = Request.Builder()
-                .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/rpc/search_profile_by_nickname")
-                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .post(body.toRequestBody("application/json".toMediaType()))
-                .build()
-            runCatching {
-                client.newCall(req).execute().use { resp ->
-                    val text = resp.body?.string().orEmpty()
-                    if (!resp.isSuccessful) error("search nickname HTTP ${resp.code}: $text")
-                    val arr = JSONArray(text)
-                    if (arr.length() == 0) return@runCatching null
-                    val o = arr.getJSONObject(0)
-                    FriendProfileHit(
-                        userId = o.optString("user_id"),
-                        nickname = o.optString("nickname"),
-                        displayName = o.optString("nickname").ifBlank {
-                            o.optString("full_name").ifBlank { o.optString("nickname") }
-                        },
-                    )
-                }
+            val fromRpc = searchRpcByNickname(handle, token)
+            val rpcHit = fromRpc.getOrNull()
+            if (rpcHit != null && rpcHit.userId.isNotBlank()) return@withContext Result.success(rpcHit)
+            val fromCommunity = searchCommunityProfile(handle, token)
+            val communityHit = fromCommunity.getOrNull()
+            if (communityHit != null && communityHit.userId.isNotBlank()) {
+                return@withContext Result.success(communityHit)
+            }
+            if (fromRpc.isFailure && fromCommunity.isFailure) return@withContext fromRpc
+            Result.success(null)
+        }
+
+    private fun searchRpcByNickname(handle: String, token: String): Result<FriendProfileHit?> {
+        val body = JSONObject().put("p_nickname", handle).toString()
+        val req = Request.Builder()
+            .url("${BuildConfig.SUPABASE_URL.trimEnd('/')}/rest/v1/rpc/search_profile_by_nickname")
+            .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            .header("Authorization", "Bearer $token")
+            .header("Content-Type", "application/json")
+            .post(body.toRequestBody("application/json".toMediaType()))
+            .build()
+        return runCatching {
+            client.newCall(req).execute().use { resp ->
+                val text = resp.body?.string().orEmpty()
+                if (!resp.isSuccessful) error("search nickname HTTP ${resp.code}: $text")
+                parseSearchHit(text)
             }
         }
+    }
+
+    private fun searchCommunityProfile(handle: String, token: String): Result<FriendProfileHit?> {
+        val encoded = java.net.URLEncoder.encode(handle, "UTF-8")
+        return get("community_profiles?select=user_id,nickname&nickname=eq.$encoded", token).mapCatching { json ->
+            parseSearchHit(json)
+        }
+    }
 
     suspend fun listMyFriendLinks(): Result<List<FriendShareLink>> = withContext(Dispatchers.IO) {
         val userId = authStore.currentUserIdOrNull()
@@ -390,6 +407,28 @@ class SupabaseFriendsRealtimeService(
             return m.contains("23505") ||
                 m.contains("duplicate") ||
                 m.contains("profiles_nickname_lower")
+        }
+
+        fun parseSearchHit(json: String): FriendProfileHit? {
+            val trimmed = json.trim()
+            if (trimmed.isBlank() || trimmed == "null") return null
+            val arr = if (trimmed.startsWith("[")) {
+                JSONArray(trimmed)
+            } else {
+                JSONArray().put(JSONObject(trimmed))
+            }
+            if (arr.length() == 0) return null
+            val o = arr.optJSONObject(0) ?: return null
+            val userId = o.optString("user_id").ifBlank { o.optString("id") }
+            if (userId.isBlank()) return null
+            val nickname = o.optString("nickname")
+            return FriendProfileHit(
+                userId = userId,
+                nickname = nickname,
+                displayName = nickname.ifBlank {
+                    o.optString("full_name").ifBlank { nickname }
+                },
+            )
         }
     }
 

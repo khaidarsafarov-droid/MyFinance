@@ -33,4 +33,12 @@ class FriendSafetyClientParseTest {
         assertEquals("DriverTwo", parsed[0].peerNickname)
         assertEquals(FriendRequestDirection.OUTGOING, parsed[1].direction)
     }
+
+    @Test
+    fun fallsBackToDirectAddWhenRequestRpcIsMissing() {
+        assertEquals(true, FriendSafetyClient.shouldFallbackToDirectAdd("schema_friend_safety_missing"))
+        assertEquals(true, FriendSafetyClient.shouldFallbackToDirectAdd("offline"))
+        assertEquals(true, FriendSafetyClient.shouldFallbackToDirectAdd("Could not find the function send_friend_request"))
+        assertEquals(false, FriendSafetyClient.shouldFallbackToDirectAdd("invalid request"))
+    }
 }
