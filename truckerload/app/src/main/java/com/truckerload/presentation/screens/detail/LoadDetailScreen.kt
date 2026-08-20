@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -61,7 +60,9 @@ import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.presentation.components.DisputeSection
+import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.StatBox
+import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
@@ -143,13 +144,6 @@ fun LoadDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.load_detail_cd_edit),
-                            tint = tc.TextPrimary,
-                        )
-                    }
                     IconButton(
                         onClick = { showDeleteConfirm = true },
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
@@ -166,6 +160,16 @@ fun LoadDetailScreen(
                     titleContentColor = tc.TextPrimary,
                 ),
             )
+        },
+        bottomBar = {
+            OneUiBottomActionBar {
+                Button(
+                    onClick = onEdit,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) {
+                    Text(stringResource(R.string.common_edit))
+                }
+            }
         },
     ) { padding ->
         when {
@@ -220,6 +224,7 @@ fun LoadDetailScreen(
                             title = stringResource(R.string.load_detail_stat_total_rate),
                             value = "$${String.format(Locale.US, "%.2f", l.totalRate)}",
                             modifier = Modifier.weight(1f),
+                            hero = true,
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_miles),
@@ -230,6 +235,7 @@ fun LoadDetailScreen(
                             title = stringResource(R.string.load_detail_stat_rpm),
                             value = formatRpm(l.totalRate, l.totalMiles, stringResource(R.string.rpm_per_mile_format)),
                             modifier = Modifier.weight(1f),
+                            hero = true,
                         )
                     }
                     Row(

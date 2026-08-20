@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
@@ -28,12 +29,15 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
+import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
+import com.truckerload.presentation.theme.forestDarkColorScheme
+import com.truckerload.presentation.theme.forestLightColorScheme
 import com.truckerload.widget.WidgetDataStore
 import com.truckerload.widget.WidgetDeepLink
 import com.truckerload.widget.WidgetProgressRingBitmap
@@ -55,7 +59,9 @@ internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val stats = WidgetDataStore.load(context)
-        provideContent { SquareContent(context, stats) }
+        provideContent {
+            ForestGlanceTheme { SquareContent(context, stats) }
+        }
     }
 }
 
@@ -64,7 +70,9 @@ internal class OneUiWideGlanceWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val stats = WidgetDataStore.load(context)
-        provideContent { WideContent(context, stats) }
+        provideContent {
+            ForestGlanceTheme { WideContent(context, stats) }
+        }
     }
 }
 
@@ -74,6 +82,17 @@ class OneUiSquareGlanceReceiver : GlanceAppWidgetReceiver() {
 
 class OneUiWideGlanceReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = OneUiWideGlanceWidget()
+}
+
+@Composable
+private fun ForestGlanceTheme(content: @Composable () -> Unit) {
+    GlanceTheme(
+        colors = ColorProviders(
+            light = forestLightColorScheme(),
+            dark = forestDarkColorScheme(),
+        ),
+        content = content,
+    )
 }
 
 @Composable
@@ -111,11 +130,11 @@ private fun SquareContent(context: Context, stats: WidgetStats) {
                 style = labelStyle(),
                 maxLines = 1,
             )
-            Text(
-                text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
-                style = heroStyle(),
-                maxLines = 1,
-            )
+                Text(
+                    text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
+                    style = heroStyle(compact = true),
+                    maxLines = 1,
+                )
             Text(
                 text = if (stats.weeklyProfitGoal > 0) {
                     context.getString(R.string.widget_ring_percent_decimal, progress.toDouble())
@@ -170,7 +189,7 @@ private fun WideContent(context: Context, stats: WidgetStats) {
             Column(modifier = GlanceModifier.defaultWeight()) {
                 Text(
                     text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
-                    style = heroStyle(),
+                    style = heroStyle(compact = false),
                     maxLines = 1,
                 )
                 Text(
@@ -195,8 +214,8 @@ private fun WideContent(context: Context, stats: WidgetStats) {
                 Text(
                     text = WidgetStatsFormatter.formatRpmPerMile(context, rpm),
                     style = TextStyle(
-                        color = ColorProvider(R.color.widget_text_primary),
-                        fontSize = 18.sp,
+                        color = GlanceTheme.colors.onSurface,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                     ),
                     maxLines = 1,
@@ -207,7 +226,7 @@ private fun WideContent(context: Context, stats: WidgetStats) {
         LinearProgressIndicator(
             progress = progress,
             modifier = GlanceModifier.fillMaxWidth().height(6.dp),
-            color = ColorProvider(R.color.widget_progress_fill),
+            color = GlanceTheme.colors.primary,
             backgroundColor = ColorProvider(R.color.widget_progress_track),
         )
     }
@@ -215,15 +234,15 @@ private fun WideContent(context: Context, stats: WidgetStats) {
 
 @Composable
 private fun labelStyle() = TextStyle(
-    color = ColorProvider(R.color.widget_text_secondary),
+    color = GlanceTheme.colors.onSurfaceVariant,
     fontSize = 11.sp,
     fontWeight = FontWeight.Medium,
 )
 
 @Composable
-private fun heroStyle() = TextStyle(
-    color = ColorProvider(R.color.widget_text_primary),
-    fontSize = 22.sp,
+private fun heroStyle(compact: Boolean) = TextStyle(
+    color = GlanceTheme.colors.onSurface,
+    fontSize = if (compact) 28.sp else 36.sp,
     fontWeight = FontWeight.Bold,
 )
 

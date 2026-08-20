@@ -71,8 +71,10 @@ object WidgetProgressRingBitmap {
 
     fun progressColorForStatus(context: Context, paceStatus: String, goalMet: Boolean): Int =
         when {
-            goalMet -> WidgetThemeColors.tertiary(context)
-            paceStatus == "BEHIND" -> WidgetThemeColors.error(context)
+            goalMet || paceStatus == "GOAL_MET" || paceStatus == "AHEAD" ->
+                WidgetThemeColors.success(context)
+            paceStatus == "ON_TRACK" -> WidgetThemeColors.warning(context)
+            paceStatus == "BEHIND" -> WidgetThemeColors.danger(context)
             else -> WidgetThemeColors.primary(context)
         }
 }

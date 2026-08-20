@@ -47,7 +47,9 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -188,6 +190,22 @@ fun AddPaycheckScreen(
                 ),
             )
         },
+        bottomBar = {
+            OneUiBottomActionBar {
+                Button(
+                    onClick = viewModel::openSaveDialog,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    enabled = !uiState.isSaving,
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+                uiState.error?.let {
+                    Text(it, color = tc.Danger, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -228,6 +246,14 @@ fun AddPaycheckScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = AppTextFieldDefaults.outlined(),
                     )
+                    val parsedAmount = uiState.amountText.replace(",", "").toDoubleOrNull()
+                    if (parsedAmount != null) {
+                        Text(
+                            text = MoneyFormat.formatCurrency(parsedAmount),
+                            style = AppTypography.HeroNumber,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
                     val last = uiState.lastAmount
                     if (last != null && uiState.amountText.isBlank()) {
                         TextButton(
@@ -243,18 +269,6 @@ fun AddPaycheckScreen(
                         }
                     }
                 }
-            }
-            Button(
-                onClick = viewModel::openSaveDialog,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                enabled = !uiState.isSaving,
-            ) {
-                Text(stringResource(R.string.common_save))
-            }
-            uiState.error?.let {
-                Text(it, color = tc.AccentExpense, modifier = Modifier.padding(top = 8.dp))
             }
         }
     }

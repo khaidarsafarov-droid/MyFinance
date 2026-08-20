@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -202,6 +201,7 @@ fun BentoGlassMetricCell(
     value: String,
     accent: Color,
     highlight: Boolean = false,
+    hero: Boolean = false,
 ) {
     val cs = MaterialTheme.colorScheme
     val shape = remember { SoftUiShapes.Chip }
@@ -225,18 +225,11 @@ fun BentoGlassMetricCell(
                 .heightIn(min = 40.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
         ) {
-            Text(text = label, style = AppTypography.CaptionMuted.copy(
-                color = cs.onSurface,
-                fontWeight = FontWeight.SemiBold,
-            ))
+            Text(text = label, style = AppTypography.CaptionMuted)
             Text(
                 text = value,
-                style = if (highlight) {
-                    AppTypography.NumbersLarge.copy(fontSize = AppTypography.NumbersMetric.fontSize)
-                } else {
-                    AppTypography.NumbersMetric
-                },
-                color = accent,
+                style = if (hero) AppTypography.HeroNumberCompact else AppTypography.NumbersMetric,
+                color = if (hero) LocalTruckColors.current.TextNumbers else accent,
                 modifier = Modifier.padding(top = 6.dp),
             )
         }

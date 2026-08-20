@@ -19,51 +19,53 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.truckerload.data.preferences.AppThemeMode
 
-/** One UI light fallback when Material You is off or API < 31. */
-private fun staticLightColorScheme(): ColorScheme = lightColorScheme(
-    primary = SoftUiColors.ForestAccent,
+/** Mindwell Forest light scheme — dedicated tokens, not an invert of dark. */
+internal fun forestLightColorScheme(): ColorScheme = lightColorScheme(
+    primary = SoftUiColors.ForestPrimary,
     onPrimary = Color.White,
     primaryContainer = SoftUiColors.Sage,
     onPrimaryContainer = SoftUiColors.ForestPrimary,
-    secondary = SoftUiColors.ForestMuted,
+    secondary = SoftUiColors.ForestAccent,
     onSecondary = Color.White,
     secondaryContainer = SoftUiColors.ShellBg,
     onSecondaryContainer = SoftUiColors.ForestPrimary,
-    tertiary = SoftUiColors.ForestSoft,
-    onTertiary = SoftUiColors.ForestPrimary,
-    tertiaryContainer = SoftUiColors.Sage,
+    tertiary = SemanticColors.Light.success,
+    onTertiary = Color.White,
+    tertiaryContainer = SemanticColors.Light.successContainer,
     onTertiaryContainer = SoftUiColors.ForestPrimary,
-    error = Color(0xFFB42318),
+    error = SemanticColors.Light.danger,
     onError = Color.White,
     background = SoftUiColors.ContentBg,
     onBackground = SoftUiColors.ForestPrimary,
     surface = SoftUiColors.SurfaceLight,
     onSurface = SoftUiColors.ForestPrimary,
     surfaceVariant = SoftUiColors.ShellBg,
-    onSurfaceVariant = SoftUiColors.ForestMuted,
+    onSurfaceVariant = SoftUiColors.TextSecondaryLight,
     outline = SoftUiColors.CardBorder,
     outlineVariant = SoftUiColors.SageBorder,
 )
 
-private fun staticDarkColorScheme(): ColorScheme {
+/** Dedicated dark-cabin scheme — graphite-green, not a programmatic invert. */
+internal fun forestDarkColorScheme(): ColorScheme {
     val background = SoftUiColors.BackgroundDark
     val surface = SoftUiColors.SurfaceDark
     val surfaceVariant = SoftUiColors.SurfaceMutedDark
+    val semantic = SemanticColors.Dark
     return darkColorScheme(
-        primary = SoftUiColors.ForestAccent,
-        onPrimary = Color.White,
-        primaryContainer = surfaceVariant,
+        primary = SoftUiColors.ForestAccentDark,
+        onPrimary = SoftUiColors.OnForestAccentDark,
+        primaryContainer = Color(0xFF244A36),
         onPrimaryContainer = SoftUiColors.Sage,
         secondary = SoftUiColors.ForestSoft,
         onSecondary = background,
         secondaryContainer = surfaceVariant,
         onSecondaryContainer = SoftUiColors.Sage,
-        tertiary = SoftUiColors.ForestSoft,
+        tertiary = semantic.success,
         onTertiary = background,
-        tertiaryContainer = surfaceVariant,
+        tertiaryContainer = semantic.successContainer,
         onTertiaryContainer = SoftUiColors.Sage,
-        error = Color(0xFFF87171),
-        onError = Color(0xFF450A0A),
+        error = semantic.danger,
+        onError = Color(0xFF3D1A18),
         background = background,
         onBackground = SoftUiColors.TextPrimaryDark,
         surface = surface,
@@ -85,8 +87,8 @@ private fun resolveColorScheme(
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> staticDarkColorScheme()
-        else -> staticLightColorScheme()
+        darkTheme -> forestDarkColorScheme()
+        else -> forestLightColorScheme()
     }
 }
 
@@ -108,7 +110,8 @@ fun TruckerLoadTheme(
         resolveColorScheme(darkTheme, dynamicColor),
         oled = oledDark && darkTheme,
     )
-    val truckColors = truckPaletteFrom(colorScheme)
+    val semantic = SemanticColors.forDark(darkTheme)
+    val truckColors = truckPaletteFrom(colorScheme, semantic)
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -129,6 +132,7 @@ fun TruckerLoadTheme(
 
     CompositionLocalProvider(
         LocalTruckColors provides truckColors,
+        LocalSemanticColors provides semantic,
         LocalAppThemeMode provides themeMode,
         LocalDynamicColorEnabled provides dynamicColor,
         LocalReduceMotion provides effectiveReduceMotion,

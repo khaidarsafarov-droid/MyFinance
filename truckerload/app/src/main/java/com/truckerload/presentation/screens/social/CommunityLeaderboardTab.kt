@@ -216,8 +216,8 @@ private fun LeaderboardEntryRow(
         }
         Text(
             text = "${formatLeaderboardScore(category, entry.score)} ${entry.trend}",
-            style = AppTypography.Subtitle,
-            color = tc.TextSecondary,
+            style = AppTypography.HeroNumberCompact,
+            color = tc.TextNumbers,
             textAlign = TextAlign.End,
             modifier = Modifier.width(96.dp),
         )

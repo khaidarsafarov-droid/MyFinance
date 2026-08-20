@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,11 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -66,7 +64,8 @@ internal fun PeriodSummarySection(
         miles,
         rpmCd,
     )
-    val soft = SoftUiColors.ForestSoft
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
+    val onPrimaryMuted = onPrimary.copy(alpha = 0.88f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -82,9 +81,9 @@ internal fun PeriodSummarySection(
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
         Icon(
-            imageVector = Icons.Filled.LocalShipping,
+            imageVector = Icons.Outlined.LocalShipping,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.10f),
+            tint = onPrimary.copy(alpha = 0.10f),
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 4.dp, end = 4.dp)
@@ -93,7 +92,7 @@ internal fun PeriodSummarySection(
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = header.label.uppercase(),
-                style = AppTypography.Caption.copy(color = soft),
+                style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
             )
             // Gross left; miles + avg RPM stacked right so the label never wraps alone.
             Row(
@@ -105,10 +104,7 @@ internal fun PeriodSummarySection(
             ) {
                 Text(
                     text = gross,
-                    style = AppTypography.NumbersLarge.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                    ),
+                    style = AppTypography.HeroNumberOnDark,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
@@ -119,7 +115,7 @@ internal fun PeriodSummarySection(
                 ) {
                     Text(
                         text = miles,
-                        style = AppTypography.Body.copy(color = soft),
+                        style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
                         maxLines = 1,
                     )
                     Row(
@@ -128,15 +124,12 @@ internal fun PeriodSummarySection(
                     ) {
                         Text(
                             text = rpmValue,
-                            style = AppTypography.Body.copy(
-                                color = soft,
-                                fontWeight = FontWeight.SemiBold,
-                            ),
+                            style = AppTypography.HeroNumberCompact.copy(color = onPrimary),
                             maxLines = 1,
                         )
                         Text(
                             text = rpmLabel,
-                            style = AppTypography.Caption.copy(color = soft),
+                            style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
                             maxLines = 1,
                         )
                     }

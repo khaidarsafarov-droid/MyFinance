@@ -16,7 +16,7 @@ object DarkGlassTokens {
     val AccentPurple = SoftUiColors.PurpleStart
     val TextPrimary = SoftUiColors.TextPrimaryLight
     val TextSecondary = SoftUiColors.TextSecondaryLight
-    val TextMuted = Color(0xFF9CA3AF)
+    val TextMuted = SoftUiColors.TextSecondaryLight
     val TextNumbers = SoftUiColors.TextPrimaryLight
     val Success = AppColors.RpmGreen
     val Warning = AppColors.RpmYellow

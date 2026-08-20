@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
-import com.truckerload.presentation.theme.AppColors
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
@@ -114,7 +113,7 @@ fun DisputeSection(
         if (load.hadDispute) {
             DisputeBadge(
                 label = stringResource(R.string.dispute_was_dispute),
-                color = AppColors.RpmGreen,
+                color = tc.Success,
             )
             load.disputeResponseDate?.let { date ->
                 Text(
@@ -158,7 +157,7 @@ fun DisputeSection(
         if (load.isActiveDispute) {
             DisputeBadge(
                 label = stringResource(R.string.dispute_active),
-                color = tc.AccentExpense,
+                color = tc.Danger,
             )
             OutlinedTextField(
                 value = load.disputeResponseDate.orEmpty(),
