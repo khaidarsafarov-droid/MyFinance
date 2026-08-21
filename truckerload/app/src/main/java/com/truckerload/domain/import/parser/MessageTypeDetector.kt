@@ -10,6 +10,7 @@ object MessageTypeDetector {
 
         return when {
             TelegramHtmlExportParser.isTelegramExport(trimmed) -> ImportMessageType.TELEGRAM_HTML
+            TelegramJsonExportParser.isTelegramJsonExport(trimmed) -> ImportMessageType.TELEGRAM_JSON
             isHtml(trimmed) -> ImportMessageType.HTML
             isExportFormat(trimmed) -> ImportMessageType.EXPORT_TEXT
             isCsv(trimmed) -> ImportMessageType.CSV

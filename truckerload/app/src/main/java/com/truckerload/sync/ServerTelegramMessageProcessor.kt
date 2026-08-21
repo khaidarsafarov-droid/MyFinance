@@ -37,7 +37,10 @@ class ServerTelegramMessageProcessor(
         if (shouldIgnore(text)) return ServerInboxProcessingResult.IGNORED
         val messageDateSeconds = receivedAtMillis.takeIf { it > 0 }?.div(1000)
 
-        val loads = parser.parseLoadsFromMessage(text).getOrNull().orEmpty()
+        val loads = parser.parseLoadsFromMessage(
+            text,
+            messageDateSeconds?.times(1000) ?: System.currentTimeMillis(),
+        ).getOrNull().orEmpty()
         if (loads.isNotEmpty()) {
             loadHandler.handleLoads(
                 loads = loads,

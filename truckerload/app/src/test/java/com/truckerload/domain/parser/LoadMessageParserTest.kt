@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Calendar
 
 class LoadMessageParserTest {
 
@@ -73,6 +74,40 @@ class LoadMessageParserTest {
         assertEquals(2, loads.size)
         assertEquals("T-AAA111", loads[0].tripId)
         assertEquals("T-BBB222", loads[1].tripId)
+    }
+
+    @Test
+    fun `chat history headers pin Relay MM/DD to message year not today`() {
+        val now2026 = Calendar.getInstance().apply {
+            set(2026, Calendar.AUGUST, 21, 16, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val history = """
+            bruce, [05.07.2025 10:00]
+            Trip ID: T-JUL2025
+            Total Rate: ${'$'}1500.00
+            Total Loaded Miles: 400 mi
+            PU# PU1
+            Pu-time: 07/05 08:00 EDT
+            Pu-address: SWF2, Garner, NC
+            Del-time: 07/06 08:00 EDT
+            Del-address: TOL3, Perrysburg, OH
+
+            bruce, [21.08.2025 02:09]
+            Trip ID: T-AUG2025
+            Total Rate: ${'$'}1197.76
+            Total Loaded Miles: 425 mi
+            PU# PU2
+            Pu-time: 08/21 01:39 EDT
+            Pu-address: MDT5, Lewisberry, PA
+            Del-time: 08/21 03:32 EDT
+            Del-address: VENDOR-1, York, PA
+        """.trimIndent()
+
+        val loads = LoadMessageParser.parseAll(history, referenceMillis = now2026)
+        assertEquals(2, loads.size)
+        assertEquals("2025-07-05", loads.first { it.tripId == "T-JUL2025" }.date)
+        assertEquals("2025-08-21", loads.first { it.tripId == "T-AUG2025" }.date)
     }
 
     @Test
