@@ -3,7 +3,7 @@ package com.truckerload.backend
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import java.time.Instant
-import java.util.concurrent.TimeUnit
+import java.time.temporal.ChronoUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 class LiveKitAccessTokenTest {
     @Test
     fun `mints hs256 jwt with livekit video grants`() {
-        val now = Instant.parse("2026-08-19T04:00:00Z")
+        val now = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val jwt = LiveKitAccessToken("devkey", "super-secret").mint(
             identity = "11111111-1111-4111-8111-111111111111",
             name = "Alex",
@@ -22,7 +22,7 @@ class LiveKitAccessTokenTest {
         )
         val decoded = JWT.require(Algorithm.HMAC256("super-secret"))
             .withIssuer("devkey")
-            .acceptLeeway(TimeUnit.DAYS.toSeconds(1))
+            .acceptLeeway(5)
             .build()
             .verify(jwt)
         assertEquals("11111111-1111-4111-8111-111111111111", decoded.subject)
