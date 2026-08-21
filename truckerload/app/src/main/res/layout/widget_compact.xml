@@ -30,12 +30,16 @@
 
         <TextView
             android:id="@+id/widget_gross_hero"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:autoSizeMaxTextSize="22sp"
+            android:autoSizeMinTextSize="11sp"
+            android:autoSizeStepGranularity="1sp"
+            android:autoSizeTextType="uniform"
             android:ellipsize="end"
+            android:fontFeatureSettings="tnum"
             android:maxLines="1"
             android:textColor="@color/widget_hero_number"
-            android:fontFeatureSettings="tnum"
             android:textSize="@dimen/widget_amount_compact"
             android:textStyle="bold" />
 
@@ -67,9 +71,16 @@
 
         <TextView
             android:id="@+id/widget_ring_percent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:autoSizeMaxTextSize="11sp"
+            android:autoSizeMinTextSize="7sp"
+            android:autoSizeStepGranularity="1sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
             android:textColor="@color/widget_text_hint"
             android:textSize="@dimen/widget_percent_compact" />
 

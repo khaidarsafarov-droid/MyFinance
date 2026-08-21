@@ -18,11 +18,22 @@ object WidgetProgressRingBitmap {
         progressPercent: Float,
         sizePx: Int,
         progressColor: Int,
+    ): Bitmap = create(
+        progressPercent = progressPercent,
+        sizePx = sizePx,
+        progressColor = progressColor,
+        trackColor = WidgetThemeColors.surfaceVariant(context),
+    )
+
+    fun create(
+        progressPercent: Float,
+        sizePx: Int,
+        progressColor: Int,
+        trackColor: Int,
     ): Bitmap {
         val safeSize = sizePx.coerceAtLeast(48)
         val bitmap = createBitmap(safeSize, safeSize)
         val canvas = Canvas(bitmap)
-        val trackColor = WidgetThemeColors.surfaceVariant(context)
         val stroke = (safeSize * 0.13f).coerceIn(safeSize * 0.10f, safeSize * 0.16f)
         val inset = stroke / 2f + 1.5f
         val arcBounds = RectF(inset, inset, safeSize - inset, safeSize - inset)
@@ -62,13 +73,26 @@ object WidgetProgressRingBitmap {
     }
 
     @ColorRes
-    fun progressColorResForStatus(paceStatus: String, goalMet: Boolean): Int = when {
+    fun progressColorResForStatus(
+        paceStatus: String,
+        goalMet: Boolean,
+        daysRemaining: Int = Int.MAX_VALUE,
+    ): Int = when {
         goalMet || paceStatus == "GOAL_MET" || paceStatus == "AHEAD" -> R.color.widget_success
-        paceStatus == "ON_TRACK" -> R.color.widget_rpm_warn
-        paceStatus == "BEHIND" -> R.color.widget_rpm_bad
+        // On-track is healthy — Success, not Warning (yellow would look like a problem).
+        paceStatus == "ON_TRACK" -> R.color.widget_success
+        paceStatus == "BEHIND" && daysRemaining <= 1 -> R.color.widget_rpm_bad
+        paceStatus == "BEHIND" -> R.color.widget_rpm_warn
         else -> R.color.widget_primary
     }
 
-    fun progressColorForStatus(context: Context, paceStatus: String, goalMet: Boolean): Int =
-        ContextCompat.getColor(context, progressColorResForStatus(paceStatus, goalMet))
+    fun progressColorForStatus(
+        context: Context,
+        paceStatus: String,
+        goalMet: Boolean,
+        daysRemaining: Int = Int.MAX_VALUE,
+    ): Int = ContextCompat.getColor(
+        context,
+        progressColorResForStatus(paceStatus, goalMet, daysRemaining),
+    )
 }
