@@ -7,10 +7,7 @@ import com.truckerload.R
 import com.truckerload.data.assistant.SpeechToText
 import com.truckerload.data.assistant.SpeechToTextError
 import com.truckerload.data.assistant.SpeechToTextListener
-import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.voice.VoiceAssistantLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -28,9 +25,7 @@ class VoiceAssistantViewModel @Inject constructor(
     application: Application,
     private val speechToText: SpeechToText,
     private val dispatcher: GeminiFunctionDispatcher,
-    private val dieselRepository: DieselRepository,
-    private val paycheckRepository: PaycheckRepository,
-    private val lastUsedDefaultsStore: LastUsedDefaultsStore,
+    private val mutationWriter: JournalMutationWriter,
     private val settingsDataStore: SettingsDataStore,
 ) : AndroidViewModel(application) {
 
@@ -91,16 +86,7 @@ class VoiceAssistantViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    when (pending) {
-                        is PendingAssistantMutation.DieselDraft -> {
-                            dieselRepository.insertDiesel(pending.diesel)
-                            lastUsedDefaultsStore.saveDieselAmount(pending.diesel.totalAmount)
-                        }
-                        is PendingAssistantMutation.PaycheckDraft -> {
-                            paycheckRepository.insertPaycheck(pending.paycheck)
-                            lastUsedDefaultsStore.savePaycheckAmount(pending.paycheck.netAmount)
-                        }
-                    }
+                    mutationWriter.save(pending)
                 }
                 VoiceAssistantLogger.logOutcome("assistant", "saved")
                 _uiState.update {

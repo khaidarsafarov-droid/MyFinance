@@ -109,6 +109,7 @@
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
+            <!-- App Actions capabilities are declared in shortcuts.xml (actions.xml is deprecated). -->
         </activity>
         <service
             android:name=".sync.TelegramBotForegroundService"

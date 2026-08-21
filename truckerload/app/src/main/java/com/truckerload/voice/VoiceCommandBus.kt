@@ -39,9 +39,12 @@ object VoiceAssistantLogger {
     fun log(command: AppVoiceAction, outcome: String, detail: String? = null) {
         val action = when (command) {
             is AppVoiceAction.OpenScreen -> "open/${command.route}"
-            is AppVoiceAction.ChatWithFriend -> "chat/${command.peerQuery}"
-            is AppVoiceAction.MessageFriend -> "message/${command.peerQuery}"
-            is AppVoiceAction.CallFriend -> "call/${command.peerQuery}"
+            is AppVoiceAction.ChatWithFriend -> "chat"
+            is AppVoiceAction.MessageFriend -> "message"
+            is AppVoiceAction.CallFriend -> "call"
+            is AppVoiceAction.AddDiesel -> "journal/add_diesel"
+            is AppVoiceAction.AddPaycheck -> "journal/add_paycheck"
+            is AppVoiceAction.QueryWeeklyGross -> "journal/weekly_gross"
         }
         logOutcome(action, outcome, detail)
     }

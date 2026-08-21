@@ -16,10 +16,15 @@ import java.util.Locale
 
 class GeminiFunctionDispatcherTest {
 
+    private fun createDispatcher(
+        gemini: GeminiFunctionCallingClient = RecordingGemini(),
+        weekRepository: WeekRepository = mock(),
+    ) = GeminiFunctionDispatcher(gemini, JournalAssistantPreview(weekRepository))
+
     @Test
     fun emptyTranscriptIsAmbiguousWithoutCallingGemini() = runBlocking {
         val gemini = RecordingGemini()
-        val dispatcher = GeminiFunctionDispatcher(gemini, mock())
+        val dispatcher = createDispatcher(gemini)
         val result = dispatcher.interpret("   ", "ru")
         assertTrue(result is AssistantResult.Ambiguous)
         assertEquals(0, gemini.calls)
@@ -28,7 +33,7 @@ class GeminiFunctionDispatcherTest {
     @Test
     fun missingApiKeyFailsWithoutNetwork() = runBlocking {
         val gemini = RecordingGemini(configured = false)
-        val dispatcher = GeminiFunctionDispatcher(gemini, mock())
+        val dispatcher = createDispatcher(gemini)
         val result = dispatcher.interpret("добавь дизель 80", "ru")
         assertEquals(AssistantFailKind.NO_API_KEY, (result as AssistantResult.Failed).kind)
         assertEquals(0, gemini.calls)
@@ -36,7 +41,7 @@ class GeminiFunctionDispatcherTest {
 
     @Test
     fun addDieselReturnsConfirmAndDoesNotSave() = runBlocking {
-        val dispatcher = GeminiFunctionDispatcher(RecordingGemini(), mock())
+        val dispatcher = createDispatcher()
         val now = calendarMillis(2026, Calendar.AUGUST, 21, 12, 0)
         val result = dispatcher.dispatch(
             AssistantToolCall.AddDiesel(amount = 80.0, gallons = 20.0, date = null),
@@ -50,7 +55,7 @@ class GeminiFunctionDispatcherTest {
 
     @Test
     fun addPaycheckWithoutWeekUsesCurrentWeek() = runBlocking {
-        val dispatcher = GeminiFunctionDispatcher(RecordingGemini(), mock())
+        val dispatcher = createDispatcher()
         val now = calendarMillis(2026, Calendar.AUGUST, 21, 12, 0)
         val result = dispatcher.dispatch(
             AssistantToolCall.AddPaycheck(amount = 2500.0, weekNumber = null, year = null),
@@ -82,7 +87,7 @@ class GeminiFunctionDispatcherTest {
             netProfit = -80.0,
         )
         whenever(weekRepository.getWeekSummaryOnce(any(), any())).thenReturn(summary)
-        val dispatcher = GeminiFunctionDispatcher(RecordingGemini(), weekRepository)
+        val dispatcher = createDispatcher(weekRepository = weekRepository)
         val result = dispatcher.dispatch(
             AssistantToolCall.QueryWeeklyGross(weekNumber = 34, year = 2026),
             calendarMillis(2026, Calendar.AUGUST, 21, 12, 0),
@@ -95,17 +100,14 @@ class GeminiFunctionDispatcherTest {
     @Test
     fun textOnlyGeminiResponseIsAmbiguous() = runBlocking {
         val body = """{"candidates":[{"content":{"parts":[{"text":"not sure"}]}}]}"""
-        val dispatcher = GeminiFunctionDispatcher(RecordingGemini(body = body), mock())
+        val dispatcher = createDispatcher(gemini = RecordingGemini(body = body))
         val result = dispatcher.interpret("ну сделай что-нибудь", "ru")
         assertTrue(result is AssistantResult.Ambiguous)
     }
 
     @Test
     fun geminiNetworkErrorIsFailed() = runBlocking {
-        val dispatcher = GeminiFunctionDispatcher(
-            RecordingGemini(fail = true),
-            mock(),
-        )
+        val dispatcher = createDispatcher(gemini = RecordingGemini(fail = true))
         val result = dispatcher.interpret("гросс недели", "ru")
         assertEquals(AssistantFailKind.NETWORK, (result as AssistantResult.Failed).kind)
     }

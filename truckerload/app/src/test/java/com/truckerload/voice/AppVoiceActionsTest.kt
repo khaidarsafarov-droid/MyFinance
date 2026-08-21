@@ -77,6 +77,8 @@ class AppVoiceActionsTest {
         val feature = AppVoiceActions.parseUri("truckerload://assistant/open?featureName=цель")
             as AppVoiceAction.OpenScreen
         assertEquals(Routes.STATS, feature.route)
+        val diesel = AppVoiceActions.parseUri("truckerload://assistant/add_diesel?amount=80")
+        assertTrue(diesel is AppVoiceAction.AddDiesel)
     }
 
     @Test

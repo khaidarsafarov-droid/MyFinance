@@ -12,6 +12,20 @@ sealed class AppVoiceAction {
     data class ChatWithFriend(val peerQuery: String) : AppVoiceAction()
     data class MessageFriend(val peerQuery: String, val text: String) : AppVoiceAction()
     data class CallFriend(val peerQuery: String) : AppVoiceAction()
+    data class AddDiesel(
+        val amount: Double?,
+        val gallons: Double?,
+        val date: String?,
+    ) : AppVoiceAction()
+    data class AddPaycheck(
+        val amount: Double?,
+        val weekNumber: Int?,
+        val year: Int?,
+    ) : AppVoiceAction()
+    data class QueryWeeklyGross(
+        val weekNumber: Int?,
+        val year: Int?,
+    ) : AppVoiceAction()
 }
 
 data class VoicePeerRef(val id: String, val displayName: String)
@@ -106,6 +120,7 @@ object AppVoiceActions {
         val peer = query.firstOf("peer", "recipientname", "calleename", "name", "q")
         val text = query.firstOf("text", "messagetext", "message")
         val feature = query.firstOf("feature", "featurename")
+        AppVoiceJournal.actionFromPath(path, query)?.let { return it }
         return when (path.lowercase()) {
             "chat" -> peer?.let { AppVoiceAction.ChatWithFriend(it) } ?: open(Routes.COMMUNITY)
             "message" -> if (!peer.isNullOrBlank()) {
@@ -114,7 +129,12 @@ object AppVoiceActions {
                 open(Routes.COMMUNITY)
             }
             "call" -> peer?.let { AppVoiceAction.CallFriend(it) } ?: open(Routes.VOICE_ROOMS)
-            "open", "" -> matchSpoken(feature ?: path) ?: open(Routes.HOME)
+            "open", "" -> {
+                val spoken = feature ?: path
+                AppVoiceJournal.fromSpokenQuery(spoken)
+                    ?: matchSpoken(spoken)
+                    ?: open(Routes.HOME)
+            }
             else -> routeFromPath(path) ?: matchSpoken(path.replace('_', ' '))
         }
     }
@@ -123,7 +143,9 @@ object AppVoiceActions {
         val key = normalize(spoken)
         if (key.isBlank()) return null
         parameterized(key)?.let { return it }
+        AppVoiceJournal.fromSpokenQuery(key)?.let { return it }
         val stripped = OPENER.replaceFirst(key, "").trim().ifBlank { key }
+        AppVoiceJournal.fromSpokenQuery(stripped)?.let { return it }
         return matchScreen(stripped) ?: matchScreen(key)
     }
 

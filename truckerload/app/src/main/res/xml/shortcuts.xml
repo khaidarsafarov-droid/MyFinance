@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- App Actions live here (shortcuts.xml). actions.xml is deprecated and must not be added.
+     Fulfillment always launches MainActivity; there is no background / spoken-only path. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <capability android:name="actions.intent.OPEN_APP_FEATURE">
         <intent
@@ -10,6 +13,109 @@
             <parameter
                 android:name="feature"
                 android:key="featureName" />
+        </intent>
+    </capability>
+
+    <capability android:name="actions.intent.GET_THING">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/search{?q}" />
+            <parameter
+                android:name="thing.name"
+                android:key="q" />
+        </intent>
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/search" />
+        </intent>
+    </capability>
+
+    <capability
+        android:name="custom.actions.intent.ADD_DIESEL"
+        app:queryPatterns="@array/assistant_queries_add_diesel">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/add_diesel{?amount,gallons,date}" />
+            <parameter
+                android:name="amount"
+                android:key="amount"
+                android:mimeType="https://schema.org/Number"
+                android:required="true" />
+            <parameter
+                android:name="gallons"
+                android:key="gallons"
+                android:mimeType="https://schema.org/Number" />
+            <parameter
+                android:name="date"
+                android:key="date"
+                android:mimeType="https://schema.org/Date" />
+        </intent>
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/add_diesel" />
+        </intent>
+    </capability>
+
+    <capability
+        android:name="custom.actions.intent.ADD_PAYCHECK"
+        app:queryPatterns="@array/assistant_queries_add_paycheck">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/add_paycheck{?amount,weekNumber,year}" />
+            <parameter
+                android:name="amount"
+                android:key="amount"
+                android:mimeType="https://schema.org/Number"
+                android:required="true" />
+            <parameter
+                android:name="weekNumber"
+                android:key="weekNumber"
+                android:mimeType="https://schema.org/Number" />
+            <parameter
+                android:name="year"
+                android:key="year"
+                android:mimeType="https://schema.org/Number" />
+        </intent>
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/add_paycheck" />
+        </intent>
+    </capability>
+
+    <capability
+        android:name="custom.actions.intent.QUERY_WEEKLY_GROSS"
+        app:queryPatterns="@array/assistant_queries_weekly_gross">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/weekly_gross{?weekNumber,year}" />
+            <parameter
+                android:name="weekNumber"
+                android:key="weekNumber"
+                android:mimeType="https://schema.org/Number" />
+            <parameter
+                android:name="year"
+                android:key="year"
+                android:mimeType="https://schema.org/Number" />
+        </intent>
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity">
+            <url-template android:value="truckerload://assistant/weekly_gross" />
         </intent>
     </capability>
 
@@ -65,6 +171,59 @@
             <parameter-binding
                 android:key="feature"
                 android:value="@array/voice_feature_add_load" />
+        </capability-binding>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="add_diesel"
+        android:shortcutShortLabel="@string/add_diesel_title"
+        android:shortcutLongLabel="@string/add_diesel_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://assistant/add_diesel"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_add_diesel" />
+        </capability-binding>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="add_paycheck"
+        android:shortcutShortLabel="@string/add_paycheck_title"
+        android:shortcutLongLabel="@string/add_paycheck_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://assistant/add_paycheck"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_add_paycheck" />
+        </capability-binding>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="weekly_gross"
+        android:shortcutShortLabel="@string/voice_journal_gross_title"
+        android:shortcutLongLabel="@string/voice_journal_gross_title">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="truckerload://assistant/weekly_gross"
+            android:targetPackage="com.truckerload"
+            android:targetClass="com.truckerload.presentation.MainActivity" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/voice_feature_weekly_gross" />
+        </capability-binding>
+        <capability-binding android:key="actions.intent.GET_THING">
+            <parameter-binding
+                android:key="thing.name"
+                android:value="@array/voice_feature_weekly_gross" />
         </capability-binding>
     </shortcut>
 

@@ -16,6 +16,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.truckerload.R
+import com.truckerload.presentation.screens.assistant.AssistantConfirmationSheet
+import com.truckerload.presentation.screens.assistant.weeklyGrossAnswerText
 import com.truckerload.voice.VoiceFailReason
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
@@ -29,6 +31,7 @@ fun VoiceCommandHandler(
 ) {
     val destination by viewModel.navigateTo.collectAsStateWithLifecycle()
     val prompt by viewModel.prompt.collectAsStateWithLifecycle()
+    val journalSaving by viewModel.journalSaving.collectAsStateWithLifecycle()
     LaunchedEffect(destination) {
         val route = destination ?: return@LaunchedEffect
         navController.navigate(route) { launchSingleTop = true }
@@ -57,6 +60,21 @@ fun VoiceCommandHandler(
             candidates = current.candidates,
             onPick = viewModel::pickPeer,
             onDismiss = viewModel::dismissPrompt,
+        )
+        is VoicePrompt.ConfirmJournal -> AssistantConfirmationSheet(
+            mutation = current.mutation,
+            isSaving = journalSaving,
+            onConfirm = viewModel::confirmSensitive,
+            onCancel = viewModel::dismissPrompt,
+            onFix = viewModel::fixJournal,
+        )
+        is VoicePrompt.WeeklyGross -> VoiceConfirmDialog(
+            title = stringResource(R.string.voice_journal_gross_title),
+            body = weeklyGrossAnswerText(current.summary),
+            confirmLabel = stringResource(R.string.common_ok),
+            onConfirm = viewModel::dismissPrompt,
+            onDismiss = viewModel::dismissPrompt,
+            showCancel = false,
         )
         is VoicePrompt.Failed -> VoiceConfirmDialog(
             title = stringResource(R.string.voice_failed_title),

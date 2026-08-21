@@ -37,7 +37,6 @@ import com.truckerload.R
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.privacy.PermissionRationaleDialog
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 
 @Composable
@@ -127,7 +126,7 @@ private fun VoiceAssistantBody(
         when (val result = state.result) {
             is AssistantResult.WeeklyGross -> {
                 Text(
-                    text = weeklyGrossText(result),
+                    text = weeklyGrossAnswerText(result.summary),
                     style = MaterialTheme.typography.bodyLarge,
                     color = tc.TextPrimary,
                     textAlign = TextAlign.Center,
@@ -206,19 +205,3 @@ private fun phaseLabel(phase: AssistantPhase): String = stringResource(
         AssistantPhase.Error -> R.string.assistant_phase_error
     },
 )
-
-@Composable
-private fun weeklyGrossText(result: AssistantResult.WeeklyGross): String {
-    val summary = result.summary
-    val rpm = if (summary.totalMiles > 0) summary.totalLoadRate / summary.totalMiles else 0.0
-    return stringResource(
-        R.string.assistant_weekly_gross,
-        summary.weekLabel,
-        MoneyFormat.formatCurrency(summary.totalLoadRate, decimals = 0),
-        summary.loadsCount,
-        MoneyFormat.formatNumber(summary.totalMiles, decimals = 0),
-        MoneyFormat.formatRpm(rpm),
-        MoneyFormat.formatCurrency(summary.dieselAmount, decimals = 0),
-        MoneyFormat.formatCurrency(summary.paycheckAmount, decimals = 0),
-    )
-}
