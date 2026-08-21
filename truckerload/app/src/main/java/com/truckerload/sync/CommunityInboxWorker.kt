@@ -28,7 +28,7 @@ class CommunityInboxWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val userId = authStore.currentUserIdOrNull() ?: return Result.success()
         return runCatching {
-            userComponentManager.startSession(userId).socialSyncCoordinator.pullRemote()
+            userComponentManager.startSession(userId)
             Result.success()
         }.getOrElse { Result.retry() }
     }

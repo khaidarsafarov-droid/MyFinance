@@ -15,18 +15,12 @@ import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
-import com.truckerload.data.repository.VoiceRepository
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.data.repository.account.AccountDeletionService
 import com.truckerload.data.repository.account.CommunityProfileRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
-import com.truckerload.data.repository.social.ChatRepository
-import com.truckerload.data.repository.social.GroupRepository
-import com.truckerload.data.repository.social.MediaRepository
 import com.truckerload.data.repository.social.ProfileRepository
-import com.truckerload.data.repository.social.SocialSyncCoordinator
-import com.truckerload.data.repository.social.StatusRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -104,32 +98,8 @@ object UserAccountModule {
         manager.require().profileRepository
 
     @Provides
-    fun provideChatRepository(manager: UserComponentManager): ChatRepository =
-        manager.require().chatRepository
-
-    @Provides
-    fun provideGroupRepository(manager: UserComponentManager): GroupRepository =
-        manager.require().groupRepository
-
-    @Provides
-    fun provideStatusRepository(manager: UserComponentManager): StatusRepository =
-        manager.require().statusRepository
-
-    @Provides
-    fun provideMediaRepository(manager: UserComponentManager): MediaRepository =
-        manager.require().mediaRepository
-
-    @Provides
-    fun provideSocialSyncCoordinator(manager: UserComponentManager): SocialSyncCoordinator =
-        manager.require().socialSyncCoordinator
-
-    @Provides
     fun provideCrowdRpmRepository(manager: UserComponentManager): CrowdRpmRepository =
         manager.require().crowdRpmRepository
-
-    @Provides
-    fun provideVoiceRepository(manager: UserComponentManager): VoiceRepository =
-        manager.require().voiceRepository
 
     @Provides
     fun provideAiRepository(manager: UserComponentManager): AiRepository =

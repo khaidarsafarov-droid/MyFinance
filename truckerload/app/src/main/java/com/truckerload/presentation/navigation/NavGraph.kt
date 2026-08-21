@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalSocialSyncCoordinator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,9 +36,6 @@ import com.truckerload.presentation.utils.useTwoPaneLayout
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalVoiceRepository
-import com.truckerload.presentation.screens.voice.ActiveCallBanner
-import com.truckerload.presentation.screens.voice.IncomingCallOverlay
 import com.truckerload.widget.WidgetDeepLink
 import kotlinx.coroutines.launch
 
@@ -70,7 +66,6 @@ fun NavGraph(
     }
 
     val profileRepository = LocalProfileRepository.current
-    val socialSyncCoordinator = LocalSocialSyncCoordinator.current
     val userProfileStore = LocalUserProfileStore.current
     val setupComplete by userProfileStore.setupComplete.collectAsStateWithLifecycle()
     val authEmail by authStore.email.collectAsStateWithLifecycle()
@@ -102,10 +97,14 @@ fun NavGraph(
                 context,
                 authStore.currentUserIdOrNull(),
             ).shouldPrompt(context)
-            launch { socialSyncCoordinator.ensureInitialized() }
+            launch {
+                profileRepository.syncIdentityFromUserProfile()
+                profileRepository.maybeMarkSetupCompleteFromExistingProfile()
+            }
             return@LaunchedEffect
         }
-        socialSyncCoordinator.ensureInitialized()
+        profileRepository.syncIdentityFromUserProfile()
+        profileRepository.maybeMarkSetupCompleteFromExistingProfile()
         needsSetup = registrationService.needsRequiredOnboarding() ||
             profileRepository.needsProfileSetup()
         needsTelegramOnboarding = if (needsSetup == true) {
@@ -296,21 +295,6 @@ fun NavGraph(
             toolsNavGraph(navController, tablet, reduceMotion)
         }
         }
-            IncomingCallOverlay(
-                currentRoute = currentRoute,
-                myUserId = LocalVoiceRepository.current.currentUserId(),
-                onAccept = { callId ->
-                    navController.navigate(Routes.call(callId)) { launchSingleTop = true }
-                },
-            )
-            ActiveCallBanner(
-                currentRoute = currentRoute,
-                onReturn = { callId ->
-                    navController.navigate(Routes.call(callId)) { launchSingleTop = true }
-                },
-                modifier = Modifier.align(Alignment.TopCenter),
-            )
-            com.truckerload.presentation.voice.VoiceCommandHandler(navController = navController)
         }
     }
 }

@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.truckerload.data.repository.social.ProfileRepository
-import com.truckerload.data.repository.social.SocialSyncCoordinator
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.domain.social.SocialResult
@@ -30,7 +29,6 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val socialSyncCoordinator: SocialSyncCoordinator,
 ) : ViewModel() {
 
     private val _avatarActionState = MutableStateFlow(AvatarActionState())
@@ -53,7 +51,10 @@ class ProfileViewModel @Inject constructor(
     val editState: StateFlow<ProfileUiState?> = _editState.asStateFlow()
 
     init {
-        viewModelScope.launch { socialSyncCoordinator.ensureInitialized() }
+        viewModelScope.launch {
+            profileRepository.syncIdentityFromUserProfile()
+            profileRepository.maybeMarkSetupCompleteFromExistingProfile()
+        }
     }
 
     fun startEdit() {

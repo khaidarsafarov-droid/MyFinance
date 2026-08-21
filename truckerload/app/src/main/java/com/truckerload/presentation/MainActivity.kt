@@ -64,10 +64,8 @@ import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalSocialSyncCoordinator
 import com.truckerload.presentation.di.LocalStatsSelectionStore
 import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalVoiceRepository
 import com.truckerload.presentation.di.LocalWeekRepository
 import com.truckerload.presentation.di.LocalLastUsedDefaultsStore
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
@@ -284,8 +282,6 @@ class MainActivity : AppCompatActivity() {
                                     LocalPhotoRepository provides deps.photoRepository,
                                     LocalScanRepository provides deps.scanRepository,
                                     LocalProfileRepository provides deps.profileRepository,
-                                    LocalSocialSyncCoordinator provides deps.socialSyncCoordinator,
-                                    LocalVoiceRepository provides deps.voiceRepository,
                                     LocalCallPrivacyStore provides callPrivacyStore,
                                     LocalMaintenanceRepository provides deps.maintenanceRepository,
                                     LocalRegistrationService provides deps.registrationService,

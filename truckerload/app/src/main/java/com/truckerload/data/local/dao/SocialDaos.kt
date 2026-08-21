@@ -8,25 +8,12 @@ import com.truckerload.data.local.entities.BlockedUserEntity
 import com.truckerload.data.local.entities.ChallengeParticipationEntity
 import com.truckerload.data.local.entities.ChatMemberEntity
 import com.truckerload.data.local.entities.DriverFollowEntity
-import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.SocialChatEntity
 import com.truckerload.data.local.entities.SocialMessageEntity
 import com.truckerload.data.local.entities.SocialPeerEntity
 import kotlinx.coroutines.flow.Flow
-
-@Dao
-interface DriverProfileDao {
-    @Query("SELECT * FROM driver_profile WHERE id = :id LIMIT 1")
-    fun watchProfile(id: String = DriverProfileEntity.LOCAL_USER_ID): Flow<DriverProfileEntity?>
-
-    @Query("SELECT * FROM driver_profile WHERE id = :id LIMIT 1")
-    suspend fun getProfile(id: String = DriverProfileEntity.LOCAL_USER_ID): DriverProfileEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(profile: DriverProfileEntity)
-}
 
 @Dao
 interface SocialChatDao {

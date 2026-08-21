@@ -12,8 +12,9 @@ class SocialGraphModuleTest {
         val source = readMainSource("com/truckerload/di/SocialGraphModule.kt")
         assertTrue(source.contains("ProfileRepositoryImpl"))
         assertTrue(source.contains("val profile: ProfileRepository"))
-        assertTrue(source.contains("val chat: ChatRepository"))
-        assertTrue(source.contains("val syncCoordinator: SocialSyncCoordinator"))
+        assertTrue(source.contains("val crowdRpm: CrowdRpmRepository"))
+        assertFalse(source.contains("val chat: ChatRepository"))
+        assertFalse(source.contains("val syncCoordinator: SocialSyncCoordinator"))
         assertFalse(source.contains("facade"))
         assertFalse(source.contains("data.repository.Social"))
     }

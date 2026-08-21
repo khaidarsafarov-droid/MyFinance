@@ -1,13 +1,13 @@
-package com.truckerload.domain.social
+package com.truckerload.domain.crowd
 
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class CommunityWeekWindowTest {
+class CrowdWeekWindowTest {
 
     @Test
     fun currentWindowCoversNow() {
-        val window = CommunityWeekWindow.current()
+        val window = CrowdWeekWindow.current()
         val now = System.currentTimeMillis()
         assertTrue(window.week in 1..53)
         assertTrue(window.year >= 2020)

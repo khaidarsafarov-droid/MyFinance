@@ -1,7 +1,7 @@
 package com.truckerload.data.community
 
 import com.truckerload.data.preferences.AuthStore
-import com.truckerload.domain.social.CommunityWeekWindow
+import com.truckerload.domain.crowd.CrowdWeekWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -16,7 +16,7 @@ class CommunityRemoteClient(
 
     fun actorId(): String = rest.userId()
 
-    suspend fun listPeers(window: CommunityWeekWindow = CommunityWeekWindow.current()): Result<List<RemoteCommunityPeer>> =
+    suspend fun listPeers(window: CrowdWeekWindow = CrowdWeekWindow.current()): Result<List<RemoteCommunityPeer>> =
         withContext(Dispatchers.IO) {
             if (!rest.isReady()) return@withContext Result.success(emptyList())
             val body = JSONObject().put("p_year", window.year).put("p_week", window.week)
@@ -174,7 +174,7 @@ class CommunityRemoteClient(
         }
 
     suspend fun upsertWeeklyStats(
-        window: CommunityWeekWindow,
+        window: CrowdWeekWindow,
         miles: Double,
         loads: Int,
         revenue: Double,

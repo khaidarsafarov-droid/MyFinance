@@ -38,7 +38,6 @@ class SocialSyncCoordinator(
             profileRepository.maybeMarkSetupCompleteFromExistingProfile()
             statusRepository.purgeExpired()
             pullRemoteLocked()
-            profileRepository.refreshMyChallengeScore()
         }
     }
 
