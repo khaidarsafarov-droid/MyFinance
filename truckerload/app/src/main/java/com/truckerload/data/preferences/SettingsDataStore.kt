@@ -141,7 +141,7 @@ class SettingsDataStore(context: Context) {
         prefs[boolKey("crowd_stats_opt_in", accountPart())] ?: false
     }
 
-    /** True after the user answered the Community Crowd RPM consent dialog (or used Settings). */
+    /** True after the user answered the Map Crowd RPM consent dialog (or used Settings). */
     val crowdStatsPromptSeen: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         prefs[boolKey("crowd_stats_prompt_seen", accountPart())] ?: false
     }
