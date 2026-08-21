@@ -77,7 +77,7 @@ class LoadMessageParserTest {
     }
 
     @Test
-    fun `chat history headers pin Relay MM/DD to message year not today`() {
+    fun `chat history headers pin Relay month-day to message year not today`() {
         val now2026 = Calendar.getInstance().apply {
             set(2026, Calendar.AUGUST, 21, 16, 0, 0)
             set(Calendar.MILLISECOND, 0)
