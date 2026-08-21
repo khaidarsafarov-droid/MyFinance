@@ -200,7 +200,6 @@ fun SettingsScreen(
                     Column {
                         BiometricSettingsSection()
                         PrivacySettingsSection(onOpenPrivacy = onOpenPrivacy)
-                        FriendsLocationSettingsSection()
                         NotificationSettingsSection(
                             quietHoursEnabled = quietHoursEnabled,
                             quietHoursStart = quietHoursStart,

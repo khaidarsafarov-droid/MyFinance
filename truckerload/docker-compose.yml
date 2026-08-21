@@ -67,9 +67,6 @@ services:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
       JAVA_OPTS: -Dlogback.configurationFile=logback-prod.xml
-      LIVEKIT_URL: ${LIVEKIT_URL:-ws://localhost:7880}
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-secret}
     ports:
       - "8080:8080"
     depends_on:
@@ -77,16 +74,6 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
-      livekit:
-        condition: service_started
-
-  livekit:
-    image: livekit/livekit-server:v1.13.5
-    command: ["--dev", "--bind", "0.0.0.0"]
-    ports:
-      - "7880:7880"
-      - "7881:7881"
-      - "7882:7882/udp"
 
 volumes:
   postgres-data:

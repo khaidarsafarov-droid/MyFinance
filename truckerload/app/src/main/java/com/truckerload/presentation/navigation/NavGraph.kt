@@ -199,14 +199,7 @@ fun NavGraph(
                 onDeepLinkHandled()
             }
             else -> {
-                if (
-                    destination.startsWith("attach_pick/") ||
-                    destination.startsWith("social_chat/") ||
-                    destination.startsWith("call/") ||
-                    destination.startsWith("voice_room/") ||
-                    destination.startsWith("profile_peer/") ||
-                    destination.startsWith("group_detail/")
-                ) {
+                if (destination.startsWith("attach_pick/")) {
                     navController.navigate(destination) { launchSingleTop = true }
                     onDeepLinkHandled()
                 }
@@ -222,9 +215,7 @@ fun NavGraph(
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
             currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
             !currentRoute.orEmpty().startsWith("attach_pick") &&
-            !currentRoute.orEmpty().startsWith("photo_detail") &&
-            !currentRoute.orEmpty().startsWith("profile_peer") &&
-            !currentRoute.orEmpty().startsWith("social_chat")
+            !currentRoute.orEmpty().startsWith("photo_detail")
     } else {
         shouldShowPhoneBottomBar(currentRoute)
     }
@@ -241,7 +232,6 @@ fun NavGraph(
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
-                DrawerDestination.FRIENDS_LIVE -> navController.navigate(Routes.FRIENDS_LIVE) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
@@ -290,7 +280,7 @@ fun NavGraph(
                     )
                 }
             }
-            socialNavGraph(navController, reduceMotion)
+            profileNavGraph(navController, reduceMotion)
             loadsNavGraph(navController)
             toolsNavGraph(navController, tablet, reduceMotion)
         }

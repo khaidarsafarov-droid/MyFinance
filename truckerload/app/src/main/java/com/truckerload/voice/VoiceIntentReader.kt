@@ -16,19 +16,8 @@ object VoiceIntentReader {
 
     private fun fromExtras(extras: Bundle): AppVoiceAction? {
         val feature = extras.spoken("feature", "featureName")
-        val recipient = extras.spoken("message.recipient.name", "recipientName", "peer")
-        val text = extras.spoken("message.text", "messageText", "text")
-        val callee = extras.spoken("call.callee.name", "calleeName")
-        val thing = extras.spoken("thing.name", "name", "q")
-        return when {
-            !callee.isNullOrBlank() -> AppVoiceAction.CallFriend(callee)
-            !recipient.isNullOrBlank() && !text.isNullOrBlank() ->
-                AppVoiceAction.MessageFriend(recipient, text)
-            !recipient.isNullOrBlank() || !thing.isNullOrBlank() ->
-                AppVoiceAction.ChatWithFriend(recipient ?: thing!!)
-            !feature.isNullOrBlank() -> AppVoiceActions.matchSpoken(feature)
-            else -> null
-        }
+            ?: extras.spoken("thing.name", "name", "q")
+        return if (!feature.isNullOrBlank()) AppVoiceActions.matchSpoken(feature) else null
     }
 
     private fun Bundle.spoken(vararg keys: String): String? {

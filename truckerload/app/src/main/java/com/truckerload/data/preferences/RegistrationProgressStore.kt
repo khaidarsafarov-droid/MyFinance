@@ -29,8 +29,6 @@ class RegistrationProgressStore(context: Context) {
                 putBoolean(KEY_BASIC, true)
                 putBoolean(KEY_PRO_DONE, true)
                 putBoolean(KEY_PRO_SKIP, false)
-                putBoolean(KEY_COM_DONE, true)
-                putBoolean(KEY_COM_SKIP, false)
             }
         }
         _progress.value = read()
@@ -45,8 +43,6 @@ class RegistrationProgressStore(context: Context) {
             putBoolean(KEY_BASIC, progress.basicComplete)
             putBoolean(KEY_PRO_DONE, progress.professionalComplete)
             putBoolean(KEY_PRO_SKIP, progress.professionalSkipped)
-            putBoolean(KEY_COM_DONE, progress.communityComplete)
-            putBoolean(KEY_COM_SKIP, progress.communitySkipped)
         }
         _progress.value = progress
     }
@@ -62,8 +58,6 @@ class RegistrationProgressStore(context: Context) {
         basicComplete = prefs.getBoolean(KEY_BASIC, false),
         professionalComplete = prefs.getBoolean(KEY_PRO_DONE, false),
         professionalSkipped = prefs.getBoolean(KEY_PRO_SKIP, false),
-        communityComplete = prefs.getBoolean(KEY_COM_DONE, false),
-        communitySkipped = prefs.getBoolean(KEY_COM_SKIP, false),
     )
 
     companion object {
@@ -72,8 +66,6 @@ class RegistrationProgressStore(context: Context) {
         private const val KEY_BASIC = "basic"
         private const val KEY_PRO_DONE = "professional_done"
         private const val KEY_PRO_SKIP = "professional_skip"
-        private const val KEY_COM_DONE = "community_done"
-        private const val KEY_COM_SKIP = "community_skip"
 
         fun prefsName(userId: String): String =
             "truckerload_reg_progress_${AccountIds.sanitizeFilePart(userId)}"

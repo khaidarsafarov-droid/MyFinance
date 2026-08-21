@@ -9,8 +9,8 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.truckerload.domain.friends.BalancedLocationFix
-import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.domain.geo.BalancedLocationFix
+import com.truckerload.domain.geo.LatLngPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext

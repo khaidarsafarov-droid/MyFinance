@@ -22,26 +22,12 @@ object VoiceCommandBus {
     }
 }
 
-object VoicePendingDraft {
-    @Volatile
-    var chatText: String? = null
-
-    fun consumeChatText(): String? {
-        val text = chatText
-        chatText = null
-        return text
-    }
-}
-
 object VoiceAssistantLogger {
     private const val TAG = "VoiceAssistant"
 
     fun log(command: AppVoiceAction, outcome: String, detail: String? = null) {
         val action = when (command) {
             is AppVoiceAction.OpenScreen -> "open/${command.route}"
-            is AppVoiceAction.ChatWithFriend -> "chat/${command.peerQuery}"
-            is AppVoiceAction.MessageFriend -> "message/${command.peerQuery}"
-            is AppVoiceAction.CallFriend -> "call/${command.peerQuery}"
         }
         Log.i(TAG, "action=$action outcome=$outcome ${detail.orEmpty()}")
         CrashReporting.setCustomKey("voice_last_action", action.take(80))

@@ -3,29 +3,11 @@ package com.truckerload.voice
 import com.truckerload.presentation.navigation.Routes
 
 /**
- * Voice commands are the real Truck Log screens and social actions —
- * the same destinations as [Routes], the drawer, the tabs, and community.
- * Phrases are the in-app labels (RU + EN), not a generic assistant catalog.
+ * Voice commands map to real Truck Log screens — the same destinations as
+ * [Routes], the drawer, and the bottom tabs.
  */
 sealed class AppVoiceAction {
     data class OpenScreen(val route: String) : AppVoiceAction()
-    data class ChatWithFriend(val peerQuery: String) : AppVoiceAction()
-    data class MessageFriend(val peerQuery: String, val text: String) : AppVoiceAction()
-    data class CallFriend(val peerQuery: String) : AppVoiceAction()
-}
-
-data class VoicePeerRef(val id: String, val displayName: String)
-
-sealed class VoicePeerMatch {
-    data object None : VoicePeerMatch()
-    data class Unique(val peer: VoicePeerRef) : VoicePeerMatch()
-    data class Ambiguous(val candidates: List<VoicePeerRef>) : VoicePeerMatch()
-}
-
-enum class VoiceFailReason {
-    UNKNOWN,
-    PEER_NOT_FOUND,
-    NOT_SIGNED_IN,
 }
 
 object AppVoiceActions {
@@ -34,7 +16,7 @@ object AppVoiceActions {
 
     /**
      * User-reachable screens. Labels copy [R.string] nav/drawer/titles.
-     * Longer phrases win so «карта друзей» does not open drawer «Карта».
+     * Longer phrases win so «цель недели» does not collide with shorter stems.
      */
     internal val screens: List<Pair<String, List<String>>> = listOf(
         Routes.HOME to listOf("грузы", "журнал", "loads", "logbook", "journal", "home"),
@@ -46,25 +28,7 @@ object AppVoiceActions {
             "расширенная статистика",
             "advanced stats",
         ),
-        Routes.FRIENDS_LIVE to listOf(
-            "друзья на карте",
-            "карта друзей",
-            "friends live",
-            "friends on map",
-            "friends map",
-            "live map",
-        ),
         Routes.MAP to listOf("карта штатов", "heatmap", "rpm map", "карта", "map"),
-        Routes.COMMUNITY to listOf(
-            "сообщество",
-            "чаты",
-            "таблица лидеров",
-            "челленджи",
-            "community",
-            "chats",
-            "leaderboard",
-            "challenges",
-        ),
         Routes.PROFILE to listOf("профиль", "profile"),
         Routes.PROFILE_EDIT to listOf("редактировать профиль", "edit profile"),
         Routes.SETTINGS to listOf("настройки", "settings"),
@@ -76,9 +40,6 @@ object AppVoiceActions {
         Routes.SCANNER to listOf("сканер", "scanner"),
         Routes.CAMERA to listOf("камера", "camera"),
         Routes.ABOUT to listOf("о приложении", "about app", "about"),
-        Routes.VOICE_ROOMS to listOf("голосовые комнаты", "voice rooms"),
-        Routes.STATUS to listOf("статусы", "statuses"),
-        Routes.GROUPS to listOf("группы", "groups"),
         Routes.FINANCIAL_ADVISOR to listOf(
             "финансовый советник",
             "советник",
@@ -97,17 +58,8 @@ object AppVoiceActions {
         val pathAndQuery = rest.substringAfter('/', missingDelimiterValue = "")
         val path = pathAndQuery.substringBefore('?').trim('/')
         val query = parseQuery(pathAndQuery.substringAfter('?', missingDelimiterValue = ""))
-        val peer = query.firstOf("peer", "recipientname", "calleename", "name", "q")
-        val text = query.firstOf("text", "messagetext", "message")
         val feature = query.firstOf("feature", "featurename")
         return when (path.lowercase()) {
-            "chat" -> peer?.let { AppVoiceAction.ChatWithFriend(it) } ?: open(Routes.COMMUNITY)
-            "message" -> if (!peer.isNullOrBlank()) {
-                AppVoiceAction.MessageFriend(peer, text.orEmpty())
-            } else {
-                open(Routes.COMMUNITY)
-            }
-            "call" -> peer?.let { AppVoiceAction.CallFriend(it) } ?: open(Routes.VOICE_ROOMS)
             "open", "" -> matchSpoken(feature ?: path) ?: open(Routes.HOME)
             else -> routeFromPath(path) ?: matchSpoken(path.replace('_', ' '))
         }
@@ -116,23 +68,8 @@ object AppVoiceActions {
     fun matchSpoken(spoken: String): AppVoiceAction? {
         val key = normalize(spoken)
         if (key.isBlank()) return null
-        parameterized(key)?.let { return it }
         val stripped = OPENER.replaceFirst(key, "").trim().ifBlank { key }
         return matchScreen(stripped) ?: matchScreen(key)
-    }
-
-    fun matchPeers(query: String, peers: List<VoicePeerRef>): VoicePeerMatch {
-        val needle = normalize(query)
-        if (needle.isBlank() || peers.isEmpty()) return VoicePeerMatch.None
-        val hits = peers.filter { peer ->
-            val name = normalize(peer.displayName)
-            name == needle || name.contains(needle) || needle.contains(name)
-        }.distinctBy { it.id }
-        return when {
-            hits.isEmpty() -> VoicePeerMatch.None
-            hits.size == 1 -> VoicePeerMatch.Unique(hits.first())
-            else -> VoicePeerMatch.Ambiguous(hits)
-        }
     }
 
     internal fun phraseHits(spoken: String, phrase: String): Boolean {
@@ -150,27 +87,6 @@ object AppVoiceActions {
             .maxByOrNull { it.second.length }
             ?.first
         return route?.let { open(it) }
-    }
-
-    private fun parameterized(key: String): AppVoiceAction? {
-        CALL_PREFIX.find(key)?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() }?.let {
-            return AppVoiceAction.CallFriend(it)
-        }
-        WRITE_PREFIX.find(key)?.let { match ->
-            val peer = match.groupValues.getOrNull(1)?.trim().orEmpty()
-            val text = match.groupValues.getOrNull(2)?.trim().orEmpty()
-            if (peer.isBlank()) return@let
-            return if (text.isBlank()) {
-                AppVoiceAction.ChatWithFriend(peer)
-            } else {
-                AppVoiceAction.MessageFriend(peer, text)
-            }
-        }
-        CHAT_WITH.find(key)?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() }?.let {
-            return AppVoiceAction.ChatWithFriend(it)
-        }
-        ADD_FRIEND_PREFIX.find(key)?.let { return open(Routes.COMMUNITY) }
-        return null
     }
 
     private fun routeFromPath(path: String): AppVoiceAction? {
@@ -276,13 +192,5 @@ object AppVoiceActions {
 
     private val OPENER = Regex(
         "^(?:открой(?:те)?|открыть|open(?: the)?|show(?: me)?|покажи(?:те)?|go to|перейди(?:те)?|перейти)\\s+",
-    )
-    private val CALL_PREFIX = Regex("^(?:позвони|позвонить|call)\\s+(.+)$")
-    private val WRITE_PREFIX = Regex(
-        "^(?:напиши|написать|отправь сообщение|отправь|write|send message|message)\\s+(\\S+)(?:\\s+(.+))?$",
-    )
-    private val CHAT_WITH = Regex("^(?:чат с|chat with)\\s+(.+)$")
-    private val ADD_FRIEND_PREFIX = Regex(
-        "^(?:добав(?:ь|ить) дру(?:га|зей|г)|add friends?)(?:\\s+.+)?$",
     )
 }

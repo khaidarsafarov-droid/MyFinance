@@ -20,7 +20,6 @@ import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.data.repository.account.AccountDeletionService
-import com.truckerload.data.repository.account.CommunityProfileRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.data.repository.social.ProfileRepository
@@ -54,7 +53,6 @@ class UserComponent private constructor(
     val maintenanceRepository: MaintenanceRepository,
     val registrationService: RegistrationService,
     val driverProfessionalRepository: DriverProfessionalRepository,
-    val communityProfileRepository: CommunityProfileRepository,
     val accountDeletionService: AccountDeletionService,
 ) {
     companion object {
@@ -105,7 +103,6 @@ class UserComponent private constructor(
                 maintenanceRepository = MaintenanceRepository(db),
                 registrationService = account.registration,
                 driverProfessionalRepository = account.professional,
-                communityProfileRepository = account.community,
                 accountDeletionService = account.deletion,
             )
         }

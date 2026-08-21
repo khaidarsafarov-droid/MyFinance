@@ -26,16 +26,13 @@ class MainTabNavigationTest {
         assertTrue(shouldShowPhoneBottomBar(Routes.ADVANCED_STATS))
         assertTrue(shouldShowPhoneBottomBar(Routes.MAP))
         assertTrue(shouldShowPhoneBottomBar("load_detail/{loadId}"))
-        assertTrue(shouldShowPhoneBottomBar("social_chat/{chatId}"))
     }
 
     @Test
-    fun hidesBottomBarOnImmersiveCameraAndCalls() {
+    fun hidesBottomBarOnImmersiveCamera() {
         assertFalse(shouldShowPhoneBottomBar(Routes.CAMERA))
         assertFalse(shouldShowPhoneBottomBar("camera_load/a/b/c"))
         assertFalse(shouldShowPhoneBottomBar(Routes.SCANNER))
-        assertFalse(shouldShowPhoneBottomBar("call/{callId}"))
-        assertFalse(shouldShowPhoneBottomBar("voice_room/{roomId}"))
         assertNull(phoneTabForRoute(Routes.CAMERA))
     }
 
@@ -104,9 +101,7 @@ class MainTabNavigationTest {
     }
 
     @Test
-    fun communityAndProfileNestedStayOnTheirTabs() {
-        assertEquals(Routes.COMMUNITY, phoneTabForRoute(Routes.FRIENDS_LIVE))
-        assertEquals(Routes.COMMUNITY, phoneTabForRoute("group_detail/{chatId}"))
+    fun profileNestedStayOnProfileTab() {
         assertEquals(Routes.PROFILE, phoneTabForRoute(Routes.PROFILE_EDIT))
         assertEquals(Routes.HOME, phoneTabForRoute(Routes.ADD_LOAD))
     }

@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.truckerload.domain.friends.FriendsLocationSharePolicy
 import com.truckerload.domain.model.EquipmentType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -28,10 +27,6 @@ private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
 private val KEY_LANGUAGE = intPreferencesKey("app_language")
 private val KEY_PARSER_AUTO_UPDATE = booleanPreferencesKey("parser_auto_update")
 private val KEY_PARSER_PRICE_THRESHOLD = floatPreferencesKey("parser_price_threshold_percent")
-private val KEY_SHARE_PATH_WITH_FRIENDS = booleanPreferencesKey("share_path_with_friends")
-private val KEY_LOCATION_BATTERY_SAVER = booleanPreferencesKey("location_battery_saver")
-private val KEY_ROUTE_VEHICLE_TRUCK = booleanPreferencesKey("route_vehicle_truck")
-private val KEY_FRIENDS_ROUTE_TRAVELED = booleanPreferencesKey("friends_route_traveled")
 private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 private val KEY_OLED_DARK = booleanPreferencesKey("oled_dark")
 private val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -40,8 +35,6 @@ private val KEY_QUIET_HOURS_START = intPreferencesKey("quiet_hours_start")
 private val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
 private val KEY_NOTIFY_MISSING_WEEK = booleanPreferencesKey("notify_missing_week")
 private val KEY_NOTIFY_MAINTENANCE = booleanPreferencesKey("notify_maintenance")
-private val KEY_FRIENDS_LOCATION_INTERVAL = intPreferencesKey("friends_location_interval_min")
-private val KEY_FRIENDS_LIVE_MODE = booleanPreferencesKey("friends_live_mode")
 
 class SettingsDataStore(context: Context) {
 
@@ -118,53 +111,6 @@ class SettingsDataStore(context: Context) {
         val account = accountPart()
         val scoped = prefs[floatKey("parser_price_threshold_percent", account)]?.toDouble()
         scoped ?: prefs[KEY_PARSER_PRICE_THRESHOLD]?.toDouble() ?: 1.0
-    }
-
-    val sharePathWithFriends: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        val account = accountPart()
-        if (account != null) {
-            prefs[boolKey("share_path_with_friends", account)] ?: false
-        } else {
-            prefs[KEY_SHARE_PATH_WITH_FRIENDS] ?: false
-        }
-    }
-
-    /** Background share interval: 15 / 30 / 60 minutes. Default 30. */
-    val friendsLocationIntervalMinutes: Flow<Int> = appContext.settingsDataStore.data.map { prefs ->
-        val account = accountPart()
-        val raw = if (account != null) {
-            prefs[intKey("friends_location_interval_min", account)]
-        } else {
-            prefs[KEY_FRIENDS_LOCATION_INTERVAL]
-        }
-        FriendsLocationSharePolicy.clampIntervalMinutes(
-            raw ?: FriendsLocationSharePolicy.DEFAULT_INTERVAL_MINUTES,
-        )
-    }
-
-    /** Explicit live-mode consent. Default off; sessions still expire after 15 min. */
-    val friendsLiveMode: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        val account = accountPart()
-        if (account != null) {
-            prefs[boolKey("friends_live_mode", account)] ?: false
-        } else {
-            prefs[KEY_FRIENDS_LIVE_MODE] ?: false
-        }
-    }
-
-    /** When on, GPS / share updates slow to ~10 s (battery-friendly foreground mode). */
-    val locationBatterySaver: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_LOCATION_BATTERY_SAVER] ?: false
-    }
-
-    /** Preferred routing profile: truck (default) vs car. */
-    val routeVehicleTruck: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_ROUTE_VEHICLE_TRUCK] ?: true
-    }
-
-    /** True = show on-road path already driven; false = remaining path only. */
-    val friendsRouteShowTraveled: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_FRIENDS_ROUTE_TRAVELED] ?: false
     }
 
     val quietHoursEnabled: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
@@ -326,59 +272,6 @@ class SettingsDataStore(context: Context) {
         }
     }
 
-    suspend fun getSharePathWithFriendsOnce(): Boolean = sharePathWithFriends.first()
-
-    suspend fun saveSharePathWithFriends(enabled: Boolean) {
-        val account = accountPart()
-        appContext.settingsDataStore.edit { prefs ->
-            // Never migrate global true into a new account — privacy default is off.
-            prefs[boolKey("share_path_with_friends", account)] = enabled
-        }
-    }
-
-    suspend fun getFriendsLocationIntervalMinutesOnce(): Int = friendsLocationIntervalMinutes.first()
-
-    suspend fun saveFriendsLocationIntervalMinutes(minutes: Int) {
-        val account = accountPart()
-        val clamped = FriendsLocationSharePolicy.clampIntervalMinutes(minutes)
-        appContext.settingsDataStore.edit { prefs ->
-            prefs[intKey("friends_location_interval_min", account)] = clamped
-        }
-    }
-
-    suspend fun getFriendsLiveModeOnce(): Boolean = friendsLiveMode.first()
-
-    suspend fun saveFriendsLiveMode(enabled: Boolean) {
-        val account = accountPart()
-        appContext.settingsDataStore.edit { prefs ->
-            prefs[boolKey("friends_live_mode", account)] = enabled
-        }
-    }
-
-    suspend fun getLocationBatterySaverOnce(): Boolean = locationBatterySaver.first()
-
-    suspend fun saveLocationBatterySaver(enabled: Boolean) {
-        appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_LOCATION_BATTERY_SAVER] = enabled
-        }
-    }
-
-    suspend fun getRouteVehicleTruckOnce(): Boolean = routeVehicleTruck.first()
-
-    suspend fun saveRouteVehicleTruck(enabled: Boolean) {
-        appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_ROUTE_VEHICLE_TRUCK] = enabled
-        }
-    }
-
-    suspend fun getFriendsRouteShowTraveledOnce(): Boolean = friendsRouteShowTraveled.first()
-
-    suspend fun saveFriendsRouteShowTraveled(enabled: Boolean) {
-        appContext.settingsDataStore.edit { prefs ->
-            prefs[KEY_FRIENDS_ROUTE_TRAVELED] = enabled
-        }
-    }
-
     suspend fun getReduceMotionOnce(): Boolean = reduceMotion.first()
 
     suspend fun saveReduceMotion(enabled: Boolean) {
@@ -464,20 +357,6 @@ class SettingsDataStore(context: Context) {
         val account = accountPart()
         appContext.settingsDataStore.edit { prefs ->
             prefs[boolKey("crowd_stats_prompt_seen", account)] = true
-        }
-    }
-
-    fun communityHintUsed(area: CommunityHintArea): Flow<Boolean> =
-        appContext.settingsDataStore.data.map { prefs ->
-            prefs[booleanPreferencesKey(area.prefKey)] ?: false
-        }
-
-    suspend fun isCommunityHintUsedOnce(area: CommunityHintArea): Boolean =
-        communityHintUsed(area).first()
-
-    suspend fun markCommunityHintUsed(area: CommunityHintArea) {
-        appContext.settingsDataStore.edit { prefs ->
-            prefs[booleanPreferencesKey(area.prefKey)] = true
         }
     }
 

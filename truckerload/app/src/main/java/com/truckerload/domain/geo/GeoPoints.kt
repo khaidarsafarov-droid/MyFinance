@@ -1,6 +1,10 @@
-package com.truckerload.domain.friends
+package com.truckerload.domain.geo
 
-/** Single GPS sample from [PRIORITY_BALANCED_POWER_ACCURACY] — no reverse-geocode. */
+data class LatLngPoint(
+    val latitude: Double,
+    val longitude: Double,
+)
+
 data class BalancedLocationFix(
     val latitude: Double,
     val longitude: Double,

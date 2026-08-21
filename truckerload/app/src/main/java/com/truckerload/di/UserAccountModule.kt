@@ -17,7 +17,6 @@ import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.data.repository.account.AccountDeletionService
-import com.truckerload.data.repository.account.CommunityProfileRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.data.repository.social.ProfileRepository
@@ -116,10 +115,6 @@ object UserAccountModule {
     @Provides
     fun provideDriverProfessionalRepository(manager: UserComponentManager): DriverProfessionalRepository =
         manager.require().driverProfessionalRepository
-
-    @Provides
-    fun provideCommunityProfileRepository(manager: UserComponentManager): CommunityProfileRepository =
-        manager.require().communityProfileRepository
 
     @Provides
     fun provideAccountDeletionService(manager: UserComponentManager): AccountDeletionService =
