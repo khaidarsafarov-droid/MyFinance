@@ -21,10 +21,10 @@ class LogRedactorTest {
     }
 
     @Test
-    fun redactsBearerToken() {
-        val raw = "Authorization: Bearer supersecrettokenvalue123"
+    fun redactsGoogleApiKey() {
+        val raw = "x-goog-api-key: AIzaSyA1234567890abcdefg"
         val redacted = LogRedactor.redact(raw)
-        assertFalse(redacted.contains("supersecrettokenvalue123"))
-        assertTrue(redacted.contains("Bearer ***"))
+        assertFalse(redacted.contains("AIzaSyA1234567890abcdefg"))
+        assertTrue(redacted.contains("***gkey***"))
     }
 }

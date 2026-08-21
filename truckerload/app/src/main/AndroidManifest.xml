@@ -37,6 +37,9 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" android:host="t.me" />
         </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
     </queries>
 
     <supports-screens

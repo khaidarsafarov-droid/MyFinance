@@ -42,6 +42,7 @@ fun JournalListDetailHost(
                 onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
                 onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
                 onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                onVoiceAssistant = { navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true } },
                 onLoadCamera = { loadId, tripId, loadDate ->
                     navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
                 },

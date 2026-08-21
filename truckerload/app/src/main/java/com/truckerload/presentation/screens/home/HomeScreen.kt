@@ -62,6 +62,7 @@ fun HomeScreen(
     onCamera: () -> Unit = {},
     onScan: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
+    onVoiceAssistant: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
@@ -180,6 +181,7 @@ fun HomeScreen(
             onCamera = onCamera,
             onScan = onScan,
             onAddDiesel = onAddDiesel,
+            onVoiceAssistant = onVoiceAssistant,
         )
     }
 

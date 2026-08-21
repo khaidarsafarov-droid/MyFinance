@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Handyman
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalGasStation
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonAdd
@@ -64,6 +65,7 @@ enum class DrawerDestination {
     MAINTENANCE,
     ADD_PAYCHECK,
     ADD_DIESEL,
+    VOICE_ASSISTANT,
     SCANNER,
     CAMERA,
     ABOUT,
@@ -159,6 +161,12 @@ fun AppDrawerContent(
                         icon = Icons.Outlined.LocalGasStation,
                         label = stringResource(R.string.add_diesel_title),
                         onClick = { onNavigate(DrawerDestination.ADD_DIESEL); onClose() },
+                        indented = true,
+                    )
+                    drawerItem(
+                        icon = Icons.Outlined.Mic,
+                        label = stringResource(R.string.assistant_title),
+                        onClick = { onNavigate(DrawerDestination.VOICE_ASSISTANT); onClose() },
                         indented = true,
                     )
                     drawerItem(

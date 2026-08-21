@@ -84,6 +84,12 @@ object AppVoiceActions {
             "советник",
             "financial advisor",
         ),
+        Routes.VOICE_ASSISTANT to listOf(
+            "голосовой ассистент",
+            "ассистент",
+            "voice assistant",
+            "assistant",
+        ),
         "attach_pick/scanner" to listOf("скан к грузу", "scan load"),
         "attach_pick/camera" to listOf("фото к грузу", "photo load"),
     )

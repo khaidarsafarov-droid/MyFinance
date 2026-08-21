@@ -33,6 +33,8 @@ class AppVoiceActionsTest {
         assertEquals(Routes.SETTINGS, screen("настройки"))
         assertEquals(Routes.SCANNER, screen("сканер"))
         assertEquals(Routes.FINANCIAL_ADVISOR, screen("финансовый советник"))
+        assertEquals(Routes.VOICE_ASSISTANT, screen("голосовой ассистент"))
+        assertEquals(Routes.VOICE_ASSISTANT, screen("voice assistant"))
         assertEquals(Routes.PHOTO_GALLERY, screen("галерея фото"))
         assertEquals(Routes.STATUS, screen("статусы"))
         assertEquals(Routes.GROUPS, screen("группы"))

@@ -44,6 +44,15 @@ android {
         }
         buildConfigField("String", "CEREBRAS_API_KEY", "\"$cerebrasKey\"")
         buildConfigField("String", "CEREBRAS_MODEL", "\"${localProps.getProperty("CEREBRAS_MODEL", "llama3.1-8b")}\"")
+        val geminiKey = localProps.getProperty("GEMINI_API_KEY", "")
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        val geminiModel = localProps.getProperty("GEMINI_MODEL", "gemini-2.0-flash")
+            .ifBlank { "gemini-2.0-flash" }
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"$geminiModel\"")
         buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"$telegramToken\"")
         // Non-secret Web OAuth client — required for Google ID tokens. Fall back to the
         // project default so friends/CI builds still get Sign-In when local.properties omits it.
@@ -175,6 +184,7 @@ android {
             // Public client IDs (Supabase anon, Google Web client) stay in defaultConfig.
             buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
             buildConfigField("String", "CEREBRAS_API_KEY", "\"\"")
+            buildConfigField("String", "GEMINI_API_KEY", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -406,13 +416,17 @@ tasks.register("verifyReleaseSecretsEmpty") {
         }
         val telegram = fieldValue("TELEGRAM_BOT_TOKEN")
         val cerebras = fieldValue("CEREBRAS_API_KEY")
+        val gemini = fieldValue("GEMINI_API_KEY")
         check(telegram.isEmpty()) {
             "Release BuildConfig must not embed TELEGRAM_BOT_TOKEN (found non-empty value)"
         }
         check(cerebras.isEmpty()) {
             "Release BuildConfig must not embed CEREBRAS_API_KEY (found non-empty value)"
         }
-        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram/cerebras empty in release)")
+        check(gemini.isEmpty()) {
+            "Release BuildConfig must not embed GEMINI_API_KEY (found non-empty value)"
+        }
+        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram/cerebras/gemini empty in release)")
     }
 }
 
