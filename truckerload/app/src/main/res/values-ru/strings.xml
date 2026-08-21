@@ -786,13 +786,13 @@
     <string name="telegram_export_caption">📦 Экспорт грузов Truck Log от %s</string>
     <string name="file_received">📥 Файл получен. Восстановлено %d грузов.</string>
     <string name="export_actions_title">Экспорт готов</string>
-    <string name="settings_backup_desc">Файл Loads_….txt в Загрузки: дата, груз, цена, маршрут — по одной строке на груз.</string>
-    <string name="settings_backup_saved">Заметка: %1$d грузов → %2$s</string>
-    <string name="settings_backup_error">Не удалось создать заметку</string>
-    <string name="settings_backup_create">Создать заметку 📝</string>
+    <string name="settings_backup_desc">Файл TruckLog_Backup_….json в Загрузки/TruckLog: полный бэкап грузов, зарплат и дизеля. Его же можно восстановить в приложении.</string>
+    <string name="settings_backup_saved">Бэкап: %1$d грузов → %2$s</string>
+    <string name="settings_backup_error">Не удалось создать файл бэкапа</string>
+    <string name="settings_backup_create">Создать файл бэкапа</string>
     <string name="settings_backup_restore">Восстановить из файла</string>
-    <string name="settings_backup_restore_hint">Файл Loads_… из папки Загрузки/TruckLog или Samsung Notes</string>
-    <string name="settings_backup_share_title">Открыть в заметках</string>
+    <string name="settings_backup_restore_hint">Файл .json / .tlb из Загрузки/TruckLog (старые Loads_….txt тоже читаются, если внутри есть JSON)</string>
+    <string name="settings_backup_share_title">Поделиться бэкапом</string>
     <string name="drive_sync_title">Google Drive</string>
     <string name="drive_sync_desc">Данные остаются в Room на телефоне. Облачная копия — в вашем Google-аккаунте (скрытая папка приложения). iCloud на Android недоступен.</string>
     <string name="drive_sync_status_off">Не подключено</string>
@@ -947,6 +947,9 @@
     <string name="settings_logout_success">Вы вышли из аккаунта</string>
     <string name="backup_restore_read_failed">Не удалось прочитать файл</string>
     <string name="backup_restore_bad_format">Неверный формат файла</string>
+    <string name="backup_restore_corrupted">Файл повреждён</string>
+    <string name="backup_restore_chart_note">Это текстовая заметка со списком грузов, а не файл бэкапа. Создайте новый бэкап в Настройках.</string>
+    <string name="backup_restore_schema_too_new">Файл создан более новой версией приложения. Обновите TruckerLoad.</string>
     <string name="backup_restore_success">Восстановлено: %1$d грузов, %2$d зарплат, %3$d записей дизеля</string>
 
 

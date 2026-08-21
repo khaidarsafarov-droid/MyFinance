@@ -60,8 +60,10 @@ object BackupNoteFormatter {
         return "Loads_$stamp.txt"
     }
 
-    fun companionFileName(txtFileName: String): String =
-        txtFileName.removeSuffix(".txt") + ".tlb"
+    fun companionFileName(fileName: String): String {
+        val base = fileName.substringBeforeLast('.', fileName)
+        return "$base.tlb"
+    }
 
     private fun buildVisibleChart(loads: List<Load>): String = buildString {
         loads.sortedBy { it.date.ifBlank { "9999-99-99" } }.forEach { load ->

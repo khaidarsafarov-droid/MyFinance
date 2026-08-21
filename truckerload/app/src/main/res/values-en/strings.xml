@@ -786,13 +786,13 @@
     <string name="telegram_export_caption">📦 Truck Log load export from %s</string>
     <string name="file_received">📥 File received. Restored %d loads.</string>
     <string name="export_actions_title">Export ready</string>
-    <string name="settings_backup_desc">Loads_….txt file in Downloads: date, load, price, route — one line per load.</string>
-    <string name="settings_backup_saved">Note: %1$d loads → %2$s</string>
-    <string name="settings_backup_error">Could not create note</string>
-    <string name="settings_backup_create">Create note 📝</string>
+    <string name="settings_backup_desc">TruckLog_Backup_….json in Downloads/TruckLog: full backup of loads, paychecks, and diesel. Restore the same file in the app.</string>
+    <string name="settings_backup_saved">Backup: %1$d loads → %2$s</string>
+    <string name="settings_backup_error">Could not create backup file</string>
+    <string name="settings_backup_create">Create backup file</string>
     <string name="settings_backup_restore">Restore from file</string>
-    <string name="settings_backup_restore_hint">Loads_… file from Downloads/TruckLog or Samsung Notes</string>
-    <string name="settings_backup_share_title">Open in notes</string>
+    <string name="settings_backup_restore_hint">.json / .tlb file from Downloads/TruckLog (legacy Loads_….txt still works if it contains JSON)</string>
+    <string name="settings_backup_share_title">Share backup</string>
     <string name="drive_sync_title">Google Drive</string>
     <string name="drive_sync_desc">Data stays in Room on the phone. Cloud copy goes to your Google account (hidden app folder). iCloud is not available on Android.</string>
     <string name="drive_sync_status_off">Not connected</string>
@@ -947,6 +947,9 @@
     <string name="settings_logout_success">You have signed out</string>
     <string name="backup_restore_read_failed">Could not read file</string>
     <string name="backup_restore_bad_format">Invalid file format</string>
+    <string name="backup_restore_corrupted">The file is corrupted</string>
+    <string name="backup_restore_chart_note">This is a load chart note, not a backup file. Create a new backup in Settings.</string>
+    <string name="backup_restore_schema_too_new">This file was created by a newer app version. Please update TruckerLoad.</string>
     <string name="backup_restore_success">Restored: %1$d loads, %2$d paychecks, %3$d diesel entries</string>
 
 
