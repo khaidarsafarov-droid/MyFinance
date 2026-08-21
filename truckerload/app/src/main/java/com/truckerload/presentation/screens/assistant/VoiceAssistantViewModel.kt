@@ -179,9 +179,13 @@ class VoiceAssistantViewModel @Inject constructor(
                 }
                 else -> null
             }
+            val phase = when (result) {
+                is AssistantResult.Failed, AssistantResult.Ambiguous -> AssistantPhase.Error
+                else -> AssistantPhase.Ready
+            }
             _uiState.update {
                 it.copy(
-                    phase = if (result is AssistantResult.Failed) AssistantPhase.Error else AssistantPhase.Ready,
+                    phase = phase,
                     result = result,
                     errorMessageRes = errorRes,
                 )
@@ -205,7 +209,7 @@ class VoiceAssistantViewModel @Inject constructor(
                     it.copy(
                         phase = AssistantPhase.Error,
                         result = AssistantResult.Ambiguous,
-                        errorMessageRes = R.string.assistant_ambiguous,
+                        errorMessageRes = null,
                     )
                 }
             }

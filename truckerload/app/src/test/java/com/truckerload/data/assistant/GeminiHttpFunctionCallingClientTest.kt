@@ -19,5 +19,7 @@ class GeminiHttpFunctionCallingClientTest {
         assertTrue(body.contains("query_weekly_gross"))
         assertTrue(body.contains("functionCallingConfig"))
         assertTrue(body.contains("2026-08-21"))
+        assertTrue(!body.contains("test-key"))
+        assertTrue(!body.contains("x-goog-api-key"))
     }
 }

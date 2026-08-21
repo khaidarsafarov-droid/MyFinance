@@ -42,9 +42,14 @@ android {
         } else {
             ""
         }
+        val geminiKeyRaw = if (allowDebugSecrets) {
+            localProps.getProperty("GEMINI_API_KEY", "")
+        } else {
+            ""
+        }
         buildConfigField("String", "CEREBRAS_API_KEY", "\"$cerebrasKey\"")
         buildConfigField("String", "CEREBRAS_MODEL", "\"${localProps.getProperty("CEREBRAS_MODEL", "llama3.1-8b")}\"")
-        val geminiKey = localProps.getProperty("GEMINI_API_KEY", "")
+        val geminiKey = geminiKeyRaw
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         val geminiModel = localProps.getProperty("GEMINI_MODEL", "gemini-2.0-flash")
