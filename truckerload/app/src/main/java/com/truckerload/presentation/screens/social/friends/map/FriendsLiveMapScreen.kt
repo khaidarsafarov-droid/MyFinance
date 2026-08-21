@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.friends.FriendLiveStatus
 import com.truckerload.domain.friends.LatLngPoint
+import com.truckerload.presentation.screens.social.friends.FriendsAddByNicknameForm
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -72,7 +74,6 @@ fun FriendsLiveMapScreen(
     var centerOnMeNonce by remember { mutableIntStateOf(0) }
     var mapExpanded by remember { mutableStateOf(false) }
     var manageExpanded by remember { mutableStateOf(false) }
-    var addFriendExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     suspend fun refreshMyLocation(): LatLngPoint? {
@@ -175,7 +176,8 @@ fun FriendsLiveMapScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 12.dp)
+                .imePadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
@@ -191,6 +193,41 @@ fun FriendsLiveMapScreen(
                     onRouteDisplayMode = viewModel::setRouteDisplayMode,
                     onLocationBatterySaver = viewModel::setLocationBatterySaver,
                 )
+            }
+
+            item {
+                BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (!uiState.supabaseReady) {
+                            Text(
+                                text = stringResource(R.string.friends_live_need_supabase),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.AccentPrimary,
+                            )
+                        }
+                        FriendsAddByNicknameForm(
+                            searchQuery = uiState.searchQuery,
+                            searchBusy = uiState.searchBusy,
+                            searchHit = uiState.searchHit,
+                            searchNotFound = uiState.searchNotFound,
+                            statusMessage = uiState.statusMessage,
+                            onQueryChange = viewModel::setSearchQuery,
+                            onSearch = viewModel::searchFriend,
+                            onAdd = viewModel::addSearchedFriend,
+                            addBusy = uiState.addBusy,
+                        )
+                        FriendRequestsSection(
+                            incoming = uiState.incomingRequests,
+                            outgoing = uiState.outgoingRequests,
+                            onAccept = viewModel::acceptFriendRequest,
+                            onDecline = viewModel::declineFriendRequest,
+                            onCancel = viewModel::cancelFriendRequest,
+                        )
+                    }
+                }
             }
 
             uiState.errorMessage?.let { err ->
@@ -316,11 +353,6 @@ fun FriendsLiveMapScreen(
                     viewModel = viewModel,
                     manageExpanded = manageExpanded,
                     onManageExpandedChange = { manageExpanded = it },
-                    addFriendExpanded = addFriendExpanded,
-                    onAddFriendExpandedChange = { expanded ->
-                        addFriendExpanded = expanded
-                        if (expanded) manageExpanded = true
-                    },
                     onFocusFriend = { friendId ->
                         viewModel.selectFriend(friendId)
                         mapExpanded = true

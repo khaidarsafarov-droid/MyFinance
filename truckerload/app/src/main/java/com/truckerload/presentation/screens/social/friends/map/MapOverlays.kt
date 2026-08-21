@@ -35,6 +35,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -375,7 +376,23 @@ fun FriendsGoogleMap(
 
     AndroidView(
         factory = { ctx ->
-            MapView(ctx).also { mapView = it }
+            MapView(
+                ctx,
+                GoogleMapOptions()
+                    .liteMode(!interactive)
+                    .mapToolbarEnabled(false)
+                    .zoomControlsEnabled(interactive)
+                    .scrollGesturesEnabled(interactive)
+                    .zoomGesturesEnabled(interactive)
+                    .rotateGesturesEnabled(interactive)
+                    .tiltGesturesEnabled(interactive),
+            ).also { map ->
+                mapView = map
+                if (!interactive) {
+                    map.isClickable = false
+                    map.isFocusable = false
+                }
+            }
         },
         modifier = Modifier.fillMaxSize(),
     )

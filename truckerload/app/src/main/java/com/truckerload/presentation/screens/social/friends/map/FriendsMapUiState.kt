@@ -25,6 +25,7 @@ data class FriendsMapUiState(
     val searchHit: FriendProfileHit? = null,
     val searchNotFound: Boolean = false,
     val searchBusy: Boolean = false,
+    val addBusy: Boolean = false,
     val shareLinks: List<FriendShareLink> = emptyList(),
     val editingFriendId: String? = null,
     val friends: List<FriendMapOverlay> = emptyList(),

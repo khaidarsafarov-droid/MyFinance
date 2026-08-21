@@ -509,7 +509,7 @@
     <string name="friends_open_map">Open friends map</string>
     <string name="friends_sharing_list_title">Who I share with</string>
     <string name="friends_sharing_list_hint">Tap ⋯ for path, focus, sharing, or remove</string>
-    <string name="friends_sharing_list_empty">Nobody yet — tap + to add a friend by nickname</string>
+    <string name="friends_sharing_list_empty">Nobody yet — search a nickname in the form above to send a request</string>
     <string name="friends_add_friend_cd">Add friend</string>
     <string name="friends_add_friend_close_cd">Close add friend</string>
     <string name="friends_share_summary">Me: position %1$s · route %2$s</string>

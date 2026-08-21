@@ -12,6 +12,7 @@ data class FriendsDirectoryUiState(
     val searchHit: FriendProfileHit? = null,
     val searchNotFound: Boolean = false,
     val searchBusy: Boolean = false,
+    val addBusy: Boolean = false,
     val incomingRequests: List<FriendRequest> = emptyList(),
     val outgoingRequests: List<FriendRequest> = emptyList(),
     val shareLinks: List<FriendShareLink> = emptyList(),

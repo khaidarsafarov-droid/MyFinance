@@ -15,6 +15,8 @@ In the Supabase SQL editor, in order:
 
 4. `supabase/migrations/20260819_friend_requests_and_safety.sql`
    (friend requests, reports, hide email/phone from peer search)
+5. `supabase/migrations/20260820_search_nickname_community_profiles.sql`
+   (find friends by handle in both `profiles` and `community_profiles`)
 
 Optional Realtime (Dashboard → Database → Replication):
 

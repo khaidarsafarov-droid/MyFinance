@@ -509,7 +509,7 @@
     <string name="friends_open_map">Открыть карту друзей</string>
     <string name="friends_sharing_list_title">С кем я делюсь</string>
     <string name="friends_sharing_list_hint">Нажмите ⋯: путь, фокус, шаринг или удалить друга</string>
-    <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — нажмите + чтобы добавить друга по нику</string>
+    <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — найдите друга по нику в форме выше</string>
     <string name="friends_add_friend_cd">Добавить друга</string>
     <string name="friends_add_friend_close_cd">Закрыть добавление друга</string>
     <string name="friends_share_summary">Я: позиция %1$s · маршрут %2$s</string>
