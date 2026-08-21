@@ -301,3 +301,6 @@ class ProfileRepositoryImpl(
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_upload_avatar, it), it) }
 }
+
+private fun socialError(context: Context, resId: Int, error: Throwable): String =
+    context.getString(resId) + ": " + (error.message ?: error.toString())
