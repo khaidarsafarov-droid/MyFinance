@@ -51,6 +51,7 @@ import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
@@ -82,10 +83,13 @@ internal fun HomeScreenContent(
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit,
     onAddLoad: () -> Unit = {},
     onOpenWeeklyGoal: () -> Unit = {},
+    onAddDiesel: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
     onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
+    val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
     var showYearSelector by remember { mutableStateOf(false) }
     var refreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -223,8 +227,19 @@ internal fun HomeScreenContent(
                             viewModel.setFilter(LoadFilter.ALL)
                             showYearSelector = true
                         },
+                        weeklyGoal = weeklyGoal,
+                        onOpenWeeklyGoal = onOpenWeeklyGoal,
                     )
                 }
+            }
+
+            item(key = "newcomer_next") {
+                HomeUxMotivators(
+                    onAddLoad = onAddLoad,
+                    onWeeklyGoal = onOpenWeeklyGoal,
+                    onAddDiesel = onAddDiesel,
+                    onOpenProfile = onOpenProfile,
+                )
             }
 
             if (periodSummary == null) {
@@ -260,38 +275,26 @@ internal fun HomeScreenContent(
             val listEmpty = !useRoomPaging && listItems.isEmpty()
             if (pagingEmpty || listEmpty) {
                 item(key = "empty_${uiState.filter}") {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 240.dp)
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                when (uiState.filter) {
-                                    LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
-                                    LoadFilter.CALENDAR_WEEK -> stringResource(R.string.home_empty_calendar_week)
-                                    LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_empty_calendar_date)
-                                    LoadFilter.YESTERDAY -> stringResource(R.string.home_empty_yesterday)
-                                    LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
-                                    LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
-                                    LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
-                                    LoadFilter.DISPUTE -> stringResource(R.string.home_empty_dispute)
-                                },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = tc.TextPrimary,
-                            )
-                            if (uiState.filter != LoadFilter.ALL) {
-                                Text(
-                                    stringResource(R.string.home_empty_filtered_body),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = tc.TextSecondary,
-                                    modifier = Modifier.padding(top = 8.dp),
-                                )
-                            }
-                        }
-                    }
+                    HomeEmptyJournal(
+                        title = when (uiState.filter) {
+                            LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
+                            LoadFilter.CALENDAR_WEEK -> stringResource(R.string.home_empty_calendar_week)
+                            LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_empty_calendar_date)
+                            LoadFilter.YESTERDAY -> stringResource(R.string.home_empty_yesterday)
+                            LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
+                            LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
+                            LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
+                            LoadFilter.DISPUTE -> stringResource(R.string.home_empty_dispute)
+                        },
+                        body = if (uiState.filter == LoadFilter.THIS_WEEK || uiState.filter == LoadFilter.ALL) {
+                            stringResource(R.string.ux_home_empty_reciprocity)
+                        } else {
+                            stringResource(R.string.home_empty_filtered_body)
+                        },
+                        ctaLabel = stringResource(R.string.home_empty_cta),
+                        onCta = onAddLoad,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
                 }
             } else if (useRoomPaging) {
                 val rowCount = pagedLoadRowCount(pagedLoads.itemCount, loadColumns)

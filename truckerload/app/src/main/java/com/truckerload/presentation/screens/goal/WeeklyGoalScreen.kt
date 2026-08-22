@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Timeline
-import androidx.compose.material.icons.outlined.WarningAmber
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
 import com.truckerload.presentation.components.TlButton as Button
@@ -452,21 +451,20 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
             tc.Warning,
         )
         PaceStatus.BEHIND -> Triple(
-            stringResource(R.string.ux_loss_goal_behind_title),
+            stringResource(R.string.goal_pace_behind_title),
             stringResource(
-                R.string.ux_loss_goal_behind_body,
-                MoneyFormat.formatCurrency(progress.remainingAmount),
-                progress.daysRemainingInWeek,
+                R.string.goal_pace_behind_short,
                 MoneyFormat.formatCurrency(progress.dailyTargetNeeded),
+                MoneyFormat.formatCurrency(progress.remainingAmount),
             ),
-            tc.Danger,
+            tc.TextPrimary,
         )
     }
 
     val paceIcon = when (progress.paceStatus) {
         PaceStatus.GOAL_MET, PaceStatus.AHEAD -> Icons.Outlined.CheckCircle
         PaceStatus.ON_TRACK -> Icons.Outlined.Timeline
-        PaceStatus.BEHIND -> Icons.Outlined.WarningAmber
+        PaceStatus.BEHIND -> Icons.Outlined.Timeline
     }
 
     BentoGlassCard(

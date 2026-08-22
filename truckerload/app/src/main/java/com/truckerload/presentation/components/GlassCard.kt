@@ -12,7 +12,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -20,7 +19,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.DarkGlassGradients
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiDimens
 import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
@@ -49,23 +47,6 @@ fun GlassCard(
     }
     Surface(
         modifier = modifier
-            .then(
-                if (!useHero) {
-                    Modifier.shadow(
-                        elevation = SoftUiElevation.Card,
-                        shape = shape,
-                        ambientColor = SoftUiColors.ShadowTint,
-                        spotColor = SoftUiColors.ShadowNeutral,
-                    )
-                } else {
-                    Modifier.shadow(
-                        elevation = SoftUiElevation.Card,
-                        shape = shape,
-                        ambientColor = SoftUiColors.ShadowTint,
-                        spotColor = SoftUiColors.ShadowNeutral,
-                    )
-                },
-            )
             .then(if (heroBrush != null) Modifier.background(heroBrush, shape) else Modifier)
             .then(if (onClick != null) Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -75,7 +56,7 @@ fun GlassCard(
         shape = shape,
         color = containerColor,
         tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
+        shadowElevation = SoftUiElevation.Card,
     ) {
         Column(modifier = Modifier.padding(contentPadding), content = content)
     }

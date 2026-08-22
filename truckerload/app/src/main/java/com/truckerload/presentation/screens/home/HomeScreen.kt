@@ -259,7 +259,7 @@ fun HomeScreen(
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(tc.AccentExpense.copy(alpha = 0.25f))
+                                .background(tc.TextSecondary.copy(alpha = 0.16f))
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                         )
                     }
@@ -282,6 +282,8 @@ fun HomeScreen(
                         onLoadScan = onLoadScan,
                         onAddLoad = onAddLoad,
                         onOpenWeeklyGoal = onStats,
+                        onAddDiesel = onAddDiesel,
+                        onOpenProfile = onSettings,
                         periodTotals = totals,
                         onOpenPrivacy = onOpenPrivacy,
                     )

@@ -43,7 +43,7 @@ fun LossAversionBanner(
         style = MaterialTheme.typography.labelMedium,
         modifier = modifier
             .fillMaxWidth()
-            .background(tc.AccentWarning.copy(alpha = 0.28f))
+            .background(tc.TextSecondary.copy(alpha = 0.12f))
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
     )
