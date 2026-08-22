@@ -174,6 +174,33 @@ interface LoadDao {
         actualFinishDate: String?,
     )
 
+    /** Date/week repair without rewriting stops or penalties. */
+    @Query(
+        """
+        UPDATE loads SET
+            date = :loadDate,
+            weekNumber = :weekNumber,
+            year = :year,
+            updatedAt = :updatedAt,
+            firstPuMillis = :firstPuMillis,
+            lastDelMillis = :lastDelMillis,
+            durationDays = :durationDays,
+            pace = :pace
+        WHERE id = :loadId
+        """
+    )
+    suspend fun updateCalendarFields(
+        loadId: String,
+        loadDate: String,
+        weekNumber: Int,
+        year: Int,
+        updatedAt: Long,
+        firstPuMillis: Long?,
+        lastDelMillis: Long?,
+        durationDays: Double,
+        pace: Double,
+    )
+
     /** Точный поиск по load_date (YYYY-MM-DD). */
     @Query("SELECT * FROM loads WHERE date = :loadDate ORDER BY parsedAt DESC")
     fun getLoadsByDate(loadDate: String): Flow<List<LoadEntity>>

@@ -42,10 +42,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 
 data class SyncLoadsResult(
     val addedCount: Int,
@@ -67,11 +68,10 @@ class LoadRepository(
     private val penaltyDao = db.penaltyDao()
     private val photoDao = db.photoDao()
     private val scanDao = db.scanDao()
+    private val writeBatchDepth = AtomicInteger(0)
 
     fun getAllLoads(): Flow<List<Load>> =
-        loadDao.getAllLoads()
-            .mapLatest { hydrateLoads(it) }
-            .flowOn(Dispatchers.IO)
+        loadDao.getAllLoads().hydrateOnIo(stopDao, penaltyDao)
 
     fun watchTotalLoadStats(): Flow<LoadStatsAgg> =
         loadDao.watchTotalLoadStats().flowOn(Dispatchers.IO)
@@ -96,6 +96,7 @@ class LoadRepository(
             .distinctUntilChanged()
             .flatMapLatest { (weekNumber, year) -> loadDao.watchWeekYieldAgg(weekNumber, year) }
             .map { it.toSnapshot() }
+            .flowOn(Dispatchers.IO)
 
     /**
      * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
@@ -132,24 +133,24 @@ class LoadRepository(
     }
 
     fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =
-        loadDao.watchActualDailyYield(weekNumber, year)
+        loadDao.watchActualDailyYield(weekNumber, year).flowOn(Dispatchers.IO)
 
     fun getLoadsByMonth(monthPrefix: String): Flow<List<Load>> =
-        loadDao.getLoadsByMonth(monthPrefix).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByMonth(monthPrefix).hydrateOnIo(stopDao, penaltyDao)
 
     fun searchLoads(query: String): Flow<List<Load>> =
-        loadDao.searchLoads(query).mapLatest { hydrateLoads(it) }
+        loadDao.searchLoads(query).hydrateOnIo(stopDao, penaltyDao)
 
     fun getLoadsByWeek(weekNumber: Int, year: Int): Flow<List<Load>> =
-        loadDao.getLoadsByWeek(weekNumber, year).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByWeek(weekNumber, year).hydrateOnIo(stopDao, penaltyDao)
 
     /** Точная дата (load_date). */
     fun getLoadsByDate(loadDate: String): Flow<List<Load>> =
-        loadDao.getLoadsByDate(loadDate).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByDate(loadDate).hydrateOnIo(stopDao, penaltyDao)
 
     /** Диапазон дат (включительно). */
     fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<Load>> =
-        loadDao.getLoadsByDateRange(startDate, endDate).mapLatest { hydrateLoads(it) }
+        loadDao.getLoadsByDateRange(startDate, endDate).hydrateOnIo(stopDao, penaltyDao)
 
     /**
      * True Room [PagingSource] journal rows (entity → domain without stop hydrate —
@@ -188,15 +189,16 @@ class LoadRepository(
     }
 
     suspend fun getLoadsByYear(year: Int): List<Load> =
-        hydrateLoads(loadDao.getLoadsByWeekYearOnce(year))
+        hydrateLoadEntities(loadDao.getLoadsByWeekYearOnce(year), stopDao, penaltyDao)
 
     suspend fun getLoadsByDateRangeOnce(startDate: String, endDate: String): List<Load> =
         getLoadsByDateRange(startDate, endDate).first()
 
-    suspend fun getAllLoadsOnce(): List<Load> = hydrateLoads(loadDao.getAllLoadsOnce())
+    suspend fun getAllLoadsOnce(): List<Load> =
+        hydrateLoadEntities(loadDao.getAllLoadsOnce(), stopDao, penaltyDao)
 
     suspend fun getLoadsForLinking(limit: Int = 50): List<Load> =
-        hydrateLoads(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)))
+        hydrateLoadEntities(loadDao.getLoadsForLinking(limit.coerceAtLeast(1)), stopDao, penaltyDao)
 
     /**
      * Up to [limit] loads from the current trucking week (Sun–Sat), newest by date then
@@ -204,7 +206,7 @@ class LoadRepository(
      */
     suspend fun getRecentLoadsThisWeek(limit: Int = 3): List<Load> {
         val (week, year) = getCurrentWeekNumberAndYear()
-        val weekLoads = hydrateLoads(loadDao.getLoadsByWeekOnce(week, year))
+        val weekLoads = hydrateLoadEntities(loadDao.getLoadsByWeekOnce(week, year), stopDao, penaltyDao)
         return AttachLoadSelection.quickPickThisWeek(
             loads = weekLoads,
             weekNumber = week,
@@ -225,15 +227,17 @@ class LoadRepository(
             .toMutableSet()
         var imported = 0
         var skipped = 0
-        for (load in loads) {
-            val tripId = normalizeTripId(load.tripId)
-            if (tripId in existingTripIds) {
-                skipped++
-                continue
+        runBatchWrite {
+            for (load in loads) {
+                val tripId = normalizeTripId(load.tripId)
+                if (tripId in existingTripIds) {
+                    skipped++
+                    continue
+                }
+                existingTripIds.add(tripId)
+                insertLoad(load.copy(tripId = tripId), playFeedback = false)
+                imported++
             }
-            existingTripIds.add(tripId)
-            insertLoad(load.copy(tripId = tripId), playFeedback = false)
-            imported++
         }
         if (imported > 0) {
             FeedbackManager.onLoadAdded()
@@ -243,6 +247,22 @@ class LoadRepository(
             skipped = skipped,
             parsed = parsedCount
         )
+    }
+
+    /**
+     * Coalesce widget/backup side effects around a burst of writes (chat-history import).
+     * Nested Room transactions join; observers emit once when the outer transaction ends.
+     */
+    suspend fun <T> runBatchWrite(block: suspend () -> T): T {
+        writeBatchDepth.incrementAndGet()
+        try {
+            return db.withTransaction { block() }
+        } finally {
+            if (writeBatchDepth.decrementAndGet() == 0) {
+                notifyWidgetDataChanged()
+                scheduleAutoBackup()
+            }
+        }
     }
 
     suspend fun getLoadById(loadId: String): Load? {
@@ -528,71 +548,46 @@ class LoadRepository(
     }
 
     private fun notifyWidgetDataChanged() {
+        if (writeBatchDepth.get() > 0) return
         AppDatabase.applicationContext()?.let { WidgetDataUpdater.updateWidgetData(it) }
     }
 
     private fun scheduleAutoBackup() {
+        if (writeBatchDepth.get() > 0) return
         AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
-    }
-
-    private suspend fun hydrateLoads(entities: List<LoadEntity>): List<Load> {
-        if (entities.isEmpty()) return emptyList()
-        val loadIds = entities.map { it.id }
-        // SQLite ограничивает IN(...) ~999 параметрами — батчим крупные флоты.
-        val stopsByLoadId = loadIds.chunked(500)
-            .flatMap { chunk -> stopDao.getStopsByLoadIds(chunk) }
-            .groupBy { it.loadId }
-        val penaltiesByLoadId = loadIds.chunked(500)
-            .flatMap { chunk -> penaltyDao.getPenaltiesByLoadIds(chunk) }
-            .groupBy { it.loadId }
-        return entities.map { entity ->
-            val load = entity.toDomain(
-                stops = stopsByLoadId[entity.id].orEmpty(),
-                penalties = penaltiesByLoadId[entity.id].orEmpty(),
-            )
-            // Fix MM/DD dates that were anchored to the wrong calendar year.
-            LoadDateRepair.repair(load)
-        }
     }
 
     /**
      * Persists [LoadDateRepair] corrections so SQL week/year filters match the journal.
-     * Safe to call on session start; only writes rows that actually change.
+     * Safe to call on session start; only writes rows that actually change, in one transaction.
      */
-    suspend fun repairMislabeledLoadDates(): Int {
-        val entities = loadDao.getAllLoadsOnce()
-        if (entities.isEmpty()) return 0
-        val hydrated = hydrateLoads(entities)
-        var fixed = 0
-        for ((entity, repaired) in entities.zip(hydrated)) {
-            if (entity.date != repaired.date ||
-                entity.weekNumber != repaired.weekNumber ||
-                entity.year != repaired.year
-            ) {
-                updateLoad(repaired)
-                fixed++
-            }
+    suspend fun repairMislabeledLoadDates(): Int = withContext(Dispatchers.IO) {
+        val fixed = persistRepairedLoadDates(db)
+        if (fixed > 0) {
+            notifyWidgetDataChanged()
+            scheduleAutoBackup()
         }
-        return fixed
+        fixed
     }
 
     /** Fixes inflated Relay miles (e.g. 182781 → 1827.81) for suspect rows only. */
     suspend fun repairInflatedLoadedMiles(): Int {
         val entities = loadDao.getLoadsWithSuspectInflatedMiles()
         if (entities.isEmpty()) return 0
-        var fixed = 0
-        for (entity in entities) {
-            val sanitized = ParseUtils.sanitizeLoadedMiles(entity.totalMiles, entity.totalRate)
-            if (kotlin.math.abs(sanitized - entity.totalMiles) > 0.009) {
-                val stops = stopDao.getStopsByLoadId(entity.id)
-                val penalties = penaltyDao.getPenaltiesByLoadId(entity.id)
-                val load = entity.toDomain(stops, penalties).copy(totalMiles = sanitized)
-                updateLoad(load)
-                fixed++
+        return runBatchWrite {
+            var fixed = 0
+            for (entity in entities) {
+                val sanitized = ParseUtils.sanitizeLoadedMiles(entity.totalMiles, entity.totalRate)
+                if (kotlin.math.abs(sanitized - entity.totalMiles) > 0.009) {
+                    val stops = stopDao.getStopsByLoadId(entity.id)
+                    val penalties = penaltyDao.getPenaltiesByLoadId(entity.id)
+                    val load = entity.toDomain(stops, penalties).copy(totalMiles = sanitized)
+                    updateLoad(load)
+                    fixed++
+                }
             }
+            fixed
         }
-        if (fixed > 0) notifyWidgetDataChanged()
-        return fixed
     }
 
     private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot = WeekYieldSnapshot(totalGross = totalGross, totalActiveDays = totalActiveDays)
