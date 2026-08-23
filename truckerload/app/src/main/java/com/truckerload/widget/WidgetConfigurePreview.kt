@@ -281,32 +281,52 @@ private fun PreviewRing(
 
 @Composable
 private fun PreviewActionRow(accent: Color, labeled: Boolean) {
-    val icons = listOf(
-        AppIcons.PhotoCamera,
-        AppIcons.DocumentScanner,
-        AppIcons.LocalGasStation,
+    val actions = listOf(
+        AppIcons.PhotoCamera to stringResource(R.string.widget_camera_short),
+        AppIcons.DocumentScanner to stringResource(R.string.widget_scanner_short),
+        AppIcons.LocalGasStation to stringResource(R.string.widget_diesel_short),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        icons.forEach { icon ->
-            PreviewActionChip(icon = icon, accent = accent, labeled = labeled)
+        actions.forEach { (icon, label) ->
+            PreviewActionChip(
+                icon = icon,
+                label = label,
+                accent = accent,
+                labeled = labeled,
+            )
         }
     }
 }
 
 @Composable
-private fun PreviewActionChip(icon: ImageVector, accent: Color, labeled: Boolean) {
-    Box(
-        modifier = Modifier
-            .size(if (labeled) 28.dp else 26.dp)
-            .clip(CircleShape)
-            .background(accent.copy(alpha = 0.16f)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = accent,
-            modifier = Modifier.size(if (labeled) 15.dp else 14.dp),
-        )
+private fun PreviewActionChip(
+    icon: ImageVector,
+    label: String,
+    accent: Color,
+    labeled: Boolean,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(if (labeled) 28.dp else 26.dp)
+                .clip(CircleShape)
+                .background(accent.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = accent,
+                modifier = Modifier.size(if (labeled) 15.dp else 14.dp),
+            )
+        }
+        if (labeled) {
+            Text(
+                text = label,
+                color = SoftUiColors.TextSecondaryLight,
+                fontSize = 8.sp,
+                maxLines = 1,
+            )
+        }
     }
 }
