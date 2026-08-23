@@ -48,6 +48,19 @@ class WidgetRingHeroAndActionsTest {
         assertTrue(camera >= 0)
         assertTrue(scanner > camera)
         assertTrue(diesel > scanner)
+        assertTrue(xml.contains("android:id=\"@+id/widget_day_dots_row\""))
+        val dotsBlock = xml.substring(
+            xml.indexOf("android:id=\"@+id/widget_day_dots_row\""),
+            xml.indexOf("android:id=\"@+id/widget_right_column\""),
+        )
+        assertTrue(dotsBlock.contains("android:visibility=\"gone\""))
+    }
+
+    @Test
+    fun scannerIcon_isDocumentNotBriefcase() {
+        val xml = readRes("drawable/ic_widget_scanner.xml")
+        assertTrue(xml.contains("Document with scan corners"))
+        assertTrue(!xml.contains("M19,7h-1V5"))
     }
 
     private fun readRes(relativePath: String): String {

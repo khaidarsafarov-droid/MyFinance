@@ -54,7 +54,7 @@ object WidgetRemoteViewsFactory {
     bindHeader(appContext, views, stats, tier)
     bindRingHero(appContext, views, stats, prefs, tier, themed)
     bindWeekDays(appContext, views, appWidgetId, stats, tier, themed)
-    bindRpmBlock(appContext, views, stats, tier, themed)
+    bindRpmBlock(appContext, views, stats, prefs, tier, themed)
     bindEmptyState(appContext, views, stats, prefs, tier)
     bindQuickActions(appContext, views, tier)
     bindClickTargets(appContext, views, appWidgetId, tier)
@@ -229,10 +229,11 @@ object WidgetRemoteViewsFactory {
       goalMet,
       stats.goalDaysRemaining,
     )
+    val ringFill = if (prefs.showGoal && goalSet) progress else 0f
     val ringBitmap = runCatching {
       WidgetProgressRingBitmap.create(
         themed,
-        if (goalSet) progress else 0f,
+        ringFill,
         ringSizePx,
         progressColor,
       )
@@ -258,17 +259,21 @@ object WidgetRemoteViewsFactory {
     )
     views.setTextViewText(R.id.widget_gross_hero, amount)
     views.setTextViewTextSize(R.id.widget_gross_hero, TypedValue.COMPLEX_UNIT_SP, amountSp)
+    views.setViewVisibility(
+      R.id.widget_gross_hero,
+      if (prefs.showGross) View.VISIBLE else View.GONE,
+    )
 
-    if (tier == LayoutTier.COMPACT) {
+    if (tier == LayoutTier.COMPACT || !prefs.showGoal) {
       views.setViewVisibility(R.id.widget_goal_subtitle, View.GONE)
     } else {
-      val goalSubtitle = when {
-        !prefs.showGoal || !goalSet ->
-          context.getString(R.string.widget_goal_not_set)
-        else -> context.getString(
+      val goalSubtitle = if (goalSet) {
+        context.getString(
           R.string.widget_goal_out_of,
           WidgetStatsFormatter.formatGrossUsd(stats.weeklyProfitGoal),
         )
+      } else {
+        context.getString(R.string.widget_goal_not_set)
       }
       views.setViewVisibility(R.id.widget_goal_subtitle, View.VISIBLE)
       views.setTextViewText(R.id.widget_goal_subtitle, goalSubtitle)
@@ -279,12 +284,14 @@ object WidgetRemoteViewsFactory {
       )
     }
 
-    val percentLabel = if (goalSet) {
-      context.getString(R.string.widget_ring_percent_decimal, progress.toDouble())
-    } else {
-      WidgetStatsFormatter.formatProgressPercent(0f)
-    }
-    views.setTextViewText(R.id.widget_ring_percent, percentLabel)
+    views.setTextViewText(
+      R.id.widget_ring_percent,
+      WidgetStatsFormatter.formatRingPercent(if (goalSet) progress else 0f),
+    )
+    views.setViewVisibility(
+      R.id.widget_ring_percent,
+      if (prefs.showGoal) View.VISIBLE else View.GONE,
+    )
     views.setTextViewTextSize(
       R.id.widget_ring_percent,
       TypedValue.COMPLEX_UNIT_SP,
@@ -310,7 +317,7 @@ object WidgetRemoteViewsFactory {
 
     when (tier) {
       LayoutTier.COMPACT -> {
-        views.setViewVisibility(R.id.widget_day_dots_row, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_day_dots_row, View.GONE)
         compactDayIds.forEachIndexed { index, viewId ->
           val chip = chips.getOrElse(index) {
             WidgetWeekDayHelper.DayChip(
@@ -369,10 +376,17 @@ object WidgetRemoteViewsFactory {
     context: Context,
     views: RemoteViews,
     stats: WidgetStats,
+    prefs: WidgetPrefs,
     tier: LayoutTier,
     themed: Context,
   ) {
     if (tier == LayoutTier.COMPACT) return
+    if (!prefs.showPace) {
+      views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
+      views.setViewVisibility(R.id.widget_rpm_label, View.GONE)
+      views.setViewVisibility(R.id.widget_rpm_value, View.GONE)
+      return
+    }
 
     views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
     views.setViewVisibility(R.id.widget_rpm_label, View.VISIBLE)
@@ -413,7 +427,7 @@ object WidgetRemoteViewsFactory {
       views.setViewVisibility(R.id.widget_empty_section, View.GONE)
       views.setViewVisibility(R.id.widget_content_section, View.VISIBLE)
       if (tier == LayoutTier.COMPACT) {
-        views.setViewVisibility(R.id.widget_day_dots_row, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_day_dots_row, View.GONE)
       }
       if (tier != LayoutTier.COMPACT) {
         views.setViewVisibility(R.id.widget_right_column, View.VISIBLE)
