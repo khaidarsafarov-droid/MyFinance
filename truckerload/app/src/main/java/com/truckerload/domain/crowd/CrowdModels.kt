@@ -52,5 +52,4 @@ data class CrowdStateSummary(
     val totalRevenue: Double,
     val totalMiles: Double,
     val recent: List<CrowdRateReport>,
-    val sampleInsufficient: Boolean = false,
 )
