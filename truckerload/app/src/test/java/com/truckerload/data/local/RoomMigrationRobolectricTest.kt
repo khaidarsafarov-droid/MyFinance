@@ -206,6 +206,16 @@ class RoomMigrationRobolectricTest {
         }
     }
 
-    private fun currentRoomVersion(): Int =
-        AppDatabase::class.java.getAnnotation(androidx.room.Database::class.java)!!.version
+    private fun currentRoomVersion(): Int {
+        val source = listOf(
+            java.io.File("src/main/java/com/truckerload/data/local/AppDatabase.kt"),
+            java.io.File("app/src/main/java/com/truckerload/data/local/AppDatabase.kt"),
+            java.io.File("../app/src/main/java/com/truckerload/data/local/AppDatabase.kt"),
+        ).first { it.isFile }.readText()
+        return Regex("""version\s*=\s*(\d+)""").find(source)
+            ?.groupValues
+            ?.get(1)
+            ?.toInt()
+            ?: error("AppDatabase version not found")
+    }
 }
