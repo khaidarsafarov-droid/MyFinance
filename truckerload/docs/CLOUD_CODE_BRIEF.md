@@ -57,13 +57,13 @@ Gradle-модули (`settings.gradle.kts`):
 |------|------------|
 | UI | Jetpack Compose, Navigation Compose, Material 3, Hilt ViewModels |
 | DI | Dagger/Hilt 2.60.1 + KSP. `SingletonComponent` — только process-wide (auth, settings, push). Room/репозитории — **account-scoped**, пересоздаются при смене пользователя |
-| Локальные данные | Room 2.7, схема v30, файл `truckerload_<userId>`. Paging 3 |
-| Фон | WorkManager 2.10, foreground services (Telegram, геолокация друзей, микрофон звонков) |
+| Локальные данные | Room 2.7, схема v33, файл `truckerload_<userId>`. Paging 3 |
+| Фон | WorkManager 2.10, foreground services (Telegram `dataSync`) |
 | Сеть | Ktor client 3.5.1, OkHttp |
 | Auth | Google Sign-In и/или email+пароль. Supabase Auth — JWT identity, **не** БД приложения. `LOCAL_ONLY_MODE=true` — полностью офлайн |
 | OCR | ML Kit Document Scanner + Latin OCR; Tesseract `rus+eng` как запасной |
-| Карты | Google Maps, Directions API, heatmap штатов |
-| Голос | WebRTC / LiveKit (1:1 и групповые комнаты) |
+| Карты | Google Maps, Directions API, heatmap штатов (Crowd RPM) |
+| Голос | Gemini / Google Assistant (команды на экраны приложения; `RECORD_AUDIO`) |
 | Бэкап без сервера | файл JSON + опционально Google Drive |
 | Backend | Ktor, PostgreSQL, DigitalOcean Spaces (S3), FCM wake-up (`type=sync`, без данных аккаунта) |
 | Kotlin | 2.2.10, Compose BOM `2026.06.01` |
@@ -151,10 +151,9 @@ Del-address: TOL3, Perrysburg, OH
 - Правка лоуда, фактическая дата окончания, диспут.
 - Paycheck / diesel — руками или OCR чека.
 - Камера с геотегом, галерея, ML Kit scanner, привязка фото/скана к лоуду.
-- Карта / heatmap штатов, crowd RPM.
+- Карта / heatmap штатов, crowd RPM (локально, без social peers).
 - Maintenance-задачи и архив чеков.
-- Сообщество: профили, чаты, группы, статусы, челленджи, друзья на карте (live location FGS).
-- Голосовые комнаты и 1:1 звонки (LiveKit).
+- Собственный профиль водителя.
 - Виджет рабочего стола, будильники PU.
 - Бэкап: Настройки → файл / Google Drive.
 
@@ -164,7 +163,7 @@ Del-address: TOL3, Perrysburg, OH
 
 Файл: `app/.../presentation/navigation/Routes.kt`.
 
-Нижние вкладки телефона: **Home / Stats / Community / Profile**.
+Нижние вкладки телефона: **Journal / Weekly goal / Profile**.
 
 | Route | Экран |
 |-------|--------|
@@ -172,17 +171,13 @@ Del-address: TOL3, Perrysburg, OH
 | `stats` | Недельная цель |
 | `analytics` / `advanced_stats` | Аналитика и расширенная статистика |
 | `map` | Карта / heatmap |
-| `community` | Соц. хаб |
-| `profile` / `profile_edit` / `profile_peer/{id}` | Профиль |
+| `profile` / `profile_edit` / `profile_setup` | Собственный профиль |
 | `add_load` / `edit_load/{id}` / `load_detail/{id}` | CRUD лоуда |
 | `add_paycheck` / `add_diesel` | Зарплата / дизель |
 | `maintenance` | ТО |
 | `financial_advisor` | Детерминированный фин. советник (не LLM) |
 | `settings` / `about` | Настройки |
 | `camera` / `scanner` / галереи | Медиа |
-| `friends_live` | Карта друзей |
-| `social_chat/{id}` / `groups` / `status` | Чаты и группы |
-| `voice_rooms` / `voice_room/{id}` / `call/{id}` | Голос |
 
 На планшете — navigation rail + two-pane (`isTablet()`, `useNavigationRail()`). Иммерсивные экраны (камера/сканер) прячут bottom bar.
 
@@ -199,7 +194,7 @@ app/src/main/java/com/truckerload/
 │   ├── MainActivity.kt
 │   ├── navigation/
 │   ├── screens/                   # home, add, edit, detail, stats, settings,
-│   │                              # social, voice, map, camera, scanner, gallery,
+│   │                              # social (own profile), map, camera, scanner, gallery,
 │   │                              # maintenance, goal, login, tax, advisor
 │   ├── components/
 │   ├── theme/                     # SoftUiTheme, Type, цвета Mindwell Forest
@@ -210,22 +205,21 @@ app/src/main/java/com/truckerload/
 │   ├── import/parser/             # RelayMessageParser, CSV, HTML, Telegram export
 │   ├── goal/                      # WeeklyGoalCalculator, LoadYieldCalculator
 │   ├── filter/                    # LoadFilterUseCase
-│   ├── social/, friends/, voice/, advisor/, crowd/
+│   ├── social/, advisor/, crowd/
 ├── data/
 │   ├── local/                     # AppDatabase, entities, dao, migrations
-│   ├── repository/                # LoadRepository, *Repository, social/*, auth/
+│   ├── repository/                # LoadRepository, *Repository, social/profile, auth/
 │   ├── preferences/               # AuthStore, SettingsDataStore, token stores
 │   ├── backup/                    # JSON + Google Drive
 │   ├── sync/cloud/                # CloudSyncEngine, LWW, SyncMode
-│   ├── remote/ktor/               # HTTP к своему backend
-│   └── community/                 # REST друзей/чатов
+│   └── remote/ktor/               # HTTP к своему backend
 ├── sync/                          # Telegram FGS, workers, FCM, alarms, media queue
 ├── widget/
 ├── di/                            # Hilt modules, UserComponent
 └── utils/                         # недели, OCR, даты
 ```
 
-Backend: `backend/server/src/main/kotlin/com/truckerload/backend/` — `Application.kt` (роуты), `JdbcRepositories.kt`, `Security.kt`, `VoiceRoutes.kt`.
+Backend: `backend/server/src/main/kotlin/com/truckerload/backend/` — `Application.kt` (роуты), `JdbcRepositories.kt`, `Security.kt`.
 
 Контракты: `shared/contract/.../Contracts.kt` — `AccountCloudSnapshot`, media, cursor, push platform.
 
@@ -259,7 +253,7 @@ Room `AppDatabase` version **30**, `exportSchema = true` (JSON в `app/schemas/`
 Стопы: `Stop` (`PU` | `DEL`) — facility, city, state, zip, scheduledTime, timezone.  
 Штрафы: `Penalty(loadId, description, amount)`.
 
-Другие сущности: `Paycheck`, `Diesel`, `MaintenanceTask` / `MaintenanceArchive`, `Photo`, `Scan`, `TelegramInbox`, `SyncOutbox`, `MediaSyncQueue`, соц. чаты/сообщения/профили, voice rooms/calls, `CrowdRate`.
+Другие сущности: `Paycheck`, `Diesel`, `MaintenanceTask` / `MaintenanceArchive`, `Photo`, `Scan`, `TelegramInbox`, `SyncOutbox`, `MediaSyncQueue`, `DriverProfile`, `CrowdRate`.
 
 ### Правила дат
 
@@ -284,7 +278,6 @@ Room `AppDatabase` version **30**, `exportSchema = true` (JSON в `app/schemas/`
 | GET/DELETE | `/v1/media/{id}` | метаданные / tombstone |
 | POST/GET/ACK | `/v1/telegram/link-token`, `/inbox` | серверный бот |
 | POST | `/v1/telegram/webhook` | секретный webhook (не JWT пользователя) |
-| POST | `/v1/voice/token` | LiveKit |
 | GET | `/health/live`, `/health/ready`, `/metrics`, `/openapi.yaml` | ops |
 
 Метрики закрыты `METRICS_BEARER_TOKEN`. Ownership всегда из JWT subject, клиентский `accountId` не авторизует.
@@ -355,8 +348,9 @@ sh ./gradlew :app:checkKotlinFileSize
 | Telegram на устройстве | `sync/TelegramBotForegroundService.kt`, `sync/telegram/*` |
 | Облачный sync | `data/sync/cloud/*`, `data/remote/ktor/*`, `backend/server/.../Application.kt` |
 | Тема / цвета | `presentation/theme/SoftUiTheme.kt`, `docs/design/` |
-| Соц. чаты / друзья / карта | `presentation/screens/social/`, `data/repository/social/`, `data/community/` |
-| Звонки | `presentation/screens/voice/`, `backend/.../VoiceRoutes.kt`, `docs/VOICE_SFU.md` |
+| Собственный профиль | `presentation/screens/social/`, `data/repository/social/` |
+| Crowd RPM / карта | `presentation/screens/map/`, `domain/crowd/`, `docs/CROWD_RPM_PRIVACY.md` |
+| Голосовой ассистент | `voice/`, `presentation/voice/`, `docs/VOICE_ASSISTANTS.md` |
 | Виджет | `widget/` |
 | Auth / Google | `data/repository/auth/`, `presentation/screens/login/`, `docs/GOOGLE_SIGNIN_SETUP.md` |
 
@@ -374,7 +368,7 @@ sh ./gradlew :app:checkKotlinFileSize
 
 ## 14. Тон продукта
 
-Это рабочий инструмент водителя, не соцсеть в первую очередь. Соц. слой (чаты, голос, карта друзей) — дополнение. При сомнении приоритет:
+Это рабочий инструмент водителя, не соцсеть. Community / Friends-on-map / LiveKit-комнаты удалены. При сомнении приоритет:
 
 1. корректность лоуда / денег / недели / дедупа;
 2. офлайн и изоляция аккаунта;

@@ -34,7 +34,7 @@ class RoomMigrationInstrumentedTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrate6To32_smoke() {
+    fun migrate6To33_smoke() {
         createFixtureDatabase(6) {
             execSQL(V6_LOADS_DDL)
             execSQL(
@@ -55,7 +55,7 @@ class RoomMigrationInstrumentedTest {
 
         // validate=false: pre-v6 core tables (stops/penalties/…) were never created by
         // forward migrations; we assert row survival + key columns via PRAGMA instead.
-        val db = helper.runMigrationsAndValidate(testDb, 32, false, *ALL_MIGRATIONS_FROM_V6)
+        val db = helper.runMigrationsAndValidate(testDb, 33, false, *ALL_MIGRATIONS_FROM_V6)
         db.query("SELECT COUNT(*) FROM loads").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
@@ -66,11 +66,11 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasTable("crowd_rates"))
         assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
         assertTrue(db.hasTable("media_sync_queue"))
-        assertTrue(db.hasColumn("voice_rooms", "description"))
-        assertTrue(db.hasColumn("voice_rooms", "moderatorId"))
         assertTrue(db.hasTable("user_accounts"))
         assertTrue(db.hasTable("driver_professional_profiles"))
-        assertTrue(db.hasTable("community_profiles"))
+        assertTrue(!db.hasTable("community_profiles"))
+        assertTrue(!db.hasTable("voice_rooms"))
+        assertTrue(!db.hasTable("social_chats"))
         db.query("SELECT tripId FROM loads WHERE id = 'id-1'").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals("T-SMOKE", c.getString(0))
@@ -179,9 +179,21 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate32To33() {
+        helper.createDatabase(testDb, 32).apply { close() }
+        val db = helper.runMigrationsAndValidate(testDb, 33, true, MIGRATION_32_33)
+        assertTrue(!db.hasTable("community_profiles"))
+        assertTrue(!db.hasTable("voice_rooms"))
+        assertTrue(!db.hasTable("social_chats"))
+        assertTrue(db.hasTable("driver_profile"))
+        assertTrue(db.hasTable("crowd_rates"))
+    }
+
     /**
      * Builds a named DB at [version] without requiring an exported schema JSON
-     * (historical schemas are not committed; only 28/29/30/31/32 are).
+     * (historical schemas are not committed; only 28–33 are).
      */
     private fun createFixtureDatabase(version: Int, setup: SupportSQLiteDatabase.() -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

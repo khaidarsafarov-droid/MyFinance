@@ -25,7 +25,6 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -65,7 +64,6 @@ private data class SidebarDestination(
 private val primaryDestinations = listOf(
     SidebarDestination(Routes.HOME, null, Icons.AutoMirrored.Outlined.Assignment, R.string.nav_logbook),
     SidebarDestination(Routes.STATS, null, Icons.Outlined.Flag, R.string.nav_weekly_goal),
-    SidebarDestination(Routes.COMMUNITY, null, Icons.Outlined.Groups, R.string.nav_community),
     SidebarDestination(Routes.PROFILE, null, Icons.Outlined.Person, R.string.nav_profile),
 )
 
@@ -306,17 +304,8 @@ internal fun isRailDestinationSelected(currentRoute: String?, targetRoute: Strin
             currentRoute.startsWith("edit_load") ||
             currentRoute == Routes.ADD_LOAD
         Routes.STATS -> currentRoute == Routes.STATS
-        Routes.COMMUNITY -> currentRoute == Routes.COMMUNITY ||
-            currentRoute.startsWith("social_chat") ||
-            currentRoute.startsWith("voice_room") ||
-            currentRoute == Routes.VOICE_ROOMS ||
-            currentRoute.startsWith("call") ||
-            currentRoute == Routes.STATUS ||
-            currentRoute == Routes.GROUPS ||
-            currentRoute.startsWith("group_detail")
         Routes.PROFILE -> currentRoute == Routes.PROFILE ||
-            currentRoute == Routes.PROFILE_EDIT ||
-            currentRoute.startsWith("profile_peer")
+            currentRoute == Routes.PROFILE_EDIT
         Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS ||
             currentRoute == Routes.ADVANCED_STATS ||
             currentRoute == Routes.MAP

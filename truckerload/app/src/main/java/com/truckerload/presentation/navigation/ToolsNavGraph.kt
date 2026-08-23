@@ -17,7 +17,6 @@ import com.truckerload.presentation.screens.gallery.PhotoDetailScreen
 import com.truckerload.presentation.screens.gallery.PhotoGalleryScreen
 import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
-import com.truckerload.presentation.screens.social.friends.map.FriendsLiveMapScreen
 import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
@@ -80,11 +79,6 @@ fun NavGraphBuilder.toolsNavGraph(
         popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
         MapScreen(onBack = { navController.popBackStack() })
-    }
-    composable(Routes.FRIENDS_LIVE) {
-        FriendsLiveMapScreen(
-            onBack = { navController.popBackStack() },
-        )
     }
     composable(Routes.MAINTENANCE) {
         MaintenanceScreen(onBack = { navController.popBackStack() })

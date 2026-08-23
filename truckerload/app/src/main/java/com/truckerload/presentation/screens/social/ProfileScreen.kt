@@ -24,8 +24,6 @@ import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftEmptyFill
 import com.truckerload.presentation.components.SoftTabletTwoPane
-import com.truckerload.presentation.screens.social.friends.FriendsDirectoryPanel
-import com.truckerload.presentation.screens.social.friends.FriendsDirectoryViewModel
 import com.truckerload.presentation.utils.useNavigationRail
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,9 +33,7 @@ fun ProfileScreen(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
     showBack: Boolean = true,
-    onOpenFriends: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
-    friendsDirectoryViewModel: FriendsDirectoryViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = uiState.profile
@@ -104,17 +100,13 @@ fun ProfileScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             PremiumStatsRow(profile)
-                            ProfileNicknameSection()
                             ProfileAuthSyncSection()
                         }
                     },
                 )
             }
             item {
-                ProfileCompletionReminders(
-                    onFillProfessional = onEdit,
-                    onFillCommunity = onEdit,
-                )
+                ProfileCompletionReminders(onFillProfessional = onEdit)
             }
             if (profile.badges.isNotEmpty()) {
                 item { ProfileBadgesSection(profile) }
@@ -125,18 +117,8 @@ fun ProfileScreen(
             if (profile.preferredRoutes.isNotEmpty() || profile.homeState.isNotBlank()) {
                 item { ProfileTerritorySection(profile) }
             }
-            if (profile.followers > 0 || profile.following > 0) {
-                item { ProfileSocialSection(profile) }
-            }
             if (profile.phoneNumber != null || profile.telegramUsername != null) {
                 item { ProfileContactsSection(profile) }
-            }
-            item {
-                FriendsDirectoryPanel(
-                    viewModel = friendsDirectoryViewModel,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    onOpenMap = onOpenFriends,
-                )
             }
         }
     }

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: TruckerLoad Cloud API
   version: 1.0.0
-  description: Account-scoped synchronization, media, Telegram inbox, device push, and LiveKit voice tokens.
+  description: Account-scoped synchronization, media, Telegram inbox, and device push.
 servers:
   - url: /
 components:
@@ -151,23 +151,6 @@ components:
         deviceId: { type: string, minLength: 1, maxLength: 128 }
         token: { type: string, minLength: 16, maxLength: 4096 }
         platform: { type: string, enum: [android, ios] }
-    VoiceTokenRequest:
-      type: object
-      required: [roomId]
-      properties:
-        roomId: { type: string, minLength: 1, maxLength: 128 }
-        displayName: { type: string }
-        role: { type: string, enum: [speaker, listener] }
-    VoiceTokenResponse:
-      type: object
-      required: [url, token, roomName, identity, role, audioBitrate]
-      properties:
-        url: { type: string }
-        token: { type: string }
-        roomName: { type: string }
-        identity: { type: string }
-        role: { type: string, enum: [speaker, listener] }
-        audioBitrate: { type: integer, minimum: 0 }
   responses:
     Error:
       description: API error
@@ -496,23 +479,4 @@ paths:
       security: [{ bearerAuth: [] }]
       responses:
         "204": { description: Unlinked }
-  /v1/voice/token:
-    post:
-      summary: Mint a LiveKit room token
-      operationId: mintVoiceToken
-      security: [{ bearerAuth: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/VoiceTokenRequest" }
-      responses:
-        "200":
-          description: LiveKit URL plus JWT for this user and room
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/VoiceTokenResponse" }
-        "400": { $ref: "#/components/responses/Error" }
-        "401": { $ref: "#/components/responses/Error" }
-        "503": { $ref: "#/components/responses/Error" }
 

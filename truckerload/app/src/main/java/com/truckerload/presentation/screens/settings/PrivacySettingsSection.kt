@@ -23,28 +23,18 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.di.LocalCallPrivacyStore
-import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.domain.voice.CallPrivacy
-import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
-import kotlinx.coroutines.launch
 
 @Composable
 fun PrivacySettingsSection(
@@ -53,10 +43,6 @@ fun PrivacySettingsSection(
 ) {
     val context = LocalContext.current
     val tc = LocalTruckColors.current
-    val settingsDataStore = LocalSettingsDataStore.current
-    val scope = rememberCoroutineScope()
-    val sharePath by settingsDataStore.sharePathWithFriends.collectAsStateWithLifecycle(false)
-    val batterySaver by settingsDataStore.locationBatterySaver.collectAsStateWithLifecycle(false)
 
     val cameraGranted = permissionGranted(context, Manifest.permission.CAMERA)
     val micGranted = permissionGranted(context, Manifest.permission.RECORD_AUDIO)
@@ -137,8 +123,6 @@ fun PrivacySettingsSection(
             granted = notificationsGranted,
         )
 
-        WhoCanCallRows()
-
         Text(
             text = stringResource(R.string.settings_privacy_data_title),
             color = tc.TextPrimary,
@@ -155,51 +139,6 @@ fun PrivacySettingsSection(
             color = tc.TextSecondary,
             style = MaterialTheme.typography.bodySmall,
         )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.settings_privacy_share_path),
-                    color = tc.TextPrimary,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Switch(
-                checked = sharePath,
-                onCheckedChange = { enabled ->
-                    scope.launch {
-                        settingsDataStore.saveSharePathWithFriends(enabled)
-                        com.truckerload.sync.FriendsLocationShareScheduler.sync(context)
-                    }
-                },
-                colors = AppSwitchDefaults.colors(),
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.settings_privacy_battery_saver),
-                    color = tc.TextPrimary,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Switch(
-                checked = batterySaver,
-                onCheckedChange = { enabled ->
-                    scope.launch { settingsDataStore.saveLocationBatterySaver(enabled) }
-                },
-                colors = AppSwitchDefaults.colors(),
-            )
-        }
 
         OutlinedButton(
             onClick = {
@@ -254,36 +193,6 @@ private fun PrivacyPermissionRow(
             color = if (granted) tc.AccentProfit else tc.TextSecondary,
             style = MaterialTheme.typography.labelMedium,
         )
-    }
-}
-
-@Composable
-private fun WhoCanCallRows() {
-    val store = LocalCallPrivacyStore.current
-    val privacy by store.privacy.collectAsStateWithLifecycle()
-    val tc = LocalTruckColors.current
-    Text(
-        text = stringResource(R.string.call_who_can_call),
-        color = tc.TextPrimary,
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(top = 8.dp),
-    )
-    CallPrivacy.entries.forEach { option ->
-        val label = when (option) {
-            CallPrivacy.EVERYONE -> stringResource(R.string.call_privacy_everyone)
-            CallPrivacy.CONTACTS -> stringResource(R.string.call_privacy_contacts)
-            CallPrivacy.NOBODY -> stringResource(R.string.call_privacy_nobody)
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            RadioButton(
-                selected = privacy == option,
-                onClick = { store.setPrivacy(option) },
-            )
-            Text(label, color = tc.TextPrimary, style = MaterialTheme.typography.bodyMedium)
-        }
     }
 }
 

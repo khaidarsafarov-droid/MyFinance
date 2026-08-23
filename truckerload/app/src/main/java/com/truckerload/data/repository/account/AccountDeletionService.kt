@@ -21,7 +21,6 @@ class AccountDeletionService(
     private val database: AppDatabase,
     private val identity: AccountIdentityRepository,
     private val professional: DriverProfessionalRepository,
-    private val community: CommunityProfileRepository,
     private val cipher: SensitiveFieldCipher,
     private val consentStore: ConsentStore,
     private val progressStore: RegistrationProgressStore,
@@ -35,7 +34,6 @@ class AccountDeletionService(
     suspend fun cascadeDeleteLocalTables() {
         identity.delete(userId)
         professional.delete(userId)
-        community.delete(userId)
         database.clearAllTables()
         cipher.wipe()
         consentStore.clear(userId)

@@ -18,7 +18,6 @@ class HiltArchitectureTest {
             "UserProfileStore",
             "SettingsDataStore",
             "PushTokenStore",
-            "CallPrivacyStore",
         ).forEach { type ->
             assertTrue("$type must remain an application-scoped binding", source.contains("): $type ="))
         }
@@ -46,9 +45,11 @@ class HiltArchitectureTest {
         )
         assertTrue(source.contains("fun provideLoadRepository"))
         assertTrue(source.contains("fun provideProfileRepository"))
-        assertTrue(source.contains("fun provideChatRepository"))
-        assertTrue(source.contains("fun provideSocialSyncCoordinator"))
+        assertTrue(source.contains("fun provideCrowdRpmRepository"))
         assertTrue(source.contains("fun provideAppDatabase"))
+        assertFalse(source.contains("fun provideChatRepository"))
+        assertFalse(source.contains("fun provideSocialSyncCoordinator"))
+        assertFalse(source.contains("fun provideVoiceRepository"))
         assertFalse(source.contains("fun provideSocial" + "Repository"))
     }
 

@@ -22,26 +22,12 @@ object VoiceCommandBus {
     }
 }
 
-object VoicePendingDraft {
-    @Volatile
-    var chatText: String? = null
-
-    fun consumeChatText(): String? {
-        val text = chatText
-        chatText = null
-        return text
-    }
-}
-
 object VoiceAssistantLogger {
     private const val TAG = "VoiceAssistant"
 
     fun log(command: AppVoiceAction, outcome: String, detail: String? = null) {
         val action = when (command) {
             is AppVoiceAction.OpenScreen -> "open/${command.route}"
-            is AppVoiceAction.ChatWithFriend -> "chat"
-            is AppVoiceAction.MessageFriend -> "message"
-            is AppVoiceAction.CallFriend -> "call"
             is AppVoiceAction.AddDiesel -> "journal/add_diesel"
             is AppVoiceAction.AddPaycheck -> "journal/add_paycheck"
             is AppVoiceAction.QueryWeeklyGross -> "journal/weekly_gross"

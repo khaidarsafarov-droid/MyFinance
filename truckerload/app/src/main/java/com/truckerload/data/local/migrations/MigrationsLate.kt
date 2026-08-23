@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→32 (startVersion 25..31). */
+/** Room migrations for schema versions 25→33 (startVersion 25..32). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -291,5 +291,30 @@ val MIGRATION_31_32 = object : Migration(31, 32) {
                 "index_crowd_rates_fromState_equipmentType_reportedAtMillis " +
                 "ON crowd_rates(fromState, equipmentType, reportedAtMillis)",
         )
+    }
+}
+
+/** Drop Community / Friends / Voice-room tables. Own profile + crowd RPM stay. */
+val MIGRATION_32_33 = object : Migration(32, 33) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        val dropped = listOf(
+            "social_chats",
+            "social_messages",
+            "message_reactions",
+            "blocked_users",
+            "driver_statuses",
+            "driver_follows",
+            "chat_members",
+            "social_peers",
+            "challenge_participation",
+            "voice_rooms",
+            "voice_room_participants",
+            "call_sessions",
+            "voice_signals",
+            "community_profiles",
+        )
+        dropped.forEach { table ->
+            db.execLogged("DROP TABLE IF EXISTS $table")
+        }
     }
 }

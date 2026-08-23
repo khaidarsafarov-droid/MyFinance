@@ -35,14 +35,3 @@ data class DriverProfessionalEntity(
     val skipped: Boolean = false,
     val updatedAt: Long = 0L,
 )
-
-@Entity(tableName = "community_profiles")
-data class CommunityProfileEntity(
-    @PrimaryKey val userId: String,
-    val nickname: String = "",
-    val avatarUrl: String? = null,
-    val bio: String? = null,
-    val visibilityJson: String = "",
-    val skipped: Boolean = false,
-    val updatedAt: Long = 0L,
-)

@@ -34,13 +34,8 @@ data class AppConfig(
     val firebaseProjectId: String?,
     val firebaseCredentialsJson: String?,
     val metricsBearerToken: String?,
-    val liveKitUrl: String = "",
-    val liveKitApiKey: String = "",
-    val liveKitApiSecret: String = "",
     val googleWebClientId: String = "",
 ) {
-    val liveKitEnabled: Boolean
-        get() = liveKitUrl.isNotBlank() && liveKitApiKey.isNotBlank() && liveKitApiSecret.isNotBlank()
 
     init {
         require(host.isNotBlank()) { "HOST must not be blank" }
@@ -81,15 +76,6 @@ data class AppConfig(
             require(s3Endpoint == null || isHttpUrl(s3Endpoint)) { "S3_ENDPOINT must be an absolute HTTP(S) URL" }
             require(s3PublicEndpoint == null || isHttpUrl(s3PublicEndpoint)) {
                 "S3_PUBLIC_ENDPOINT must be an absolute HTTP(S) URL"
-            }
-        }
-        val anyLiveKit = liveKitUrl.isNotBlank() || liveKitApiKey.isNotBlank() || liveKitApiSecret.isNotBlank()
-        if (anyLiveKit) {
-            require(liveKitEnabled) {
-                "LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET must all be set together"
-            }
-            require(isLiveKitUrl(liveKitUrl)) {
-                "LIVEKIT_URL must be an absolute ws(s) or http(s) URL"
             }
         }
     }
@@ -161,9 +147,6 @@ data class AppConfig(
                 firebaseProjectId = env["FIREBASE_PROJECT_ID"]?.takeIf { it.isNotBlank() },
                 firebaseCredentialsJson = env["FIREBASE_CREDENTIALS_JSON"]?.takeIf { it.isNotBlank() },
                 metricsBearerToken = env["METRICS_BEARER_TOKEN"]?.takeIf { it.isNotBlank() },
-                liveKitUrl = env["LIVEKIT_URL"]?.trim().orEmpty(),
-                liveKitApiKey = env["LIVEKIT_API_KEY"]?.trim().orEmpty(),
-                liveKitApiSecret = env["LIVEKIT_API_SECRET"]?.trim().orEmpty(),
                 googleWebClientId = env["GOOGLE_WEB_CLIENT_ID"]?.trim().orEmpty().ifBlank {
                     "842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com"
                 },
@@ -199,20 +182,11 @@ data class AppConfig(
             firebaseProjectId = null,
             firebaseCredentialsJson = null,
             metricsBearerToken = null,
-            liveKitUrl = "",
-            liveKitApiKey = "",
-            liveKitApiSecret = "",
         )
 
         private fun isHttpUrl(value: String): Boolean {
             val uri = runCatching { URI(value) }.getOrNull() ?: return false
             return uri.isAbsolute && uri.host != null && uri.scheme.lowercase() in setOf("http", "https")
-        }
-
-        private fun isLiveKitUrl(value: String): Boolean {
-            val uri = runCatching { URI(value) }.getOrNull() ?: return false
-            return uri.isAbsolute && uri.host != null &&
-                uri.scheme.lowercase() in setOf("http", "https", "ws", "wss")
         }
     }
 }

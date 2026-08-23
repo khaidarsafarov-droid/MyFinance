@@ -54,10 +54,11 @@ class SocialGraphModuleInstrumentedTest {
         val profile: ProfileRepository = bundle.profile
         assertNotNull(profile)
         assertTrue(profile is ProfileRepositoryImpl)
+        assertNotNull(bundle.crowdRpm)
     }
 
     @Test
-    fun syncCoordinator_ensureInitialized() = runBlocking {
+    fun profileRepository_watchMyProfile_isReady() = runBlocking {
         val userProfileStore = UserProfileStore(context)
         userProfileStore.bindUser(userId)
         val db = AppDatabase.getInstance(context, userId)
@@ -69,7 +70,6 @@ class SocialGraphModuleInstrumentedTest {
             userProfileStore = userProfileStore,
         )
 
-        bundle.syncCoordinator.ensureInitialized()
         assertNotNull(bundle.profile.watchMyProfile())
     }
 }

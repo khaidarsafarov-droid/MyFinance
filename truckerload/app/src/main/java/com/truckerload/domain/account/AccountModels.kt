@@ -1,7 +1,7 @@
 package com.truckerload.domain.account
 
 /**
- * Split identity: authentication, professional (private), and community (public).
+ * Split identity: authentication and professional (private).
  * These types must not be mixed in a single API response.
  */
 
@@ -52,72 +52,6 @@ data class DriverProfessionalProfile(
         get() = !skipped && (vehicleType.isNotBlank() || !cdlNumber.isNullOrBlank() || !companyName.isNullOrBlank())
 }
 
-data class CommunityVisibilitySettings(
-    val nicknameVisible: Boolean = true,
-    val bioVisible: Boolean = false,
-    val avatarVisible: Boolean = true,
-) {
-    fun toJson(): String = buildString {
-        append('{')
-        append("\"nickname\":").append(nicknameVisible)
-        append(",\"bio\":").append(bioVisible)
-        append(",\"avatar\":").append(avatarVisible)
-        append('}')
-    }
-
-    companion object {
-        fun fromJson(raw: String?): CommunityVisibilitySettings {
-            if (raw.isNullOrBlank()) return CommunityVisibilitySettings()
-            fun flag(key: String, default: Boolean): Boolean {
-                val token = "\"$key\":"
-                val idx = raw.indexOf(token)
-                if (idx < 0) return default
-                val rest = raw.substring(idx + token.length).trimStart()
-                return when {
-                    rest.startsWith("true") -> true
-                    rest.startsWith("false") -> false
-                    else -> default
-                }
-            }
-            return CommunityVisibilitySettings(
-                nicknameVisible = flag("nickname", true),
-                bioVisible = flag("bio", false),
-                avatarVisible = flag("avatar", true),
-            )
-        }
-    }
-}
-
-data class CommunityProfile(
-    val userId: String,
-    val nickname: String,
-    val avatarUrl: String?,
-    val bio: String?,
-    val visibility: CommunityVisibilitySettings,
-    val skipped: Boolean,
-    val updatedAt: Long,
-) {
-    val isComplete: Boolean
-        get() = !skipped && nickname.isNotBlank()
-}
-
-/**
- * Public community DTO. Intentionally has no professional / CDL / company fields.
- */
-data class PublicCommunityProfile(
-    val userId: String,
-    val nickname: String,
-    val avatarUrl: String?,
-    val bio: String?,
-)
-
-fun CommunityProfile.toPublic(): PublicCommunityProfile = PublicCommunityProfile(
-    userId = userId,
-    nickname = nickname.ifBlank { "Driver" },
-    avatarUrl = avatarUrl.takeIf { visibility.avatarVisible },
-    bio = bio.takeIf { visibility.bioVisible && !it.isNullOrBlank() },
-)
-
 sealed class ProfessionalAccess {
     data class Allowed(val profile: DriverProfessionalProfile) : ProfessionalAccess()
     data object Denied : ProfessionalAccess()
@@ -158,7 +92,6 @@ enum class RegistrationStep {
     VERIFICATION,
     BASIC_PROFILE,
     PROFESSIONAL,
-    COMMUNITY,
     DONE,
 }
 
@@ -168,14 +101,9 @@ data class RegistrationProgress(
     val basicComplete: Boolean = false,
     val professionalComplete: Boolean = false,
     val professionalSkipped: Boolean = false,
-    val communityComplete: Boolean = false,
-    val communitySkipped: Boolean = false,
 ) {
     val professionalPending: Boolean
         get() = basicComplete && !professionalComplete
-
-    val communityPending: Boolean
-        get() = basicComplete && !communityComplete
 
     val nextRequired: RegistrationStep = when {
         !credentialsComplete -> RegistrationStep.CREDENTIALS
@@ -187,11 +115,6 @@ data class RegistrationProgress(
     fun withProfessionalDone(skipped: Boolean): RegistrationProgress = copy(
         professionalComplete = !skipped,
         professionalSkipped = skipped,
-    )
-
-    fun withCommunityDone(skipped: Boolean): RegistrationProgress = copy(
-        communityComplete = !skipped,
-        communitySkipped = skipped,
     )
 }
 

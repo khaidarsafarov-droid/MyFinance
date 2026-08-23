@@ -38,13 +38,7 @@ object WidgetDeepLink {
         ROUTE_WEEKLY_GOAL -> "stats" // WeeklyGoalScreen lives at Routes.STATS
         ROUTE_CAMERA, "camera", ROUTE_ATTACH_CAMERA -> ROUTE_ATTACH_CAMERA
         ROUTE_SCANNER, "scanner", ROUTE_ATTACH_SCANNER -> ROUTE_ATTACH_SCANNER
-        else -> deepLinkRoute.takeIf {
-            it.startsWith("social_chat/") ||
-                it.startsWith("call/") ||
-                it.startsWith("voice_room/") ||
-                it.startsWith("profile_peer/") ||
-                it.startsWith("group_detail/")
-        }
+        else -> null
     }
 
     fun markOpenJournalThisWeek(context: Context) {

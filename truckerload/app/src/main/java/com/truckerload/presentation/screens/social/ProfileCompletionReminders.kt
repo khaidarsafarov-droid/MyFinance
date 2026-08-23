@@ -21,48 +21,28 @@ import com.truckerload.presentation.theme.LocalTruckColors
 @Composable
 fun ProfileCompletionReminders(
     onFillProfessional: () -> Unit,
-    onFillCommunity: () -> Unit,
 ) {
     val progress by LocalRegistrationService.current.watchProgress().collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current
-    if (!progress.professionalPending && !progress.communityPending) return
+    if (!progress.professionalPending) return
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (progress.professionalPending) {
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.profile_reminder_professional),
-                        style = AppTypography.Subtitle,
-                        color = tc.TextPrimary,
-                    )
-                    OutlinedButton(onClick = onFillProfessional, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.profile_reminder_fill))
-                    }
-                }
-            }
-        }
-        if (progress.communityPending) {
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.profile_reminder_community),
-                        style = AppTypography.Subtitle,
-                        color = tc.TextPrimary,
-                    )
-                    OutlinedButton(onClick = onFillCommunity, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.profile_reminder_fill))
-                    }
+        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.profile_reminder_professional),
+                    style = AppTypography.Subtitle,
+                    color = tc.TextPrimary,
+                )
+                OutlinedButton(onClick = onFillProfessional, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.profile_reminder_fill))
                 }
             }
         }

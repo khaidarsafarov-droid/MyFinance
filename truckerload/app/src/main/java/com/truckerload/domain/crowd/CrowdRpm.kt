@@ -25,16 +25,6 @@ data class CrowdRpmSnapshot(
     }
 }
 
-/**
- * Friend-circle ranking is only meaningful with enough peers.
- * Crowd RPM stays available regardless of this gate.
- */
-object CommunityCompetitive {
-    const val MIN_FRIENDS = 2
-
-    fun showFriendRanking(friendsCount: Int): Boolean = friendsCount >= MIN_FRIENDS
-}
-
 object CrowdRpmMath {
     const val MIN_SIMILAR_SAMPLES = 3
 

@@ -16,14 +16,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.domain.account.CommunityVisibilitySettings
 import com.truckerload.domain.account.DriverRole
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -43,7 +40,7 @@ import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 
-private enum class WizardPane { BASIC, PROFESSIONAL, COMMUNITY }
+private enum class WizardPane { BASIC, PROFESSIONAL }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +57,6 @@ fun RegistrationFlowScreen(
         mutableStateOf(
             when {
                 startAtOptional && progress.professionalPending -> WizardPane.PROFESSIONAL
-                startAtOptional && progress.communityPending -> WizardPane.COMMUNITY
                 else -> WizardPane.BASIC
             },
         )
@@ -73,10 +69,6 @@ fun RegistrationFlowScreen(
     var cdlNumber by remember { mutableStateOf("") }
     var vehicleType by remember { mutableStateOf("") }
     var primaryRegion by remember { mutableStateOf("") }
-    var nickname by remember { mutableStateOf(userProfile?.nickname.orEmpty()) }
-    var bio by remember { mutableStateOf("") }
-    var bioVisible by remember { mutableStateOf(false) }
-    var avatarVisible by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
 
@@ -107,10 +99,9 @@ fun RegistrationFlowScreen(
             val stepIndex = when (pane) {
                 WizardPane.BASIC -> 0
                 WizardPane.PROFESSIONAL -> 1
-                WizardPane.COMMUNITY -> 2
             }
             LinearProgressIndicator(
-                progress = { (stepIndex + 1) / 3f },
+                progress = { (stepIndex + 1) / 2f },
                 modifier = Modifier.fillMaxWidth().height(6.dp),
             )
             Text(
@@ -118,7 +109,6 @@ fun RegistrationFlowScreen(
                     when (pane) {
                         WizardPane.BASIC -> R.string.reg_step_basic
                         WizardPane.PROFESSIONAL -> R.string.reg_step_professional
-                        WizardPane.COMMUNITY -> R.string.reg_step_community
                     },
                 ),
                 style = MaterialTheme.typography.titleMedium,
@@ -189,33 +179,6 @@ fun RegistrationFlowScreen(
                         colors = AppTextFieldDefaults.outlined(),
                     )
                 }
-                WizardPane.COMMUNITY -> {
-                    OutlinedTextField(
-                        value = nickname,
-                        onValueChange = { nickname = it; error = null },
-                        label = { Text(stringResource(R.string.reg_nickname_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        colors = AppTextFieldDefaults.outlined(),
-                    )
-                    OutlinedTextField(
-                        value = bio,
-                        onValueChange = { bio = it },
-                        label = { Text(stringResource(R.string.reg_bio_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = AppTextFieldDefaults.outlined(),
-                    )
-                    SwitchRow(
-                        label = stringResource(R.string.reg_visibility_bio),
-                        checked = bioVisible,
-                        onCheckedChange = { bioVisible = it },
-                    )
-                    SwitchRow(
-                        label = stringResource(R.string.reg_visibility_avatar),
-                        checked = avatarVisible,
-                        onCheckedChange = { avatarVisible = it },
-                    )
-                }
             }
             error?.let {
                 Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall)
@@ -254,31 +217,7 @@ fun RegistrationFlowScreen(
                                 primaryRegion = primaryRegion,
                             ) {
                                 busy = false
-                                pane = WizardPane.COMMUNITY
-                            }
-                        }
-                        WizardPane.COMMUNITY -> {
-                            if (nickname.isBlank()) {
-                                error = context.getString(R.string.profile_setup_name_required)
-                                return@Button
-                            }
-                            busy = true
-                            viewModel.completeCommunity(
-                                nickname = nickname,
-                                bio = bio,
-                                visibility = CommunityVisibilitySettings(
-                                    nicknameVisible = true,
-                                    bioVisible = bioVisible,
-                                    avatarVisible = avatarVisible,
-                                ),
-                            ) { result ->
-                                busy = false
-                                result.fold(
-                                    onSuccess = { onCompleted() },
-                                    onFailure = {
-                                        error = context.getString(R.string.profile_setup_name_required)
-                                    },
-                                )
+                                onCompleted()
                             }
                         }
                     }
@@ -287,10 +226,7 @@ fun RegistrationFlowScreen(
                 enabled = !busy,
             ) {
                 Text(
-                    stringResource(
-                        if (pane == WizardPane.COMMUNITY) R.string.profile_setup_continue
-                        else R.string.profile_setup_next,
-                    ),
+                    stringResource(R.string.profile_setup_next),
                 )
             }
             if (pane != WizardPane.BASIC) {
@@ -300,10 +236,6 @@ fun RegistrationFlowScreen(
                         busy = true
                         when (pane) {
                             WizardPane.PROFESSIONAL -> viewModel.skipProfessional {
-                                busy = false
-                                pane = WizardPane.COMMUNITY
-                            }
-                            WizardPane.COMMUNITY -> viewModel.skipCommunity {
                                 busy = false
                                 onCompleted()
                             }
@@ -318,22 +250,5 @@ fun RegistrationFlowScreen(
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
-    }
-}
-
-@Composable
-private fun SwitchRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(label, color = tc.TextPrimary, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

@@ -119,45 +119,6 @@
         </intent>
     </capability>
 
-    <capability android:name="actions.intent.GET_MESSAGE">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetPackage="com.truckerload"
-            android:targetClass="com.truckerload.presentation.MainActivity">
-            <url-template android:value="truckerload://assistant/chat{?recipientName}" />
-            <parameter
-                android:name="message.recipient.name"
-                android:key="recipientName" />
-        </intent>
-    </capability>
-
-    <capability android:name="actions.intent.CREATE_MESSAGE">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetPackage="com.truckerload"
-            android:targetClass="com.truckerload.presentation.MainActivity">
-            <url-template android:value="truckerload://assistant/message{?recipientName,messageText}" />
-            <parameter
-                android:name="message.recipient.name"
-                android:key="recipientName" />
-            <parameter
-                android:name="message.text"
-                android:key="messageText" />
-        </intent>
-    </capability>
-
-    <capability android:name="actions.intent.CREATE_CALL">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetPackage="com.truckerload"
-            android:targetClass="com.truckerload.presentation.MainActivity">
-            <url-template android:value="truckerload://assistant/call{?calleeName}" />
-            <parameter
-                android:name="call.callee.name"
-                android:key="calleeName" />
-        </intent>
-    </capability>
-
     <shortcut
         android:shortcutId="add_load"
         android:shortcutShortLabel="@string/add_load_title"

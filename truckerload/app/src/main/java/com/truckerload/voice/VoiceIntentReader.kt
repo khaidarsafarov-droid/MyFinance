@@ -34,16 +34,9 @@ object VoiceIntentReader {
                 asDiesel -> return AppVoiceJournal.addDiesel(keys)
             }
         }
-        val recipient = keys.firstOf("message.recipient.name", "recipientname", "peer")
-        val text = keys.firstOf("message.text", "messagetext", "text")
-        val callee = keys.firstOf("call.callee.name", "calleename")
         val thing = keys.firstOf("thing.name", "q", "name")
         val feature = keys.firstOf("feature", "featurename")
         return when {
-            !callee.isNullOrBlank() -> AppVoiceAction.CallFriend(callee)
-            !recipient.isNullOrBlank() && !text.isNullOrBlank() ->
-                AppVoiceAction.MessageFriend(recipient, text)
-            !recipient.isNullOrBlank() -> AppVoiceAction.ChatWithFriend(recipient)
             !thing.isNullOrBlank() -> AppVoiceJournal.fromSpokenQuery(thing)
                 ?: AppVoiceActions.matchSpoken(thing)
             !feature.isNullOrBlank() -> AppVoiceJournal.fromSpokenQuery(feature)

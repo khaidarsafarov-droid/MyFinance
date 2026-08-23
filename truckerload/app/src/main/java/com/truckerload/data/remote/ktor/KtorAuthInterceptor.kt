@@ -14,9 +14,7 @@ import javax.inject.Singleton
 /**
  * Attaches a Bearer token and device id on every Ktor request.
  *
- * Journal sync keeps the Supabase JWT from [AuthStore.accessTokenOrNull].
- * `POST /v1/voice/token` prefers the Google ID token because the droplet
- * verifies RS256 Google tokens, not the project's Supabase HS256 secret.
+ * Journal sync uses the Supabase JWT from [AuthStore.accessTokenOrNull].
  */
 @Singleton
 class KtorAuthInterceptor @Inject constructor(
@@ -33,8 +31,6 @@ class KtorAuthInterceptor @Inject constructor(
             createClientPlugin("KtorAuthBearer") {
                 onRequest { request, _ ->
                     val token = KtorBearerToken.select(
-                        encodedPath = request.url.pathSegments.joinToString("/"),
-                        googleIdToken = authStore.googleIdTokenOrNull(),
                         accessToken = authStore.accessTokenOrNull(),
                     )
                     if (!token.isNullOrBlank()) {
@@ -47,16 +43,8 @@ class KtorAuthInterceptor @Inject constructor(
     }
 }
 
-/** Chooses the Bearer secret for a Ktor path. Voice minting is Google-only. */
+/** Chooses the Bearer secret for a Ktor path. */
 internal object KtorBearerToken {
-    fun select(
-        encodedPath: String,
-        googleIdToken: String?,
-        accessToken: String?,
-    ): String? {
-        val google = googleIdToken?.trim()?.takeIf { it.isNotBlank() }
-        val access = accessToken?.trim()?.takeIf { it.isNotBlank() }
-        if (google != null && encodedPath.contains("v1/voice/token")) return google
-        return access
-    }
+    fun select(accessToken: String?): String? =
+        accessToken?.trim()?.takeIf { it.isNotBlank() }
 }

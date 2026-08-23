@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -61,7 +60,6 @@ private data class PhoneTab(
 private val phoneTabs = listOf(
     PhoneTab(Routes.HOME, Icons.Outlined.LocalShipping, R.string.nav_logbook),
     PhoneTab(Routes.STATS, Icons.Outlined.Flag, R.string.nav_weekly_goal),
-    PhoneTab(Routes.COMMUNITY, Icons.Outlined.Groups, R.string.nav_community),
     PhoneTab(Routes.PROFILE, Icons.Outlined.Person, R.string.nav_profile),
 )
 

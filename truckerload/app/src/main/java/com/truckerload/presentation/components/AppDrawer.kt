@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -60,7 +59,6 @@ enum class DrawerDestination {
     SETTINGS,
     REPORTS,
     MAP,
-    FRIENDS_LIVE,
     DOCUMENTS,
     MAINTENANCE,
     ADD_PAYCHECK,
@@ -122,11 +120,6 @@ fun AppDrawerContent(
                 icon = Icons.Outlined.Map,
                 label = stringResource(R.string.drawer_map),
                 onClick = { onNavigate(DrawerDestination.MAP); onClose() },
-            )
-            drawerItem(
-                icon = Icons.Outlined.PersonAdd,
-                label = stringResource(R.string.drawer_friends_live),
-                onClick = { onNavigate(DrawerDestination.FRIENDS_LIVE); onClose() },
             )
             drawerItem(
                 icon = Icons.Outlined.Description,

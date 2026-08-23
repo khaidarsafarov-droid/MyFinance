@@ -4,69 +4,41 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.truckerload.data.local.dao.BlockedUserDao
-import com.truckerload.data.local.dao.CallSessionDao
-import com.truckerload.data.local.dao.ChallengeParticipationDao
-import com.truckerload.data.local.dao.ChatMemberDao
-import com.truckerload.data.local.dao.CommunityProfileDao
 import com.truckerload.data.local.dao.DieselDao
-import com.truckerload.data.local.dao.DriverFollowDao
 import com.truckerload.data.local.dao.DriverProfessionalDao
 import com.truckerload.data.local.dao.DriverProfileDao
-import com.truckerload.data.local.dao.DriverStatusDao
 import com.truckerload.data.local.dao.LoadDao
 import com.truckerload.data.local.dao.LoadHistoryDao
 import com.truckerload.data.local.dao.MaintenanceDao
-import com.truckerload.data.local.dao.MessageReactionDao
 import com.truckerload.data.local.dao.MediaSyncQueueDao
 import com.truckerload.data.local.dao.PaycheckDao
 import com.truckerload.data.local.dao.PenaltyDao
 import com.truckerload.data.local.dao.PhotoDao
 import com.truckerload.data.local.dao.ScanDao
-import com.truckerload.data.local.dao.SocialChatDao
-import com.truckerload.data.local.dao.SocialMessageDao
-import com.truckerload.data.local.dao.SocialPeerDao
 import com.truckerload.data.local.dao.StopDao
 import com.truckerload.data.local.dao.SyncOutboxDao
 import com.truckerload.data.local.dao.TelegramInboxDao
 import com.truckerload.data.local.dao.UserAccountDao
-import com.truckerload.data.local.dao.VoiceRoomDao
-import com.truckerload.data.local.dao.VoiceRoomParticipantDao
-import com.truckerload.data.local.dao.VoiceSignalDao
 import com.truckerload.data.local.entities.CrowdRateEntity
-import com.truckerload.data.local.entities.BlockedUserEntity
-import com.truckerload.data.local.entities.CallSessionEntity
-import com.truckerload.data.local.entities.ChallengeParticipationEntity
-import com.truckerload.data.local.entities.ChatMemberEntity
-import com.truckerload.data.local.entities.CommunityProfileEntity
 import com.truckerload.data.local.entities.DieselEntity
 import com.truckerload.data.local.entities.DriverProfessionalEntity
-import com.truckerload.data.local.entities.DriverFollowEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
-import com.truckerload.data.local.entities.DriverStatusEntity
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.data.local.entities.MaintenanceArchiveEntity
 import com.truckerload.data.local.entities.MaintenanceTaskEntity
-import com.truckerload.data.local.entities.MessageReactionEntity
 import com.truckerload.data.local.entities.MediaSyncQueueEntity
 import com.truckerload.data.local.entities.PaycheckEntity
 import com.truckerload.data.local.entities.PenaltyEntity
 import com.truckerload.data.local.entities.PhotoEntity
 import com.truckerload.data.local.entities.ScanEntity
-import com.truckerload.data.local.entities.SocialChatEntity
-import com.truckerload.data.local.entities.SocialMessageEntity
-import com.truckerload.data.local.entities.SocialPeerEntity
 import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.SyncOutboxEntity
 import com.truckerload.data.local.entities.TelegramInboxEntity
 import com.truckerload.data.local.entities.UserAccountEntity
-import com.truckerload.data.local.entities.VoiceRoomEntity
-import com.truckerload.data.local.entities.VoiceRoomParticipantEntity
-import com.truckerload.data.local.entities.VoiceSignalEntity
 
 /**
- * Main Room database for account-scoped local app data and social/Telegram sync state.
+ * Main Room database for account-scoped local app data and Telegram sync state.
  */
 @Database(
     entities = [
@@ -80,19 +52,6 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         ScanEntity::class,
         LoadHistory::class,
         DriverProfileEntity::class,
-        SocialChatEntity::class,
-        SocialMessageEntity::class,
-        BlockedUserEntity::class,
-        DriverStatusEntity::class,
-        ChallengeParticipationEntity::class,
-        MessageReactionEntity::class,
-        VoiceRoomEntity::class,
-        VoiceRoomParticipantEntity::class,
-        CallSessionEntity::class,
-        VoiceSignalEntity::class,
-        DriverFollowEntity::class,
-        ChatMemberEntity::class,
-        SocialPeerEntity::class,
         SyncOutboxEntity::class,
         MediaSyncQueueEntity::class,
         MaintenanceTaskEntity::class,
@@ -100,9 +59,8 @@ import com.truckerload.data.local.entities.VoiceSignalEntity
         CrowdRateEntity::class,
         UserAccountEntity::class,
         DriverProfessionalEntity::class,
-        CommunityProfileEntity::class,
     ],
-    version = 32,
+    version = 33,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -116,26 +74,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun photoDao(): PhotoDao
     abstract fun scanDao(): ScanDao
     abstract fun driverProfileDao(): DriverProfileDao
-    abstract fun socialChatDao(): SocialChatDao
-    abstract fun socialMessageDao(): SocialMessageDao
-    abstract fun blockedUserDao(): BlockedUserDao
-    abstract fun driverStatusDao(): DriverStatusDao
-    abstract fun challengeParticipationDao(): ChallengeParticipationDao
-    abstract fun messageReactionDao(): MessageReactionDao
-    abstract fun voiceRoomDao(): VoiceRoomDao
-    abstract fun voiceRoomParticipantDao(): VoiceRoomParticipantDao
-    abstract fun callSessionDao(): CallSessionDao
-    abstract fun voiceSignalDao(): VoiceSignalDao
-    abstract fun driverFollowDao(): DriverFollowDao
-    abstract fun chatMemberDao(): ChatMemberDao
-    abstract fun socialPeerDao(): SocialPeerDao
     abstract fun syncOutboxDao(): SyncOutboxDao
     abstract fun mediaSyncQueueDao(): MediaSyncQueueDao
     abstract fun maintenanceDao(): MaintenanceDao
     abstract fun crowdRateDao(): com.truckerload.data.local.dao.CrowdRateDao
     abstract fun userAccountDao(): UserAccountDao
     abstract fun driverProfessionalDao(): DriverProfessionalDao
-    abstract fun communityProfileDao(): CommunityProfileDao
 
     companion object {
         @Volatile
