@@ -5,9 +5,11 @@ import com.truckerload.domain.parser.LoadMessageParser
 
 /** Plain text: try relay parser, then single-block parse. */
 class TextLoadParser : LoadParser {
-    override fun parse(input: String): List<Load> {
-        val all = LoadMessageParser.parseAll(input)
+    override fun parse(input: String): List<Load> = parse(input, System.currentTimeMillis())
+
+    override fun parse(input: String, referenceMillis: Long): List<Load> {
+        val all = LoadMessageParser.parseAll(input, referenceMillis)
         if (all.isNotEmpty()) return all
-        return LoadMessageParser.parseOne(input)?.let { listOf(it) } ?: emptyList()
+        return LoadMessageParser.parseOne(input, referenceMillis)?.let { listOf(it) } ?: emptyList()
     }
 }

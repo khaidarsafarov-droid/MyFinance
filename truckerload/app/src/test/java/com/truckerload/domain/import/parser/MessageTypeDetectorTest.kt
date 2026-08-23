@@ -26,9 +26,29 @@ class MessageTypeDetectorTest {
     assertEquals(ImportMessageType.HTML, detector.detect(html))
   }
 
-  @Test
-  fun detect_exportText() {
-    val line = "29.06.2026 | TOL3 → RDU1 | 1,198 mi | $2,945.56"
-    assertEquals(ImportMessageType.EXPORT_TEXT, detector.detect(line))
-  }
+    @Test
+    fun detect_exportText() {
+        val line = "29.06.2026 | TOL3 → RDU1 | 1,198 mi | $2,945.56"
+        assertEquals(ImportMessageType.EXPORT_TEXT, detector.detect(line))
+    }
+
+    @Test
+    fun detect_telegramJsonExportBeforeRelayMarkersInPayload() {
+        val json = """
+            {
+              "name": "Relay",
+              "type": "personal_chat",
+              "id": 1,
+              "messages": [
+                {
+                  "id": 1,
+                  "type": "message",
+                  "date": "2025-07-05T10:00:00",
+                  "text": "Trip ID: T-AAA\nTotal Rate: ${'$'}1000.00\nTotal Loaded Miles: 400 mi"
+                }
+              ]
+            }
+        """.trimIndent()
+        assertEquals(ImportMessageType.TELEGRAM_JSON, detector.detect(json))
+    }
 }

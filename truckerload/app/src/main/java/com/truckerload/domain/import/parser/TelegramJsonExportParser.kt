@@ -3,6 +3,7 @@ package com.truckerload.domain.import.parser
 import com.truckerload.domain.import.ImportTripDedup
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
+import com.truckerload.domain.parser.TelegramMessageDate
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
 import org.json.JSONArray
 import org.json.JSONObject
@@ -27,15 +28,16 @@ class TelegramJsonExportParser(
             val text = TelegramStyledTextNormalizer.normalize(rawText)
             if (!MessageClassifier.isLoadLike(text)) continue
 
-            // FIX: use Telegram message date so Relay MM/DD anchors to the export year
+            // FIX: Telegram Desktop uses date_unixtime + ISO date string, not unix in `date`
             val dateSeconds = extractMessageDateSeconds(msg)
             val parsedAtMs = dateSeconds?.times(1000L) ?: 0L
+            val referenceMillis = parsedAtMs.takeIf { it > 0L } ?: System.currentTimeMillis()
 
-            relayParser.parse(text).forEach { load ->
+            relayParser.parse(text, referenceMillis).forEach { load ->
                 loads.add(
                     load.copy(
                         rawMessage = text.take(2000),
-                        parsedAt = parsedAtMs,
+                        parsedAt = parsedAtMs.takeIf { it > 0L } ?: load.parsedAt,
                     )
                 )
             }
@@ -46,12 +48,9 @@ class TelegramJsonExportParser(
     }
 
     private fun extractMessageDateSeconds(msg: JSONObject): Long? {
+        TelegramMessageDate.parseUnixSeconds(msg.opt("date_unixtime"))?.let { return it }
         if (!msg.has("date") || msg.isNull("date")) return null
-        return when (val value = msg.opt("date")) {
-            is Number -> value.toLong().takeIf { it > 0L }
-            is String -> value.toLongOrNull()?.takeIf { it > 0L }
-            else -> null
-        }
+        return TelegramMessageDate.parseUnixSeconds(msg.opt("date"))
     }
 
     private fun extractMessageText(msg: JSONObject): String {
