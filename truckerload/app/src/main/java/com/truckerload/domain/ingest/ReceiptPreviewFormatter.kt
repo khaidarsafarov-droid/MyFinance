@@ -10,6 +10,9 @@ object ReceiptPreviewFormatter {
         preview.amount?.let {
             lines += "💵 <b>\$%s</b>".format(Locale.US, String.format(Locale.US, "%,.2f", it))
         }
+        preview.miles?.let {
+            lines += "🛣️ ${String.format(Locale.US, "%,.2f", it)} mi"
+        }
         preview.gallons?.let {
             lines += "⛽ ${String.format(Locale.US, "%.2f", it)} gal"
         }
@@ -17,7 +20,14 @@ object ReceiptPreviewFormatter {
             lines += "PPG \$%s".format(Locale.US, String.format(Locale.US, "%.3f", it))
         }
         preview.date?.let { lines += "📅 ${escape(it)}" }
-        preview.location?.let { lines += "📍 ${escape(it)}" }
+        val route = listOfNotNull(preview.pointA, preview.pointB)
+            .filter { it.isNotBlank() }
+            .joinToString(" → ")
+        if (route.isNotBlank()) {
+            lines += "📍 ${escape(route)}"
+        } else {
+            preview.location?.let { lines += "📍 ${escape(it)}" }
+        }
         preview.vendor?.let { lines += escape(it) }
         preview.driverName?.let { lines += escape(it) }
         preview.tripId?.let { lines += "Trip ${escape(it)}" }

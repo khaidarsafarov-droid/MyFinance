@@ -43,11 +43,11 @@ class AiRepository(
     suspend fun parseLoadFromMessage(rawMessage: String): Result<Load> =
         messageParseService.parseLoadFromMessage(rawMessage)
 
-    suspend fun parseLoadFromUserInput(rawMessage: String): Result<Load> =
-        messageParseService.parseLoadFromUserInput(rawMessage)
+    suspend fun parseLoadFromUserInput(rawMessage: String, fileName: String? = null): Result<Load> =
+        messageParseService.parseLoadFromUserInput(rawMessage, fileName = fileName)
 
-    fun extractLoadFields(rawMessage: String) =
-        messageParseService.extractLoadFields(rawMessage)
+    fun extractLoadFields(rawMessage: String, fileName: String? = null) =
+        messageParseService.extractLoadFields(rawMessage, fileName = fileName)
 
     suspend fun parseAmazonRelayFromMessage(rawMessage: String): Result<AmazonRelayParseResult> =
         messageParseService.parseAmazonRelayFromMessage(rawMessage)

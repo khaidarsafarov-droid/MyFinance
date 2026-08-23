@@ -11,6 +11,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.normalizeTripId
+import com.truckerload.domain.parser.LoadCompleteness
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.PasteParseGap
 import com.truckerload.domain.parser.PasteParseHint
@@ -56,6 +57,10 @@ data class AddLoadUiState(
     val isParsingPreview: Boolean = false,
     val previewHint: String? = null,
     val equipmentType: EquipmentType? = null,
+    /** Gaps in the imported draft; drives the review card. */
+    val completeness: LoadCompleteness? = null,
+    /** Set when save is held back until the driver confirms an incomplete load. */
+    val confirmIncomplete: LoadCompleteness? = null,
 )
 
 @HiltViewModel
@@ -122,14 +127,20 @@ class AddLoadViewModel @Inject constructor(
         if (_uiState.value.isExtractingDocument) return
         val name = uri.lastPathSegment?.substringAfterLast('/') ?: mimeType
         _uiState.update {
-            it.copy(isExtractingDocument = true, documentName = name, error = null)
+            it.copy(
+                isExtractingDocument = true,
+                documentName = name,
+                error = null,
+                completeness = null,
+                confirmIncomplete = null,
+            )
         }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 LoadDocumentTextExtractor(getApplication()).extract(uri, mimeType)
             }
             result
-                .onSuccess { text -> applyDocumentText(text) }
+                .onSuccess { text -> applyDocumentText(text, name) }
                 .onFailure {
                     _uiState.update {
                         it.copy(
@@ -202,11 +213,12 @@ class AddLoadViewModel @Inject constructor(
         return scheduleAlarm(triggerAtMillis)
     }
 
-    private fun applyDocumentText(text: String) {
+    private fun applyDocumentText(text: String, fileName: String? = null) {
         savedStateHandle[KEY_RAW] = text
         previewJob?.cancel()
-        val draft = aiRepository.extractLoadFields(text)
+        val draft = aiRepository.extractLoadFields(text, fileName)
         val fallbackDate = _uiState.value.manual.date.ifBlank { todayIso() }
+        val fields = ManualLoadFields.fromDraft(draft, fallbackDate)
         _uiState.update {
             it.copy(
                 rawText = text,
@@ -214,13 +226,37 @@ class AddLoadViewModel @Inject constructor(
                 previewLoad = null,
                 previewHint = null,
                 isParsingPreview = false,
-                manual = ManualLoadFields.fromDraft(draft, fallbackDate),
+                manual = fields,
+                completeness = fields.completeness(),
+                confirmIncomplete = null,
             )
         }
     }
 
     private fun updateManual(transform: (ManualLoadFields) -> ManualLoadFields) {
-        _uiState.update { it.copy(manual = transform(it.manual), error = null) }
+        _uiState.update { state ->
+            val manual = transform(state.manual)
+            state.copy(
+                manual = manual,
+                error = null,
+                completeness = if (state.completeness == null) null else manual.completeness(),
+                confirmIncomplete = null,
+            )
+        }
+    }
+
+    /** Saves a draft the driver acknowledged as incomplete. */
+    fun confirmIncompleteSave(
+        saveErrorFormatter: (String) -> String,
+        onOptimisticInsert: ((Load) -> Unit)?,
+    ) {
+        if (_uiState.value.confirmIncomplete == null) return
+        _uiState.update { it.copy(confirmIncomplete = null, isSaving = true, error = null) }
+        saveManual(saveErrorFormatter, onOptimisticInsert, skipConfirmation = true)
+    }
+
+    fun dismissIncompleteConfirm() {
+        _uiState.update { it.copy(confirmIncomplete = null, isSaving = false) }
     }
 
     private fun schedulePreview(value: String) {
@@ -257,6 +293,7 @@ class AddLoadViewModel @Inject constructor(
     private fun saveManual(
         saveErrorFormatter: (String) -> String,
         onOptimisticInsert: ((Load) -> Unit)?,
+        skipConfirmation: Boolean = false,
     ) {
         val fields = _uiState.value.manual
         val rate = fields.parsedRate() ?: 0.0
@@ -275,6 +312,13 @@ class AddLoadViewModel @Inject constructor(
                     isSaving = false,
                     error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_address_required),
                 )
+            }
+            return
+        }
+        val completeness = fields.completeness()
+        if (!skipConfirmation && completeness.needsConfirmation) {
+            _uiState.update {
+                it.copy(isSaving = false, confirmIncomplete = completeness, completeness = completeness)
             }
             return
         }
@@ -318,11 +362,32 @@ class AddLoadViewModel @Inject constructor(
             }
             parseResult
                 .onSuccess { persistLoad(it, saveErrorFormatter, onOptimisticInsert) }
-                .onFailure { err ->
-                    _uiState.update {
-                        it.copy(isSaving = false, error = err.message ?: parseFailedFallback)
-                    }
-                }
+                .onFailure { fallBackToReview(text, parseFailedFallback) }
+        }
+    }
+
+    /**
+     * Pasted text that does not parse into a full load is not an error: keep whatever
+     * fields were recognized and let the driver complete and confirm them.
+     */
+    private fun fallBackToReview(text: String, parseFailedFallback: String) {
+        val draft = aiRepository.extractLoadFields(text)
+        if (draft.isEmpty()) {
+            _uiState.update { it.copy(isSaving = false, error = parseFailedFallback) }
+            return
+        }
+        val fields = ManualLoadFields.fromDraft(draft, _uiState.value.manual.date.ifBlank { todayIso() })
+        _uiState.update {
+            it.copy(
+                isSaving = false,
+                mode = AddLoadInputMode.MANUAL,
+                manual = fields,
+                completeness = fields.completeness(),
+                confirmIncomplete = null,
+                error = getApplication<Application>().getString(
+                    com.truckerload.R.string.add_load_review_needed,
+                ),
+            )
         }
     }
 
@@ -377,6 +442,8 @@ class AddLoadViewModel @Inject constructor(
                         previewLoad = null,
                         previewHint = null,
                         isParsingPreview = false,
+                        completeness = null,
+                        confirmIncomplete = null,
                     )
                 }
             } catch (e: Exception) {

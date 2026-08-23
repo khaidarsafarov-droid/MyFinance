@@ -6,27 +6,68 @@ import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.provider.OpenableColumns
 import androidx.core.net.toUri
+import com.truckerload.domain.ingest.DocumentBytesDecoder
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.max
 
 /**
- * Turns a photo or PDF into plain text for [com.truckerload.domain.parser.MessageParseService].
- * Images use [OCRService]; PDFs are rendered page-by-page then OCR'd.
+ * Any picked file → plain text for [com.truckerload.domain.parser.MessageParseService].
+ * Text / JSON / CSV / HTML / DOCX / XLSX decode directly, digital PDFs use their text
+ * layer, and only scans and photos fall through to OCR.
  */
 class LoadDocumentTextExtractor(context: Context) {
 
     private val appContext = context.applicationContext
 
     suspend fun extract(uri: Uri, mimeType: String? = null): Result<String> = runCatching {
-        val resolvedMime = mimeType
-            ?: appContext.contentResolver.getType(uri)
-            ?: ""
-        val isPdf = resolvedMime.equals("application/pdf", ignoreCase = true) ||
-            uri.toString().substringAfterLast('.').equals("pdf", ignoreCase = true)
+        val mime = (mimeType ?: appContext.contentResolver.getType(uri)).orEmpty()
+        val name = displayName(uri)
+        val bytes = readBytes(uri)
+        val isPdf = DocumentBytesDecoder.isPdf(bytes, name, mime)
+        val isImage = !isPdf && DocumentBytesDecoder.isImage(bytes, name, mime)
+
+        if (!isPdf && !isImage) {
+            DocumentBytesDecoder.decode(bytes, name, mime)
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?.let { return@runCatching it }
+        }
+        if (isPdf) {
+            val layer = runCatching { PdfTextLayerExtractor.extract(bytes) }.getOrDefault("")
+            if (layer.length >= MIN_PDF_TEXT) return@runCatching layer
+        }
         val text = if (isPdf) extractPdf(uri) else extractImage(uri)
         text.trim().ifBlank { error("empty_ocr") }
+    }
+
+    /** Display name drives extension-based decoding for content:// URIs. */
+    private fun displayName(uri: Uri): String {
+        val fromProvider = runCatching {
+            appContext.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { cursor ->
+                    if (cursor.moveToFirst() && cursor.columnCount > 0) cursor.getString(0) else null
+                }
+        }.getOrNull()
+        return fromProvider ?: uri.lastPathSegment?.substringAfterLast('/').orEmpty()
+    }
+
+    private fun readBytes(uri: Uri): ByteArray {
+        val stream = appContext.contentResolver.openInputStream(uri) ?: return ByteArray(0)
+        return stream.use { input ->
+            val buffer = ByteArray(READ_CHUNK)
+            val out = java.io.ByteArrayOutputStream()
+            var total = 0
+            while (total < MAX_READ_BYTES) {
+                val read = input.read(buffer)
+                if (read <= 0) break
+                out.write(buffer, 0, read)
+                total += read
+            }
+            out.toByteArray()
+        }
     }
 
     private suspend fun extractImage(uri: Uri): String {
@@ -102,5 +143,8 @@ class LoadDocumentTextExtractor(context: Context) {
         private const val MAX_PDF_PAGES = 8
         // FIX: full-page ARGB bitmaps on large PDFs can OOM on tablets
         private const val MAX_PDF_EDGE_PX = 2048
+        private const val MIN_PDF_TEXT = 40
+        private const val READ_CHUNK = 64 * 1024
+        private const val MAX_READ_BYTES = 32 * 1024 * 1024
     }
 }

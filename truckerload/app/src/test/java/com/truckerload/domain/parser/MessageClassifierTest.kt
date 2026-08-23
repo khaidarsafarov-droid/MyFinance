@@ -53,4 +53,15 @@ class MessageClassifierTest {
         assertTrue(MessageClassifier.isLoadLike("PU# 12345"))
         assertFalse(MessageClassifier.isLoadLike("Net Pay: ${'$'}500.00"))
     }
+
+    @Test
+    fun classify_brokerRateConfirmation_returnsLoad() {
+        val text = """
+            Rate Confirmation IEL PO#: 2665704
+            Estimated Rate (To Truck): ${'$'}2,325.84
+            Miles: 742.50
+        """.trimIndent()
+        assertEquals(MessageType.LOAD, MessageClassifier.classify(text))
+        assertTrue(MessageClassifier.isLoadLike(text))
+    }
 }

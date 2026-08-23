@@ -9,10 +9,13 @@ import com.truckerload.data.remote.TelegramUpdate
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
-import com.truckerload.domain.ingest.ReceiptFieldExtractor
+import com.truckerload.domain.ingest.InboundDocumentResolver
 import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
 import com.truckerload.domain.ingest.ReceiptPreviewFormatter
+import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadField
+import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.utils.LogRedactor
 
@@ -81,23 +84,43 @@ class TelegramFileIngestHandler(
         prefs: SharedPreferences,
     ) {
         val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
-        val loads = parseService.parseLoadsFromMessage(text, referenceMillis).getOrNull().orEmpty()
-        val preview = ReceiptFieldExtractor.extract(text, fileName, messageDateSeconds)
-        if (loads.isNotEmpty() && preview.kind != ReceiptKind.PAYCHECK) {
-            val reply = messageParser.telegramLoadHandler(loadRepository).handleLoads(
-                loads = loads,
-                rawMessage = text,
-                messageDateSeconds = messageDateSeconds,
-            )
-            apiClient.sendWithMenu(chatId, reply)
+        val decision = InboundDocumentResolver.resolve(
+            text = text,
+            fileName = fileName,
+            messageDateSeconds = messageDateSeconds,
+            referenceMillis = referenceMillis,
+            parseService = parseService,
+        )
+        if (decision.autoSaveLoads) {
+            saveLoads(chatId, decision.loads, text, messageDateSeconds, loadRepository)
             return
         }
-        askConfirmation(chatId, preview, prefs)
+        decision.incompleteLoad?.let { gaps ->
+            apiClient.sendWithMenu(
+                chatId,
+                context.getString(
+                    R.string.sync_load_missing_fields,
+                    gaps.allMissing.joinToString(", ") { context.getString(loadFieldLabel(it)) },
+                ),
+            )
+            return
+        }
+        askConfirmation(chatId, decision.preview, prefs)
+    }
+
+    private fun loadFieldLabel(field: LoadField): Int = when (field) {
+        LoadField.RATE -> R.string.add_load_field_rate
+        LoadField.PICKUP -> R.string.add_load_field_pickup
+        LoadField.DELIVERY -> R.string.add_load_field_delivery
+        LoadField.MILES -> R.string.add_load_field_miles
+        LoadField.DATE -> R.string.add_load_field_date
+        LoadField.TRIP_ID -> R.string.add_load_field_trip_id
     }
 
     suspend fun handleCallback(
         data: String,
         chatId: String,
+        loadRepository: LoadRepository,
         paycheckRepository: PaycheckRepository,
         dieselRepository: DieselRepository,
         prefs: SharedPreferences,
@@ -117,15 +140,71 @@ class TelegramFileIngestHandler(
             return
         }
         val kind = when (data) {
+            TelegramReceiptKeyboard.LOAD -> ReceiptKind.LOAD
             TelegramReceiptKeyboard.DIESEL -> ReceiptKind.DIESEL
             TelegramReceiptKeyboard.DEF -> ReceiptKind.DEF
             TelegramReceiptKeyboard.PAYCHECK -> ReceiptKind.PAYCHECK
             else -> preview.kind
         }
         callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
+        if (kind == ReceiptKind.LOAD) {
+            val referenceMillis = preview.messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
+            val loads = parseService.parseLoadsFromInboundText(
+                preview.extractedText,
+                referenceMillis,
+                preview.sourceFileName,
+            ).getOrNull().orEmpty().ifEmpty {
+                listOfNotNull(loadFromPreview(preview, referenceMillis))
+            }
+            store.clear(chatId)
+            if (loads.isEmpty()) {
+                apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_load_parse_failed))
+                return
+            }
+            saveLoads(
+                chatId = chatId,
+                loads = loads,
+                rawMessage = preview.extractedText,
+                messageDateSeconds = preview.messageDateSeconds,
+                loadRepository = loadRepository,
+            )
+            return
+        }
         val reply = writer.save(kind, preview, paycheckRepository, dieselRepository, prefs)
         store.clear(chatId)
         apiClient.sendWithMenu(chatId, reply)
+    }
+
+    private suspend fun saveLoads(
+        chatId: String,
+        loads: List<Load>,
+        rawMessage: String,
+        messageDateSeconds: Long?,
+        loadRepository: LoadRepository,
+    ) {
+        val reply = messageParser.telegramLoadHandler(loadRepository).handleLoads(
+            loads = loads,
+            rawMessage = rawMessage,
+            messageDateSeconds = messageDateSeconds,
+        )
+        apiClient.sendWithMenu(chatId, reply)
+    }
+
+    private fun loadFromPreview(
+        preview: ReceiptPreview,
+        referenceMillis: Long,
+    ): Load? {
+        val rate = preview.amount?.takeIf { it > 0 } ?: return null
+        return ManualLoadFactory.build(
+            tripId = preview.tripId.orEmpty(),
+            date = preview.date.orEmpty(),
+            rate = rate,
+            miles = preview.miles ?: 0.0,
+            pointA = preview.pointA.orEmpty(),
+            pointB = preview.pointB.orEmpty(),
+            rawMessage = preview.extractedText,
+            nowMillis = referenceMillis,
+        )
     }
 
     private suspend fun askConfirmation(
@@ -150,6 +229,7 @@ class TelegramFileIngestHandler(
             chatId = chatId,
             html = html,
             replyMarkup = TelegramReceiptKeyboard.inline(
+                load = context.getString(R.string.sync_receipt_btn_load),
                 diesel = context.getString(R.string.sync_receipt_btn_diesel),
                 def = context.getString(R.string.sync_receipt_btn_def),
                 paycheck = context.getString(R.string.sync_receipt_btn_paycheck),

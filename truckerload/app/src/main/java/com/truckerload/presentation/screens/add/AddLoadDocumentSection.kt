@@ -116,7 +116,7 @@ fun AddLoadDocumentSection(
                     Text(stringResource(R.string.add_load_take_photo))
                 }
                 OutlinedButton(
-                    onClick = { fileLauncher.launch(arrayOf("image/*", "application/pdf")) },
+                    onClick = { fileLauncher.launch(arrayOf("*/*")) },
                     modifier = Modifier.weight(1f).height(44.dp),
                     enabled = !isExtracting,
                 ) {

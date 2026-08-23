@@ -5,7 +5,11 @@ package com.truckerload.domain.parser
  */
 object MessageClassifier {
 
-    private val loadMarkers = Regex("""Trip\s*ID|Trip\nID|PU#|Total\s*Rate""", RegexOption.IGNORE_CASE)
+    private val loadMarkers = Regex(
+        """Trip\s*ID|Trip\nID|PU#|P/U\s*#|Total\s*Rate|rate[\s\-]*confirmation|""" +
+            """load[\s\-]*confirmation|estimated\s*rate|IEL\s*PO|load\s*information""",
+        RegexOption.IGNORE_CASE,
+    )
     private val paycheckMarkers = Regex(
         """Grand\s*Total|Settlement\s*Date|Cutoff\s*Date|Driver\s*Settlement|Зарплата|Net\s*Pay|Gross\s*Pay""",
         RegexOption.IGNORE_CASE
