@@ -761,6 +761,7 @@
     <string name="settings_rpm_threshold_negative">Пороги не могут быть отрицательными</string>
     <string name="settings_rpm_threshold_order">Красный порог не может быть больше зелёного</string>
     <string name="settings_backup_title">Резервное копирование</string>
+    <string name="settings_data_title">Экспорт и копии</string>
     <string name="export_loads">Экспортировать грузы</string>
     <string name="export_loads_description">Сохранить все рейсы в текстовый файл</string>
     <string name="export_csv">Экспортировать в CSV</string>
@@ -817,7 +818,7 @@
     <string name="telegram_export_caption">📦 Экспорт грузов Truck Log от %s</string>
     <string name="file_received">📥 Файл получен. Восстановлено %d грузов.</string>
     <string name="export_actions_title">Экспорт готов</string>
-    <string name="settings_backup_desc">Файл TruckLog_Backup_….json в Загрузки/TruckLog: полный бэкап грузов, зарплат и дизеля. Его же можно восстановить в приложении.</string>
+    <string name="settings_backup_desc">CSV — таблица грузов. JSON в Загрузки/TruckLog — полная копия грузов, зарплат и дизеля.</string>
     <string name="settings_backup_saved">Бэкап: %1$d грузов → %2$s</string>
     <string name="settings_backup_error">Не удалось создать файл бэкапа</string>
     <string name="settings_backup_create">Создать файл бэкапа</string>
