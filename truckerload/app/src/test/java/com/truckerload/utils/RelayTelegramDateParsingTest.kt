@@ -16,6 +16,18 @@ import java.util.Calendar
 class RelayTelegramDateParsingTest {
 
     @Test
+    fun parseDateFromScheduledTime_usesMessageInstantNotWallClockYear() {
+        val messageMillis = Calendar.getInstance().apply {
+            set(2025, Calendar.AUGUST, 20, 14, 16, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        assertEquals(
+            "2025-08-21",
+            parseDateFromScheduledTime("08/21 01:39 EDT", referenceMillis = messageMillis),
+        )
+    }
+
+    @Test
     fun telegramAugust21Message_parsesPuTimeAs2025() {
         val messageMillis = Calendar.getInstance().apply {
             set(2025, Calendar.AUGUST, 21, 2, 9, 0)

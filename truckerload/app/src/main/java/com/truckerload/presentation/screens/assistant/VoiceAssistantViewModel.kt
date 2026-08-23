@@ -10,7 +10,6 @@ import com.truckerload.data.assistant.SpeechToTextListener
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.voice.VoiceAssistantLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,12 +18,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @HiltViewModel
 class VoiceAssistantViewModel @Inject constructor(
     application: Application,
     private val speechToText: SpeechToText,
-    private val dispatcher: GeminiFunctionDispatcher,
+    private val dispatcher: LocalAssistantDispatcher,
     private val mutationWriter: JournalMutationWriter,
     private val settingsDataStore: SettingsDataStore,
 ) : AndroidViewModel(application) {
@@ -158,22 +158,15 @@ class VoiceAssistantViewModel @Inject constructor(
             val result = withContext(Dispatchers.IO) {
                 dispatcher.interpret(text, language)
             }
-            val errorRes = when (result) {
-                is AssistantResult.Failed -> when (result.kind) {
-                    AssistantFailKind.NO_API_KEY -> R.string.assistant_error_no_key
-                    AssistantFailKind.NETWORK -> R.string.assistant_error_network
-                }
-                else -> null
-            }
             val phase = when (result) {
-                is AssistantResult.Failed, AssistantResult.Ambiguous -> AssistantPhase.Error
+                AssistantResult.Ambiguous -> AssistantPhase.Error
                 else -> AssistantPhase.Ready
             }
             _uiState.update {
                 it.copy(
                     phase = phase,
                     result = result,
-                    errorMessageRes = errorRes,
+                    errorMessageRes = null,
                 )
             }
         }

@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.add
 
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,31 +32,31 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
-import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.getWeekRange
 import java.util.Calendar
+import java.util.Locale
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlTextButton as TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +65,6 @@ fun AddDieselScreen(
     onBack: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
     val viewModel: AddDieselViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -143,6 +141,28 @@ fun AddDieselScreen(
                             Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit))
                         }
                     }
+                    uiState.paidTotal?.let { total ->
+                        Text(
+                            stringResource(
+                                R.string.add_diesel_summary_paid,
+                                MoneyFormat.formatCurrency(total)
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = tc.TextSecondary,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                    uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
+                        Text(
+                            stringResource(
+                                R.string.add_diesel_summary_saved,
+                                MoneyFormat.formatCurrency(saved)
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = tc.AccentProfit,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
                     uiState.error?.let {
                         Text(
                             it,
@@ -214,13 +234,16 @@ fun AddDieselScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
                     Text(stringResource(R.string.add_select_week), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 4.dp),
                     ) {
                         IconButton(onClick = viewModel::selectPreviousWeek) {
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = tc.TextPrimary)
@@ -236,37 +259,71 @@ fun AddDieselScreen(
                         }
                     }
                     OutlinedTextField(
-                        value = uiState.amountText,
-                        onValueChange = viewModel::setAmountText,
-                        label = { Text(stringResource(R.string.common_enter_amount)) },
+                        value = uiState.gallonsText,
+                        onValueChange = viewModel::setGallonsText,
+                        label = { Text(stringResource(R.string.add_diesel_gallons)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .defaultMinSize(minHeight = UiDimens.InputMinHeight),
                         shape = RoundedCornerShape(14.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = AppTextFieldDefaults.outlined(),
+                        singleLine = true,
                     )
-                    val parsedAmount = uiState.amountText.replace(",", "").toDoubleOrNull()
-                    if (parsedAmount != null) {
+                    OutlinedTextField(
+                        value = uiState.pricePerGallonText,
+                        onValueChange = viewModel::setPricePerGallonText,
+                        label = { Text(stringResource(R.string.add_diesel_price_per_gallon)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                        shape = RoundedCornerShape(14.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        colors = AppTextFieldDefaults.outlined(),
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = uiState.discountPriceText,
+                        onValueChange = viewModel::setDiscountPriceText,
+                        label = { Text(stringResource(R.string.add_diesel_discount_price)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                        shape = RoundedCornerShape(14.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        colors = AppTextFieldDefaults.outlined(),
+                        singleLine = true,
+                    )
+                    uiState.paidTotal?.let { total ->
                         Text(
-                            text = MoneyFormat.formatCurrency(parsedAmount),
+                            text = stringResource(
+                                R.string.add_diesel_paid_total,
+                                MoneyFormat.formatCurrency(total),
+                            ),
                             style = AppTypography.HeroNumber,
-                            modifier = Modifier.padding(top = 8.dp),
+                            color = tc.TextPrimary,
+                            modifier = Modifier.padding(top = 4.dp),
                         )
                     }
-                    val last = uiState.lastAmount
-                    if (last != null && uiState.amountText.isBlank()) {
-                        TextButton(
-                            onClick = viewModel::applyLastAmount,
-                            modifier = Modifier.padding(top = 4.dp),
-                        ) {
-                            Text(
-                                stringResource(
-                                    R.string.ux_smart_default_last_amount,
-                                    MoneyFormat.formatCurrency(last),
-                                ),
-                            )
-                        }
+                    uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
+                        Text(
+                            text = stringResource(
+                                R.string.add_diesel_you_saved,
+                                MoneyFormat.formatCurrency(saved),
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = tc.AccentProfit,
+                        )
+                    }
+                    uiState.gallons?.let { gallons ->
+                        Text(
+                            text = stringResource(
+                                R.string.add_diesel_gallons_preview,
+                                String.format(Locale.US, "%.2f", gallons),
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                        )
                     }
                 }
             }

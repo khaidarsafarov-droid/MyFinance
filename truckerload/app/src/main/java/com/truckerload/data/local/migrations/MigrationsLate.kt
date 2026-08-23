@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→33 (startVersion 25..32). */
+/** Room migrations for schema versions 25→34 (startVersion 25..33). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -316,5 +316,12 @@ val MIGRATION_32_33 = object : Migration(32, 33) {
         dropped.forEach { table ->
             db.execLogged("DROP TABLE IF EXISTS $table")
         }
+    }
+}
+
+/** Fleet discount $/gal on diesel fills (for savings tracking). */
+val MIGRATION_33_34 = object : Migration(33, 34) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("diesel", "discountPricePerGallon", "REAL")
     }
 }

@@ -3,18 +3,17 @@ package com.truckerload.presentation.screens.add
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.model.DieselPurchaseMath
 import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,10 +22,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
-import java.util.Locale
+import javax.inject.Inject
 
 data class AddDieselUiState(
-    val amountText: String = "",
+    val gallonsText: String = "",
+    val pricePerGallonText: String = "",
+    val discountPriceText: String = "",
     val recordedAtMillis: Long = System.currentTimeMillis(),
     val weekNumber: Int = 1,
     val year: Int = 1970,
@@ -34,8 +35,20 @@ data class AddDieselUiState(
     val error: String? = null,
     val saved: Boolean = false,
     val showSaveDialog: Boolean = false,
-    val lastAmount: Double? = null,
-)
+) {
+    val gallons: Double? get() = AmountInputValidator.parsePositiveAmount(gallonsText)
+    val pricePerGallon: Double? get() = AmountInputValidator.parsePositiveAmount(pricePerGallonText)
+    val discountPricePerGallon: Double?
+        get() = AmountInputValidator.parsePositiveAmount(
+            discountPriceText
+        )
+
+    val paidTotal: Double?
+        get() = DieselPurchaseMath.paidTotal(gallons, pricePerGallon, discountPricePerGallon)
+
+    val savings: Double?
+        get() = DieselPurchaseMath.savings(gallons, pricePerGallon, discountPricePerGallon)
+}
 
 @HiltViewModel
 class AddDieselViewModel @Inject constructor(
@@ -49,30 +62,31 @@ class AddDieselViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         AddDieselUiState(
-            amountText = savedStateHandle[KEY_AMOUNT_TEXT] ?: "",
+            gallonsText = savedStateHandle[KEY_GALLONS_TEXT] ?: "",
+            pricePerGallonText = savedStateHandle[KEY_PRICE_TEXT] ?: "",
+            discountPriceText = savedStateHandle[KEY_DISCOUNT_TEXT] ?: "",
             recordedAtMillis = savedStateHandle[KEY_RECORDED_AT_MILLIS] ?: System.currentTimeMillis(),
             weekNumber = savedStateHandle[KEY_WEEK_NUMBER] ?: initialWeekAndYear.first,
             year = savedStateHandle[KEY_YEAR] ?: initialWeekAndYear.second,
             showSaveDialog = savedStateHandle[KEY_SHOW_SAVE_DIALOG] ?: false,
-            lastAmount = lastUsedDefaultsStore.lastDieselAmount.value,
         ),
     )
     val uiState: StateFlow<AddDieselUiState> = _uiState.asStateFlow()
 
-    fun setAmountText(value: String) {
-        savedStateHandle[KEY_AMOUNT_TEXT] = value
-        _uiState.update { it.copy(amountText = value, error = null) }
+    fun setGallonsText(value: String) {
+        savedStateHandle[KEY_GALLONS_TEXT] = value
+        _uiState.update { it.copy(gallonsText = value, error = null) }
     }
 
-    fun applyLastAmount() {
-        val last = _uiState.value.lastAmount ?: return
-        val text = formatAmount(last)
-        setAmountText(text)
+    fun setPricePerGallonText(value: String) {
+        savedStateHandle[KEY_PRICE_TEXT] = value
+        _uiState.update { it.copy(pricePerGallonText = value, error = null) }
     }
 
-    private fun formatAmount(amount: Double): String =
-        if (amount % 1.0 == 0.0) amount.toLong().toString()
-        else String.format(Locale.US, "%.2f", amount)
+    fun setDiscountPriceText(value: String) {
+        savedStateHandle[KEY_DISCOUNT_TEXT] = value
+        _uiState.update { it.copy(discountPriceText = value, error = null) }
+    }
 
     fun selectPreviousWeek() {
         val state = _uiState.value
@@ -94,10 +108,9 @@ class AddDieselViewModel @Inject constructor(
 
     fun openSaveDialog() {
         if (_uiState.value.isSaving) return
-        if (AmountInputValidator.parsePositiveAmount(_uiState.value.amountText) == null) {
-            _uiState.update {
-                it.copy(error = getApplication<Application>().getString(R.string.common_amount_must_be_positive))
-            }
+        val validationError = validateInputs(_uiState.value)
+        if (validationError != null) {
+            _uiState.update { it.copy(error = validationError) }
             return
         }
 
@@ -140,15 +153,17 @@ class AddDieselViewModel @Inject constructor(
 
     fun save() {
         val state = _uiState.value
-        val amount = AmountInputValidator.parsePositiveAmount(state.amountText)
-        if (amount == null || state.isSaving) {
-            if (amount == null) {
-                _uiState.update {
-                    it.copy(error = getApplication<Application>().getString(R.string.common_amount_must_be_positive))
-                }
-            }
+        if (state.isSaving) return
+        val validationError = validateInputs(state)
+        if (validationError != null) {
+            _uiState.update { it.copy(error = validationError) }
             return
         }
+
+        val gallons = state.gallons!!
+        val price = state.pricePerGallon!!
+        val discount = state.discountPricePerGallon
+        val paidTotal = state.paidTotal!!
 
         val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(state.recordedAtMillis)
         val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
@@ -159,9 +174,10 @@ class AddDieselViewModel @Inject constructor(
             weekLabel = weekLabel,
             weekStartDate = weekStart,
             weekEndDate = weekEnd,
-            totalAmount = amount,
-            gallons = null,
-            pricePerGallon = null,
+            totalAmount = paidTotal,
+            gallons = gallons,
+            pricePerGallon = price,
+            discountPricePerGallon = discount,
             location = null,
             rawExtractedText = "",
             sourceFileName = null,
@@ -174,20 +190,23 @@ class AddDieselViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     dieselRepository.insertDiesel(diesel)
                 }
-                lastUsedDefaultsStore.saveDieselAmount(amount)
-                savedStateHandle[KEY_AMOUNT_TEXT] = ""
+                lastUsedDefaultsStore.saveDieselAmount(paidTotal)
+                savedStateHandle[KEY_GALLONS_TEXT] = ""
+                savedStateHandle[KEY_PRICE_TEXT] = ""
+                savedStateHandle[KEY_DISCOUNT_TEXT] = ""
                 savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
                 savedStateHandle[KEY_YEAR] = year
                 savedStateHandle[KEY_SHOW_SAVE_DIALOG] = false
                 _uiState.update {
                     it.copy(
-                        amountText = "",
+                        gallonsText = "",
+                        pricePerGallonText = "",
+                        discountPriceText = "",
                         weekNumber = weekNumber,
                         year = year,
                         isSaving = false,
                         saved = true,
                         showSaveDialog = false,
-                        lastAmount = amount,
                     )
                 }
             } catch (e: Exception) {
@@ -203,6 +222,28 @@ class AddDieselViewModel @Inject constructor(
 
     fun clearSaved() {
         _uiState.update { it.copy(saved = false) }
+    }
+
+    private fun validateInputs(state: AddDieselUiState): String? {
+        val app = getApplication<Application>()
+        if (state.gallons == null) {
+            return app.getString(R.string.add_diesel_gallons_required)
+        }
+        if (state.pricePerGallon == null) {
+            return app.getString(R.string.add_diesel_price_required)
+        }
+        val discountRaw = state.discountPriceText.trim()
+        if (discountRaw.isNotEmpty() && state.discountPricePerGallon == null) {
+            return app.getString(R.string.add_diesel_discount_invalid)
+        }
+        val discount = state.discountPricePerGallon
+        if (discount != null && discount > state.pricePerGallon!!) {
+            return app.getString(R.string.add_diesel_discount_above_price)
+        }
+        if (state.paidTotal == null) {
+            return app.getString(R.string.common_amount_must_be_positive)
+        }
+        return null
     }
 
     private fun setWeekAndYear(weekNumber: Int, year: Int) {
@@ -222,9 +263,10 @@ class AddDieselViewModel @Inject constructor(
         _uiState.update { it.copy(recordedAtMillis = value, error = null) }
     }
 
-
     companion object {
-        private const val KEY_AMOUNT_TEXT = "add_diesel_amount_text"
+        private const val KEY_GALLONS_TEXT = "add_diesel_gallons_text"
+        private const val KEY_PRICE_TEXT = "add_diesel_price_text"
+        private const val KEY_DISCOUNT_TEXT = "add_diesel_discount_text"
         private const val KEY_RECORDED_AT_MILLIS = "add_diesel_recorded_at_millis"
         private const val KEY_WEEK_NUMBER = "add_diesel_week_number"
         private const val KEY_YEAR = "add_diesel_year"

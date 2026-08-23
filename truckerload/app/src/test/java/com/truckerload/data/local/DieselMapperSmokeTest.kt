@@ -19,6 +19,7 @@ class DieselMapperSmokeTest {
             totalAmount = 487.35,
             gallons = 118.5,
             pricePerGallon = 4.11,
+            discountPricePerGallon = 3.95,
             location = "Pilot #412, OK",
             rawExtractedText = "Diesel receipt OCR text",
             sourceFileName = "fuel_receipt.jpg",
@@ -34,6 +35,7 @@ class DieselMapperSmokeTest {
         assertEquals(entity.totalAmount, domain.totalAmount, 0.0)
         assertEquals(entity.gallons, domain.gallons)
         assertEquals(entity.pricePerGallon, domain.pricePerGallon)
+        assertEquals(entity.discountPricePerGallon, domain.discountPricePerGallon)
         assertEquals(entity.location, domain.location)
         assertEquals(entity.rawExtractedText, domain.rawExtractedText)
         assertEquals(entity.sourceFileName, domain.sourceFileName)

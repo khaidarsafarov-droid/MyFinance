@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.truckerload.data.local.AppDatabase.Companion.getInstanceForActiveUser
 import com.truckerload.data.local.dao.DieselDao
 import com.truckerload.data.local.dao.DriverProfessionalDao
 import com.truckerload.data.local.dao.DriverProfileDao
@@ -60,7 +61,7 @@ import com.truckerload.data.local.entities.UserAccountEntity
         UserAccountEntity::class,
         DriverProfessionalEntity::class,
     ],
-    version = 33,
+    version = 34,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

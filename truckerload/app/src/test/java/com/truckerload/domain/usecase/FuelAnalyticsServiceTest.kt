@@ -33,6 +33,7 @@ class FuelAnalyticsServiceTest {
                         totalAmount = 400.0,
                         gallons = 100.0,
                         pricePerGallon = 4.0,
+                        discountPricePerGallon = 3.50,
                         location = null,
                         rawExtractedText = "",
                         sourceFileName = null,
@@ -69,6 +70,7 @@ class FuelAnalyticsServiceTest {
 
         assertEquals(400.0, result.totalSpent, 0.01)
         assertEquals(100.0, result.totalGallons, 0.01)
+        assertEquals(50.0, result.totalSavings, 0.01)
         assertEquals(5.0, result.avgMpg, 0.01)
         assertNotNull(result.previousPeriod)
         assertNull(result.previousPeriod!!.previousPeriod)

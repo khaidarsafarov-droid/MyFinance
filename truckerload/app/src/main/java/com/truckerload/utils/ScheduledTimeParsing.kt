@@ -99,8 +99,13 @@ fun parseScheduledTimeToMillis(
 private val US_RELAY_TIME = Regex("""^(\d{1,2})/(\d{1,2})\s+(\d{1,2}):(\d{2})(?:\s+([A-Z]{2,4}))?\s*$""")
 
 /**
- * FIX: [defaultYear] without [referenceMillis] must not re-anchor MM/DD to wall-clock.
- * Booking-horizon math runs only when a real message/parsedAt timestamp is supplied.
+ * Year for Relay `MM/DD`:
+ * - [trustDefaultYear] + [defaultYear] → keep as-is (UI hydrate from load.date)
+ * - sane [referenceMillis] (Telegram message / parsedAt) → closest calendar year to that instant
+ * - else [defaultYear] or wall-clock year
+ *
+ * Never mix wall-clock year with a historical message timestamp — that labeled Aug 2025
+ * loads as Aug 2026 once "this week" rolled around again.
  */
 private fun resolveRelayParseYear(
     month: Int,
@@ -109,14 +114,15 @@ private fun resolveRelayParseYear(
     referenceMillis: Long?,
     trustDefaultYear: Boolean,
 ): Int {
-    if (defaultYear != null && (trustDefaultYear || referenceMillis == null || referenceMillis <= 0L)) {
+    if (defaultYear != null && trustDefaultYear) {
         return defaultYear
     }
-    val anchor = defaultYear ?: Calendar.getInstance(Locale.US).get(Calendar.YEAR)
-    return LoadDateRepair.resolveRelayYear(
-        month = month,
-        day = day,
-        anchorYear = anchor,
-        referenceMillis = referenceMillis?.takeIf { it > 0L } ?: System.currentTimeMillis(),
-    )
+    val ref = referenceMillis?.takeIf { it >= 946_684_800_000L } // 2000-01-01
+    if (ref != null) {
+        return LoadDateRepair.resolveRelayYear(month, day, ref)
+    }
+    if (defaultYear != null) {
+        return defaultYear
+    }
+    return Calendar.getInstance(Locale.US).get(Calendar.YEAR)
 }

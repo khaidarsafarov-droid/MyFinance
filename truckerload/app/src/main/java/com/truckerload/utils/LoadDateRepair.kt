@@ -17,28 +17,30 @@ object LoadDateRepair {
     private const val MIN_SANE_REFERENCE_MS = 946_684_800_000L // 2000-01-01 UTC
 
     /**
-     * Prefer [anchorYearHint] (Telegram message year). Else use [Load.parsedAt] year
-     * when the stored date's year disagrees with stop times re-parsed under that year.
+     * Prefer [anchorYearHint] / sane [Load.parsedAt] (Telegram message time) over a stored
+     * [Load.date] year. History mislabeled as "this year" (e.g. Aug 2025 Pu-time stored as
+     * 2026-08-…) is corrected on session repair and re-import.
      *
-     * Year resolution is anchored to [Load.parsedAt] (or the message time), **not**
-     * wall-clock "now", so a load dated `08/20` that correctly resolved to the previous
-     * year in July is not flipped to the current year once August arrives.
+     * Wall-clock "now" is only a last-resort reference — it must not override a stored year
+     * when [Load.parsedAt] is missing.
      */
     fun repair(
         load: Load,
         anchorYearHint: Int? = null,
         referenceMillis: Long? = null,
     ): Load {
-        val refMillis = saneReferenceMillis(referenceMillis)
+        val explicitRef = saneReferenceMillis(referenceMillis)
             ?: saneReferenceMillis(load.parsedAt)
-            ?: System.currentTimeMillis()
+        val refMillis = explicitRef ?: System.currentTimeMillis()
+        val messageYear = explicitRef?.let { yearFromMillis(it) }
         val yearHint = load.date.take(4).toIntOrNull()?.takeIf { load.date.length >= 10 }
+        // Message/parsedAt year wins over a wrong stored load.date year.
         val anchorYear = anchorYearHint
+            ?: messageYear
             ?: yearHint
-            ?: yearFromMillis(refMillis)
             ?: return load
-        // Trust stored load.date year on hydrate unless an explicit message-year override is given.
-        val trustStoredYear = anchorYearHint == null && yearHint != null && yearHint == anchorYear
+        // Trust stored year only when it already matches the message/anchor year.
+        val trustStoredYear = yearHint != null && yearHint == anchorYear
         val puDates = load.stops
             .filter { it.type == StopType.PU }
             .mapNotNull {

@@ -1,9 +1,9 @@
 package com.truckerload.data.sync.cloud
 
-import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class CloudArchitectureGuardTest {
     @Test
@@ -43,7 +43,7 @@ class CloudArchitectureGuardTest {
     @Test
     fun roomSchema_tracksCurrentVersion() {
         val db = readMain("com/truckerload/data/local/AppDatabase.kt")
-        assertTrue(db.contains("version = 33"))
+        assertTrue(db.contains("version = 34"))
         assertFalse(db.contains("syncPending"))
         assertFalse(db.contains("migrateLegacyDatabaseIfNeeded"))
     }

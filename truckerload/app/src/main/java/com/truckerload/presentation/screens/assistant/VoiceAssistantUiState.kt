@@ -17,17 +17,11 @@ sealed class PendingAssistantMutation {
     data class PaycheckDraft(val paycheck: Paycheck) : PendingAssistantMutation()
 }
 
-enum class AssistantFailKind {
-    NO_API_KEY,
-    NETWORK,
-}
-
 sealed class AssistantResult {
     data class Confirm(val mutation: PendingAssistantMutation) : AssistantResult()
     data class WeeklyGross(val summary: WeekSummary) : AssistantResult()
     data object Ambiguous : AssistantResult()
     data class Saved(val mutation: PendingAssistantMutation) : AssistantResult()
-    data class Failed(val kind: AssistantFailKind) : AssistantResult()
 }
 
 data class VoiceAssistantUiState(

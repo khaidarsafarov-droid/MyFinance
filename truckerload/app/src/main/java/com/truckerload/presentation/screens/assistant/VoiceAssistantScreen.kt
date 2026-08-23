@@ -149,7 +149,6 @@ private fun VoiceAssistantBody(
                     textAlign = TextAlign.Center,
                 )
             }
-            is AssistantResult.Failed,
             is AssistantResult.Confirm,
             null,
             -> Unit

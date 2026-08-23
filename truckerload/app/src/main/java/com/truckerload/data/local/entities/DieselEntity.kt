@@ -18,6 +18,7 @@ data class DieselEntity(
     val totalAmount: Double,
     val gallons: Double?,
     val pricePerGallon: Double?,
+    val discountPricePerGallon: Double? = null,
     val location: String?,
     val rawExtractedText: String,
     val sourceFileName: String?,

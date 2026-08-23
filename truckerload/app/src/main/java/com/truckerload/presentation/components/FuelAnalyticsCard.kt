@@ -1,7 +1,6 @@
 package com.truckerload.presentation.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -57,6 +56,16 @@ fun FuelAnalyticsCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.AccentExpense
             )
+            if (analytics.totalSavings > 0.0) {
+                Text(
+                    text = stringResource(
+                        R.string.finance_fuel_analytics_savings,
+                        String.format(Locale.getDefault(), "%,.2f", analytics.totalSavings)
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.AccentProfit
+                )
+            }
             Text(
                 text = stringResource(
                     R.string.finance_fuel_analytics_per_100_miles,

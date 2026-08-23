@@ -13,6 +13,7 @@ data class FuelAnalytics(
     val avgMpg: Double,
     val avgPricePerGallon: Double,
     val costPer100Miles: Double,
+    val totalSavings: Double = 0.0,
     val previousPeriod: FuelAnalytics? = null
 )
 
@@ -37,6 +38,7 @@ class FuelAnalyticsService(
         val totalSpent = diesel.sumOf { it.totalAmount }
         val totalGallons = diesel.sumOf { it.gallons ?: 0.0 }
         val totalMiles = loads.sumOf { it.totalMiles }
+        val totalSavings = diesel.sumOf { it.savingsAmount ?: 0.0 }
         val avgMpg = if (totalGallons > 0) totalMiles / totalGallons else 0.0
         val avgPrice = if (totalGallons > 0) totalSpent / totalGallons else 0.0
         val costPer100 = if (totalMiles > 0) (totalSpent / totalMiles) * 100 else 0.0
@@ -62,6 +64,7 @@ class FuelAnalyticsService(
             avgMpg = avgMpg,
             avgPricePerGallon = avgPrice,
             costPer100Miles = costPer100,
+            totalSavings = totalSavings,
             previousPeriod = prev
         )
     }

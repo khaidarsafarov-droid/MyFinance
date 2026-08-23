@@ -10,8 +10,18 @@ data class Diesel(
     val totalAmount: Double,
     val gallons: Double?,
     val pricePerGallon: Double?,
+    /** Pump / rack price paid after fleet discount; null when unknown or no discount. */
+    val discountPricePerGallon: Double? = null,
     val location: String?,
     val rawExtractedText: String,
     val sourceFileName: String?,
-    val addedAt: Long
-)
+    val addedAt: Long,
+) {
+    /** Dollars saved vs list price when gallons + both prices are present. */
+    val savingsAmount: Double?
+        get() = DieselPurchaseMath.savings(
+            gallons = gallons,
+            pricePerGallon = pricePerGallon,
+            discountPricePerGallon = discountPricePerGallon,
+        )
+}

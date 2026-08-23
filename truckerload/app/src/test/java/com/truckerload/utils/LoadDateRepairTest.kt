@@ -65,24 +65,23 @@ class LoadDateRepairTest {
     }
 
     @Test
-    fun repair_doesNotFlipYearWhenHydratedAfterBookingWindowOpens() {
-        // Load was stored/parsed on July 30 with Pu-time 08/20 → year 2025.
-        // Hydrate/repair on August 8 must keep 2025 (anchor = parsedAt, not wall clock).
+    fun repair_nearFutureAugustFromJulyMessageKeepsMessageYear() {
+        // Parsed July 30 2026 for Pu-time 08/20 → near-term booking in 2026 (not prior year).
         val parsedAt = Calendar.getInstance().apply {
             set(2026, Calendar.JULY, 30, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
         val load = sample(
             id = "T-AUG20",
-            date = "2025-08-20",
+            date = "2025-08-20", // previously mislabeled by booking-horizon
             pu = "08/20 08:00 EDT",
             del = "08/21 15:00 EDT",
             miles = 400.0,
         ).copy(parsedAt = parsedAt, year = 2025)
 
         val repaired = LoadDateRepair.repair(load)
-        assertEquals("2025-08-20", repaired.date)
-        assertEquals(2025, repaired.year)
+        assertEquals("2026-08-20", repaired.date)
+        assertEquals(2026, repaired.year)
     }
 
     @Test
@@ -192,6 +191,50 @@ class LoadDateRepairTest {
         assertEquals(900.0, miles2026, 0.01)
         assertEquals(800.0, miles2025, 0.01)
     }
+
+    @Test
+    fun repair_fixesMislabeledThisYearWhenParsedAtIsLastYear() {
+        // Three Aug-2025 Telegram loads that showed up in "this week" (Aug 2026).
+        val cases = listOf(
+            Triple("T-112QX54Y8", "08/21 01:39 EDT", calendar(2025, Calendar.AUGUST, 20, 14, 16)),
+            Triple("T-116C43HGC", "08/22 22:44 EDT", calendar(2025, Calendar.AUGUST, 22, 10, 5)),
+            Triple("T-112VZ3TL2", "08/22 23:28 EDT", calendar(2025, Calendar.AUGUST, 22, 13, 36)),
+        )
+        for ((id, pu, parsedAt) in cases) {
+            val wrong = sample(
+                id = id,
+                date = "2026-${pu.take(5).replace('/', '-')}",
+                pu = pu,
+                del = pu, // same day DEL for minimal fixture
+                miles = 400.0,
+                parsedAt = parsedAt,
+            ).copy(year = 2026)
+            val repaired = LoadDateRepair.repair(wrong, referenceMillis = parsedAt)
+            assertEquals(id, "2025-${pu.substring(0, 5).replace('/', '-')}", repaired.date)
+            assertEquals(id, 2025, repaired.year)
+        }
+    }
+
+    @Test
+    fun repair_doesNotOverrideStoredYearWhenParsedAtMissing() {
+        val load = sample(
+            id = "T-KEEP25",
+            date = "2025-08-21",
+            pu = "08/21 01:39 EDT",
+            del = "08/21 15:00 EDT",
+            miles = 400.0,
+            parsedAt = 1L, // sentinel — not a real message time
+        ).copy(year = 2025, weekNumber = 34)
+        val repaired = LoadDateRepair.repair(load)
+        assertEquals("2025-08-21", repaired.date)
+        assertEquals(2025, repaired.year)
+    }
+
+    private fun calendar(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
+        Calendar.getInstance().apply {
+            set(year, month, day, hour, minute, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
     private fun sample(
         id: String,

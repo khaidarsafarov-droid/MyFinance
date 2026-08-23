@@ -381,6 +381,7 @@
     <string name="finance_fuel_analytics_price_per_gallon">$%1$s/гал</string>
     <string name="finance_fuel_analytics_spent">Потрачено: $%1$s</string>
     <string name="finance_fuel_analytics_per_100_miles">На 100 миль: $%1$s</string>
+    <string name="finance_fuel_analytics_savings">Скидка: $%1$s</string>
 
     <string name="stats_title">Статистика</string>
     <string name="stats_cd_advisor">Советник</string>
@@ -598,6 +599,18 @@
 
     <string name="add_paycheck_title">Добавить зарплату</string>
     <string name="add_diesel_title">Добавить дизель</string>
+    <string name="add_diesel_gallons">Галлоны</string>
+    <string name="add_diesel_price_per_gallon">Цена за галлон</string>
+    <string name="add_diesel_discount_price">Цена со скидкой</string>
+    <string name="add_diesel_paid_total">Сумма со скидкой: %1$s</string>
+    <string name="add_diesel_you_saved">Вы сэкономили: %1$s</string>
+    <string name="add_diesel_gallons_preview">%1$s гал</string>
+    <string name="add_diesel_summary_paid">К оплате: %1$s</string>
+    <string name="add_diesel_summary_saved">Скидка: %1$s</string>
+    <string name="add_diesel_gallons_required">Укажите количество галлонов</string>
+    <string name="add_diesel_price_required">Укажите цену за галлон</string>
+    <string name="add_diesel_discount_invalid">Некорректная цена со скидкой</string>
+    <string name="add_diesel_discount_above_price">Цена со скидкой не может быть выше обычной</string>
     <string name="add_load_title">Добавить груз</string>
     <string name="add_or_edit_week_format">Неделя %1$d • %2$s</string>
     <string name="add_select_week">📅 Выберите неделю</string>
@@ -1578,8 +1591,6 @@
     <string name="assistant_confirm_paycheck">Добавить зарплату: %1$s, неделя %2$s</string>
     <string name="assistant_weekly_gross">%1$s: гросс %2$s · %3$d грузов · %4$s mi · %5$s · дизель %6$s · зарплата %7$s</string>
     <string name="assistant_examples">«Добавь дизель 80 долларов 20 галлонов» · «Какой был гросс на этой неделе»</string>
-    <string name="assistant_error_no_key">Голосовой ассистент не настроен (нет ключа Gemini)</string>
-    <string name="assistant_error_network">Не удалось связаться с ассистентом. Проверьте интернет</string>
     <string name="assistant_error_speech_unavailable">Распознавание речи недоступно на этом устройстве</string>
     <string name="assistant_error_speech_failed">Не удалось распознать речь. Попробуйте ещё раз</string>
     <string name="assistant_error_mic_permission">Нужен доступ к микрофону</string>

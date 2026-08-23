@@ -14,13 +14,13 @@ import com.truckerload.voice.VoiceAssistantLogger
 import com.truckerload.voice.VoiceCommandBus
 import com.truckerload.voice.VoiceFailReason
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 sealed class VoicePrompt {
     data class ConfirmJournal(val mutation: PendingAssistantMutation) : VoicePrompt()
@@ -128,8 +128,7 @@ class VoiceCommandViewModel @Inject constructor(
             is AssistantResult.WeeklyGross -> {
                 _prompt.value = VoicePrompt.WeeklyGross(result.summary)
             }
-            is AssistantResult.Ambiguous -> fail(command, VoiceFailReason.UNKNOWN)
-            is AssistantResult.Failed,
+            is AssistantResult.Ambiguous,
             is AssistantResult.Saved,
             -> fail(command, VoiceFailReason.UNKNOWN)
         }

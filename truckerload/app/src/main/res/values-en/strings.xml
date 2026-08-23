@@ -381,6 +381,7 @@
     <string name="finance_fuel_analytics_price_per_gallon">$%1$s/gal</string>
     <string name="finance_fuel_analytics_spent">Spent: $%1$s</string>
     <string name="finance_fuel_analytics_per_100_miles">Per 100 miles: $%1$s</string>
+    <string name="finance_fuel_analytics_savings">Discount saved: $%1$s</string>
 
     <string name="stats_title">Statistics</string>
     <string name="stats_cd_advisor">Advisor</string>
@@ -598,6 +599,18 @@
 
     <string name="add_paycheck_title">Add paycheck</string>
     <string name="add_diesel_title">Add diesel</string>
+    <string name="add_diesel_gallons">Gallons</string>
+    <string name="add_diesel_price_per_gallon">Price per gallon</string>
+    <string name="add_diesel_discount_price">Discount price</string>
+    <string name="add_diesel_paid_total">Amount with discount: %1$s</string>
+    <string name="add_diesel_you_saved">You saved: %1$s</string>
+    <string name="add_diesel_gallons_preview">%1$s gal</string>
+    <string name="add_diesel_summary_paid">Paid: %1$s</string>
+    <string name="add_diesel_summary_saved">Discount: %1$s</string>
+    <string name="add_diesel_gallons_required">Enter gallons</string>
+    <string name="add_diesel_price_required">Enter price per gallon</string>
+    <string name="add_diesel_discount_invalid">Invalid discount price</string>
+    <string name="add_diesel_discount_above_price">Discount price cannot be higher than list price</string>
     <string name="add_load_title">Add load</string>
     <string name="add_or_edit_week_format">Week %1$d • %2$s</string>
     <string name="add_select_week">📅 Select week</string>
@@ -1576,8 +1589,6 @@
     <string name="assistant_confirm_paycheck">Add paycheck: %1$s, week %2$s</string>
     <string name="assistant_weekly_gross">%1$s: gross %2$s · %3$d loads · %4$s mi · %5$s · diesel %6$s · paycheck %7$s</string>
     <string name="assistant_examples">“Add diesel 80 dollars 20 gallons” · “What was my gross this week”</string>
-    <string name="assistant_error_no_key">Voice assistant is not configured (missing Gemini key)</string>
-    <string name="assistant_error_network">Could not reach the assistant. Check your connection</string>
     <string name="assistant_error_speech_unavailable">Speech recognition is not available on this device</string>
     <string name="assistant_error_speech_failed">Could not recognize speech. Try again</string>
     <string name="assistant_error_mic_permission">Microphone access is required</string>

@@ -7,8 +7,8 @@ import com.truckerload.voice.VoiceAssistantLogger
 import javax.inject.Inject
 
 /**
- * Shared diesel / paycheck / weekly-gross mapping used by Gemini function
- * calling and Google Assistant App Actions. Mutations are preview-only.
+ * Shared diesel / paycheck / weekly-gross mapping used by the on-device voice
+ * assistant and Google Assistant App Actions. Mutations are preview-only.
  */
 class JournalAssistantPreview @Inject constructor(
     private val weekRepository: WeekRepository,

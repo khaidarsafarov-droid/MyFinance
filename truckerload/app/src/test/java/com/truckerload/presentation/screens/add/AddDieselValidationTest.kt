@@ -18,4 +18,18 @@ class AddDieselValidationTest {
     fun dieselAmount_acceptsTrimmedPositiveValue() {
         assertEquals(125.75, AmountInputValidator.parsePositiveAmount(" 125.75 ")!!, 0.0)
     }
+
+    @Test
+    fun uiState_computesPaidTotalAndSavings() {
+        val state = AddDieselUiState(
+            gallonsText = "500",
+            pricePerGallonText = "5.10",
+            discountPriceText = "4.09",
+        )
+        assertEquals(500.0, state.gallons!!, 0.0)
+        assertEquals(5.10, state.pricePerGallon!!, 0.0)
+        assertEquals(4.09, state.discountPricePerGallon!!, 0.0)
+        assertEquals(2045.0, state.paidTotal!!, 0.001)
+        assertEquals(505.0, state.savings!!, 0.001)
+    }
 }
