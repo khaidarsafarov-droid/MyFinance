@@ -84,6 +84,19 @@ fun AddLoadScreen(
         )
     }
 
+    uiState.confirmIncomplete?.let { pending ->
+        AddLoadConfirmIncompleteDialog(
+            completeness = pending,
+            onConfirm = {
+                viewModel.confirmIncompleteSave(
+                    saveErrorFormatter = { msg -> context.getString(R.string.common_save_error, msg) },
+                    onOptimisticInsert = onOptimisticInsert,
+                )
+            },
+            onDismiss = viewModel::dismissIncompleteConfirm,
+        )
+    }
+
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
@@ -144,16 +157,19 @@ fun AddLoadScreen(
                     rawText = uiState.rawText,
                     onRawText = viewModel::setRawText,
                 )
-                AddLoadInputMode.MANUAL -> AddLoadManualForm(
-                    fields = uiState.manual,
-                    onTripId = viewModel::setManualTripId,
-                    onDate = viewModel::setManualDate,
-                    onRate = viewModel::setManualRate,
-                    onMiles = viewModel::setManualMiles,
-                    onPointChange = viewModel::setManualPoint,
-                    onAddPoint = viewModel::addManualPoint,
-                    onRemovePoint = viewModel::removeManualPoint,
-                )
+                AddLoadInputMode.MANUAL -> {
+                    uiState.completeness?.let { AddLoadReviewCard(completeness = it) }
+                    AddLoadManualForm(
+                        fields = uiState.manual,
+                        onTripId = viewModel::setManualTripId,
+                        onDate = viewModel::setManualDate,
+                        onRate = viewModel::setManualRate,
+                        onMiles = viewModel::setManualMiles,
+                        onPointChange = viewModel::setManualPoint,
+                        onAddPoint = viewModel::addManualPoint,
+                        onRemovePoint = viewModel::removeManualPoint,
+                    )
+                }
                 AddLoadInputMode.DOCUMENT -> {
                     AddLoadDocumentSection(
                         extractedText = uiState.rawText,
@@ -162,6 +178,7 @@ fun AddLoadScreen(
                         onDocumentPicked = viewModel::importDocument,
                     )
                     if (uiState.rawText.isNotBlank() && !uiState.isExtractingDocument) {
+                        uiState.completeness?.let { AddLoadReviewCard(completeness = it) }
                         AddLoadManualForm(
                             fields = uiState.manual,
                             onTripId = viewModel::setManualTripId,

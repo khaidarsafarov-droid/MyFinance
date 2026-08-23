@@ -239,7 +239,11 @@ class TelegramUpdateDispatcher(
                 update.documentFileName,
                 update.documentMimeType,
             )
-            if (isHtml || isJson) {
+            // FIX: only chat exports / an open /import session go to bulk import — a
+            // standalone load.json must reach the single-load ingest path instead.
+            val isChatExport = ImportDocumentHandler.isTelegramExportFileName(update.documentFileName) ||
+                ImportDocumentHandler.isResultJsonFileName(update.documentFileName)
+            if ((isHtml || isJson) && (isChatExport || importSessions.isActive(update.chatId))) {
                 if (!importSessions.isActive(update.chatId)) {
                     importSessions.startSession(update.chatId)
                 }

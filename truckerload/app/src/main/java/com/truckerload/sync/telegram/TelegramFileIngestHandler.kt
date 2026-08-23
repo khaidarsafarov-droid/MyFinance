@@ -14,6 +14,7 @@ import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
 import com.truckerload.domain.ingest.ReceiptPreviewFormatter
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadField
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.utils.LogRedactor
@@ -94,7 +95,26 @@ class TelegramFileIngestHandler(
             saveLoads(chatId, decision.loads, text, messageDateSeconds, loadRepository)
             return
         }
+        decision.incompleteLoad?.let { gaps ->
+            apiClient.sendWithMenu(
+                chatId,
+                context.getString(
+                    R.string.sync_load_missing_fields,
+                    gaps.allMissing.joinToString(", ") { context.getString(loadFieldLabel(it)) },
+                ),
+            )
+            return
+        }
         askConfirmation(chatId, decision.preview, prefs)
+    }
+
+    private fun loadFieldLabel(field: LoadField): Int = when (field) {
+        LoadField.RATE -> R.string.add_load_field_rate
+        LoadField.PICKUP -> R.string.add_load_field_pickup
+        LoadField.DELIVERY -> R.string.add_load_field_delivery
+        LoadField.MILES -> R.string.add_load_field_miles
+        LoadField.DATE -> R.string.add_load_field_date
+        LoadField.TRIP_ID -> R.string.add_load_field_trip_id
     }
 
     suspend fun handleCallback(

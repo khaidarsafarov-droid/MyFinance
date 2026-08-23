@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.add
 
+import com.truckerload.domain.parser.LoadCompleteness
+import com.truckerload.domain.parser.LoadCompletenessChecker
 import com.truckerload.domain.parser.LoadDraftFields
 
 enum class AddLoadInputMode {
@@ -26,10 +28,15 @@ data class ManualLoadFields(
 
     fun filledPoints(): List<String> = allPoints().map { it.trim() }.filter { it.isNotBlank() }
 
-    fun canSave(): Boolean {
-        val rateValue = parsedRate() ?: return false
-        return rateValue > 0.0 && filledPoints().isNotEmpty()
-    }
+    fun canSave(): Boolean = completeness().canSave
+
+    fun completeness(): LoadCompleteness = LoadCompletenessChecker.of(
+        rate = parsedRate(),
+        miles = parsedMiles(),
+        points = allPoints(),
+        tripId = tripId,
+        date = date,
+    )
 
     fun canAddPoint(): Boolean = extraPoints.size + MIN_ROUTE_POINTS < MAX_ROUTE_POINTS
 

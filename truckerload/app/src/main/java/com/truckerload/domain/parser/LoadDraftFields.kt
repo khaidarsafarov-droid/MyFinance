@@ -20,6 +20,8 @@ data class LoadDraftFields(
 
     fun parsedMiles(): Double = miles.replace(",", ".").trim().toDoubleOrNull() ?: 0.0
 
+    fun isEmpty(): Boolean = listOf(tripId, date, rate, miles, pointA, pointB).all { it.isBlank() }
+
     companion object {
         fun formatAmount(value: Double): String {
             if (value <= 0.0) return ""
