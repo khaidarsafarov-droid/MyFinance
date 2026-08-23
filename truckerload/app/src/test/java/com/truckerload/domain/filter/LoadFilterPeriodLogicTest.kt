@@ -158,10 +158,11 @@ class LoadFilterPeriodLogicTest {
     }
 
     @Test
-    fun usesRoomPagingPolicy_weeksYes_monthDayNo() {
+        fun usesRoomPagingPolicy_allAndWeeksYes_monthDayNo() {
         // Document intended HomeViewModel.usesRoomPaging contract in a pure unit test
         // by mirroring the when-expression.
         fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean {
+            if (filter == LoadFilter.ALL) return true
             if (selectedYear != null) return false
             return when (filter) {
                 LoadFilter.THIS_WEEK,
@@ -172,11 +173,13 @@ class LoadFilterPeriodLogicTest {
                 else -> false
             }
         }
+        assertTrue(usesRoomPaging(LoadFilter.ALL, null))
+        assertTrue(usesRoomPaging(LoadFilter.ALL, 2025))
         assertTrue(usesRoomPaging(LoadFilter.THIS_WEEK, null))
         assertTrue(usesRoomPaging(LoadFilter.CALENDAR_WEEK, null))
         assertFalse(usesRoomPaging(LoadFilter.THIS_MONTH, null))
         assertFalse(usesRoomPaging(LoadFilter.CALENDAR_DATE, null))
         assertFalse(usesRoomPaging(LoadFilter.YESTERDAY, null))
-        assertFalse(usesRoomPaging(LoadFilter.ALL, null))
+        assertFalse(usesRoomPaging(LoadFilter.THIS_WEEK, 2025))
     }
 }

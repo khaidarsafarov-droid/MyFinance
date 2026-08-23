@@ -71,6 +71,9 @@ interface LoadDao {
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     fun pagingAllLoads(): androidx.paging.PagingSource<Int, LoadEntity>
 
+    @Query("SELECT * FROM loads WHERE date LIKE :yearPrefix || '-%' ORDER BY parsedAt DESC")
+    fun pagingLoadsByYear(yearPrefix: String): androidx.paging.PagingSource<Int, LoadEntity>
+
     @Query("SELECT * FROM loads WHERE weekNumber = :weekNumber AND year = :year ORDER BY parsedAt DESC")
     fun pagingLoadsByWeek(weekNumber: Int, year: Int): androidx.paging.PagingSource<Int, LoadEntity>
 
@@ -332,6 +335,21 @@ interface LoadDao {
         """
     )
     fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg>
+
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS loadCount,
+            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
+        FROM loads
+        WHERE date LIKE :yearPrefix || '-%'
+        """
+    )
+    fun watchYearLoadStats(yearPrefix: String): Flow<WeeklyLoadStatsAgg>
+
+    @Query("SELECT DISTINCT substr(date, 1, 4) FROM loads WHERE length(date) >= 4 ORDER BY 1 DESC")
+    suspend fun getDistinctLoadYears(): List<String>
 
     @Query(
         """

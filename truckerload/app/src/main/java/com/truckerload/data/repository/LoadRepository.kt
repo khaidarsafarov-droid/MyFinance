@@ -16,6 +16,7 @@ import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.data.sync.MediaSyncEnqueuer
 import com.truckerload.domain.attach.AttachLoadSelection
+import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
@@ -75,6 +76,31 @@ class LoadRepository(
 
     fun watchTotalLoadStats(): Flow<LoadStatsAgg> =
         loadDao.watchTotalLoadStats().flowOn(Dispatchers.IO)
+
+    /** Journal header totals for Home ALL filter (no full hydrate). */
+    fun watchJournalTotals(selectedYear: Int?): Flow<LoadFilterUseCase.Totals> =
+        if (selectedYear == null) {
+            loadDao.watchTotalLoadStats().map { agg ->
+                LoadFilterUseCase.Totals(
+                    loadCount = agg.totalLoads,
+                    totalRate = agg.totalRevenue,
+                    totalMiles = agg.totalMiles,
+                )
+            }
+        } else {
+            loadDao.watchYearLoadStats(selectedYear.toString()).map { agg ->
+                LoadFilterUseCase.Totals(
+                    loadCount = agg.loadCount,
+                    totalRate = agg.totalRevenue,
+                    totalMiles = agg.totalMiles,
+                )
+            }
+        }.flowOn(Dispatchers.IO)
+
+    suspend fun getDistinctLoadYears(): List<Int> =
+        loadDao.getDistinctLoadYears()
+            .mapNotNull { it.toIntOrNull() }
+            .sortedDescending()
 
     fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg> =
         loadDao.watchWeeklyLoadStats(weekNumber, year).flowOn(Dispatchers.IO)
@@ -164,6 +190,7 @@ class LoadRepository(
         exactDate: String? = null,
         searchQuery: String? = null,
         activeDisputesOnly: Boolean = false,
+        journalYear: Int? = null,
     ): Flow<PagingData<Load>> {
         val trimmedSearch = searchQuery?.trim().orEmpty()
         return Pager(
@@ -177,6 +204,7 @@ class LoadRepository(
                     trimmedSearch.isNotEmpty() -> loadDao.pagingSearchLoads(trimmedSearch)
                     activeDisputesOnly -> loadDao.pagingActiveDisputes()
                     weekNumber != null && year != null -> loadDao.pagingLoadsByWeek(weekNumber, year)
+                    journalYear != null -> loadDao.pagingLoadsByYear(journalYear.toString())
                     !exactDate.isNullOrBlank() -> loadDao.pagingLoadsByDate(exactDate)
                     !startDate.isNullOrBlank() && !endDate.isNullOrBlank() ->
                         loadDao.pagingLoadsByDateRange(startDate, endDate)

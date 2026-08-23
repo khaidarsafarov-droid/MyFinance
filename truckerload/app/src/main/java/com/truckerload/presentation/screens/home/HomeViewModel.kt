@@ -21,6 +21,7 @@ import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.LoadDateIndex
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.scan
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
@@ -99,6 +100,7 @@ class HomeViewModel @Inject constructor(
                         loadRepository.watchLoads()
                     }
                 }
+                LoadFilter.ALL -> flowOf(emptyList())
                 else -> loadRepository.watchLoads()
             }
         }
@@ -200,13 +202,32 @@ class HomeViewModel @Inject constructor(
     private val _swipeSettleGeneration = MutableStateFlow(0)
     val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
 
+    /** SQL totals for ALL filter — avoids hydrating the full journal for header stats. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val allFilterTotals: StateFlow<LoadFilterUseCase.Totals?> = filterState
+        .flatMapLatest { state ->
+            if (state.filter != LoadFilter.ALL) {
+                flowOf(null)
+            } else {
+                loadRepository.watchJournalTotals(state.selectedYear)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = homeSharing,
+            initialValue = null,
+        )
+
+    private val _archiveYears = MutableStateFlow<List<Int>>(emptyList())
+
     /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         displayedLoadsFromDb,
         _optimisticOverlay,
         _pendingDeleteIds,
         filterState,
-    ) { loads, overlay, pendingDeletes, filter ->
+        allFilterTotals,
+    ) { loads, overlay, pendingDeletes, filter, sqlTotals ->
         val base = loads
             .filter { it.id !in pendingDeletes }
             .map { overlay[it.id] ?: it }
@@ -223,9 +244,14 @@ class HomeViewModel @Inject constructor(
             selectedYear = filter.selectedYear,
             dateIndex = null,
         )
+        val totals = if (filter.filter == LoadFilter.ALL && sqlTotals != null) {
+            sqlTotals
+        } else {
+            filterUseCase.calculateTotals(filtered)
+        }
         FilteredResult(
-            loads = filtered,
-            totals = filterUseCase.calculateTotals(filtered),
+            loads = if (filter.filter == LoadFilter.ALL) emptyList() else filtered,
+            totals = totals,
         )
     }
         .flowOn(Dispatchers.Default)
@@ -265,24 +291,23 @@ class HomeViewModel @Inject constructor(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val roomPagedLoads: Flow<PagingData<Load>> = filterState
-        .map { Triple(it.filter, it.searchQuery, Triple(it.selectedDate, it.selectedWeekStart, it.selectedWeekEnd)) }
-        .distinctUntilChanged()
-        .flatMapLatest { (filter, searchQuery, dates) ->
-            val (_, weekStart, _) = dates
-            val trimmed = searchQuery.trim()
+        .flatMapLatest { filter ->
+            val trimmed = filter.searchQuery.trim()
             when {
                 trimmed.isNotEmpty() -> loadRepository.pagingLoads(searchQuery = trimmed)
-                filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(activeDisputesOnly = true)
-                filter == LoadFilter.THIS_WEEK -> {
+                filter.filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(activeDisputesOnly = true)
+                filter.filter == LoadFilter.ALL ->
+                    loadRepository.pagingLoads(journalYear = filter.selectedYear)
+                filter.filter == LoadFilter.THIS_WEEK -> {
                     val (w, y) = getCurrentWeekNumberAndYear()
                     loadRepository.pagingLoads(weekNumber = w, year = y)
                 }
-                filter == LoadFilter.LAST_WEEK -> {
+                filter.filter == LoadFilter.LAST_WEEK -> {
                     val (w, y) = getPreviousWeekNumberAndYear()
                     loadRepository.pagingLoads(weekNumber = w, year = y)
                 }
-                filter == LoadFilter.CALENDAR_WEEK && !weekStart.isNullOrBlank() -> {
-                    val (w, y) = getWeekNumberAndYearFromDate(weekStart)
+                filter.filter == LoadFilter.CALENDAR_WEEK && !filter.selectedWeekStart.isNullOrBlank() -> {
+                    val (w, y) = getWeekNumberAndYearFromDate(filter.selectedWeekStart)
                     loadRepository.pagingLoads(weekNumber = w, year = y)
                 }
                 else -> loadRepository.pagingLoads()
@@ -291,10 +316,11 @@ class HomeViewModel @Inject constructor(
         .cachedIn(viewModelScope)
 
     /**
-     * Room paging only for filters that match SQL on reporting week / dispute.
+     * Room paging for week/dispute/archive ALL filters.
      * THIS_MONTH / YESTERDAY / CALENDAR_DATE need active-date-range logic in memory.
      */
     fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean {
+        if (filter == LoadFilter.ALL) return true
         if (selectedYear != null) return false
         return when (filter) {
             LoadFilter.THIS_WEEK,
@@ -306,6 +332,9 @@ class HomeViewModel @Inject constructor(
         }
     }
     init {
+        viewModelScope.launch {
+            runCatching { _archiveYears.value = loadRepository.getDistinctLoadYears() }
+        }
         viewModelScope.launch {
             displayedLoadsFromDb.collect { list ->
                 if (!_initialLoadDone.value) {
@@ -502,11 +531,8 @@ class HomeViewModel @Inject constructor(
         selectDate("%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)))
     }
 
-    /** Список годов с грузами для селектора. */
-    fun availableYears(): List<Int> = _uiState.value.loads
-        .mapNotNull { load -> if (load.date.length >= 4) load.date.substring(0, 4).toIntOrNull() else null }
-        .distinct()
-        .sortedDescending()
+    /** Список годов с грузами для селектора архива (SQL, не filter-scoped). */
+    fun availableYears(): List<Int> = _archiveYears.value
         .ifEmpty { listOf(Calendar.getInstance().get(Calendar.YEAR)) }
 
     /** Заголовок с итогами выбранного периода — показывается над фильтром на главном экране. */
