@@ -1,51 +1,56 @@
-# TruckerLoad — Итоговый отчёт технического аудита
+# TruckerLoad — Итоговый отчёт технического аудита (v2)
 
 **Дата:** 2026-08-23  
-**Ветка:** `cursor/full-audit-stage1-9ae7`  
+**Ветка:** `cursor/full-audit-v2-9ae7`  
+**База:** `main` @ `8f414b9`  
 **Версия app:** 1.5.6 (versionCode 11)  
-**Метод:** Stages 1–7, static analysis; lint/tests не запускались (SDK unavailable in VM).
+**Промпт:** cursor-audit-prompt (2).pdf — Stages 1–8  
+**Метод:** Stages 1–8 static analysis; lint/unit tests **не запускались** в VM (Gradle `org.gradle.java.home` Windows path).
 
-Детальные отчёты: `docs/audit/STAGE1_INVENTORY.md` … `STAGE7_ADDITIONAL.md`.
+Детальные отчёты: `docs/audit/STAGE1_INVENTORY.md` … `STAGE8_UI_MODERNIZATION.md`.
 
 ---
 
 ## 1. Executive summary
 
-TruckerLoad — зрелое local-first Android-приложение (Kotlin/Compose/Room) с опциональным Ktor backend, Telegram ingest, cloud sync и богатым доменом парсеров. **Ядро бизнес-логики (Relay parse, weekly goal, filters) хорошо покрыто unit-тестами.** Release hardening (no backup, R8, secret gates) сильнее среднего.
+TruckerLoad — зрелое **local-first Android** приложение (Kotlin / Jetpack Compose / Room) с опциональным Ktor backend, Telegram ingest, cloud sync и сильным доменом парсеров. **Ядро (Relay parse, weekly goal, filters) хорошо покрыто unit-тестами (~754 `@Test` methods).** Release hardening (no backup, R8, secret gates) выше среднего.
 
-Перед релизом критичны **три системных риска:** (1) cloud sync **не распространяет удаления** и может воскрешать удалённые loads; (2) Google local fallback даёт **403 account_mismatch** на snapshot sync; (3) restore backup **без предупреждения стирает все фото/сканы**. Дополнительно: DuplicateChecker блокирует легитимные same-day loads; presentation layer ~14% test coverage; ~35 мёртвых UI composables и dual widget pipelines.
+**С v1 audit на `main` влиты P0-фиксы:** cloud delete sync (local snapshot push + orphan pull), Google `accountId`/`voiceIdentity`, DuplicateChecker alignment, restore media **warning dialog**.
 
-Lint «зелёный» только с baseline (260 issues suppressed). Документация (AGENTS.md test count, Room version) устарела.
+**Остаются блокеры cloud release:** diesel/paycheck pull без LWW (S-01-R); Home ALL filter full-hydrate (SEC-01); Analytics/VoiceCommandBus races. UI: migration debt (dead Gold/NeoGlass, dual widgets, extended icons), main-thread pressure на Home при software GPU.
 
-**Общая оценка:** функционально богатое приложение, **не готово к multi-device cloud release** без fix P0 sync/auth. Local-only / friends APK — приемлемо с известными UX gaps.
+Lint «зелёный» только с baseline (**261** issues suppressed). Документация (AGENTS.md «38 tests») устарела.
+
+**Общая оценка:** **local-only / friends APK — готов** с известными UX gaps. **Multi-device cloud** — после fix S-01-R + SEC-01 + тестов merge path.
 
 ---
 
 ## 2. Критические проблемы (P0)
 
-| ID | Проблема | Impact |
-|----|----------|--------|
-| **S-01** | `CloudSyncPolicy.mergeById`: deleted load absent locally → remote re-inserted on push | Multi-device data inconsistency; deletes never sync |
-| **S-02** | Client `accountId=google_<hex>` vs backend `user.id=UUID` → 403 | Cloud sync broken for Google local fallback |
-| **S-03** | `BackupService.restoreFromJson` wipes all photos/scans | Irreversible media loss on restore |
-| **D-01** | `DuplicateChecker` route+date → skip without rate check | Legitimate loads not imported |
-| **SEC-01** | Home ALL/month filters full-hydrate entire journal | OOM/jank on large fleets |
+| ID | Проблема | Status on main |
+|----|----------|----------------|
+| ~~S-01~~ | Cloud delete resurrection | ✅ **Fixed** |
+| ~~S-02~~ | Google accountId 403 | ✅ **Fixed** |
+| ~~D-01~~ | DuplicateChecker false skip | ✅ **Fixed** |
+| **S-01-R** | Diesel/paycheck incremental pull — no LWW update | ❌ **Open** |
+| **SEC-01** | Home ALL/month full-hydrate entire journal | ❌ **Open** (partial: calendar lazy, week scoped) |
+| **S-03** | Restore wipes all photos/scans | ⚠️ **Partial** — confirm dialog; behavior still destructive |
 
 ---
 
 ## 3. Дублирование (топ)
 
-| ID | Duplication | Keep as source of truth |
-|----|-------------|---------------------------|
-| DUP-01 | Room restore loops (BackupService + CloudSyncEngine) | Shared `BackupRoomApplier` |
-| DUP-03 | Telegram paycheck/diesel (device vs server) | `TelegramMessageParser` |
-| DUP-04 | Duplicate rules (checker/audit/import) | `LoadDuplicateRules` kernel |
-| DUP-06 | Dual CloudSyncEngine name + entry points | Rename object; Hilt wrapper only |
-| DUP-15 | 4 widget providers (RemoteViews + Glance) | Glance end-state |
-| DUP-10 | 5× private formatUsd/Rpm vs MoneyFormat | `MoneyFormat.kt` |
-| DUP-19 | Duplicate RU string catalogs (~1500 lines) | Single `values/` or `values-ru/` |
+| ID | Duplication | Source of truth |
+|----|-------------|-----------------|
+| DUP-01 | Room restore loops (Backup + Cloud hydrate) | Shared `BackupRoomApplier` |
+| DUP-03 | Telegram paycheck/diesel device vs server | Unified inbound processor |
+| DUP-04 | Duplicate rules (3 classes) | `LoadDuplicateRules` kernel |
+| DUP-06 | Dual CloudSyncEngine | Hilt wrapper = single entry |
+| DUP-15 | RemoteViews + Glance widgets | Glance end-state |
+| DUP-10 | Private formatUsd vs MoneyFormat | `MoneyFormat.kt` |
+| DUP-19 | Duplicate RU catalogs (1,477 keys × 2 files) | Single default RU catalog |
 
-Полный список: 28 групп в `STAGE3_DUPLICATION.md`.
+Полный список: **28 групп** — `STAGE3_DUPLICATION.md`.
 
 ---
 
@@ -53,97 +58,109 @@ Lint «зелёный» только с baseline (260 issues suppressed). Док
 
 | Category | Count | Examples |
 |----------|------:|---------|
-| Dead composables | ~35 | GoldComponents, NeoGlassTypography, TaxTrackerScreen, ForecastCard |
-| Unused public funs | ~142 | Repository/DAO scaffolding |
-| Unreachable nav | 4 | shortcuts community/friends_live, Routes.PROFILE_SETUP |
+| Dead composables | ~35 | GoldComponents, TaxTrackerScreen, ForecastCard |
+| DI sync wrapper unused | 2 | `cloud.CloudSyncEngine`, SyncStatusTracker |
+| Unused public funs | ~142 | Repository scaffolding |
+| Unreachable nav | 4 | shortcuts community/friends_live |
 | Unused Gradle deps | 4 | Retrofit, maps-utils, logging-interceptor |
-| Unused BuildConfig | 7 | Cerebras, TURN, Directions |
-| Lint UnusedResources | 67 baselined | widget drawables/colors |
+| Lint UnusedResources | 67 baselined | widget assets |
 
-Полный список: `STAGE4_DEAD_CODE.md`. **Не удалять без подтверждения** — часть intentional stubs.
+Полный список: `STAGE4_DEAD_CODE.md`.
 
 ---
 
-## 5. Ошибки логики (топ)
+## 5. Ошибки логики (топ открытых)
 
 | ID | Description | Proposed fix |
 |----|-------------|--------------|
-| D-02 | Blank date passes LoadValidator → wrong week | Require date; derive from referenceMillis |
-| D-03 | WeeklyGoal gross vs yield inconsistent | Recompute yield from in-memory loads |
-| V-01 | AnalyticsViewModel stale refresh race | Cancel job + generation guard |
-| V-02 | VoiceCommandBus overwrites commands | Channel queue |
-| V-03 | Archive years from filtered loads only | Dedicated years query |
-| S-09 | deleteLoad no outbox enqueue | enqueue DELETE + fix merge |
-| S-14 | Email Supabase fallback on auth rejection | Fallback only on network/5xx |
-| UX-01 | Sync errors invisible | Wire SyncStatusTracker to UI |
+| S-01-R | Paycheck/diesel stale on pull | LWW upsert in `mergeSnapshotIntoRoom` |
+| D-02 | Blank date → wrong week | LoadValidator + parser repair |
+| D-03 | Goal gross vs yield mismatch | Recompute yield from week loads |
+| V-01 | AnalyticsViewModel refresh race | Cancel job + generation id |
+| V-02 | VoiceCommandBus command loss | Channel queue |
+| V-03 | Archive years from filtered loads | DAO `distinctYears()` |
+| UX-01 | Sync errors invisible | Wire status to UI |
 
-Полный список: 45 findings в `STAGE2_LOGIC_CORRECTNESS.md`.
+Полный список: **46 findings** — `STAGE2_LOGIC_CORRECTNESS.md`.
 
 ---
 
-## 6. Рекомендации по приоритету
+## 6. UI: производительность и модернизация
 
-### P0 — до cloud/multi-device release
+*(Этап 8 — Compose/Android, не web)*
 
-1. **Tombstones or snapshot-level LWW** for cloud delete (S-01 + S-09 + incremental pull)
-2. **Align Google accountId** client ↔ backend (S-02)
-3. **Scoped restore** or explicit media wipe warning (S-03)
-4. **DuplicateChecker** align with DuplicateAudit rules (D-01)
-5. **Tests** for above paths
+| Rank | Issue | Fix | Effect |
+|------|-------|-----|--------|
+| 1 | ALL filter full-hydrate | Room paging + SQL year | Memory/jank ↓↓↓ |
+| 2 | `material-icons-extended` | Core icons only | APK size ↓↓ |
+| 3 | Dead Gradle deps | Remove Retrofit/maps-utils | Build/APK ↓ |
+| 4 | Home 10+ StateFlow collectors | Decompose scopes | Recomposition ↓↓ |
+| 5 | Dual widget pipelines | Glance-only | Maintenance ↓↓ |
+| 6–12 | Dead UI stacks, MoneyFormat, Maps lazy init, sync banner, form scaffold, `@Immutable`, Analytics cancel | See `STAGE8_UI_MODERNIZATION.md` | UX/consistency ↑ |
+
+**Software GPU / emulator:** AOT compile + disable animations (AGENTS.md) for usable manual QA.
+
+---
+
+## 7. Рекомендации по приоритету
+
+### P0 — до multi-device cloud
+
+1. **Diesel/paycheck LWW on pull** (S-01-R) + integration test
+2. **Home ALL paging** (SEC-01)
+3. **Scoped restore** or media manifest (S-03 completion)
 
 ### P1 — следующий sprint
 
-6. AnalyticsViewModel refresh race (V-01)
-7. VoiceCommandBus queue (V-02)
-8. Unified Telegram inbound processor (DUP-03)
-9. Single CloudSyncEngine entry (DUP-06)
-10. Home archive years + paging policy (V-03, SEC-01 partial)
-11. SyncStatusTracker → UI banner (UX-01)
-12. LoadValidator blank date (D-02)
+4. AnalyticsViewModel race (V-01)
+5. VoiceCommandBus queue (V-02)
+6. Unified Telegram processor (DUP-03)
+7. Single CloudSyncEngine entry (DUP-06)
+8. SyncStatusTracker → UI (UX-01)
+9. LoadValidator blank date (D-02)
 
-### P2 — tech debt / polish
+### P2 — UI lightening / tech debt
 
-13. Widget → Glance only (DUP-15)
+10. `material-icons-extended` → core (UI-2)
+11. Remove Retrofit / maps-utils (UI-3)
+12. Glance-only widgets (DUP-15)
+13. Delete Gold/NeoGlass/GlassCard
 14. MoneyFormat consolidation (DUP-10)
 15. Journal form scaffold (DUP-12)
-16. Remove dead Gold/NeoGlass/GlassCard (Stage 4)
-17. One Russian strings catalog (DUP-19)
-18. Remove Retrofit/maps-utils deps
-19. Extend LogRedactor to auth/cloud
-20. Refresh AGENTS.md / PROJECT_OVERVIEW.md
+16. One Russian strings catalog (DUP-19)
 
-### P3 — backlog / product decision
+### P3 — product decision
 
-21. TaxTracker — wire nav or remove
-22. Community/friends shortcuts — implement routes or remove
-23. Cerebras/TURN BuildConfig — implement or remove fields
+17. TaxTracker — wire nav or remove
+18. Community/friends shortcuts — routes or remove
+19. Cerebras/TURN BuildConfig — implement or remove
 
 ---
 
-## 7. Test coverage summary
+## 8. Test coverage summary
 
-- **Strong:** parsers, filters, goal math, Room repos, Telegram redaction tests
-- **Weak:** presentation (14%), DuplicateChecker, cloud delete, AuthRepositoryImpl behavioral, AnalyticsViewModel
-- **~23%** test files are architecture guards (source `contains`), not runtime tests
-
----
-
-## 8. Ограничения аудита
-
-- Lint и unit tests **не выполнялись** в VM (Android SDK path missing)
-- Нет prod traffic / Crashlytics data
-- Community/friends may be removed intentionally — помечено «manual check»
-- Fixes **не применялись** — только документация
+- **Strong:** parsers, filters, goal math, Room, **`DuplicateCheckerTest`**, **`CloudSyncPolicyTest`**
+- **Partial:** backend `AuthenticatedUserAccountIdTest`
+- **Weak:** CloudSyncEngine merge, diesel LWW, AnalyticsViewModel, VoiceCommandBus, presentation (~14% file ratio)
+- **~23%** test files are architecture guards
 
 ---
 
-## 9. Следующие шаги (требуют подтверждения)
+## 9. Ограничения аудита
 
-1. Выбрать scope первого fix sprint (рекомендуем P0 sync bundle)
-2. Подтвердить удаление dead code clusters vs keep stubs
-3. Решить судьбу TaxTracker / community shortcuts
-4. После fixes — re-run `:app:testDebugUnitTest` + `:app:lintDebug` on dev machine
+- Lint / `:app:testDebugUnitTest` **не выполнялись** в cloud VM (Gradle JDK path)
+- Нет prod Crashlytics / traffic data
+- Fixes **не применялись** в audit v2 — только документация (P0 fixes уже на `main` from prior sprint)
 
 ---
 
-*Audit completed per cursor-audit-prompt.pdf Stages 1–7.*
+## 10. Следующие шаги (требуют подтверждения)
+
+1. Подтвердить P0 sprint: **S-01-R + SEC-01 + S-03 scoped restore**
+2. Подтвердить UI sprint: **icons-extended + dead deps + Glance-only**
+3. Подтвердить dead code removal clusters (Stage 4)
+4. Re-run tests + lint on dev machine with Linux JDK override
+
+---
+
+*Audit v2 completed per cursor-audit-prompt (2).pdf Stages 1–8.*
