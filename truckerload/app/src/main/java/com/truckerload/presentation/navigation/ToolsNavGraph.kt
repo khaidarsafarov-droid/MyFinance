@@ -22,7 +22,6 @@ import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
-import com.truckerload.presentation.screens.stats.StatsScreen
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 
@@ -41,25 +40,7 @@ fun NavGraphBuilder.toolsNavGraph(
         AnalyticsScreen(
             onBack = { navController.popBackStack() },
             onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
-            onAdvancedStats = { navController.navigate(Routes.ADVANCED_STATS) },
-            onOpenMap = { navController.navigate(Routes.MAP) },
-        )
-    }
-    composable(
-        route = Routes.ADVANCED_STATS,
-        enterTransition = { tabEnterTransition(reduceMotion) },
-        exitTransition = { tabExitTransition(reduceMotion) },
-        popEnterTransition = { tabEnterTransition(reduceMotion) },
-        popExitTransition = { tabExitTransition(reduceMotion) },
-    ) {
-        StatsScreen(
-            onBack = { navController.popBackStack() },
-            showBack = !tablet,
-            onOpenMap = { navController.navigate(Routes.MAP) },
             onFinancialAdvisor = { navController.navigate(Routes.FINANCIAL_ADVISOR) },
-            onDieselDetail = { navController.navigate(Routes.ADD_DIESEL) },
-            onNetProfitDetail = { navController.navigate(Routes.FINANCIAL_ADVISOR) },
-            onPaycheckDetail = { navController.navigate(Routes.ADD_PAYCHECK) },
         )
     }
     composable(

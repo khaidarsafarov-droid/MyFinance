@@ -27,8 +27,16 @@
 
     <string name="nav_community">Сообщество</string>
 
-    <string name="analytics_title">Аналитика</string>
-    <string name="analytics_subtitle">Доход, маршруты и тренды</string>
+    <string name="analytics_title">Отчёты</string>
+    <string name="analytics_subtitle">Доход, финансы и маршруты</string>
+    <string name="analytics_finance_title">Финансы за период</string>
+    <string name="analytics_finance_empty">Добавьте зарплату или дизель — здесь появится чистая прибыль.</string>
+    <string name="analytics_finance_net_profit">Чистая прибыль (зарплата − дизель)</string>
+    <string name="analytics_finance_paycheck">Зарплата</string>
+    <string name="analytics_finance_diesel">Дизель</string>
+    <string name="analytics_finance_gallons">Галлоны</string>
+    <string name="analytics_finance_avg_price">Средняя цена за галлон</string>
+    <string name="analytics_finance_savings">Сэкономлено на скидке: %1$s</string>
     <string name="analytics_weekly_revenue">Доход по неделям</string>
     <string name="analytics_top_routes">Лучшие маршруты</string>
     <string name="analytics_daily_distribution">Доход по дням недели</string>
@@ -76,12 +84,8 @@
     <string name="home_period_filter_label">Период</string>
     <string name="home_add_load_button">Добавить груз</string>
     <string name="analytics_export_cd">Экспорт CSV</string>
-    <string name="analytics_advanced_stats">Подробная статистика</string>
-    <string name="analytics_advanced_stats_cd">Открыть расширенную статистику</string>
     <string name="social_chat_name_hint">Название чата</string>
     <string name="social_chat_create_error">Не удалось создать чат: %1$s</string>
-    <string name="stats_open_advisor">Открыть финансового советника</string>
-    <string name="stats_action_unavailable">Действие пока недоступно</string>
     <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckerload, SHA-1).</string>
     <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте этот SHA-1 в Google Cloud Console для com.truckerload: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
@@ -383,42 +387,8 @@
     <string name="finance_fuel_analytics_per_100_miles">На 100 миль: $%1$s</string>
     <string name="finance_fuel_analytics_savings">Скидка: $%1$s</string>
 
-    <string name="stats_title">Статистика</string>
     <string name="stats_cd_advisor">Советник</string>
-    <string name="stats_vs_prev_week">пред. нед.</string>
-    <string name="stats_label_avg_rpm">Средний RPM</string>
-    <string name="stats_label_miles">Мили</string>
-    <string name="stats_label_trips">Рейсов</string>
-    <string name="stats_label_net_profit">Чистая прибыль</string>
     <string name="stats_reset_filters">Сброс</string>
-    <string name="stats_filters_reset_done">Фильтры сброшены</string>
-    <string name="stats_subtitle_rpm">RPM: $%1$.2f/mi</string>
-    <string name="stats_header_greeting">Здравствуйте!</string>
-    <string name="stats_header_period_format">Период: %1$s</string>
-    <string name="stats_context_month_year">%1$s %2$d</string>
-    <string name="stats_chart_title">Динамика выручки и расходов</string>
-    <string name="stats_chart_peak_profit">Пик прибыли: %1$s</string>
-    <string name="stats_chart_revenue_value">$%1$s выручка</string>
-    <string name="stats_chart_expense_value">$%1$s расходы</string>
-    <string name="stats_chart_diesel_value">Дизель: $%1$s</string>
-    <string name="stats_section_key_metrics">КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ</string>
-    <string name="stats_section_operational_efficiency">ОПЕРАЦИОННАЯ ЭФФЕКТИВНОСТЬ</string>
-    <string name="stats_section_geo_efficiency">ГЕОГРАФИЧЕСКАЯ ЭФФЕКТИВНОСТЬ</string>
-    <string name="stats_label_gross_income">Валовый доход</string>
-    <string name="stats_label_salary">Зарплата</string>
-    <string name="stats_rpm_goal">Цель: $%1$.2f</string>
-    <string name="stats_rpm_low_warning">! Ваша цена мили на 10%% ниже средней по штату</string>
-    <string name="stats_ai_card_title">Мгновенный анализ от Cerebras AI</string>
-    <string name="stats_ai_default_insight">Cerebras AI анализирует динамику маршрутов и маржинальность по штатам.</string>
-    <string name="stats_ai_action_routes_ky">Посмотреть маршруты в KY</string>
-    <string name="stats_ai_action_prices_az">Анализ цен в AZ</string>
-    <string name="stats_ai_action_profit_fl">Проверить рентабельность FL</string>
-    <string name="stats_ai_anomaly_fuel_growth">Рост расходов на топливо в AZ на %1$.1f%%</string>
-    <string name="stats_ai_anomaly_fuel_growth_fallback">Рост расходов на топливо в AZ на 83.6%</string>
-    <string name="stats_empty_magic_title">Начните рейс, чтобы увидеть магию цифр</string>
-    <string name="stats_empty_magic_forecast">Прогноз на основе прошлых данных: потенциальная выручка следующего периода около $8,400.</string>
-    <string name="stats_trend_vs_prev_week">%1$s %2$s %3$s</string>
-    <string name="stats_map_open">Открыть карту</string>
     <string name="map_title">Географическая эффективность</string>
     <string name="map_expand_fullscreen">Открыть карту на весь экран</string>
     <string name="map_subtitle_all_loads">По всем грузам драйвера (%1$d рейсов)</string>
@@ -540,8 +510,6 @@
     <string name="friends_settings_section">Настройки карты</string>
     <string name="friends_settings_hint_share">путь друзьям</string>
     <string name="friends_settings_hint_battery">экономия батареи</string>
-    <string name="stats_ai_keyword_diesel">дизел</string>
-    <string name="stats_ai_keyword_profit">прибыл</string>
     <string name="calendar_prev_month_cd">Предыдущий месяц</string>
     <string name="calendar_next_month_cd">Следующий месяц</string>
 
@@ -763,7 +731,6 @@
     <string name="settings_backup_title">Резервное копирование</string>
     <string name="settings_data_title">Экспорт и копии</string>
     <string name="export_loads">Экспортировать грузы</string>
-    <string name="export_loads_description">Сохранить все рейсы в текстовый файл</string>
     <string name="export_csv">Экспортировать в CSV</string>
     <string name="settings_sound_title">Звуки</string>
     <string name="settings_sound_desc">Звук при добавлении лоуда и достижении цели</string>
@@ -1158,15 +1125,7 @@
     <string name="telegram_bot_notification_title">Truck Log</string>
     <string name="telegram_bot_notification_text">Синхронизация Telegram</string>
 
-    <string name="export_share_chooser">Поделиться</string>
-    <string name="export_saved_to_folder">Отчёт сохранён в папку %1$s</string>
-    <string name="export_title">Экспорт данных</string>
-    <string name="export_period_label">Период: %1$s</string>
-    <string name="export_year_label">Год: %1$d</string>
     <string name="export_csv_error">Ошибка экспорта CSV</string>
-    <string name="export_pdf_error">Ошибка генерации PDF</string>
-    <string name="export_csv_button">Экспорт в CSV</string>
-    <string name="export_pdf_button">Экспорт в PDF</string>
 
     <string name="load_detail_not_found">Груз не найден</string>
 
@@ -1236,18 +1195,12 @@
     <string name="community_crowd_consent_body">Ваши личные грузы, маршруты и ставки никогда не передаются другим — только обезличенная сводка (RPM и мили за неделю).</string>
     <string name="community_crowd_consent_participate">Участвовать</string>
     <string name="community_crowd_consent_not_now">Не сейчас</string>
-    <string name="community_crowd_rpm_title">RPM сообщества</string>
-    <string name="community_crowd_rpm_disclaimer">Обезличено — маршрут и ставки не видны другим</string>
-    <string name="community_crowd_rpm_avg">Средний RPM за неделю: %1$s</string>
-    <string name="community_crowd_rpm_miles">Мили: %1$s</string>
-    <string name="community_crowd_rpm_empty">Пока нет грузов за эту неделю — сводка появится после первой поездки.</string>
     <string name="home_delete_undo_message">Груз %1$s удалён</string>
     <string name="home_country">Страна</string>
     <string name="phone_country_code">Код страны</string>
     <string name="phone_national_number">Номер телефона</string>
     <string name="common_search">Поиск</string>
     <string name="home_welcome">Привет, %1$s</string>
-    <string name="stats_header_greeting_named">Здравствуйте, %1$s!</string>
     <string name="default_driver_name">Водитель</string>
     <string name="profile_name_placeholder">Без имени</string>
     <string name="profile_photo">Фото профиля</string>
@@ -1490,14 +1443,6 @@
     <string name="leaderboard_col_rpm">RPM</string>
     <string name="trust_rating_short">Доверие %1$s</string>
     <string name="trust_rating_value">Рейтинг доверия %1$s</string>
-    <string name="crowd_rpm_title">Crowd RPM</string>
-    <string name="crowd_rpm_subtitle">Анонимная статистика сообщества — друзья не нужны</string>
-    <string name="crowd_rpm_my_week">Ваш RPM за неделю: %1$s</string>
-    <string name="crowd_rpm_need_loads">Добавьте грузы за неделю, чтобы увидеть свой RPM</string>
-    <string name="crowd_rpm_median">Медиана сообщества: %1$s</string>
-    <string name="crowd_rpm_percentile">Вы выше %1$d%% водителей сообщества</string>
-    <string name="crowd_rpm_percentile_similar">Вы выше %1$d%% водителей на похожих маршрутах</string>
-    <string name="crowd_rpm_waiting">Пока мало данных сообщества — сравнение появится по мере накопления анонимной статистики.</string>
     <string name="challenge_personal_progress">Ваш прогресс за неделю: %1$s mi</string>
     <string name="challenge_ranked_position">Моя позиция: #%1$d (%2$s mi)</string>
 <string name="friends_nickname_schema_missing">На сервере нет колонки nickname. Откройте Supabase → SQL → выполните supabase/migrations/20260731_friend_nicknames.sql (и Notify reload schema).</string>

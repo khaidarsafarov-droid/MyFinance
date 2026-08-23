@@ -27,8 +27,16 @@
 
     <string name="nav_community">Community</string>
 
-    <string name="analytics_title">Analytics</string>
-    <string name="analytics_subtitle">Revenue, routes, and trends</string>
+    <string name="analytics_title">Reports</string>
+    <string name="analytics_subtitle">Revenue, finances, and routes</string>
+    <string name="analytics_finance_title">Finances for the period</string>
+    <string name="analytics_finance_empty">Add a paycheck or diesel entry to see net profit here.</string>
+    <string name="analytics_finance_net_profit">Net profit (paycheck − diesel)</string>
+    <string name="analytics_finance_paycheck">Paycheck</string>
+    <string name="analytics_finance_diesel">Diesel</string>
+    <string name="analytics_finance_gallons">Gallons</string>
+    <string name="analytics_finance_avg_price">Avg price per gallon</string>
+    <string name="analytics_finance_savings">Discount saved: %1$s</string>
     <string name="analytics_weekly_revenue">Weekly Revenue</string>
     <string name="analytics_top_routes">Top Routes</string>
     <string name="analytics_daily_distribution">Revenue by Day of Week</string>
@@ -76,12 +84,8 @@
     <string name="home_period_filter_label">Period</string>
     <string name="home_add_load_button">Add load</string>
     <string name="analytics_export_cd">Export CSV</string>
-    <string name="analytics_advanced_stats">Advanced statistics</string>
-    <string name="analytics_advanced_stats_cd">Open advanced statistics</string>
     <string name="social_chat_name_hint">Chat name</string>
     <string name="social_chat_create_error">Could not create chat: %1$s</string>
-    <string name="stats_open_advisor">Open financial advisor</string>
-    <string name="stats_action_unavailable">Action not available yet</string>
     <string name="login_google_error">Google sign-in error: %1$s. Configure OAuth in Google Cloud Console (package: com.truckerload, SHA-1).</string>
     <string name="login_google_developer_error">wrong SHA-1 / OAuth client (code 10). Add this APK signing SHA-1 in Google Cloud Console for com.truckerload: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services are missing or outdated on this device.</string>
@@ -383,42 +387,8 @@
     <string name="finance_fuel_analytics_per_100_miles">Per 100 miles: $%1$s</string>
     <string name="finance_fuel_analytics_savings">Discount saved: $%1$s</string>
 
-    <string name="stats_title">Statistics</string>
     <string name="stats_cd_advisor">Advisor</string>
-    <string name="stats_vs_prev_week">prev. wk</string>
-    <string name="stats_label_avg_rpm">Average RPM</string>
-    <string name="stats_label_miles">Miles</string>
-    <string name="stats_label_trips">Trips</string>
-    <string name="stats_label_net_profit">Net profit</string>
     <string name="stats_reset_filters">Reset</string>
-    <string name="stats_filters_reset_done">Filters reset</string>
-    <string name="stats_subtitle_rpm">RPM: $%1$.2f/mi</string>
-    <string name="stats_header_greeting">Hello!</string>
-    <string name="stats_header_period_format">Period: %1$s</string>
-    <string name="stats_context_month_year">%1$s %2$d</string>
-    <string name="stats_chart_title">Revenue and expense trends</string>
-    <string name="stats_chart_peak_profit">Peak profit: %1$s</string>
-    <string name="stats_chart_revenue_value">$%1$s revenue</string>
-    <string name="stats_chart_expense_value">$%1$s expenses</string>
-    <string name="stats_chart_diesel_value">Diesel: $%1$s</string>
-    <string name="stats_section_key_metrics">KEY METRICS</string>
-    <string name="stats_section_operational_efficiency">OPERATIONAL EFFICIENCY</string>
-    <string name="stats_section_geo_efficiency">GEOGRAPHIC EFFICIENCY</string>
-    <string name="stats_label_gross_income">Gross income</string>
-    <string name="stats_label_salary">Paycheck</string>
-    <string name="stats_rpm_goal">Target: $%1$.2f</string>
-    <string name="stats_rpm_low_warning">! Your rate per mile is 10%% below the state average</string>
-    <string name="stats_ai_card_title">Instant analysis by Cerebras AI</string>
-    <string name="stats_ai_default_insight">Cerebras AI analyzes route trends and state-level margins.</string>
-    <string name="stats_ai_action_routes_ky">View routes in KY</string>
-    <string name="stats_ai_action_prices_az">Analyze prices in AZ</string>
-    <string name="stats_ai_action_profit_fl">Check profitability in FL</string>
-    <string name="stats_ai_anomaly_fuel_growth">Fuel spending in AZ up %1$.1f%%</string>
-    <string name="stats_ai_anomaly_fuel_growth_fallback">Fuel spending in AZ up 83.6%</string>
-    <string name="stats_empty_magic_title">Start a trip to see the numbers magic</string>
-    <string name="stats_empty_magic_forecast">Forecast based on past data: potential revenue for next period around $8,400.</string>
-    <string name="stats_trend_vs_prev_week">%1$s %2$s %3$s</string>
-    <string name="stats_map_open">Open map</string>
     <string name="map_title">Geographic efficiency</string>
     <string name="map_expand_fullscreen">Open map fullscreen</string>
     <string name="map_subtitle_all_loads">Across all driver loads (%1$d trips)</string>
@@ -540,8 +510,6 @@
     <string name="friends_settings_section">Map settings</string>
     <string name="friends_settings_hint_share">path sharing</string>
     <string name="friends_settings_hint_battery">battery saver</string>
-    <string name="stats_ai_keyword_diesel">diesel</string>
-    <string name="stats_ai_keyword_profit">profit</string>
     <string name="calendar_prev_month_cd">Previous month</string>
     <string name="calendar_next_month_cd">Next month</string>
 
@@ -763,7 +731,6 @@
     <string name="settings_backup_title">Backup</string>
     <string name="settings_data_title">Export and backup</string>
     <string name="export_loads">Export loads</string>
-    <string name="export_loads_description">Save all trips to a text file</string>
     <string name="export_csv">Export to CSV</string>
     <string name="settings_sound_title">Sounds</string>
     <string name="settings_sound_desc">Sound when adding a load and reaching your goal</string>
@@ -1158,15 +1125,7 @@
     <string name="telegram_bot_notification_title">Truck Log</string>
     <string name="telegram_bot_notification_text">Telegram sync</string>
 
-    <string name="export_share_chooser">Share</string>
-    <string name="export_saved_to_folder">Report saved to %1$s folder</string>
-    <string name="export_title">Export data</string>
-    <string name="export_period_label">Period: %1$s</string>
-    <string name="export_year_label">Year: %1$d</string>
     <string name="export_csv_error">CSV export error</string>
-    <string name="export_pdf_error">PDF generation error</string>
-    <string name="export_csv_button">Export to CSV</string>
-    <string name="export_pdf_button">Export to PDF</string>
 
     <string name="load_detail_not_found">Load not found</string>
 
@@ -1236,18 +1195,12 @@
     <string name="community_crowd_consent_body">Your personal loads, routes, and rates are never shown to others — only an anonymized summary (RPM and miles for the week).</string>
     <string name="community_crowd_consent_participate">Join</string>
     <string name="community_crowd_consent_not_now">Not now</string>
-    <string name="community_crowd_rpm_title">Community RPM</string>
-    <string name="community_crowd_rpm_disclaimer">Anonymized — route and rates are hidden from others</string>
-    <string name="community_crowd_rpm_avg">Weekly average RPM: %1$s</string>
-    <string name="community_crowd_rpm_miles">Miles: %1$s</string>
-    <string name="community_crowd_rpm_empty">No loads this week yet — the summary shows up after your first trip.</string>
     <string name="home_delete_undo_message">Load %1$s deleted</string>
     <string name="home_country">Country</string>
     <string name="phone_country_code">Country code</string>
     <string name="phone_national_number">Phone number</string>
     <string name="common_search">Search</string>
     <string name="home_welcome">Hi, %1$s</string>
-    <string name="stats_header_greeting_named">Hello, %1$s!</string>
     <string name="default_driver_name">Driver</string>
     <string name="profile_name_placeholder">No name yet</string>
     <string name="profile_photo">Profile photo</string>
@@ -1488,14 +1441,6 @@
     <string name="leaderboard_col_rpm">RPM</string>
     <string name="trust_rating_short">Trust %1$s</string>
     <string name="trust_rating_value">Trust rating %1$s</string>
-    <string name="crowd_rpm_title">Crowd RPM</string>
-    <string name="crowd_rpm_subtitle">Anonymous community stats — no friends required</string>
-    <string name="crowd_rpm_my_week">Your weekly RPM: %1$s</string>
-    <string name="crowd_rpm_need_loads">Add loads this week to see your RPM</string>
-    <string name="crowd_rpm_median">Community median: %1$s</string>
-    <string name="crowd_rpm_percentile">You are above %1$d%% of community drivers</string>
-    <string name="crowd_rpm_percentile_similar">You are above %1$d%% of drivers on similar lanes</string>
-    <string name="crowd_rpm_waiting">Not enough community data yet. Comparison appears as anonymous stats accumulate.</string>
     <string name="challenge_personal_progress">Your progress this week: %1$s mi</string>
     <string name="challenge_ranked_position">My position: #%1$d (%2$s mi)</string>
 <string name="friends_nickname_schema_missing">Server is missing the profiles.nickname column. In Supabase SQL Editor run supabase/migrations/20260731_friend_nicknames.sql (includes schema reload).</string>

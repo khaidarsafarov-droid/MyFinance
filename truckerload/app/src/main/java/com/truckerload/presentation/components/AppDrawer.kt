@@ -55,7 +55,6 @@ import com.truckerload.sync.SessionTeardown
 import kotlinx.coroutines.launch
 
 enum class DrawerDestination {
-    PROFILE,
     SETTINGS,
     REPORTS,
     MAP,
@@ -101,11 +100,6 @@ fun AppDrawerContent(
             HorizontalDivider(color = BentoGlassTheme.CardBorderMuted)
             Spacer(Modifier.height(8.dp))
 
-            drawerItem(
-                icon = Icons.Outlined.Person,
-                label = stringResource(R.string.nav_profile),
-                onClick = { onNavigate(DrawerDestination.PROFILE); onClose() },
-            )
             drawerItem(
                 icon = Icons.Outlined.Settings,
                 label = stringResource(R.string.nav_settings),

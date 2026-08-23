@@ -4,7 +4,6 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
-import com.truckerload.data.preferences.StatsSelectionStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
@@ -67,10 +66,6 @@ object UserAccountModule {
     @Provides
     fun provideSelectedStateStore(manager: UserComponentManager): SelectedStateStore =
         manager.require().selectedStateStore
-
-    @Provides
-    fun provideStatsSelectionStore(manager: UserComponentManager): StatsSelectionStore =
-        manager.require().statsSelectionStore
 
     @Provides
     fun provideWeeklyProfitGoalStore(manager: UserComponentManager): WeeklyProfitGoalStore =

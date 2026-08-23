@@ -26,6 +26,14 @@ object AnalyticsExporter {
             appendLine("Best week,W${it.weekNumber} ${it.year},${it.gross}")
         }
         appendLine()
+        appendLine("Finances")
+        val f = dashboard.finance
+        appendLine("Paycheck,${f.paycheckTotal}")
+        appendLine("Diesel,${f.dieselTotal}")
+        appendLine("Net profit,${f.netProfit}")
+        appendLine("Diesel gallons,${f.dieselGallons}")
+        appendLine("Diesel discount saved,${f.dieselSavings}")
+        appendLine()
         appendLine("Weekly revenue")
         appendLine("Week,Year,Gross,Miles,Loads")
         dashboard.weeks.forEach { w ->

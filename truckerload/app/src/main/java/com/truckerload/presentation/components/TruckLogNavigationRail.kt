@@ -150,9 +150,7 @@ fun TruckLogNavigationRail(
                         currentRoute == Routes.SETTINGS ||
                             currentRoute == Routes.FINANCIAL_ADVISOR
                     dest.drawer == DrawerDestination.REPORTS ->
-                        currentRoute == Routes.ANALYTICS ||
-                            currentRoute == Routes.ADVANCED_STATS ||
-                            currentRoute == Routes.MAP
+                        currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
                     dest.drawer == DrawerDestination.DOCUMENTS ->
                         currentRoute == Routes.SCAN_GALLERY || currentRoute == Routes.SCANNER
                     else -> false
@@ -306,9 +304,7 @@ internal fun isRailDestinationSelected(currentRoute: String?, targetRoute: Strin
         Routes.STATS -> currentRoute == Routes.STATS
         Routes.PROFILE -> currentRoute == Routes.PROFILE ||
             currentRoute == Routes.PROFILE_EDIT
-        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS ||
-            currentRoute == Routes.ADVANCED_STATS ||
-            currentRoute == Routes.MAP
+        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
         Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
             currentRoute == Routes.FINANCIAL_ADVISOR
         Routes.CAMERA -> currentRoute == Routes.CAMERA
