@@ -47,6 +47,30 @@ class WeekUtilsDateParsingTest {
     }
 
     @Test
+    fun formatDateForDisplay_usesLocalCalendarDay() {
+        val millis = java.util.Calendar.getInstance().apply {
+            set(2026, java.util.Calendar.AUGUST, 23, 15, 30, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        assertEquals("23.08.2026", formatDateForDisplay(millis))
+        assertEquals("2026-08-23", formatIsoDate(millis))
+    }
+
+    @Test
+    fun applyUtcDatePickerDay_keepsLocalTimeAndPickedDay() {
+        val keepTime = java.util.Calendar.getInstance().apply {
+            set(2026, java.util.Calendar.AUGUST, 23, 15, 30, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val utcMs = dateStringToUtcDatePickerMillis("2026-08-20")!!
+        val applied = applyUtcDatePickerDay(utcMs, keepTime)
+        assertEquals("20.08.2026", formatDateForDisplay(applied))
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = applied }
+        assertEquals(15, cal.get(java.util.Calendar.HOUR_OF_DAY))
+        assertEquals(30, cal.get(java.util.Calendar.MINUTE))
+    }
+
+    @Test
     fun parseScheduledTimeToMillis_relayYearAlignsWithResolveRelayYear() {
         val ref = java.util.Calendar.getInstance().apply {
             set(2026, java.util.Calendar.MARCH, 15, 12, 0, 0)

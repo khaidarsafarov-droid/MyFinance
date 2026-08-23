@@ -51,7 +51,10 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.utils.dateStringToUtcDatePickerMillis
+import com.truckerload.utils.formatDateForDisplay
 import com.truckerload.utils.formatDateTimeForDisplay
+import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekRange
 import java.util.Calendar
 import java.util.Locale
@@ -69,6 +72,7 @@ fun AddDieselScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var datePickerThenTime by remember { mutableStateOf(false) }
     val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
 
     LaunchedEffect(uiState.saved) {
@@ -81,7 +85,9 @@ fun AddDieselScreen(
     if (showDatePicker) {
         val cal = Calendar.getInstance().apply { timeInMillis = uiState.recordedAtMillis }
         val dateState = rememberDatePickerState(
-            initialSelectedDateMillis = uiState.recordedAtMillis,
+            initialSelectedDateMillis = dateStringToUtcDatePickerMillis(
+                formatIsoDate(uiState.recordedAtMillis),
+            ),
             yearRange = IntRange(cal.get(Calendar.YEAR) - 2, cal.get(Calendar.YEAR) + 1),
         )
         DatePickerDialog(
@@ -93,7 +99,7 @@ fun AddDieselScreen(
                 TextButton(onClick = {
                     dateState.selectedDateMillis?.let(viewModel::setRecordedDate)
                     showDatePicker = false
-                    showTimePicker = true
+                    if (datePickerThenTime) showTimePicker = true
                 }) { Text(stringResource(R.string.common_ok)) }
             },
         ) { DatePicker(state = dateState) }
@@ -133,11 +139,17 @@ fun AddDieselScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp)
-                            .clickable { showDatePicker = true },
+                            .clickable {
+                                datePickerThenTime = true
+                                showDatePicker = true
+                            },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(formatDateTimeForDisplay(uiState.recordedAtMillis), style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = { showDatePicker = true }) {
+                        IconButton(onClick = {
+                            datePickerThenTime = true
+                            showDatePicker = true
+                        }) {
                             Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit))
                         }
                     }
@@ -238,6 +250,37 @@ fun AddDieselScreen(
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    Text(
+                        stringResource(R.string.add_diesel_date),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = tc.TextPrimary,
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                datePickerThenTime = false
+                                showDatePicker = true
+                            },
+                    ) {
+                        Text(
+                            formatDateForDisplay(uiState.recordedAtMillis),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = tc.TextPrimary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(onClick = {
+                            datePickerThenTime = false
+                            showDatePicker = true
+                        }) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.add_diesel_change_date),
+                                tint = tc.TextPrimary,
+                            )
+                        }
+                    }
                     Text(stringResource(R.string.add_select_week), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
