@@ -34,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,8 +59,6 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.adaptiveLoadColumns
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,8 +88,7 @@ internal fun HomeScreenContent(
     val tc = LocalTruckColors.current
     val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
     var showYearSelector by remember { mutableStateOf(false) }
-    var refreshing by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     val tabletChrome = com.truckerload.presentation.utils.useNavigationRail()
@@ -103,16 +99,9 @@ internal fun HomeScreenContent(
     }
 
     fun onRefresh() {
-        refreshing = true
-        android.widget.Toast.makeText(
-            context,
-            context.getString(R.string.home_sync_triggered),
-            android.widget.Toast.LENGTH_SHORT,
-        ).show()
-        scope.launch {
-            delay(800)
-            refreshing = false
-        }
+        // Do not call pagedLoads.refresh() — a paging refresh can drop itemCount to 0
+        // and flash the empty journal. Room flows already update when data changes.
+        viewModel.refreshHome()
     }
 
     fun openArchive() {
@@ -154,6 +143,12 @@ internal fun HomeScreenContent(
         val totals = periodTotals ?: periodSummary?.totals
             ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, 0.0, 0.0)
         BentoGlassScreenBackground {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { onRefresh() },
+                modifier = Modifier.fillMaxSize(),
+                state = rememberPullToRefreshState(),
+            ) {
             TabletHomeDashboard(
                 paddingValues = paddingValues,
                 uiState = uiState,
@@ -168,6 +163,7 @@ internal fun HomeScreenContent(
                 onOpenCalendar = onOpenCalendar,
                 onOpenArchive = { openArchive() },
             )
+            }
         }
         return
     }
@@ -181,7 +177,7 @@ internal fun HomeScreenContent(
     BentoGlassScreenBackground {
         Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
-            isRefreshing = refreshing,
+            isRefreshing = isRefreshing,
             onRefresh = { onRefresh() },
             modifier = Modifier.fillMaxSize(),
             state = pullRefreshState,
@@ -269,11 +265,10 @@ internal fun HomeScreenContent(
                 }
             }
 
-            val pagingEmpty = useRoomPaging &&
-                pagedLoads.itemCount == 0 &&
-                pagedLoads.loadState.refresh !is LoadState.Loading
-            val listEmpty = !useRoomPaging && listItems.isEmpty()
-            if (pagingEmpty || listEmpty) {
+            val visibleItemCount = if (useRoomPaging) pagedLoads.itemCount else listItems.size
+            val pagingRefreshLoading = useRoomPaging &&
+                pagedLoads.loadState.refresh is LoadState.Loading
+            if (HomeRefreshPolicy.shouldShowEmptyJournal(visibleItemCount, pagingRefreshLoading)) {
                 item(key = "empty_${uiState.filter}") {
                     HomeEmptyJournal(
                         title = when (uiState.filter) {

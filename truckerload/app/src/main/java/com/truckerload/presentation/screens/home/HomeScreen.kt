@@ -86,6 +86,7 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
     val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val undoDeleteId by viewModel.undoDeleteLoadId.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showQuickActions by remember { mutableStateOf(false) }
@@ -290,7 +291,7 @@ fun HomeScreen(
                         onOpenPrivacy = onOpenPrivacy,
                     )
                 }
-                if (isInitialLoading) {
+                if (HomeRefreshPolicy.shouldShowInitialOverlay(isInitialLoading, isRefreshing)) {
                     HomeInitialLoadingOverlay()
                 }
             }
