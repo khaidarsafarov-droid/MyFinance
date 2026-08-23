@@ -91,7 +91,6 @@ enum class RegistrationStep {
     CREDENTIALS,
     VERIFICATION,
     BASIC_PROFILE,
-    PROFESSIONAL,
     DONE,
 }
 
@@ -99,23 +98,13 @@ data class RegistrationProgress(
     val credentialsComplete: Boolean = false,
     val verificationComplete: Boolean = false,
     val basicComplete: Boolean = false,
-    val professionalComplete: Boolean = false,
-    val professionalSkipped: Boolean = false,
 ) {
-    val professionalPending: Boolean
-        get() = basicComplete && !professionalComplete
-
     val nextRequired: RegistrationStep = when {
         !credentialsComplete -> RegistrationStep.CREDENTIALS
         !verificationComplete -> RegistrationStep.VERIFICATION
         !basicComplete -> RegistrationStep.BASIC_PROFILE
         else -> RegistrationStep.DONE
     }
-
-    fun withProfessionalDone(skipped: Boolean): RegistrationProgress = copy(
-        professionalComplete = !skipped,
-        professionalSkipped = skipped,
-    )
 }
 
 data class AccountConsents(

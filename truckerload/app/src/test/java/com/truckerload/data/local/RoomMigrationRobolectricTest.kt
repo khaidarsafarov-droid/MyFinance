@@ -126,6 +126,7 @@ class RoomMigrationRobolectricTest {
             assertTrue(!db.hasTable("community_profiles"))
             assertTrue(!db.hasTable("voice_rooms"))
             assertTrue(!db.hasTable("social_chats"))
+            assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
         }
     }
 
