@@ -1,21 +1,25 @@
-# Этап 3 — Поиск дублирования
+# Этап 3 — Поиск дублирования (Audit v2)
 
 **Дата:** 2026-08-23  
-**Ветка:** `cursor/full-audit-stage1-9ae7`  
-**Основа:** Этапы 1–2  
+**Ветка:** `cursor/full-audit-v2-9ae7`  
+**База:** `main` @ `8f414b9` + Этапы 1–2 v2  
 **Метод:** grep, diff, static analysis. **Код не менялся.**
 
 ---
 
 ## Резюме
 
-Найдено **28 групп дублирования** (8 high-impact, 12 medium, 8 low/dead code). Главные источники расхождения логики со временем:
+Найдено **28 групп дублирования** (8 high-impact, 12 medium, 8 low/dead code) — **без изменений состава** относительно audit v1; перепроверены call sites на текущем `main`.
 
-1. **Room full-replace restore** — два независимых delete+insert цикла.
-2. **Telegram paycheck/diesel** — device parser vs server inbox processor.
-3. **Duplicate rules** — три независимых реализации (checker / audit / import dedup).
-4. **UI migration debt** — BentoGlass vs мёртвые Gold/GlassCard/NeoGlass + dual widget pipelines.
-5. **Formatting helpers** — `MoneyFormat` vs 5 копий `formatUsd/formatRpm`.
+Главные источники расхождения логики со временем:
+
+1. **Room full-replace restore** — два независимых delete+insert цикла (`BackupService` vs `CloudSyncEngine.applyFullHydration`).
+2. **Telegram paycheck/diesel** — device parser vs server inbox processor (diesel hash mismatch).
+3. **Duplicate rules** — три класса (`DuplicateChecker`, `DuplicateAuditUseCase`, `ImportTripDedup`); **логика checker↔audit выровнена на main**, но **общего kernel нет**.
+4. **UI migration debt** — BentoGlass активен (~35 экранов); Gold/GlassCard/NeoGlass **0 внешних call sites** + dual widget pipelines.
+5. **Formatting helpers** — `MoneyFormat` vs 5 private `formatUsd` в analytics/charts/widgets.
+
+**Связь с Этапом 8:** DUP-11/12/14/15 — основной вход в UI lightening (удаление dead stacks, Glance-only, MoneyFormat unify).
 
 Для каждой группы указан рекомендуемый **source of truth** и план объединения.
 
@@ -76,9 +80,10 @@
 | | |
 |---|---|
 | **Файлы** | `DuplicateChecker`, `DuplicateAuditUseCase`, `ImportTripDedup` |
-| **Similarity** | **Conceptual** — tripId overlap; route/stops только в checker+audit |
+| **Similarity** | **Conceptual** — tripId overlap; route/stops в checker+audit |
+| **Дельта v2** | `DuplicateChecker.isLikelySameLoad()` теперь использует `compareLoads` как audit (Stage 2 D-01 **закрыт**). **Структурное дублирование 3 классов остаётся** — drift риск на уровне orchestration (import still tripId-only). |
 | **Source of truth** | Shared kernel `LoadDuplicateRules` (tripId, route fingerprint, stops hash, keeper pick) |
-| **План** | Три orchestrator'а остаются (live ingest / batch janitor / pre-import list), но правила — одни. Import через `LoadProcessor`/`DuplicateChecker`, не только tripId dedup. |
+| **План** | Три orchestrator'а остаются (live ingest / batch janitor / pre-import list), но правила — одни. `ImportTripDedup` → delegate `LoadDuplicateRules`. |
 | **Confidence** | **High** |
 
 ---
@@ -266,8 +271,8 @@
 
 | | |
 |---|---|
-| **Файлы** | `res/values/strings.xml` (1525 lines), `res/values-ru/strings.xml` (1525 lines), `values-en` (1523) |
-| **Similarity** | **Near-identical** — ~1475 same string names; diff only ~12 lines |
+| **Файлы** | `res/values/strings.xml` (**1528** lines), `res/values-ru/strings.xml` (**1528**), `values-en` (**1526**) |
+| **Similarity** | **Near-identical** — same string names; diff ~12 lines (restore confirm strings aligned) |
 | **Source of truth** | One Russian catalog: either `values/` (default) **or** `values-ru/`, not both |
 | **Plan** | Delete duplicate; keep `values-en/` for English. |
 | **Confidence** | **High** |
@@ -323,7 +328,7 @@ Ktor routes in `Application.kt` are unique per path. Snapshot/media/telegram/dev
 |---|-----|--------|------------------|
 | **P0** | DUP-01 | Shared `BackupRoomApplier` | Restore/cloud diverge; media wipe inconsistency |
 | **P0** | DUP-03 | Unified Telegram inbound processor | Diesel dedup hash mismatch; divergent insert rules |
-| **P1** | DUP-04 | `LoadDuplicateRules` kernel | Import vs live vs audit rules drift (Stage 2 D-01) |
+| **P1** | DUP-04 | `LoadDuplicateRules` kernel | Import vs live vs audit **orchestration** drift (logic aligned; kernel still absent) |
 | **P1** | DUP-06 | Single CloudSyncEngine entry | Status tracker dead; grep confusion |
 | **P1** | DUP-15 | Widget → Glance only | 2× maintenance, 4 providers |
 | **P2** | DUP-02 | `BackupSnapshotFactory` | Snapshot schema drift |
@@ -348,6 +353,6 @@ Ktor routes in `Application.kt` are unique per path. Snapshot/media/telegram/dev
 
 ## Статус этапа
 
-**Этап 3 завершён.** Удалений/рефакторинга не выполнялось — только inventory + consolidation plan.
+**Этап 3 (Audit v2) завершён.** Удалений/рефакторинга не выполнялось — refresh inventory + consolidation plan на post-P0 `main`.
 
 **Следующий шаг (после подтверждения):** Этап 4 — мёртвый код и неиспользуемые данные.
