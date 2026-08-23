@@ -20,7 +20,6 @@ data class EnhancedDriverProfile(
     val rating: Double,
     val ratingCount: Int,
     val reputation: Int,
-    val badges: List<Badge>,
     val followers: Int,
     val following: Int,
     val status: DriverStatus,
@@ -52,22 +51,6 @@ enum class TruckType(val label: String, val emoji: String) {
             else entries.firstOrNull { it.name.equals(value, ignoreCase = true) || it.label.equals(value, ignoreCase = true) }
                 ?: OTHER
     }
-}
-
-enum class BadgeType(val icon: String, val title: String, val description: String) {
-    LOAD_MASTER("🏆", "Load Master", "1000+ loads"),
-    MILE_KING("👑", "Mile King", "100,000+ miles"),
-    RPM_CHAMPION("⭐", "RPM Champion", "$2.50+/mile"),
-    FLATBED_SPECIALIST("📦", "Flatbed", "500+ flatbed loads"),
-    REEFER_SPECIALIST("❄️", "Reefer", "500+ reefer loads"),
-    HAZMAT_SPECIALIST("☣️", "Hazmat", "Hazmat certified"),
-    HELPER("🤝", "Helper", "Helped 50+ drivers"),
-    MENTOR("🎓", "Mentor", "Mentored 10+ drivers"),
-    COMMUNITY_LEADER("🌟", "Community Leader", "Created 5+ groups"),
-    PUNCTUAL("⏱️", "Punctual", "95%+ on time"),
-    RELIABLE("🔒", "Reliable", "Never canceled a load"),
-    LEGEND("🏅", "Legend", "10 years on the road"),
-    FIRST_LOAD("🎯", "First Load", "First load logged"),
 }
 
 enum class EnhancedChatType {
@@ -128,7 +111,6 @@ enum class NotificationType {
     NEW_FOLLOWER,
     CHALLENGE_START,
     CHALLENGE_UPDATE,
-    BADGE_UNLOCKED,
     GROUP_INVITE,
 }
 

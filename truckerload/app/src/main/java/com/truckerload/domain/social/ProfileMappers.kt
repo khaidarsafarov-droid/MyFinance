@@ -14,6 +14,5 @@ fun EnhancedDriverProfile.toLegacyProfile(): DriverProfile = DriverProfile(
     totalRevenue = totalRevenue,
     status = status,
     about = about,
-    badges = badges,
     joinedDate = joinedDate,
 )

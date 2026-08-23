@@ -14,7 +14,6 @@ data class DriverProfile(
     val totalRevenue: Double,
     val status: DriverStatus,
     val about: String,
-    val badges: List<Badge>,
     val joinedDate: Long,
 )
 
@@ -24,14 +23,6 @@ enum class DriverStatus(val label: String) {
     RESTING("😴 Resting"),
     OFFLINE("⚫ Offline"),
 }
-
-data class Badge(
-    val id: String,
-    val name: String,
-    val icon: String,
-    val description: String,
-    val unlockedAt: Long,
-)
 
 enum class ChatType { PRIVATE, GROUP, CHANNEL }
 
