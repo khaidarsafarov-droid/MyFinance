@@ -134,11 +134,6 @@ fun PrivacySettingsSection(
             color = tc.TextSecondary,
             style = MaterialTheme.typography.bodySmall,
         )
-        Text(
-            text = stringResource(R.string.settings_privacy_crowd_rpm),
-            color = tc.TextSecondary,
-            style = MaterialTheme.typography.bodySmall,
-        )
 
         OutlinedButton(
             onClick = {

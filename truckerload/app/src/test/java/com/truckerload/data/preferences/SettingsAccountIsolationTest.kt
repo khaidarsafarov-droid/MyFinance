@@ -37,11 +37,10 @@ class SettingsAccountIsolationTest {
         loginAs("user-a", "a@example.com")
         settings.saveParserAutoUpdate(false)
         settings.saveQuietHoursEnabled(true)
-        settings.saveCrowdStatsOptIn(true)
+        settings.saveNotifyMaintenance(false)
         assertFalse(settings.getParserAutoUpdateOnce())
         assertTrue(settings.getQuietHoursEnabledOnce())
-        assertTrue(settings.getCrowdStatsOptInOnce())
-        assertTrue(settings.isCrowdStatsPromptSeenOnce())
+        assertFalse(settings.getNotifyMaintenanceOnce())
 
         authStore.logout()
         loginAs("user-b", "b@example.com")
@@ -53,16 +52,16 @@ class SettingsAccountIsolationTest {
             "User B must not inherit User A quiet hours",
             settings.getQuietHoursEnabledOnce(),
         )
-        assertFalse(
-            "User B must not inherit User A crowd RPM opt-in",
-            settings.getCrowdStatsOptInOnce(),
+        assertTrue(
+            "User B must not inherit User A maintenance-notify off",
+            settings.getNotifyMaintenanceOnce(),
         )
 
         authStore.logout()
         loginAs("user-a", "a@example.com")
         assertFalse(settings.getParserAutoUpdateOnce())
         assertTrue(settings.getQuietHoursEnabledOnce())
-        assertTrue(settings.getCrowdStatsOptInOnce())
+        assertFalse(settings.getNotifyMaintenanceOnce())
     }
 
     private fun loginAs(userId: String, email: String) {

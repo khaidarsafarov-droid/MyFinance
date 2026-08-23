@@ -1,19 +1,16 @@
 package com.truckerload.domain.crowd
 
 /**
- * Gate for any future Crowd RPM network publish.
+ * Hard deny for Crowd RPM network publish.
  *
- * There is **no** HTTP Crowd RPM endpoint today. When one exists, callers must
- * pass only [AnonymizedRpmSample] lists and must check opt-in first.
- * Do not log [samples].
+ * The app is local-first: geographic efficiency uses only the driver's own
+ * loads on-device. There is no HTTP Crowd RPM endpoint and opt-in is gone.
  */
 object CrowdRpmShareGate {
 
+    @Suppress("UNUSED_PARAMETER")
     fun payloadOrNull(
         optIn: Boolean,
         samples: List<AnonymizedRpmSample>,
-    ): List<AnonymizedRpmSample>? {
-        if (!optIn) return null
-        return samples
-    }
+    ): List<AnonymizedRpmSample>? = null
 }
