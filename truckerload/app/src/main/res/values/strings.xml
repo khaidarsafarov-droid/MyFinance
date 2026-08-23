@@ -185,8 +185,8 @@
     <string name="nav_logbook">Грузы</string>
     <string name="drawer_reports">Отчёты</string>
     <string name="drawer_map">Карта</string>
-    <string name="drawer_friends_live">Друзья на карте</string>
-    <string name="drawer_documents">Документы</string>
+    
+<string name="drawer_documents">Документы</string>
     <string name="drawer_tools">Инструменты</string>
     <string name="drawer_about">О приложении</string>
     <string name="drawer_logout">Выход</string>
@@ -420,99 +420,99 @@
     <string name="map_crowd_top_lanes_year">Топ-направления · год</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/миля · %4$d рейс(ов)</string>
 
-    <string name="friends_live_map_title">Друзья на карте</string>
-    <string name="friends_live_map_subtitle">Где вы сейчас</string>
-    <string name="friends_share_path_toggle">Показывать мой путь друзьям</string>
-    <string name="friends_share_path_hint">Выкл = GPS и история пути не отправляются в Supabase</string>
-    <string name="friends_route_truck_toggle">Маршрут для грузовика</string>
-    <string name="friends_route_mode_title">Что показать на карте</string>
-    <string name="friends_route_mode_traveled">Пройденный путь</string>
-    <string name="friends_route_mode_remaining">Оставшийся путь</string>
-    <string name="friends_battery_saver_toggle">Экономия батареи (GPS реже)</string>
-    <string name="friends_route_road_truck">Маршрут по дорогам · профиль Truck</string>
-    <string name="friends_route_road_car">Маршрут по дорогам · легковой</string>
-    <string name="friends_route_straight_fallback">Оффлайн/ошибка API: прямая линия. Нужен Directions API или сеть для OSRM.</string>
-    <string name="friends_live_need_supabase">Нужен вход через Supabase (LOCAL_ONLY_MODE=false + URL/ключ). Примените SQL миграцию friends live.</string>
-    <string name="friends_share_location_channel">Шаринг локации</string>
-    <string name="friends_share_location_title">Truck Log делится путём</string>
-    <string name="friends_share_location_text">Друзья видят вашу позицию, пока переключатель включён</string>
-    <string name="friends_share_location_live_text">Живой режим · до 15 минут, затем обновление раз в 15–60 мин</string>
-    <string name="friends_overlap_button">С кем пересекается мой путь</string>
-    <string name="friends_overlap_title">Совпадения маршрутов</string>
-    <string name="friends_overlap_empty">Пока нет друзей с пересекающимся активным грузом</string>
-    <string name="friends_list_title">Друзья онлайн</string>
-    <string name="friends_list_empty">Нет друзей с включённым шарингом</string>
-    <string name="friends_show_path">Показать его путь</string>
-    <string name="friends_hide_path">Скрыть путь</string>
-    <string name="friends_focus">Фокус</string>
-    <string name="friends_my_nickname_title">Мой никнейм</string>
-    <string name="friends_my_nickname_hint">Уникальный ник: по нему вас найдут. Телефон и почта другим не видны.</string>
-    <string name="friends_nickname_label">Никнейм</string>
-    <string name="friends_nickname_placeholder">например DriverPro</string>
-    <string name="friends_add_nickname_button">Добавить никнейм</string>
-    <string name="friends_change_nickname_button">Изменить никнейм</string>
-    <string name="friends_nickname_save">Сохранить</string>
-    <string name="friends_nickname_invalid">Ник: 3–24 символа, буква в начале, только латиница, цифры и _</string>
-    <string name="friends_nickname_saved">Никнейм сохранён</string>
-    <string name="friends_my_nickname_current">Ваш ник: @%1$s</string>
-    <string name="friends_add_by_nickname_title">Добавить друга по нику</string>
-    <string name="friends_search_nickname_label">Никнейм друга</string>
-    <string name="friends_found">Найден: @%1$s</string>
-    <string name="friends_add_button">Добавить друга</string>
-    <string name="friends_request_send_button">Отправить заявку</string>
-    <string name="friends_requests_incoming_title">Входящие заявки</string>
-    <string name="friends_requests_outgoing_title">Отправленные заявки</string>
-    <string name="friends_request_handle">@%1$s</string>
-    <string name="friends_request_accept">Принять</string>
-    <string name="friends_request_decline">Отклонить</string>
-    <string name="friends_request_cancel">Отменить заявку</string>
-    <string name="friends_request_sent">Заявка отправлена. Чат откроется после принятия.</string>
-    <string name="friends_request_already_sent">Заявка уже отправлена</string>
-    <string name="friends_request_already_friends">Вы уже друзья</string>
-    <string name="friends_request_accepted">Заявка принята</string>
-    <string name="friends_nickname_taken">Этот ник уже занят. Выберите другой.</string>
-    <string name="friends_not_in_app">Ваш друг ещё не использует Truck Log. Поделитесь приложением, чтобы видеть местоположение друг друга.</string>
-    <string name="friends_invite_share_title">Пригласить друга</string>
-    <string name="friends_invite_share_button">Поделиться с другом</string>
-    <string name="friends_invite_share_text">Установи Truck Log и зайди через Google — добавь меня по нику, чтобы видеть маршруты друг друга на карте.</string>
-    <string name="friends_added_ok">Друг добавлен</string>
-    <string name="friends_cannot_add_self">Нельзя добавить самого себя</string>
-    <string name="friends_directory_hint">Найдите водителя по нику. После принятия он появится в чатах, рейтинге, челлендже и на карте.</string>
-    <string name="friends_accepted_title">Ваши друзья</string>
-    <string name="friends_accepted_empty">Пока нет друзей — отправьте заявку по нику.</string>
-    <string name="friends_open_map">Открыть карту друзей</string>
-    <string name="friends_sharing_list_title">С кем я делюсь</string>
-    <string name="friends_sharing_list_hint">Нажмите ⋯: путь, фокус, шаринг или удалить друга</string>
-    <string name="friends_sharing_list_empty">Пока ни с кем не делитесь — найдите друга по нику в форме выше</string>
-    <string name="friends_add_friend_cd">Добавить друга</string>
-    <string name="friends_add_friend_close_cd">Закрыть добавление друга</string>
-    <string name="friends_share_summary">Я: позиция %1$s · маршрут %2$s</string>
-    <string name="friends_edit_share">Настройки шаринга</string>
-    <string name="friends_remove">Удалить</string>
-    <string name="friends_pref_show_me">Показывать себя ему</string>
-    <string name="friends_pref_show_route">Показывать мой маршрут ему</string>
-    <string name="friends_prefs_save">Сохранить настройки</string>
-    <string name="friends_share_off_map_hint">Ваша точка на карте видна вам. Чтобы друзья видели вас — включите переключатель и добавьте их по нику.</string>
-    <string name="friends_need_location_permission">Нужен доступ к геолокации, чтобы показать ваше место на карте</string>
-    <string name="friends_grant_location">Разрешить геолокацию</string>
-    <string name="friends_map_legend">Зелёный ободок — вы · оранжевый — друзья онлайн</string>
-    <string name="friends_me_marker">Я</string>
-    <string name="friends_map_friend_fallback">Друг</string>
-    <string name="friends_center_on_me">К моему местоположению</string>
-    <string name="friends_map_tap_open">Нажмите, чтобы открыть карту</string>
-    <string name="friends_map_close">Закрыть карту</string>
-    <string name="friends_manage_section">Друзья и доступ</string>
-    <string name="friends_online_count">Онлайн: %1$d</string>
-    <string name="friends_presence_summary">Онлайн: %1$d · недавно: %2$d</string>
-    <string name="friends_status_online">Онлайн</string>
-    <string name="friends_status_recent">Недавно в сети</string>
-    <string name="friends_status_offline">Офлайн</string>
-    <string name="friends_friend_menu_cd">Действия с другом</string>
-    <string name="friends_section_menu_cd">Ещё</string>
-    <string name="friends_settings_section">Настройки карты</string>
-    <string name="friends_settings_hint_share">путь друзьям</string>
-    <string name="friends_settings_hint_battery">экономия батареи</string>
-    <string name="calendar_prev_month_cd">Предыдущий месяц</string>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<string name="calendar_prev_month_cd">Предыдущий месяц</string>
     <string name="calendar_next_month_cd">Следующий месяц</string>
 
     <string name="advisor_title">Финансовый советник</string>
@@ -754,13 +754,13 @@
     <string name="settings_privacy_not_granted">Не разрешено</string>
     <string name="settings_privacy_share_path">Делиться маршрутом с друзьями</string>
     <string name="settings_privacy_share_path_desc">Если выключено, друзья не видят ваш путь на карте</string>
-    <string name="settings_friends_location_title">Геолокация для друзей</string>
-    <string name="settings_friends_location_interval">Интервал фонового обновления</string>
-    <string name="settings_friends_location_interval_option">%d мин</string>
-    <string name="settings_friends_location_interval_hint">Пока вы стоите, интервал сам растягивается до 60 мин. Постоянный GPS не используется.</string>
-    <string name="settings_friends_live_mode">Живой режим</string>
-    <string name="settings_friends_live_mode_desc">Постоянное уведомление и GPS каждые 30 с на 15 минут. По умолчанию выключено.</string>
-    <string name="settings_privacy_battery_saver">Экономия батареи</string>
+    
+
+
+
+
+
+<string name="settings_privacy_battery_saver">Экономия батареи</string>
     <string name="settings_privacy_battery_saver_desc">Обновлять GPS на карте каждые 10 с вместо 5 с (только в открытом приложении)</string>
     <string name="settings_privacy_system_settings">Открыть системные настройки</string>
     <string name="settings_biometric_title">Разблокировка приложения</string>
@@ -940,10 +940,10 @@
     <string name="push_notification_channel_name">Обновления Truck Log</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">Доступно новое обновление</string>
-    <string name="community_message_channel_name">Сообщения сообщества</string>
-    <string name="community_message_notification_more">%d новых сообщений</string>
-    <string name="community_message_notification_empty">Новое сообщение</string>
-    <string name="settings_battery_title">Фоновая работа</string>
+    
+
+
+<string name="settings_battery_title">Фоновая работа</string>
     <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для Truck Log.</string>
     <string name="settings_battery_button">Отключить оптимизацию батареи</string>
     <string name="settings_battery_ok">✅ Оптимизация батареи отключена — бот работает в фоне</string>
@@ -1191,9 +1191,9 @@
     <string name="privacy_card_loads_title">Ваши грузы и ставки</string>
     <string name="privacy_card_loads_body_device">Хранятся только на этом устройстве.</string>
     <string name="privacy_card_loads_body_cloud">Хранятся на этом устройстве и в вашем облачном бэкапе.</string>
-    <string name="privacy_card_friends_title">Друзья</string>
-    <string name="privacy_card_friends_body">Друзья видят только то, чем вы поделились явно (никнейм, геопозиция при включённом live-режиме). Ваш журнал грузов им не виден.</string>
-    <string name="privacy_badge_device_only">Только на этом устройстве</string>
+    
+
+<string name="privacy_badge_device_only">Только на этом устройстве</string>
     <string name="privacy_badge_cloud_backup">В вашем облачном бэкапе</string>
     <string name="home_delete_undo_message">Груз %1$s удалён</string>
     <string name="home_country">Страна</string>
@@ -1421,15 +1421,15 @@
     <string name="social_error_cannot_follow_self">Нельзя подписаться на себя</string>
     <string name="social_challenge_king_miles_title">Король миль</string>
     <string name="social_challenge_king_miles_desc">Кто проедет больше всех миль за неделю %1$d/%2$d</string>
-    <string name="community_empty_peers">Добавьте друга по никнейму — чаты, таблица лидеров и челлендж работают между реальными водителями.</string>
-    <string name="community_add_friends">Добавить друзей</string>
-    <string name="community_empty_challenge">Недельный челлендж появится после входа в облачный аккаунт.</string>
-    <string name="community_empty_status">Пока нет статусов. Напишите, что у вас на дороге — друзья увидят пост 24 часа.</string>
-    <string name="community_empty_groups">Нет групп. Создайте группу в чатах или вступите по коду друга.</string>
-    <string name="community_more_cd">Ещё</string>
-    <string name="community_need_friends_for_ranking">Таблица лидеров и челлендж недели открываются, когда в круге минимум двое друзей.</string>
-    <string name="community_ranking_locked">Соревнование среди друзей появится после того, как в круге будет хотя бы двое друзей. Crowd RPM доступен всегда.</string>
-    <string name="leaderboard_tab_overview">Обзор</string>
+    
+
+
+
+
+
+
+
+<string name="leaderboard_tab_overview">Обзор</string>
     <string name="leaderboard_tab_loads">Грузы</string>
     <string name="leaderboard_tab_revenue">Доход</string>
     <string name="leaderboard_tab_rpm">RPM</string>
@@ -1443,10 +1443,10 @@
     <string name="trust_rating_value">Рейтинг доверия %1$s</string>
     <string name="challenge_personal_progress">Ваш прогресс за неделю: %1$s mi</string>
     <string name="challenge_ranked_position">Моя позиция: #%1$d (%2$s mi)</string>
-<string name="friends_nickname_schema_missing">На сервере нет колонки nickname. Откройте Supabase → SQL → выполните supabase/migrations/20260731_friend_nicknames.sql (и Notify reload schema).</string>
-    <string name="friends_my_route_label">Мой путь: %1$s</string>
-    <string name="friends_route_road_ok">Маршрут по дорогам</string>
-    <string name="friends_my_destination_marker">Разгрузка</string>
+
+
+
+
 <string name="load_alarm_ask_message">Погрузка ещё не началась (%1$s). Поставить будильник?</string>
 <string name="load_alarm_ask_no">Нет</string>
 <string name="load_alarm_ask_title">Будильник на груз</string>

@@ -9,7 +9,6 @@
     <string name="voice_pick_peer_title">Кого вы имели в виду?</string>
     <string name="voice_failed_title">Голосовая команда</string>
     <string name="voice_failed_unknown">Не понял команду. Попробуйте название экрана: грузы, цель, отчёты, налоги.</string>
-    <string name="voice_failed_peer">Друг с таким ником не найден. Добавьте его в сообществе.</string>
     <string name="voice_failed_signed_out">Сначала войдите в аккаунт.</string>
     <string name="voice_journal_gross_title">Гросс недели</string>
 

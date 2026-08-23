@@ -103,6 +103,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var cloudSyncEngine: com.truckerload.data.sync.cloud.CloudSyncEngine
 
+    @Inject
+    lateinit var syncModeStore: com.truckerload.data.sync.cloud.SyncModeStore
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
     }
@@ -166,7 +169,7 @@ class MainActivity : AppCompatActivity() {
                             }.onFailure { e ->
                                 android.util.Log.w("MainActivity", "Load repair failed", e)
                             }
-                            if (!BuildConfig.LOCAL_ONLY_MODE) {
+                            if (syncModeStore.allowsCloudCalls()) {
                                 val syncResult = runCatching {
                                     cloudSyncEngine.onSessionReady()
                                 }.onFailure { e ->

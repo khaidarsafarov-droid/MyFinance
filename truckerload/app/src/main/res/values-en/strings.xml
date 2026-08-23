@@ -185,8 +185,8 @@
     <string name="nav_logbook">Loads</string>
     <string name="drawer_reports">Reports</string>
     <string name="drawer_map">Map</string>
-    <string name="drawer_friends_live">Friends live</string>
-    <string name="drawer_documents">Documents</string>
+    
+<string name="drawer_documents">Documents</string>
     <string name="drawer_tools">Tools</string>
     <string name="drawer_about">About app</string>
     <string name="drawer_logout">Sign out</string>
@@ -420,99 +420,99 @@
     <string name="map_crowd_top_lanes_year">Top lanes · year</string>
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
 
-    <string name="friends_live_map_title">Friends on map</string>
-    <string name="friends_live_map_subtitle">Where you are now</string>
-    <string name="friends_share_path_toggle">Show my path to friends</string>
-    <string name="friends_share_path_hint">Off = do not send GPS or path history to Supabase</string>
-    <string name="friends_route_truck_toggle">Truck routing</string>
-    <string name="friends_route_mode_title">What to show on the map</string>
-    <string name="friends_route_mode_traveled">Roads I drove</string>
-    <string name="friends_route_mode_remaining">Remaining route</string>
-    <string name="friends_battery_saver_toggle">Battery saver (slower GPS)</string>
-    <string name="friends_route_road_truck">Road route · Truck profile</string>
-    <string name="friends_route_road_car">Road route · Car</string>
-    <string name="friends_route_straight_fallback">Offline/API error: straight line. Enable Directions API or allow OSRM network access.</string>
-    <string name="friends_live_need_supabase">Requires Supabase sign-in (LOCAL_ONLY_MODE=false + URL/key). Apply the friends live SQL migration.</string>
-    <string name="friends_share_location_channel">Location sharing</string>
-    <string name="friends_share_location_title">Truck Log is sharing your path</string>
-    <string name="friends_share_location_text">Friends can see your position while the toggle is on</string>
-    <string name="friends_share_location_live_text">Live mode · up to 15 minutes, then every 15–60 min</string>
-    <string name="friends_overlap_button">Who intersects my route</string>
-    <string name="friends_overlap_title">Route overlaps</string>
-    <string name="friends_overlap_empty">No friends with an overlapping active load yet</string>
-    <string name="friends_list_title">Friends online</string>
-    <string name="friends_list_empty">No friends currently sharing</string>
-    <string name="friends_show_path">Show their path</string>
-    <string name="friends_hide_path">Hide path</string>
-    <string name="friends_focus">Focus</string>
-    <string name="friends_my_nickname_title">My nickname</string>
-    <string name="friends_my_nickname_hint">Unique handle friends use to find you. Phone and email stay private.</string>
-    <string name="friends_nickname_label">Nickname</string>
-    <string name="friends_nickname_placeholder">e.g. DriverPro</string>
-    <string name="friends_add_nickname_button">Add nickname</string>
-    <string name="friends_change_nickname_button">Change nickname</string>
-    <string name="friends_nickname_save">Save</string>
-    <string name="friends_nickname_invalid">Nickname: 3–24 chars, start with a letter, letters/digits/_ only</string>
-    <string name="friends_nickname_saved">Nickname saved</string>
-    <string name="friends_my_nickname_current">Your handle: @%1$s</string>
-    <string name="friends_add_by_nickname_title">Add friend by nickname</string>
-    <string name="friends_search_nickname_label">Friend nickname</string>
-    <string name="friends_found">Found: @%1$s</string>
-    <string name="friends_add_button">Add friend</string>
-    <string name="friends_request_send_button">Send request</string>
-    <string name="friends_requests_incoming_title">Incoming requests</string>
-    <string name="friends_requests_outgoing_title">Sent requests</string>
-    <string name="friends_request_handle">@%1$s</string>
-    <string name="friends_request_accept">Accept</string>
-    <string name="friends_request_decline">Decline</string>
-    <string name="friends_request_cancel">Cancel request</string>
-    <string name="friends_request_sent">Request sent. Chat opens after they accept.</string>
-    <string name="friends_request_already_sent">Request already sent</string>
-    <string name="friends_request_already_friends">You are already friends</string>
-    <string name="friends_request_accepted">Request accepted</string>
-    <string name="friends_nickname_taken">This nickname is taken. Choose another.</string>
-    <string name="friends_not_in_app">Your friend is not on Truck Log yet. Share the app so you can see each other on the map.</string>
-    <string name="friends_invite_share_title">Invite a friend</string>
-    <string name="friends_invite_share_button">Share with a friend</string>
-    <string name="friends_invite_share_text">Install Truck Log and sign in with Google — add me by nickname to see each other\'s routes on the map.</string>
-    <string name="friends_added_ok">Friend added</string>
-    <string name="friends_cannot_add_self">You can\'t add yourself</string>
-    <string name="friends_directory_hint">Find a driver by nickname. After they accept, they show up in chats, the leaderboard, the challenge, and the map.</string>
-    <string name="friends_accepted_title">Your friends</string>
-    <string name="friends_accepted_empty">No friends yet — send a request by nickname.</string>
-    <string name="friends_open_map">Open friends map</string>
-    <string name="friends_sharing_list_title">Who I share with</string>
-    <string name="friends_sharing_list_hint">Tap ⋯ for path, focus, sharing, or remove</string>
-    <string name="friends_sharing_list_empty">Nobody yet — search a nickname in the form above to send a request</string>
-    <string name="friends_add_friend_cd">Add friend</string>
-    <string name="friends_add_friend_close_cd">Close add friend</string>
-    <string name="friends_share_summary">Me: position %1$s · route %2$s</string>
-    <string name="friends_edit_share">Sharing settings</string>
-    <string name="friends_remove">Remove</string>
-    <string name="friends_pref_show_me">Show myself to them</string>
-    <string name="friends_pref_show_route">Show my route to them</string>
-    <string name="friends_prefs_save">Save settings</string>
-    <string name="friends_share_off_map_hint">Your spot is shown to you on the map. To let friends see you, turn the toggle on and add them by nickname.</string>
-    <string name="friends_need_location_permission">Location permission is needed to show you on the map</string>
-    <string name="friends_grant_location">Allow location</string>
-    <string name="friends_map_legend">Green ring — you · orange ring — friends online</string>
-    <string name="friends_me_marker">I am</string>
-    <string name="friends_map_friend_fallback">Friend</string>
-    <string name="friends_center_on_me">Center on me</string>
-    <string name="friends_map_tap_open">Tap to open the full map</string>
-    <string name="friends_map_close">Close map</string>
-    <string name="friends_manage_section">Friends &amp; sharing</string>
-    <string name="friends_online_count">Online: %1$d</string>
-    <string name="friends_presence_summary">Online: %1$d · recently: %2$d</string>
-    <string name="friends_status_online">Online</string>
-    <string name="friends_status_recent">Recently online</string>
-    <string name="friends_status_offline">Offline</string>
-    <string name="friends_friend_menu_cd">Friend actions</string>
-    <string name="friends_section_menu_cd">More</string>
-    <string name="friends_settings_section">Map settings</string>
-    <string name="friends_settings_hint_share">path sharing</string>
-    <string name="friends_settings_hint_battery">battery saver</string>
-    <string name="calendar_prev_month_cd">Previous month</string>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<string name="calendar_prev_month_cd">Previous month</string>
     <string name="calendar_next_month_cd">Next month</string>
 
     <string name="advisor_title">Financial Advisor</string>
@@ -754,13 +754,13 @@
     <string name="settings_privacy_not_granted">Not allowed</string>
     <string name="settings_privacy_share_path">Share route with friends</string>
     <string name="settings_privacy_share_path_desc">When off, friends cannot see your live path on the map</string>
-    <string name="settings_friends_location_title">Friends location</string>
-    <string name="settings_friends_location_interval">Background update interval</string>
-    <string name="settings_friends_location_interval_option">%d min</string>
-    <string name="settings_friends_location_interval_hint">When you are still, the interval stretches to 60 min. Continuous GPS is not used.</string>
-    <string name="settings_friends_live_mode">Live mode</string>
-    <string name="settings_friends_live_mode_desc">Ongoing notification and GPS every 30s for 15 minutes. Off by default.</string>
-    <string name="settings_privacy_battery_saver">Battery saver</string>
+    
+
+
+
+
+
+<string name="settings_privacy_battery_saver">Battery saver</string>
     <string name="settings_privacy_battery_saver_desc">Refresh GPS on the map every 10s instead of 5s (foreground only)</string>
     <string name="settings_privacy_system_settings">Open system app settings</string>
     <string name="settings_biometric_title">App unlock</string>
@@ -940,10 +940,10 @@
     <string name="push_notification_channel_name">Truck Log updates</string>
     <string name="push_notification_fallback_title">Truck Log</string>
     <string name="push_notification_fallback_body">A new update is available</string>
-    <string name="community_message_channel_name">Community messages</string>
-    <string name="community_message_notification_more">%d new messages</string>
-    <string name="community_message_notification_empty">New message</string>
-    <string name="settings_battery_title">Background operation</string>
+    
+
+
+<string name="settings_battery_title">Background operation</string>
     <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for Truck Log.</string>
     <string name="settings_battery_button">Disable battery optimization</string>
     <string name="settings_battery_ok">✅ Battery optimization disabled — bot runs in background</string>
@@ -1191,9 +1191,9 @@
     <string name="privacy_card_loads_title">Your loads and rates</string>
     <string name="privacy_card_loads_body_device">Stored only on this device.</string>
     <string name="privacy_card_loads_body_cloud">Stored on this device and in your cloud backup.</string>
-    <string name="privacy_card_friends_title">Friends</string>
-    <string name="privacy_card_friends_body">Friends see only what you share on purpose (nickname, live location when that mode is on). They cannot see your load journal.</string>
-    <string name="privacy_badge_device_only">Only on this device</string>
+    
+
+<string name="privacy_badge_device_only">Only on this device</string>
     <string name="privacy_badge_cloud_backup">In your cloud backup</string>
     <string name="home_delete_undo_message">Load %1$s deleted</string>
     <string name="home_country">Country</string>
@@ -1419,15 +1419,15 @@
     <string name="social_error_cannot_follow_self">Cannot follow yourself</string>
     <string name="social_challenge_king_miles_title">King of Miles</string>
     <string name="social_challenge_king_miles_desc">Who drives the most miles this week %1$d/%2$d</string>
-    <string name="community_empty_peers">Add a friend by nickname. Chats, the leaderboard, and the weekly challenge work between real drivers.</string>
-    <string name="community_add_friends">Add friends</string>
-    <string name="community_empty_challenge">The weekly challenge appears after you sign in with a cloud account.</string>
-    <string name="community_empty_status">No statuses yet. Post what is happening on the road — friends see it for 24 hours.</string>
-    <string name="community_empty_groups">No groups yet. Create one from Chats or join with a friend\'s invite code.</string>
-    <string name="community_more_cd">More</string>
-    <string name="community_need_friends_for_ranking">The friends leaderboard and weekly challenge unlock when you have at least two friends.</string>
-    <string name="community_ranking_locked">Friend ranking appears once at least two friends are in your circle. Crowd RPM is always available.</string>
-    <string name="leaderboard_tab_overview">Overview</string>
+    
+
+
+
+
+
+
+
+<string name="leaderboard_tab_overview">Overview</string>
     <string name="leaderboard_tab_loads">Loads</string>
     <string name="leaderboard_tab_revenue">Revenue</string>
     <string name="leaderboard_tab_rpm">RPM</string>
@@ -1441,10 +1441,10 @@
     <string name="trust_rating_value">Trust rating %1$s</string>
     <string name="challenge_personal_progress">Your progress this week: %1$s mi</string>
     <string name="challenge_ranked_position">My position: #%1$d (%2$s mi)</string>
-<string name="friends_nickname_schema_missing">Server is missing the profiles.nickname column. In Supabase SQL Editor run supabase/migrations/20260731_friend_nicknames.sql (includes schema reload).</string>
-    <string name="friends_my_route_label">My route: %1$s</string>
-    <string name="friends_route_road_ok">Road route</string>
-    <string name="friends_my_destination_marker">Delivery</string>
+
+
+
+
 <string name="load_alarm_ask_message">Pickup has not started yet (%1$s). Set an alarm?</string>
 <string name="load_alarm_ask_no">No</string>
 <string name="load_alarm_ask_title">Load alarm</string>

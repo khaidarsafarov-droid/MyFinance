@@ -9,7 +9,6 @@
     <string name="voice_pick_peer_title">Who did you mean?</string>
     <string name="voice_failed_title">Voice command</string>
     <string name="voice_failed_unknown">Unknown command. Try a screen name: loads, weekly goal, community, friends map.</string>
-    <string name="voice_failed_peer">No friend with that nickname. Add them in Community first.</string>
     <string name="voice_failed_signed_out">Sign in first.</string>
     <string name="voice_journal_gross_title">Weekly gross</string>
 </resources>

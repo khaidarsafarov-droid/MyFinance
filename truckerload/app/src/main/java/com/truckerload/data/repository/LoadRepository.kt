@@ -46,16 +46,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
-
-data class SyncLoadsResult(
-    val addedCount: Int,
-    val lastAddedText: String,
-    val status: SyncStatus
-)
-
-enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoadRepository(
@@ -247,35 +238,15 @@ class LoadRepository(
 
     suspend fun importLoadsIfNotDuplicate(
         loads: List<Load>,
-        parsedCount: Int
-    ): com.truckerload.utils.LoadImporter.ImportResult {
-        val incomingTripIds = loads.map { normalizeTripId(it.tripId) }.filter { it.isNotBlank() }
-        val existingTripIds = loadDao.getExistingTripIds(incomingTripIds)
-            .map { normalizeTripId(it) }
-            .toMutableSet()
-        var imported = 0
-        var skipped = 0
-        runBatchWrite {
-            for (load in loads) {
-                val tripId = normalizeTripId(load.tripId)
-                if (tripId in existingTripIds) {
-                    skipped++
-                    continue
-                }
-                existingTripIds.add(tripId)
-                insertLoad(load.copy(tripId = tripId), playFeedback = false)
-                imported++
-            }
-        }
-        if (imported > 0) {
-            FeedbackManager.onLoadAdded()
-        }
-        return com.truckerload.utils.LoadImporter.ImportResult(
-            imported = imported,
-            skipped = skipped,
-            parsed = parsedCount
+        parsedCount: Int,
+    ): com.truckerload.utils.LoadImporter.ImportResult =
+        importLoadsIfNotDuplicateImpl(
+            loadDao = loadDao,
+            runBatchWrite = ::runBatchWrite,
+            insertLoad = ::insertLoad,
+            loads = loads,
+            parsedCount = parsedCount,
         )
-    }
 
     /**
      * Coalesce widget/backup side effects around a burst of writes (chat-history import).
@@ -519,61 +490,18 @@ class LoadRepository(
         incomingLoads: List<Load>,
         messageDateSeconds: Long?,
         playFeedback: Boolean = true,
-    ): SyncLoadsResult {
-        val validLoads = incomingLoads.filter { load ->
-            load.tripId.isNotBlank() && load.tripId != "T-UNKNOWN" &&
-                (load.pointA.isNotBlank() || load.pointB.isNotBlank()) && load.totalRate > 0
-        }
-        if (validLoads.isEmpty()) {
-            return SyncLoadsResult(0, "", SyncStatus.EMPTY)
-        }
-
-        val tripIds = validLoads.map { normalizeTripId(it.tripId) }
-        val existingIds = loadDao.getExistingTripIds(tripIds).map { normalizeTripId(it) }.toSet()
-
-        val toInsert = validLoads.filter { normalizeTripId(it.tripId) !in existingIds }
-        if (toInsert.isEmpty()) {
-            return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
-        }
-
-        val now = System.currentTimeMillis()
-        val parsedAt = messageDateSeconds?.times(1000) ?: now
-        val messageYear = messageDateSeconds
-            ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
-        val loadEntities = mutableListOf<LoadEntity>()
-        val stopEntities = mutableListOf<StopEntity>()
-
-        for (load in toInsert) {
-            val normalized = load.copy(tripId = normalizeTripId(load.tripId), parsedAt = parsedAt)
-            // Anchor MM/DD year to message/parsedAt — not wall-clock at hydrate time.
-            val repaired = LoadDateRepair.repair(normalized, messageYear, parsedAt)
-            val dated = when {
-                repaired.date.isBlank() && messageDateSeconds != null ->
-                    repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
-                else -> repaired
-            }
-            val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
-                parsedAt = parsedAt,
-                updatedAt = now,
-            )
-            loadEntities.add(loadWithWeek.toEntity())
-            stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
-        }
-
-        db.withTransaction {
-            loadDao.insertAll(loadEntities)
-            if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
-        }
-
-        val lastAdded = toInsert.last()
-        val lastAddedText = "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"
-        notifyWidgetDataChanged()
-        scheduleAutoBackup()
-        if (playFeedback && toInsert.isNotEmpty()) {
-            FeedbackManager.onLoadAdded()
-        }
-        return SyncLoadsResult(toInsert.size, lastAddedText, SyncStatus.SUCCESS)
-    }
+    ): SyncLoadsResult = syncLoadsCdcImpl(
+        db = db,
+        loadDao = loadDao,
+        stopDao = stopDao,
+        incomingLoads = incomingLoads,
+        messageDateSeconds = messageDateSeconds,
+        playFeedback = playFeedback,
+        onPersisted = {
+            notifyWidgetDataChanged()
+            scheduleAutoBackup()
+        },
+    )
 
     private fun notifyWidgetDataChanged() {
         if (writeBatchDepth.get() > 0) return
