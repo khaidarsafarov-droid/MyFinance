@@ -214,76 +214,55 @@ class TelegramMessageParser(
 
         messageParseService.parsePaycheckFromText(text)
             .onSuccess { r ->
-                val (weekNumber, year) = if (messageDateSeconds != null && r.weekStartDate.isNullOrBlank()) {
-                    getWeekNumberAndYearFromDate(formatDateFromUnixSeconds(messageDateSeconds))
-                } else {
-                    getWeekNumberAndYearFromDate(r.weekStartDate)
-                }
-                if (r.netAmount <= 0) return context.getString(R.string.sync_paycheck_not_found)
-                if (paycheckRepository.getPaycheckForWeek(weekNumber, year) != null) {
-                    return context.getString(R.string.sync_paycheck_exists, weekNumber)
-                }
-                val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-                paycheckRepository.insertPaycheck(
-                    Paycheck(
-                        id = 0,
-                        weekNumber = weekNumber,
-                        year = year,
-                        weekLabel = weekLabel,
-                        weekStartDate = weekStart,
-                        weekEndDate = weekEnd,
-                        driverName = r.driverName,
-                        grossAmount = r.grossAmount,
+                val ingest = TelegramJournalIngest(paycheckRepository, dieselRepository)
+                return when (
+                    val outcome = ingest.insertPaycheck(
                         netAmount = r.netAmount,
-                        rawExtractedText = text,
-                        sourceFileName = null,
-                        addedAt = System.currentTimeMillis(),
-                    ),
-                )
-                return context.getString(
-                    R.string.sync_last_paycheck,
-                    String.format(Locale.US, "%,.2f", r.netAmount),
-                    weekNumber,
-                )
+                        grossAmount = r.grossAmount,
+                        driverName = r.driverName,
+                        weekStartDateHint = r.weekStartDate,
+                        messageDateSeconds = messageDateSeconds,
+                        rawText = text,
+                    )
+                ) {
+                    TelegramJournalIngest.PaycheckOutcome.InvalidAmount ->
+                        context.getString(R.string.sync_paycheck_not_found)
+                    is TelegramJournalIngest.PaycheckOutcome.AlreadyExists ->
+                        context.getString(R.string.sync_paycheck_exists, outcome.weekNumber)
+                    is TelegramJournalIngest.PaycheckOutcome.Inserted ->
+                        context.getString(
+                            R.string.sync_last_paycheck,
+                            String.format(Locale.US, "%,.2f", outcome.netAmount),
+                            outcome.weekNumber,
+                        )
+                }
             }
 
         messageParseService.parseDieselFromText(text)
             .onSuccess { r ->
-                val dateForWeek = when {
-                    messageDateSeconds != null && r.date.isNullOrBlank() -> formatDateFromUnixSeconds(messageDateSeconds)
-                    else -> r.date
-                }
-                val (weekNumber, year) = getWeekNumberAndYearFromDate(dateForWeek)
-                if (r.totalAmount <= 0) return context.getString(R.string.sync_diesel_not_found)
-                val textHash = text.hashCode()
-                val lastDieselHash = prefs.getInt("last_diesel_text_hash", 0)
-                if (lastDieselHash != 0 && lastDieselHash == textHash) {
-                    return context.getString(R.string.sync_duplicate_diesel)
-                }
-                val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-                dieselRepository.insertDiesel(
-                    Diesel(
-                        id = 0,
-                        weekNumber = weekNumber,
-                        year = year,
-                        weekLabel = weekLabel,
-                        weekStartDate = weekStart,
-                        weekEndDate = weekEnd,
+                val ingest = TelegramJournalIngest(paycheckRepository, dieselRepository)
+                return when (
+                    val outcome = ingest.insertDiesel(
                         totalAmount = r.totalAmount,
                         gallons = r.gallons,
                         pricePerGallon = r.pricePerGallon,
                         location = r.location,
-                        rawExtractedText = text,
-                        sourceFileName = null,
-                        addedAt = System.currentTimeMillis(),
-                    ),
-                )
-                prefs.edit { putInt("last_diesel_text_hash", textHash) }
-                return context.getString(
-                    R.string.sync_last_diesel,
-                    String.format(Locale.US, "%,.2f", r.totalAmount),
-                    weekNumber,
-                )
+                        dateHint = r.date,
+                        messageDateSeconds = messageDateSeconds,
+                        rawText = text,
+                    )
+                ) {
+                    TelegramJournalIngest.DieselOutcome.InvalidAmount ->
+                        context.getString(R.string.sync_diesel_not_found)
+                    TelegramJournalIngest.DieselOutcome.Duplicate ->
+                        context.getString(R.string.sync_duplicate_diesel)
+                    is TelegramJournalIngest.DieselOutcome.Inserted ->
+                        context.getString(
+                            R.string.sync_last_diesel,
+                            String.format(Locale.US, "%,.2f", outcome.totalAmount),
+                            outcome.weekNumber,
+                        )
+                }
             }
 
         return context.getString(R.string.sync_parse_failed)

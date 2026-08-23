@@ -6,19 +6,19 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
-import com.truckerload.domain.model.Diesel
-import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.parser.MessageParseService
-import com.truckerload.utils.formatDateFromUnixSeconds
-import com.truckerload.utils.getWeekNumberAndYearFromDate
-import com.truckerload.utils.getWeekRange
-import java.security.MessageDigest
+import com.truckerload.sync.telegram.TelegramJournalIngest
+import com.truckerload.sync.telegram.TelegramTextFingerprint
 
 enum class ServerInboxProcessingResult {
     PROCESSED,
     IGNORED,
 }
 
+/**
+ * Server-push inbox path. Paycheck/diesel inserts go through [TelegramJournalIngest]
+ * (same rules as the on-device Telegram bot: week dedupe + SHA-256 diesel fingerprint).
+ */
 class ServerTelegramMessageProcessor(
     private val context: Context,
     db: AppDatabase,
@@ -27,6 +27,7 @@ class ServerTelegramMessageProcessor(
     private val loadRepository = LoadRepository(db)
     private val paycheckRepository = PaycheckRepository(db)
     private val dieselRepository = DieselRepository(db)
+    private val journalIngest = TelegramJournalIngest(paycheckRepository, dieselRepository)
     private val loadHandler = TelegramLoadHandler(
         context = context,
         loadRepository = loadRepository,
@@ -52,70 +53,40 @@ class ServerTelegramMessageProcessor(
         }
 
         parser.parsePaycheckFromText(text).getOrNull()?.let { parsed ->
-            if (parsed.netAmount <= 0) return ServerInboxProcessingResult.IGNORED
-            val (weekNumber, year) =
-                if (messageDateSeconds != null && parsed.weekStartDate.isNullOrBlank()) {
-                    getWeekNumberAndYearFromDate(formatDateFromUnixSeconds(messageDateSeconds))
-                } else {
-                    getWeekNumberAndYearFromDate(parsed.weekStartDate)
-                }
-            if (paycheckRepository.getPaycheckForWeek(weekNumber, year) == null) {
-                val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-                paycheckRepository.insertPaycheck(
-                    Paycheck(
-                        id = 0,
-                        weekNumber = weekNumber,
-                        year = year,
-                        weekLabel = weekLabel,
-                        weekStartDate = weekStart,
-                        weekEndDate = weekEnd,
-                        driverName = parsed.driverName,
-                        grossAmount = parsed.grossAmount,
-                        netAmount = parsed.netAmount,
-                        rawExtractedText = text,
-                        sourceFileName = null,
-                        addedAt = System.currentTimeMillis(),
-                    ),
-                )
+            val outcome = journalIngest.insertPaycheck(
+                netAmount = parsed.netAmount,
+                grossAmount = parsed.grossAmount,
+                driverName = parsed.driverName,
+                weekStartDateHint = parsed.weekStartDate,
+                messageDateSeconds = messageDateSeconds,
+                rawText = text,
+            )
+            return when (outcome) {
+                TelegramJournalIngest.PaycheckOutcome.InvalidAmount ->
+                    ServerInboxProcessingResult.IGNORED
+                is TelegramJournalIngest.PaycheckOutcome.AlreadyExists,
+                is TelegramJournalIngest.PaycheckOutcome.Inserted,
+                -> ServerInboxProcessingResult.PROCESSED
             }
-            return ServerInboxProcessingResult.PROCESSED
         }
 
         parser.parseDieselFromText(text).getOrNull()?.let { parsed ->
-            if (parsed.totalAmount <= 0) return ServerInboxProcessingResult.IGNORED
-            // FIX: String.hashCode collisions could skip legitimate diesel entries
-            val textHash = stableTextHash(text)
-            val duplicate = dieselRepository.getAllDieselOnce().any {
-                stableTextHash(it.rawExtractedText) == textHash
+            val outcome = journalIngest.insertDiesel(
+                totalAmount = parsed.totalAmount,
+                gallons = parsed.gallons,
+                pricePerGallon = parsed.pricePerGallon,
+                location = parsed.location,
+                dateHint = parsed.date,
+                messageDateSeconds = messageDateSeconds,
+                rawText = text,
+            )
+            return when (outcome) {
+                TelegramJournalIngest.DieselOutcome.InvalidAmount ->
+                    ServerInboxProcessingResult.IGNORED
+                TelegramJournalIngest.DieselOutcome.Duplicate,
+                is TelegramJournalIngest.DieselOutcome.Inserted,
+                -> ServerInboxProcessingResult.PROCESSED
             }
-            if (!duplicate) {
-                val dateForWeek =
-                    if (messageDateSeconds != null && parsed.date.isNullOrBlank()) {
-                        formatDateFromUnixSeconds(messageDateSeconds)
-                    } else {
-                        parsed.date
-                    }
-                val (weekNumber, year) = getWeekNumberAndYearFromDate(dateForWeek)
-                val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-                dieselRepository.insertDiesel(
-                    Diesel(
-                        id = 0,
-                        weekNumber = weekNumber,
-                        year = year,
-                        weekLabel = weekLabel,
-                        weekStartDate = weekStart,
-                        weekEndDate = weekEnd,
-                        totalAmount = parsed.totalAmount,
-                        gallons = parsed.gallons,
-                        pricePerGallon = parsed.pricePerGallon,
-                        location = parsed.location,
-                        rawExtractedText = text,
-                        sourceFileName = null,
-                        addedAt = System.currentTimeMillis(),
-                    ),
-                )
-            }
-            return ServerInboxProcessingResult.PROCESSED
         }
 
         return ServerInboxProcessingResult.IGNORED
@@ -127,9 +98,7 @@ class ServerTelegramMessageProcessor(
             return trimmed.isBlank() || trimmed.startsWith("/")
         }
 
-        fun stableTextHash(text: String): String {
-            val digest = MessageDigest.getInstance("SHA-256").digest(text.toByteArray())
-            return digest.joinToString("") { "%02x".format(it) }
-        }
+        /** Kept for compatibility; prefer [TelegramTextFingerprint.sha256Hex]. */
+        fun stableTextHash(text: String): String = TelegramTextFingerprint.sha256Hex(text)
     }
 }

@@ -8,11 +8,6 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
-import com.truckerload.domain.model.Diesel
-import com.truckerload.domain.model.Paycheck
-import com.truckerload.utils.formatDateFromUnixSeconds
-import com.truckerload.utils.getWeekNumberAndYearFromDate
-import com.truckerload.utils.getWeekRange
 import java.util.Locale
 
 class TelegramReceiptWriter(
@@ -24,100 +19,89 @@ class TelegramReceiptWriter(
         paycheckRepository: PaycheckRepository,
         dieselRepository: DieselRepository,
         prefs: SharedPreferences,
-    ): String = when (kind) {
-        ReceiptKind.PAYCHECK -> savePaycheck(preview, paycheckRepository)
-        ReceiptKind.DIESEL, ReceiptKind.DEF -> saveFuel(kind, preview, dieselRepository, prefs)
-        ReceiptKind.LOAD, ReceiptKind.UNKNOWN ->
-            context.getString(R.string.sync_receipt_need_choice)
+    ): String {
+        val ingest = TelegramJournalIngest(paycheckRepository, dieselRepository)
+        return when (kind) {
+            ReceiptKind.PAYCHECK -> savePaycheck(preview, ingest)
+            ReceiptKind.DIESEL, ReceiptKind.DEF -> saveFuel(kind, preview, ingest, prefs)
+            ReceiptKind.LOAD, ReceiptKind.UNKNOWN ->
+                context.getString(R.string.sync_receipt_need_choice)
+        }
     }
 
     private suspend fun savePaycheck(
         preview: ReceiptPreview,
-        paycheckRepository: PaycheckRepository,
+        ingest: TelegramJournalIngest,
     ): String {
         val amount = preview.amount ?: return context.getString(R.string.sync_paycheck_not_found)
-        if (amount <= 0) return context.getString(R.string.sync_paycheck_not_found)
-        val (weekNumber, year) = weekOf(preview)
-        if (paycheckRepository.getPaycheckForWeek(weekNumber, year) != null) {
-            return context.getString(R.string.sync_paycheck_exists, weekNumber)
-        }
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-        paycheckRepository.insertPaycheck(
-            Paycheck(
-                id = 0,
-                weekNumber = weekNumber,
-                year = year,
-                weekLabel = weekLabel,
-                weekStartDate = weekStart,
-                weekEndDate = weekEnd,
-                driverName = preview.driverName,
-                grossAmount = null,
+        return when (
+            val outcome = ingest.insertPaycheck(
                 netAmount = amount,
-                rawExtractedText = preview.extractedText,
+                grossAmount = null,
+                driverName = preview.driverName,
+                weekStartDateHint = preview.date,
+                messageDateSeconds = preview.messageDateSeconds,
+                rawText = preview.extractedText,
                 sourceFileName = preview.sourceFileName,
-                addedAt = System.currentTimeMillis(),
-            ),
-        )
-        return context.getString(
-            R.string.sync_last_paycheck,
-            String.format(Locale.US, "%,.2f", amount),
-            weekNumber,
-        )
+            )
+        ) {
+            TelegramJournalIngest.PaycheckOutcome.InvalidAmount ->
+                context.getString(R.string.sync_paycheck_not_found)
+            is TelegramJournalIngest.PaycheckOutcome.AlreadyExists ->
+                context.getString(R.string.sync_paycheck_exists, outcome.weekNumber)
+            is TelegramJournalIngest.PaycheckOutcome.Inserted ->
+                context.getString(
+                    R.string.sync_last_paycheck,
+                    String.format(Locale.US, "%,.2f", outcome.netAmount),
+                    outcome.weekNumber,
+                )
+        }
     }
 
     private suspend fun saveFuel(
         kind: ReceiptKind,
         preview: ReceiptPreview,
-        dieselRepository: DieselRepository,
+        ingest: TelegramJournalIngest,
         prefs: SharedPreferences,
     ): String {
         val amount = preview.amount ?: return context.getString(R.string.sync_diesel_not_found)
-        if (amount <= 0) return context.getString(R.string.sync_diesel_not_found)
-        val fingerprint = (preview.extractedText + kind.name).hashCode()
-        val last = prefs.getInt("last_diesel_text_hash", 0)
-        if (last != 0 && last == fingerprint) {
-            return context.getString(R.string.sync_duplicate_diesel)
-        }
-        val (weekNumber, year) = weekOf(preview)
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-        val location = fuelLocation(kind, preview)
-        dieselRepository.insertDiesel(
-            Diesel(
-                id = 0,
-                weekNumber = weekNumber,
-                year = year,
-                weekLabel = weekLabel,
-                weekStartDate = weekStart,
-                weekEndDate = weekEnd,
+        val salt = if (kind == ReceiptKind.DEF) "DEF" else null
+        return when (
+            val outcome = ingest.insertDiesel(
                 totalAmount = amount,
                 gallons = preview.gallons,
                 pricePerGallon = preview.pricePerGallon,
-                location = location,
-                rawExtractedText = preview.extractedText,
+                location = fuelLocation(kind, preview),
+                dateHint = preview.date,
+                messageDateSeconds = preview.messageDateSeconds,
+                rawText = preview.extractedText,
                 sourceFileName = preview.sourceFileName,
-                addedAt = System.currentTimeMillis(),
-            ),
-        )
-        prefs.edit { putInt("last_diesel_text_hash", fingerprint) }
-        val template = if (kind == ReceiptKind.DEF) {
-            R.string.sync_last_def
-        } else {
-            R.string.sync_last_diesel
+                fingerprintSalt = salt,
+            )
+        ) {
+            TelegramJournalIngest.DieselOutcome.InvalidAmount ->
+                context.getString(R.string.sync_diesel_not_found)
+            TelegramJournalIngest.DieselOutcome.Duplicate ->
+                context.getString(R.string.sync_duplicate_diesel)
+            is TelegramJournalIngest.DieselOutcome.Inserted -> {
+                prefs.edit {
+                    putString(
+                        "last_diesel_text_sha",
+                        TelegramTextFingerprint.dieselFingerprint(preview.extractedText, salt),
+                    )
+                }
+                val template = if (kind == ReceiptKind.DEF) {
+                    R.string.sync_last_def
+                } else {
+                    R.string.sync_last_diesel
+                }
+                context.getString(
+                    template,
+                    String.format(Locale.US, "%,.2f", outcome.totalAmount),
+                    outcome.weekNumber,
+                )
+            }
         }
-        return context.getString(
-            template,
-            String.format(Locale.US, "%,.2f", amount),
-            weekNumber,
-        )
-    }
-
-    private fun weekOf(preview: ReceiptPreview): Pair<Int, Int> {
-        val dateForWeek = when {
-            !preview.date.isNullOrBlank() -> preview.date
-            preview.messageDateSeconds != null -> formatDateFromUnixSeconds(preview.messageDateSeconds)
-            else -> null
-        }
-        return getWeekNumberAndYearFromDate(dateForWeek)
     }
 
     private fun fuelLocation(kind: ReceiptKind, preview: ReceiptPreview): String? {
