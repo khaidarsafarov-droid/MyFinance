@@ -29,21 +29,14 @@ android {
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
             localProps.load(stream)
         }
-        // Stage3: never bake bot/AI secrets into APKs by default (including debug/friends).
+        // Stage3: never bake bot secrets into APKs by default (including debug/friends).
         // Opt-in for local device debugging only: ./gradlew … -PallowDebugSecrets=true
         val allowDebugSecrets = project.hasProperty("allowDebugSecrets")
-        val cerebrasKey = if (allowDebugSecrets) {
-            localProps.getProperty("CEREBRAS_API_KEY", "")
-        } else {
-            ""
-        }
         val telegramToken = if (allowDebugSecrets) {
             localProps.getProperty("TELEGRAM_BOT_TOKEN", "")
         } else {
             ""
         }
-        buildConfigField("String", "CEREBRAS_API_KEY", "\"$cerebrasKey\"")
-        buildConfigField("String", "CEREBRAS_MODEL", "\"${localProps.getProperty("CEREBRAS_MODEL", "llama3.1-8b")}\"")
         buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"$telegramToken\"")
         // Non-secret Web OAuth client — required for Google ID tokens. Fall back to the
         // project default so friends/CI builds still get Sign-In when local.properties omits it.
@@ -89,20 +82,6 @@ android {
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_DIRECTIONS_API_KEY", "\"$googleDirectionsApiKey\"")
-        val turnUri = localProps.getProperty("TURN_URI", "")
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        val turnUsername = localProps.getProperty("TURN_USERNAME", "")
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        val turnCredential = localProps.getProperty("TURN_CREDENTIAL", "")
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        buildConfigField("String", "TURN_URI", "\"$turnUri\"")
-        buildConfigField("String", "TURN_USERNAME", "\"$turnUsername\"")
-        buildConfigField("String", "TURN_CREDENTIAL", "\"$turnCredential\"")
-        val maxGroupCall = localProps.getProperty("MAX_GROUP_CALL_PARTICIPANTS", "8").toIntOrNull() ?: 8
-        buildConfigField("int", "MAX_GROUP_CALL_PARTICIPANTS", maxGroupCall.coerceIn(2, 50).toString())
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
         // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
         // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a
@@ -174,7 +153,6 @@ android {
             // Never bake server/bot secrets into release APKs.
             // Public client IDs (Supabase anon, Google Web client) stay in defaultConfig.
             buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
-            buildConfigField("String", "CEREBRAS_API_KEY", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -380,7 +358,7 @@ tasks.named("check").configure {
  */
 tasks.register("verifyReleaseSecretsEmpty") {
     group = "verification"
-    description = "Ensures TELEGRAM_BOT_TOKEN and CEREBRAS_API_KEY are empty in release BuildConfig"
+    description = "Ensures TELEGRAM_BOT_TOKEN is empty in release BuildConfig"
     dependsOn("generateReleaseBuildConfig")
     doLast {
         val buildConfig = layout.buildDirectory.file(
@@ -396,14 +374,10 @@ tasks.register("verifyReleaseSecretsEmpty") {
                 ?: error("BuildConfig field $name not found")
         }
         val telegram = fieldValue("TELEGRAM_BOT_TOKEN")
-        val cerebras = fieldValue("CEREBRAS_API_KEY")
         check(telegram.isEmpty()) {
             "Release BuildConfig must not embed TELEGRAM_BOT_TOKEN (found non-empty value)"
         }
-        check(cerebras.isEmpty()) {
-            "Release BuildConfig must not embed CEREBRAS_API_KEY (found non-empty value)"
-        }
-        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram/cerebras empty in release)")
+        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram empty in release)")
     }
 }
 

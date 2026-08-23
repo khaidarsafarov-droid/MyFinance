@@ -516,7 +516,7 @@
     <string name="calendar_next_month_cd">Next month</string>
 
     <string name="advisor_title">Financial Advisor</string>
-    <string name="advisor_missing_key">Add CEREBRAS_API_KEY to local.properties</string>
+    <string name="advisor_missing_key">Financial advisor is temporarily unavailable.</string>
     <string name="advisor_thinking">Thinking...</string>
     <string name="advisor_placeholder_question">Enter a question...</string>
     <string name="advisor_cd_send">Send</string>
@@ -531,7 +531,7 @@
     <string name="advisor_suggestion_taxes">How much should I set aside for taxes?</string>
     <string name="advisor_suggestion_compare_week">Compare this week with last week</string>
     <string name="advisor_error_no_response">Service did not return a response. Please try again.</string>
-    <string name="advisor_error_api_key">AI key issue. Check CEREBRAS_API_KEY and try again.</string>
+    <string name="advisor_error_api_key">AI service error. Please try again later.</string>
     <string name="advisor_error_rate_limit">Request limit temporarily exceeded. Wait 30–60 seconds and retry.</string>
     <string name="advisor_error_unavailable">AI service temporarily unavailable. Try again in a minute.</string>
     <string name="advisor_error_timeout">Server is taking too long to respond. Check your internet and retry.</string>
@@ -551,6 +551,8 @@
     <string name="tax_total_deductions">Total deductions: -$%1$.2f</string>
     <string name="taxable_income">Taxable income</string>
     <string name="tax_total_owed">Total owed: $%1$.2f</string>
+    <string name="tax_se_tax">SE Tax (~15.3%%): $%1$.2f</string>
+    <string name="tax_federal_tax">Federal Tax: $%1$.2f</string>
 
     <string name="state_list_title">Top 5 states by revenue</string>
     <string name="state_list_empty">No data yet. Time to plan a new route!</string>

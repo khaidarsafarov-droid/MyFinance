@@ -45,6 +45,7 @@ enum class DrawerDestination {
     MAP,
     DOCUMENTS,
     MAINTENANCE,
+    TAX_TRACKER,
     ADD_PAYCHECK,
     ADD_DIESEL,
     VOICE_ASSISTANT,
@@ -121,6 +122,12 @@ fun AppDrawerContent(
                         icon = AppIcons.Build,
                         label = stringResource(R.string.maintenance_title),
                         onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
+                        indented = true,
+                    )
+                    drawerItem(
+                        icon = AppIcons.TableChart,
+                        label = stringResource(R.string.tax_title),
+                        onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
                         indented = true,
                     )
                     drawerItem(

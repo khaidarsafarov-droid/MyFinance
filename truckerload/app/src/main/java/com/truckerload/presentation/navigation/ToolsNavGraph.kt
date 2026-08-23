@@ -22,6 +22,7 @@ import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
+import com.truckerload.presentation.screens.tax.TaxTrackerScreen
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 
@@ -63,6 +64,9 @@ fun NavGraphBuilder.toolsNavGraph(
     }
     composable(Routes.MAINTENANCE) {
         MaintenanceScreen(onBack = { navController.popBackStack() })
+    }
+    composable(Routes.TAX_TRACKER) {
+        TaxTrackerScreen(onBack = { navController.popBackStack() })
     }
     composable(Routes.FINANCIAL_ADVISOR) {
         FinancialAdvisorScreen(onBack = { navController.popBackStack() })

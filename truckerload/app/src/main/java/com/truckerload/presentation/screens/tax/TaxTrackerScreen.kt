@@ -3,14 +3,13 @@ package com.truckerload.presentation.screens.tax
 import com.truckerload.presentation.icons.AppIcons
 
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -117,8 +116,16 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                 }
                 BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("SE Tax (~15.3%): $${String.format(Locale.US, "%,.2f", uiState.selfEmploymentTax)}", style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
-                        Text("Federal Tax: $${String.format(Locale.US, "%,.2f", uiState.federalTax)}", style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
+                        Text(
+                            stringResource(R.string.tax_se_tax, uiState.selfEmploymentTax),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = tc.TextSecondary,
+                        )
+                        Text(
+                            stringResource(R.string.tax_federal_tax, uiState.federalTax),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = tc.TextSecondary,
+                        )
                         Text(stringResource(R.string.tax_total_owed, uiState.totalTaxOwed), style = MaterialTheme.typography.headlineSmall, color = tc.AccentExpense)
                     }
                 }

@@ -8,9 +8,8 @@ LOCAL_ONLY_MODE=false
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 # Free tier: enable only "Maps SDK for Android" in Google Cloud (not Directions API).
 # Friends map route lines use OSRM (free, no key).
-# Bot/AI secrets are NOT embedded into debug or release APKs by default.
+# Bot secrets are NOT embedded into debug or release APKs by default.
 # For on-device Telegram debugging only:  ./gradlew :app:assembleDebug -PallowDebugSecrets=true
-CEREBRAS_API_KEY=
 TELEGRAM_BOT_TOKEN=
 
 # Cloud snapshot/inbox API. Production URLs must use HTTPS.
@@ -33,11 +32,6 @@ GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.goog
 # Нужен для общего аккаунта между устройствами / friends live sync.
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
-
-# Optional TURN for Community voice calls across symmetric NAT.
-# TURN_URI=turn:turn.example.com:3478
-# TURN_USERNAME=
-# TURN_CREDENTIAL=
 
 # Google Drive backup (Settings → Google Drive): enable Drive API in Google Cloud
 # for the same project as GOOGLE_WEB_CLIENT_ID / Android OAuth client.

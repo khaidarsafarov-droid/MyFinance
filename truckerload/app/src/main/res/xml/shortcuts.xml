@@ -203,36 +203,4 @@
                 android:value="@array/voice_feature_weekly_goal" />
         </capability-binding>
     </shortcut>
-
-    <shortcut
-        android:shortcutId="community"
-        android:shortcutShortLabel="@string/nav_community"
-        android:shortcutLongLabel="@string/nav_community">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:data="truckerload://app/community"
-            android:targetPackage="com.truckerload"
-            android:targetClass="com.truckerload.presentation.MainActivity" />
-        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
-            <parameter-binding
-                android:key="feature"
-                android:value="@array/voice_feature_community" />
-        </capability-binding>
-    </shortcut>
-
-    <shortcut
-        android:shortcutId="friends_map"
-        android:shortcutShortLabel="@string/drawer_friends_live"
-        android:shortcutLongLabel="@string/friends_live_map_title">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:data="truckerload://app/friends_live"
-            android:targetPackage="com.truckerload"
-            android:targetClass="com.truckerload.presentation.MainActivity" />
-        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
-            <parameter-binding
-                android:key="feature"
-                android:value="@array/voice_feature_friends" />
-        </capability-binding>
-    </shortcut>
 </shortcuts>

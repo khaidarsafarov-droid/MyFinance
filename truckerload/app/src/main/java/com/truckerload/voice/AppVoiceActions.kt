@@ -56,6 +56,7 @@ object AppVoiceActions {
         Routes.SCAN_GALLERY to listOf("документы", "галерея сканов", "documents"),
         Routes.PHOTO_GALLERY to listOf("галерея фото", "фото", "photo gallery"),
         Routes.MAINTENANCE to listOf("обслуживание", "maintenance", "то"),
+        Routes.TAX_TRACKER to listOf("налоги", "налог", "taxes", "tax tracker", "tax"),
         Routes.ADD_PAYCHECK to listOf("добавить зарплату", "зарплата", "add paycheck", "paycheck"),
         Routes.ADD_DIESEL to listOf("добавить дизель", "дизель", "add diesel", "diesel"),
         Routes.SCANNER to listOf("сканер", "scanner"),

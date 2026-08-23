@@ -18,6 +18,8 @@ class ShortcutsXmlTest {
         assertTrue(xml.contains("truckerload://assistant/add_diesel"))
         assertTrue(xml.contains("truckerload://assistant/add_paycheck"))
         assertTrue(xml.contains("truckerload://assistant/weekly_gross"))
+        assertFalse(xml.contains("truckerload://app/community"))
+        assertFalse(xml.contains("truckerload://app/friends_live"))
         assertFalse(File("src/main/res/xml/actions.xml").isFile)
         assertFalse(File("app/src/main/res/xml/actions.xml").isFile)
     }

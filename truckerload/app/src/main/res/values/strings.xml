@@ -516,7 +516,7 @@
     <string name="calendar_next_month_cd">Следующий месяц</string>
 
     <string name="advisor_title">Финансовый советник</string>
-    <string name="advisor_missing_key">Добавьте ключ CEREBRAS_API_KEY в local.properties</string>
+    <string name="advisor_missing_key">Финансовый советник временно недоступен.</string>
     <string name="advisor_thinking">Думаю...</string>
     <string name="advisor_placeholder_question">Введите вопрос...</string>
     <string name="advisor_cd_send">Отправить</string>
@@ -531,7 +531,7 @@
     <string name="advisor_suggestion_taxes">Сколько отложить на налоги?</string>
     <string name="advisor_suggestion_compare_week">Сравни эту неделю с прошлой</string>
     <string name="advisor_error_no_response">Сервис не вернул ответ. Попробуйте ещё раз.</string>
-    <string name="advisor_error_api_key">Проблема с ключом AI. Проверьте CEREBRAS_API_KEY и попробуйте снова.</string>
+    <string name="advisor_error_api_key">Ошибка AI-сервиса. Попробуйте позже.</string>
     <string name="advisor_error_rate_limit">Лимит запросов временно исчерпан. Подождите 30-60 секунд и повторите.</string>
     <string name="advisor_error_unavailable">Сервис AI временно недоступен. Повторите попытку через минуту.</string>
     <string name="advisor_error_timeout">Сервер отвечает слишком долго. Проверьте интернет и повторите.</string>
@@ -551,6 +551,8 @@
     <string name="tax_total_deductions">Итого вычетов: -$%1$.2f</string>
     <string name="taxable_income">Налогооблагаемый доход</string>
     <string name="tax_total_owed">Итого к уплате: $%1$.2f</string>
+    <string name="tax_se_tax">SE Tax (~15.3%%): $%1$.2f</string>
+    <string name="tax_federal_tax">Federal Tax: $%1$.2f</string>
 
     <string name="state_list_title">Топ-5 штатов по выручке</string>
     <string name="state_list_empty">Данных пока нет. Самое время запланировать новый маршрут!</string>
