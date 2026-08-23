@@ -8,9 +8,16 @@ object ReceiptKindClassifier {
 
     private val loadMarkers = listOf(
         6 to Regex("""Trip\s*ID|T-[A-Z0-9]{6,}""", RegexOption.IGNORE_CASE),
-        5 to Regex("""Total\s*Rate|Line\s*-?\s*Haul|Pu[\s\-]*address|Del[\s\-]*address""", RegexOption.IGNORE_CASE),
-        4 to Regex("""Total\s*Loaded\s*Miles|Amazon\s*Relay|rate\s*confirmation""", RegexOption.IGNORE_CASE),
-        3 to Regex("""\bPU#|\bDEL#|pickup|delivery""", RegexOption.IGNORE_CASE),
+        5 to Regex(
+            """Total\s*Rate|Line\s*-?\s*Haul|Pu[\s\-]*address|Del[\s\-]*address|Estimated\s*Rate""",
+            RegexOption.IGNORE_CASE,
+        ),
+        4 to Regex(
+            """Total\s*Loaded\s*Miles|Amazon\s*Relay|rate[\s\-]*confirmation|""" +
+                """load[\s\-]*confirmation|load\s*information|IEL\s*PO""",
+            RegexOption.IGNORE_CASE,
+        ),
+        3 to Regex("""\bPU#|\bP/U\s*#|\bDEL#|pickup|delivery|pick\s*ups""", RegexOption.IGNORE_CASE),
     )
 
     private val paycheckMarkers = listOf(
@@ -34,8 +41,8 @@ object ReceiptKindClassifier {
         4 to Regex("""DEF\s*fill|DEF\s*gal""", RegexOption.IGNORE_CASE),
     )
 
-    fun classify(text: String): ReceiptKind {
-        val scores = scores(text)
+    fun classify(text: String, fileName: String? = null): ReceiptKind {
+        val scores = scores(text, fileName)
         val best = scores.maxByOrNull { it.value } ?: return ReceiptKind.UNKNOWN
         if (best.value <= 0) return ReceiptKind.UNKNOWN
         val load = scores[ReceiptKind.LOAD] ?: 0
@@ -49,8 +56,8 @@ object ReceiptKindClassifier {
         return best.key
     }
 
-    fun scores(text: String): Map<ReceiptKind, Int> {
-        val src = text.trim()
+    fun scores(text: String, fileName: String? = null): Map<ReceiptKind, Int> {
+        val src = combined(text, fileName).trim()
         if (src.isBlank()) {
             return ReceiptKind.entries.associateWith { 0 }
         }
@@ -65,4 +72,7 @@ object ReceiptKindClassifier {
 
     private fun score(text: String, markers: List<Pair<Int, Regex>>): Int =
         markers.sumOf { (weight, regex) -> if (regex.containsMatchIn(text)) weight else 0 }
+
+    private fun combined(text: String, fileName: String?): String =
+        listOfNotNull(fileName?.replace('-', ' '), text).joinToString("\n")
 }

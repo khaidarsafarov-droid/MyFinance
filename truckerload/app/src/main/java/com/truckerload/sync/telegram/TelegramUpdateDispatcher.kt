@@ -46,6 +46,7 @@ class TelegramUpdateDispatcher(
                 ingest().handleCallback(
                     data = update.text,
                     chatId = update.chatId,
+                    loadRepository = loadRepository,
                     paycheckRepository = paycheckRepository,
                     dieselRepository = dieselRepository,
                     prefs = prefs,

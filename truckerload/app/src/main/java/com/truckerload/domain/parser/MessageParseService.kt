@@ -18,6 +18,23 @@ class MessageParseService {
         LoadMessageParser.parseAll(rawMessage, referenceMillis)
     }
 
+    /**
+     * Relay blocks first, then broker rate-confirmation PDFs / loose OCR.
+     * Used for Telegram files and other inbound documents of unknown layout.
+     */
+    fun parseLoadsFromInboundText(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+        fileName: String? = null,
+    ): Result<List<Load>> = runCatching {
+        val relay = LoadMessageParser.parseAll(rawMessage, referenceMillis)
+        if (relay.isNotEmpty()) return@runCatching relay
+        listOfNotNull(
+            RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)
+                ?: FlexibleLoadParser.parseOne(rawMessage, referenceMillis),
+        )
+    }
+
     fun parseLoadFromMessage(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
@@ -32,6 +49,7 @@ class MessageParseService {
         referenceMillis: Long = System.currentTimeMillis(),
     ): Result<Load> = runCatching {
         parseAmazonRelayLoad(rawMessage, referenceMillis)?.load
+            ?: RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis)
             ?: FlexibleLoadParser.parseOne(rawMessage, referenceMillis)
             ?: throw IllegalArgumentException("No valid load found in message")
     }
@@ -45,6 +63,9 @@ class MessageParseService {
         referenceMillis: Long = System.currentTimeMillis(),
     ): LoadDraftFields {
         parseAmazonRelayLoad(rawMessage, referenceMillis)?.load?.let { return LoadDraftFields.fromLoad(it) }
+        RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis)?.let {
+            return LoadDraftFields.fromLoad(it)
+        }
         return FlexibleLoadParser.extractFields(rawMessage)
     }
 

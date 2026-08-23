@@ -149,6 +149,23 @@ class FlexibleLoadParserTest {
     }
 
     @Test
+    fun pickupDateIsNotUsedAsAddress() {
+        val text = """
+            Rate: $1800
+            Miles: 620
+            Pick Up: 07/25/25
+            Delivery: 07/26/25
+            Houston, TX
+            Atlanta, GA
+        """.trimIndent()
+        val load = FlexibleLoadParser.parseOne(text, nowMillis = 1_776_441_600_000L)
+        assertNotNull(load)
+        assertTrue(load!!.pointA.contains("Houston"))
+        assertTrue(load.pointB.contains("Atlanta"))
+        assertTrue(!load.pointA.contains("07/25"))
+    }
+
+    @Test
     fun joinLabelValueLinesMergesOcrStackedLabels() {
         val joined = FlexibleLoadParser.joinLabelValueLines(
             """

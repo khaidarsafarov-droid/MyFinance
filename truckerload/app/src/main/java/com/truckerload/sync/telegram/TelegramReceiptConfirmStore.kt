@@ -46,6 +46,9 @@ class TelegramReceiptConfirmStore(
         put("vendor", preview.vendor ?: JSONObject.NULL)
         put("driver", preview.driverName ?: JSONObject.NULL)
         put("trip", preview.tripId ?: JSONObject.NULL)
+        put("miles", preview.miles ?: JSONObject.NULL)
+        put("pointA", preview.pointA ?: JSONObject.NULL)
+        put("pointB", preview.pointB ?: JSONObject.NULL)
         put("text", preview.extractedText.take(12_000))
         put("highlight", preview.highlightToken ?: JSONObject.NULL)
         put("file", preview.sourceFileName ?: JSONObject.NULL)
@@ -63,6 +66,9 @@ class TelegramReceiptConfirmStore(
         vendor = json.optStringOrNull("vendor"),
         driverName = json.optStringOrNull("driver"),
         tripId = json.optStringOrNull("trip"),
+        miles = json.optDoubleOrNull("miles"),
+        pointA = json.optStringOrNull("pointA"),
+        pointB = json.optStringOrNull("pointB"),
         extractedText = json.optString("text"),
         highlightToken = json.optStringOrNull("highlight"),
         sourceFileName = json.optStringOrNull("file"),

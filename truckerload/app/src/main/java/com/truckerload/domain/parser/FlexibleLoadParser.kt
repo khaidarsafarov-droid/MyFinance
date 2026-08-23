@@ -154,11 +154,15 @@ object FlexibleLoadParser {
             }.maxOrNull()
         }.maxOrNull()
 
+    private val dateOnlyValue = Regex("""^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}$""")
+
+    private fun looksLikeDateOnly(value: String): Boolean = dateOnlyValue.matches(value.trim())
+
     private fun firstLabeled(text: String, patterns: List<Regex>): String? {
         for (pattern in patterns) {
             val match = pattern.find(text) ?: continue
             val first = match.groupValues[1].trim()
-            if (first.isNotBlank()) {
+            if (first.isNotBlank() && !looksLikeDateOnly(first)) {
                 val extra = followingAddressLines(text, match.range.last)
                 return listOf(first, extra).filter { it.isNotBlank() }.joinToString(", ")
             }

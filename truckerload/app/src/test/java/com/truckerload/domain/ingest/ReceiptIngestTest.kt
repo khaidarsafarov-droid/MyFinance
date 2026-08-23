@@ -59,6 +59,24 @@ class ReceiptKindClassifierTest {
             ReceiptKindClassifier.classify("Зарплата\nGrand Total: $1,100.00"),
         )
     }
+
+    @Test
+    fun rateConfirmationFilenameBeatsLovesMention() {
+        val text = """
+            Rate Confirmation
+            Estimated Rate: $2,325.84
+            Miles: 742.50
+            Pick Ups
+            Address: 1325 ENSELL RD LAKE ZURICH, IL 60047
+            LOVES TRAVEL STOP #800
+            Deliveries
+            Address: 7091 TROY HILL DRIVE ELKRIDGE, MD 21075
+        """.trimIndent()
+        assertEquals(
+            ReceiptKind.LOAD,
+            ReceiptKindClassifier.classify(text, "2665704-Carrier-Rate-Confirmation.pdf"),
+        )
+    }
 }
 
 class ReceiptFieldExtractorTest {
