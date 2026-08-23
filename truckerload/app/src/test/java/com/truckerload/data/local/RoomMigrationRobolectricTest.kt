@@ -13,16 +13,16 @@ import org.robolectric.annotation.Config
 
 /**
  * JVM/CI-friendly mirror of MigrationTestHelper smoke coverage.
- * Runs the full 6→33 path and asserts fixture survival + key columns.
+ * Runs the full 6→34 path and asserts fixture survival + key columns.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class RoomMigrationRobolectricTest {
 
     @Test
-    fun migrate6To33_smoke() {
+    fun migrate6To34_smoke() {
         val context = RuntimeEnvironment.getApplication()
-        val dbName = "robo-migration-6-31"
+        val dbName = "robo-migration-6-34"
         context.deleteDatabase(dbName)
 
         val config = SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -105,7 +105,7 @@ class RoomMigrationRobolectricTest {
                     db.version = version
                 }
             }
-            assertEquals(33, version)
+            assertEquals(34, version)
             db.query("SELECT COUNT(*) FROM loads").use { c ->
                 assertTrue(c.moveToFirst())
                 assertEquals(1, c.getInt(0))
@@ -114,6 +114,7 @@ class RoomMigrationRobolectricTest {
             assertTrue(db.hasColumn("loads", "actualFinishDate"))
             assertTrue(db.hasColumn("loads", "equipmentType"))
             assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
+            assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
             assertTrue(db.hasTable("crowd_rates"))
             assertTrue(db.hasTable("media_sync_queue"))
             assertTrue(db.hasTable("maintenance_archive"))
