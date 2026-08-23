@@ -11,7 +11,9 @@ import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselPurchaseMath
 import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getMillisForWeek
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
+import com.truckerload.utils.shiftWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -90,20 +92,14 @@ class AddDieselViewModel @Inject constructor(
 
     fun selectPreviousWeek() {
         val state = _uiState.value
-        if (state.weekNumber > 1) {
-            setWeekAndYear(state.weekNumber - 1, state.year)
-        } else {
-            setWeekAndYear(52, state.year - 1)
-        }
+        val (week, year) = shiftWeekNumberAndYear(state.weekNumber, state.year, -1)
+        setWeekAndYear(week, year)
     }
 
     fun selectNextWeek() {
         val state = _uiState.value
-        if (state.weekNumber < 52) {
-            setWeekAndYear(state.weekNumber + 1, state.year)
-        } else {
-            setWeekAndYear(1, state.year + 1)
-        }
+        val (week, year) = shiftWeekNumberAndYear(state.weekNumber, state.year, 1)
+        setWeekAndYear(week, year)
     }
 
     fun openSaveDialog() {
@@ -113,17 +109,9 @@ class AddDieselViewModel @Inject constructor(
             _uiState.update { it.copy(error = validationError) }
             return
         }
-
-        val now = System.currentTimeMillis()
-        savedStateHandle[KEY_RECORDED_AT_MILLIS] = now
+        // Keep recordedAtMillis / selected week — do not force "now".
         savedStateHandle[KEY_SHOW_SAVE_DIALOG] = true
-        _uiState.update {
-            it.copy(
-                recordedAtMillis = now,
-                error = null,
-                showSaveDialog = true,
-            )
-        }
+        _uiState.update { it.copy(error = null, showSaveDialog = true) }
     }
 
     fun dismissSaveDialog() {
@@ -165,7 +153,8 @@ class AddDieselViewModel @Inject constructor(
         val discount = state.discountPricePerGallon
         val paidTotal = state.paidTotal!!
 
-        val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(state.recordedAtMillis)
+        val weekNumber = state.weekNumber
+        val year = state.year
         val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
         val diesel = Diesel(
             id = 0,
@@ -247,20 +236,33 @@ class AddDieselViewModel @Inject constructor(
     }
 
     private fun setWeekAndYear(weekNumber: Int, year: Int) {
+        val millis = getMillisForWeek(weekNumber, year)
         savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
         savedStateHandle[KEY_YEAR] = year
+        savedStateHandle[KEY_RECORDED_AT_MILLIS] = millis
         _uiState.update {
             it.copy(
                 weekNumber = weekNumber,
                 year = year,
+                recordedAtMillis = millis,
                 error = null,
             )
         }
     }
 
     private fun setRecordedAtMillis(value: Long) {
+        val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(value)
         savedStateHandle[KEY_RECORDED_AT_MILLIS] = value
-        _uiState.update { it.copy(recordedAtMillis = value, error = null) }
+        savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
+        savedStateHandle[KEY_YEAR] = year
+        _uiState.update {
+            it.copy(
+                recordedAtMillis = value,
+                weekNumber = weekNumber,
+                year = year,
+                error = null,
+            )
+        }
     }
 
     companion object {
