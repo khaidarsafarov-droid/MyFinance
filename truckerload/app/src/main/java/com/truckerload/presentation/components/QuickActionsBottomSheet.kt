@@ -30,6 +30,7 @@ import com.truckerload.utils.FeedbackManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun QuickActionsBottomSheet(
     onDismiss: () -> Unit,
     onAddLoad: () -> Unit,
@@ -68,15 +69,7 @@ fun QuickActionsBottomSheet(
                     onAddLoad()
                 },
             )
-            QuickActionRow(
-                icon = AppIcons.CameraAlt,
-                title = stringResource(R.string.widget_camera),
-                onClick = {
-                    FeedbackManager.onNavSelect()
-                    onDismiss()
-                    onCamera()
-                },
-            )
+            // Capture routes through scanner; camera stays available via dedicated entry points.
             QuickActionRow(
                 icon = AppIcons.DocumentScanner,
                 title = stringResource(R.string.widget_scanner),

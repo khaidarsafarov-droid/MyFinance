@@ -89,16 +89,8 @@ internal fun HomeLoadCardRow(
                 onDelete = { if (load.id.isNotBlank()) onDelete(load.id) },
                 rpmThresholds = rpmThresholds,
                 modifier = Modifier.weight(1f),
-                onCameraClick = {
-                    if (load.id.isNotBlank()) {
-                        onLoadCamera(load.id, load.tripId, load.date)
-                    }
-                },
-                onScanClick = {
-                    if (load.id.isNotBlank()) {
-                        onLoadScan(load.id, load.tripId, load.date)
-                    }
-                },
+                onCameraClick = null,
+                onScanClick = null,
                 settleKey = settleKey,
                 enableSwipe = enableSwipe,
             )

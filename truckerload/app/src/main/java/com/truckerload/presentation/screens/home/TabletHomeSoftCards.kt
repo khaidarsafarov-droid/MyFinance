@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -17,9 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -252,6 +248,7 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
 }
 
 @Composable
+@Suppress("UNUSED_PARAMETER")
 internal fun SoftGoalCard(
     modifier: Modifier,
     weeklyGoal: Double,
@@ -276,8 +273,7 @@ internal fun SoftGoalCard(
                 onClick = onOpenWeeklyGoal,
             )
             .padding(18.dp)
-            .heightIn(min = 280.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .heightIn(min = 140.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
@@ -292,49 +288,16 @@ internal fun SoftGoalCard(
                 color = tc.TextPrimary,
             )
         }
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(132.dp)) {
-            CircularProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxSize(),
-                color = SoftUiColors.ForestAccent,
-                trackColor = SoftUiColors.Sage,
-                strokeWidth = 12.dp,
-                strokeCap = StrokeCap.Round,
-            )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "${(progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = tc.TextPrimary,
-                )
-            }
-        }
         Text(
-            text = MoneyFormat.formatCurrency(currentGross),
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = tc.TextPrimary,
-        )
-        Text(
-            text = if (weeklyGoal > 0) {
-                stringResource(
-                    R.string.tablet_home_goal_of,
-                    MoneyFormat.formatCurrency(weeklyGoal),
-                )
-            } else {
-                stringResource(R.string.tablet_home_goal_set)
-            },
+            text = stringResource(if (weeklyGoal > 0) R.string.nav_weekly_goal else R.string.ux_next_set_goal),
             style = MaterialTheme.typography.bodyMedium,
             color = tc.TextSecondary,
         )
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(8.dp)),
+        // Detailed ring/amounts live on the Goal tab only.
+        Text(
+            text = stringResource(R.string.nav_weekly_goal),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = SoftUiColors.ForestAccent,
-            trackColor = SoftUiColors.Sage,
-            strokeCap = StrokeCap.Round,
         )
     }
 }

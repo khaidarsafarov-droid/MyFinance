@@ -54,7 +54,7 @@ class HttpClientProvider @Inject constructor(
             }
             if (BuildConfig.DEBUG) {
                 install(Logging) {
-                    level = LogLevel.HEADERS
+                    level = LogLevel.INFO // never log Authorization headers
                 }
             }
             authInterceptor.install(this)

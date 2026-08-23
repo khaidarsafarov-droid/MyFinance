@@ -63,6 +63,18 @@ fun getCurrentWeekNumberAndYear(): Pair<Int, Int> {
 }
 
 /** Shift trucking week by [deltaWeeks] (negative = previous). */
+/** Noon (local) on Sunday of the trucking week — keeps week chips aligned with save(). */
+fun getMillisForWeek(weekNumber: Int, year: Int): Long {
+    val cal = truckingWeekCalendar()
+    cal.clear()
+    cal.setWeekDate(year, weekNumber, Calendar.SUNDAY)
+    cal.set(Calendar.HOUR_OF_DAY, 12)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    return cal.timeInMillis
+}
+
 fun shiftWeekNumberAndYear(weekNumber: Int, year: Int, deltaWeeks: Int): Pair<Int, Int> {
     val cal = truckingWeekCalendar()
     cal.clear()

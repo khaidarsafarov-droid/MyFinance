@@ -1531,4 +1531,7 @@
     <string name="assistant_error_mic_permission">Microphone access is required</string>
     <string name="assistant_mic_rationale_title">Microphone</string>
     <string name="assistant_mic_rationale_body">The assistant needs the microphone to hear commands. Journal entries are never saved without your confirmation</string>
+    <string name="drawer_section_finance">Finance</string>
+    <string name="drawer_section_data_entry">Data entry</string>
+    <string name="drawer_section_maintenance">Maintenance</string>
 </resources>

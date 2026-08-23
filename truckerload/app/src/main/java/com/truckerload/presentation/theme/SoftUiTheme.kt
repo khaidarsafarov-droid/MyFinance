@@ -12,7 +12,7 @@ object SoftUiColors {
     val ForestPrimary = Color(0xFF2F4F3E)
     val ForestAccent = Color(0xFF4A7C59)
     val ForestMuted = Color(0xFF557A64)
-    val ForestSoft = Color(0xFFA3B899)
+    val ForestSoft = Color(0xFFC9DBC8)
     val Sage = Color(0xFFE6EDE9)
     val SageHover = Color(0xFFD2E0D7)
     val SageBorder = Color(0xFFD2E0D7)
@@ -52,7 +52,7 @@ object SoftUiColors {
     val TextPrimaryLight = ForestPrimary
     val TextSecondaryLight = Color(0xFF3A5748)
     val TextPrimaryDark = Color(0xFFF2F7F4)
-    val TextSecondaryDark = Color(0xFFC5D3C9)
+    val TextSecondaryDark = Color(0xFFE0EBE4)
 
     val ShadowTint = Color(0x142F4F3E)
     val ShadowNeutral = Color(0x0D000000)

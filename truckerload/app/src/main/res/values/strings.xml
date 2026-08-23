@@ -1533,4 +1533,7 @@
     <string name="assistant_error_mic_permission">Нужен доступ к микрофону</string>
     <string name="assistant_mic_rationale_title">Микрофон</string>
     <string name="assistant_mic_rationale_body">Чтобы понять команду, приложению нужен микрофон. Данные не пишутся в журнал без вашего подтверждения</string>
+    <string name="drawer_section_finance">Финансы</string>
+    <string name="drawer_section_data_entry">Ввод данных</string>
+    <string name="drawer_section_maintenance">Обслуживание</string>
 </resources>

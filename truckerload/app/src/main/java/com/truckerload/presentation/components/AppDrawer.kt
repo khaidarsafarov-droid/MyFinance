@@ -3,11 +3,9 @@ package com.truckerload.presentation.components
 import com.truckerload.presentation.icons.AppIcons
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -49,8 +47,6 @@ enum class DrawerDestination {
     ADD_PAYCHECK,
     ADD_DIESEL,
     VOICE_ASSISTANT,
-    SCANNER,
-    CAMERA,
     ABOUT,
 }
 
@@ -65,7 +61,6 @@ fun AppDrawerContent(
     val authStore = LocalAuthStore.current
     val scope = rememberCoroutineScope()
     var showLogoutConfirm by remember { mutableStateOf(false) }
-    var toolsExpanded by remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
         modifier = modifier,
@@ -92,76 +87,51 @@ fun AppDrawerContent(
                 onClick = { onNavigate(DrawerDestination.SETTINGS); onClose() },
             )
             drawerItem(
+                icon = AppIcons.Map,
+                label = stringResource(R.string.drawer_map),
+                onClick = { onNavigate(DrawerDestination.MAP); onClose() },
+            )
+
+            DrawerSectionLabel(stringResource(R.string.drawer_section_finance))
+            drawerItem(
+                icon = AppIcons.Payments,
+                label = stringResource(R.string.add_paycheck_title),
+                onClick = { onNavigate(DrawerDestination.ADD_PAYCHECK); onClose() },
+            )
+            drawerItem(
+                icon = AppIcons.LocalGasStation,
+                label = stringResource(R.string.add_diesel_title),
+                onClick = { onNavigate(DrawerDestination.ADD_DIESEL); onClose() },
+            )
+            drawerItem(
                 icon = AppIcons.BarChart,
                 label = stringResource(R.string.drawer_reports),
                 onClick = { onNavigate(DrawerDestination.REPORTS); onClose() },
             )
             drawerItem(
-                icon = AppIcons.Map,
-                label = stringResource(R.string.drawer_map),
-                onClick = { onNavigate(DrawerDestination.MAP); onClose() },
+                icon = AppIcons.TableChart,
+                label = stringResource(R.string.tax_title),
+                onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
+            )
+
+            DrawerSectionLabel(stringResource(R.string.drawer_section_data_entry))
+            drawerItem(
+                icon = AppIcons.Mic,
+                label = stringResource(R.string.assistant_title),
+                onClick = { onNavigate(DrawerDestination.VOICE_ASSISTANT); onClose() },
+            )
+
+            DrawerSectionLabel(stringResource(R.string.drawer_section_maintenance))
+            drawerItem(
+                icon = AppIcons.Build,
+                label = stringResource(R.string.maintenance_title),
+                onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
             )
             drawerItem(
                 icon = AppIcons.Description,
                 label = stringResource(R.string.drawer_documents),
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
             )
-            drawerItem(
-                icon = AppIcons.Handyman,
-                label = stringResource(R.string.drawer_tools),
-                onClick = { toolsExpanded = !toolsExpanded },
-                trailingIcon = if (toolsExpanded) {
-                    AppIcons.ExpandLess
-                } else {
-                    AppIcons.ExpandMore
-                },
-            )
-            AnimatedVisibility(visible = toolsExpanded) {
-                Column {
-                    drawerItem(
-                        icon = AppIcons.Build,
-                        label = stringResource(R.string.maintenance_title),
-                        onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = AppIcons.TableChart,
-                        label = stringResource(R.string.tax_title),
-                        onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = AppIcons.Payments,
-                        label = stringResource(R.string.add_paycheck_title),
-                        onClick = { onNavigate(DrawerDestination.ADD_PAYCHECK); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = AppIcons.LocalGasStation,
-                        label = stringResource(R.string.add_diesel_title),
-                        onClick = { onNavigate(DrawerDestination.ADD_DIESEL); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = AppIcons.Mic,
-                        label = stringResource(R.string.assistant_title),
-                        onClick = { onNavigate(DrawerDestination.VOICE_ASSISTANT); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = AppIcons.DocumentScanner,
-                        label = stringResource(R.string.scanner),
-                        onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
-                        indented = true,
-                    )
-                    drawerItem(
-                        icon = AppIcons.CameraAlt,
-                        label = stringResource(R.string.camera),
-                        onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
-                        indented = true,
-                    )
-                }
-            }
             drawerItem(
                 icon = AppIcons.Info,
                 label = stringResource(R.string.drawer_about),
@@ -228,6 +198,17 @@ fun AppDrawerContent(
             },
         )
     }
+}
+
+@Composable
+private fun DrawerSectionLabel(text: String) {
+    val tc = LocalTruckColors.current
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+        color = tc.TextSecondary,
+        modifier = Modifier.padding(start = 28.dp, top = 16.dp, bottom = 4.dp, end = 16.dp),
+    )
 }
 
 @Composable

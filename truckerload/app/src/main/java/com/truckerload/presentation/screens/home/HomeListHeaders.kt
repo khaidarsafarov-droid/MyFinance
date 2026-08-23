@@ -129,18 +129,8 @@ internal fun PeriodSummarySection(
                     }
                 }
             }
-            if (weeklyGoal > 0 && totals.totalRate > 0) {
-                Text(
-                    text = stringResource(
-                        R.string.ux_contrast_remaining_of_goal,
-                        gross,
-                        MoneyFormat.formatCurrency(weeklyGoal),
-                        MoneyFormat.formatCurrency((weeklyGoal - totals.totalRate).coerceAtLeast(0.0)),
-                    ),
-                    style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            } else if (weeklyGoal <= 0 && totals.totalRate > 0) {
+            // Goal progress lives on the Goal tab only (audit Stage 8).
+            if (weeklyGoal <= 0 && totals.totalRate > 0) {
                 Text(
                     text = stringResource(R.string.ux_next_set_goal),
                     style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
