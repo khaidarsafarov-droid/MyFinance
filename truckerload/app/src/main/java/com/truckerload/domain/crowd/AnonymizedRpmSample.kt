@@ -16,8 +16,8 @@ import com.truckerload.domain.model.EquipmentType
  * and optional equipment type. Do **not** log instances of this class (same
  * rule as JWT / OCR / signed URLs).
  *
- * There is currently no HTTP Crowd RPM publisher; any future send must pass
- * through [CrowdRpmShareGate] and [com.truckerload.data.preferences.SettingsDataStore.crowdStatsOptIn].
+ * There is currently no HTTP Crowd RPM publisher; map/stats use only the
+ * signed-in user's local loads. Community share UI and opt-in were removed.
  *
  * @see <a href="https://github.com/khaidarsafarov-droid/MyFinance/blob/main/truckerload/docs/CROWD_RPM_PRIVACY.md">docs/CROWD_RPM_PRIVACY.md</a>
  */

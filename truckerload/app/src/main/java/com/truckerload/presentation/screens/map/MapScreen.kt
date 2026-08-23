@@ -50,7 +50,6 @@ import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.screens.add.EquipmentTypeChipRow
-import com.truckerload.presentation.screens.privacy.CrowdStatsConsentDialog
 import com.truckerload.presentation.components.getStateDisplayName
 import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -65,13 +64,6 @@ fun MapScreen(
 ) {
     val viewModel: MapViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    if (uiState.showCrowdConsent) {
-        CrowdStatsConsentDialog(
-            onParticipate = viewModel::acceptCrowdStats,
-            onNotNow = viewModel::declineCrowdStats,
-        )
-    }
 
     if (embedded) {
         MapScreenBody(
