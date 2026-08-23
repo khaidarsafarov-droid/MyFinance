@@ -816,7 +816,7 @@
     <string name="drive_sync_restore_confirm_title">Restore from Drive?</string>
     <string name="drive_sync_restore_confirm_body">Local loads, paychecks, and diesel will be replaced by the Google Drive copy. All photos and scans on this device will be deleted (backups do not include media).</string>
     <string name="backup_restore_confirm_title">Restore from file?</string>
-    <string name="backup_restore_confirm_body">Your current journal (loads, paychecks, diesel) will be replaced by the file. All photos and scans on this device will be deleted — backup files do not include media.</string>
+    <string name="backup_restore_confirm_body">Your current journal (loads, paychecks, diesel) will be replaced by the file. Photos and scans linked to removed loads will be deleted; other media on this device will be kept.</string>
     <string name="backup_restore_confirm_action">Restore</string>
     <string name="drive_sync_restore_conflict_body">This device has changes after the last sync, and Drive has a newer backup. Restore will overwrite local data.</string>
     <string name="settings_app_version">Version %1$s</string>

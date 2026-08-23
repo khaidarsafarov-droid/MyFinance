@@ -12,16 +12,14 @@ import com.truckerload.data.backup.BackupData
 import com.truckerload.data.backup.BackupDataCodec
 import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.BackupRestoreParser
+import com.truckerload.data.backup.BackupRoomApplier
 import com.truckerload.data.backup.BackupSchema
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.local.toEntity
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
-import com.truckerload.data.repository.PhotoRepository
-import com.truckerload.data.repository.ScanRepository
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -379,28 +377,8 @@ object BackupService {
         ) {
             return Result.failure(BackupRestoreException.WrongAccount())
         }
-        val loadDao = db.loadDao()
-        val stopDao = db.stopDao()
-        val penaltyDao = db.penaltyDao()
-        val paycheckDao = db.paycheckDao()
-        val dieselDao = db.dieselDao()
-
-        db.withTransaction {
-            PhotoRepository(db).deleteAllPhotosAndFiles()
-            ScanRepository(db).deleteAllScansAndFiles()
-            dieselDao.deleteAll()
-            paycheckDao.deleteAll()
-            db.loadHistoryDao().deleteAll()
-            loadDao.deleteAll()
-
-            backup.loads.forEach { load ->
-                loadDao.insert(load.toEntity())
-                if (load.stops.isNotEmpty()) stopDao.insertAll(load.stops.map { it.toEntity(load.id) })
-                if (load.penalties.isNotEmpty()) penaltyDao.insertAll(load.penalties.map { it.toEntity(load.id) })
-            }
-            if (backup.paychecks.isNotEmpty()) paycheckDao.insertAll(backup.paychecks.map { it.toEntity() })
-            if (backup.diesel.isNotEmpty()) dieselDao.insertAll(backup.diesel.map { it.toEntity() })
-        }
+        BackupRoomApplier.applyFullReplace(db, backup)
+        BackupRoomApplier.pruneOrphanMedia(db)
 
         return Result.success(backup)
     }

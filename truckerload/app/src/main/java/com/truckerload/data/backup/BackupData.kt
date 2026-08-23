@@ -8,7 +8,8 @@ import com.truckerload.domain.model.Paycheck
 /**
  * JSON backup payload shared by export and import ([BackupDataCodec]).
  *
- * Photos/scans are omitted: binary media lives on disk and is purged on restore.
+ * Photos/scans are omitted from the JSON payload (binary media stays on disk).
+ * On restore, media linked to restored load ids is kept; only orphan load attachments are pruned.
  * Maintenance tasks are not part of schema v1 (add in a future schemaVersion).
  *
  * [schemaVersion] is the backup-format version. [version] is the legacy alias

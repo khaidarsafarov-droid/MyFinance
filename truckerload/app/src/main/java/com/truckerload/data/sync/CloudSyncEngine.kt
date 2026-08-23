@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.room.withTransaction
 import com.truckerload.data.backup.BackupData
+import com.truckerload.data.backup.BackupRoomApplier
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
@@ -191,27 +192,8 @@ object CloudSyncEngine {
         snapshot: AccountCloudSnapshot,
     ): Int {
         val backup = snapshot.backup
-        db.withTransaction {
-            db.dieselDao().deleteAll()
-            db.paycheckDao().deleteAll()
-            db.loadHistoryDao().deleteAll()
-            db.loadDao().deleteAll()
-            backup.loads.forEach { load ->
-                db.loadDao().insert(load.toEntity())
-                if (load.stops.isNotEmpty()) {
-                    db.stopDao().insertAll(load.stops.map { it.toEntity(load.id) })
-                }
-                if (load.penalties.isNotEmpty()) {
-                    db.penaltyDao().insertAll(load.penalties.map { it.toEntity(load.id) })
-                }
-            }
-            if (backup.paychecks.isNotEmpty()) {
-                db.paycheckDao().insertAll(backup.paychecks.map { it.toEntity() })
-            }
-            if (backup.diesel.isNotEmpty()) {
-                db.dieselDao().insertAll(backup.diesel.map { it.toEntity() })
-            }
-        }
+        BackupRoomApplier.applyFullReplace(db, backup)
+        BackupRoomApplier.pruneOrphanMedia(db)
         applyDriverProfileIfPresent(db, snapshot)
         return backup.loads.size
     }
@@ -281,6 +263,7 @@ object CloudSyncEngine {
                 applied += upserts.size
             }
         }
+        BackupRoomApplier.pruneOrphanMedia(db)
         return applied
     }
 

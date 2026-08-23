@@ -32,10 +32,10 @@ class CloudArchitectureGuardTest {
 
     @Test
     fun restoreAndHydration_clearLoadHistory() {
-        val backup = readMain("com/truckerload/utils/BackupService.kt")
-        assertTrue(backup.contains("loadHistoryDao().deleteAll()"))
+        val applier = readMain("com/truckerload/data/backup/BackupRoomApplier.kt")
+        assertTrue(applier.contains("loadHistoryDao().deleteAll()"))
         val engine = readMain("com/truckerload/data/sync/CloudSyncEngine.kt")
-        assertTrue(engine.contains("loadHistoryDao().deleteAll()"))
+        assertTrue(engine.contains("BackupRoomApplier.applyFullReplace"))
         val dao = readMain("com/truckerload/data/local/dao/LoadHistoryDao.kt")
         assertTrue(dao.contains("DELETE FROM load_history"))
     }
