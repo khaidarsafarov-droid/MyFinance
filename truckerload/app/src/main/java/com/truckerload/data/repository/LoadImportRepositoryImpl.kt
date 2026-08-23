@@ -15,4 +15,7 @@ class LoadImportRepositoryImpl(
     override suspend fun insertLoad(load: Load, playFeedback: Boolean) {
         loadRepository.insertLoad(load, playFeedback = playFeedback)
     }
+
+    override suspend fun <T> runBatchWrite(block: suspend () -> T): T =
+        loadRepository.runBatchWrite(block)
 }

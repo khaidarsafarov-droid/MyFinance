@@ -148,27 +148,29 @@ class ImportLoadsUseCase(
         val results = mutableListOf<ImportResult>()
         val total = parsedLoads.size
 
-        parsedLoads.forEachIndexed { index, load ->
-            onProgress(index + 1, total)
+        loadRepository.runBatchWrite {
+            parsedLoads.forEachIndexed { index, load ->
+                onProgress(index + 1, total)
 
-            val validation = validator.validate(load)
-            if (!validation.isValid) {
-                results.add(
-                    ImportResult.Failed(
-                        tripId = load.tripId,
-                        rawBlock = load.rawMessage.take(200),
-                        error = validation.errors.joinToString("; "),
+                val validation = validator.validate(load)
+                if (!validation.isValid) {
+                    results.add(
+                        ImportResult.Failed(
+                            tripId = load.tripId,
+                            rawBlock = load.rawMessage.take(200),
+                            error = validation.errors.joinToString("; "),
+                        )
                     )
-                )
-                return@forEachIndexed
-            }
+                    return@forEachIndexed
+                }
 
-            val result = if (loadProcessor != null) {
-                processWithProcessor(load)
-            } else {
-                processLegacy(load)
+                val result = if (loadProcessor != null) {
+                    processWithProcessor(load)
+                } else {
+                    processLegacy(load)
+                }
+                results.add(result)
             }
-            results.add(result)
         }
 
         if (results.any {

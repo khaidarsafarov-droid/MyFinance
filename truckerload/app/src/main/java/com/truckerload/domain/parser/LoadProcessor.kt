@@ -96,13 +96,15 @@ class LoadProcessor(
         messageDateSeconds: Long? = null,
         playFeedback: Boolean = true,
     ): List<ProcessingResult> =
-        parsedLoads.map { load ->
-            processLoad(
-                parsedLoad = load,
-                config = config,
-                messageDateSeconds = messageDateSeconds,
-                playFeedback = playFeedback,
-            )
+        loadRepository.runBatchWrite {
+            parsedLoads.map { load ->
+                processLoad(
+                    parsedLoad = load,
+                    config = config,
+                    messageDateSeconds = messageDateSeconds,
+                    playFeedback = playFeedback,
+                )
+            }
         }
 
     private fun normalizeIncoming(parsedLoad: Load, messageDateSeconds: Long?): Load {
