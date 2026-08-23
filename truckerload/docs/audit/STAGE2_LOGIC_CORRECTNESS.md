@@ -1,23 +1,33 @@
-# Этап 2 — Проверка логики и корректности функций
+# Этап 2 — Проверка логики и корректности функций (Audit v2)
 
 **Дата:** 2026-08-23  
-**Ветка:** `cursor/full-audit-stage1-9ae7`  
-**База:** Этап 1 (`docs/audit/STAGE1_INVENTORY.md`)  
+**Ветка:** `cursor/full-audit-v2-9ae7`  
+**База:** `main` @ `8f414b9` + Этап 1 v2 (`docs/audit/STAGE1_INVENTORY.md`)  
 **Метод:** статический разбор исходников + сопоставление с unit-тестами. **Код не менялся.**
 
 ---
 
 ## Резюме этапа
 
-Проверены критические доменные пути (парсеры, импорт, goal math), слой sync/auth/data, и 11 ViewModels. Найдено **1 critical**, **7 high**, **22 medium**, **15 low** — всего **45** задокументированных находок.
+Проверены критические доменные пути (парсеры, импорт, goal math), слой sync/auth/data, и 11 ViewModels.  
+**Всего задокументировано 46 находок:** 1 critical (остаточный), 6 high, 22 medium, 15 low, плюс **4 закрытых P0/P1** из audit v1.
 
-Наиболее опасные для релиза:
+### Статус P0 из audit v1 (перепроверка на текущем `main`)
 
-1. **Cloud sync не распространяет удаления** — удалённый локально лоуд воскресает при push (merge LWW).
-2. **Google local fallback → cloud sync 403** — `accountId` клиента (`google_<hex>`) ≠ `user.id` (UUID) на backend.
-3. **DuplicateChecker** — ложные «дубликаты» по route+date блокируют легитимные лоуды.
-4. **Restore backup** — без предупреждения стирает все фото/сканы.
-5. **Race conditions** в AnalyticsViewModel / TaxTrackerViewModel / VoiceCommandBus.
+| ID | Было | Сейчас | Доказательство |
+|----|------|--------|----------------|
+| S-01 | Cloud delete resurrection | **Закрыто** (push = local snapshot; pull удаляет orphans) | `CloudSyncEngine.kt:149-165`, `223-230`, `CloudSyncPolicy.kt:52-63`, `CloudSyncPolicyTest` |
+| S-02 | Google accountId 403 | **Закрыто** | `Application.kt:301-304`, `Repositories.kt:18-20`, `AuthenticatedUserAccountIdTest` |
+| D-01 | DuplicateChecker false skip | **Закрыто** | `DuplicateChecker.kt:58-65`, `DuplicateCheckerTest` |
+| S-03 | Restore wipes media без warning | **Частично** — UI предупреждает, поведение destructive | `SettingsDataSection.kt:172-192`, `backup_restore_confirm_body` (RU/EN) |
+
+### Наиболее опасные **открытые** для релиза
+
+1. **Diesel/paycheck sync — нет LWW на pull** для уже существующих строк (только orphan-delete + insert missing).
+2. **AnalyticsViewModel.refresh()** — race без cancel/generation guard.
+3. **VoiceCommandBus** — перезапись необработанной команды.
+4. **Blank date** на Relay one-liner → текущая неделя в stats.
+5. **HomeViewModel.availableYears()** — годы из filter-scoped loads.
 
 ---
 
@@ -29,26 +39,50 @@
 | **High** | Существенная функциональная поломка или data inconsistency |
 | **Medium** | Ошибки UX, silent failures, race при типичном использовании |
 | **Low** | Edge cases, tech debt, несоответствие docs/tests |
+| **Resolved** | Закрыто на текущем `main`; оставлено для трассировки |
+
+---
+
+## 0. Закрытые находки (audit v1 → main)
+
+### S-01 · **Resolved** · Cloud delete propagation
+
+| | |
+|---|---|
+| **Было** | `mergeById` на push воскрешал remote-only loads после локального delete. |
+| **Сейчас** | Push публикует **только local Room** (`localSnapshotForPush`). Pull удаляет orphans (`orphanLocalIds` / `orphanLocalIntIds`). |
+| **Остаточный риск** | См. **S-01-R** — diesel/paycheck updates на pull. |
+
+### S-02 · **Resolved** · Google accountId mismatch
+
+| | |
+|---|---|
+| **Было** | `google_<hex>` ≠ UUID → 403 `account_mismatch`. |
+| **Сейчас** | Backend `acceptsAccountId(id \| voiceIdentity)`; JWT несёт `voiceIdentity`. |
+
+### D-01 · **Resolved** · DuplicateChecker false positive
+
+| | |
+|---|---|
+| **Было** | route+date → skip без сравнения rate. |
+| **Сейчас** | `isLikelySameLoad()` — skip только при identical/tripId/stops+rate match. Тесты добавлены. |
+
+### S-03 · **Partial** · Restore backup media wipe
+
+| | |
+|---|---|
+| **Было** | Restore без предупреждения стирает фото/сканы. |
+| **Сейчас** | Confirm dialog с явным текстом про удаление медиа. **Поведение restore по-прежнему destructive** — scoped restore / media manifest не реализованы. |
 
 ---
 
 ## 1. Domain — парсеры, импорт, goal math
 
-### D-01 · Critical → **High** (import false-negative, не data loss) · `DuplicateChecker` + `LoadProcessor`
-
-| | |
-|---|---|
-| **Файлы** | `domain/parser/DuplicateChecker.kt:22-42`, `domain/parser/LoadProcessor.kt:40-44` |
-| **Проблема** | Совпадение route+date или stops+date → `Suspicious` → **skip import**, без сравнения rate/tripId. `DuplicateAuditUseCase` при этом различает same-route loads с разным rate. |
-| **Edge case** | Два легитимных лоуда в один день на одном lane (разные Trip ID и rate) — второй не импортируется. |
-| **Fix** | Skip только при `compareLoads(...).isIdentical()` или совпадении tripId; иначе update flow. |
-| **Тесты** | `DuplicateAuditUseCaseTest` есть; **`DuplicateChecker` — нет тестов**. |
-
 ### D-02 · High · `LoadMessageParser` + `LoadValidator` — blank date
 
 | | |
 |---|---|
-| **Файлы** | `LoadMessageParser.kt` (~95-129), `LoadValidator.kt:9-22`, `WeekUtils` |
+| **Файлы** | `LoadMessageParser.kt`, `domain/import/LoadValidator.kt:9-22`, `WeekUtils` |
 | **Проблема** | Relay one-liner без `Pu-time` → `date=""`. Validator **не проверяет date**. `getLoadReportingWeek` fallback → **текущая неделя**. |
 | **Edge case** | AGENTS.md hello-world paste (Pu/Del address only) парсится, но попадает в текущую неделю stats. |
 | **Fix** | Требовать date в validator; derive from `referenceMillis`; repair на import. |
@@ -59,22 +93,15 @@
 |---|---|
 | **Файлы** | `domain/goal/WeeklyGoalCalculator.kt:28-45` |
 | **Проблема** | `currentGross = maxOf(sqlGross, loadGross)` для weekNumber=0 rows, но `actualDailyYield` / `totalActiveDays` из SQL без пересчёта. |
-| **Edge case** | Смесь assigned + unassigned loads → gross верный, pace/yield занижен. |
 | **Fix** | Пересчитывать yield из in-memory `weekLoads` когда gross скорректирован. |
 
 ### D-04 · Major · `CsvLoadParser` — ambiguous column headers
 
-| | |
-|---|---|
-| **Файлы** | `CsvLoadParser.kt:19-24` |
-| **Проблема** | `contains("trip")`, `contains("rate")` — false positives (`corporate`, `milestone`). |
-| **Fix** | Exact header tokens с word boundaries. |
+`contains("trip")`, `contains("rate")` — false positives (`corporate`, `milestone`).
 
 ### D-05 · Minor · `ParserFactory` / `MessageTypeDetector`
 
-- HTML detection до CSV/Relay → email forward может уйти в `HtmlLoadParser`.
-- `PLAIN_TEXT` не fallback на `FlexibleLoadParser` (broker paste не импортируется через factory).
-- CSV detection не quote-aware (в отличие от `CsvLoadParser.splitCsvLine`).
+HTML detection до CSV/Relay; `PLAIN_TEXT` не fallback на `FlexibleLoadParser`; CSV detection не quote-aware.
 
 ### D-06 · Minor · `PaycheckTextParser`
 
@@ -90,53 +117,28 @@
 
 ### Хорошо покрыто тестами
 
-`RelayMessageParserTest`, `LoadMessageParserTest`, `CsvLoadParserTest`, `ImportTripDedupTest`, `LoadValidatorTest`, `WeeklyGoalCalculatorTest`, `LoadFilterUseCaseMatrixTest`, `GoalMoneyMathTest` (shared).
+`RelayMessageParserTest`, `LoadMessageParserTest`, `CsvLoadParserTest`, `ImportTripDedupTest`, `LoadValidatorTest`, `WeeklyGoalCalculatorTest`, `LoadFilterUseCaseMatrixTest`, `GoalMoneyMathTest`, **`DuplicateCheckerTest`** (новый).
 
 ---
 
 ## 2. Sync / auth / data layer
 
-### S-01 · **Critical** · Cloud delete не propagates
+### S-01-R · **Critical (residual)** · Diesel/paycheck — нет LWW update на incremental pull
 
 | | |
 |---|---|
-| **Файлы** | `data/sync/CloudSyncPolicy.kt:28-41`, `CloudSyncEngine.kt:154-195`, `LoadRepository.kt:405-426` |
-| **Проблема** | `pushLocalSnapshot` merge local+remote via `mergeById`. Локально удалённый load **отсутствует** в local map → remote item **re-inserted**. `deleteLoad` не enqueue outbox. Incremental pull **не удаляет** local orphans. |
-| **Edge case** | Device A удаляет load → sync → load воскресает на server и на Device B. |
-| **Fix** | Tombstones в `BackupData`; или snapshot-level LWW; enqueue DELETE в outbox; full replace / diff-delete на pull. |
-
-```kotlin
-// CloudSyncPolicy.kt:35-38 — localItem == null → remote wins
-if (localItem == null || remoteWins(...)) {
-    out[id] = remoteItem
-}
-```
-
-### S-02 · **High** · Google accountId mismatch (local fallback → cloud)
-
-| | |
-|---|---|
-| **Файлы** | `CloudSyncEngine.kt:167`, `backend/Application.kt:301-306`, `TokenAuth.kt:66-69`, `AccountIds.kt` |
-| **Проблема** | Client snapshot `accountId = userId` (`google_<hex>`). Backend JWT maps to `user.id = UUID.nameUUIDFromBytes(...)`. PUT `/v1/sync/snapshot` → **403 account_mismatch**. |
-| **Edge case** | Supabase down, Google sign-in local fallback, `SYNC_BACKEND_URL` configured → sync навсегда broken. |
-| **Fix** | Backend принимает `voiceIdentity` как alternate accountId; или client отправляет UUID; или нормализация на одном слое. |
-
-### S-03 · **High** · Restore backup wipes media
-
-| | |
-|---|---|
-| **Файлы** | `utils/BackupService.kt:388-403` |
-| **Проблема** | Restore deletes **all** photos/scans before inserting JSON. Backup payload = loads/paychecks/diesel only. |
-| **Edge case** | User restores Drive backup → все BOL фото/сканы безвозвратно удалены. |
-| **Fix** | Scoped restore; media manifest в backup schema; explicit UI warning. |
+| **Файлы** | `CloudSyncEngine.kt:248-272` |
+| **Проблема** | Loads: LWW + orphan delete ✅. Diesel/paychecks: только **orphan delete + insert missing** — существующие строки с тем же id **не обновляются**, даже если remote `updatedAt` новее. |
+| **Edge case** | Device A редактирует paycheck amount → sync → Device B сохраняет старую сумму. |
+| **Fix** | Применить тот же LWW pattern, что для loads (или upsert by id с `remoteWins`). |
+| **Тесты** | ❌ нет integration test для paycheck/diesel merge. |
 
 ### S-04 · High · Два CloudSyncEngine, status tracker мёртв
 
 | | |
 |---|---|
-| **Файлы** | `data/sync/CloudSyncEngine.kt` (object), `data/sync/cloud/CloudSyncEngine.kt` (class), workers |
+| **Файлы** | `data/sync/CloudSyncEngine.kt` (object), `data/sync/cloud/CloudSyncEngine.kt` (class) |
 | **Проблема** | Production вызывает legacy **object** напрямую. Injectable wrapper обновляет `SyncStatusTracker`, но **нигде не используется** callers. |
-| **Fix** | Единая точка входа через injectable class. |
 
 ### S-05 · Medium · Hybrid backend read swallows errors
 
@@ -144,8 +146,7 @@ if (localItem == null || remoteWins(...)) {
 
 ### S-06 · Medium · Outbox bloat + semantic mismatch
 
-- Каждая mutation = новый UUID row (no dedup by entity).
-- Worker ignores entityType/op — full snapshot push only; `OP_DELETE` never enqueued.
+Каждая mutation = новый UUID row; worker ignores entityType/op — full snapshot push only; `OP_DELETE` never enqueued.
 
 ### S-07 · Medium · `syncLoadsCdc` tripId race
 
@@ -153,11 +154,11 @@ Check `getExistingTripIds` вне transaction → duplicate tripId при concur
 
 ### S-08 · Medium · Auth email Supabase fallback
 
-`signInEmailSupabase` onFailure → local credentials match → login даже при wrong server password (network vs auth rejection не различаются).
+`signInEmailSupabase` onFailure → local credentials match → login даже при wrong server password.
 
 ### S-09 · Medium · Worker scheduling vs SyncMode
 
-`MainActivity` gates workers on `!LOCAL_ONLY_MODE` only — ignores user `DEVICE_ONLY` pref. Workers run but sync skipped (battery/log noise). FCM correctly checks `SyncModeStore`.
+`MainActivity` gates workers on `!LOCAL_ONLY_MODE` only — ignores user `DEVICE_ONLY` pref.
 
 ### S-10 · Medium · Telegram poll `tryLock` skip
 
@@ -179,31 +180,29 @@ Upload fail → Log.w only, no retry notification.
 
 | | |
 |---|---|
-| **Файл** | `presentation/screens/analytics/AnalyticsViewModel.kt` |
-| **Проблема** | Unscoped coroutine jobs; slower first request overwrites newer period selection. |
-| **Fix** | Cancel prior job; generation id guard. |
+| **Файл** | `presentation/screens/analytics/AnalyticsViewModel.kt:73-99` |
+| **Проблема** | Каждый `refresh()` — новый `viewModelScope.launch` без cancel; медленный первый запрос перезаписывает более новый period. |
+| **Fix** | `refreshJob?.cancel()` + generation id guard. |
 
 ### V-02 · **High** · `VoiceCommandBus` command loss
 
 | | |
 |---|---|
-| **Файлы** | `voice/VoiceCommandBus.kt`, `VoiceCommandViewModel.kt` |
-| **Проблема** | Single `MutableStateFlow<AppVoiceAction?>` — `offer()` overwrites unconsumed command. `consume()` before handle completes. |
-| **Edge case** | «Add diesel» + «Weekly gross» подряд → первый потерян. |
-| **Fix** | Channel queue или SharedFlow replay. |
+| **Файлы** | `voice/VoiceCommandBus.kt:10-18` |
+| **Проблема** | Single `MutableStateFlow<AppVoiceAction?>` — `offer()` overwrites unconsumed command. |
+| **Fix** | Channel queue или SharedFlow с buffer. |
 
 ### V-03 · **High** · `HomeViewModel.availableYears()`
 
-Years derived from **filter-scoped** loads (e.g. THIS_WEEK only) → archive year picker incomplete.
+| | |
+|---|---|
+| **Файл** | `HomeViewModel.kt:506-510` |
+| **Проблема** | Years из `_uiState.value.loads` (filter-scoped) → archive year picker неполный при фильтре THIS_WEEK. |
+| **Fix** | Dedicated DAO query `distinctYears()`. |
 
 ### V-04 · **High** · `TaxTrackerViewModel` (orphaned)
 
-- Screen not in NavGraph (T-0).
-- `loadTaxData()` no cancellation → stale year totals on rapid switch.
-- `totalGrossIncome` = paychecks only (loads excluded) — misleading label.
-- Per-diem days double-count overlapping trips.
-- Hardcoded 2024 brackets.
-- Screen never shows `errorMessage`.
+Screen not in NavGraph; `loadTaxData()` no cancellation; gross = paychecks only; per-diem double-count; hardcoded 2024 brackets; `errorMessage` never shown.
 
 ### V-05 · Medium · `AddLoadViewModel` preview debounce
 
@@ -211,8 +210,7 @@ Years derived from **filter-scoped** loads (e.g. THIS_WEEK only) → archive yea
 
 ### V-06 · Medium · `EditLoadViewModel` / `LoadDetailViewModel`
 
-- Edit: load once in init, no external sync refresh.
-- Detail: concurrent `setActualFinishDate` + dispute → stale base load.
+Edit: load once in init; Detail: concurrent finish + dispute → stale base load.
 
 ### V-07 · Medium · `GoalViewModel` loading flicker
 
@@ -232,7 +230,7 @@ No cancel on new transcript while dispatcher running.
 
 ### V-11 · Low · Optimistic update mismatch
 
-`applyOptimisticUpdate` / `revertOptimisticUpdate` wired but Add/Edit call optimistic **after** persist — revert API dead code.
+`applyOptimisticUpdate` / `revertOptimisticUpdate` wired but Add/Edit call optimistic **after** persist.
 
 ### V-12 · Low · `HomeRoomPagingPolicyTest` drift
 
@@ -242,13 +240,13 @@ Test policy ≠ real `usesRoomPaging()` when branches.
 
 ## 4. Противоречия бизнес-логики (cross-layer)
 
-| # | Противоречие | Где |
-|---|-------------|-----|
-| X-01 | Duplicate **audit** vs **ingest** — разные правила duplicate | `DuplicateAuditUseCase` vs `DuplicateChecker` |
-| X-02 | Financial advisor docs «deterministic» vs `ChatViewModel` AI stream | docs vs `FinancialAdvisorScreen` |
-| X-03 | App Actions shortcuts `community`/`friends_live` vs NavGraph | `shortcuts.xml` vs `Routes.kt` |
-| X-04 | `LOCAL_ONLY_MODE` «fully offline» vs Telegram polling still runs | `TruckerLoadApp.scheduleTelegramSync` |
-| X-05 | Backup restore «journal restore» vs wipes all media | `BackupService.restoreFromJson` |
+| # | Противоречие | Статус |
+|---|-------------|--------|
+| X-01 | Duplicate audit vs ingest rules | **Закрыто** — `DuplicateChecker` aligned с `DuplicateAuditUseCase` |
+| X-02 | Financial advisor docs «deterministic» vs `ChatViewModel` AI stream | **Открыто** |
+| X-03 | App Actions shortcuts `community`/`friends_live` vs NavGraph | **Открыто** |
+| X-04 | `LOCAL_ONLY_MODE` «fully offline» vs Telegram polling still runs | **Открыто** |
+| X-05 | Backup restore «journal restore» vs wipes all media | **Частично** — warning есть, wipe остаётся |
 
 ---
 
@@ -257,34 +255,35 @@ Test policy ≠ real `usesRoomPaging()` when branches.
 | Область | Покрыто | Пробел |
 |---------|---------|--------|
 | Relay/CSV parsers | ✅ strong | blank-date one-liner, ambiguous CSV headers |
-| DuplicateChecker | ❌ | route+date false positive |
-| CloudSyncPolicy merge | partial (`SyncConflictResolverTest`) | delete propagation |
-| CloudSyncEngine | architecture guard only | push merge with deletes |
+| DuplicateChecker | ✅ **new tests** | integration с `LoadProcessor` |
+| CloudSyncPolicy | ✅ push/orphan tests | diesel/paycheck LWW pull |
+| CloudSyncEngine | architecture guard only | end-to-end delete + paycheck edit sync |
 | ViewModels | 4/11 audited | Analytics, Voice, Edit, Detail, Settings, Auth |
-| Auth Google→backend id | `AccountIdsTest` | end-to-end snapshot PUT |
-| Backup restore media wipe | ❌ | destructive restore |
+| Auth Google→backend id | ✅ `AuthenticatedUserAccountIdTest` | client PUT e2e |
+| Backup restore media wipe | UX string only | destructive restore behavior |
 
-**Unit tests (baseline):** `:app:testDebugUnitTest` — 193 test files; domain core well covered, sync delete path and VM races — нет.
+**Unit tests (baseline):** `:app:testDebugUnitTest` — **194** test files; domain core well covered; **S-01-R** и VM races — нет.
 
 ---
 
-## 6. Таблица приоритетов (для Этапа 6 / финального отчёта)
+## 6. Таблица приоритетов (обновлено для v2)
 
-| P | ID | Finding | Effort hint |
-|---|-----|---------|-------------|
-| **P0** | S-01 | Cloud delete resurrection | Design pass: tombstones or snapshot LWW |
-| **P0** | S-02 | Google accountId 403 | Backend accept voiceIdentity OR client UUID |
-| **P1** | S-03 | Restore wipes media | UI warning + scoped restore |
-| **P1** | D-01 | DuplicateChecker false skip | Align with DuplicateAudit rules |
-| **P1** | V-01 | Analytics refresh race | Job cancel + stale guard |
-| **P1** | V-02 | VoiceCommandBus loss | Queue |
-| **P1** | D-02 | Blank date validation | Validator + parser fix |
-| **P2** | V-03 | Archive years from filtered loads | Dedicated years query |
-| **P2** | S-04 | Dual CloudSyncEngine | Consolidate entry point |
-| **P2** | S-09 | Worker scheduling vs SyncMode | Gate on `allowsCloudCalls()` |
-| **P2** | D-03 | Goal gross/yield mismatch | Recompute yield |
-| **P3** | V-04/T-0 | TaxTracker orphaned | Wire nav or remove |
-| **P3** | D-04–D-08 | Parser/goal minors | Incremental |
+| P | ID | Finding | Status |
+|---|-----|---------|--------|
+| ~~P0~~ | S-01 | Cloud delete resurrection | ✅ Resolved |
+| ~~P0~~ | S-02 | Google accountId 403 | ✅ Resolved |
+| ~~P1~~ | D-01 | DuplicateChecker false skip | ✅ Resolved |
+| **P0** | **S-01-R** | Diesel/paycheck LWW on pull | **New — open** |
+| **P1** | S-03 | Restore wipes media (scoped restore) | Partial (warning only) |
+| **P1** | V-01 | Analytics refresh race | Open |
+| **P1** | V-02 | VoiceCommandBus loss | Open |
+| **P1** | D-02 | Blank date validation | Open |
+| **P2** | V-03 | Archive years from filtered loads | Open |
+| **P2** | S-04 | Dual CloudSyncEngine | Open |
+| **P2** | S-09 | Worker scheduling vs SyncMode | Open |
+| **P2** | D-03 | Goal gross/yield mismatch | Open |
+| **P3** | V-04/T-0 | TaxTracker orphaned | Open |
+| **P3** | D-04–D-08 | Parser/goal minors | Open |
 
 ---
 
@@ -296,11 +295,13 @@ Test policy ≠ real `usesRoomPaging()` when branches.
 - **BackupRestoreParser** — rejects empty/chart-note files ✅
 - **LoadFilter period logic** — Sun–Sat trucking weeks, DEL-bump — tested ✅
 - **Auth account isolation** — per-user Room DB rebuild on login ✅
+- **Cloud push authoritative local snapshot** — deletes propagate on next sync ✅ (loads)
+- **Restore confirm dialog** — media wipe disclosed before action ✅
 
 ---
 
 ## Статус этапа
 
-**Этап 2 завершён.** Исправления **не применялись** — только документирование и proposed fixes.
+**Этап 2 (Audit v2) завершён.** Исправления **не применялись** — только документирование и proposed fixes.
 
 **Следующий шаг (после подтверждения):** Этап 3 — поиск дублирования кода.
