@@ -31,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.data.backup.BackupRestoreErrors
+import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -79,7 +81,11 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                 }
                 Toast.makeText(
                     context,
-                    err.message ?: context.getString(R.string.drive_sync_api_error, ""),
+                    if (err is BackupRestoreException) {
+                        BackupRestoreErrors.userMessage(context, err)
+                    } else {
+                        err.message ?: context.getString(R.string.drive_sync_api_error, "")
+                    },
                     Toast.LENGTH_LONG
                 ).show()
             }

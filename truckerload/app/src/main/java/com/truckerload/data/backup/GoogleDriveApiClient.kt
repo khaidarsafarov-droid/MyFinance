@@ -198,9 +198,9 @@ class GoogleDriveApiClient(
             .get()
             .build()
         client.newCall(request).execute().use { response ->
-            val respBody = response.body?.string().orEmpty()
+            val respBody = BackupDataCodec.stripBom(response.body?.string().orEmpty())
             if (!response.isSuccessful) {
-                throw DriveError.Api("Download failed (${response.code}): $respBody")
+                throw DriveError.Api("Download failed (${response.code})")
             }
             if (!respBody.trimStart().startsWith("{")) {
                 throw DriveError.Api("Remote backup is not valid JSON")

@@ -1,22 +1,27 @@
 package com.truckerload.data.backup
 
+import androidx.annotation.Keep
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Paycheck
 
-/** Структура резервной копии БД для JSON экспорта/импорта.
+/**
+ * JSON backup payload shared by export and import ([BackupDataCodec]).
  *
- * Photos/scans are intentionally omitted: binary media lives on disk under
- * app external-files and is not serialized into BackupData. Restore wipes
- * load rows then re-inserts loads/pay/diesel; media files with dangling
- * loadIds are purged by BackupService orphan cleanup before reload.
+ * Photos/scans are omitted: binary media lives on disk and is purged on restore.
+ * Maintenance tasks are not part of schema v1 (add in a future schemaVersion).
+ *
+ * [schemaVersion] is the backup-format version. [version] is the legacy alias
+ * written by older app builds; readers accept either.
  */
+@Keep
 data class BackupData(
-    val version: Int = 1,
+    val schemaVersion: Int = BackupSchema.CURRENT,
+    val version: Int = BackupSchema.CURRENT,
     val exportedAt: Long = System.currentTimeMillis(),
     /** Owning TruckerLoad account id; restore refuses cross-account injection when set. */
     val accountId: String? = null,
     val loads: List<Load> = emptyList(),
     val paychecks: List<Paycheck> = emptyList(),
-    val diesel: List<Diesel> = emptyList()
+    val diesel: List<Diesel> = emptyList(),
 )
