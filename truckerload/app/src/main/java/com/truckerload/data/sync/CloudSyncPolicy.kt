@@ -62,6 +62,27 @@ object CloudSyncPolicy {
     fun orphanLocalIntIds(localIds: Set<Int>, remoteIds: Set<Int>): Set<Int> =
         localIds - remoteIds
 
+    /**
+     * Ids from [remoteById] that should be upserted on incremental pull:
+     * new remote rows, or existing rows where remote [updatedAt] wins LWW.
+     * Diesel/paycheck use [addedAt] as the version field.
+     */
+    fun <T> remoteIntIdsToApplyOnPull(
+        localById: Map<Int, T>,
+        remoteById: Map<Int, T>,
+        updatedAt: (T) -> Long,
+    ): Set<Int> {
+        val out = LinkedHashSet<Int>(remoteById.size)
+        for ((id, remoteItem) in remoteById) {
+            val localItem = localById[id]
+            val localTs = localItem?.let(updatedAt)
+            if (localItem == null || remoteWins(localTs, updatedAt(remoteItem))) {
+                out.add(id)
+            }
+        }
+        return out
+    }
+
     /** True when device has never completed a cloud pull/push for this account. */
     fun needsFullHydration(lastSyncedAt: Long, localEntityCount: Int, remoteEntityCount: Int): Boolean =
         lastSyncedAt <= 0L && localEntityCount == 0 && remoteEntityCount > 0

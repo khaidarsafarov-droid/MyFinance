@@ -71,6 +71,31 @@ class CloudSyncPolicyTest {
         assertEquals(setOf("b"), orphans)
     }
 
+    data class IntRow(val id: Int, val addedAt: Long, val amount: Double)
+
+    @Test
+    fun remoteIntIdsToApplyOnPull_insertsNewAndUpdatesWhenRemoteNewer() {
+        val local = mapOf(
+            1 to IntRow(1, 100L, 50.0),
+            2 to IntRow(2, 200L, 60.0),
+        )
+        val remote = mapOf(
+            1 to IntRow(1, 150L, 55.0),
+            2 to IntRow(2, 150L, 70.0),
+            3 to IntRow(3, 1L, 10.0),
+        )
+        val apply = CloudSyncPolicy.remoteIntIdsToApplyOnPull(local, remote) { it.addedAt }
+        assertEquals(setOf(1, 3), apply)
+    }
+
+    @Test
+    fun remoteIntIdsToApplyOnPull_skipsWhenLocalNewerOrEqual() {
+        val local = mapOf(1 to IntRow(1, 300L, 50.0))
+        val remote = mapOf(1 to IntRow(1, 200L, 99.0))
+        val apply = CloudSyncPolicy.remoteIntIdsToApplyOnPull(local, remote) { it.addedAt }
+        assertTrue(apply.isEmpty())
+    }
+
     @Test
     fun mergeById_stillUnionsRemoteOnly_forIncrementalFieldMerge() {
         // Documented: mergeById is NOT for full-snapshot push (would resurrect deletes).

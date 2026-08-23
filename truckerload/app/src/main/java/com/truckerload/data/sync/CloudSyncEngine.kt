@@ -245,30 +245,40 @@ object CloudSyncEngine {
                     applied++
                 }
             }
-            // Diesel / paychecks: insert missing by id; drop local orphans so deletions propagate.
+            // Diesel / paychecks: LWW upsert on addedAt; drop local orphans so deletions propagate.
             val localDiesel = DieselRepository(db).getAllDieselOnce()
+            val localDieselById = localDiesel.associateBy { it.id }
             val remoteDieselIds = backup.diesel.map { it.id }.toSet()
-            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localDiesel.map { it.id }.toSet(), remoteDieselIds)) {
+            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localDieselById.keys, remoteDieselIds)) {
                 db.dieselDao().deleteById(orphanId)
                 applied++
             }
-            val toInsertDiesel = backup.diesel.filter { diesel ->
-                localDiesel.none { it.id == diesel.id }
-            }
-            if (toInsertDiesel.isNotEmpty()) {
-                db.dieselDao().insertAll(toInsertDiesel.map { it.toEntity() })
+            val dieselIdsToApply = CloudSyncPolicy.remoteIntIdsToApplyOnPull(
+                localById = localDieselById,
+                remoteById = backup.diesel.associateBy { it.id },
+                updatedAt = { it.addedAt },
+            )
+            if (dieselIdsToApply.isNotEmpty()) {
+                val upserts = backup.diesel.filter { it.id in dieselIdsToApply }.map { it.toEntity() }
+                db.dieselDao().insertAll(upserts)
+                applied += upserts.size
             }
             val localPay = PaycheckRepository(db).getAllPaychecksOnce()
+            val localPayById = localPay.associateBy { it.id }
             val remotePayIds = backup.paychecks.map { it.id }.toSet()
-            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localPay.map { it.id }.toSet(), remotePayIds)) {
+            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localPayById.keys, remotePayIds)) {
                 db.paycheckDao().deleteById(orphanId)
                 applied++
             }
-            val toInsertPay = backup.paychecks.filter { pay ->
-                localPay.none { it.id == pay.id }
-            }
-            if (toInsertPay.isNotEmpty()) {
-                db.paycheckDao().insertAll(toInsertPay.map { it.toEntity() })
+            val payIdsToApply = CloudSyncPolicy.remoteIntIdsToApplyOnPull(
+                localById = localPayById,
+                remoteById = backup.paychecks.associateBy { it.id },
+                updatedAt = { it.addedAt },
+            )
+            if (payIdsToApply.isNotEmpty()) {
+                val upserts = backup.paychecks.filter { it.id in payIdsToApply }.map { it.toEntity() }
+                db.paycheckDao().insertAll(upserts)
+                applied += upserts.size
             }
         }
         return applied
