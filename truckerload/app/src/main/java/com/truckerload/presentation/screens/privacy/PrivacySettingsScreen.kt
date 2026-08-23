@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
 
@@ -31,7 +28,6 @@ fun PrivacySettingsScreen(
     showBack: Boolean = true,
     viewModel: PrivacySettingsViewModel = hiltViewModel(),
 ) {
-    val crowdOptIn by viewModel.crowdStatsOptIn.collectAsStateWithLifecycle()
     val cloudBackup by viewModel.cloudBackupEnabled.collectAsStateWithLifecycle()
     val tabletChrome = useNavigationRail()
 
@@ -56,18 +52,6 @@ fun PrivacySettingsScreen(
                     if (cloudBackup) R.string.privacy_card_loads_body_cloud
                     else R.string.privacy_card_loads_body_device,
                 ),
-            )
-            PrivacyTrustCard(
-                icon = Icons.Filled.Groups,
-                title = stringResource(R.string.privacy_card_crowd_title),
-                body = stringResource(R.string.privacy_card_crowd_body),
-                trailing = {
-                    Switch(
-                        checked = crowdOptIn,
-                        onCheckedChange = viewModel::setCrowdStatsOptIn,
-                        colors = AppSwitchDefaults.colors(),
-                    )
-                },
             )
         }
     }
