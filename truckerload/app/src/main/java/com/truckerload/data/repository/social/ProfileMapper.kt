@@ -3,7 +3,6 @@ package com.truckerload.data.repository.social
 import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.preferences.ProfileIdentity
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.domain.social.BadgeEngine
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.domain.social.TruckType
@@ -34,16 +33,7 @@ internal object ProfileMapper {
         val about = base.about.takeIf {
             !it.contains("Дальнобойщик") && !it.contains("открытые дороги")
         }.orEmpty()
-        val badges = BadgeEngine.compute(
-            totalLoads = totalLoads,
-            totalMiles = totalMiles,
-            totalRevenue = totalRevenue,
-            averageRpm = averageRpm,
-            experienceYears = base.experienceYears,
-            endorsements = endorsements,
-            onTimePercentage = onTimePercentage,
-        )
-        val reputation = if (totalLoads > 0) badges.size * 25 + totalLoads.coerceAtMost(500) else 0
+        val reputation = totalLoads.coerceAtMost(500)
         val loginName = userProfileStore.profile.value?.displayName?.takeIf {
             it.isNotBlank() && it != userProfileStore.profile.value?.email
         }
@@ -71,7 +61,6 @@ internal object ProfileMapper {
             rating = 0.0,
             ratingCount = 0,
             reputation = reputation,
-            badges = badges,
             followers = base.followers,
             following = base.following,
             status = status,

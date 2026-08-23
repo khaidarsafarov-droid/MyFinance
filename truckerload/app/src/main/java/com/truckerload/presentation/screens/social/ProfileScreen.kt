@@ -105,9 +105,6 @@ fun ProfileScreen(
                     },
                 )
             }
-            if (profile.badges.isNotEmpty()) {
-                item { ProfileBadgesSection(profile) }
-            }
             if (profile.about.isNotBlank()) {
                 item { ProfileAboutSection(profile.about) }
             }

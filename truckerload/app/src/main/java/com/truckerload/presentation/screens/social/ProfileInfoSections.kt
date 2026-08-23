@@ -28,33 +28,6 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 
 @Composable
-internal fun ProfileBadgesSection(profile: EnhancedDriverProfile) {
-    val tc = LocalTruckColors.current
-    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "${stringResource(R.string.badges)} (${profile.badges.size})",
-                style = AppTypography.CardTitle,
-                color = tc.TextPrimary,
-            )
-            Text(
-                text = profile.badges.joinToString(" ") { it.icon },
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            profile.badges.take(6).forEach { badge ->
-                Text(
-                    text = "${badge.icon} ${badge.name}",
-                    style = AppTypography.Subtitle,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
 internal fun ProfileAboutSection(about: String) {
     val tc = LocalTruckColors.current
     BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
