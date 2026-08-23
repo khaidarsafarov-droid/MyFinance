@@ -7,6 +7,7 @@ import com.truckerload.R
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthLogin
+import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
@@ -260,6 +261,7 @@ class AuthRepositoryImpl @Inject constructor(
                     userId = AccountIds.LOCAL_DEV,
                     profile = profile.copy(email = "local@truckerload.local"),
                     rememberMe = true,
+                    provider = AuthProvider.LOCAL,
                 )
             }.onFailure {
                 return@withContext Result.failure(it)

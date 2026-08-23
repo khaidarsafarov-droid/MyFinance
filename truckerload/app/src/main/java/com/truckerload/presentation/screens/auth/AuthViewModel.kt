@@ -137,7 +137,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    /** Offline / local_dev session (no UI button on LoginScreen; kept for API parity). */
+    /** Offline / local_dev session — shown on [LoginScreen] when [BuildConfig.LOCAL_ONLY_MODE]. */
     fun onAnonymousSignIn() {
         if (_uiState.value.isLoading) return
         viewModelScope.launch {

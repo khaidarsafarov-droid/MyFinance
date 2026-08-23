@@ -63,6 +63,8 @@
     <string name="signup_with_google">Sign up with Google</string>
     <string name="login_with_email">Sign in with email</string>
     <string name="login_or_divider">or</string>
+    <string name="login_continue_offline">Continue offline</string>
+    <string name="login_continue_offline_hint">Journal stays on this device — no Google or cloud sign-in.</string>
     <string name="login_checking">Checking account…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>

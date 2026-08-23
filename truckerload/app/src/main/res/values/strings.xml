@@ -63,6 +63,8 @@
     <string name="signup_with_google">Зарегистрироваться через Google</string>
     <string name="login_with_email">Войти через почту</string>
     <string name="login_or_divider">или</string>
+    <string name="login_continue_offline">Продолжить офлайн</string>
+    <string name="login_continue_offline_hint">Журнал только на этом устройстве — без Google и облака.</string>
     <string name="login_checking">Проверка аккаунта…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>

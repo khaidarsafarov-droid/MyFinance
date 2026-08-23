@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.LocalDevSessionPolicy
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
@@ -130,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                 // Only the explicit guest/dev account is rejected. Do not treat
                 // AuthProvider.LOCAL alone as guest — a missing/mis-tagged provider on a
                 // real cloud UUID used to force-logout and wipe the restored session.
-                if (isLoggedIn && userId == AccountIds.LOCAL_DEV) {
+                if (isLoggedIn && LocalDevSessionPolicy.shouldRejectLocalDevSession(userId, BuildConfig.LOCAL_ONLY_MODE)) {
                     authStore.logout()
                     userComponentManager.endSession()
                     session = null

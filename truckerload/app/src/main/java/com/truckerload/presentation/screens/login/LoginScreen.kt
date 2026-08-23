@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.BuildConfig
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.screens.auth.AuthUiEvent
@@ -117,6 +118,24 @@ fun LoginScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(32.dp))
+
+                    if (BuildConfig.LOCAL_ONLY_MODE) {
+                        Button(
+                            onClick = { viewModel.onAnonymousSignIn() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            enabled = !uiState.isLoading,
+                        ) { Text(stringResource(R.string.login_continue_offline)) }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.login_continue_offline_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
 
                     GoogleSignInButton(
                         onClick = { viewModel.onGoogleSignInClick(context) },
