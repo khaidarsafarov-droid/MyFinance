@@ -5,8 +5,6 @@ import com.truckerload.data.preferences.RegistrationProgressStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.domain.account.AccountConsents
-import com.truckerload.domain.account.CommunityProfile
-import com.truckerload.domain.account.CommunityVisibilitySettings
 import com.truckerload.domain.account.DriverProfessionalProfile
 import com.truckerload.domain.account.DriverRole
 import com.truckerload.domain.account.RegistrationProgress
@@ -17,7 +15,6 @@ class RegistrationService(
     private val userId: String,
     private val identity: AccountIdentityRepository,
     private val professional: DriverProfessionalRepository,
-    private val community: CommunityProfileRepository,
     private val progressStore: RegistrationProgressStore,
     private val consentStore: ConsentStore,
     private val userProfileStore: UserProfileStore,
@@ -196,49 +193,5 @@ class RegistrationService(
             )).copy(skipped = true, updatedAt = now),
         )
         progressStore.save(progress().withProfessionalDone(skipped = true))
-    }
-
-    suspend fun completeCommunity(
-        nickname: String,
-        avatarUrl: String?,
-        bio: String?,
-        visibility: CommunityVisibilitySettings,
-    ): Result<Unit> {
-        val nick = nickname.trim()
-        if (nick.isBlank()) return Result.failure(IllegalArgumentException("NICKNAME_REQUIRED"))
-        val now = nowMillis()
-        community.upsertOwn(
-            CommunityProfile(
-                userId = userId,
-                nickname = nick,
-                avatarUrl = avatarUrl,
-                bio = bio?.takeIf { it.isNotBlank() },
-                visibility = visibility,
-                skipped = false,
-                updatedAt = now,
-            ),
-        )
-        userProfileStore.profile.value?.let {
-            userProfileStore.saveProfile(it.copy(nickname = nick))
-        }
-        progressStore.save(progress().withCommunityDone(skipped = false))
-        return Result.success(Unit)
-    }
-
-    suspend fun skipCommunity() {
-        val now = nowMillis()
-        val existing = community.getOwn(userId)
-        community.upsertOwn(
-            (existing ?: CommunityProfile(
-                userId = userId,
-                nickname = "",
-                avatarUrl = null,
-                bio = null,
-                visibility = CommunityVisibilitySettings(),
-                skipped = true,
-                updatedAt = now,
-            )).copy(skipped = true, updatedAt = now),
-        )
-        progressStore.save(progress().withCommunityDone(skipped = true))
     }
 }

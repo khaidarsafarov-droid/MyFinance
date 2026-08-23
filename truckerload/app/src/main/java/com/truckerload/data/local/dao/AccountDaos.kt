@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.truckerload.data.local.entities.CommunityProfileEntity
 import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.UserAccountEntity
 import kotlinx.coroutines.flow.Flow
@@ -42,23 +41,5 @@ interface DriverProfessionalDao {
     suspend fun delete(userId: String)
 
     @Query("DELETE FROM driver_professional_profiles")
-    suspend fun deleteAll()
-}
-
-@Dao
-interface CommunityProfileDao {
-    @Query("SELECT * FROM community_profiles WHERE userId = :userId LIMIT 1")
-    suspend fun get(userId: String): CommunityProfileEntity?
-
-    @Query("SELECT * FROM community_profiles WHERE userId = :userId LIMIT 1")
-    fun watch(userId: String): Flow<CommunityProfileEntity?>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(entity: CommunityProfileEntity)
-
-    @Query("DELETE FROM community_profiles WHERE userId = :userId")
-    suspend fun delete(userId: String)
-
-    @Query("DELETE FROM community_profiles")
     suspend fun deleteAll()
 }

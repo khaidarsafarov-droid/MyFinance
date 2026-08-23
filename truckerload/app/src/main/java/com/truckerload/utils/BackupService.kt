@@ -10,6 +10,9 @@ import androidx.room.withTransaction
 import com.truckerload.R
 import com.truckerload.data.backup.BackupData
 import com.truckerload.data.backup.BackupDataCodec
+import com.truckerload.data.backup.BackupRestoreException
+import com.truckerload.data.backup.BackupRestoreParser
+import com.truckerload.data.backup.BackupSchema
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.preferences.AccountIds
@@ -30,7 +33,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,7 +54,7 @@ object BackupService {
     data class CreateResult(
         val save: StorageHelper.SaveResult,
         val loadCount: Int,
-        val visibleText: String
+        val mimeType: String = BackupSchema.JSON_MIME,
     )
 
     /** Debounced auto-backup (coalesces rapid load edits into one write). */
@@ -190,30 +192,51 @@ object BackupService {
                 diesel = dieselRepository.getAllDieselOnce()
             )
             val json = BackupDataCodec.toJson(backup)
-            val note = BackupNoteFormatter.buildNote(backup)
-            val fileName = BackupNoteFormatter.noteFileName(backup.exportedAt)
-            val textBytes = note.visibleText.toByteArray(StandardCharsets.UTF_8)
+            val jsonBytes = BackupDataCodec.toUtf8Bytes(backup)
+            val fileName = BackupSchema.jsonFileName(backup.exportedAt)
             val storageHelper = StorageHelper(appContext)
 
-            val saveResult = storageHelper.saveToPublicDownloads(fileName, BrandConstants.DOWNLOADS_FOLDER, "text/plain") { out ->
-                out.write(textBytes)
+            val saveResult = storageHelper.saveToPublicDownloads(
+                fileName,
+                BrandConstants.DOWNLOADS_FOLDER,
+                BackupSchema.JSON_MIME,
+            ) { out ->
+                out.write(jsonBytes)
             } ?: run {
                 val file = storageHelper.saveToAppStorage(fileName, "backups") { out ->
-                    out.write(textBytes)
+                    out.write(jsonBytes)
                 }
-                StorageHelper.SaveResult(storageHelper.getShareableUri(file), "${BrandConstants.DOWNLOADS_FOLDER}/$fileName")
+                StorageHelper.SaveResult(
+                    storageHelper.getShareableUri(file),
+                    "${BrandConstants.DOWNLOADS_FOLDER}/$fileName",
+                )
             }
 
             saveCompanionBackup(appContext, fileName, json)
             CreateResult(
                 save = saveResult,
-                loadCount = note.loadCount,
-                visibleText = note.visibleText
+                loadCount = backup.loads.size,
+                mimeType = BackupSchema.JSON_MIME,
             )
         } catch (e: Exception) {
             android.util.Log.e(TAG, "createManualBackup failed", e)
             null
         }
+    }
+
+    fun shareBackupFile(context: Context, uri: Uri) {
+        val appContext = context.applicationContext
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = BackupSchema.JSON_MIME
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_TITLE, appContext.getString(R.string.settings_backup_share_title))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        appContext.startActivity(
+            Intent.createChooser(intent, appContext.getString(R.string.settings_backup_share_title))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     fun shareNoteText(context: Context, visibleText: String) {
@@ -247,14 +270,13 @@ object BackupService {
             }
 
             val bytes = appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: return@withContext Result.failure(
-                    IllegalStateException(appContext.getString(R.string.backup_restore_read_failed))
-                )
+                ?: return@withContext Result.failure(BackupRestoreException.ReadFailed())
 
-            val json = BackupNoteFormatter.extractBackupJson(bytes)
-                ?: return@withContext Result.failure(
-                    IllegalStateException(appContext.getString(R.string.backup_restore_bad_format))
-                )
+            val json = BackupRestoreParser.parseToJson(bytes)
+                .getOrElse { err ->
+                    Log.e(TAG, "restoreFromUri rejected: ${err.javaClass.simpleName}")
+                    return@withContext Result.failure(err)
+                }
 
             restoreFromJson(appContext, json).map { backup ->
                 appContext.getString(
@@ -265,7 +287,7 @@ object BackupService {
                 )
             }
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "restoreFromUri failed", e)
+            Log.e(TAG, "restoreFromUri failed: ${e.javaClass.simpleName}")
             Result.failure(e)
         }
     }
@@ -330,7 +352,8 @@ object BackupService {
             ?: return null
         val file = File(path)
         if (!file.exists()) return null
-        return file.readText(Charsets.UTF_8).takeIf { it.startsWith("{") }
+        return BackupDataCodec.stripBom(file.readText(Charsets.UTF_8)).trim()
+            .takeIf { it.startsWith("{") }
     }
 
     private fun queryDisplayName(context: Context, uri: Uri): String? =
@@ -340,10 +363,11 @@ object BackupService {
         }
 
     private suspend fun restoreFromJson(context: Context, json: String): Result<BackupData> {
-        val backup = BackupDataCodec.fromJson(json)
-            ?: return Result.failure(
-                IllegalStateException(context.getString(R.string.backup_restore_bad_format))
-            )
+        val backup = try {
+            BackupDataCodec.decode(json)
+        } catch (e: BackupRestoreException) {
+            return Result.failure(e)
+        }
 
         val db = AppDatabase.getInstanceForActiveUser(context.applicationContext)
             ?: return Result.failure(IllegalStateException("No active user session"))
@@ -353,9 +377,7 @@ object BackupService {
             !activeUserId.isNullOrBlank() &&
             backup.accountId != activeUserId
         ) {
-            return Result.failure(
-                IllegalStateException(context.getString(R.string.backup_restore_wrong_account))
-            )
+            return Result.failure(BackupRestoreException.WrongAccount())
         }
         val loadDao = db.loadDao()
         val stopDao = db.stopDao()

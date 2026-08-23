@@ -11,6 +11,11 @@ GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 # Bot/AI secrets are NOT embedded into debug or release APKs by default.
 # For on-device Telegram debugging only:  ./gradlew :app:assembleDebug -PallowDebugSecrets=true
 CEREBRAS_API_KEY=
+# Gemini function-calling voice assistant. Not baked into APKs unless you pass
+# -PallowDebugSecrets=true (same opt-in as TELEGRAM_BOT_TOKEN / CEREBRAS_API_KEY).
+# Release BuildConfig always blanks GEMINI_API_KEY.
+# GEMINI_API_KEY=
+# GEMINI_MODEL=gemini-2.0-flash
 TELEGRAM_BOT_TOKEN=
 
 # Cloud snapshot/inbox API. Production URLs must use HTTPS.

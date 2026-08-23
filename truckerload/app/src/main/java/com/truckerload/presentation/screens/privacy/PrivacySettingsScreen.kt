@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
@@ -69,11 +68,6 @@ fun PrivacySettingsScreen(
                         colors = AppSwitchDefaults.colors(),
                     )
                 },
-            )
-            PrivacyTrustCard(
-                icon = Icons.Filled.Person,
-                title = stringResource(R.string.privacy_card_friends_title),
-                body = stringResource(R.string.privacy_card_friends_body),
             )
         }
     }

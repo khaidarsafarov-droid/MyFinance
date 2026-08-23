@@ -45,7 +45,11 @@ object LoadMessageParser {
             rawMessage.replace("\r\n", "\n").trim(),
         )
         if (!MessageClassifier.isLoadLike(normalized)) return emptyList()
-        return splitBlocks(normalized).mapNotNull { parseBlock(it, rawMessage, referenceMillis) }
+        val headers = TelegramMessageDate.scanChatHistory(normalized)
+        return splitBlocksWithStarts(normalized).mapNotNull { (start, block) ->
+            val ref = TelegramMessageDate.referenceMillisAt(headers, start, referenceMillis)
+            parseBlock(block, rawMessage, ref)
+        }
     }
 
     fun parseOne(
@@ -58,15 +62,16 @@ object LoadMessageParser {
         RegexOption.IGNORE_CASE,
     )
 
-    private fun splitBlocks(text: String): List<String> {
-        val byTrip = tripBlockSplitPattern
-            .split(text)
-            .map { it.trim() }
-            .filter { it.isNotBlank() && MessageClassifier.isLoadLike(it) }
-        if (byTrip.isNotEmpty()) return byTrip
+    private fun splitBlocksWithStarts(text: String): List<Pair<Int, String>> {
+        val matches = tripBlockSplitPattern.findAll(text).toList()
+        if (matches.isEmpty()) return listOf(0 to text)
 
-        // One trip may contain multiple PU# legs — never split on PU#.
-        return listOf(text)
+        val blocks = matches.mapIndexed { index, match ->
+            val start = match.range.first
+            val end = matches.getOrNull(index + 1)?.range?.first ?: text.length
+            start to text.substring(start, end).trim()
+        }.filter { it.second.isNotBlank() && MessageClassifier.isLoadLike(it.second) }
+        return blocks.ifEmpty { listOf(0 to text) }
     }
 
     private fun parseBlock(block: String, rawMessage: String, referenceMillis: Long): Load? {

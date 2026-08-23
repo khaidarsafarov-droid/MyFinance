@@ -26,7 +26,6 @@ import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,7 +33,6 @@ import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
 
 private val DeleteSwipeColor = Color(0xFFE57373)
@@ -58,18 +56,11 @@ fun SwipeableLoadCard(
 
     if (!enableSwipe) {
         Surface(
-            modifier = modifier
-                .clip(cardShape)
-                .shadow(
-                    elevation = SoftUiElevation.Card,
-                    shape = cardShape,
-                    ambientColor = SoftUiColors.ShadowTint,
-                    spotColor = SoftUiColors.ShadowNeutral,
-                ),
+            modifier = modifier.clip(cardShape),
             shape = cardShape,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
+            shadowElevation = SoftUiElevation.Card,
         ) {
             LoadCard(
                 load = load,
@@ -142,18 +133,11 @@ fun SwipeableLoadCard(
         modifier = modifier.clip(cardShape),
     ) {
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .shadow(
-                    elevation = SoftUiElevation.Card,
-                    shape = cardShape,
-                    ambientColor = SoftUiColors.ShadowTint,
-                    spotColor = SoftUiColors.ShadowNeutral,
-                ),
+            modifier = Modifier.fillMaxSize(),
             shape = cardShape,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
-            shadowElevation = 0.dp,
+            shadowElevation = SoftUiElevation.Card,
         ) {
             LoadCard(
                 load = load,

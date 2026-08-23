@@ -48,6 +48,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.data.backup.BackupRestoreErrors
+import com.truckerload.data.backup.BackupSchema
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.screens.settings.ThemeSettingsSection
@@ -104,7 +106,9 @@ fun SettingsScreen(
         uri ?: return@rememberLauncherForActivityResult
         settingsViewModel.restoreLoadsFromUri(uri)
     }
-    val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val restoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         scope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -112,7 +116,7 @@ fun SettingsScreen(
             }
             backupRestoreMessage = result.fold(
                 onSuccess = { it },
-                onFailure = { context.getString(R.string.settings_restore_error, it.message.orEmpty()) }
+                onFailure = { BackupRestoreErrors.userMessage(context, it) }
             )
             android.widget.Toast.makeText(context, backupRestoreMessage, android.widget.Toast.LENGTH_LONG).show()
         }
@@ -200,7 +204,6 @@ fun SettingsScreen(
                     Column {
                         BiometricSettingsSection()
                         PrivacySettingsSection(onOpenPrivacy = onOpenPrivacy)
-                        FriendsLocationSettingsSection()
                         NotificationSettingsSection(
                             quietHoursEnabled = quietHoursEnabled,
                             quietHoursStart = quietHoursStart,
@@ -357,9 +360,7 @@ fun SettingsScreen(
                                     ),
                                     android.widget.Toast.LENGTH_LONG
                                 ).show()
-                                if (it.visibleText.isNotBlank()) {
-                                    BackupService.shareNoteText(context, it.visibleText)
-                                }
+                                BackupService.shareBackupFile(context, it.save.uri)
                             } ?: android.widget.Toast.makeText(context, context.getString(R.string.settings_backup_error), android.widget.Toast.LENGTH_SHORT).show()
                         }
                     },
@@ -372,7 +373,7 @@ fun SettingsScreen(
                     }
                 }
                 OutlinedButton(
-                    onClick = { restoreLauncher.launch("text/*") },
+                    onClick = { restoreLauncher.launch(BackupSchema.RESTORE_OPEN_MIME_TYPES) },
                     modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
                     Text(stringResource(R.string.settings_backup_restore))

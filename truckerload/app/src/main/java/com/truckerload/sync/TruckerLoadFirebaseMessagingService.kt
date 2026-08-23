@@ -15,8 +15,6 @@ import com.google.firebase.messaging.RemoteMessage
 import com.truckerload.R
 import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.data.sync.cloud.SyncModeStore
-import com.truckerload.data.voice.CallNotifications
-import com.truckerload.domain.friends.FriendsLocationSharePolicy
 import com.truckerload.presentation.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -46,15 +44,9 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
                 CloudSyncWorker.enqueue(applicationContext)
                 MediaSyncWorker.enqueue(applicationContext)
                 ServerTelegramInboxWorker.enqueue(applicationContext)
-                CommunityInboxWorker.enqueue(applicationContext)
             }
             return
         }
-        if (type == FriendsLocationSharePolicy.FCM_WATCH_TYPE) {
-            FriendsLocationShareScheduler.startLiveSession(applicationContext, fromUserToggle = false)
-            return
-        }
-        if (handleCallPush(type, message.data)) return
         showNotification(
             title = message.notification?.title ?: message.data["title"],
             body = message.notification?.body ?: message.data["body"],
@@ -62,36 +54,6 @@ class TruckerLoadFirebaseMessagingService : FirebaseMessagingService() {
                 ?: message.data["type"]
                 ?: message.data["collapse_key"],
         )
-    }
-
-    private fun handleCallPush(type: String, data: Map<String, String>): Boolean {
-        val calls = CallNotifications(this)
-        when (type) {
-            "incoming_call" -> {
-                if (syncModeStore.allowsCloudCalls()) CommunityInboxWorker.enqueue(applicationContext)
-                calls.showIncoming(
-                    callId = data["callId"].orEmpty().ifBlank { "incoming" },
-                    callerName = data["callerName"] ?: data["title"].orEmpty(),
-                )
-                return true
-            }
-            "missed_call" -> {
-                calls.showMissed(
-                    peerId = data["peerId"].orEmpty(),
-                    peerName = data["peerName"] ?: data["callerName"].orEmpty(),
-                )
-                return true
-            }
-            "group_call" -> {
-                if (syncModeStore.allowsCloudCalls()) CommunityInboxWorker.enqueue(applicationContext)
-                calls.showGroupCall(
-                    chatId = data["chatId"].orEmpty(),
-                    title = data["title"] ?: data["groupName"].orEmpty(),
-                )
-                return true
-            }
-            else -> return false
-        }
     }
 
     private fun showNotification(title: String?, body: String?, collapseKey: String?) {

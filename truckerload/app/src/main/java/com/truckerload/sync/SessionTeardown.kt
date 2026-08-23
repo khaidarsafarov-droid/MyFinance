@@ -14,13 +14,11 @@ import kotlinx.coroutines.withTimeoutOrNull
 object SessionTeardown {
 
     /**
-     * Clears friends presence/route while the session is still valid, then
-     * stops Telegram and location foreground services.
+     * Stops Telegram foreground service **before** auth tokens are wiped on logout.
      */
     suspend fun beforeLogout(context: Context) {
         val app = context.applicationContext
         runCatching { DeviceSlotBinder(app).unregisterCurrentDevice() }
-        FriendsLocationShareScheduler.stopAndClear(app)
         TelegramBotForegroundService.stopForLogout(app)
         delay(300)
     }

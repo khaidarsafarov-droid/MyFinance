@@ -137,7 +137,10 @@ class TelegramMessageParser(
             return context.getString(R.string.sync_restore_manual_not_load)
         }
 
-        val parsed = messageParseService.parseLoadsFromMessage(text).getOrNull().orEmpty()
+        val parsed = messageParseService.parseLoadsFromMessage(
+            text,
+            messageDateSeconds?.times(1000) ?: System.currentTimeMillis(),
+        ).getOrNull().orEmpty()
         if (parsed.isEmpty()) {
             return context.getString(R.string.sync_restore_manual_not_load)
         }
@@ -197,7 +200,8 @@ class TelegramMessageParser(
         dieselRepository: DieselRepository,
         prefs: SharedPreferences,
     ): String {
-        messageParseService.parseLoadsFromMessage(text)
+        val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
+        messageParseService.parseLoadsFromMessage(text, referenceMillis)
             .onSuccess { incomingLoads ->
                 if (incomingLoads.isNotEmpty()) {
                     return telegramLoadHandler(loadRepository).handleLoads(

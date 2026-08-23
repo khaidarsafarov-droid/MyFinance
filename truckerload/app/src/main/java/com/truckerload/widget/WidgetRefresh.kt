@@ -8,11 +8,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private const val TAG = "WidgetRefresh"
 private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 object WidgetRefresh {
+
+    private val refreshMutex = Mutex()
+    private var refreshRunning = false
+    private var refreshQueued = false
 
     private val providers: List<Pair<Class<out android.appwidget.AppWidgetProvider>, WidgetKind>> =
         listOf(
@@ -58,9 +64,37 @@ object WidgetRefresh {
     }
 
     fun refreshAndUpdateAsync(context: Context) {
+        val appContext = context.applicationContext
         scope.launch {
-            runCatching { refreshAndUpdate(context) }
-                .onFailure { Log.e(TAG, "Widget refresh failed", it) }
+            refreshMutex.withLock {
+                if (refreshRunning) {
+                    refreshQueued = true
+                    return@launch
+                }
+                refreshRunning = true
+            }
+            try {
+                while (true) {
+                    runCatching { refreshAndUpdate(appContext) }
+                        .onFailure { Log.e(TAG, "Widget refresh failed", it) }
+                    val again = refreshMutex.withLock {
+                        if (refreshQueued) {
+                            refreshQueued = false
+                            true
+                        } else {
+                            refreshRunning = false
+                            false
+                        }
+                    }
+                    if (!again) break
+                }
+            } catch (t: Throwable) {
+                refreshMutex.withLock {
+                    refreshRunning = false
+                    refreshQueued = false
+                }
+                throw t
+            }
         }
     }
 

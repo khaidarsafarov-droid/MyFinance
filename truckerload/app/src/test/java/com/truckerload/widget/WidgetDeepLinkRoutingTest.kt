@@ -45,17 +45,7 @@ class WidgetDeepLinkRoutingTest {
     @Test
     fun resolveNavRoute_unknown_returnsNull() {
         assertNull(WidgetDeepLink.resolveNavRoute("nope"))
-    }
-
-    @Test
-    fun resolveNavRoute_socialChat_passthrough() {
-        assertEquals("social_chat/abc%2Fdef", WidgetDeepLink.resolveNavRoute("social_chat/abc%2Fdef"))
-    }
-
-    @Test
-    fun resolveNavRoute_callsAndRooms_passthrough() {
-        assertEquals("call/c1", WidgetDeepLink.resolveNavRoute("call/c1"))
-        assertEquals("voice_room/r1", WidgetDeepLink.resolveNavRoute("voice_room/r1"))
-        assertEquals("profile_peer/u1", WidgetDeepLink.resolveNavRoute("profile_peer/u1"))
+        assertNull(WidgetDeepLink.resolveNavRoute("social_chat/abc"))
+        assertNull(WidgetDeepLink.resolveNavRoute("call/c1"))
     }
 }

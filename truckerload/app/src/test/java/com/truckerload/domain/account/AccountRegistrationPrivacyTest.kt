@@ -10,7 +10,6 @@ import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.privacy.AesGcmSensitiveFieldCipher
 import com.truckerload.data.repository.account.AccountDeletionService
 import com.truckerload.data.repository.account.AccountIdentityRepository
-import com.truckerload.data.repository.account.CommunityProfileRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.domain.account.ProfessionalAccess
@@ -38,7 +37,6 @@ class AccountRegistrationPrivacyTest {
     private lateinit var cipher: AesGcmSensitiveFieldCipher
     private lateinit var identity: AccountIdentityRepository
     private lateinit var professional: DriverProfessionalRepository
-    private lateinit var community: CommunityProfileRepository
     private lateinit var registration: RegistrationService
     private lateinit var deletion: AccountDeletionService
     private lateinit var progressStore: RegistrationProgressStore
@@ -57,14 +55,12 @@ class AccountRegistrationPrivacyTest {
         cipher = AesGcmSensitiveFieldCipher(ByteArray(32) { 7 })
         identity = AccountIdentityRepository(db.userAccountDao())
         professional = DriverProfessionalRepository(db.driverProfessionalDao(), cipher)
-        community = CommunityProfileRepository(db.communityProfileDao())
         progressStore = RegistrationProgressStore(context).also { it.bindUser(userId, false) }
         userProfileStore = UserProfileStore(context).also { it.bindUser(userId) }
         registration = RegistrationService(
             userId = userId,
             identity = identity,
             professional = professional,
-            community = community,
             progressStore = progressStore,
             consentStore = ConsentStore(context),
             userProfileStore = userProfileStore,
@@ -76,7 +72,6 @@ class AccountRegistrationPrivacyTest {
             database = db,
             identity = identity,
             professional = professional,
-            community = community,
             cipher = cipher,
             consentStore = ConsentStore(context),
             progressStore = progressStore,
@@ -110,14 +105,6 @@ class AccountRegistrationPrivacyTest {
             vehicleType = "Reefer",
             primaryRegion = "TX",
         )
-        assertTrue(
-            registration.completeCommunity(
-                nickname = "RoadAnn",
-                avatarUrl = null,
-                bio = "nights",
-                visibility = CommunityVisibilitySettings(bioVisible = false),
-            ).isSuccess,
-        )
 
         val user = identity.get(userId)!!
         assertEquals("a@example.com", user.email)
@@ -133,14 +120,6 @@ class AccountRegistrationPrivacyTest {
         assertNotNull(storedCipher)
         assertFalse(storedCipher!!.contains("CDL-SECRET-99"))
         assertTrue(storedCipher.startsWith(AesGcmSensitiveFieldCipher.PREFIX_V1))
-
-        val pub = community.getPublic(userId)!!
-        assertEquals("RoadAnn", pub.nickname)
-        assertNull(pub.bio)
-        assertFalse(pub.toString().contains("CDL"))
-        val communityRow = db.communityProfileDao().get(userId)!!
-        assertFalse(communityRow.nickname.contains("CDL"))
-        assertFalse(communityRow.bio.orEmpty().contains("CDL-SECRET"))
     }
 
     @Test
@@ -157,16 +136,12 @@ class AccountRegistrationPrivacyTest {
         )
         assertTrue(registration.completeBasicProfile("Bob", DriverRole.HIRED_DRIVER).isSuccess)
         registration.skipProfessional()
-        registration.skipCommunity()
         val progress = registration.progress()
         assertTrue(progress.basicComplete)
         assertTrue(progress.professionalSkipped)
-        assertTrue(progress.communitySkipped)
         assertTrue(progress.professionalPending)
-        assertTrue(progress.communityPending)
         assertFalse(registration.needsRequiredOnboarding())
         assertTrue(professional.getOwn(userId)!!.skipped)
-        assertTrue(community.getOwn(userId)!!.skipped)
     }
 
     @Test
@@ -210,7 +185,6 @@ class AccountRegistrationPrivacyTest {
         )
         registration.completeBasicProfile("Gone", DriverRole.OWNER_OPERATOR)
         registration.completeProfessional("Co", "CDL-1", null, "Van", "FL")
-        registration.completeCommunity("nick", null, "bio", CommunityVisibilitySettings())
         db.loadDao().insert(
             LoadEntity(
                 id = "load-1",
@@ -232,7 +206,6 @@ class AccountRegistrationPrivacyTest {
         deletion.cascadeDeleteLocalTables()
         assertNull(identity.get(userId))
         assertNull(professional.getOwn(userId))
-        assertNull(community.getOwn(userId))
         assertTrue(db.loadDao().getAllLoadsOnce().isEmpty())
         assertFalse(registration.progress().basicComplete)
     }
@@ -276,12 +249,5 @@ class AgeGateAndCipherTest {
         assertNotEquals("CDL-123", encoded)
         assertEquals("CDL-123", cipher.decrypt(encoded))
         assertEquals("legacy", cipher.decrypt(AesGcmSensitiveFieldCipher.wrapPlaintextForMigration("legacy")))
-    }
-
-    @Test
-    fun publicCommunityProfileTypeHasNoCdlFields() {
-        val names = PublicCommunityProfile::class.java.declaredFields.map { it.name }
-        assertFalse(names.any { it.contains("cdl", ignoreCase = true) })
-        assertFalse(names.any { it.contains("company", ignoreCase = true) })
     }
 }

@@ -49,7 +49,7 @@ Legacy-имена `DarkGlass*`, `NeoGlass*`, `Gold*`, `PurpleStart` — deprecat
 
 ## Навигация (phone)
 
-Logbook · Weekly Goal · Community · Profile
+Logbook · Weekly Goal · Profile
 
 ## Планшеты
 

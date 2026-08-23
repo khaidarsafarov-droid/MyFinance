@@ -1,17 +1,12 @@
 package com.truckerload.data.repository.social
 
 import com.truckerload.data.local.entities.DriverProfileEntity
-import com.truckerload.data.local.entities.SocialPeerEntity
-import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.data.preferences.ProfileIdentity
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.domain.social.BadgeEngine
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.LeaderboardCategory
-import com.truckerload.domain.social.LeaderboardEntry
 import com.truckerload.domain.social.TruckType
-import com.truckerload.domain.social.leaderboardScore
 
 internal object ProfileMapper {
 
@@ -93,41 +88,5 @@ internal object ProfileMapper {
             axleCount = base.axleCount,
             homeHubCity = base.homeHubCity,
         )
-    }
-
-    fun buildLeaderboard(
-        weekStats: WeeklyLoadStatsAgg,
-        peers: List<SocialPeerEntity>,
-        category: LeaderboardCategory,
-        localDisplayName: String,
-    ): List<LeaderboardEntry> {
-        val myScore = weekStats.leaderboardScore(category)
-        val peerEntries = peers.map { peer ->
-            val score = when (category) {
-                LeaderboardCategory.LOADS -> peer.weeklyLoads.toDouble()
-                LeaderboardCategory.REVENUE -> peer.weeklyRevenue
-                LeaderboardCategory.RPM -> peer.weeklyRpm
-                LeaderboardCategory.OVERALL -> peer.weeklyMiles
-            }
-            LeaderboardEntry(
-                rank = 0,
-                displayName = peer.displayName,
-                score = score,
-                rating = peer.rating,
-                trend = "—",
-                userId = peer.id,
-            )
-        }
-        val myEntry = LeaderboardEntry(
-            rank = 0,
-            displayName = localDisplayName,
-            score = myScore,
-            rating = 0.0,
-            trend = if (myScore > 0) "⬆" else "—",
-            isMe = true,
-        )
-        return (peerEntries + myEntry)
-            .sortedByDescending { it.score }
-            .mapIndexed { index, entry -> entry.copy(rank = index + 1) }
     }
 }

@@ -29,7 +29,6 @@ import com.truckerload.sync.PushTokenRegistrationWorker
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
-import com.truckerload.sync.FriendsLocationShareScheduler
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
 import com.truckerload.widget.WidgetStatsLoader
@@ -104,7 +103,6 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         WidgetUpdateWorker.schedule(this)
         // One deferred widget paint at cold start; periodic worker keeps it fresh.
         WidgetUpdateWorker.refreshNow(this)
-        FriendsLocationShareScheduler.sync(this)
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {

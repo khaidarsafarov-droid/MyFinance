@@ -259,7 +259,6 @@ fun Application.configureApplication(config: AppConfig, dependencies: AppDepende
                 mediaRoutes(config, dependencies)
                 telegramAuthenticatedRoutes(config, dependencies.repositories)
                 deviceRoutes(dependencies.repositories)
-                voiceRoutes(config, dependencies.repositories)
             }
         }
     }

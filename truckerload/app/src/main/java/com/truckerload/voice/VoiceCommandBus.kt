@@ -22,34 +22,23 @@ object VoiceCommandBus {
     }
 }
 
-object VoicePendingDraft {
-    @Volatile
-    var chatText: String? = null
-
-    fun consumeChatText(): String? {
-        val text = chatText
-        chatText = null
-        return text
-    }
-}
-
 object VoiceAssistantLogger {
     private const val TAG = "VoiceAssistant"
 
     fun log(command: AppVoiceAction, outcome: String, detail: String? = null) {
         val action = when (command) {
             is AppVoiceAction.OpenScreen -> "open/${command.route}"
-            is AppVoiceAction.ChatWithFriend -> "chat/${command.peerQuery}"
-            is AppVoiceAction.MessageFriend -> "message/${command.peerQuery}"
-            is AppVoiceAction.CallFriend -> "call/${command.peerQuery}"
+            is AppVoiceAction.AddDiesel -> "journal/add_diesel"
+            is AppVoiceAction.AddPaycheck -> "journal/add_paycheck"
+            is AppVoiceAction.QueryWeeklyGross -> "journal/weekly_gross"
         }
-        Log.i(TAG, "action=$action outcome=$outcome ${detail.orEmpty()}")
-        CrashReporting.setCustomKey("voice_last_action", action.take(80))
-        CrashReporting.setCustomKey("voice_last_outcome", outcome.take(40))
+        logOutcome(action, outcome, detail)
     }
 
-    fun logOutcome(action: String, outcome: String) {
-        Log.i(TAG, "action=$action outcome=$outcome")
+    fun logOutcome(action: String, outcome: String, detail: String? = null) {
+        val suffix = detail?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+        // android.util.Log is a no-op stub in JVM unit tests.
+        runCatching { Log.i(TAG, "action=$action outcome=$outcome$suffix") }
         CrashReporting.setCustomKey("voice_last_action", action.take(80))
         CrashReporting.setCustomKey("voice_last_outcome", outcome.take(40))
     }

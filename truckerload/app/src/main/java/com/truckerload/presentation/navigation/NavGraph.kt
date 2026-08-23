@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalSocialSyncCoordinator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,9 +36,6 @@ import com.truckerload.presentation.utils.useTwoPaneLayout
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalVoiceRepository
-import com.truckerload.presentation.screens.voice.ActiveCallBanner
-import com.truckerload.presentation.screens.voice.IncomingCallOverlay
 import com.truckerload.widget.WidgetDeepLink
 import kotlinx.coroutines.launch
 
@@ -70,7 +66,6 @@ fun NavGraph(
     }
 
     val profileRepository = LocalProfileRepository.current
-    val socialSyncCoordinator = LocalSocialSyncCoordinator.current
     val userProfileStore = LocalUserProfileStore.current
     val setupComplete by userProfileStore.setupComplete.collectAsStateWithLifecycle()
     val authEmail by authStore.email.collectAsStateWithLifecycle()
@@ -102,10 +97,14 @@ fun NavGraph(
                 context,
                 authStore.currentUserIdOrNull(),
             ).shouldPrompt(context)
-            launch { socialSyncCoordinator.ensureInitialized() }
+            launch {
+                profileRepository.syncIdentityFromUserProfile()
+                profileRepository.maybeMarkSetupCompleteFromExistingProfile()
+            }
             return@LaunchedEffect
         }
-        socialSyncCoordinator.ensureInitialized()
+        profileRepository.syncIdentityFromUserProfile()
+        profileRepository.maybeMarkSetupCompleteFromExistingProfile()
         needsSetup = registrationService.needsRequiredOnboarding() ||
             profileRepository.needsProfileSetup()
         needsTelegramOnboarding = if (needsSetup == true) {
@@ -200,14 +199,7 @@ fun NavGraph(
                 onDeepLinkHandled()
             }
             else -> {
-                if (
-                    destination.startsWith("attach_pick/") ||
-                    destination.startsWith("social_chat/") ||
-                    destination.startsWith("call/") ||
-                    destination.startsWith("voice_room/") ||
-                    destination.startsWith("profile_peer/") ||
-                    destination.startsWith("group_detail/")
-                ) {
+                if (destination.startsWith("attach_pick/")) {
                     navController.navigate(destination) { launchSingleTop = true }
                     onDeepLinkHandled()
                 }
@@ -219,13 +211,12 @@ fun NavGraph(
     val currentRoute = currentDestination?.route
     val showMainNavigation = if (tablet) {
         currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
+            currentRoute != Routes.VOICE_ASSISTANT &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
             currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
             !currentRoute.orEmpty().startsWith("attach_pick") &&
-            !currentRoute.orEmpty().startsWith("photo_detail") &&
-            !currentRoute.orEmpty().startsWith("profile_peer") &&
-            !currentRoute.orEmpty().startsWith("social_chat")
+            !currentRoute.orEmpty().startsWith("photo_detail")
     } else {
         shouldShowPhoneBottomBar(currentRoute)
     }
@@ -242,11 +233,11 @@ fun NavGraph(
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
-                DrawerDestination.FRIENDS_LIVE -> navController.navigate(Routes.FRIENDS_LIVE) { launchSingleTop = true }
                 DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
                 DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
+                DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
@@ -281,6 +272,7 @@ fun NavGraph(
                         onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
                         onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
                         onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                        onVoiceAssistant = { navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true } },
                         onLoadCamera = { loadId, tripId, loadDate ->
                             navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
                         },
@@ -291,26 +283,11 @@ fun NavGraph(
                     )
                 }
             }
-            socialNavGraph(navController, reduceMotion)
+            profileNavGraph(navController, reduceMotion)
             loadsNavGraph(navController)
             toolsNavGraph(navController, tablet, reduceMotion)
         }
         }
-            IncomingCallOverlay(
-                currentRoute = currentRoute,
-                myUserId = LocalVoiceRepository.current.currentUserId(),
-                onAccept = { callId ->
-                    navController.navigate(Routes.call(callId)) { launchSingleTop = true }
-                },
-            )
-            ActiveCallBanner(
-                currentRoute = currentRoute,
-                onReturn = { callId ->
-                    navController.navigate(Routes.call(callId)) { launchSingleTop = true }
-                },
-                modifier = Modifier.align(Alignment.TopCenter),
-            )
-            com.truckerload.presentation.voice.VoiceCommandHandler(navController = navController)
         }
     }
 }

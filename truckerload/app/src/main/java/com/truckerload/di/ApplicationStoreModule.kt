@@ -5,7 +5,6 @@ import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.preferences.CallPrivacyStore
 import com.truckerload.data.preferences.UserProfileStore
 import dagger.Module
 import dagger.Provides
@@ -51,10 +50,4 @@ object ApplicationStoreModule {
     fun providePushTokenStore(
         @ApplicationContext context: Context,
     ): PushTokenStore = PushTokenStore(context)
-
-    @Provides
-    @Singleton
-    fun provideCallPrivacyStore(
-        @ApplicationContext context: Context,
-    ): CallPrivacyStore = CallPrivacyStore(context)
 }

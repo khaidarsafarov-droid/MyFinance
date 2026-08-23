@@ -76,6 +76,25 @@ class TelegramHtmlExportParserTest {
         val loads = parser.parse(html)
         assertEquals(1, loads.size)
         assertEquals("T-116KYL6KW", loads[0].tripId)
+        assertEquals("2025-06-28", loads[0].date)
+        assertTrue(loads[0].parsedAt > 0L)
+    }
+
+    @Test
+    fun parse_serviceDayHeaderUsedWhenTitleMissing() {
+        val html = sampleTelegramExport(
+            listOf(
+                """
+                <div class="message service" id="message-day">
+                  <div class="body details">28 June 2025</div>
+                </div>
+                """.trimIndent(),
+                loadBlock("T-NOTITLE", includeTitle = false),
+            ),
+        )
+        val loads = parser.parse(html)
+        assertEquals(1, loads.size)
+        assertEquals("2025-06-28", loads.single().date)
     }
 
     @Test
@@ -147,6 +166,7 @@ class TelegramHtmlExportParserTest {
         tripId: String,
         rate: String = "2,945.56",
         miles: String = "1,198.03",
+        includeTitle: Boolean = true,
     ): String {
         val relayText = """
             Trip ID: $tripId
@@ -160,10 +180,15 @@ class TelegramHtmlExportParserTest {
             Del-time: 06/29 07:00 EDT
             Del-address: TOL3, Perrysburg, OH
         """.trimIndent().replace("\n", "<br>\n")
+        val dateDiv = if (includeTitle) {
+            """<div class="pull_right date details" title="28.06.2025 14:30:00 UTC+03:00">14:30</div>"""
+        } else {
+            """<div class="pull_right date details">14:30</div>"""
+        }
         return """
         <div class="message default clearfix" id="message-${tripId.hashCode()}">
           <div class="body">
-            <div class="pull_right date details" title="28.06.2026 14:30:00 UTC+03:00">14:30</div>
+            $dateDiv
             <div class="from_name">Amazon Relay Bot</div>
             <div class="text">
               $relayText

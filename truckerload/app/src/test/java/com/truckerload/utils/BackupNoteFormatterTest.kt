@@ -67,6 +67,10 @@ class BackupNoteFormatterTest {
         assertTrue(txtName.startsWith("Loads_"))
         assertTrue(txtName.endsWith(".txt"))
         assertEquals(txtName.removeSuffix(".txt") + ".tlb", BackupNoteFormatter.companionFileName(txtName))
+        assertEquals(
+            "TruckLog_Backup_20260721.tlb",
+            BackupNoteFormatter.companionFileName("TruckLog_Backup_20260721.json"),
+        )
     }
 
     private fun load(

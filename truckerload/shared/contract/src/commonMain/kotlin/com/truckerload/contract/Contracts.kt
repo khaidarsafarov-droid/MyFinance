@@ -178,23 +178,6 @@ data class DeviceRegisterResponse(
 )
 
 @Serializable
-data class VoiceTokenRequest(
-    val roomId: String,
-    val displayName: String = "",
-    val role: String = "speaker",
-)
-
-@Serializable
-data class VoiceTokenResponse(
-    val url: String,
-    val token: String,
-    val roomName: String,
-    val identity: String,
-    val role: String,
-    val audioBitrate: Int,
-)
-
-@Serializable
 data class ApiError(
     val code: String,
     val message: String,

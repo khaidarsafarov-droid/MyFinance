@@ -51,7 +51,6 @@ fun ActivationChecklistCard(
                     R.string.ux_activation_progress,
                     checklist.completedCount,
                     checklist.totalCount,
-                    (checklist.progressFraction * 100).toInt(),
                 ),
                 style = AppTypography.Subtitle,
                 color = tc.TextSecondary,

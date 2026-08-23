@@ -77,14 +77,6 @@ class CrowdRpmMathTest {
         assertNull(snapshot.medianRpm)
     }
 
-    @Test
-    fun competitiveGate_requiresTwoFriends() {
-        assertFalse(CommunityCompetitive.showFriendRanking(0))
-        assertFalse(CommunityCompetitive.showFriendRanking(1))
-        assertTrue(CommunityCompetitive.showFriendRanking(2))
-        assertTrue(CommunityCompetitive.showFriendRanking(5))
-    }
-
     private fun report(
         id: String,
         from: String,

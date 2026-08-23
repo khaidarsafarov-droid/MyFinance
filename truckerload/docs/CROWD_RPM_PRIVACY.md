@@ -19,7 +19,7 @@ Gate: `CrowdRpmShareGate` (requires `crowdStatsOptIn == true`).
 
 There is **no HTTP Crowd RPM publisher** in this app. The map heatmap is a
 **local** view of the driver's own loads. Room table `crowd_rates` is a cache
-for future friend/network rows; production code does not upsert it from loads.
+for future network rows; production code does not upsert it from loads.
 
 ## What must never be included
 
@@ -34,7 +34,7 @@ Do **not** log Crowd RPM samples (same rule as JWT / local paths / OCR / signed 
 ## Opt-in
 
 - Default: **off** (`crowdStatsOptIn = false`).
-- First visit to Community shows a one-shot consent dialog.
+- First visit to the Map heatmap shows a one-shot consent dialog.
 - Decline hides the Crowd RPM block entirely (no stub / sample data).
 - Settings → Privacy can turn participation on or off at any time.
 

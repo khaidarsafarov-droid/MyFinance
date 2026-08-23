@@ -18,19 +18,11 @@ import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.data.repository.ScanRepository
-import com.truckerload.data.repository.VoiceRepository
-import com.truckerload.data.voice.VoiceTokenClient
 import com.truckerload.data.repository.WeekRepository
-import com.truckerload.data.repository.social.ChatRepository
-import com.truckerload.data.repository.social.GroupRepository
-import com.truckerload.data.repository.social.MediaRepository
 import com.truckerload.data.repository.account.AccountDeletionService
-import com.truckerload.data.repository.account.CommunityProfileRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.data.repository.social.ProfileRepository
-import com.truckerload.data.repository.social.SocialSyncCoordinator
-import com.truckerload.data.repository.social.StatusRepository
 
 /**
  * Account-scoped object graph for one [userId].
@@ -56,21 +48,15 @@ class UserComponent private constructor(
     val photoRepository: PhotoRepository,
     val scanRepository: ScanRepository,
     val profileRepository: ProfileRepository,
-    val chatRepository: ChatRepository,
-    val groupRepository: GroupRepository,
-    val statusRepository: StatusRepository,
-    val mediaRepository: MediaRepository,
-    val socialSyncCoordinator: SocialSyncCoordinator,
     val crowdRpmRepository: CrowdRpmRepository,
-    val voiceRepository: VoiceRepository,
     val aiRepository: AiRepository,
     val maintenanceRepository: MaintenanceRepository,
     val registrationService: RegistrationService,
     val driverProfessionalRepository: DriverProfessionalRepository,
-    val communityProfileRepository: CommunityProfileRepository,
     val accountDeletionService: AccountDeletionService,
 ) {
     companion object {
+        @Suppress("UNUSED_PARAMETER")
         fun create(
             context: Context,
             userId: String,
@@ -112,24 +98,11 @@ class UserComponent private constructor(
                 photoRepository = PhotoRepository(db),
                 scanRepository = ScanRepository(db),
                 profileRepository = social.profile,
-                chatRepository = social.chat,
-                groupRepository = social.group,
-                statusRepository = social.status,
-                mediaRepository = social.media,
-                socialSyncCoordinator = social.syncCoordinator,
                 crowdRpmRepository = social.crowdRpm,
-                voiceRepository = VoiceRepository(
-                    db,
-                    context,
-                    social.voiceRemote,
-                    social.actorId,
-                    httpClientProvider?.let(::VoiceTokenClient),
-                ),
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),
                 registrationService = account.registration,
                 driverProfessionalRepository = account.professional,
-                communityProfileRepository = account.community,
                 accountDeletionService = account.deletion,
             )
         }

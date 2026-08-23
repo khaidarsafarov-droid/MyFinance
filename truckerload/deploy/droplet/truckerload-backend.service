@@ -1,6 +1,6 @@
 [Unit]
 Description=TruckerLoad Ktor API
-After=network-online.target postgresql.service livekit.service
+After=network-online.target postgresql.service
 Wants=network-online.target
 
 [Service]

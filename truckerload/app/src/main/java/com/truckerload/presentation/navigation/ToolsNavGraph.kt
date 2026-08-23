@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.truckerload.presentation.screens.about.AboutAppScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
+import com.truckerload.presentation.screens.assistant.VoiceAssistantScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsScreen
 import com.truckerload.presentation.screens.attach.AttachLoadPickScreen
 import com.truckerload.presentation.screens.attach.AttachPickMode
@@ -16,7 +17,6 @@ import com.truckerload.presentation.screens.gallery.PhotoDetailScreen
 import com.truckerload.presentation.screens.gallery.PhotoGalleryScreen
 import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
-import com.truckerload.presentation.screens.social.friends.map.FriendsLiveMapScreen
 import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
@@ -80,16 +80,14 @@ fun NavGraphBuilder.toolsNavGraph(
     ) {
         MapScreen(onBack = { navController.popBackStack() })
     }
-    composable(Routes.FRIENDS_LIVE) {
-        FriendsLiveMapScreen(
-            onBack = { navController.popBackStack() },
-        )
-    }
     composable(Routes.MAINTENANCE) {
         MaintenanceScreen(onBack = { navController.popBackStack() })
     }
     composable(Routes.FINANCIAL_ADVISOR) {
         FinancialAdvisorScreen(onBack = { navController.popBackStack() })
+    }
+    composable(Routes.VOICE_ASSISTANT) {
+        VoiceAssistantScreen(onBack = { navController.popBackStack() })
     }
     composable(
         route = Routes.SETTINGS,

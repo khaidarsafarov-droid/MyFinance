@@ -12,6 +12,8 @@ import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.ManualLoadFactory
+import com.truckerload.domain.parser.PasteParseGap
+import com.truckerload.domain.parser.PasteParseHint
 import com.truckerload.sync.LoadAlarmPlanner
 import com.truckerload.sync.LoadAlarmScheduler
 import com.truckerload.utils.LoadDocumentTextExtractor
@@ -244,9 +246,7 @@ class AddLoadViewModel @Inject constructor(
                             previewHint = if (value.length < MIN_PREVIEW_CHARS) {
                                 null
                             } else {
-                                getApplication<Application>().getString(
-                                    com.truckerload.R.string.add_load_preview_incomplete,
-                                )
+                                getApplication<Application>().getString(previewHintRes(value))
                             },
                         )
                     }
@@ -402,6 +402,13 @@ class AddLoadViewModel @Inject constructor(
 
     private fun todayIso(): String =
         SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+    private fun previewHintRes(text: String): Int = when (PasteParseHint.of(text)) {
+        PasteParseGap.MISSING_RATE -> com.truckerload.R.string.add_load_preview_missing_rate
+        PasteParseGap.MISSING_ADDRESS -> com.truckerload.R.string.add_load_preview_missing_address
+        PasteParseGap.MISSING_BOTH -> com.truckerload.R.string.add_load_preview_missing_both
+        PasteParseGap.INCOMPLETE -> com.truckerload.R.string.add_load_preview_incomplete
+    }
 
     companion object {
         private const val KEY_RAW = "add_load_raw_text"

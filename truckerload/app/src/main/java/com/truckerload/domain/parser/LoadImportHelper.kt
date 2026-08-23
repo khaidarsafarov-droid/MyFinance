@@ -26,15 +26,14 @@ object LoadImportHelper {
         var replaced = 0
         var skipped = 0
 
-        for (load in loads) {
-            when (
-                processor.processLoad(
-                    parsedLoad = load,
-                    config = config,
-                    messageDateSeconds = messageDateSeconds,
-                    playFeedback = false,
-                )
-            ) {
+        val results = processor.processLoads(
+            parsedLoads = loads,
+            config = config,
+            messageDateSeconds = messageDateSeconds,
+            playFeedback = false,
+        )
+        for (result in results) {
+            when (result) {
                 ProcessingResult.Added -> added++
                 is ProcessingResult.Updated -> updated++
                 is ProcessingResult.Replaced -> replaced++

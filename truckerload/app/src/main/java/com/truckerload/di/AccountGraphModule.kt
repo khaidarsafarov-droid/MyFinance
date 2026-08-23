@@ -11,7 +11,6 @@ import com.truckerload.data.privacy.AesGcmSensitiveFieldCipher
 import com.truckerload.data.privacy.SensitiveFieldCipher
 import com.truckerload.data.repository.account.AccountDeletionService
 import com.truckerload.data.repository.account.AccountIdentityRepository
-import com.truckerload.data.repository.account.CommunityProfileRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
 
@@ -20,7 +19,6 @@ object AccountGraphModule {
     data class Bundle(
         val identity: AccountIdentityRepository,
         val professional: DriverProfessionalRepository,
-        val community: CommunityProfileRepository,
         val registration: RegistrationService,
         val deletion: AccountDeletionService,
         val progressStore: RegistrationProgressStore,
@@ -38,7 +36,6 @@ object AccountGraphModule {
         val cipher = AesGcmSensitiveFieldCipher.forUser(app, userId)
         val identity = AccountIdentityRepository(db.userAccountDao())
         val professional = DriverProfessionalRepository(db.driverProfessionalDao(), cipher)
-        val community = CommunityProfileRepository(db.communityProfileDao())
         val progressStore = RegistrationProgressStore(app).also {
             val setupDone = runCatching { userProfileStore.setupComplete.value }.getOrDefault(false)
             it.bindUser(userId, setupDone)
@@ -48,7 +45,6 @@ object AccountGraphModule {
             userId = userId,
             identity = identity,
             professional = professional,
-            community = community,
             progressStore = progressStore,
             consentStore = consentStore,
             userProfileStore = userProfileStore,
@@ -59,7 +55,6 @@ object AccountGraphModule {
             database = db,
             identity = identity,
             professional = professional,
-            community = community,
             cipher = cipher,
             consentStore = consentStore,
             progressStore = progressStore,
@@ -70,7 +65,6 @@ object AccountGraphModule {
         return Bundle(
             identity = identity,
             professional = professional,
-            community = community,
             registration = registration,
             deletion = deletion,
             progressStore = progressStore,

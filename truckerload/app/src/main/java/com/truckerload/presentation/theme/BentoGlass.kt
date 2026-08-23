@@ -85,14 +85,7 @@ fun BentoGlassCard(
         else -> cs.surface
     }
     Surface(
-        modifier = modifier.then(
-            Modifier.shadow(
-                elevation = SoftUiElevation.Card,
-                shape = shape,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
-            ),
-        ),
+        modifier = modifier,
         shape = shape,
         color = containerColor,
         border = androidx.compose.foundation.BorderStroke(
@@ -100,7 +93,7 @@ fun BentoGlassCard(
             color = if (useHeroGradient) Color.Transparent else cs.outline,
         ),
         tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
+        shadowElevation = if (useHeroGradient) 0.dp else SoftUiElevation.Card,
         content = { Column(content = content) },
     )
 }

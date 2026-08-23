@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.SelectedStateStore
+import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
@@ -28,12 +29,14 @@ data class MapUiState(
     val stateSummary: CrowdStateSummary? = null,
     val topLanes: List<CrowdLaneAggregate> = emptyList(),
     val errorMessage: String? = null,
+    val showCrowdConsent: Boolean = false,
 )
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val selectedStateStore: SelectedStateStore,
+    private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -45,6 +48,25 @@ class MapViewModel @Inject constructor(
 
     init {
         refresh()
+        viewModelScope.launch {
+            if (!settingsDataStore.isCrowdStatsPromptSeenOnce()) {
+                _uiState.update { it.copy(showCrowdConsent = true) }
+            }
+        }
+    }
+
+    fun acceptCrowdStats() {
+        viewModelScope.launch {
+            settingsDataStore.saveCrowdStatsOptIn(true)
+            _uiState.update { it.copy(showCrowdConsent = false) }
+        }
+    }
+
+    fun declineCrowdStats() {
+        viewModelScope.launch {
+            settingsDataStore.saveCrowdStatsOptIn(false)
+            _uiState.update { it.copy(showCrowdConsent = false) }
+        }
     }
 
     fun refresh() {

@@ -2,10 +2,15 @@ package com.truckerload.utils
 
 import androidx.room.Room
 import com.truckerload.data.backup.BackupData
+import com.truckerload.data.backup.BackupDataCodec
+import com.truckerload.data.backup.BackupRestoreParser
+import com.truckerload.data.backup.BackupSchema
+import com.truckerload.data.backup.BackupTestFixtures
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.toEntity
+import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
-import com.truckerload.domain.model.Load
-import com.google.gson.Gson
+import com.truckerload.data.repository.PaycheckRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -22,16 +27,19 @@ import org.robolectric.annotation.Config
 class BackupRestoreRoundTripTest {
 
     private lateinit var db: AppDatabase
-    private lateinit var repo: LoadRepository
+    private lateinit var loadRepo: LoadRepository
+    private lateinit var paycheckRepo: PaycheckRepository
+    private lateinit var dieselRepo: DieselRepository
 
     @Before
     fun setUp() {
         val context = RuntimeEnvironment.getApplication()
-        // Seed AppDatabase application context for backup helpers if needed.
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        repo = LoadRepository(db)
+        loadRepo = LoadRepository(db)
+        paycheckRepo = PaycheckRepository(db)
+        dieselRepo = DieselRepository(db)
     }
 
     @After
@@ -40,37 +48,78 @@ class BackupRestoreRoundTripTest {
     }
 
     @Test
-    fun backupJson_roundTripsLoadCount() = runBlocking {
-        val load = Load(
-            id = "L1",
-            tripId = "T-BACKUP1",
-            date = "2026-07-21",
-            totalRate = 2500.0,
-            totalMiles = 850.0,
-            pointA = "Garner, NC",
-            pointB = "Dallas, TX",
-            puCount = 1,
-            delCount = 1,
-            weekNumber = 30,
-            year = 2026,
-            rawMessage = "Trip ID: T-BACKUP1",
-            parsedAt = 1L,
-            updatedAt = 1L,
+    fun exportImport_restoresLoadsStopsPenaltiesPaycheckDiesel() = runBlocking {
+        loadRepo.insertLoad(BackupTestFixtures.sampleLoad(), playFeedback = false)
+        paycheckRepo.insertPaycheck(BackupTestFixtures.samplePaycheck())
+        dieselRepo.insertDiesel(BackupTestFixtures.sampleDiesel())
+
+        val originalLoads = loadRepo.getAllLoadsOnce()
+        val originalPay = paycheckRepo.getAllPaychecksOnce()
+        val originalDiesel = dieselRepo.getAllDieselOnce()
+        assertEquals(1, originalLoads.size)
+        assertEquals(2, originalLoads[0].stops.size)
+        assertEquals(1, originalLoads[0].penalties.size)
+
+        val exported = BackupData(
+            exportedAt = BackupTestFixtures.EXPORTED_AT,
+            accountId = "user-abc",
+            loads = originalLoads,
+            paychecks = originalPay,
+            diesel = originalDiesel,
         )
-        repo.insertLoad(load, playFeedback = false)
-        val all = repo.getAllLoadsOnce()
-        assertEquals(1, all.size)
+        val fileBytes = BackupDataCodec.toUtf8Bytes(exported)
+        assertEquals("application/json", BackupSchema.JSON_MIME)
+        assertTrue(BackupSchema.jsonFileName(exported.exportedAt).endsWith(".json"))
 
-        val json = Gson().toJson(BackupData(loads = all, paychecks = emptyList(), diesel = emptyList()))
-        assertTrue(json.contains("T-BACKUP1"))
+        val parsedJson = BackupRestoreParser.parseToJson(fileBytes).getOrThrow()
+        val decoded = BackupDataCodec.decode(parsedJson)
 
-        // Wipe and re-insert via same shape BackupService uses.
+        assertEquals(originalLoads, decoded.loads)
+        assertEquals(originalPay, decoded.paychecks)
+        assertEquals(originalDiesel, decoded.diesel)
+        assertEquals(BackupTestFixtures.PARSED_AT, decoded.loads[0].parsedAt)
+        assertEquals(BackupTestFixtures.UPDATED_AT, decoded.loads[0].updatedAt)
+        assertEquals("T-116KYL6KW", decoded.loads[0].tripId)
+        assertEquals(originalLoads[0].id, decoded.loads[0].stops[0].loadId)
+        assertEquals(originalLoads[0].id, decoded.loads[0].penalties[0].loadId)
+
+        applyBackupLikeService(decoded)
+
+        val restoredLoads = loadRepo.getAllLoadsOnce()
+        val restoredPay = paycheckRepo.getAllPaychecksOnce()
+        val restoredDiesel = dieselRepo.getAllDieselOnce()
+        assertEquals(originalLoads, restoredLoads)
+        assertEquals(originalPay, restoredPay)
+        assertEquals(originalDiesel, restoredDiesel)
+    }
+
+    @Test
+    fun legacyChartNote_doesNotRestore() {
+        val note = BackupNoteFormatter.buildNote(BackupTestFixtures.sampleBackup()).visibleText
+        val result = BackupRestoreParser.parseToJson(note.toByteArray())
+        assertTrue(result.isFailure)
+        val error = result.exceptionOrNull()
+        assertTrue(error is com.truckerload.data.backup.BackupRestoreException.ChartNoteNotBackup)
+    }
+
+    private suspend fun applyBackupLikeService(backup: BackupData) {
         db.loadDao().deleteAll()
-        assertTrue(repo.getAllLoadsOnce().isEmpty())
-
-        val restored = Gson().fromJson(json, BackupData::class.java)
-        restored.loads.forEach { repo.insertLoad(it, playFeedback = false) }
-        assertEquals(1, repo.getAllLoadsOnce().size)
-        assertEquals("T-BACKUP1", repo.getAllLoadsOnce().first().tripId)
+        db.paycheckDao().deleteAll()
+        db.dieselDao().deleteAll()
+        backup.loads.forEach { load ->
+            db.loadDao().insert(load.toEntity())
+            if (load.stops.isNotEmpty()) {
+                db.stopDao().insertAll(load.stops.map { it.toEntity(load.id) })
+            }
+            if (load.penalties.isNotEmpty()) {
+                db.penaltyDao().insertAll(load.penalties.map { it.toEntity(load.id) })
+            }
+        }
+        if (backup.paychecks.isNotEmpty()) {
+            db.paycheckDao().insertAll(backup.paychecks.map { it.toEntity() })
+        }
+        if (backup.diesel.isNotEmpty()) {
+            db.dieselDao().insertAll(backup.diesel.map { it.toEntity() })
+        }
     }
 }

@@ -3,12 +3,7 @@ package com.truckerload.data.repository.social
 import com.truckerload.domain.social.DriverProfile
 import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.EnhancedDriverProfile
-import com.truckerload.domain.social.LeaderboardCategory
-import com.truckerload.domain.social.LeaderboardEntry
-import com.truckerload.domain.social.SocialPeerProfile
 import com.truckerload.domain.social.SocialResult
-import com.truckerload.domain.social.Challenge
-import com.truckerload.domain.social.CommunityReportReason
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
@@ -48,25 +43,4 @@ interface ProfileRepository {
     suspend fun updateStatus(status: DriverStatus): SocialResult<Unit>
     suspend fun uploadAvatar(bitmap: android.graphics.Bitmap): SocialResult<String>
     suspend fun removeAvatar(): SocialResult<Unit>
-    suspend fun blockUser(blockedId: String): SocialResult<Unit>
-    suspend fun unblockUser(blockedId: String): SocialResult<Unit>
-    suspend fun isBlocked(targetId: String): Boolean
-    fun watchIsBlocked(targetId: String): Flow<Boolean>
-    suspend fun reportUser(
-        reportedUserId: String,
-        reason: CommunityReportReason,
-        details: String = "",
-        chatId: String? = null,
-    ): SocialResult<Unit>
-    suspend fun followDriver(targetId: String): SocialResult<Unit>
-    suspend fun unfollowDriver(targetId: String): SocialResult<Unit>
-    fun watchIsFollowing(targetId: String): Flow<Boolean>
-    fun watchPeer(peerId: String): Flow<SocialPeerProfile?>
-    suspend fun getPeer(peerId: String): SocialPeerProfile?
-    fun watchLeaderboard(category: LeaderboardCategory = LeaderboardCategory.OVERALL): Flow<List<LeaderboardEntry>>
-    suspend fun getLeaderboard(category: LeaderboardCategory): List<LeaderboardEntry>
-    suspend fun hasJoinedWeeklyChallenge(): Boolean
-    suspend fun refreshMyChallengeScore()
-    suspend fun joinWeeklyChallenge(): SocialResult<Unit>
-    suspend fun weeklyChallenge(): Challenge
 }

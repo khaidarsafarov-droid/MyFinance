@@ -212,13 +212,17 @@ internal fun TabletHomeDashboard(
             }
         }
 
-        if (recentLoads.isEmpty() && uiState.filter != LoadFilter.ALL) {
+        if (recentLoads.isEmpty()) {
             item(key = "tablet_empty_hint") {
-                Text(
-                    text = stringResource(R.string.home_empty_filtered_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(horizontal = 4.dp),
+                HomeEmptyJournal(
+                    title = if (uiState.filter == LoadFilter.THIS_WEEK) {
+                        stringResource(R.string.home_empty_this_week)
+                    } else {
+                        stringResource(R.string.home_empty_filtered_body)
+                    },
+                    body = stringResource(R.string.ux_home_empty_reciprocity),
+                    ctaLabel = stringResource(R.string.home_empty_cta),
+                    onCta = onAddLoad,
                 )
             }
         }
@@ -236,12 +240,6 @@ private fun SoftHeroCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = SoftUiElevation.Card,
-                shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
-            )
             .clip(SoftUiShapes.Card)
             .background(MaterialTheme.colorScheme.primary),
     ) {
@@ -379,7 +377,7 @@ private fun SoftRecentCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(R.string.home_empty_this_week),
+                    text = stringResource(R.string.ux_home_empty_reciprocity),
                     color = tc.TextSecondary,
                     style = MaterialTheme.typography.bodyMedium,
                 )

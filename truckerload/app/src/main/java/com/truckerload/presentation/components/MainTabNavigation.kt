@@ -19,7 +19,7 @@ fun isPhoneDestinationSelected(currentRoute: String?, targetRoute: String): Bool
 
 /**
  * Bottom-tab owner for the current destination. Nested screens (map, load
- * detail, chat) stay on the tab they were opened from so the pill highlight
+ * detail) stay on the tab they were opened from so the pill highlight
  * still shows where the user is.
  */
 fun phoneTabForRoute(currentRoute: String?): String? {
@@ -28,7 +28,6 @@ fun phoneTabForRoute(currentRoute: String?): String? {
     return when {
         isHomeTabRoute(route) -> Routes.HOME
         isStatsTabRoute(route) -> Routes.STATS
-        isCommunityTabRoute(route) -> Routes.COMMUNITY
         isProfileTabRoute(route) -> Routes.PROFILE
         else -> null
     }
@@ -85,8 +84,7 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
         route.startsWith("photo_detail") ||
         route == Routes.ADD_PAYCHECK ||
         route == Routes.ADD_DIESEL ||
-        route.startsWith("call") ||
-        route.startsWith("voice_room")
+        route == Routes.VOICE_ASSISTANT
 
 internal fun isHomeTabRoute(route: String): Boolean =
     route == Routes.HOME ||
@@ -101,16 +99,6 @@ internal fun isStatsTabRoute(route: String): Boolean =
         route == Routes.MAP ||
         route == Routes.FINANCIAL_ADVISOR
 
-internal fun isCommunityTabRoute(route: String): Boolean =
-    route == Routes.COMMUNITY ||
-        route.startsWith("social_chat") ||
-        route == Routes.VOICE_ROOMS ||
-        route == Routes.STATUS ||
-        route == Routes.GROUPS ||
-        route.startsWith("group_detail") ||
-        route == Routes.FRIENDS_LIVE
-
 internal fun isProfileTabRoute(route: String): Boolean =
     route == Routes.PROFILE ||
-        route == Routes.PROFILE_EDIT ||
-        route.startsWith("profile_peer")
+        route == Routes.PROFILE_EDIT

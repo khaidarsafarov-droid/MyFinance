@@ -110,8 +110,8 @@ class AuthStore(context: Context) {
     fun accessTokenOrNull(): String? = synchronized(lock) { liveAccessToken }
 
     /**
-     * Google Sign-In ID token (RS256). Used only for Ktor `/v1/voice/token`.
-     * Distinct from [accessTokenOrNull] which may be a Supabase HS256 JWT.
+     * Google Sign-In ID token (RS256). Distinct from [accessTokenOrNull]
+     * which may be a Supabase HS256 JWT.
      */
     fun googleIdTokenOrNull(): String? = synchronized(lock) { liveGoogleIdToken }
 
