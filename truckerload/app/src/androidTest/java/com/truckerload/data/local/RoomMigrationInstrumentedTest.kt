@@ -34,7 +34,7 @@ class RoomMigrationInstrumentedTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrate6To34_smoke() {
+    fun migrate6ToCurrent_smoke() {
         createFixtureDatabase(6) {
             execSQL(V6_LOADS_DDL)
             execSQL(
@@ -55,7 +55,8 @@ class RoomMigrationInstrumentedTest {
 
         // validate=false: pre-v6 core tables (stops/penalties/…) were never created by
         // forward migrations; we assert row survival + key columns via PRAGMA instead.
-        val db = helper.runMigrationsAndValidate(testDb, 34, false, *ALL_MIGRATIONS_FROM_V6)
+        val current = AppDatabase::class.java.getAnnotation(androidx.room.Database::class.java)!!.version
+        val db = helper.runMigrationsAndValidate(testDb, current, false, *ALL_MIGRATIONS_FROM_V6)
         db.query("SELECT COUNT(*) FROM loads").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
@@ -65,7 +66,9 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasColumn("loads", "equipmentType"))
         assertTrue(db.hasTable("crowd_rates"))
         assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
-        assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
+        if (current >= 34) {
+            assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
+        }
         assertTrue(db.hasTable("media_sync_queue"))
         assertTrue(db.hasTable("user_accounts"))
         assertTrue(db.hasTable("driver_professional_profiles"))

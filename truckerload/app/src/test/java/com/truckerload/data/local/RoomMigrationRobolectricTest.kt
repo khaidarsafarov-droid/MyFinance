@@ -13,16 +13,16 @@ import org.robolectric.annotation.Config
 
 /**
  * JVM/CI-friendly mirror of MigrationTestHelper smoke coverage.
- * Runs the full 6→34 path and asserts fixture survival + key columns.
+ * Runs the full 6→current path and asserts fixture survival + key columns.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class RoomMigrationRobolectricTest {
 
     @Test
-    fun migrate6To34_smoke() {
+    fun migrate6ToCurrent_smoke() {
         val context = RuntimeEnvironment.getApplication()
-        val dbName = "robo-migration-6-34"
+        val dbName = "robo-migration-6-current"
         context.deleteDatabase(dbName)
 
         val config = SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -105,7 +105,7 @@ class RoomMigrationRobolectricTest {
                     db.version = version
                 }
             }
-            assertEquals(34, version)
+            assertEquals(currentRoomVersion(), version)
             db.query("SELECT COUNT(*) FROM loads").use { c ->
                 assertTrue(c.moveToFirst())
                 assertEquals(1, c.getInt(0))
@@ -114,7 +114,9 @@ class RoomMigrationRobolectricTest {
             assertTrue(db.hasColumn("loads", "actualFinishDate"))
             assertTrue(db.hasColumn("loads", "equipmentType"))
             assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
-            assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
+            if (version >= 34) {
+                assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
+            }
             assertTrue(db.hasTable("crowd_rates"))
             assertTrue(db.hasTable("media_sync_queue"))
             assertTrue(db.hasTable("maintenance_archive"))
@@ -203,4 +205,7 @@ class RoomMigrationRobolectricTest {
             }
         }
     }
+
+    private fun currentRoomVersion(): Int =
+        AppDatabase::class.java.getAnnotation(androidx.room.Database::class.java)!!.version
 }
