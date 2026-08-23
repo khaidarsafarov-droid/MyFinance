@@ -744,6 +744,7 @@
     <string name="settings_rpm_threshold_negative">Thresholds cannot be negative</string>
     <string name="settings_rpm_threshold_order">Red threshold cannot be greater than green</string>
     <string name="settings_backup_title">Backup</string>
+    <string name="settings_data_title">Export and backup</string>
     <string name="export_loads">Export loads</string>
     <string name="export_loads_description">Save all trips to a text file</string>
     <string name="export_csv">Export to CSV</string>
@@ -800,7 +801,7 @@
     <string name="telegram_export_caption">📦 Truck Log load export from %s</string>
     <string name="file_received">📥 File received. Restored %d loads.</string>
     <string name="export_actions_title">Export ready</string>
-    <string name="settings_backup_desc">TruckLog_Backup_….json in Downloads/TruckLog: full backup of loads, paychecks, and diesel. Restore the same file in the app.</string>
+    <string name="settings_backup_desc">CSV is a spreadsheet of loads. The JSON file in Downloads/TruckLog is a full copy of loads, paychecks, and diesel.</string>
     <string name="settings_backup_saved">Backup: %1$d loads → %2$s</string>
     <string name="settings_backup_error">Could not create backup file</string>
     <string name="settings_backup_create">Create backup file</string>
