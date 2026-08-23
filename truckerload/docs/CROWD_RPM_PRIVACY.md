@@ -1,28 +1,32 @@
 # Crowd RPM privacy invariant
 
-**Local-only:** Map and Stats use only the signed-in user's journal on this
-device. There is no community RPM share UI, opt-in toggle, or HTTP publisher.
+The app is **local-first**. Geographic efficiency is a heatmap of **this
+driver's own loads** on the device. There is no community opt-in, no
+anonymized upload, and no HTTP Crowd RPM publisher.
 
-## Local map aggregation
+## What the map shows
 
-Heatmap / lane summaries are built from the driver's own loads via
-`CrowdMapAggregator` / `CrowdRpmMapper`. Naming still says "crowd" for historical
-domain types; scope is the current account only.
+Heatmap rows come from local loads via `CrowdRpmMapper` (rpm + miles +
+2-letter states). Other drivers' rates are never requested or sent.
 
-Room table `crowd_rates` remains as an unused cache schema; production code does
-not upsert network rows into it.
+`CrowdRpmShareGate.payloadOrNull` always returns `null`.
 
-## What must never leave the device for "community" use
+Room table `crowd_rates` is an unused cache leftover; production code does
+not upsert it from loads and does not publish it.
 
-If a future network feature is added, the only candidate type is
-`AnonymizedRpmSample` (numbers + coarse US state / lane — never trip IDs,
-addresses, OCR text, or account identity). Any send must go through
-`CrowdRpmShareGate` with an explicit new opt-in (not present in the app today).
+## What must never leave the device for Crowd RPM
+
+- `Load.id`, `tripId`
+- `rawMessage` / OCR text
+- exact PU/DEL addresses, city names, facility codes
+- calendar dates or timestamps
+- user name, nickname, email, account id
+
+Do **not** log Crowd RPM samples (same rule as JWT / local paths / OCR / signed URLs).
 
 ## Storage of loads
 
 Journal rows live in the per-account Room file `truckerload_<userId>`.
 If `LOCAL_ONLY_MODE=true` or `SYNC_BACKEND_URL` is blank, they stay on-device
-only. Otherwise they may also sync to the user's own cloud backup
-(`SyncModeStore.allowsCloudCalls()`). Cloud backup is never shown to other
-drivers.
+only. Otherwise they may also sync to the user's cloud backup (`SyncModeStore.allowsCloudCalls()`).
+Cloud backup is never shown to other drivers.

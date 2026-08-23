@@ -1180,7 +1180,7 @@
     <string name="settings_privacy_data_telegram">Токен Telegram и chat ID используются только для синхронизации, если вы их указали.</string>
     <string name="settings_privacy_data_backup">Экспорт и бэкап — только по вашему запросу.</string>
     <string name="privacy_screen_title">Приватность</string>
-    <string name="privacy_settings_row_subtitle">Где хранятся ваши данные</string>
+    <string name="privacy_settings_row_subtitle">Где хранятся грузы</string>
     <string name="privacy_card_loads_title">Ваши грузы и ставки</string>
     <string name="privacy_card_loads_body_device">Хранятся только на этом устройстве.</string>
     <string name="privacy_card_loads_body_cloud">Хранятся на этом устройстве и в вашем облачном бэкапе.</string>
@@ -1383,7 +1383,6 @@
     <string name="map_rating_neutral">Нейтрально</string>
     <string name="map_rating_no_data">Нет данных</string>
     <string name="equipment_type_label">Тип оборудования (необязательно)</string>
-    <string name="equipment_filter_title">Тип трейлера</string>
     <string name="equipment_filter_all">Все</string>
     <string name="equipment_dry_van">Dry Van</string>
     <string name="equipment_reefer">Reefer</string>
@@ -1394,7 +1393,6 @@
     <string name="equipment_cargo_van">Cargo Van</string>
     <string name="equipment_car_hauler">Car Hauler</string>
     <string name="equipment_other">Другое</string>
-    <string name="map_equipment_insufficient">Недостаточно данных (%1$d из %2$d) — среднее скрыто</string>
     <string name="map_state_trips">%1$s (%2$s) • %3$d рейс(ов)</string>
     <string name="map_rpm_per_mile">$%1$s / милю</string>
     <string name="map_gross_label">Гросс: $%1$s</string>

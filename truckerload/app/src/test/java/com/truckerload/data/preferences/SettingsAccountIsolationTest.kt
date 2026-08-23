@@ -33,12 +33,14 @@ class SettingsAccountIsolationTest {
     }
 
     @Test
-    fun parserAndQuietHoursPrefs_areIsolatedPerUser() = runBlocking {
+    fun parserAndCrowdPrefs_areIsolatedPerUser() = runBlocking {
         loginAs("user-a", "a@example.com")
         settings.saveParserAutoUpdate(false)
         settings.saveQuietHoursEnabled(true)
+        settings.saveNotifyMaintenance(false)
         assertFalse(settings.getParserAutoUpdateOnce())
         assertTrue(settings.getQuietHoursEnabledOnce())
+        assertFalse(settings.getNotifyMaintenanceOnce())
 
         authStore.logout()
         loginAs("user-b", "b@example.com")
@@ -50,11 +52,16 @@ class SettingsAccountIsolationTest {
             "User B must not inherit User A quiet hours",
             settings.getQuietHoursEnabledOnce(),
         )
+        assertTrue(
+            "User B must not inherit User A maintenance-notify off",
+            settings.getNotifyMaintenanceOnce(),
+        )
 
         authStore.logout()
         loginAs("user-a", "a@example.com")
         assertFalse(settings.getParserAutoUpdateOnce())
         assertTrue(settings.getQuietHoursEnabledOnce())
+        assertFalse(settings.getNotifyMaintenanceOnce())
     }
 
     private fun loginAs(userId: String, email: String) {

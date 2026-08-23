@@ -75,13 +75,10 @@ class CrowdRpmMapperTest {
     }
 
     @Test
-    fun shareGate_requiresOptIn() {
+    fun shareGate_neverPublishes() {
         val sample = AnonymizedRpmSample(rpm = 2.5, miles = 100.0, region = "WA", weekNumber = 12)
         assertNull(CrowdRpmShareGate.payloadOrNull(optIn = false, samples = listOf(sample)))
-        assertEquals(
-            listOf(sample),
-            CrowdRpmShareGate.payloadOrNull(optIn = true, samples = listOf(sample)),
-        )
+        assertNull(CrowdRpmShareGate.payloadOrNull(optIn = true, samples = listOf(sample)))
     }
 
     private fun sampleLoad(

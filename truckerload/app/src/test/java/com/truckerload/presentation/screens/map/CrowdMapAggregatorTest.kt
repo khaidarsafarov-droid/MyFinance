@@ -162,56 +162,7 @@ class CrowdMapAggregatorTest {
     }
 
     @Test
-    fun filterByEquipment_keepsMatchingTrailer() {
-        val reports = listOf(
-            CrowdRateReport("a", "WA", "OR", 2.0, 800.0, 400.0, now, CrowdRateSource.ME, equipmentType = EquipmentType.DRY_VAN),
-            CrowdRateReport("b", "WA", "OR", 3.0, 1200.0, 400.0, now, CrowdRateSource.ME, equipmentType = EquipmentType.REEFER),
-        )
-        val reefer = CrowdMapAggregator.filterByEquipment(reports, EquipmentType.REEFER)
-        assertEquals(1, reefer.size)
-        assertEquals("b", reefer.single().id)
-        assertEquals(2, CrowdMapAggregator.filterByEquipment(reports, null).size)
-    }
-
-    @Test
-    fun heatmap_filteredBelowMinSample_isNoData() {
-        val reports = List(3) { i ->
-            CrowdRateReport("$i", "WA", "OR", 2.5, 1000.0, 400.0, now, CrowdRateSource.ME, equipmentType = EquipmentType.FLATBED)
-        }
-        val metrics = CrowdMapAggregator.heatmapFromOutbound(
-            reports,
-            minSampleSize = CrowdMapAggregator.MIN_SAMPLE_SIZE,
-        )
-        val wa = metrics.first { it.code == "WA" }
-        assertEquals(3, wa.trips)
-        assertEquals(StateRating.NO_DATA, wa.rating)
-        assertEquals(0.0, wa.revenuePerMile, 0.0)
-        val summary = CrowdMapAggregator.stateSummary(
-            reports,
-            "WA",
-            minSampleSize = CrowdMapAggregator.MIN_SAMPLE_SIZE,
-        )
-        assertTrue(summary.sampleInsufficient)
-        assertEquals(0.0, summary.avgOutboundRpm, 0.0)
-    }
-
-    @Test
-    fun heatmap_filteredAtMinSample_showsAverage() {
-        val reports = List(CrowdMapAggregator.MIN_SAMPLE_SIZE) { i ->
-            CrowdRateReport("$i", "TX", "OK", 2.0, 800.0, 400.0, now, CrowdRateSource.ME, equipmentType = EquipmentType.DRY_VAN)
-        }
-        val metrics = CrowdMapAggregator.heatmapFromOutbound(
-            reports,
-            minSampleSize = CrowdMapAggregator.MIN_SAMPLE_SIZE,
-        )
-        val tx = metrics.first { it.code == "TX" }
-        assertEquals(CrowdMapAggregator.MIN_SAMPLE_SIZE, tx.trips)
-        assertTrue(tx.rating != StateRating.NO_DATA)
-        assertEquals(2.0, tx.revenuePerMile, 0.01)
-    }
-
-    @Test
-    fun heatmap_allFilter_aggregatesMixedEquipmentInState() {
+    fun heatmap_aggregatesMixedEquipmentInState() {
         val reports = listOf(
             CrowdRateReport(
                 "a", "WA", "OR", 2.0, 800.0, 400.0, now, CrowdRateSource.ME,
@@ -222,7 +173,7 @@ class CrowdMapAggregatorTest {
                 equipmentType = EquipmentType.REEFER,
             ),
         )
-        val metrics = CrowdMapAggregator.heatmapFromOutbound(reports, minSampleSize = 0)
+        val metrics = CrowdMapAggregator.heatmapFromOutbound(reports)
         val wa = metrics.first { it.code == "WA" }
         assertEquals(2, wa.trips)
         assertEquals(3.0, wa.revenuePerMile, 0.01)

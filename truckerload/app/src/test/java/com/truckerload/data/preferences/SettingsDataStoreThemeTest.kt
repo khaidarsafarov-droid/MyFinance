@@ -53,4 +53,6 @@ class SettingsDataStoreThemeTest {
         assertEquals(false, store.getNotifyMissingWeekOnce())
         assertEquals(false, store.getNotifyMaintenanceOnce())
     }
+
 }
+
