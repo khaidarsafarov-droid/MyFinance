@@ -7,17 +7,19 @@ package com.truckerload.domain.ingest
 object ReceiptKindClassifier {
 
     private val loadMarkers = listOf(
-        6 to Regex("""Trip\s*ID|T-[A-Z0-9]{6,}""", RegexOption.IGNORE_CASE),
+        // [\s\-_]* also covers JSON / CSV keys such as trip_id and pu_address.
+        6 to Regex("""Trip[\s\-_]*ID|T-[A-Z0-9]{6,}""", RegexOption.IGNORE_CASE),
         5 to Regex(
-            """Total\s*Rate|Line\s*-?\s*Haul|Pu[\s\-]*address|Del[\s\-]*address|Estimated\s*Rate""",
+            """Total[\s\-_]*Rate|Line[\s\-_]*Haul|Pu[\s\-_]*address|Del[\s\-_]*address|""" +
+                """Estimated[\s\-_]*Rate""",
             RegexOption.IGNORE_CASE,
         ),
         4 to Regex(
-            """Total\s*Loaded\s*Miles|Amazon\s*Relay|rate[\s\-]*confirmation|""" +
-                """load[\s\-]*confirmation|load\s*information|IEL\s*PO""",
+            """Total[\s\-_]*Loaded[\s\-_]*Miles|Amazon[\s\-_]*Relay|rate[\s\-_]*confirmation|""" +
+                """load[\s\-_]*confirmation|load[\s\-_]*information|IEL[\s\-_]*PO""",
             RegexOption.IGNORE_CASE,
         ),
-        3 to Regex("""\bPU#|\bP/U\s*#|\bDEL#|pickup|delivery|pick\s*ups""", RegexOption.IGNORE_CASE),
+        3 to Regex("""\bPU#|\bP/U\s*#|\bDEL#|pickup|delivery|pick[\s\-_]*ups""", RegexOption.IGNORE_CASE),
     )
 
     private val paycheckMarkers = listOf(

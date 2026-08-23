@@ -1,6 +1,7 @@
 package com.truckerload.domain.ingest
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.JsonLoadParser
 import com.truckerload.domain.parser.LoadCompleteness
 import com.truckerload.domain.parser.MessageParseService
 
@@ -37,11 +38,15 @@ object InboundDocumentResolver {
         val looksLikeLoad = loadScore >= LOAD_SCORE_FLOOR &&
             loadScore > paycheckScore &&
             loadScore >= fuelScore
-        val autoSaveLoads = loads.isNotEmpty() &&
-            paycheckScore < loadScore &&
-            (preview.kind == ReceiptKind.LOAD ||
-                preview.kind == ReceiptKind.UNKNOWN ||
-                loadScore >= 6 && loadScore >= fuelScore)
+        val autoSaveLoads = when {
+            loads.isEmpty() -> false
+            // Structured JSON states the fields outright — no keyword guessing needed.
+            JsonLoadParser.parseAll(text, referenceMillis).isNotEmpty() -> paycheckScore <= loadScore
+            else -> paycheckScore < loadScore &&
+                (preview.kind == ReceiptKind.LOAD ||
+                    preview.kind == ReceiptKind.UNKNOWN ||
+                    loadScore >= 6 && loadScore >= fuelScore)
+        }
         val incomplete = if (loads.isEmpty() && looksLikeLoad) {
             parseService.completenessOf(text, referenceMillis, fileName)
         } else {

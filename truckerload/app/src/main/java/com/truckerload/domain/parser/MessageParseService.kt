@@ -31,6 +31,8 @@ class MessageParseService {
         if (json.isNotEmpty()) return@runCatching json
         val relay = LoadMessageParser.parseAll(rawMessage, referenceMillis)
         if (relay.isNotEmpty()) return@runCatching relay
+        val rows = DelimitedLoadParser.parseAll(rawMessage, referenceMillis)
+        if (rows.isNotEmpty()) return@runCatching rows
         listOfNotNull(anyLayoutLoad(rawMessage, referenceMillis, fileName))
     }
 
@@ -42,6 +44,7 @@ class MessageParseService {
     ): Load? {
         RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)?.let { return it }
         FlexibleLoadParser.parseOne(rawMessage, referenceMillis)?.let { return it }
+        DelimitedLoadParser.parseOne(rawMessage, referenceMillis)?.let { return it }
         val flattened = JsonLoadParser.flattenToText(rawMessage)
         if (flattened.isBlank()) return null
         return FlexibleLoadParser.parseOne(flattened, referenceMillis)
@@ -80,6 +83,9 @@ class MessageParseService {
         parseAmazonRelayLoad(rawMessage, referenceMillis)?.load?.let { return LoadDraftFields.fromLoad(it) }
         JsonLoadParser.parseOne(rawMessage, referenceMillis)?.let { return LoadDraftFields.fromLoad(it) }
         RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)?.let {
+            return LoadDraftFields.fromLoad(it)
+        }
+        DelimitedLoadParser.parseOne(rawMessage, referenceMillis)?.let {
             return LoadDraftFields.fromLoad(it)
         }
         val direct = FlexibleLoadParser.extractFields(rawMessage)
