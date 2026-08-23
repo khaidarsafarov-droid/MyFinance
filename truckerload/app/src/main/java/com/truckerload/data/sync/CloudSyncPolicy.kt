@@ -24,6 +24,9 @@ object CloudSyncPolicy {
      * Merge two maps keyed by stable entity id using LWW on [updatedAt].
      * Entries only in [local] are kept; only in [remote] are added;
      * both → winner by [remoteWins].
+     *
+     * **Do not use for full-snapshot push.** Re-adding remote-only ids resurrects
+     * locally deleted entities. Prefer [localSnapshotForPush] for outbound publish.
      */
     fun <T> mergeById(
         local: Map<String, T>,
@@ -40,6 +43,24 @@ object CloudSyncPolicy {
         }
         return out
     }
+
+    /**
+     * Outbound full snapshot: publish the local entity set as authoritative.
+     * After an incremental pull, Room already holds the merged truth; merging the
+     * previous remote blob again would revive rows the user deleted locally.
+     */
+    fun <T> localSnapshotForPush(local: Map<String, T>): Map<String, T> = local
+
+    /**
+     * Local ids present in Room but absent from a full remote snapshot — orphans to delete
+     * so cross-device deletions propagate on pull.
+     */
+    fun orphanLocalIds(localIds: Set<String>, remoteIds: Set<String>): Set<String> =
+        localIds - remoteIds
+
+    /** Int-keyed variant for paycheck / diesel rows. */
+    fun orphanLocalIntIds(localIds: Set<Int>, remoteIds: Set<Int>): Set<Int> =
+        localIds - remoteIds
 
     /** True when device has never completed a cloud pull/push for this account. */
     fun needsFullHydration(lastSyncedAt: Long, localEntityCount: Int, remoteEntityCount: Int): Boolean =

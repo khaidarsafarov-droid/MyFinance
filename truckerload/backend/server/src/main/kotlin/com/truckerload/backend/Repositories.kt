@@ -11,8 +11,15 @@ import kotlinx.serialization.json.JsonObject
 data class AuthenticatedUser(
     val id: UUID,
     val email: String?,
+    /** Stable client account key (`google_<hex>` for Google ID tokens; UUID otherwise). */
     val voiceIdentity: String = id.toString(),
-)
+) {
+    /** True when [accountId] is this user's UUID or Google voice identity. */
+    fun acceptsAccountId(accountId: String): Boolean {
+        val trimmed = accountId.trim()
+        return trimmed == id.toString() || trimmed == voiceIdentity
+    }
+}
 
 data class MediaRecord(
     val id: UUID,

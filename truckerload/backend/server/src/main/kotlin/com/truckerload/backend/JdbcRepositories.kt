@@ -97,7 +97,8 @@ private class JdbcSnapshotRepository(private val dataSource: DataSource) : Snaps
         checksum: String,
     ): SnapshotPutResult = dataSource.query { connection ->
         connection.transaction {
-            val normalized = snapshot.copy(accountId = userId.toString()).withResolvedEntityCount()
+            // Preserve client accountId (UUID or google_<hex>); row is keyed by userId.
+            val normalized = snapshot.withResolvedEntityCount()
             val accepted = connection.prepareStatement(
                 """
                 INSERT INTO account_snapshots (user_id, payload, updated_at, entity_count, checksum)
