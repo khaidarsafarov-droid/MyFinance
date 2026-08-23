@@ -1,7 +1,8 @@
-# Этап 4 — Мёртвый код и неиспользуемые данные
+# Этап 4 — Мёртвый код и неиспользуемые данные (Audit v2)
 
 **Дата:** 2026-08-23  
-**Ветка:** `cursor/full-audit-stage1-9ae7`  
+**Ветка:** `cursor/full-audit-v2-9ae7`  
+**База:** `main` @ `8f414b9` + Этапы 1–3 v2  
 **Метод:** reference grep (main + test), NavGraph/deep-link cross-check, lint-baseline, build.gradle vs imports. **Ничего не удалялось.**
 
 ---
@@ -11,12 +12,15 @@
 | Категория | Количество | Confidence |
 |-----------|------------|------------|
 | Мёртвые composables/classes (0 prod call sites) | **~35** | certain/probable |
-| Public fun без references | **~142** | order-of-magnitude (inventory claim ~106 — **still valid**, pool grew) |
+| Public fun без references | **~142** | order-of-magnitude |
 | Unreachable nav / shortcuts | **4** | certain |
 | Unused Gradle dependencies | **4 certain** + 1 manual check | |
 | Unused BuildConfig fields | **7** | certain |
-| Lint UnusedResources (baselined) | **67** (not 230 — inventory outdated) | certain |
+| Lint UnusedResources (baselined) | **67** | certain |
 | Commented-out code blocks | **0** multi-line | certain |
+| **New v2:** DI-wired but uncalled sync wrapper | **2 classes** | certain |
+
+**Дельта v2:** P0-фиксы не добавили мёртвого prod-кода; добавлены **активные** тесты `DuplicateCheckerTest`, `AuthenticatedUserAccountIdTest`. Injectable `cloud.CloudSyncEngine` по-прежнему **не вызывается** из workers/MainActivity (используется legacy object).
 
 ⚠ **Ничего не удалять автоматически** — часть — intentional stubs (tax, community, TURN/Cerebras).
 
@@ -62,6 +66,18 @@
 | `components/WeekCalendarPicker.kt` | WeekCalendarPicker | 0 call sites |
 | `screens/auth/LoginEmailScreen.kt` | LoginEmailScreen | AuthNavHost uses Login/SignUp only |
 | `screens/camera/PhotoPreviewScreen.kt` | PhotoPreviewScreen | No nav callers |
+
+---
+
+## 1b. Sync layer — DI wired, prod uncalled (certain, v2)
+
+| File | Symbol | Почему мёртвый |
+|------|--------|----------------|
+| `data/sync/cloud/CloudSyncEngine.kt` | `@Singleton CloudSyncEngine` | Hilt-provided; **0 prod call sites**. Workers/MainActivity call `data.sync.CloudSyncEngine` object directly. |
+| `data/sync/cloud/SyncStatusTracker.kt` | SyncStatusTracker | Updated only by unused injectable wrapper → UI never sees sync status. |
+| `data/sync/cloud/SyncConflictResolver.kt` | SyncConflictResolver | Pass-through to `CloudSyncPolicy`; **test-only** references. |
+
+**Confidence:** **certain** (grep `CloudSyncEngine.onSessionReady` → Worker/MainActivity use legacy object package).
 
 ---
 
@@ -111,7 +127,7 @@
 | `Routes.kt:15` | `PROFILE_SETUP` constant | Setup is pre-NavHost gate, not composable route | **certain** |
 | (none) | TaxTracker | Screen exists, no route constant or NavHost | **certain** |
 
-Community/friends **strings** are used by shortcuts — not dead resources; **routes** are dead.
+Community/friends **strings** (~20 keys × 3 locales) and **shortcuts** remain — feature removed from NavGraph but i18n/shortcuts not cleaned up (**probable dead resources**, not in lint baseline count).
 
 ---
 
@@ -173,10 +189,12 @@ Run `:app:lintDebug` still fails on non-baselined issues (~663 per AGENTS.md) �
 
 ```
 Dead UI:     GoldComponents, NeoGlassTypography, TaxTracker*, Forecast/Fuel cards
+Dead sync:   cloud.CloudSyncEngine (injectable), SyncStatusTracker, SyncConflictResolver
 Dead domain: ForecastService, FuelAnalyticsService, HybridOCRService
 Dead nav:    shortcuts community/friends_live, Routes.PROFILE_SETUP
 Dead deps:   Retrofit, maps-utils, logging-interceptor
 Dead config: Cerebras, TURN, Directions, MAX_GROUP_CALL
+Dead i18n:   community/friends string bulk (shortcuts only)
 ```
 
 **Manual check before delete:** Tax tracker, community shortcuts, TURN/Cerebras may be intentional backlog.
@@ -185,4 +203,6 @@ Dead config: Cerebras, TURN, Directions, MAX_GROUP_CALL
 
 ## Статус этапа
 
-**Этап 4 завершён.** Следующий: **Этап 5** — lint/compiler errors, security, performance.
+**Этап 4 (Audit v2) завершён.** Refresh на post-P0 `main`; добавлен блок sync DI dead code.
+
+**Следующий шаг (после подтверждения):** Этап 5 — lint/compiler errors, security, performance.
