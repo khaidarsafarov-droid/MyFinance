@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -29,8 +29,6 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.SoftUiColors
-import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -46,6 +44,8 @@ internal fun PeriodSummarySection(
     onFilterSelected: (LoadFilter) -> Unit,
     onOpenCalendar: () -> Unit,
     onOpenArchive: () -> Unit,
+    weeklyGoal: Double = 0.0,
+    onOpenWeeklyGoal: () -> Unit = {},
 ) {
     val totals = header.totals
     val gross = MoneyFormat.formatCurrency(totals.totalRate)
@@ -70,12 +70,6 @@ internal fun PeriodSummarySection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp)
-            .shadow(
-                elevation = SoftUiElevation.Card,
-                shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
-            )
             .clip(SoftUiShapes.Card)
             .background(MaterialTheme.colorScheme.primary)
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
@@ -134,6 +128,28 @@ internal fun PeriodSummarySection(
                         )
                     }
                 }
+            }
+            if (weeklyGoal > 0 && totals.totalRate > 0) {
+                Text(
+                    text = stringResource(
+                        R.string.ux_contrast_remaining_of_goal,
+                        gross,
+                        MoneyFormat.formatCurrency(weeklyGoal),
+                        MoneyFormat.formatCurrency((weeklyGoal - totals.totalRate).coerceAtLeast(0.0)),
+                    ),
+                    style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            } else if (weeklyGoal <= 0 && totals.totalRate > 0) {
+                Text(
+                    text = stringResource(R.string.ux_next_set_goal),
+                    style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clip(SoftUiShapes.Chip)
+                        .clickable(onClick = onOpenWeeklyGoal)
+                        .padding(vertical = 2.dp),
+                )
             }
             HomePeriodFilterDropdown(
                 currentFilter = currentFilter,
