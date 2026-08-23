@@ -862,6 +862,8 @@
     <string name="widget_scanner">Сканер</string>
     <string name="widget_camera_short">Камера</string>
     <string name="widget_scanner_short">Сканер</string>
+    <string name="widget_diesel">Добавить дизель</string>
+    <string name="widget_diesel_short">Дизель</string>
     <string name="rpm_per_mile_format">$%1$.2f/ми</string>
     <string name="widget_empty_no_loads">📭 Нет грузов за эту неделю</string>
     <string name="widget_empty_add_short">✏️ Добавьте первый груз →</string>

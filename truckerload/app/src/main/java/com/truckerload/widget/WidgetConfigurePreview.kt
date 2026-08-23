@@ -88,43 +88,43 @@ internal fun WidgetLivePreview(
         ) {
             Box(
                 modifier = Modifier
-                    .size(if (sizeMode == WidgetSizeMode.LARGE) 56.dp else 44.dp)
+                    .size(if (sizeMode == WidgetSizeMode.LARGE) 72.dp else 56.dp)
                     .clip(CircleShape)
                     .background(track),
                 contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(if (sizeMode == WidgetSizeMode.LARGE) 40.dp else 30.dp)
-                        .clip(CircleShape)
-                        .background(accent.copy(alpha = 0.85f)),
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                if (showGross) {
-                    Text(
-                        text = stringResource(R.string.widget_configure_preview_gross),
-                        color = textPrimary,
-                        style = MaterialTheme.typography.titleMedium.copy(
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (showGross) {
+                        Text(
+                            text = stringResource(R.string.widget_configure_preview_gross),
+                            color = textPrimary,
                             fontWeight = FontWeight.Bold,
-                            fontSize = if (sizeMode == WidgetSizeMode.SMALL) 16.sp else 18.sp,
-                        ),
+                            fontSize = if (sizeMode == WidgetSizeMode.SMALL) 10.sp else 11.sp,
+                            maxLines = 1,
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.widget_configure_preview_goal),
+                        color = textSecondary,
+                        fontSize = 9.sp,
                         maxLines = 1,
                     )
+                    if (showGoal && showExtras) {
+                        Text(
+                            text = stringResource(R.string.widget_goal_out_of_placeholder),
+                            color = textSecondary,
+                            fontSize = 8.sp,
+                            maxLines = 1,
+                        )
+                    }
                 }
+            }
+            Column(modifier = Modifier.weight(1f)) {
                 if (showPace && showExtras) {
                     Text(
                         text = stringResource(R.string.widget_configure_preview_pace),
                         color = textSecondary,
                         style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                    )
-                }
-                if (showGoal && showExtras) {
-                    Text(
-                        text = stringResource(R.string.widget_configure_preview_goal),
-                        color = accent,
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                         maxLines = 1,
                     )
                 }
@@ -135,6 +135,21 @@ internal fun WidgetLivePreview(
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                     )
+                }
+                if (showExtras) {
+                    Row(
+                        modifier = Modifier.padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        repeat(3) {
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(accent.copy(alpha = 0.18f)),
+                            )
+                        }
+                    }
                 }
             }
         }

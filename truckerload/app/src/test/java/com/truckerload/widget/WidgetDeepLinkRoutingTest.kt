@@ -43,6 +43,15 @@ class WidgetDeepLinkRoutingTest {
     }
 
     @Test
+    fun resolveNavRoute_diesel_opensAddDiesel() {
+        assertEquals(
+            WidgetDeepLink.ROUTE_ADD_DIESEL,
+            WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_ADD_DIESEL),
+        )
+        assertEquals("add_diesel", WidgetDeepLink.resolveNavRoute("diesel"))
+    }
+
+    @Test
     fun resolveNavRoute_unknown_returnsNull() {
         assertNull(WidgetDeepLink.resolveNavRoute("nope"))
         assertNull(WidgetDeepLink.resolveNavRoute("social_chat/abc"))
