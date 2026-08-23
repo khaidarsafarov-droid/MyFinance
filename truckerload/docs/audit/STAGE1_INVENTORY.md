@@ -1,12 +1,17 @@
-# Этап 1 — Инвентаризация TruckerLoad
+# Этап 1 — Инвентаризация TruckerLoad (Audit v2)
 
 **Дата:** 2026-08-23  
-**Ветка:** `cursor/full-audit-stage1-9ae7`  
-**База:** `main`  
+**Ветка:** `cursor/full-audit-v2-9ae7`  
+**База:** `main` @ `8f414b9` (после merge P0-фиксов и docs audit v1)  
+**Промпт:** `cursor-audit-prompt (2).pdf` — этапы 1–8 (добавлен Этап 8: UI)  
 **Метод:** чтение исходников (filesystem). Без правок кода.  
 **Ограничение:** нет доступа к прод-БД / реальному трафику использования — помечено явно.
 
-Связанный (устаревший) бэклог: `docs/QUALITY_1000_AUDIT_INVENTORY.md` (2026-07-22; цифры и дерево уже не совпадают с текущим `main`).
+**Дельта к audit v1:** структура модулей/экранов/API не изменилась существено.  
+На `main` уже влиты P0-фиксы: cloud delete sync (`localSnapshotForPush` / orphans), Google `accountId`/`voiceIdentity`, `DuplicateChecker`, предупреждение wipe медиа при restore.  
+Этап 8 (облегчение/модернизация UI) — новый относительно v1.
+
+Связанный (устаревший) бэклог: `docs/QUALITY_1000_AUDIT_INVENTORY.md` (2026-07-22).
 
 ---
 
@@ -41,7 +46,7 @@ app/src/main/java/com/truckerload/
 │   ├── repository/         # Load/Week/Diesel/Paycheck/Photo/Scan/…
 │   │   ├── account/, auth/, crowd/, social/
 │   ├── social/             # Social data helpers
-│   └── sync/ (+ cloud/)    # CloudSyncEngine, media queue, conflict policy
+│   └── sync/ (+ cloud/)    # CloudSyncEngine, CloudSyncPolicy, media queue
 ├── di/                     # Hilt modules + UserComponent (per-login graph)
 ├── domain/                 # Parsers, goal/filter math, models, usecases
 ├── presentation/
@@ -55,8 +60,8 @@ app/src/main/java/com/truckerload/
 └── widget/ (+ glance/)     # Home-screen widgets
 ```
 
-**Объём (примерно):**  
-`app` prod `.kt` ≈ **595**; unit tests ≈ **193**; `shared` ≈ **17**; `backend` ≈ **32** (+ **11** tests).
+**Объём (примерно, re-count на текущем main):**  
+всего `.kt` ≈ **878**; `app` prod ≈ **595**; unit tests ≈ **194**; `shared` ≈ **17**; `backend` ≈ **33**.
 
 ### 1.3 Экраны (Compose) и навигация
 
@@ -146,8 +151,8 @@ Flyway: `V1`…`V5` (users, snapshots, cursors, telegram, media, push, account_d
 | Класс | Роль |
 |-------|------|
 | `AppDatabase` | Единственная `@Database`, **v34**, per-user file `truckerload_<userId>` |
-| `LoadDao` … `DriverProfessionalDao` (16 DAO) | CRUD / observe / aggregates |
-| Entities (17 tables) | loads, stops, penalties, paychecks, diesel, telegram_inbox, photos, scans, load_history, driver_profile, sync_outbox, media_sync_queue, maintenance_*, crowd_rates, user_accounts, driver_professional_profiles |
+| `LoadDao` … `DriverProfessionalDao` (**15** DAO) | CRUD / observe / aggregates |
+| Entities (**20** entity files / 17 tables) | loads, stops, penalties, paychecks, diesel, telegram_inbox, photos, scans, load_history, driver_profile, sync_outbox, media_sync_queue, maintenance_*, crowd_rates, user_accounts, driver_professional_profiles |
 | Agg DTOs | WeekYieldAgg, LoadStatsAgg, analytics/*Agg — не таблицы |
 
 ### 3.2 Repositories
@@ -195,6 +200,7 @@ Flyway: `V1`…`V5` (users, snapshots, cursors, telegram, media, push, account_d
 | `LoadAlarmReceiver`, Telegram boot/restart receivers | Alarms / restart |
 | `TelegramBotSyncEngine`, PollCoordinator, LoadHandler, … | Core bot pipeline |
 | `CloudSyncEngine` (object) + `cloud/CloudSyncEngine` (injectable) | **Два** sync-оркестратора |
+| `CloudSyncPolicy` | Merge / push snapshot / orphan delete policy (**P0 fixed**) |
 
 ### 3.5 Preferences / remote / DI
 
@@ -202,7 +208,7 @@ Flyway: `V1`…`V5` (users, snapshots, cursors, telegram, media, push, account_d
 - **Remote:** `SupabaseAuthService`, Google sign-in clients, `TelegramApi`, Ktor `HttpClientProvider`, `KtorLoadApi`/`JournalApi`/`MediaPresignApi`
 - **DI:** Hilt singleton stores + **hand-rolled `UserComponent`** (Room/repos per login; destroy on logout)
 
-### 3.6 Presentation ViewModels (25)
+### 3.6 Presentation ViewModels (~22)
 
 Home, Goal, Analytics, Map, LoadDetail, EditLoad, AddLoad/Paycheck/Diesel, Maintenance, VoiceAssistant, VoiceCommand, Settings, Privacy, Scanner, Camera, PhotoGallery, Profile, Auth, Registration, TaxTracker (**не в nav**), Chat (advisor).
 
@@ -239,6 +245,8 @@ Home, Goal, Analytics, Map, LoadDetail, EditLoad, AddLoad/Paycheck/Diesel, Maint
 | State | Compose state + Flows; **нет** Redux/MVI framework | CompositionLocal + Hilt/UserComponent |
 | App version | `versionName` **1.5.6**, `versionCode` **11** | minSdk 24, compile/targetSdk **35** |
 
+**Для Этапа 8:** фронтенд = **native Android Jetpack Compose** (не web). Метрики Core Web Vitals / bundle analyzer браузера **не применимы**; аналоги — APK size / R8, Compose recomposition, WorkManager, main-thread I/O.
+
 ### 4.2 Схема Room (таблицы)
 
 | Table | PK | Суть |
@@ -269,17 +277,19 @@ Backend PG: `app_users`, `account_snapshots`, `sync_cursors`, telegram link/inbo
 
 ## 5. Наблюдения для следующих этапов (без действий)
 
-Не фиксы — сигналы для Этапов 2–5:
+Не фиксы — сигналы для Этапов 2–8:
 
-1. Два `CloudSyncEngine` (legacy object + injectable).
+1. Два `CloudSyncEngine` (legacy object + injectable) — дублирование / мёртвый путь.
 2. Tax Tracker и community/friends shortcuts без навигации.
 3. Финансовый advisor: docs «deterministic» vs `ChatViewModel` AI stream — проверить в Этапе 2.
-4. Предыдущий QUALITY_1000 inventory устарел относительно текущего дерева (~595 vs ~363 файлов).
-5. Lint: по AGENTS.md `:app:lintDebug` падает с сотнями pre-existing issues (нет опоры на «зелёный lint» без baseline-проверки).
+4. P0 из audit v1 **закрыты на main**; в Этапе 2 перепроверить, что фиксы полные и нет регрессий.
+5. Lint: по AGENTS.md `:app:lintDebug` падает с сотнями pre-existing issues.
+6. **Этап 8 (новый):** Compose recomposition, APK weight (ML Kit/Maps/Tesseract), Home main-thread hydrate, animations на software GPU.
 
 ---
 
 ## Статус этапа
 
-**Этап 1 завершён.**  
-Ожидается подтверждение перед **Этапом 2** (логика и корректность функций) или перед любыми правками кода.
+**Этап 1 (Audit v2) завершён.**  
+Ожидается подтверждение перед **Этапом 2** (логика и корректность) или перед любыми правками кода.  
+После этапов 2–7 — **Этап 8** (облегчение и модернизация UI под Compose).
