@@ -10,6 +10,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
@@ -32,7 +33,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -57,6 +60,15 @@ class HomeViewModel @Inject constructor(
 
         /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
         private val botServiceStarted = AtomicBoolean(false)
+
+        /**
+         * Keep the last Room snapshot after subscribers leave so returning to Home
+         * (or a pull-to-refresh resubscribe) does not flash empty totals.
+         */
+        private val homeSharing = SharingStarted.WhileSubscribed(
+            stopTimeoutMillis = 5_000,
+            replayExpirationMillis = Long.MAX_VALUE,
+        )
     }
 
     private val filterUseCase = LoadFilterUseCase()
@@ -93,7 +105,28 @@ class HomeViewModel @Inject constructor(
         .conflate()
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = homeSharing,
+            initialValue = emptyList(),
+        )
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    /**
+     * Room can emit an empty list for a beat while pull-to-refresh invalidates.
+     * Keep the last populated snapshot so the hero and journal do not flash zero.
+     */
+    private val displayedLoadsFromDb: StateFlow<List<Load>> = combine(
+        loadsFromDb,
+        _isRefreshing,
+    ) { loads, refreshing -> loads to refreshing }
+        .scan(emptyList<Load>()) { previous, (loads, refreshing) ->
+            HomeRefreshPolicy.retainLoads(loads, previous, refreshing)
+        }
+        .drop(1)
+        .stateIn(
+            scope = viewModelScope,
+            started = homeSharing,
             initialValue = emptyList(),
         )
 
@@ -110,7 +143,7 @@ class HomeViewModel @Inject constructor(
         .map { done -> !done }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = homeSharing,
             initialValue = true,
         )
 
@@ -169,7 +202,7 @@ class HomeViewModel @Inject constructor(
 
     /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
-        loadsFromDb,
+        displayedLoadsFromDb,
         _optimisticOverlay,
         _pendingDeleteIds,
         filterState,
@@ -198,7 +231,7 @@ class HomeViewModel @Inject constructor(
         .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = homeSharing,
             initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0)),
         )
 
@@ -274,7 +307,7 @@ class HomeViewModel @Inject constructor(
     }
     init {
         viewModelScope.launch {
-            loadsFromDb.collect { list ->
+            displayedLoadsFromDb.collect { list ->
                 if (!_initialLoadDone.value) {
                     _initialLoadDone.value = true
                 }
@@ -407,17 +440,34 @@ class HomeViewModel @Inject constructor(
     }
     fun setSearchExpanded(expanded: Boolean) { _uiState.update { it.copy(isSearchExpanded = expanded) } }
 
-    fun refreshBotStatus() {
+    fun refreshHome() {
+        if (_isRefreshing.value) return
         viewModelScope.launch {
-            val configured = TelegramTokenStore(app).hasToken()
-            if (!configured) {
-                _uiState.update { it.copy(botStatusActive = false) }
-                return@launch
+            _isRefreshing.value = true
+            try {
+                runCatching { refreshBotStatusSuspend() }
+                runCatching { WidgetDataUpdater.updateWidgetData(app) }
+                runCatching { TelegramSyncWorker.enqueueEnsureService(app, replace = true) }
+                delay(HomeRefreshPolicy.MIN_INDICATOR_MS)
+            } finally {
+                _isRefreshing.value = false
             }
-            val token = TelegramTokenStore(app).getToken()
-            val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
-            _uiState.update { it.copy(botStatusActive = health.ok) }
         }
+    }
+
+    fun refreshBotStatus() {
+        viewModelScope.launch { refreshBotStatusSuspend() }
+    }
+
+    private suspend fun refreshBotStatusSuspend() {
+        val configured = TelegramTokenStore(app).hasToken()
+        if (!configured) {
+            _uiState.update { it.copy(botStatusActive = false) }
+            return
+        }
+        val token = TelegramTokenStore(app).getToken()
+        val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
+        _uiState.update { it.copy(botStatusActive = health.ok) }
     }
 
     fun setFilter(filter: LoadFilter) {
