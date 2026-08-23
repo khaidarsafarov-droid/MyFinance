@@ -228,12 +228,7 @@ class HomeViewModel @Inject constructor(
         filterState,
         allFilterTotals,
     ) { loads, overlay, pendingDeletes, filter, sqlTotals ->
-        val base = loads
-            .filter { it.id !in pendingDeletes }
-            .map { overlay[it.id] ?: it }
-        val loadIds = loads.map { it.id }.toSet()
-        val newLoads = overlay.values.filter { it.id !in loadIds && it.id !in pendingDeletes }
-        val merged = base + newLoads
+        val merged = mergeLoadsWithOptimisticOverlay(loads, overlay, pendingDeletes)
         val filtered = filterUseCase.filterLoads(
             loads = merged,
             filter = filter.filter,
@@ -270,12 +265,7 @@ class HomeViewModel @Inject constructor(
         _optimisticOverlay,
         _pendingDeleteIds,
     ) { allLoads, overlay, pendingDeletes ->
-        val calendarBase = allLoads
-            .filter { it.id !in pendingDeletes }
-            .map { overlay[it.id] ?: it }
-        val calendarIds = allLoads.map { it.id }.toSet()
-        val calendarMerged = calendarBase +
-            overlay.values.filter { it.id !in calendarIds && it.id !in pendingDeletes }
+        val calendarMerged = mergeLoadsWithOptimisticOverlay(allLoads, overlay, pendingDeletes)
         LoadDateIndex.build(calendarMerged).keys.toSet()
     }
         .flowOn(Dispatchers.Default)
