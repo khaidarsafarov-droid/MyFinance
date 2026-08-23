@@ -13,6 +13,7 @@ import com.truckerload.data.repository.account.AccountIdentityRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.domain.account.ProfessionalAccess
+import com.truckerload.domain.account.DriverProfessionalProfile
 import androidx.room.Room
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -98,12 +99,14 @@ class AccountRegistrationPrivacyTest {
         )
         assertTrue(created.isSuccess)
         assertTrue(registration.completeBasicProfile("Ann Driver", DriverRole.OWNER_OPERATOR, "+15551212").isSuccess)
-        registration.completeProfessional(
-            companyName = "Solo LLC",
-            cdlNumber = "CDL-SECRET-99",
-            cdlDocumentUrl = "s3://private/cdl.pdf",
-            vehicleType = "Reefer",
-            primaryRegion = "TX",
+        professional.upsertOwn(
+            professionalProfile(
+                companyName = "Solo LLC",
+                cdlNumber = "CDL-SECRET-99",
+                cdlDocumentUrl = "s3://private/cdl.pdf",
+                vehicleType = "Reefer",
+                primaryRegion = "TX",
+            ),
         )
 
         val user = identity.get(userId)!!
@@ -123,7 +126,7 @@ class AccountRegistrationPrivacyTest {
     }
 
     @Test
-    fun skipOptionalStepsLeavesReminders() = runBlocking {
+    fun basicRegistrationFinishesRequiredOnboarding() = runBlocking {
         assertTrue(
             registration.completeCredentials(
                 phone = null,
@@ -135,13 +138,10 @@ class AccountRegistrationPrivacyTest {
             ).isSuccess,
         )
         assertTrue(registration.completeBasicProfile("Bob", DriverRole.HIRED_DRIVER).isSuccess)
-        registration.skipProfessional()
         val progress = registration.progress()
         assertTrue(progress.basicComplete)
-        assertTrue(progress.professionalSkipped)
-        assertTrue(progress.professionalPending)
         assertFalse(registration.needsRequiredOnboarding())
-        assertTrue(professional.getOwn(userId)!!.skipped)
+        assertEquals(DriverRole.HIRED_DRIVER, professional.getOwn(userId)!!.role)
     }
 
     @Test
@@ -155,13 +155,14 @@ class AccountRegistrationPrivacyTest {
             isVerified = true,
         )
         registration.completeBasicProfile("Owner", DriverRole.OWNER_OPERATOR)
-        registration.completeProfessional(
-            companyName = "Fleet",
-            cdlNumber = "HIDDEN",
-            cdlDocumentUrl = null,
-            vehicleType = "Van",
-            primaryRegion = "CA",
-            dispatcherUserId = "dispatcher-1",
+        professional.upsertOwn(
+            professionalProfile(
+                companyName = "Fleet",
+                cdlNumber = "HIDDEN",
+                vehicleType = "Van",
+                primaryRegion = "CA",
+                dispatcherUserId = "dispatcher-1",
+            ),
         )
         assertTrue(
             professional.getForViewer(userId, "stranger") is ProfessionalAccess.Denied,
@@ -184,7 +185,14 @@ class AccountRegistrationPrivacyTest {
             isVerified = true,
         )
         registration.completeBasicProfile("Gone", DriverRole.OWNER_OPERATOR)
-        registration.completeProfessional("Co", "CDL-1", null, "Van", "FL")
+        professional.upsertOwn(
+            professionalProfile(
+                companyName = "Co",
+                cdlNumber = "CDL-1",
+                vehicleType = "Van",
+                primaryRegion = "FL",
+            ),
+        )
         db.loadDao().insert(
             LoadEntity(
                 id = "load-1",
@@ -231,6 +239,26 @@ class AccountRegistrationPrivacyTest {
         )
         assertTrue(noTos.isFailure)
     }
+
+    private fun professionalProfile(
+        companyName: String? = null,
+        cdlNumber: String? = null,
+        cdlDocumentUrl: String? = null,
+        vehicleType: String = "",
+        primaryRegion: String = "",
+        dispatcherUserId: String? = null,
+    ) = DriverProfessionalProfile(
+        userId = userId,
+        role = DriverRole.OWNER_OPERATOR,
+        companyName = companyName,
+        cdlNumber = cdlNumber,
+        cdlDocumentUrl = cdlDocumentUrl,
+        vehicleType = vehicleType,
+        primaryRegion = primaryRegion,
+        dispatcherUserId = dispatcherUserId,
+        skipped = false,
+        updatedAt = 1L,
+    )
 }
 
 class AgeGateAndCipherTest {
