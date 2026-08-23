@@ -599,6 +599,8 @@
 
     <string name="add_paycheck_title">Добавить зарплату</string>
     <string name="add_diesel_title">Добавить дизель</string>
+    <string name="add_diesel_date">Дата</string>
+    <string name="add_diesel_change_date">Изменить дату</string>
     <string name="add_diesel_gallons">Галлоны</string>
     <string name="add_diesel_price_per_gallon">Цена за галлон</string>
     <string name="add_diesel_discount_price">Цена со скидкой</string>

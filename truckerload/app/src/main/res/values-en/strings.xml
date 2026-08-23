@@ -599,6 +599,8 @@
 
     <string name="add_paycheck_title">Add paycheck</string>
     <string name="add_diesel_title">Add diesel</string>
+    <string name="add_diesel_date">Date</string>
+    <string name="add_diesel_change_date">Change date</string>
     <string name="add_diesel_gallons">Gallons</string>
     <string name="add_diesel_price_per_gallon">Price per gallon</string>
     <string name="add_diesel_discount_price">Discount price</string>

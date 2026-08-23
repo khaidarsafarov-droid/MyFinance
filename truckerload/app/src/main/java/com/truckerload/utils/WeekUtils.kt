@@ -19,6 +19,15 @@ private fun weekSortKey(weekNumber: Int, year: Int): Long = year * 100L + weekNu
 private fun isWeekAfter(a: Pair<Int, Int>, b: Pair<Int, Int>): Boolean =
     weekSortKey(a.first, a.second) > weekSortKey(b.first, b.second)
 
+/** Format timestamp (millis) to display date DD.MM.YYYY in device local timezone. */
+fun formatDateForDisplay(millis: Long): String {
+    val cal = Calendar.getInstance(Locale.getDefault()).apply { timeInMillis = millis }
+    val d = cal.get(Calendar.DAY_OF_MONTH)
+    val m = cal.get(Calendar.MONTH) + 1
+    val y = cal.get(Calendar.YEAR)
+    return "%02d.%02d.%04d".format(d, m, y)
+}
+
 /** Format timestamp (millis) to display string DD.MM.YYYY HH:mm in device local timezone. */
 fun formatDateTimeForDisplay(millis: Long): String {
     val cal = Calendar.getInstance(Locale.getDefault()).apply { timeInMillis = millis }
@@ -292,6 +301,32 @@ fun utcDatePickerMillisToDateString(utcMillis: Long): String {
         cal.get(Calendar.MONTH) + 1,
         cal.get(Calendar.DAY_OF_MONTH),
     )
+}
+
+/** Local-calendar day of [millis] as YYYY-MM-DD. */
+fun formatIsoDate(millis: Long): String {
+    val cal = Calendar.getInstance(Locale.getDefault()).apply { timeInMillis = millis }
+    return "%04d-%02d-%02d".format(
+        Locale.US,
+        cal.get(Calendar.YEAR),
+        cal.get(Calendar.MONTH) + 1,
+        cal.get(Calendar.DAY_OF_MONTH),
+    )
+}
+
+/**
+ * Apply a Material3 DatePicker UTC-midnight selection onto [keepTimeFromMillis],
+ * keeping the local time-of-day. Avoids the previous-day shift in US timezones.
+ */
+fun applyUtcDatePickerDay(utcMidnightMillis: Long, keepTimeFromMillis: Long): Long {
+    val parts = parseIsoDateParts(utcDatePickerMillisToDateString(utcMidnightMillis))
+        ?: return keepTimeFromMillis
+    return Calendar.getInstance(Locale.getDefault()).apply {
+        timeInMillis = keepTimeFromMillis
+        set(Calendar.YEAR, parts.first)
+        set(Calendar.MONTH, parts.second - 1)
+        set(Calendar.DAY_OF_MONTH, parts.third)
+    }.timeInMillis
 }
 
 /** Year hint from load.date (YYYY-MM-DD…) for Relay MM/DD stop times. */
