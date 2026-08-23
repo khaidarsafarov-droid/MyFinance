@@ -22,7 +22,7 @@ class RoomMigrationRobolectricTest {
     @Test
     fun migrate6ToCurrent_smoke() {
         val context = RuntimeEnvironment.getApplication()
-        val dbName = "robo-migration-6-31"
+        val dbName = "robo-migration-6-current"
         context.deleteDatabase(dbName)
 
         val config = SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -105,7 +105,7 @@ class RoomMigrationRobolectricTest {
                     db.version = version
                 }
             }
-            assertEquals(34, version)
+            assertEquals(currentRoomVersion(), version)
             db.query("SELECT COUNT(*) FROM loads").use { c ->
                 assertTrue(c.moveToFirst())
                 assertEquals(1, c.getInt(0))
@@ -114,13 +114,15 @@ class RoomMigrationRobolectricTest {
             assertTrue(db.hasColumn("loads", "actualFinishDate"))
             assertTrue(db.hasColumn("loads", "equipmentType"))
             assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
+            if (version >= 34) {
+                assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
+            }
             assertTrue(db.hasTable("crowd_rates"))
             assertTrue(db.hasTable("media_sync_queue"))
             assertTrue(db.hasTable("maintenance_archive"))
             assertTrue(db.hasColumn("maintenance_archive", "serviceName"))
             assertTrue(db.hasTable("user_accounts"))
             assertTrue(db.hasTable("driver_professional_profiles"))
-            assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
             assertTrue(!db.hasTable("community_profiles"))
             assertTrue(!db.hasTable("voice_rooms"))
             assertTrue(!db.hasTable("social_chats"))
@@ -202,5 +204,18 @@ class RoomMigrationRobolectricTest {
                 assertTrue(e.message!!.contains("бэкап") || e.message!!.contains("backup"))
             }
         }
+    }
+
+    private fun currentRoomVersion(): Int {
+        val source = listOf(
+            java.io.File("src/main/java/com/truckerload/data/local/AppDatabase.kt"),
+            java.io.File("app/src/main/java/com/truckerload/data/local/AppDatabase.kt"),
+            java.io.File("../app/src/main/java/com/truckerload/data/local/AppDatabase.kt"),
+        ).first { it.isFile }.readText()
+        return Regex("""version\s*=\s*(\d+)""").find(source)
+            ?.groupValues
+            ?.get(1)
+            ?.toInt()
+            ?: error("AppDatabase version not found")
     }
 }

@@ -54,7 +54,7 @@ object WidgetRemoteViewsFactory {
     bindHeader(appContext, views, stats, tier)
     bindRingHero(appContext, views, stats, prefs, tier, themed)
     bindWeekDays(appContext, views, appWidgetId, stats, tier, themed)
-    bindRpmBlock(appContext, views, stats, tier, themed)
+    bindRpmBlock(appContext, views, stats, prefs, tier, themed)
     bindEmptyState(appContext, views, stats, prefs, tier)
     bindQuickActions(appContext, views, tier)
     bindClickTargets(appContext, views, appWidgetId, tier)
@@ -163,6 +163,7 @@ object WidgetRemoteViewsFactory {
     views.setTextColor(R.id.widget_empty_add_btn, accent)
     views.setTextColor(R.id.widget_btn_camera_label, secondary)
     views.setTextColor(R.id.widget_btn_scanner_label, secondary)
+    views.setTextColor(R.id.widget_btn_diesel_label, secondary)
   }
 
   private fun bindHeader(
@@ -228,10 +229,11 @@ object WidgetRemoteViewsFactory {
       goalMet,
       stats.goalDaysRemaining,
     )
+    val ringFill = if (prefs.showGoal && goalSet) progress else 0f
     val ringBitmap = runCatching {
       WidgetProgressRingBitmap.create(
         themed,
-        if (goalSet) progress else 0f,
+        ringFill,
         ringSizePx,
         progressColor,
       )
@@ -250,42 +252,54 @@ object WidgetRemoteViewsFactory {
       amount,
       when (tier) {
         LayoutTier.COMPACT -> 22f
-        LayoutTier.STANDARD -> 22f
-        LayoutTier.EXPANDED -> 26f
+        // Standard/expanded amounts sit inside the ring hole.
+        LayoutTier.STANDARD -> 12f
+        LayoutTier.EXPANDED -> 15f
       },
     )
-    if (tier == LayoutTier.COMPACT) {
-      views.setTextViewText(R.id.widget_gross_hero, amount)
+    views.setTextViewText(R.id.widget_gross_hero, amount)
+    views.setTextViewTextSize(R.id.widget_gross_hero, TypedValue.COMPLEX_UNIT_SP, amountSp)
+    views.setViewVisibility(
+      R.id.widget_gross_hero,
+      if (prefs.showGross) View.VISIBLE else View.GONE,
+    )
+
+    if (tier == LayoutTier.COMPACT || !prefs.showGoal) {
       views.setViewVisibility(R.id.widget_goal_subtitle, View.GONE)
     } else {
-      views.setTextViewText(R.id.widget_gross_hero, amount)
-      val goalSubtitle = when {
-        !prefs.showGoal || !goalSet ->
-          context.getString(R.string.widget_goal_not_set)
-        else -> context.getString(
+      val goalSubtitle = if (goalSet) {
+        context.getString(
           R.string.widget_goal_out_of,
           WidgetStatsFormatter.formatGrossUsd(stats.weeklyProfitGoal),
         )
+      } else {
+        context.getString(R.string.widget_goal_not_set)
       }
       views.setViewVisibility(R.id.widget_goal_subtitle, View.VISIBLE)
       views.setTextViewText(R.id.widget_goal_subtitle, goalSubtitle)
+      views.setTextViewTextSize(
+        R.id.widget_goal_subtitle,
+        TypedValue.COMPLEX_UNIT_SP,
+        if (tier == LayoutTier.EXPANDED) 10f else 8f,
+      )
     }
-    views.setTextViewTextSize(R.id.widget_gross_hero, TypedValue.COMPLEX_UNIT_SP, amountSp)
 
-    val percentLabel = if (goalSet) {
-      context.getString(R.string.widget_ring_percent_decimal, progress.toDouble())
-    } else {
-      WidgetStatsFormatter.formatProgressPercent(0f)
-    }
-    views.setTextViewText(R.id.widget_ring_percent, percentLabel)
+    views.setTextViewText(
+      R.id.widget_ring_percent,
+      WidgetStatsFormatter.formatRingPercent(if (goalSet) progress else 0f),
+    )
+    views.setViewVisibility(
+      R.id.widget_ring_percent,
+      if (prefs.showGoal) View.VISIBLE else View.GONE,
+    )
     views.setTextViewTextSize(
       R.id.widget_ring_percent,
       TypedValue.COMPLEX_UNIT_SP,
       WidgetStatsFormatter.percentSp(
         when (tier) {
           LayoutTier.COMPACT -> 10f
-          LayoutTier.STANDARD -> 13f
-          LayoutTier.EXPANDED -> 16f
+          LayoutTier.STANDARD -> 9f
+          LayoutTier.EXPANDED -> 11f
         },
       ),
     )
@@ -303,7 +317,7 @@ object WidgetRemoteViewsFactory {
 
     when (tier) {
       LayoutTier.COMPACT -> {
-        views.setViewVisibility(R.id.widget_day_dots_row, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_day_dots_row, View.GONE)
         compactDayIds.forEachIndexed { index, viewId ->
           val chip = chips.getOrElse(index) {
             WidgetWeekDayHelper.DayChip(
@@ -362,10 +376,17 @@ object WidgetRemoteViewsFactory {
     context: Context,
     views: RemoteViews,
     stats: WidgetStats,
+    prefs: WidgetPrefs,
     tier: LayoutTier,
     themed: Context,
   ) {
     if (tier == LayoutTier.COMPACT) return
+    if (!prefs.showPace) {
+      views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
+      views.setViewVisibility(R.id.widget_rpm_label, View.GONE)
+      views.setViewVisibility(R.id.widget_rpm_value, View.GONE)
+      return
+    }
 
     views.setViewVisibility(R.id.widget_rpm_divider, View.GONE)
     views.setViewVisibility(R.id.widget_rpm_label, View.VISIBLE)
@@ -406,7 +427,7 @@ object WidgetRemoteViewsFactory {
       views.setViewVisibility(R.id.widget_empty_section, View.GONE)
       views.setViewVisibility(R.id.widget_content_section, View.VISIBLE)
       if (tier == LayoutTier.COMPACT) {
-        views.setViewVisibility(R.id.widget_day_dots_row, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_day_dots_row, View.GONE)
       }
       if (tier != LayoutTier.COMPACT) {
         views.setViewVisibility(R.id.widget_right_column, View.VISIBLE)
@@ -444,13 +465,16 @@ object WidgetRemoteViewsFactory {
       views.setViewVisibility(R.id.widget_quick_actions, View.VISIBLE)
       views.setViewVisibility(R.id.widget_btn_camera_label, View.GONE)
       views.setViewVisibility(R.id.widget_btn_scanner_label, View.GONE)
+      views.setViewVisibility(R.id.widget_btn_diesel_label, View.GONE)
       return
     }
     views.setViewVisibility(R.id.widget_quick_actions, View.VISIBLE)
     views.setViewVisibility(R.id.widget_btn_camera_label, View.VISIBLE)
     views.setViewVisibility(R.id.widget_btn_scanner_label, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_btn_diesel_label, View.VISIBLE)
     views.setTextViewText(R.id.widget_btn_camera_label, context.getString(R.string.widget_camera_short))
     views.setTextViewText(R.id.widget_btn_scanner_label, context.getString(R.string.widget_scanner_short))
+    views.setTextViewText(R.id.widget_btn_diesel_label, context.getString(R.string.widget_diesel_short))
   }
 
   private fun bindClickTargets(
@@ -500,6 +524,10 @@ object WidgetRemoteViewsFactory {
     views.setOnClickPendingIntent(
       R.id.widget_btn_scanner,
       activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_ATTACH_SCANNER, 23),
+    )
+    views.setOnClickPendingIntent(
+      R.id.widget_btn_diesel,
+      activityPendingIntent(context, appWidgetId, WidgetDeepLink.ROUTE_ADD_DIESEL, 24),
     )
   }
 

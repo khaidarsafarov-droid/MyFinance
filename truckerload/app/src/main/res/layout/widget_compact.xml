@@ -97,7 +97,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/widget_spacing_compact"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/widget_day_0"
@@ -224,8 +225,8 @@
 
         <ImageView
             android:id="@+id/widget_btn_camera"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:background="@drawable/widget_action_btn_bg"
             android:contentDescription="@string/widget_camera"
             android:padding="6dp"
@@ -234,14 +235,25 @@
 
         <ImageView
             android:id="@+id/widget_btn_scanner"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginStart="6dp"
             android:background="@drawable/widget_action_btn_bg"
             android:contentDescription="@string/widget_scanner"
             android:padding="6dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_widget_scanner" />
+
+        <ImageView
+            android:id="@+id/widget_btn_diesel"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/widget_action_btn_bg"
+            android:contentDescription="@string/widget_diesel"
+            android:padding="6dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_widget_diesel" />
 
         <TextView
             android:id="@+id/widget_btn_camera_label"
@@ -251,6 +263,12 @@
 
         <TextView
             android:id="@+id/widget_btn_scanner_label"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/widget_btn_diesel_label"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="gone" />

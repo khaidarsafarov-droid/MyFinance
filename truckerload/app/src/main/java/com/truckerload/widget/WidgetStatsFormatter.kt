@@ -24,6 +24,17 @@ object WidgetStatsFormatter {
     fun formatProgressPercent(progress: Float): String =
         String.format(Locale.US, "%.1f%%", progress.coerceIn(0f, 100f))
 
+    /** Ring hole copy: `0%`, `72%`, or `72.4%` — no `0,0%` clutter. */
+    fun formatRingPercent(progress: Float): String {
+        val p = progress.coerceIn(0f, 100f)
+        val nearest = kotlin.math.round(p)
+        return if (kotlin.math.abs(p - nearest) < 0.05f) {
+            String.format(Locale.US, "%.0f%%", nearest)
+        } else {
+            String.format(Locale.US, "%.1f%%", p)
+        }
+    }
+
     fun formatRpmPerMile(context: android.content.Context, rpm: Double): String =
         context.getString(com.truckerload.R.string.rpm_per_mile_format, rpm)
 

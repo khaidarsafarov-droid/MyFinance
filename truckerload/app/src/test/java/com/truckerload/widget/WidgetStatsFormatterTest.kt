@@ -32,6 +32,15 @@ class WidgetStatsFormatterTest {
     }
 
     @Test
+    fun formatRingPercent_dropsUselessDecimals() {
+        assertEquals("0%", WidgetStatsFormatter.formatRingPercent(0f))
+        assertEquals("0%", WidgetStatsFormatter.formatRingPercent(-2f))
+        assertEquals("72%", WidgetStatsFormatter.formatRingPercent(72f))
+        assertEquals("72.4%", WidgetStatsFormatter.formatRingPercent(72.4f))
+        assertEquals("100%", WidgetStatsFormatter.formatRingPercent(100f))
+    }
+
+    @Test
     fun avgRpm_zeroMilesSafe() {
         assertEquals(0.0, WidgetStatsFormatter.avgRpm(2500.0, 0.0), 0.0)
         assertEquals(2.5, WidgetStatsFormatter.avgRpm(2500.0, 1000.0), 0.001)

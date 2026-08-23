@@ -198,6 +198,10 @@ fun NavGraph(
                 }
                 onDeepLinkHandled()
             }
+            Routes.ADD_DIESEL -> {
+                navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
+                onDeepLinkHandled()
+            }
             else -> {
                 if (destination.startsWith("attach_pick/")) {
                     navController.navigate(destination) { launchSingleTop = true }

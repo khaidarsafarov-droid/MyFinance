@@ -893,6 +893,8 @@
     <string name="widget_scanner">Scanner</string>
     <string name="widget_camera_short">Camera</string>
     <string name="widget_scanner_short">Scanner</string>
+    <string name="widget_diesel">Add diesel</string>
+    <string name="widget_diesel_short">Diesel</string>
     <string name="rpm_per_mile_format">$%1$.2f/mi</string>
     <string name="widget_empty_no_loads">📭 No loads this week</string>
     <string name="widget_empty_add_short">✏️ Add your first load →</string>
