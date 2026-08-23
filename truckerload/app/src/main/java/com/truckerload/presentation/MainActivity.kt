@@ -170,6 +170,16 @@ class MainActivity : AppCompatActivity() {
                             }.onFailure { e ->
                                 android.util.Log.w("MainActivity", "Load repair failed", e)
                             }
+                            // Drive backup follows the Google account, not Ktor/Supabase.
+                            if (com.truckerload.data.backup.DriveSyncEligibility
+                                    .shouldEnqueuePeriodic(activeUserId)
+                            ) {
+                                com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
+                                runCatching {
+                                    com.truckerload.data.backup.GoogleDriveBackupService
+                                        .pushAutoBackupIfEnabled(applicationContext)
+                                }
+                            }
                             if (syncModeStore.allowsCloudCalls()) {
                                 val syncResult = runCatching {
                                     cloudSyncEngine.onSessionReady()
@@ -182,7 +192,6 @@ class MainActivity : AppCompatActivity() {
                                     authStore.logout()
                                     return@withContext
                                 }
-                                com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
                                 com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
                                 com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
                                 com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
@@ -190,10 +199,6 @@ class MainActivity : AppCompatActivity() {
                                 ServerTelegramInboxWorker.enqueue(applicationContext)
                                 ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
                                 PushTokenRegistrationWorker.enqueue(applicationContext)
-                                runCatching {
-                                    com.truckerload.data.backup.GoogleDriveBackupService
-                                        .pushAutoBackupIfEnabled(applicationContext)
-                                }
                             }
                         }
                     } else {

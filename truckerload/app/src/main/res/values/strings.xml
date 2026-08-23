@@ -65,6 +65,8 @@
     <string name="login_or_divider">или</string>
     <string name="login_continue_offline">Продолжить офлайн</string>
     <string name="login_continue_offline_hint">Журнал только на этом устройстве — без Google и облака.</string>
+    <string name="login_google_sync_hint">Синхронизация журнала через ваш Google-аккаунт (Drive в Настройках).</string>
+    <string name="login_google_drive_cta">Вход через Google выполнен. Откройте Настройки → Google Drive, чтобы включить синхронизацию бэкапа.</string>
     <string name="login_checking">Проверка аккаунта…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>

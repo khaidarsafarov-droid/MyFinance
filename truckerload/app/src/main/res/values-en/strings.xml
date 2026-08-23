@@ -65,6 +65,8 @@
     <string name="login_or_divider">or</string>
     <string name="login_continue_offline">Continue offline</string>
     <string name="login_continue_offline_hint">Journal stays on this device — no Google or cloud sign-in.</string>
+    <string name="login_google_sync_hint">Sync your journal with your Google account (Drive in Settings).</string>
+    <string name="login_google_drive_cta">Signed in with Google. Open Settings → Google Drive to enable backup sync.</string>
     <string name="login_checking">Checking account…</string>
 
     <string name="home_brand_title">TRUCK LOG</string>

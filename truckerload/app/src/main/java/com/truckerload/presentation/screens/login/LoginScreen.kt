@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -119,8 +120,22 @@ fun LoginScreen(
                     }
                     Spacer(modifier = Modifier.height(32.dp))
 
+                    GoogleSignInButton(
+                        onClick = { viewModel.onGoogleSignInClick(context) },
+                        enabled = !uiState.isLoading,
+                        loading = uiState.isLoading && !uiState.showEmailFields,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.login_google_sync_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                        textAlign = TextAlign.Center,
+                    )
+
                     if (BuildConfig.LOCAL_ONLY_MODE) {
-                        Button(
+                        Spacer(modifier = Modifier.height(20.dp))
+                        OutlinedButton(
                             onClick = { viewModel.onAnonymousSignIn() },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -134,14 +149,7 @@ fun LoginScreen(
                             color = tc.TextSecondary,
                             textAlign = TextAlign.Center,
                         )
-                        Spacer(modifier = Modifier.height(24.dp))
                     }
-
-                    GoogleSignInButton(
-                        onClick = { viewModel.onGoogleSignInClick(context) },
-                        enabled = !uiState.isLoading,
-                        loading = uiState.isLoading && !uiState.showEmailFields,
-                    )
 
                     Spacer(modifier = Modifier.height(20.dp))
                     Row(

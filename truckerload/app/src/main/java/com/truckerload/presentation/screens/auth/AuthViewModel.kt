@@ -4,12 +4,15 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.data.backup.DriveSyncEligibility
+import com.truckerload.data.backup.DriveSyncWorker
 import com.truckerload.data.repository.auth.AuthRepository
 import com.truckerload.data.repository.auth.AuthSignInResult
 import com.truckerload.data.repository.auth.GoogleAuthCredential
 import com.truckerload.data.repository.auth.GoogleTokenRequestResult
 import com.truckerload.data.sync.DeviceSlotDenialStore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +40,7 @@ sealed interface AuthUiEvent {
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    @param:ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -155,7 +159,17 @@ class AuthViewModel @Inject constructor(
     private suspend fun completeGoogle(credential: GoogleAuthCredential) {
         val result = authRepository.signInWithGoogle(credential)
         result.fold(
-            onSuccess = { applySuccess(it) },
+            onSuccess = { signIn ->
+                if (DriveSyncEligibility.shouldEnqueuePeriodic(signIn.user.userId)) {
+                    DriveSyncWorker.enqueuePeriodic(appContext)
+                }
+                applySuccess(
+                    signIn.copy(
+                        toastMessages = signIn.toastMessages +
+                            appContext.getString(R.string.login_google_drive_cta),
+                    ),
+                )
+            },
             onFailure = { err ->
                 _events.emit(
                     AuthUiEvent.ShowToast(
