@@ -814,7 +814,10 @@
     <string name="drive_sync_api_error">Ошибка Drive: %1$s</string>
     <string name="drive_sync_busy">Синхронизация…</string>
     <string name="drive_sync_restore_confirm_title">Восстановить из Drive?</string>
-    <string name="drive_sync_restore_confirm_body">Локальные грузы будут заменены копией из Google Drive.</string>
+    <string name="drive_sync_restore_confirm_body">Локальные грузы, зарплаты и дизель будут заменены копией из Google Drive. Все фото и сканы на устройстве будут удалены (бэкап их не содержит).</string>
+    <string name="backup_restore_confirm_title">Восстановить из файла?</string>
+    <string name="backup_restore_confirm_body">Текущий журнал (грузы, зарплаты, дизель) будет заменён данными из файла. Все фото и сканы на этом устройстве будут удалены — файл бэкапа их не содержит.</string>
+    <string name="backup_restore_confirm_action">Восстановить</string>
     <string name="drive_sync_restore_conflict_body">На устройстве есть изменения после последней синхронизации, а в Drive — более новая копия. Восстановление перезапишет локальные данные.</string>
     <string name="settings_app_version">Версия %1$s</string>
 

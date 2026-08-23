@@ -36,7 +36,6 @@ class CloudSyncPolicyTest {
 
     @Test
     fun needsFullHydration_onlyWhenEmptyLocalAndRemoteHasData() {
-        // New tablet (never synced, empty Room) restores the phone's account snapshot.
         assertTrue(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 0, remoteEntityCount = 5))
         assertTrue(CloudSyncPolicy.needsFullHydration(-1L, localEntityCount = 0, remoteEntityCount = 1))
         assertFalse(CloudSyncPolicy.needsFullHydration(0L, localEntityCount = 2, remoteEntityCount = 5))
@@ -53,6 +52,32 @@ class CloudSyncPolicyTest {
         assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 20L, remoteUpdatedAt = 19L))
         assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = 0L, remoteUpdatedAt = 20L))
         assertFalse(CloudSyncPolicy.shouldPullIncremental(lastSyncedAt = -1L, remoteUpdatedAt = 20L))
+    }
+
+    @Test
+    fun localSnapshotForPush_keepsOnlyLocalIds() {
+        val local = mapOf("keep" to Row("keep", 10, "local"))
+        val pushed = CloudSyncPolicy.localSnapshotForPush(local)
+        assertEquals(setOf("keep"), pushed.keys)
+        assertEquals("local", pushed["keep"]?.value)
+    }
+
+    @Test
+    fun orphanLocalIds_listsRemoteMissingRows() {
+        val orphans = CloudSyncPolicy.orphanLocalIds(
+            localIds = setOf("a", "b", "c"),
+            remoteIds = setOf("a", "c"),
+        )
+        assertEquals(setOf("b"), orphans)
+    }
+
+    @Test
+    fun mergeById_stillUnionsRemoteOnly_forIncrementalFieldMerge() {
+        // Documented: mergeById is NOT for full-snapshot push (would resurrect deletes).
+        val local = mapOf("a" to Row("a", 10, "local-a"))
+        val remote = mapOf("b" to Row("b", 1, "remote-b"))
+        val merged = CloudSyncPolicy.mergeById(local, remote) { it.updatedAt }
+        assertTrue(merged.containsKey("b"))
     }
 
     @Test

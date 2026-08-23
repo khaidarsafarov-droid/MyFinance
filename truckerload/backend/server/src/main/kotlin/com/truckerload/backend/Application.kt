@@ -298,7 +298,10 @@ private fun io.ktor.server.routing.Route.syncRoutes(
             call.requireRateLimit(ipRateLimiter, metrics, "sync-put")
             val sourceDeviceId = call.request.headers["X-Device-Id"]?.let(::validDeviceId)
             val incoming = call.receiveJson<AccountCloudSnapshot>(MAX_SNAPSHOT_BODY_BYTES)
-            if (incoming.accountId != user.id.toString()) {
+            // Google local-fallback clients send voiceIdentity (`google_<hex>`), while
+            // Supabase sessions send user.id (UUID). Accept either; store the client id
+            // so Android Room/mirror keys stay stable across round-trips.
+            if (!user.acceptsAccountId(incoming.accountId)) {
                 throw ApiException(
                     HttpStatusCode.Forbidden,
                     "account_mismatch",
@@ -308,7 +311,7 @@ private fun io.ktor.server.routing.Route.syncRoutes(
             if (incoming.version < 1 || incoming.updatedAt < 0) {
                 throw ApiException(HttpStatusCode.BadRequest, "invalid_snapshot", "Snapshot metadata is invalid")
             }
-            val normalized = incoming.copy(accountId = user.id.toString()).withResolvedEntityCount()
+            val normalized = incoming.withResolvedEntityCount()
             val checksum = sha256Hex(ContractJson.encodeToString(normalized))
             val stored = repositories.snapshots.putLww(user.id, normalized, checksum)
             metrics.recordSnapshot(stored.accepted)

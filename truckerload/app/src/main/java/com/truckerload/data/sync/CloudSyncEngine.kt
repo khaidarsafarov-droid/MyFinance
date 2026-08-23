@@ -146,16 +146,23 @@ object CloudSyncEngine {
         val paychecks = PaycheckRepository(db).getAllPaychecksOnce()
         val diesel = DieselRepository(db).getAllDieselOnce()
         val existing = backend.read(userId)
+        // Local Room is the source of truth after pull. Do NOT merge remote-only
+        // entities back in — that resurrects loads the user deleted on this device.
         val localBackup = BackupData(
             loads = loads,
             paychecks = paychecks,
             diesel = diesel,
         )
-        val mergedBackup = if (existing != null) {
-            mergeBackupsLww(existing.backup, localBackup)
-        } else {
-            localBackup
-        }
+        val publishBackup = localBackup.copy(
+            loads = CloudSyncPolicy.localSnapshotForPush(localBackup.loads.associateBy { it.id })
+                .values.toList(),
+            paychecks = CloudSyncPolicy.localSnapshotForPush(
+                localBackup.paychecks.associateBy { it.id.toString() },
+            ).values.toList(),
+            diesel = CloudSyncPolicy.localSnapshotForPush(
+                localBackup.diesel.associateBy { it.id.toString() },
+            ).values.toList(),
+        )
         // A device clock may lag behind another device. Keep the account snapshot
         // timestamp monotonic so a successfully pulled newer snapshot can always be
         // acknowledged by the server instead of entering a permanent stale-write loop.
@@ -166,7 +173,7 @@ object CloudSyncEngine {
         val snapshot = AccountCloudSnapshot(
             accountId = userId,
             updatedAt = now,
-            backup = mergedBackup,
+            backup = publishBackup,
             driverProfileJson = serializeDriverProfile(db.driverProfileDao().getProfile()),
         )
         val result = backend.write(snapshot)
@@ -176,22 +183,6 @@ object CloudSyncEngine {
             Log.w(TAG, "Account snapshot cached locally but remote acknowledgement failed")
         }
         return result.successful
-    }
-
-    private fun mergeBackupsLww(remote: BackupData, local: BackupData): BackupData {
-        val loads = CloudSyncPolicy.mergeById(
-            local = local.loads.associateBy { it.id },
-            remote = remote.loads.associateBy { it.id },
-            updatedAt = { it.updatedAt },
-        ).values.toList()
-        // Prefer local paycheck/diesel maps by id string; LWW on addedAt when present.
-        val payLocal = local.paychecks.associateBy { it.id.toString() }
-        val payRemote = remote.paychecks.associateBy { it.id.toString() }
-        val paychecks = CloudSyncPolicy.mergeById(payLocal, payRemote) { it.addedAt }.values.toList()
-        val dieselLocal = local.diesel.associateBy { it.id.toString() }
-        val dieselRemote = remote.diesel.associateBy { it.id.toString() }
-        val diesel = CloudSyncPolicy.mergeById(dieselLocal, dieselRemote) { it.addedAt }.values.toList()
-        return BackupData(loads = loads, paychecks = paychecks, diesel = diesel, exportedAt = System.currentTimeMillis())
     }
 
     private suspend fun applyFullHydration(
@@ -228,8 +219,16 @@ object CloudSyncEngine {
     private suspend fun mergeSnapshotIntoRoom(db: AppDatabase, snapshot: AccountCloudSnapshot): Int {
         val backup = snapshot.backup
         val existing = db.loadDao().getAllLoadsOnce().associateBy { it.id }
+        val remoteLoadIds = backup.loads.map { it.id }.toSet()
+        val orphanLoadIds = CloudSyncPolicy.orphanLocalIds(existing.keys, remoteLoadIds)
         var applied = 0
         db.withTransaction {
+            for (orphanId in orphanLoadIds) {
+                db.stopDao().deleteByLoadId(orphanId)
+                db.penaltyDao().deleteByLoadId(orphanId)
+                db.loadDao().deleteById(orphanId)
+                applied++
+            }
             for (load in backup.loads) {
                 val local = existing[load.id]
                 val localUpdated = local?.updatedAt
@@ -246,14 +245,28 @@ object CloudSyncEngine {
                     applied++
                 }
             }
-            // Diesel / paychecks: insert missing by id (Room replace).
-            val localDieselIds = DieselRepository(db).getAllDieselOnce().map { it.id }.toSet()
-            val toInsertDiesel = backup.diesel.filter { it.id !in localDieselIds }
+            // Diesel / paychecks: insert missing by id; drop local orphans so deletions propagate.
+            val localDiesel = DieselRepository(db).getAllDieselOnce()
+            val remoteDieselIds = backup.diesel.map { it.id }.toSet()
+            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localDiesel.map { it.id }.toSet(), remoteDieselIds)) {
+                db.dieselDao().deleteById(orphanId)
+                applied++
+            }
+            val toInsertDiesel = backup.diesel.filter { diesel ->
+                localDiesel.none { it.id == diesel.id }
+            }
             if (toInsertDiesel.isNotEmpty()) {
                 db.dieselDao().insertAll(toInsertDiesel.map { it.toEntity() })
             }
-            val localPayIds = PaycheckRepository(db).getAllPaychecksOnce().map { it.id }.toSet()
-            val toInsertPay = backup.paychecks.filter { it.id !in localPayIds }
+            val localPay = PaycheckRepository(db).getAllPaychecksOnce()
+            val remotePayIds = backup.paychecks.map { it.id }.toSet()
+            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localPay.map { it.id }.toSet(), remotePayIds)) {
+                db.paycheckDao().deleteById(orphanId)
+                applied++
+            }
+            val toInsertPay = backup.paychecks.filter { pay ->
+                localPay.none { it.id == pay.id }
+            }
             if (toInsertPay.isNotEmpty()) {
                 db.paycheckDao().insertAll(toInsertPay.map { it.toEntity() })
             }

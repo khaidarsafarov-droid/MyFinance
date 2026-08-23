@@ -55,6 +55,7 @@ fun SettingsDataSection(
     val scope = rememberCoroutineScope()
     var exportedFile by remember { mutableStateOf<File?>(null) }
     var showExportActions by remember { mutableStateOf(false) }
+    var showRestoreConfirm by remember { mutableStateOf(false) }
 
     val restoreLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -161,11 +162,34 @@ fun SettingsDataSection(
             }
         }
         OutlinedButton(
-            onClick = { restoreLauncher.launch(BackupSchema.RESTORE_OPEN_MIME_TYPES) },
+            onClick = { showRestoreConfirm = true },
             modifier = Modifier.fillMaxWidth().height(48.dp),
         ) {
             Text(stringResource(R.string.settings_backup_restore))
         }
+    }
+
+    if (showRestoreConfirm) {
+        AlertDialog(
+            onDismissRequest = { showRestoreConfirm = false },
+            title = { Text(stringResource(R.string.backup_restore_confirm_title)) },
+            text = { Text(stringResource(R.string.backup_restore_confirm_body)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRestoreConfirm = false
+                        restoreLauncher.launch(BackupSchema.RESTORE_OPEN_MIME_TYPES)
+                    },
+                ) {
+                    Text(stringResource(R.string.backup_restore_confirm_action))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRestoreConfirm = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
     }
 
     val exportTarget = exportedFile
