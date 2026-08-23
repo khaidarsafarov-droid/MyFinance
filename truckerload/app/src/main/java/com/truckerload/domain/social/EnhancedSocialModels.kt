@@ -28,9 +28,8 @@ data class EnhancedDriverProfile(
     val about: String,
     val specialties: List<String>,
     val languages: List<String>,
+    /** Account phone kept for the edit form and registration, not shown on the profile. */
     val phoneNumber: String?,
-    val telegramUsername: String?,
-    val whatsappNumber: String?,
     val joinedDate: Long,
     val lastActive: Long,
     val dateOfBirthEpochDay: Long? = null,

@@ -1375,12 +1375,9 @@
     <string name="social_followers">Followers</string>
     <string name="social_following">Following</string>
     <string name="social_on_time">On time</string>
-    <string name="social_contacts">Contacts</string>
     <string name="social_license_class">CDL class</string>
     <string name="social_specialties">Specialties</string>
     <string name="social_phone">Phone</string>
-    <string name="social_telegram">Telegram</string>
-    <string name="social_whatsapp">WhatsApp</string>
     <string name="social_reply_to">Reply to</string>
     <string name="social_announcement">Announcement</string>
     <string name="social_statuses">Statuses</string>

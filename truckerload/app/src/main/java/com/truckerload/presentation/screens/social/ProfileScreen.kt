@@ -117,9 +117,6 @@ fun ProfileScreen(
             if (profile.preferredRoutes.isNotEmpty() || profile.homeState.isNotBlank()) {
                 item { ProfileTerritorySection(profile) }
             }
-            if (profile.phoneNumber != null || profile.telegramUsername != null) {
-                item { ProfileContactsSection(profile) }
-            }
         }
     }
 }

@@ -103,8 +103,6 @@ class ProfileViewModel @Inject constructor(
         status: DriverStatus,
         licenseClass: String = "",
         phoneNumber: String = "",
-        telegramUsername: String = "",
-        whatsappNumber: String = "",
         specialties: String = "",
         onResult: (Boolean) -> Unit = {},
     ) {
@@ -122,8 +120,6 @@ class ProfileViewModel @Inject constructor(
                     licenseClass = licenseClass.trim(),
                     endorsements = current?.endorsements.orEmpty(),
                     phoneNumber = phoneNumber.trim().ifBlank { null },
-                    telegramUsername = telegramUsername.trim().ifBlank { null },
-                    whatsappNumber = whatsappNumber.trim().ifBlank { null },
                     specialties = specialties.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                     maxRadius = current?.maxRadius ?: 500,
             )) {
