@@ -2,23 +2,33 @@ package com.truckerload.voice
 
 import android.util.Log
 import com.truckerload.utils.CrashReporting
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.channels.Channel
 
 object VoiceCommandBus {
-    private val _pending = MutableStateFlow<AppVoiceAction?>(null)
-    val pending: StateFlow<AppVoiceAction?> = _pending.asStateFlow()
+    private val commands = Channel<AppVoiceAction>(capacity = Channel.UNLIMITED)
 
     fun offer(command: AppVoiceAction) {
         VoiceAssistantLogger.log(command, "received")
-        _pending.value = command
+        val result = commands.trySend(command)
+        if (result.isFailure) {
+            VoiceAssistantLogger.logOutcome(
+                "voice",
+                "queue_rejected",
+                result.exceptionOrNull()?.message,
+            )
+        }
     }
 
-    fun consume(): AppVoiceAction? {
-        val current = _pending.value
-        _pending.value = null
-        return current
+    suspend fun receive(): AppVoiceAction = commands.receive()
+
+    /** Non-blocking receive for tests and dismiss cleanup. */
+    fun tryReceive(): AppVoiceAction? = commands.tryReceive().getOrNull()
+
+    /** Drains any queued commands (test isolation). */
+    internal fun drainForTests() {
+        while (tryReceive() != null) {
+            // discard
+        }
     }
 }
 

@@ -17,11 +17,13 @@ import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.utils.AnalyticsExporter
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 
 data class AnalyticsUiState(
     val isLoading: Boolean = true,
@@ -47,6 +49,9 @@ class AnalyticsViewModel @Inject constructor(
     val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
 
     private var lastDashboard: AnalyticsDashboard? = null
+    private var refreshJob: Job? = null
+    private val refreshGeneration = AtomicInteger(0)
+    private var weekLoadJob: Job? = null
 
     init {
         refresh()
@@ -61,21 +66,27 @@ class AnalyticsViewModel @Inject constructor(
     fun selectWeek(index: Int) {
         val week = _uiState.value.weeks.getOrNull(index) ?: return
         _uiState.update { it.copy(selectedWeekIndex = index) }
-        viewModelScope.launch {
+        weekLoadJob?.cancel()
+        weekLoadJob = viewModelScope.launch {
             runCatching {
                 repository.getLoadsForWeek(week.weekNumber, week.year)
             }.onSuccess { loads ->
+                if (_uiState.value.selectedWeekIndex != index) return@launch
                 _uiState.update { it.copy(selectedWeekLoads = loads) }
             }
         }
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        val generation = refreshGeneration.incrementAndGet()
+        val period = _uiState.value.period
+        refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
-                repository.loadDashboard(_uiState.value.period)
+                repository.loadDashboard(period)
             }.onSuccess { dashboard ->
+                if (generation != refreshGeneration.get()) return@launch
                 lastDashboard = dashboard
                 val defaultIndex = dashboard.weeks.lastIndex.takeIf { idx -> idx >= 0 }
                 _uiState.update {
@@ -92,6 +103,7 @@ class AnalyticsViewModel @Inject constructor(
                 }
                 defaultIndex?.let { selectWeek(it) }
             }.onFailure { e ->
+                if (generation != refreshGeneration.get()) return@launch
                 _uiState.update {
                     it.copy(isLoading = false, error = e.message ?: app.getString(R.string.analytics_error_loading))
                 }

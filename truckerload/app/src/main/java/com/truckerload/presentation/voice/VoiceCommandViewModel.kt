@@ -45,8 +45,9 @@ class VoiceCommandViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            VoiceCommandBus.pending.collect { command ->
-                if (command != null) handle(command)
+            while (true) {
+                val command = VoiceCommandBus.receive()
+                handle(command)
             }
         }
     }
@@ -58,7 +59,6 @@ class VoiceCommandViewModel @Inject constructor(
     fun dismissPrompt() {
         _prompt.value = null
         _journalSaving.value = false
-        VoiceCommandBus.consume()
     }
 
     fun confirmSensitive() {
@@ -96,7 +96,6 @@ class VoiceCommandViewModel @Inject constructor(
     }
 
     private suspend fun handle(command: AppVoiceAction) {
-        VoiceCommandBus.consume()
         when (command) {
             is AppVoiceAction.OpenScreen -> {
                 VoiceAssistantLogger.log(command, "navigate")
