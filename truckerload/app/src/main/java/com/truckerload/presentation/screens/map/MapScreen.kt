@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.map
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,16 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -150,7 +142,7 @@ private fun MapScreenBody(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
-                imageVector = Icons.Filled.Info,
+                imageVector = AppIcons.Info,
                 contentDescription = null,
                 tint = tc.TextSecondary,
                 modifier = Modifier
@@ -183,7 +175,7 @@ private fun MapScreenBody(
         val summary = uiState.stateSummary
         if (summary != null && summary.stateCode.isNotBlank()) {
             IconLabeledTitle(
-                icon = Icons.Filled.Place,
+                icon = AppIcons.Place,
                 text = stringResource(
                     R.string.map_crowd_state_header,
                     getStateDisplayName(summary.stateCode),
@@ -191,7 +183,7 @@ private fun MapScreenBody(
                 ),
             )
             IconLabeledBody(
-                icon = Icons.Filled.Speed,
+                icon = AppIcons.Speed,
                 text = stringResource(
                     R.string.map_crowd_state_avg,
                     String.format(Locale.getDefault(), "%.2f", summary.avgOutboundRpm),
@@ -200,7 +192,7 @@ private fun MapScreenBody(
             )
             Spacer(Modifier.height(2.dp))
             IconLabeledTitle(
-                icon = Icons.Filled.Schedule,
+                icon = AppIcons.Schedule,
                 text = stringResource(R.string.map_crowd_recent_title),
             )
             if (summary.recent.isEmpty()) {
@@ -219,7 +211,7 @@ private fun MapScreenBody(
 
         if (uiState.topLanes.isNotEmpty() && uiState.selectedStateCode.isBlank()) {
             IconLabeledTitle(
-                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                icon = AppIcons.TrendingUp,
                 text = stringResource(periodTopLanesRes(uiState.period)),
             )
             uiState.topLanes.forEach { lane ->
@@ -245,9 +237,9 @@ private fun MapPeriodSelector(
     ) {
         MapPeriod.entries.forEach { period ->
             val (icon, labelRes) = when (period) {
-                MapPeriod.WEEK -> Icons.Filled.Today to R.string.map_period_week
-                MapPeriod.MONTH -> Icons.Filled.DateRange to R.string.map_period_month
-                MapPeriod.YEAR -> Icons.Filled.CalendarMonth to R.string.map_period_year
+                MapPeriod.WEEK -> AppIcons.Today to R.string.map_period_week
+                MapPeriod.MONTH -> AppIcons.DateRange to R.string.map_period_month
+                MapPeriod.YEAR -> AppIcons.CalendarMonth to R.string.map_period_year
             }
             FilterChip(
                 selected = period == selected,
@@ -283,7 +275,7 @@ private fun MapMetaRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
-            imageVector = Icons.Filled.LocalShipping,
+            imageVector = AppIcons.LocalShipping,
             contentDescription = null,
             tint = tc.AccentPrimary,
             modifier = Modifier.size(18.dp),
@@ -366,7 +358,7 @@ private fun TopLaneRow(lane: CrowdLaneAggregate) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
-            imageVector = Icons.Filled.LocalShipping,
+            imageVector = AppIcons.LocalShipping,
             contentDescription = null,
             tint = tc.TextSecondary,
             modifier = Modifier.size(16.dp),
@@ -401,7 +393,7 @@ private fun MyRecentRow(report: CrowdRateReport) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
-            imageVector = Icons.Filled.Schedule,
+            imageVector = AppIcons.Schedule,
             contentDescription = null,
             tint = tc.TextSecondary,
             modifier = Modifier.size(16.dp),

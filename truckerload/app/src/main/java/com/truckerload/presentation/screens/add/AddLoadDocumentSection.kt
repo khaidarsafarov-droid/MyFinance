@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.add
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -13,9 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -164,9 +163,9 @@ fun AddLoadDocumentSection(
                     )
                     Icon(
                         imageVector = if (ocrExpanded) {
-                            Icons.Default.ExpandLess
+                            AppIcons.ExpandLess
                         } else {
-                            Icons.Default.ExpandMore
+                            AppIcons.ExpandMore
                         },
                         contentDescription = null,
                         tint = tc.AccentPrimary,

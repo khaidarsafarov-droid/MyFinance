@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.gallery
 
+import com.truckerload.presentation.icons.AppIcons
+
 import com.truckerload.presentation.utils.rememberDecodedBitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -13,11 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ButtonDefaults
@@ -101,7 +98,7 @@ fun PhotoDetailScreen(
                 title = { Text(photo?.fileName ?: stringResource(R.string.photo_gallery)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BentoGlassTheme.ScreenBackground),
@@ -144,7 +141,7 @@ fun PhotoDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.LocationOn,
+                    imageVector = AppIcons.LocationOn,
                     contentDescription = null,
                     tint = tc.TextPrimary,
                     modifier = Modifier.size(16.dp),
@@ -156,7 +153,7 @@ fun PhotoDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
+                    imageVector = AppIcons.CalendarMonth,
                     contentDescription = null,
                     tint = tc.TextSecondary,
                     modifier = Modifier.size(16.dp),
@@ -168,7 +165,7 @@ fun PhotoDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.PushPin,
+                    imageVector = AppIcons.PushPin,
                     contentDescription = null,
                     tint = tc.TextSecondary,
                     modifier = Modifier.size(16.dp),

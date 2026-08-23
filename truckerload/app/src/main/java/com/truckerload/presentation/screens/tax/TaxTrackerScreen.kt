@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.tax
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,7 +52,7 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.tax_title), color = tc.TextPrimary) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary) } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary) } },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BentoGlassTheme.ScreenBackground,
                     titleContentColor = tc.TextPrimary

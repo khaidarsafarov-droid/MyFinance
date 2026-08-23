@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -8,23 +10,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.DocumentScanner
-import androidx.compose.material.icons.outlined.ExpandLess
-import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.Handyman
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.LocalGasStation
-import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.Payments
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -101,69 +86,69 @@ fun AppDrawerContent(
             Spacer(Modifier.height(8.dp))
 
             drawerItem(
-                icon = Icons.Outlined.Settings,
+                icon = AppIcons.Settings,
                 label = stringResource(R.string.nav_settings),
                 onClick = { onNavigate(DrawerDestination.SETTINGS); onClose() },
             )
             drawerItem(
-                icon = Icons.Outlined.BarChart,
+                icon = AppIcons.BarChart,
                 label = stringResource(R.string.drawer_reports),
                 onClick = { onNavigate(DrawerDestination.REPORTS); onClose() },
             )
             drawerItem(
-                icon = Icons.Outlined.Map,
+                icon = AppIcons.Map,
                 label = stringResource(R.string.drawer_map),
                 onClick = { onNavigate(DrawerDestination.MAP); onClose() },
             )
             drawerItem(
-                icon = Icons.Outlined.Description,
+                icon = AppIcons.Description,
                 label = stringResource(R.string.drawer_documents),
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
             )
             drawerItem(
-                icon = Icons.Outlined.Handyman,
+                icon = AppIcons.Handyman,
                 label = stringResource(R.string.drawer_tools),
                 onClick = { toolsExpanded = !toolsExpanded },
                 trailingIcon = if (toolsExpanded) {
-                    Icons.Outlined.ExpandLess
+                    AppIcons.ExpandLess
                 } else {
-                    Icons.Outlined.ExpandMore
+                    AppIcons.ExpandMore
                 },
             )
             AnimatedVisibility(visible = toolsExpanded) {
                 Column {
                     drawerItem(
-                        icon = Icons.Outlined.Build,
+                        icon = AppIcons.Build,
                         label = stringResource(R.string.maintenance_title),
                         onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
                         indented = true,
                     )
                     drawerItem(
-                        icon = Icons.Outlined.Payments,
+                        icon = AppIcons.Payments,
                         label = stringResource(R.string.add_paycheck_title),
                         onClick = { onNavigate(DrawerDestination.ADD_PAYCHECK); onClose() },
                         indented = true,
                     )
                     drawerItem(
-                        icon = Icons.Outlined.LocalGasStation,
+                        icon = AppIcons.LocalGasStation,
                         label = stringResource(R.string.add_diesel_title),
                         onClick = { onNavigate(DrawerDestination.ADD_DIESEL); onClose() },
                         indented = true,
                     )
                     drawerItem(
-                        icon = Icons.Outlined.Mic,
+                        icon = AppIcons.Mic,
                         label = stringResource(R.string.assistant_title),
                         onClick = { onNavigate(DrawerDestination.VOICE_ASSISTANT); onClose() },
                         indented = true,
                     )
                     drawerItem(
-                        icon = Icons.Outlined.DocumentScanner,
+                        icon = AppIcons.DocumentScanner,
                         label = stringResource(R.string.scanner),
                         onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
                         indented = true,
                     )
                     drawerItem(
-                        icon = Icons.Outlined.CameraAlt,
+                        icon = AppIcons.CameraAlt,
                         label = stringResource(R.string.camera),
                         onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
                         indented = true,
@@ -171,7 +156,7 @@ fun AppDrawerContent(
                 }
             }
             drawerItem(
-                icon = Icons.Outlined.Info,
+                icon = AppIcons.Info,
                 label = stringResource(R.string.drawer_about),
                 onClick = { onNavigate(DrawerDestination.ABOUT); onClose() },
             )
@@ -182,7 +167,7 @@ fun AppDrawerContent(
                 color = BentoGlassTheme.CardBorderMuted,
             )
             drawerItem(
-                icon = Icons.AutoMirrored.Outlined.Logout,
+                icon = AppIcons.Logout,
                 label = stringResource(R.string.drawer_logout),
                 onClick = {
                     onClose()

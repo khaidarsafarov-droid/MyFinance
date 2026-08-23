@@ -26,7 +26,7 @@ import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.LocalTruckColors
-import java.util.Locale
+import com.truckerload.presentation.utils.MoneyFormat
 
 @Composable
 fun TopRoutesBarChart(
@@ -60,11 +60,11 @@ private fun RouteRow(route: RouteData) {
         )
         Text(
             text = buildString {
-                append(formatUsd(route.gross))
+                append(MoneyFormat.formatCurrency(route.gross))
                 append(" • ")
-                append(formatMiles(route.miles))
-                append(" mi • ")
-                append(formatRpm(route.rpm))
+                append(MoneyFormat.formatMiles(route.miles))
+                append(" • ")
+                append(MoneyFormat.formatRpm(route.rpm))
             },
             style = MaterialTheme.typography.bodySmall,
             color = tc.TextSecondary,
@@ -118,7 +118,7 @@ fun DailyDistributionChart(
                     }
                 }
                 Text(
-                    text = formatUsd(day.gross),
+                    text = MoneyFormat.formatCurrency(day.gross),
                     modifier = Modifier
                         .width(72.dp)
                         .padding(start = 8.dp),
@@ -130,11 +130,3 @@ fun DailyDistributionChart(
     }
 }
 
-private fun formatUsd(value: Double): String =
-    String.format(Locale.US, "$%,.0f", value)
-
-private fun formatMiles(value: Double): String =
-    String.format(Locale.US, "%,.0f", value)
-
-private fun formatRpm(value: Double): String =
-    String.format(Locale.US, "$%.2f/mi", value)

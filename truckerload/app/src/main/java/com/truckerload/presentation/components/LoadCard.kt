@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,9 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -212,7 +211,7 @@ private fun LoadCardContent(
                         LoadCardActionChip(
                             onClick = onCameraClick,
                             contentDescription = photoCd,
-                            imageVector = Icons.Default.CameraAlt,
+                            imageVector = AppIcons.CameraAlt,
                         )
                     }
                     if (onScanClick != null) {
@@ -220,7 +219,7 @@ private fun LoadCardContent(
                         LoadCardActionChip(
                             onClick = onScanClick,
                             contentDescription = scanCd,
-                            imageVector = Icons.Outlined.DocumentScanner,
+                            imageVector = AppIcons.DocumentScanner,
                         )
                     }
                 }

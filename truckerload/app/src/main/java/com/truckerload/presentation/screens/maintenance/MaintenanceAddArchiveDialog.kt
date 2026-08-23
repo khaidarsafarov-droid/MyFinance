@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.maintenance
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,8 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -78,7 +78,7 @@ internal fun AddArchiveDialog(
                     )
                 }
                 OutlinedButton(onClick = onRetakePhoto, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Icon(AppIcons.CameraAlt, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.maintenance_retake_photo))
                 }

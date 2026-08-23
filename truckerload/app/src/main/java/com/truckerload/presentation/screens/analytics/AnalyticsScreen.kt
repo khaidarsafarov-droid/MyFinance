@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.analytics
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,9 +18,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.SmartToy
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,10 +53,9 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
-import java.util.Locale
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AnalyticsScreen(
@@ -97,12 +95,12 @@ fun AnalyticsScreen(
         actions = {
             if (!embedded) {
                 SoftActionChip(
-                    icon = Icons.Default.SmartToy,
+                    icon = AppIcons.SmartToy,
                     contentDescription = stringResource(R.string.stats_cd_advisor),
                     onClick = onFinancialAdvisor,
                 )
                 SoftActionChip(
-                    icon = Icons.Default.FileDownload,
+                    icon = AppIcons.FileDownload,
                     contentDescription = stringResource(R.string.analytics_export_cd),
                     onClick = viewModel::exportAnalytics,
                 )
@@ -297,28 +295,28 @@ private fun SummaryMetricsGrid(summary: AnalyticsSummary) {
                 color = tc.AccentPrimary,
             ),
             BentoItem(
-                value = formatUsd(summary.totalGross),
+                value = MoneyFormat.formatCurrency(summary.totalGross),
                 label = stringResource(R.string.analytics_total_gross),
                 color = FinanceCockpitColors.SalaryAccent,
                 highlight = true,
             ),
             BentoItem(
-                value = formatMiles(summary.totalMiles),
+                value = MoneyFormat.formatNumber(summary.totalMiles),
                 label = stringResource(R.string.analytics_total_miles),
                 color = tc.AccentInfo,
             ),
             BentoItem(
-                value = formatRpm(summary.avgRpm),
+                value = MoneyFormat.formatRpm(summary.avgRpm),
                 label = stringResource(R.string.analytics_avg_rpm),
                 color = BentoGlassTheme.GoalGradientEnd,
             ),
             BentoItem(
-                value = formatUsd(summary.avgGrossPerLoad),
+                value = MoneyFormat.formatCurrency(summary.avgGrossPerLoad),
                 label = stringResource(R.string.analytics_avg_per_load),
                 color = tc.AccentWarning,
             ),
             BentoItem(
-                value = summary.bestWeek?.let { formatUsd(it.gross) } ?: "—",
+                value = summary.bestWeek?.let { MoneyFormat.formatCurrency(it.gross) } ?: "—",
                 label = stringResource(R.string.analytics_best_week),
                 color = FinanceCockpitColors.NetProfitStart,
             ),
@@ -326,11 +324,3 @@ private fun SummaryMetricsGrid(summary: AnalyticsSummary) {
     )
 }
 
-private fun formatUsd(value: Double): String =
-    String.format(Locale.US, "$%,.0f", value)
-
-private fun formatMiles(value: Double): String =
-    String.format(Locale.US, "%,.0f", value)
-
-private fun formatRpm(value: Double): String =
-    String.format(Locale.US, "$%.2f", value)

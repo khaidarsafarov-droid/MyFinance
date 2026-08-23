@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -19,10 +21,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.LocalShipping
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -58,9 +56,9 @@ private data class PhoneTab(
 )
 
 private val phoneTabs = listOf(
-    PhoneTab(Routes.HOME, Icons.Outlined.LocalShipping, R.string.nav_logbook),
-    PhoneTab(Routes.STATS, Icons.Outlined.Flag, R.string.nav_weekly_goal),
-    PhoneTab(Routes.PROFILE, Icons.Outlined.Person, R.string.nav_profile),
+    PhoneTab(Routes.HOME, AppIcons.LocalShipping, R.string.nav_logbook),
+    PhoneTab(Routes.STATS, AppIcons.Flag, R.string.nav_weekly_goal),
+    PhoneTab(Routes.PROFILE, AppIcons.Person, R.string.nav_profile),
 )
 
 @Composable

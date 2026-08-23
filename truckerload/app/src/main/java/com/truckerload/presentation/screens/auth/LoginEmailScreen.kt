@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.auth
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -57,7 +59,7 @@ fun LoginEmailScreen(
                 title = { Text(stringResource(R.string.login_email_title), color = tc.TextPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
+                        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

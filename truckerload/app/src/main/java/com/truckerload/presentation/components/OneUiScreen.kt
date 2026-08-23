@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -85,7 +87,7 @@ fun OneUiBackButton(onBack: () -> Unit) {
         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
     ) {
         Icon(
-            Icons.AutoMirrored.Filled.ArrowBack,
+            AppIcons.ArrowBack,
             contentDescription = stringResource(R.string.common_back),
             tint = MaterialTheme.colorScheme.onBackground,
         )

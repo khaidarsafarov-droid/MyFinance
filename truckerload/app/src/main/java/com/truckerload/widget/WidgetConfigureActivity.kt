@@ -71,7 +71,6 @@ class WidgetConfigureActivity : AppCompatActivity() {
                             RESULT_OK,
                             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId),
                         )
-                        WidgetRefresh.paintCached(applicationContext, intArrayOf(appWidgetId))
                         WidgetRefresh.refreshAndUpdateAsync(applicationContext)
                         finish()
                     },

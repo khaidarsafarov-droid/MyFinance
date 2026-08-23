@@ -1,11 +1,11 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -58,7 +58,7 @@ fun BiometricSettingsSection(
                 modifier = Modifier.weight(1f),
             ) {
                 Icon(
-                    Icons.Default.Fingerprint,
+                    AppIcons.Fingerprint,
                     contentDescription = stringResource(R.string.settings_biometric_title),
                     tint = tc.AccentPrimary,
                     modifier = Modifier.size(22.dp),

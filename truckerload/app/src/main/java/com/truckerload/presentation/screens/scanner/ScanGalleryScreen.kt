@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.scanner
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,9 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -202,7 +201,7 @@ private fun ScanSummaryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Icons.Outlined.Description,
+                AppIcons.Description,
                 contentDescription = null,
                 tint = tc.AccentPrimary,
                 modifier = Modifier.padding(end = 12.dp),
@@ -230,7 +229,7 @@ private fun ScanSummaryCard(
                 )
             }
             Icon(
-                Icons.Outlined.ChevronRight,
+                AppIcons.ChevronRight,
                 contentDescription = null,
                 tint = tc.TextSecondary,
             )

@@ -25,4 +25,7 @@ object MoneyFormat {
 
     fun formatRpmShort(value: Double): String =
         String.format(locale, "$%.2f", value)
+
+    fun formatMiles(value: Double, decimals: Int = 0): String =
+        "${formatNumber(value, decimals)} mi"
 }

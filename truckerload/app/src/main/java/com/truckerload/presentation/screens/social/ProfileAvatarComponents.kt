@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.social
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -18,9 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -104,7 +103,7 @@ fun ProfileAvatar(
                 },
                 error = {
                     Icon(
-                        imageVector = Icons.Outlined.Person,
+                        imageVector = AppIcons.Person,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -113,7 +112,7 @@ fun ProfileAvatar(
             )
         } else {
             Icon(
-                imageVector = Icons.Outlined.Person,
+                imageVector = AppIcons.Person,
                 contentDescription = null,
                 modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -130,7 +129,7 @@ fun ProfileAvatar(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Default.CameraAlt,
+                    imageVector = AppIcons.CameraAlt,
                     contentDescription = stringResource(R.string.profile_change_photo),
                     modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onPrimary,

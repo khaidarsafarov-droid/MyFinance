@@ -23,9 +23,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
+import com.truckerload.presentation.icons.AppIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -143,7 +141,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.advisor_title), color = tc.TextPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
+                        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = tc.TextPrimary)
                     }
                 },
                 actions = {
@@ -278,7 +276,7 @@ fun FinancialAdvisorScreen(onBack: () -> Unit) {
                     enabled = uiState.inputText.isNotBlank() && !uiState.isLoading,
                     modifier = Modifier.size(UiDimens.ToolbarTouchTarget)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.advisor_cd_send), tint = if (uiState.inputText.isNotBlank() && !uiState.isLoading) tc.AccentPrimary else tc.TextSecondary)
+                    Icon(AppIcons.Send, contentDescription = stringResource(R.string.advisor_cd_send), tint = if (uiState.inputText.isNotBlank() && !uiState.isLoading) tc.AccentPrimary else tc.TextSecondary)
                 }
             }
         }

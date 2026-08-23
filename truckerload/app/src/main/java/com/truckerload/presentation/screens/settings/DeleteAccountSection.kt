@@ -1,13 +1,13 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -56,7 +56,7 @@ fun DeleteAccountSection() {
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    Icons.Outlined.DeleteForever,
+                    AppIcons.DeleteForever,
                     contentDescription = stringResource(R.string.settings_delete_account_button),
                 )
                 Spacer(modifier = Modifier.width(8.dp))

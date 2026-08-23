@@ -1,14 +1,12 @@
 package com.truckerload.presentation.screens.camera
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FlashAuto
-import androidx.compose.material.icons.filled.FlashOff
-import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,17 +45,17 @@ fun CameraFlashButton(
 ) {
     val (icon, labelRes, cdRes) = when (mode) {
         CameraFlashMode.OFF -> Triple(
-            Icons.Filled.FlashOff,
+            AppIcons.FlashOff,
             R.string.camera_flash_off,
             R.string.camera_flash_cd_off,
         )
         CameraFlashMode.AUTO -> Triple(
-            Icons.Filled.FlashAuto,
+            AppIcons.FlashAuto,
             R.string.camera_flash_auto,
             R.string.camera_flash_cd_auto,
         )
         CameraFlashMode.ON -> Triple(
-            Icons.Filled.FlashOn,
+            AppIcons.FlashOn,
             R.string.camera_flash_on,
             R.string.camera_flash_cd_on,
         )

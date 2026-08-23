@@ -1,15 +1,13 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.BrightnessAuto
-import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -67,9 +65,9 @@ fun ThemeSettingsSection(
                     leadingIcon = {
                         Icon(
                             imageVector = when (mode) {
-                                AppThemeMode.SYSTEM -> Icons.Outlined.BrightnessAuto
-                                AppThemeMode.LIGHT -> Icons.Outlined.LightMode
-                                AppThemeMode.DARK -> Icons.Outlined.DarkMode
+                                AppThemeMode.SYSTEM -> AppIcons.BrightnessAuto
+                                AppThemeMode.LIGHT -> AppIcons.LightMode
+                                AppThemeMode.DARK -> AppIcons.DarkMode
                             },
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
@@ -130,7 +128,7 @@ fun ThemeSettingsSection(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Icon(
-                        Icons.Outlined.DarkMode,
+                        AppIcons.DarkMode,
                         contentDescription = stringResource(R.string.settings_oled_dark_title),
                         tint = tc.AccentPrimary,
                         modifier = Modifier.size(22.dp),

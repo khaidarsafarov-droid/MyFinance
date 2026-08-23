@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.camera
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -115,7 +117,7 @@ fun PhotoBatchReviewScreen(
                 navigationIcon = {
                     IconButton(onClick = onAddMore) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.ArrowBack,
                             contentDescription = stringResource(R.string.camera_add_another),
                         )
                     }
@@ -161,7 +163,7 @@ fun PhotoBatchReviewScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(
-                                Icons.Default.Close,
+                                AppIcons.Close,
                                 contentDescription = stringResource(R.string.common_delete),
                                 tint = tc.AccentExpense,
                             )
@@ -255,7 +257,7 @@ private fun FullscreenPhotoDialog(
                     .background(Color.Black.copy(alpha = 0.45f)),
             ) {
                 Icon(
-                    Icons.Default.Close,
+                    AppIcons.Close,
                     contentDescription = stringResource(R.string.common_close),
                     tint = Color.White,
                 )

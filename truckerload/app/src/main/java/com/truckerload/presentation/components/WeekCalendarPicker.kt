@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -10,10 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -64,7 +62,7 @@ fun WeekCalendarPicker(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = tc.AccentPrimary)
+                Icon(AppIcons.CalendarMonth, contentDescription = null, tint = tc.AccentPrimary)
                 Text(
                     text = stringResource(
                         R.string.finance_month_year_format,
@@ -76,7 +74,7 @@ fun WeekCalendarPicker(
                     modifier = Modifier.padding(start = 8.dp)
                 )
                 Icon(
-                    if (showMonthYearMenu) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    if (showMonthYearMenu) AppIcons.ExpandLess else AppIcons.ExpandMore,
                     contentDescription = null,
                     tint = tc.TextSecondary
                 )

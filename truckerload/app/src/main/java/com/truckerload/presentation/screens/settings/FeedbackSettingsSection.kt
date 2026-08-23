@@ -1,12 +1,11 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -39,7 +38,7 @@ fun FeedbackSettingsSection(
         SettingsToggleRow(
             icon = {
                 Icon(
-                    Icons.AutoMirrored.Filled.VolumeUp,
+                    AppIcons.VolumeUp,
                     contentDescription = stringResource(R.string.settings_sound_title),
                     tint = tc.AccentPrimary,
                     modifier = Modifier.size(22.dp),
@@ -55,7 +54,7 @@ fun FeedbackSettingsSection(
         SettingsToggleRow(
             icon = {
                 Icon(
-                    Icons.Default.Vibration,
+                    AppIcons.Vibration,
                     contentDescription = stringResource(R.string.settings_vibration_title),
                     tint = tc.AccentPrimary,
                     modifier = Modifier.size(22.dp),

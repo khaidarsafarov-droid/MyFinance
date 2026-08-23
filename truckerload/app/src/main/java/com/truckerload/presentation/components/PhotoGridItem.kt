@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,10 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LocalShipping
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -71,7 +69,7 @@ fun PhotoGridItem(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Outlined.PhotoCamera,
+                        imageVector = AppIcons.PhotoCamera,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(32.dp),
@@ -93,7 +91,7 @@ fun PhotoGridItem(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.LocationOn,
+                        imageVector = AppIcons.LocationOn,
                         contentDescription = null,
                         tint = tc.TextSecondary,
                         modifier = Modifier.size(14.dp),
@@ -114,7 +112,7 @@ fun PhotoGridItem(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.LocalShipping,
+                        imageVector = AppIcons.LocalShipping,
                         contentDescription = null,
                         tint = tc.AccentPrimary,
                         modifier = Modifier.size(14.dp),

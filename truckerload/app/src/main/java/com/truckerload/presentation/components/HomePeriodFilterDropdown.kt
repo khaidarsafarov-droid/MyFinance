@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -8,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -90,7 +90,7 @@ fun HomePeriodFilterDropdown(
                             modifier = Modifier.padding(top = 2.dp),
                         ) {
                             Icon(
-                                Icons.Default.CalendarMonth,
+                                AppIcons.CalendarMonth,
                                 contentDescription = null,
                                 tint = Color.White,
                                 modifier = Modifier.size(14.dp),
@@ -147,7 +147,7 @@ fun HomePeriodFilterDropdown(
                             modifier = Modifier.size(40.dp),
                         ) {
                             Icon(
-                                Icons.Default.CalendarMonth,
+                                AppIcons.CalendarMonth,
                                 contentDescription = stringResource(R.string.home_filter_calendar),
                             )
                         }

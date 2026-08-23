@@ -1,13 +1,13 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -62,7 +62,7 @@ fun CameraButton(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = Icons.Default.CameraAlt,
+            imageVector = AppIcons.CameraAlt,
             contentDescription = stringResource(R.string.camera),
             tint = cs.onPrimary,
             modifier = Modifier.size(iconSize),

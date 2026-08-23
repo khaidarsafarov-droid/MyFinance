@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
@@ -11,9 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,7 +82,7 @@ fun LoadCalendarWithDots(
                 onMonthChange(ny, nm)
             }) {
                 Icon(
-                    Icons.Default.ChevronLeft,
+                    AppIcons.ChevronLeft,
                     contentDescription = stringResource(R.string.calendar_prev_month_cd),
                     tint = tc.TextPrimary
                 )
@@ -102,7 +101,7 @@ fun LoadCalendarWithDots(
                 onMonthChange(ny, nm)
             }) {
                 Icon(
-                    Icons.Default.ChevronRight,
+                    AppIcons.ChevronRight,
                     contentDescription = stringResource(R.string.calendar_next_month_cd),
                     tint = tc.TextPrimary
                 )

@@ -152,14 +152,6 @@ object DarkGlassGradients {
         }
 }
 
-object GoldGradients {
-    val screen: Brush @Composable get() = DarkGlassGradients.screen
-    val screenDark: Brush @Composable get() = DarkGlassGradients.screenDark
-    val horizontal: Brush @Composable get() = DarkGlassGradients.horizontal
-    val vertical: Brush @Composable get() = DarkGlassGradients.vertical
-    val cardShine: Brush @Composable get() = DarkGlassGradients.cardShine
-}
-
 object SoftGradients {
     val screen: Brush @Composable get() = DarkGlassGradients.screen
     val screenDark: Brush @Composable get() = DarkGlassGradients.screenDark

@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.maintenance
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,11 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -75,14 +72,14 @@ fun MaintenanceTasksSection(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = null, tint = tc.AccentPrimary)
+                    Icon(AppIcons.CheckCircle, contentDescription = null, tint = tc.AccentPrimary)
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(task.title, color = tc.TextPrimary)
                         Text(task.startDate, style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
                     }
                     IconButton(onClick = { onDeleteTask(task.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
+                        Icon(AppIcons.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
                     }
                 }
             }
@@ -94,7 +91,7 @@ fun MaintenanceTasksSection(
 internal fun SectionHeader(
     title: String,
     onAdd: () -> Unit,
-    addIcon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.Add,
+    addIcon: androidx.compose.ui.graphics.vector.ImageVector = AppIcons.Add,
 ) {
     val tc = LocalTruckColors.current
     Row(
@@ -143,7 +140,7 @@ private fun ActiveTaskCard(
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.Build,
+                    AppIcons.Build,
                     contentDescription = null,
                     tint = if (urgent) tc.AccentExpense else tc.AccentPrimary,
                 )
@@ -220,7 +217,7 @@ private fun ActiveTaskCard(
                     Text(stringResource(R.string.maintenance_mark_done))
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
+                    Icon(AppIcons.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
                 }
             }
         }

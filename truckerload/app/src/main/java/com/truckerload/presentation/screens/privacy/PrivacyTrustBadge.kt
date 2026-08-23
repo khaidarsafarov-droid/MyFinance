@@ -1,13 +1,13 @@
 package com.truckerload.presentation.screens.privacy
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,7 +48,7 @@ fun PrivacyTrustBadge(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
-                imageVector = Icons.Filled.Lock,
+                imageVector = AppIcons.Lock,
                 contentDescription = label,
                 tint = tc.AccentPrimary,
                 modifier = Modifier.size(14.dp),

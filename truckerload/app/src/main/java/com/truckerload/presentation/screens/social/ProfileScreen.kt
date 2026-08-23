@@ -1,10 +1,10 @@
 package com.truckerload.presentation.screens.social
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -65,7 +65,7 @@ fun ProfileScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         actions = {
             SoftActionChip(
-                icon = Icons.Default.Edit,
+                icon = AppIcons.Edit,
                 contentDescription = stringResource(R.string.edit_profile),
                 onClick = onEdit,
             )

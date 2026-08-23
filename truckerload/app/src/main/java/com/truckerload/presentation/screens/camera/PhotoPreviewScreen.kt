@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.camera
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -12,10 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.truckerload.presentation.components.TlButton as Button
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.ButtonDefaults
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
@@ -115,7 +113,7 @@ fun PhotoPreviewScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.LocationOn,
+                    imageVector = AppIcons.LocationOn,
                     contentDescription = null,
                     tint = tc.TextPrimary,
                     modifier = Modifier.size(16.dp),
@@ -138,7 +136,7 @@ fun PhotoPreviewScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
+                    imageVector = AppIcons.CalendarMonth,
                     contentDescription = null,
                     tint = tc.TextPrimary,
                     modifier = Modifier.size(16.dp),
@@ -154,7 +152,7 @@ fun PhotoPreviewScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.PushPin,
+                    imageVector = AppIcons.PushPin,
                     contentDescription = null,
                     tint = tc.TextSecondary,
                     modifier = Modifier.size(16.dp),

@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,9 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -82,7 +81,7 @@ fun SoftAppPageScaffold(
                             showPhoneMenu -> {
                                 IconButton(onClick = openDrawer) {
                                     Icon(
-                                        Icons.Default.Menu,
+                                        AppIcons.Menu,
                                         contentDescription = stringResource(R.string.common_menu),
                                         tint = tc.TextPrimary,
                                     )
@@ -121,7 +120,7 @@ fun SoftTabletPageHeader(
                 modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
+                    AppIcons.ArrowBack,
                     contentDescription = stringResource(R.string.common_back),
                     tint = tc.TextPrimary,
                 )

@@ -1,13 +1,11 @@
 package com.truckerload.presentation.screens.add
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,21 +42,21 @@ fun AddLoadModeSelector(
                 selected = selected == AddLoadInputMode.PASTE,
                 onClick = { onSelect(AddLoadInputMode.PASTE) },
                 label = stringResource(R.string.add_load_mode_paste),
-                icon = { Icon(Icons.Outlined.ContentPaste, contentDescription = null) },
+                icon = { Icon(AppIcons.ContentPaste, contentDescription = null) },
                 modifier = Modifier.weight(1f),
             )
             ModeChip(
                 selected = selected == AddLoadInputMode.MANUAL,
                 onClick = { onSelect(AddLoadInputMode.MANUAL) },
                 label = stringResource(R.string.add_load_mode_manual),
-                icon = { Icon(Icons.Outlined.EditNote, contentDescription = null) },
+                icon = { Icon(AppIcons.EditNote, contentDescription = null) },
                 modifier = Modifier.weight(1f),
             )
             ModeChip(
                 selected = selected == AddLoadInputMode.DOCUMENT,
                 onClick = { onSelect(AddLoadInputMode.DOCUMENT) },
                 label = stringResource(R.string.add_load_mode_document),
-                icon = { Icon(Icons.Outlined.PhotoCamera, contentDescription = null) },
+                icon = { Icon(AppIcons.PhotoCamera, contentDescription = null) },
                 modifier = Modifier.weight(1f),
             )
         }

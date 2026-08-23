@@ -1,5 +1,7 @@
 package com.truckerload.widget
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -13,10 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DocumentScanner
-import androidx.compose.material.icons.outlined.LocalGasStation
-import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -284,9 +282,9 @@ private fun PreviewRing(
 @Composable
 private fun PreviewActionRow(accent: Color, labeled: Boolean) {
     val icons = listOf(
-        Icons.Outlined.PhotoCamera,
-        Icons.Outlined.DocumentScanner,
-        Icons.Outlined.LocalGasStation,
+        AppIcons.PhotoCamera,
+        AppIcons.DocumentScanner,
+        AppIcons.LocalGasStation,
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         icons.forEach { icon ->

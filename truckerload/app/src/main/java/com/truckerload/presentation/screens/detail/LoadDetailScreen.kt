@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.detail
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -13,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -137,7 +136,7 @@ fun LoadDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
                             tint = tc.TextPrimary,
                         )
@@ -149,7 +148,7 @@ fun LoadDetailScreen(
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
                     ) {
                         Icon(
-                            Icons.Default.Delete,
+                            AppIcons.Delete,
                             contentDescription = stringResource(R.string.load_detail_cd_delete),
                             tint = tc.AccentExpense,
                         )

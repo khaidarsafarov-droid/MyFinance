@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.maintenance
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,10 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -61,12 +59,12 @@ internal fun ReceiptSourceDialog(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 OutlinedButton(onClick = onCamera, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Icon(AppIcons.CameraAlt, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.camera))
                 }
                 OutlinedButton(onClick = onGallery, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                    Icon(AppIcons.PhotoLibrary, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.profile_photo_from_gallery))
                 }
@@ -111,7 +109,7 @@ internal fun ReceiptPhotoViewerDialog(
                     .padding(8.dp),
             ) {
                 Icon(
-                    Icons.Default.Close,
+                    AppIcons.Close,
                     contentDescription = stringResource(R.string.common_cancel),
                     tint = tc.TextPrimary,
                 )

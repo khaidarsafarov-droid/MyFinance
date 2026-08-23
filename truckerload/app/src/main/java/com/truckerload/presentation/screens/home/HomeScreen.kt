@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.home
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -248,7 +248,7 @@ fun HomeScreen(
                     modifier = Modifier.size(UiDimens.FabSize),
                 ) {
                     Icon(
-                        Icons.Default.Add,
+                        AppIcons.Add,
                         contentDescription = stringResource(R.string.quick_actions_title),
                     )
                 }

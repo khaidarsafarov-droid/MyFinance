@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.utils.MoneyFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -117,14 +118,14 @@ object LoadExporter {
     }
 
     private fun formatMiles(miles: Double): String =
-        "${formatMilesValue(miles)} mi"
+        MoneyFormat.formatMiles(miles)
 
     private fun formatMilesValue(miles: Double): String =
-        String.format(Locale.US, "%,.0f", miles)
+        MoneyFormat.formatNumber(miles)
 
     private fun formatMoney(amount: Double): String =
-        "$" + String.format(Locale.US, "%,.0f", amount)
+        MoneyFormat.formatCurrency(amount)
 
     private fun formatRpm(rpm: Double): String =
-        "$" + String.format(Locale.US, "%.2f", rpm)
+        MoneyFormat.formatRpmShort(rpm)
 }

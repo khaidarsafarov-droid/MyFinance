@@ -62,14 +62,3 @@ fun BentoGrid(
     }
 }
 
-@Composable
-fun BentoSectionTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = title.uppercase(),
-        modifier = modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-        style = AppTypography.SectionTitle,
-    )
-}

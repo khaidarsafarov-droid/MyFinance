@@ -234,7 +234,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material-icons-core")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -257,11 +257,11 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
-    // Retrofit + OkHttp (legacy remote clients)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Gson (backup codec + cloud snapshot — was transitive via Retrofit)
+    implementation("com.google.code.gson:gson:2.11.0")
+
+    // OkHttp (legacy remote clients — Telegram, Drive, Supabase auth, media presign)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // Ktor HTTP client (CIO engine — avoids OkHttp 4/5 clash with existing clients)
     implementation(libs.ktor.client.core)

@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.home
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,9 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -397,7 +396,7 @@ internal fun HomeScreenTopBar(
         navigationIcon = {
             IconButton(onClick = openDrawer) {
                 Icon(
-                    Icons.Default.Menu,
+                    AppIcons.Menu,
                     contentDescription = stringResource(R.string.common_menu),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
@@ -409,7 +408,7 @@ internal fun HomeScreenTopBar(
                 modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
             ) {
                 Icon(
-                    Icons.Default.Search,
+                    AppIcons.Search,
                     contentDescription = stringResource(R.string.home_cd_search),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )

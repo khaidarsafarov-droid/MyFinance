@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.camera
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.view.ViewGroup
@@ -196,7 +198,7 @@ fun CameraScreen(
                 title = { Text(stringResource(R.string.take_photo)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {

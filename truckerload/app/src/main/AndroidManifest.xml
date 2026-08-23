@@ -139,34 +139,6 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".widget.TruckerLoadWidgetReceiver"
-            android:exported="true"
-            android:label="@string/widget_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_ENABLED" />
-                <action android:name="android.appwidget.action.APPWIDGET_DELETED" />
-                <action android:name="android.appwidget.action.APPWIDGET_DISABLED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/truckerload_widget_info" />
-        </receiver>
-        <receiver
-            android:name=".widget.TruckerLoadWideWidgetReceiver"
-            android:exported="true"
-            android:label="@string/widget_label_wide">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_ENABLED" />
-                <action android:name="android.appwidget.action.APPWIDGET_DELETED" />
-                <action android:name="android.appwidget.action.APPWIDGET_DISABLED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/truckerload_widget_wide_info" />
-        </receiver>
-        <receiver
             android:name=".widget.glance.OneUiSquareGlanceReceiver"
             android:exported="true"
             android:label="@string/widget_label">

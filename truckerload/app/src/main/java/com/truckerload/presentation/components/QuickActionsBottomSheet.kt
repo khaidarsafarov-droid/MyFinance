@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,12 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.LocalGasStation
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +60,7 @@ fun QuickActionsBottomSheet(
                 modifier = Modifier.padding(bottom = 8.dp),
             )
             QuickActionRow(
-                icon = Icons.Default.Add,
+                icon = AppIcons.Add,
                 title = stringResource(R.string.home_add_load_button),
                 onClick = {
                     FeedbackManager.onNavSelect()
@@ -73,7 +69,7 @@ fun QuickActionsBottomSheet(
                 },
             )
             QuickActionRow(
-                icon = Icons.Default.CameraAlt,
+                icon = AppIcons.CameraAlt,
                 title = stringResource(R.string.widget_camera),
                 onClick = {
                     FeedbackManager.onNavSelect()
@@ -82,7 +78,7 @@ fun QuickActionsBottomSheet(
                 },
             )
             QuickActionRow(
-                icon = Icons.Outlined.DocumentScanner,
+                icon = AppIcons.DocumentScanner,
                 title = stringResource(R.string.widget_scanner),
                 onClick = {
                     FeedbackManager.onNavSelect()
@@ -91,7 +87,7 @@ fun QuickActionsBottomSheet(
                 },
             )
             QuickActionRow(
-                icon = Icons.Default.LocalGasStation,
+                icon = AppIcons.LocalGasStation,
                 title = stringResource(R.string.quick_actions_diesel),
                 onClick = {
                     FeedbackManager.onNavSelect()
@@ -100,7 +96,7 @@ fun QuickActionsBottomSheet(
                 },
             )
             QuickActionRow(
-                icon = Icons.Default.Mic,
+                icon = AppIcons.Mic,
                 title = stringResource(R.string.assistant_title),
                 onClick = {
                     FeedbackManager.onNavSelect()

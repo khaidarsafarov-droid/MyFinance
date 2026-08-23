@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.add
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,9 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -113,7 +112,7 @@ fun AddLoadManualForm(
                     if (index >= ManualLoadFields.MIN_ROUTE_POINTS) {
                         IconButton(onClick = { onRemovePoint(index) }) {
                             Icon(
-                                Icons.Outlined.Close,
+                                AppIcons.Close,
                                 contentDescription = stringResource(
                                     R.string.add_load_remove_point,
                                     letter,
@@ -129,7 +128,7 @@ fun AddLoadManualForm(
                     onClick = onAddPoint,
                     modifier = Modifier.fillMaxWidth().height(44.dp),
                 ) {
-                    Icon(Icons.Outlined.Add, contentDescription = null)
+                    Icon(AppIcons.Add, contentDescription = null)
                     Text(
                         stringResource(R.string.add_load_add_point, nextLetter),
                         modifier = Modifier.padding(start = 8.dp),

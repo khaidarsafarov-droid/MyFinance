@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.attach
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,10 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -134,7 +132,7 @@ fun AttachLoadPickScreen(
                         },
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
                             tint = tc.TextPrimary,
                         )
@@ -239,7 +237,7 @@ fun AttachLoadPickScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 leadingIcon = {
-                                    Icon(Icons.Default.Search, contentDescription = null)
+                                    Icon(AppIcons.Search, contentDescription = null)
                                 },
                                 placeholder = {
                                     Text(stringResource(R.string.home_search_hint))
@@ -299,7 +297,7 @@ private fun AttachLoadRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Icons.Default.LocalShipping,
+                AppIcons.LocalShipping,
                 contentDescription = null,
                 tint = tc.AccentPrimary,
             )

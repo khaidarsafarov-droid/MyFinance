@@ -33,7 +33,7 @@ import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.theme.motionDurationMs
-import java.util.Locale
+import com.truckerload.presentation.utils.MoneyFormat
 
 @Composable
 fun AnimatedCircularProgress(
@@ -106,12 +106,12 @@ fun AnimatedCircularProgress(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = formatUsd(animatedGross.toDouble()),
+                text = MoneyFormat.formatCurrency(animatedGross.toDouble()),
                 style = if (onDarkBackground) AppTypography.HeroNumberOnDark else AppTypography.HeroNumber,
             )
             if (goal > 0) {
                 Text(
-                    text = stringResource(R.string.widget_goal_out_of, formatUsd(goal)),
+                    text = stringResource(R.string.widget_goal_out_of, MoneyFormat.formatCurrency(goal)),
                     style = if (onDarkBackground) {
                         AppTypography.Subtitle.copy(color = Color.White.copy(alpha = 0.75f))
                     } else {
@@ -138,5 +138,3 @@ fun AnimatedCircularProgress(
     }
 }
 
-private fun formatUsd(value: Double): String =
-    String.format(Locale.US, "$%,.0f", value)

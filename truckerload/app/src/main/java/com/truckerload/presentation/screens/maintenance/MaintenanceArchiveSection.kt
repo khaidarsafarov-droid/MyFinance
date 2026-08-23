@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.maintenance
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,11 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -54,7 +51,7 @@ fun MaintenanceArchiveSection(
     SectionHeader(
         title = stringResource(R.string.maintenance_archive_section),
         onAdd = onAddArchive,
-        addIcon = Icons.Default.CameraAlt,
+        addIcon = AppIcons.CameraAlt,
     )
     Text(
         text = stringResource(R.string.maintenance_archive_hint),
@@ -113,7 +110,7 @@ private fun ArchiveCard(
                         contentScale = ContentScale.Crop,
                     )
                     Icon(
-                        imageVector = Icons.Default.AttachFile,
+                        imageVector = AppIcons.AttachFile,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier
@@ -160,14 +157,14 @@ private fun ArchiveCard(
             if (hasReceipt && receiptPath != null) {
                 IconButton(onClick = { onOpenPhoto(receiptPath) }) {
                     Icon(
-                        Icons.Default.Photo,
+                        AppIcons.Photo,
                         contentDescription = stringResource(R.string.maintenance_receipt_photo),
                         tint = LocalTruckColors.current.Success,
                     )
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
+                Icon(AppIcons.Delete, contentDescription = stringResource(R.string.common_delete), tint = tc.TextSecondary)
             }
         }
     }

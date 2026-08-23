@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -186,7 +186,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
+                    Icon(AppIcons.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.drive_sync_now))
                 }
@@ -223,7 +223,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(Icons.Default.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
+                    Icon(AppIcons.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.drive_sync_now))
                 }

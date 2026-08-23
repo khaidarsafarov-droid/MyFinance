@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.home
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,12 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.LocalGasStation
-import androidx.compose.material.icons.outlined.LocalShipping
-import androidx.compose.material.icons.outlined.Route
-import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -161,21 +157,21 @@ internal fun TabletHomeDashboard(
             ) {
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.LocalShipping,
+                    icon = AppIcons.LocalShipping,
                     tint = Color(0xFFD9ECF8),
                     label = stringResource(R.string.tablet_stat_loads),
                     value = totals.loadCount.toString(),
                 )
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.Route,
+                    icon = AppIcons.Route,
                     tint = Color(0xFFE4F2E8),
                     label = stringResource(R.string.tablet_stat_miles),
                     value = MoneyFormat.formatNumber(totals.totalMiles),
                 )
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.Speed,
+                    icon = AppIcons.Speed,
                     tint = Color(0xFFF7F0D9),
                     label = stringResource(R.string.tablet_stat_rpm),
                     value = rpmLabel,
@@ -183,7 +179,7 @@ internal fun TabletHomeDashboard(
                 )
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.LocalGasStation,
+                    icon = AppIcons.LocalGasStation,
                     tint = Color(0xFFE8E4F5),
                     label = stringResource(R.string.tablet_stat_gross),
                     value = gross,
@@ -244,7 +240,7 @@ private fun SoftHeroCard(
             .background(MaterialTheme.colorScheme.primary),
     ) {
         Icon(
-            imageVector = Icons.Outlined.LocalShipping,
+            imageVector = AppIcons.LocalShipping,
             contentDescription = null,
             tint = Color.White.copy(alpha = 0.12f),
             modifier = Modifier
@@ -470,7 +466,7 @@ private fun SoftGoalCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(Icons.Outlined.Flag, contentDescription = null, tint = SoftUiColors.ForestAccent)
+            Icon(AppIcons.Flag, contentDescription = null, tint = SoftUiColors.ForestAccent)
             Text(
                 text = stringResource(R.string.nav_weekly_goal),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),

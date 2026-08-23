@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,9 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Backup
-import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -121,7 +120,7 @@ fun SettingsDataSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(Icons.Outlined.TableChart, contentDescription = null)
+                Icon(AppIcons.TableChart, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.export_csv))
             }
@@ -156,7 +155,7 @@ fun SettingsDataSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(Icons.Outlined.Backup, contentDescription = stringResource(R.string.settings_backup_create))
+                Icon(AppIcons.Backup, contentDescription = stringResource(R.string.settings_backup_create))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.settings_backup_create))
             }

@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,14 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -72,7 +66,7 @@ fun PrivacySettingsSection(
                 modifier = Modifier.weight(1f),
             ) {
                 Icon(
-                    Icons.Default.Lock,
+                    AppIcons.Lock,
                     contentDescription = null,
                     tint = tc.AccentPrimary,
                     modifier = Modifier.size(20.dp),
@@ -91,7 +85,7 @@ fun PrivacySettingsSection(
                 }
             }
             Icon(
-                Icons.Default.ChevronRight,
+                AppIcons.ChevronRight,
                 contentDescription = null,
                 tint = tc.TextSecondary,
                 modifier = Modifier.size(20.dp),
@@ -99,25 +93,25 @@ fun PrivacySettingsSection(
         }
 
         PrivacyPermissionRow(
-            icon = Icons.Default.LocationOn,
+            icon = AppIcons.LocationOn,
             title = stringResource(R.string.settings_privacy_location),
             status = permissionStatusLabel(locationGranted),
             granted = locationGranted,
         )
         PrivacyPermissionRow(
-            icon = Icons.Default.CameraAlt,
+            icon = AppIcons.CameraAlt,
             title = stringResource(R.string.settings_privacy_camera),
             status = permissionStatusLabel(cameraGranted),
             granted = cameraGranted,
         )
         PrivacyPermissionRow(
-            icon = Icons.Default.Mic,
+            icon = AppIcons.Mic,
             title = stringResource(R.string.settings_privacy_mic),
             status = permissionStatusLabel(micGranted),
             granted = micGranted,
         )
         PrivacyPermissionRow(
-            icon = Icons.Default.Notifications,
+            icon = AppIcons.Notifications,
             title = stringResource(R.string.settings_privacy_notifications),
             status = permissionStatusLabel(notificationsGranted),
             granted = notificationsGranted,
@@ -145,7 +139,7 @@ fun PrivacySettingsSection(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Icon(
-                Icons.Default.PrivacyTip,
+                AppIcons.PrivacyTip,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
             )

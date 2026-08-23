@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.settings
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,8 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -195,7 +195,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = stringResource(R.string.settings_logout_button))
+                        Icon(AppIcons.Logout, contentDescription = stringResource(R.string.settings_logout_button))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.settings_logout_button))
                     }

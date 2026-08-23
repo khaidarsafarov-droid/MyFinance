@@ -6,30 +6,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.components.OneUiBottomActionBar
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -56,10 +41,7 @@ import com.truckerload.utils.formatDateForDisplay
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekRange
-import java.util.Calendar
 import java.util.Locale
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlTextButton as TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,291 +65,170 @@ fun AddDieselScreen(
     }
 
     if (showDatePicker) {
-        val cal = Calendar.getInstance().apply { timeInMillis = uiState.recordedAtMillis }
-        val dateState = rememberDatePickerState(
-            initialSelectedDateMillis = dateStringToUtcDatePickerMillis(
-                formatIsoDate(uiState.recordedAtMillis),
-            ),
-            yearRange = IntRange(cal.get(Calendar.YEAR) - 2, cal.get(Calendar.YEAR) + 1),
+        JournalDatePickerDialog(
+            recordedAtMillis = uiState.recordedAtMillis,
+            initialDateMillis = dateStringToUtcDatePickerMillis(formatIsoDate(uiState.recordedAtMillis))
+                ?: uiState.recordedAtMillis,
+            onDismiss = { showDatePicker = false },
+            onConfirm = viewModel::setRecordedDate,
+            openTimePickerAfterConfirm = datePickerThenTime,
+            onOpenTimePicker = { showTimePicker = true },
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            colors = androidx.compose.material3.DatePickerDefaults.colors(
-                containerColor = tc.CardBackground,
-            ),
-            confirmButton = {
-                TextButton(onClick = {
-                    dateState.selectedDateMillis?.let(viewModel::setRecordedDate)
-                    showDatePicker = false
-                    if (datePickerThenTime) showTimePicker = true
-                }) { Text(stringResource(R.string.common_ok)) }
-            },
-        ) { DatePicker(state = dateState) }
     }
     if (showTimePicker) {
-        val cal = Calendar.getInstance().apply { timeInMillis = uiState.recordedAtMillis }
-        val timeState = rememberTimePickerState(
-            initialHour = cal.get(Calendar.HOUR_OF_DAY),
-            initialMinute = cal.get(Calendar.MINUTE),
-            is24Hour = true,
-        )
-        AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            containerColor = tc.CardBackground,
-            titleContentColor = tc.TextPrimary,
-            textContentColor = tc.TextPrimary,
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setRecordedTime(timeState.hour, timeState.minute)
-                    showTimePicker = false
-                }) { Text(stringResource(R.string.common_ok)) }
-            },
-            text = { TimePicker(state = timeState) },
+        JournalTimePickerDialog(
+            recordedAtMillis = uiState.recordedAtMillis,
+            onDismiss = { showTimePicker = false },
+            onConfirm = viewModel::setRecordedTime,
         )
     }
     if (uiState.showSaveDialog) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissSaveDialog,
-            containerColor = tc.CardBackground,
-            titleContentColor = tc.TextPrimary,
-            textContentColor = tc.TextPrimary,
-            title = { Text(stringResource(R.string.common_save)) },
-            text = {
-                Column {
-                    Text(stringResource(R.string.common_date_time), style = MaterialTheme.typography.labelMedium)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
-                            .clickable {
-                                datePickerThenTime = true
-                                showDatePicker = true
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(formatDateTimeForDisplay(uiState.recordedAtMillis), style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = {
-                            datePickerThenTime = true
-                            showDatePicker = true
-                        }) {
-                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.common_edit))
-                        }
-                    }
-                    uiState.paidTotal?.let { total ->
-                        Text(
-                            stringResource(
-                                R.string.add_diesel_summary_paid,
-                                MoneyFormat.formatCurrency(total)
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = tc.TextSecondary,
-                            modifier = Modifier.padding(top = 8.dp),
-                        )
-                    }
-                    uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
-                        Text(
-                            stringResource(
-                                R.string.add_diesel_summary_saved,
-                                MoneyFormat.formatCurrency(saved)
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = tc.AccentProfit,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                    uiState.error?.let {
-                        Text(
-                            it,
-                            color = tc.AccentExpense,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(top = 8.dp),
-                        )
-                    }
-                }
+        JournalSaveConfirmDialog(
+            onDismiss = viewModel::dismissSaveDialog,
+            onSave = viewModel::save,
+            saveEnabled = !uiState.isSaving,
+            onEditDateTime = {
+                datePickerThenTime = true
+                showDatePicker = true
             },
-            confirmButton = {
-                Button(
-                    onClick = viewModel::save,
-                    modifier = Modifier.height(48.dp),
-                    enabled = !uiState.isSaving,
-                ) {
-                    Text(stringResource(R.string.common_save))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissSaveDialog) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
-        )
+            dateTimeLabel = formatDateTimeForDisplay(uiState.recordedAtMillis),
+        ) {
+            uiState.paidTotal?.let { total ->
+                Text(
+                    stringResource(R.string.add_diesel_summary_paid, MoneyFormat.formatCurrency(total)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
+                Text(
+                    stringResource(R.string.add_diesel_summary_saved, MoneyFormat.formatCurrency(saved)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.AccentProfit,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            uiState.error?.let {
+                Text(
+                    it,
+                    color = tc.AccentExpense,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
     }
 
-    Scaffold(
-        containerColor = tc.Background,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.add_diesel_title), color = tc.TextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
+    JournalEntryScaffold(
+        title = stringResource(R.string.add_diesel_title),
+        onBack = onBack,
+        onSave = viewModel::openSaveDialog,
+        saveEnabled = !uiState.isSaving,
+        errorMessage = uiState.error?.takeIf { !uiState.showSaveDialog },
+    ) {
+        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(
+                    stringResource(R.string.add_diesel_date),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tc.TextPrimary,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            datePickerThenTime = false
+                            showDatePicker = true
+                        },
+                ) {
+                    Text(
+                        formatDateForDisplay(uiState.recordedAtMillis),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = {
+                        datePickerThenTime = false
+                        showDatePicker = true
+                    }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
+                            AppIcons.Edit,
+                            contentDescription = stringResource(R.string.add_diesel_change_date),
                             tint = tc.TextPrimary,
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = tc.Background,
-                    titleContentColor = tc.TextPrimary,
-                ),
-            )
-        },
-        bottomBar = {
-            OneUiBottomActionBar {
-                Button(
-                    onClick = viewModel::openSaveDialog,
+                }
+                JournalWeekSelectorRow(
+                    weekNumber = uiState.weekNumber,
+                    weekLabel = weekLabel,
+                    onPreviousWeek = viewModel::selectPreviousWeek,
+                    onNextWeek = viewModel::selectNextWeek,
+                )
+                OutlinedTextField(
+                    value = uiState.gallonsText,
+                    onValueChange = viewModel::setGallonsText,
+                    label = { Text(stringResource(R.string.add_diesel_gallons)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    enabled = !uiState.isSaving,
-                ) {
-                    Text(stringResource(R.string.common_save))
-                }
-                uiState.error?.let {
-                    Text(it, color = tc.Danger, modifier = Modifier.padding(top = 8.dp))
-                }
-            }
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
+                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                    shape = RoundedCornerShape(14.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    colors = AppTextFieldDefaults.outlined(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = uiState.pricePerGallonText,
+                    onValueChange = viewModel::setPricePerGallonText,
+                    label = { Text(stringResource(R.string.add_diesel_price_per_gallon)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                    shape = RoundedCornerShape(14.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    colors = AppTextFieldDefaults.outlined(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = uiState.discountPriceText,
+                    onValueChange = viewModel::setDiscountPriceText,
+                    label = { Text(stringResource(R.string.add_diesel_discount_price)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                    shape = RoundedCornerShape(14.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    colors = AppTextFieldDefaults.outlined(),
+                    singleLine = true,
+                )
+                uiState.paidTotal?.let { total ->
                     Text(
-                        stringResource(R.string.add_diesel_date),
-                        style = MaterialTheme.typography.titleSmall,
+                        text = stringResource(R.string.add_diesel_paid_total, MoneyFormat.formatCurrency(total)),
+                        style = AppTypography.HeroNumber,
                         color = tc.TextPrimary,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                datePickerThenTime = false
-                                showDatePicker = true
-                            },
-                    ) {
-                        Text(
-                            formatDateForDisplay(uiState.recordedAtMillis),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = tc.TextPrimary,
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconButton(onClick = {
-                            datePickerThenTime = false
-                            showDatePicker = true
-                        }) {
-                            Icon(
-                                Icons.Default.Edit,
-                                contentDescription = stringResource(R.string.add_diesel_change_date),
-                                tint = tc.TextPrimary,
-                            )
-                        }
-                    }
-                    Text(stringResource(R.string.add_select_week), style = MaterialTheme.typography.titleSmall, color = tc.TextPrimary)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                    ) {
-                        IconButton(onClick = viewModel::selectPreviousWeek) {
-                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = tc.TextPrimary)
-                        }
-                        Text(
-                            stringResource(R.string.add_or_edit_week_format, uiState.weekNumber, weekLabel),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = tc.TextSecondary,
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconButton(onClick = viewModel::selectNextWeek) {
-                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = tc.TextPrimary)
-                        }
-                    }
-                    OutlinedTextField(
-                        value = uiState.gallonsText,
-                        onValueChange = viewModel::setGallonsText,
-                        label = { Text(stringResource(R.string.add_diesel_gallons)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .defaultMinSize(minHeight = UiDimens.InputMinHeight),
-                        shape = RoundedCornerShape(14.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        colors = AppTextFieldDefaults.outlined(),
-                        singleLine = true,
+                }
+                uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
+                    Text(
+                        text = stringResource(R.string.add_diesel_you_saved, MoneyFormat.formatCurrency(saved)),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = tc.AccentProfit,
                     )
-                    OutlinedTextField(
-                        value = uiState.pricePerGallonText,
-                        onValueChange = viewModel::setPricePerGallonText,
-                        label = { Text(stringResource(R.string.add_diesel_price_per_gallon)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .defaultMinSize(minHeight = UiDimens.InputMinHeight),
-                        shape = RoundedCornerShape(14.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        colors = AppTextFieldDefaults.outlined(),
-                        singleLine = true,
+                }
+                uiState.gallons?.let { gallons ->
+                    Text(
+                        text = stringResource(
+                            R.string.add_diesel_gallons_preview,
+                            String.format(Locale.US, "%.2f", gallons),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
                     )
-                    OutlinedTextField(
-                        value = uiState.discountPriceText,
-                        onValueChange = viewModel::setDiscountPriceText,
-                        label = { Text(stringResource(R.string.add_diesel_discount_price)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .defaultMinSize(minHeight = UiDimens.InputMinHeight),
-                        shape = RoundedCornerShape(14.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        colors = AppTextFieldDefaults.outlined(),
-                        singleLine = true,
-                    )
-                    uiState.paidTotal?.let { total ->
-                        Text(
-                            text = stringResource(
-                                R.string.add_diesel_paid_total,
-                                MoneyFormat.formatCurrency(total),
-                            ),
-                            style = AppTypography.HeroNumber,
-                            color = tc.TextPrimary,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                    uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
-                        Text(
-                            text = stringResource(
-                                R.string.add_diesel_you_saved,
-                                MoneyFormat.formatCurrency(saved),
-                            ),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = tc.AccentProfit,
-                        )
-                    }
-                    uiState.gallons?.let { gallons ->
-                        Text(
-                            text = stringResource(
-                                R.string.add_diesel_gallons_preview,
-                                String.format(Locale.US, "%.2f", gallons),
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = tc.TextSecondary,
-                        )
-                    }
                 }
             }
         }

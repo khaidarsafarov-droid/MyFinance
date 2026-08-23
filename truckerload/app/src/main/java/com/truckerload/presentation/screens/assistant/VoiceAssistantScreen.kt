@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.assistant
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,9 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -172,9 +171,9 @@ private fun VoiceAssistantBody(
         ) {
             Icon(
                 imageVector = if (state.phase == AssistantPhase.Listening) {
-                    Icons.Default.Stop
+                    AppIcons.Stop
                 } else {
-                    Icons.Default.Mic
+                    AppIcons.Mic
                 },
                 contentDescription = stringResource(
                     if (state.phase == AssistantPhase.Listening) {

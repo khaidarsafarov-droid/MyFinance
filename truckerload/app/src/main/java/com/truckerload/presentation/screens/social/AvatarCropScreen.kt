@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.social
 
+import com.truckerload.presentation.icons.AppIcons
+
 import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -72,7 +74,7 @@ fun AvatarCropScreen(
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
                         )
                     }

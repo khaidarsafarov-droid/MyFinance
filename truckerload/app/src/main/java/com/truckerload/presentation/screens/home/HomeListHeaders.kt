@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.home
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,8 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -75,7 +75,7 @@ internal fun PeriodSummarySection(
             .semantics(mergeDescendants = true) { contentDescription = summaryCd },
     ) {
         Icon(
-            imageVector = Icons.Outlined.LocalShipping,
+            imageVector = AppIcons.LocalShipping,
             contentDescription = null,
             tint = onPrimary.copy(alpha = 0.10f),
             modifier = Modifier

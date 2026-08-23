@@ -35,6 +35,7 @@ import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShader
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.MoneyFormat
 import java.util.Locale
 
 @Composable
@@ -124,7 +125,7 @@ fun WeeklyRevenueLineChart(
                 text = stringResource(
                     R.string.analytics_chart_week_detail,
                     week.label,
-                    formatUsd(week.gross),
+                    MoneyFormat.formatCurrency(week.gross),
                     week.loadCount,
                 ),
                 style = MaterialTheme.typography.bodySmall,
@@ -147,5 +148,3 @@ fun ChartEmptyState(modifier: Modifier = Modifier) {
     }
 }
 
-private fun formatUsd(value: Double): String =
-    String.format(Locale.US, "$%,.0f", value)

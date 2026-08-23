@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.scanner
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,10 +12,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -70,7 +68,7 @@ fun ScanResultScreen(
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
                         )
                     }
@@ -170,9 +168,9 @@ fun ScanResultScreen(
                         )
                         Icon(
                             imageVector = if (ocrExpanded) {
-                                Icons.Default.ExpandLess
+                                AppIcons.ExpandLess
                             } else {
-                                Icons.Default.ExpandMore
+                                AppIcons.ExpandMore
                             },
                             contentDescription = null,
                             tint = tc.AccentPrimary,

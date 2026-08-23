@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.social
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -14,11 +16,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Route
-import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -124,7 +121,7 @@ internal fun PremiumProfileHeader(
                             ) {
                                 if (locationLabel.isNotBlank()) {
                                     Icon(
-                                        imageVector = Icons.Outlined.LocationOn,
+                                        imageVector = AppIcons.LocationOn,
                                         contentDescription = null,
                                         tint = tc.TextSecondary,
                                         modifier = Modifier.size(16.dp),
@@ -150,7 +147,7 @@ internal fun PremiumProfileHeader(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Star,
+                            imageVector = AppIcons.Star,
                             contentDescription = null,
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(16.dp),
@@ -161,7 +158,7 @@ internal fun PremiumProfileHeader(
                             color = tc.AccentPrimary,
                         )
                         Icon(
-                            imageVector = Icons.Outlined.WorkspacePremium,
+                            imageVector = AppIcons.WorkspacePremium,
                             contentDescription = null,
                             tint = tc.AccentPrimary,
                             modifier = Modifier.size(16.dp),
@@ -180,7 +177,7 @@ internal fun PremiumProfileHeader(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Route,
+                            imageVector = AppIcons.Route,
                             contentDescription = null,
                             tint = tc.TextSecondary,
                             modifier = Modifier.size(16.dp),

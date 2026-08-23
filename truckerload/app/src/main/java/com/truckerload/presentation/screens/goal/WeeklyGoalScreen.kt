@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.goal
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,11 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Timeline
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
 import com.truckerload.presentation.components.TlButton as Button
@@ -221,7 +218,7 @@ private fun GoalHeroCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.Flag,
+                    AppIcons.Flag,
                     contentDescription = null,
                     tint = FinanceCockpitColors.SalaryAccent,
                     modifier = Modifier.size(UiDimens.IconList)
@@ -237,7 +234,7 @@ private fun GoalHeroCard(
             if (!isEditingGoal) {
                 IconButton(onClick = onStartEdit) {
                     Icon(
-                        Icons.Default.Edit,
+                        AppIcons.Edit,
                         contentDescription = stringResource(R.string.goal_edit_target),
                         tint = cs.onPrimary.copy(alpha = 0.7f),
                     )
@@ -462,9 +459,9 @@ private fun PaceInsightCard(progress: com.truckerload.domain.goal.WeeklyGoalProg
     }
 
     val paceIcon = when (progress.paceStatus) {
-        PaceStatus.GOAL_MET, PaceStatus.AHEAD -> Icons.Outlined.CheckCircle
-        PaceStatus.ON_TRACK -> Icons.Outlined.Timeline
-        PaceStatus.BEHIND -> Icons.Outlined.Timeline
+        PaceStatus.GOAL_MET, PaceStatus.AHEAD -> AppIcons.CheckCircle
+        PaceStatus.ON_TRACK -> AppIcons.Timeline
+        PaceStatus.BEHIND -> AppIcons.Timeline
     }
 
     BentoGlassCard(

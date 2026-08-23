@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 
+import com.truckerload.presentation.icons.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,15 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Assignment
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.CloudUpload
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,16 +55,16 @@ private data class SidebarDestination(
 )
 
 private val primaryDestinations = listOf(
-    SidebarDestination(Routes.HOME, null, Icons.AutoMirrored.Outlined.Assignment, R.string.nav_logbook),
-    SidebarDestination(Routes.STATS, null, Icons.Outlined.Flag, R.string.nav_weekly_goal),
-    SidebarDestination(Routes.PROFILE, null, Icons.Outlined.Person, R.string.nav_profile),
+    SidebarDestination(Routes.HOME, null, AppIcons.Assignment, R.string.nav_logbook),
+    SidebarDestination(Routes.STATS, null, AppIcons.Flag, R.string.nav_weekly_goal),
+    SidebarDestination(Routes.PROFILE, null, AppIcons.Person, R.string.nav_profile),
 )
 
 private val toolDestinations = listOf(
-    SidebarDestination(null, DrawerDestination.SETTINGS, Icons.Outlined.Settings, R.string.nav_settings),
-    SidebarDestination(null, DrawerDestination.REPORTS, Icons.Outlined.BarChart, R.string.drawer_reports),
-    SidebarDestination(null, DrawerDestination.DOCUMENTS, Icons.Outlined.Description, R.string.drawer_documents),
-    SidebarDestination(Routes.CAMERA, null, Icons.Outlined.CameraAlt, R.string.camera),
+    SidebarDestination(null, DrawerDestination.SETTINGS, AppIcons.Settings, R.string.nav_settings),
+    SidebarDestination(null, DrawerDestination.REPORTS, AppIcons.BarChart, R.string.drawer_reports),
+    SidebarDestination(null, DrawerDestination.DOCUMENTS, AppIcons.Description, R.string.drawer_documents),
+    SidebarDestination(Routes.CAMERA, null, AppIcons.CameraAlt, R.string.camera),
 )
 
 /**
@@ -258,7 +251,7 @@ private fun BackupSidebarCard(onOpenSettings: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
-                Icons.Outlined.CloudUpload,
+                AppIcons.CloudUpload,
                 contentDescription = null,
                 tint = SoftUiColors.Sage,
                 modifier = Modifier.size(22.dp),
