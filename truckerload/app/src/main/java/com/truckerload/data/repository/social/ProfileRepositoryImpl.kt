@@ -226,8 +226,6 @@ class ProfileRepositoryImpl(
         endorsements: List<String>,
         specialties: List<String>,
         phoneNumber: String?,
-        telegramUsername: String?,
-        whatsappNumber: String?,
         maxRadius: Int,
     ): SocialResult<Unit> = runCatching {
         val existing = profileDao.getProfile() ?: DriverProfileEntity()
@@ -245,8 +243,6 @@ class ProfileRepositoryImpl(
                 endorsementsJson = endorsements.joinToString(","),
                 specialtiesJson = specialties.joinToString(","),
                 phoneNumber = phoneNumber?.trim()?.ifBlank { null },
-                telegramUsername = telegramUsername?.trim()?.removePrefix("@")?.ifBlank { null },
-                whatsappNumber = whatsappNumber?.trim()?.ifBlank { null },
                 maxRadius = maxRadius.coerceAtLeast(50),
                 lastActive = System.currentTimeMillis(),
             ),

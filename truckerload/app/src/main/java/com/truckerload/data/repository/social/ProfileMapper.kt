@@ -80,8 +80,6 @@ internal object ProfileMapper {
             specialties = specialties,
             languages = languages,
             phoneNumber = base.phoneNumber,
-            telegramUsername = base.telegramUsername,
-            whatsappNumber = base.whatsappNumber,
             joinedDate = base.joinedDate,
             lastActive = base.lastActive.takeIf { it > 0 } ?: System.currentTimeMillis(),
             dateOfBirthEpochDay = base.dateOfBirthEpochDay,

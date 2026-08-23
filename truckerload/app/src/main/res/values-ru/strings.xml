@@ -1371,12 +1371,9 @@
     <string name="social_followers">Подписчики</string>
     <string name="social_following">Подписки</string>
     <string name="social_on_time">Вовремя</string>
-    <string name="social_contacts">Контакты</string>
     <string name="social_license_class">Класс CDL</string>
     <string name="social_specialties">Специализация</string>
     <string name="social_phone">Телефон</string>
-    <string name="social_telegram">Telegram</string>
-    <string name="social_whatsapp">WhatsApp</string>
     <string name="social_reply_to">Ответ на</string>
     <string name="social_announcement">Анонс</string>
     <string name="social_statuses">Статусы</string>

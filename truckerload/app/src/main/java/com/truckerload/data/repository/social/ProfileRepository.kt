@@ -36,8 +36,6 @@ interface ProfileRepository {
         endorsements: List<String> = emptyList(),
         specialties: List<String> = emptyList(),
         phoneNumber: String? = null,
-        telegramUsername: String? = null,
-        whatsappNumber: String? = null,
         maxRadius: Int = 500,
     ): SocialResult<Unit>
     suspend fun updateStatus(status: DriverStatus): SocialResult<Unit>

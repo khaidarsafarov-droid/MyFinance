@@ -84,8 +84,6 @@ fun ProfileEditScreen(
     var licenseClass by remember { mutableStateOf("") }
     var phoneCountry by remember { mutableStateOf(CountryCatalog.default) }
     var nationalNumber by remember { mutableStateOf("") }
-    var telegramUsername by remember { mutableStateOf("") }
-    var whatsappNumber by remember { mutableStateOf("") }
     var specialties by remember { mutableStateOf("") }
 
     LaunchedEffect(profile?.id, profile != null) {
@@ -102,8 +100,6 @@ fun ProfileEditScreen(
         val parsedPhone = CountryCatalog.parsePhone(loaded.phoneNumber)
         phoneCountry = parsedPhone.first
         nationalNumber = parsedPhone.second
-        telegramUsername = loaded.telegramUsername.orEmpty()
-        whatsappNumber = loaded.whatsappNumber.orEmpty()
         specialties = loaded.specialties.joinToString(", ")
         hydrated = true
     }
@@ -202,22 +198,6 @@ fun ProfileEditScreen(
                 colors = AppTextFieldDefaults.outlined(),
             )
             OutlinedTextField(
-                value = telegramUsername,
-                onValueChange = { telegramUsername = it },
-                label = { Text(stringResource(R.string.social_telegram)) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = AppTextFieldDefaults.outlined(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = whatsappNumber,
-                onValueChange = { whatsappNumber = it },
-                label = { Text(stringResource(R.string.social_whatsapp)) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = AppTextFieldDefaults.outlined(),
-                singleLine = true,
-            )
-            OutlinedTextField(
                 value = about,
                 onValueChange = { about = it },
                 label = { Text(stringResource(R.string.about_me)) },
@@ -246,8 +226,6 @@ fun ProfileEditScreen(
                         status = status,
                         licenseClass = licenseClass,
                         phoneNumber = CountryCatalog.formatE164(phoneCountry, nationalNumber),
-                        telegramUsername = telegramUsername,
-                        whatsappNumber = whatsappNumber,
                         specialties = specialties,
                         onResult = { ok -> if (ok) onSaved() },
                     )

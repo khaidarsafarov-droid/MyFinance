@@ -1,8 +1,5 @@
 package com.truckerload.presentation.screens.social
 
-import android.content.Intent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.backup.GoogleDriveBackupPrefs
@@ -105,70 +101,6 @@ internal fun ProfileTerritorySection(profile: EnhancedDriverProfile) {
             }
         }
     }
-}
-
-@Composable
-internal fun ProfileContactsSection(profile: EnhancedDriverProfile) {
-    val tc = LocalTruckColors.current
-    val context = LocalContext.current
-    BentoGlassCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.social_contacts), style = AppTypography.CardTitle, color = tc.TextPrimary)
-            profile.phoneNumber?.let { phone ->
-                ContactRow(
-                    label = "📞 $phone",
-                    onClick = {
-                        runCatching {
-                            context.startActivity(Intent(Intent.ACTION_DIAL, "tel:$phone".toUri()))
-                        }
-                    },
-                )
-            }
-            profile.telegramUsername?.let { username ->
-                val handle = username.removePrefix("@")
-                ContactRow(
-                    label = "💬 @$handle",
-                    onClick = {
-                        runCatching {
-                            val telegramUri = "https://t.me/$handle".toUri()
-                            context.startActivity(Intent(Intent.ACTION_VIEW, telegramUri))
-                        }
-                    },
-                )
-            }
-            profile.whatsappNumber?.let { whatsapp ->
-                ContactRow(
-                    label = "📱 $whatsapp",
-                    onClick = {
-                        runCatching {
-                            val waUri = "https://wa.me/${whatsapp.filter { it.isDigit() }}".toUri()
-                            context.startActivity(Intent(Intent.ACTION_VIEW, waUri))
-                        }
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun ContactRow(
-    label: String,
-    onClick: () -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    Text(
-        text = label,
-        style = AppTypography.Subtitle,
-        color = tc.AccentPrimary,
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick,
-            ),
-    )
 }
 
 @Composable
