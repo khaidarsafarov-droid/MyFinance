@@ -19,6 +19,10 @@ interface PaycheckDao {
     @Query("SELECT * FROM paychecks WHERE weekNumber = :weekNumber AND year = :year")
     fun getPaychecksForWeek(weekNumber: Int, year: Int): Flow<List<PaycheckEntity>>
 
+    /** Reporting-period rows; pass an empty [minDate] for all time. */
+    @Query("SELECT * FROM paychecks WHERE weekEndDate >= :minDate")
+    suspend fun getPaychecksSince(minDate: String): List<PaycheckEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(paycheck: PaycheckEntity)
 

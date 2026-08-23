@@ -18,16 +18,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.SmartToy
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,11 +63,9 @@ import java.util.Locale
 fun AnalyticsScreen(
     onBack: () -> Unit = {},
     onLoadClick: (String) -> Unit = {},
-    onAdvancedStats: () -> Unit = {},
-    onOpenMap: () -> Unit = {},
+    onFinancialAdvisor: () -> Unit = {},
     embedded: Boolean = false,
 ) {
-    val tc = LocalTruckColors.current
     val context = LocalContext.current
     val viewModel: AnalyticsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -103,6 +97,11 @@ fun AnalyticsScreen(
         actions = {
             if (!embedded) {
                 SoftActionChip(
+                    icon = Icons.Default.SmartToy,
+                    contentDescription = stringResource(R.string.stats_cd_advisor),
+                    onClick = onFinancialAdvisor,
+                )
+                SoftActionChip(
                     icon = Icons.Default.FileDownload,
                     contentDescription = stringResource(R.string.analytics_export_cd),
                     onClick = viewModel::exportAnalytics,
@@ -115,8 +114,6 @@ fun AnalyticsScreen(
             uiState = uiState,
             viewModel = viewModel,
             onLoadClick = onLoadClick,
-            onAdvancedStats = onAdvancedStats,
-            onOpenMap = onOpenMap,
         )
     }
 }
@@ -127,8 +124,6 @@ private fun AnalyticsScreenBody(
     uiState: AnalyticsUiState,
     viewModel: AnalyticsViewModel,
     onLoadClick: (String) -> Unit,
-    onAdvancedStats: () -> Unit,
-    onOpenMap: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
     BentoGlassScreenBackground {
@@ -156,30 +151,6 @@ private fun AnalyticsScreenBody(
                         onSelect = viewModel::setPeriod,
                     )
 
-                    Button(
-                        onClick = onAdvancedStats,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            Icons.Default.Insights,
-                            contentDescription = stringResource(R.string.analytics_advanced_stats_cd),
-                            modifier = Modifier.padding(end = 8.dp),
-                        )
-                        Text(stringResource(R.string.analytics_advanced_stats))
-                    }
-
-                    OutlinedButton(
-                        onClick = onOpenMap,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            Icons.Default.Map,
-                            contentDescription = stringResource(R.string.stats_map_open),
-                            modifier = Modifier.padding(end = 8.dp),
-                        )
-                        Text(stringResource(R.string.stats_map_open))
-                    }
-
                     uiState.summary?.let { summary ->
                         SummaryMetricsGrid(summary = summary)
                         RpmColorLegend(
@@ -187,6 +158,8 @@ private fun AnalyticsScreenBody(
                             modifier = Modifier.padding(top = 4.dp),
                         )
                     }
+
+                    AnalyticsFinanceSection(finance = uiState.finance)
 
                     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {

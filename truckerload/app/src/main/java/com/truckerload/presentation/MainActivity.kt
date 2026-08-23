@@ -62,7 +62,6 @@ import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.di.LocalSelectedStateStore
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalStatsSelectionStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.di.LocalWeekRepository
 import com.truckerload.presentation.di.LocalLastUsedDefaultsStore
@@ -270,7 +269,6 @@ class MainActivity : AppCompatActivity() {
                                     LocalAiRepository provides deps.aiRepository,
                                     LocalRpmThresholdsStore provides deps.rpmThresholdsStore,
                                     LocalSelectedStateStore provides deps.selectedStateStore,
-                                    LocalStatsSelectionStore provides deps.statsSelectionStore,
                                     LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
                                     LocalLastUsedDefaultsStore provides deps.lastUsedDefaultsStore,
                                     LocalAnalyticsRepository provides deps.analyticsRepository,

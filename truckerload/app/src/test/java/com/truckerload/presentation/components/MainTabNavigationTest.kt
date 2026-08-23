@@ -13,7 +13,6 @@ class MainTabNavigationTest {
     fun highlightsStatsTabOnMapAndAnalytics() {
         assertEquals(Routes.STATS, phoneTabForRoute(Routes.STATS))
         assertEquals(Routes.STATS, phoneTabForRoute(Routes.ANALYTICS))
-        assertEquals(Routes.STATS, phoneTabForRoute(Routes.ADVANCED_STATS))
         assertEquals(Routes.STATS, phoneTabForRoute(Routes.MAP))
         assertTrue(isPhoneDestinationSelected(Routes.MAP, Routes.STATS))
         assertFalse(isPhoneDestinationSelected(Routes.MAP, Routes.HOME))
@@ -23,7 +22,6 @@ class MainTabNavigationTest {
     fun keepsBottomBarOnStatsNestedScreens() {
         assertTrue(shouldShowPhoneBottomBar(Routes.STATS))
         assertTrue(shouldShowPhoneBottomBar(Routes.ANALYTICS))
-        assertTrue(shouldShowPhoneBottomBar(Routes.ADVANCED_STATS))
         assertTrue(shouldShowPhoneBottomBar(Routes.MAP))
         assertTrue(shouldShowPhoneBottomBar("load_detail/{loadId}"))
     }
@@ -61,7 +59,7 @@ class MainTabNavigationTest {
         assertEquals(
             MainTabClickAction.POP_ONCE,
             resolveMainTabClick(
-                currentRoute = Routes.ADVANCED_STATS,
+                currentRoute = Routes.ANALYTICS,
                 targetTab = Routes.STATS,
                 tabRootInBackStack = false,
             ),

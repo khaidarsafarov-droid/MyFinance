@@ -5,7 +5,6 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
-import com.truckerload.data.preferences.StatsSelectionStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.remote.ktor.HttpClientProvider
@@ -41,7 +40,6 @@ class UserComponent private constructor(
     val weekRepository: WeekRepository,
     val rpmThresholdsStore: RpmThresholdsStore,
     val selectedStateStore: SelectedStateStore,
-    val statsSelectionStore: StatsSelectionStore,
     val weeklyProfitGoalStore: WeeklyProfitGoalStore,
     val lastUsedDefaultsStore: LastUsedDefaultsStore,
     val analyticsRepository: AnalyticsRepository,
@@ -91,7 +89,6 @@ class UserComponent private constructor(
                 weekRepository = WeekRepository(loadRepository, paycheckRepository, dieselRepository),
                 rpmThresholdsStore = RpmThresholdsStore(context, id),
                 selectedStateStore = SelectedStateStore(context, id),
-                statsSelectionStore = StatsSelectionStore(context, id),
                 weeklyProfitGoalStore = WeeklyProfitGoalStore(context, id),
                 lastUsedDefaultsStore = LastUsedDefaultsStore(context, id),
                 analyticsRepository = AnalyticsRepository(db),

@@ -38,6 +38,7 @@ fun JournalListDetailHost(
                 },
                 onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
                 onStats = { navController.navigate(Routes.ANALYTICS) },
+                onWeeklyGoal = { navController.navigate(Routes.STATS) },
                 onSettings = { navController.navigate(Routes.SETTINGS) },
                 onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
                 onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },

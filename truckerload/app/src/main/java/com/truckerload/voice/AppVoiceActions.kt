@@ -40,11 +40,14 @@ object AppVoiceActions {
         Routes.HOME to listOf("грузы", "журнал", "loads", "logbook", "journal", "home"),
         Routes.ADD_LOAD to listOf("добавить груз", "новый груз", "add load", "new load"),
         Routes.STATS to listOf("цель недели", "недельная цель", "weekly goal", "цель", "goal"),
-        Routes.ANALYTICS to listOf("аналитика", "отчёты", "отчеты", "analytics", "reports"),
-        Routes.ADVANCED_STATS to listOf(
+        Routes.ANALYTICS to listOf(
             "подробная статистика",
-            "расширенная статистика",
-            "advanced stats",
+            "статистика",
+            "аналитика",
+            "отчёты",
+            "отчеты",
+            "analytics",
+            "reports",
         ),
         Routes.MAP to listOf("карта штатов", "heatmap", "rpm map", "карта", "map"),
         Routes.PROFILE to listOf("профиль", "profile"),

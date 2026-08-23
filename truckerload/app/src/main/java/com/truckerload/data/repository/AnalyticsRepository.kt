@@ -3,10 +3,12 @@ package com.truckerload.data.repository
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.domain.analytics.RouteDisplayHelper
+import com.truckerload.domain.model.DieselPurchaseMath
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.domain.model.analytics.DailyData
+import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.utils.enumerateRecentWeekSlots
@@ -18,6 +20,8 @@ class AnalyticsRepository(private val db: AppDatabase) {
 
     private val loadDao = db.loadDao()
     private val stopDao = db.stopDao()
+    private val paycheckDao = db.paycheckDao()
+    private val dieselDao = db.dieselDao()
     private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
     suspend fun loadDashboard(period: AnalyticsPeriod): AnalyticsDashboard {
@@ -55,6 +59,31 @@ class AnalyticsRepository(private val db: AppDatabase) {
             routes = routes,
             daily = daily,
             summary = summary,
+            finance = loadFinance(minDate),
+        )
+    }
+
+    /**
+     * Paycheck follows the week rule used elsewhere in the journal: one settlement
+     * per week, so extra rows for the same week are ignored instead of double-counted.
+     */
+    private suspend fun loadFinance(minDate: String): PeriodFinance {
+        val paycheckTotal = paycheckDao.getPaychecksSince(minDate)
+            .groupBy { it.weekNumber to it.year }
+            .values
+            .sumOf { rows -> rows.first().netAmount }
+        val diesel = dieselDao.getDieselSince(minDate)
+        return PeriodFinance(
+            paycheckTotal = paycheckTotal,
+            dieselTotal = diesel.sumOf { it.totalAmount },
+            dieselGallons = diesel.sumOf { it.gallons ?: 0.0 },
+            dieselSavings = diesel.sumOf {
+                DieselPurchaseMath.savings(
+                    gallons = it.gallons,
+                    pricePerGallon = it.pricePerGallon,
+                    discountPricePerGallon = it.discountPricePerGallon,
+                ) ?: 0.0
+            },
         )
     }
 
@@ -125,4 +154,5 @@ data class AnalyticsDashboard(
     val routes: List<RouteData>,
     val daily: List<DailyData>,
     val summary: AnalyticsSummary,
+    val finance: PeriodFinance = PeriodFinance(),
 )

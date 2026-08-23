@@ -13,7 +13,6 @@ object Routes {
     const val PROFILE = "profile"
     const val PROFILE_EDIT = "profile_edit"
     const val PROFILE_SETUP = "profile_setup"
-    const val ADVANCED_STATS = "advanced_stats"
     const val MAP = "map"
     const val LOAD_DETAIL = "load_detail/{loadId}"
     const val ADD_LOAD = "add_load"

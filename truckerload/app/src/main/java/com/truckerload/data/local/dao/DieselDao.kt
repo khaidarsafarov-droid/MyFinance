@@ -16,6 +16,10 @@ interface DieselDao {
     @Query("SELECT * FROM diesel WHERE weekNumber = :weekNumber AND year = :year")
     fun getDieselForWeek(weekNumber: Int, year: Int): Flow<List<DieselEntity>>
 
+    /** Reporting-period rows; pass an empty [minDate] for all time. */
+    @Query("SELECT * FROM diesel WHERE weekEndDate >= :minDate")
+    suspend fun getDieselSince(minDate: String): List<DieselEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(diesel: DieselEntity)
 

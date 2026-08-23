@@ -229,7 +229,6 @@ fun NavGraph(
         onNavigate = { route -> navigateToMainRoute(route, navController) },
         onDrawerNavigate = { destination ->
             when (destination) {
-                DrawerDestination.PROFILE -> navigateToMainRoute(Routes.PROFILE, navController)
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
@@ -268,6 +267,7 @@ fun NavGraph(
                         onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
                         onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
                         onStats = { navController.navigate(Routes.ANALYTICS) },
+                        onWeeklyGoal = { navigateToMainRoute(Routes.STATS, navController) },
                         onSettings = { navController.navigate(Routes.SETTINGS) },
                         onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
                         onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },

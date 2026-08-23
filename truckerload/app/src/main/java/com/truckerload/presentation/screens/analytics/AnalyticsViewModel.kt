@@ -13,6 +13,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.domain.model.analytics.DailyData
+import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.utils.AnalyticsExporter
@@ -29,6 +30,7 @@ data class AnalyticsUiState(
     val routes: List<RouteData> = emptyList(),
     val daily: List<DailyData> = emptyList(),
     val summary: AnalyticsSummary? = null,
+    val finance: PeriodFinance = PeriodFinance(),
     val selectedWeekIndex: Int? = null,
     val selectedWeekLoads: List<Load> = emptyList(),
     val exportPath: String? = null,
@@ -83,6 +85,7 @@ class AnalyticsViewModel @Inject constructor(
                         routes = dashboard.routes,
                         daily = dashboard.daily,
                         summary = dashboard.summary,
+                        finance = dashboard.finance,
                         selectedWeekIndex = defaultIndex,
                         selectedWeekLoads = emptyList(),
                     )
