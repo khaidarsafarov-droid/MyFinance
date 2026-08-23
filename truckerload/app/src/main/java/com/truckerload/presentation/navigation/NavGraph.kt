@@ -229,7 +229,6 @@ fun NavGraph(
         onNavigate = { route -> navigateToMainRoute(route, navController) },
         onDrawerNavigate = { destination ->
             when (destination) {
-                DrawerDestination.PROFILE -> navigateToMainRoute(Routes.PROFILE, navController)
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
@@ -238,8 +237,6 @@ fun NavGraph(
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
                 DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
-                DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
-                DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
             }
         },

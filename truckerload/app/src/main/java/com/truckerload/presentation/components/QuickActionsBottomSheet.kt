@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.LocalGasStation
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -73,15 +71,6 @@ fun QuickActionsBottomSheet(
                 },
             )
             QuickActionRow(
-                icon = Icons.Default.CameraAlt,
-                title = stringResource(R.string.widget_camera),
-                onClick = {
-                    FeedbackManager.onNavSelect()
-                    onDismiss()
-                    onCamera()
-                },
-            )
-            QuickActionRow(
                 icon = Icons.Outlined.DocumentScanner,
                 title = stringResource(R.string.widget_scanner),
                 onClick = {
@@ -97,15 +86,6 @@ fun QuickActionsBottomSheet(
                     FeedbackManager.onNavSelect()
                     onDismiss()
                     onAddDiesel()
-                },
-            )
-            QuickActionRow(
-                icon = Icons.Default.Mic,
-                title = stringResource(R.string.assistant_title),
-                onClick = {
-                    FeedbackManager.onNavSelect()
-                    onDismiss()
-                    onVoiceAssistant()
                 },
             )
         }

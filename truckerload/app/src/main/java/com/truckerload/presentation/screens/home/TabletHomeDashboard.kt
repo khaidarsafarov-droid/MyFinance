@@ -461,8 +461,7 @@ private fun SoftGoalCard(
                 onClick = onOpenWeeklyGoal,
             )
             .padding(18.dp)
-            .heightIn(min = 280.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .heightIn(min = 140.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
@@ -477,49 +476,17 @@ private fun SoftGoalCard(
                 color = tc.TextPrimary,
             )
         }
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(132.dp)) {
-            CircularProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxSize(),
-                color = SoftUiColors.ForestAccent,
-                trackColor = SoftUiColors.Sage,
-                strokeWidth = 12.dp,
-                strokeCap = StrokeCap.Round,
-            )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "${(progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = tc.TextPrimary,
-                )
-            }
-        }
         Text(
-            text = MoneyFormat.formatCurrency(currentGross),
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = tc.TextPrimary,
-        )
-        Text(
-            text = if (weeklyGoal > 0) {
-                stringResource(
-                    R.string.tablet_home_goal_of,
-                    MoneyFormat.formatCurrency(weeklyGoal),
-                )
-            } else {
-                stringResource(R.string.tablet_home_goal_set)
-            },
+            text = stringResource(if (weeklyGoal > 0) R.string.nav_weekly_goal else R.string.ux_next_set_goal),
             style = MaterialTheme.typography.bodyMedium,
             color = tc.TextSecondary,
         )
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(8.dp)),
+        // Detailed ring/amounts live on the Goal tab only.
+        Text(
+            text = stringResource(R.string.nav_weekly_goal),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = SoftUiColors.ForestAccent,
-            trackColor = SoftUiColors.Sage,
-            strokeCap = StrokeCap.Round,
         )
     }
 }
+
