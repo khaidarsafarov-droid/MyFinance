@@ -118,9 +118,15 @@ class LoadProcessor(
             anchorYearHint = messageYear,
             referenceMillis = parsedAt,
         )
-        val dated = when {
-            repaired.date.isBlank() && messageIso != null -> repaired.copy(date = messageIso)
-            else -> repaired
+        val dated = LoadDateRepair.ensureDate(
+            load = repaired,
+            referenceMillis = parsedAt,
+        ).let { ensured ->
+            if (ensured.date.isBlank() && messageIso != null) {
+                ensured.copy(date = messageIso)
+            } else {
+                ensured
+            }
         }
         return dated
             .copy(

@@ -100,6 +100,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var userComponentManager: UserComponentManager
 
+    @Inject
+    lateinit var cloudSyncEngine: com.truckerload.data.sync.cloud.CloudSyncEngine
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
     }
@@ -165,7 +168,7 @@ class MainActivity : AppCompatActivity() {
                             }
                             if (!BuildConfig.LOCAL_ONLY_MODE) {
                                 val syncResult = runCatching {
-                                    com.truckerload.data.sync.CloudSyncEngine.onSessionReady(applicationContext)
+                                    cloudSyncEngine.onSessionReady()
                                 }.onFailure { e ->
                                     android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
                                 }.getOrNull()

@@ -26,6 +26,7 @@ class OutboundSyncWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val authStore: AuthStore,
     private val userComponentManager: UserComponentManager,
+    private val cloudSyncEngine: com.truckerload.data.sync.cloud.CloudSyncEngine,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -35,7 +36,7 @@ class OutboundSyncWorker @AssistedInject constructor(
         val pending = dao.listByStatus(SyncOutboxEntity.STATUS_PENDING, limit = 40)
 
         val uploadAcknowledged = runCatching {
-            com.truckerload.data.sync.CloudSyncEngine.pushLocalSnapshot(applicationContext)
+            cloudSyncEngine.pushLocalSnapshot()
         }.getOrElse {
             Log.w(TAG, "Account snapshot push failed: ${it.javaClass.simpleName}")
             false

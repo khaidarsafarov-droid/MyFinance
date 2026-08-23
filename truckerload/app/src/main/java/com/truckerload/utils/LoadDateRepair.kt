@@ -140,6 +140,24 @@ object LoadDateRepair {
         return Calendar.getInstance().apply { timeInMillis = sane }.get(Calendar.YEAR)
     }
 
+    /**
+     * Ensures [Load.date] is a concrete `YYYY-MM-DD` before week assignment / validation.
+     * Prefer stop times via [repair]; if still blank, anchor to [referenceMillis] / [Load.parsedAt].
+     * Avoids blank dates falling through to "current week" in [getLoadReportingWeek].
+     */
+    fun ensureDate(load: Load, referenceMillis: Long? = null): Load {
+        val repaired = repair(load, referenceMillis = referenceMillis)
+        if (hasIsoDate(repaired.date)) return repaired
+        val ref = saneReferenceMillis(referenceMillis)
+            ?: saneReferenceMillis(repaired.parsedAt)
+            ?: System.currentTimeMillis().takeIf { it >= MIN_SANE_REFERENCE_MS }
+            ?: return repaired
+        return repaired.copy(date = formatIsoDate(ref)).withReportingWeek().withRouteMetrics()
+    }
+
+    private fun hasIsoDate(date: String): Boolean =
+        date.length >= 10 && date[4] == '-' && date[7] == '-'
+
     private fun saneReferenceMillis(millis: Long?): Long? =
         millis?.takeIf { it >= MIN_SANE_REFERENCE_MS }
 }

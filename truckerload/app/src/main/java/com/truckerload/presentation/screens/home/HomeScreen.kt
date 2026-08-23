@@ -37,6 +37,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.AuthStatusBanner
+import com.truckerload.presentation.components.SyncStatusBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.components.QuickActionsBottomSheet
 import com.truckerload.presentation.connectivity.ConnectivityObserver
@@ -268,6 +269,7 @@ fun HomeScreen(
                         )
                     }
                     AuthStatusBanner()
+                    SyncStatusBanner()
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         uiState = uiState,

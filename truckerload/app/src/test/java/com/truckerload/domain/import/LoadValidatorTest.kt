@@ -76,16 +76,33 @@ class LoadValidatorTest {
         assertTrue(delOnly.isValid)
     }
 
+    @Test
+    fun validate_rejectsBlankDate() {
+        val result = validator.validate(sampleLoad(tripId = "T-123", totalRate = 500.0, date = ""))
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.contains("date", ignoreCase = true) })
+    }
+
+    @Test
+    fun validate_rejectsMalformedDate() {
+        val result = validator.validate(sampleLoad(tripId = "T-123", totalRate = 500.0, date = "07/16"))
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.contains("date", ignoreCase = true) })
+    }
+
     private fun sampleLoad(
         tripId: String,
         totalRate: Double,
         pointA: String = "Atlanta, GA",
         pointB: String = "Denver, CO",
+        date: String = "2026-07-16",
         stops: List<Stop> = emptyList(),
     ) = Load(
         id = "load-1",
         tripId = tripId,
-        date = "2026-07-16",
+        date = date,
         totalRate = totalRate,
         totalMiles = 850.0,
         pointA = pointA,

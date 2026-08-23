@@ -178,6 +178,8 @@
     <string name="home_cd_bot_active">Telegram bot active</string>
     <string name="home_cd_bot_inactive">Telegram bot inactive</string>
     <string name="connectivity_offline_banner">Offline — local data available; Drive sync paused</string>
+    <string name="sync_error_banner">Sync error: %1$s</string>
+    <string name="sync_error_banner_retryable">Sync error: %1$s. Tap to retry.</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_weekly_goal">Goal</string>
     <string name="nav_logbook">Loads</string>

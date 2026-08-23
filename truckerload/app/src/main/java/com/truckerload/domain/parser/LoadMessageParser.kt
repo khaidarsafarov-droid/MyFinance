@@ -110,7 +110,7 @@ object LoadMessageParser {
         val draft = Load(
             id = tripId,
             tripId = tripId,
-            date = date,
+            date = date.orEmpty(),
             totalRate = totalRate,
             totalMiles = totalMiles,
             pointA = pointA,
@@ -125,8 +125,10 @@ object LoadMessageParser {
             stops = stops,
             penalties = emptyList()
         )
-        val (weekNumber, year) = com.truckerload.utils.getLoadReportingWeek(draft)
-        return draft.copy(weekNumber = weekNumber, year = year).withRouteMetrics()
+        // Blank Pu-time → date ""; anchor to message/paste time so week is not "today".
+        val dated = com.truckerload.utils.LoadDateRepair.ensureDate(draft, referenceMillis = now)
+        val (weekNumber, year) = com.truckerload.utils.getLoadReportingWeek(dated)
+        return dated.copy(weekNumber = weekNumber, year = year).withRouteMetrics()
     }
 
     private fun parseAllStops(block: String, tripId: String): List<Stop> {

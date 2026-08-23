@@ -152,12 +152,14 @@ class ImportLoadsUseCase(
             parsedLoads.forEachIndexed { index, load ->
                 onProgress(index + 1, total)
 
-                val validation = validator.validate(load)
+                // Repair blank dates from parsedAt / message time before validation (D-02).
+                val candidate = com.truckerload.utils.LoadDateRepair.ensureDate(load)
+                val validation = validator.validate(candidate)
                 if (!validation.isValid) {
                     results.add(
                         ImportResult.Failed(
-                            tripId = load.tripId,
-                            rawBlock = load.rawMessage.take(200),
+                            tripId = candidate.tripId,
+                            rawBlock = candidate.rawMessage.take(200),
                             error = validation.errors.joinToString("; "),
                         )
                     )
@@ -165,9 +167,9 @@ class ImportLoadsUseCase(
                 }
 
                 val result = if (loadProcessor != null) {
-                    processWithProcessor(load)
+                    processWithProcessor(candidate)
                 } else {
-                    processLegacy(load)
+                    processLegacy(candidate)
                 }
                 results.add(result)
             }
