@@ -28,12 +28,11 @@
     <string name="nav_community">Community</string>
 
     <string name="analytics_title">My numbers</string>
-    <string name="analytics_subtitle">What you earned, where you ran, and what was left after diesel</string>
+    <string name="analytics_subtitle">Paycheck, diesel, and routes — side by side, no subtraction</string>
     <string name="analytics_finance_title">Money for this period</string>
-    <string name="analytics_finance_empty">Add a paycheck or diesel — then you will see what is left here.</string>
-    <string name="analytics_finance_net_profit">Left after diesel</string>
-    <string name="analytics_finance_paycheck">Paycheck take-home</string>
-    <string name="analytics_finance_diesel">Spent on diesel</string>
+    <string name="analytics_finance_empty">Add a paycheck or diesel — the report will show here.</string>
+    <string name="analytics_finance_paycheck">Paycheck</string>
+    <string name="analytics_finance_diesel">Diesel</string>
     <string name="analytics_finance_gallons">Gallons filled</string>
     <string name="analytics_finance_avg_price">Average price per gallon</string>
     <string name="analytics_finance_savings">Saved with discount: %1$s</string>
@@ -91,7 +90,27 @@
     <string name="tablet_home_goal_set">Set a weekly goal</string>
     <string name="home_period_filter_label">Period</string>
     <string name="home_add_load_button">Add load</string>
-    <string name="analytics_export_cd">Save report</string>
+    <string name="analytics_export_cd">Share report</string>
+    <string name="analytics_share_title">Send report</string>
+    <string name="analytics_share_body">Pick a format — the file opens in Telegram, WhatsApp, email, Excel, and other apps.</string>
+    <string name="analytics_share_chooser">Send report</string>
+    <string name="analytics_share_as_text">Readable text (.txt)</string>
+    <string name="analytics_share_as_text_hint">Easy to read in a messenger or email</string>
+    <string name="analytics_share_as_csv">CSV spreadsheet</string>
+    <string name="analytics_share_as_csv_hint">Opens in Excel and Google Sheets</string>
+    <string name="analytics_share_failed">Could not prepare the report</string>
+    <string name="analytics_share_caption">%1$s — %2$s (%3$s)</string>
+    <string name="analytics_share_caption_named">%1$s — %2$s (%3$s)\n%4$s</string>
+    <string name="analytics_share_period">Period: %1$s</string>
+    <string name="analytics_share_summary_section">Summary</string>
+    <string name="analytics_share_savings">Diesel discount saved</string>
+    <string name="analytics_share_amount">Amount</string>
+    <string name="analytics_share_route">Route</string>
+    <string name="analytics_share_day">Day</string>
+    <string name="analytics_share_owner">Driver</string>
+    <string name="analytics_share_given_name">First name</string>
+    <string name="analytics_share_family_name">Last name</string>
+    <string name="analytics_share_name_hint">Your profile first and last name go into the file. You can edit them before sending.</string>
     <string name="social_chat_name_hint">Chat name</string>
     <string name="social_chat_create_error">Could not create chat: %1$s</string>
     <string name="login_google_error">Google sign-in error: %1$s. Configure OAuth in Google Cloud Console (package: com.truckerload, SHA-1).</string>
@@ -212,11 +231,11 @@
     <string name="about_guide_diesel_title">5. Diesel</string>
     <string name="about_guide_diesel_body">Menu → Diesel opens the fill journal. Pick a week, All days, or a specific date. Each card shows date, location, amount, gallons, price, and discount; the week total is at the top. Plus (+) opens the add form. From the widget or by saying add diesel you go straight to the form.</string>
     <string name="about_guide_paycheck_title">6. Paycheck</string>
-    <string name="about_guide_paycheck_body">Menu → Paycheck opens the payout journal. You see every previous paycheck; pick a week or search by amount and file. Plus (+) opens the form: file/photo, Telegram, or enter the amount. It feeds Reports: net profit is paycheck minus diesel.</string>
+    <string name="about_guide_paycheck_body">Menu → Paycheck opens the payout journal. You see every previous paycheck; pick a week or search by amount and file. Plus (+) opens the form: file/photo, Telegram, or enter the amount. In My numbers, paycheck and diesel sit side by side in color — no subtraction.</string>
     <string name="about_guide_tax_title">7. Taxes</string>
     <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($69/day). It is a guide, not tax advice.</string>
     <string name="about_guide_reports_title">8. Reports</string>
-    <string name="about_guide_reports_body">Menu → Reports: weekly and route income, finances (paycheck and diesel), and CSV export. From there you can open the financial advisor and ask about income, lanes, or taxes.</string>
+    <string name="about_guide_reports_body">Menu → Reports: weekly and route income, paycheck and diesel side by side in color (no subtraction), and CSV export. From there you can open the financial advisor and ask about income, lanes, or taxes.</string>
     <string name="about_guide_map_title">9. Map</string>
     <string name="about_guide_map_body">Menu → Map: your RPM by origin state for the week, month, or year. Tap a state for recent rates and top lanes.</string>
     <string name="about_guide_docs_title">10. Documents, camera, and scanner</string>
@@ -1233,6 +1252,10 @@
 
     <!-- Community -->
     <string name="profile">Profile</string>
+    <string name="profile_name_section_title">First and last name</string>
+    <string name="profile_name_section_hint">This name goes into files you share from My numbers.</string>
+    <string name="profile_name_saved">Name saved</string>
+    <string name="profile_name_required">Enter a first or last name</string>
     <string name="profile_setup_title">Profile setup</string>
     <string name="profile_setup_next">Next</string>
     <string name="profile_setup_name_required">Enter your name</string>

@@ -2,8 +2,8 @@ package com.truckerload.domain.model.analytics
 
 /**
  * Money side of a reporting period, built only from the driver's own paycheck
- * and diesel entries. Net profit follows the journal rule used for weeks:
- * paycheck minus diesel.
+ * and diesel entries. Totals stay separate so the report does not pick a
+ * net-profit formula for the driver.
  */
 data class PeriodFinance(
     val paycheckTotal: Double = 0.0,
@@ -11,8 +11,6 @@ data class PeriodFinance(
     val dieselGallons: Double = 0.0,
     val dieselSavings: Double = 0.0,
 ) {
-    val netProfit: Double get() = paycheckTotal - dieselTotal
-
     val avgPricePerGallon: Double?
         get() = if (dieselGallons > 0.0) dieselTotal / dieselGallons else null
 

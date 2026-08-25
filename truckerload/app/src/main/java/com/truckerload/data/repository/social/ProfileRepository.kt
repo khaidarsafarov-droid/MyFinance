@@ -20,6 +20,7 @@ interface ProfileRepository {
         axleCount: Int = 0,
         homeHubCity: String = "",
     ): SocialResult<Unit>
+    suspend fun updateOwnName(givenName: String, familyName: String)
     suspend fun clearLocalIdentity()
     fun watchMyEnhancedProfile(): Flow<EnhancedDriverProfile>
     fun watchMyProfile(): Flow<DriverProfile>

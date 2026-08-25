@@ -28,12 +28,11 @@
     <string name="nav_community">Сообщество</string>
 
     <string name="analytics_title">Мои цифры</string>
-    <string name="analytics_subtitle">Сколько заработали, куда ездили и что осталось после дизеля</string>
+    <string name="analytics_subtitle">Зарплата, дизель и маршруты — цифры рядом, без вычетов</string>
     <string name="analytics_finance_title">Деньги за период</string>
-    <string name="analytics_finance_empty">Добавьте зарплату или дизель — здесь будет видно, сколько осталось.</string>
-    <string name="analytics_finance_net_profit">Осталось после дизеля</string>
-    <string name="analytics_finance_paycheck">Зарплата на руки</string>
-    <string name="analytics_finance_diesel">Потрачено на дизель</string>
+    <string name="analytics_finance_empty">Добавьте зарплату или дизель — здесь будет общий отчёт.</string>
+    <string name="analytics_finance_paycheck">Зарплата</string>
+    <string name="analytics_finance_diesel">Дизель</string>
     <string name="analytics_finance_gallons">Сколько галлонов</string>
     <string name="analytics_finance_avg_price">Средняя цена за галлон</string>
     <string name="analytics_finance_savings">Сэкономили на скидке: %1$s</string>
@@ -91,7 +90,27 @@
     <string name="tablet_home_goal_set">Задайте цель недели</string>
     <string name="home_period_filter_label">Период</string>
     <string name="home_add_load_button">Добавить груз</string>
-    <string name="analytics_export_cd">Сохранить отчёт</string>
+    <string name="analytics_export_cd">Поделиться отчётом</string>
+    <string name="analytics_share_title">Отправить отчёт</string>
+    <string name="analytics_share_body">Выберите формат — файл откроется в Telegram, WhatsApp, почте, Excel и других приложениях.</string>
+    <string name="analytics_share_chooser">Отправить отчёт</string>
+    <string name="analytics_share_as_text">Понятный текст (.txt)</string>
+    <string name="analytics_share_as_text_hint">Удобно читать в мессенджере или письме</string>
+    <string name="analytics_share_as_csv">Таблица CSV</string>
+    <string name="analytics_share_as_csv_hint">Откроется в Excel и Google Таблицах</string>
+    <string name="analytics_share_failed">Не удалось подготовить отчёт</string>
+    <string name="analytics_share_caption">%1$s — %2$s (%3$s)</string>
+    <string name="analytics_share_caption_named">%1$s — %2$s (%3$s)\n%4$s</string>
+    <string name="analytics_share_period">Период: %1$s</string>
+    <string name="analytics_share_summary_section">Сводка</string>
+    <string name="analytics_share_savings">Сэкономили на скидке</string>
+    <string name="analytics_share_amount">Сумма</string>
+    <string name="analytics_share_route">Маршрут</string>
+    <string name="analytics_share_day">День</string>
+    <string name="analytics_share_owner">Водитель</string>
+    <string name="analytics_share_given_name">Имя</string>
+    <string name="analytics_share_family_name">Фамилия</string>
+    <string name="analytics_share_name_hint">Имя и фамилия из профиля попадут в файл. Можно поправить перед отправкой.</string>
     <string name="social_chat_name_hint">Название чата</string>
     <string name="social_chat_create_error">Не удалось создать чат: %1$s</string>
     <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckerload, SHA-1).</string>
@@ -212,11 +231,11 @@
     <string name="about_guide_diesel_title">5. Дизель</string>
     <string name="about_guide_diesel_body">Меню → «Дизель» открывает журнал заправок. Выберите неделю, «Все дни» или конкретное число. На карточке — дата, локация, сумма, галлоны, цена и скидка; сверху — итог за неделю. Плюс (+) открывает форму новой заправки. С виджета или голосом «добавить дизель» сразу открывается форма.</string>
     <string name="about_guide_paycheck_title">6. Зарплата</string>
-    <string name="about_guide_paycheck_body">Меню → «Зарплата» открывает журнал выплат. Сразу видны все предыдущие зарплаты; можно выбрать неделю или найти по сумме и файлу. Плюс (+) открывает форму: файл/фото, Telegram или сумма вручную. Запись попадёт в отчёты: чистая прибыль считается как зарплата минус дизель.</string>
+    <string name="about_guide_paycheck_body">Меню → «Зарплата» открывает журнал выплат. Сразу видны все предыдущие зарплаты; можно выбрать неделю или найти по сумме и файлу. Плюс (+) открывает форму: файл/фото, Telegram или сумма вручную. В «Мои цифры» зарплата и дизель рядом по цветам — без вычета.</string>
     <string name="about_guide_tax_title">7. Налоги</string>
     <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($69/день). Это ориентир, а не налоговая консультация.</string>
     <string name="about_guide_reports_title">8. Отчёты</string>
-    <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, финансы (зарплата и дизель), экспорт CSV. Оттуда можно открыть финансового советника и спросить про доход, маршруты или налоги.</string>
+    <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, зарплата и дизель рядом по цветам (без вычета), экспорт CSV. Оттуда можно открыть финансового советника и спросить про доход, маршруты или налоги.</string>
     <string name="about_guide_map_title">9. Карта</string>
     <string name="about_guide_map_body">Меню → «Карта»: ваши RPM по штатам за неделю, месяц или год (откуда уехал груз). Нажмите штат — свежие ставки и топ-направления.</string>
     <string name="about_guide_docs_title">10. Документы, камера и сканер</string>
@@ -1233,6 +1252,10 @@
 
     <!-- Сообщество -->
     <string name="profile">Профиль</string>
+    <string name="profile_name_section_title">Имя и фамилия</string>
+    <string name="profile_name_section_hint">Это имя попадёт в файлы, которыми вы делитесь с экрана «Мои цифры».</string>
+    <string name="profile_name_saved">Имя сохранено</string>
+    <string name="profile_name_required">Введите имя или фамилию</string>
     <string name="profile_setup_title">Настройка профиля</string>
     <string name="profile_setup_next">Далее</string>
     <string name="profile_setup_name_required">Введите имя</string>

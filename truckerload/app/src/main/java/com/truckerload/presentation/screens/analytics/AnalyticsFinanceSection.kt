@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,8 +23,8 @@ import com.truckerload.presentation.utils.MoneyFormat
 import java.util.Locale
 
 /**
- * Money summary for the selected reporting period: settlement in, diesel out,
- * and what the fuel discount saved. All values come from the driver's own entries.
+ * Period money report: paycheck in and diesel out as separate color-coded
+ * totals. The app does not subtract them — each driver reads the pair themselves.
  */
 @Composable
 fun AnalyticsFinanceSection(
@@ -52,25 +53,14 @@ fun AnalyticsFinanceSection(
                 return@Column
             }
 
-            Text(
-                text = MoneyFormat.formatCurrency(finance.netProfit),
-                style = AppTypography.HeroNumber,
-                color = if (finance.netProfit >= 0) tc.AccentProfit else tc.AccentExpense,
-            )
-            Text(
-                text = stringResource(R.string.analytics_finance_net_profit),
-                style = MaterialTheme.typography.labelMedium,
-                color = tc.TextSecondary,
-            )
-
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FinanceStat(
+                FinanceHeadline(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.analytics_finance_paycheck),
                     value = MoneyFormat.formatCurrency(finance.paycheckTotal),
                     valueColor = FinanceCockpitColors.SalaryAccent,
                 )
-                FinanceStat(
+                FinanceHeadline(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.analytics_finance_diesel),
                     value = MoneyFormat.formatCurrency(finance.dieselTotal),
@@ -112,10 +102,32 @@ fun AnalyticsFinanceSection(
 }
 
 @Composable
+private fun FinanceHeadline(
+    label: String,
+    value: String,
+    valueColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val tc = LocalTruckColors.current
+    Column(modifier = modifier) {
+        Text(
+            text = value,
+            style = AppTypography.HeroNumberCompact,
+            color = valueColor,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = tc.TextSecondary,
+        )
+    }
+}
+
+@Composable
 private fun FinanceStat(
     label: String,
     value: String,
-    valueColor: androidx.compose.ui.graphics.Color,
+    valueColor: Color,
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
