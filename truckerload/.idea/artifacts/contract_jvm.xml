@@ -1,8 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="contract-jvm">
     <output-path>$PROJECT_DIR$/shared/contract/build/libs</output-path>
-    <root id="archive" name="contract-jvm.jar">
-      <element id="module-output" name="TruckerLoad.shared.contract.jvmMain" />
-    </root>
+    <root id="archive" name="contract-jvm.jar" />
   </artifact>
 </component>
