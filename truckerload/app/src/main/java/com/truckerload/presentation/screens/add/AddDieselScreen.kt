@@ -40,7 +40,6 @@ import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.formatDateForDisplay
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.formatIsoDate
-import com.truckerload.utils.getWeekRange
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,7 +54,6 @@ fun AddDieselScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var datePickerThenTime by remember { mutableStateOf(false) }
-    val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
@@ -163,12 +161,6 @@ fun AddDieselScreen(
                         )
                     }
                 }
-                JournalWeekSelectorRow(
-                    weekNumber = uiState.weekNumber,
-                    weekLabel = weekLabel,
-                    onPreviousWeek = viewModel::selectPreviousWeek,
-                    onNextWeek = viewModel::selectNextWeek,
-                )
                 OutlinedTextField(
                     value = uiState.gallonsText,
                     onValueChange = viewModel::setGallonsText,
