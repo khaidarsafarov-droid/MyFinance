@@ -205,7 +205,7 @@ private fun androidx.compose.foundation.layout.ColumnScope.CompactTabletRailCont
             val selected = when {
                 dest.route != null -> isRailDestinationSelected(currentRoute, dest.route)
                 dest.drawer == DrawerDestination.SETTINGS ->
-                    currentRoute == Routes.SETTINGS || currentRoute == Routes.FINANCIAL_ADVISOR
+                    currentRoute == Routes.SETTINGS || currentRoute == Routes.PRIVACY_SETTINGS
                 dest.drawer == DrawerDestination.REPORTS ->
                     currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
                 dest.drawer == DrawerDestination.DOCUMENTS ->
