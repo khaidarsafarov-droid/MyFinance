@@ -47,6 +47,8 @@ enum class DrawerDestination {
     ADD_PAYCHECK,
     ADD_DIESEL,
     VOICE_ASSISTANT,
+    CAMERA,
+    SCANNER,
     ABOUT,
 }
 
@@ -119,6 +121,16 @@ fun AppDrawerContent(
                 icon = AppIcons.Mic,
                 label = stringResource(R.string.assistant_title),
                 onClick = { onNavigate(DrawerDestination.VOICE_ASSISTANT); onClose() },
+            )
+            drawerItem(
+                icon = AppIcons.CameraAlt,
+                label = stringResource(R.string.camera),
+                onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
+            )
+            drawerItem(
+                icon = AppIcons.DocumentScanner,
+                label = stringResource(R.string.scanner),
+                onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
             )
 
             DrawerSectionLabel(stringResource(R.string.drawer_section_maintenance))

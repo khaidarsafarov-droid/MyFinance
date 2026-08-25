@@ -242,6 +242,8 @@ fun NavGraph(
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
                 DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
+                DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
+                DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
             }
         },

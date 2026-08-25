@@ -9,15 +9,17 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FlashAuto
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -28,6 +30,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -36,11 +41,12 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Material Icons Core aliases — replaces [androidx.compose.material.icons-extended].
- * Extended icons are mapped to the closest core equivalent for APK size.
+ * App icon aliases. Prefer Material Icons Core; camera / flash / scanner use
+ * [material-icons-extended] so the restored camera UX keeps recognizable glyphs.
  */
 object AppIcons {
     val Add = Icons.Filled.Add
@@ -53,7 +59,7 @@ object AppIcons {
     val BrightnessAuto = Icons.Filled.Settings
     val Build = Icons.Filled.Build
     val CalendarMonth = Icons.Filled.DateRange
-    val CameraAlt = Icons.Filled.Create
+    val CameraAlt = Icons.Filled.CameraAlt
     val CheckCircle = Icons.Filled.CheckCircle
     val ChevronLeft = Icons.AutoMirrored.Filled.KeyboardArrowLeft
     val ChevronRight = Icons.AutoMirrored.Filled.KeyboardArrowRight
@@ -66,7 +72,7 @@ object AppIcons {
     val Delete = Icons.Filled.Delete
     val DeleteForever = Icons.Filled.Delete
     val Description = Icons.Filled.List
-    val DocumentScanner = Icons.Filled.Search
+    val DocumentScanner = Icons.Filled.DocumentScanner
     val Edit = Icons.Filled.Edit
     val EditNote = Icons.Filled.Edit
     val ExpandLess = Icons.Filled.KeyboardArrowUp
@@ -74,9 +80,9 @@ object AppIcons {
     val Face = Icons.Filled.Face
     val FileDownload = Icons.Filled.Share
     val Flag = Icons.Filled.Star
-    val FlashAuto = Icons.Filled.Settings
-    val FlashOff = Icons.Filled.Settings
-    val FlashOn = Icons.Filled.Settings
+    val FlashAuto = Icons.Filled.FlashAuto
+    val FlashOff = Icons.Filled.FlashOff
+    val FlashOn = Icons.Filled.FlashOn
     val Fullscreen = Icons.Filled.ArrowForward
     val Handyman = Icons.Filled.Build
     val Info = Icons.Filled.Info
@@ -92,9 +98,9 @@ object AppIcons {
     val Notifications = Icons.Filled.Notifications
     val Payments = Icons.Filled.ShoppingCart
     val Person = Icons.Filled.Person
-    val Photo = Icons.Filled.Favorite
-    val PhotoCamera = Icons.Filled.Create
-    val PhotoLibrary = Icons.Filled.Favorite
+    val Photo = Icons.Filled.Photo
+    val PhotoCamera = Icons.Filled.PhotoCamera
+    val PhotoLibrary = Icons.Filled.PhotoLibrary
     val Place = Icons.Filled.Place
     val PlayArrow = Icons.Filled.PlayArrow
     val PrivacyTip = Icons.Filled.Info

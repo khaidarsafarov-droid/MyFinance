@@ -213,6 +213,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material")
     implementation("androidx.compose.material:material-icons-core")
+    // Camera / flash glyphs (CameraAlt, FlashOn/Off/Auto) — kept for the restored camera UX.
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
