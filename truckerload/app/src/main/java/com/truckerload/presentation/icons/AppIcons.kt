@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
@@ -88,7 +89,7 @@ object AppIcons {
     val Info = Icons.Filled.Info
     val LightMode = Icons.Filled.Settings
     val LocalGasStation = Icons.Filled.Place
-    val LocalShipping = Icons.Filled.ShoppingCart
+    val LocalShipping = Icons.Filled.LocalShipping
     val LocationOn = Icons.Filled.LocationOn
     val Lock = Icons.Filled.Lock
     val Logout = Icons.AutoMirrored.Filled.ExitToApp
