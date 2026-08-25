@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→34 (startVersion 25..33). */
+/** Room migrations for schema versions 25→35 (startVersion 25..34). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -323,5 +323,17 @@ val MIGRATION_32_33 = object : Migration(32, 33) {
 val MIGRATION_33_34 = object : Migration(33, 34) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.addColumnIfMissing("diesel", "discountPricePerGallon", "REAL")
+    }
+}
+
+/** Document folders on scan gallery (load / paycheck / diesel / truck / other). */
+val MIGRATION_34_35 = object : Migration(34, 35) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("scans", "category", "TEXT NOT NULL DEFAULT 'OTHER'")
+        if (db.hasTable("scans")) {
+            db.execLogged(
+                "UPDATE scans SET category = 'LOAD' WHERE IFNULL(loadId, '') != ''",
+            )
+        }
     }
 }

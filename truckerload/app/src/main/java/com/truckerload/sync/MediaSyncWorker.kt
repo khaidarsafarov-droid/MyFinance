@@ -392,6 +392,7 @@ class MediaSyncWorker @AssistedInject constructor(
             pageCount = json.int("pageCount") ?: current?.pageCount ?: 1,
             ocrText = json.string("ocrText") ?: current?.ocrText.orEmpty(),
             loadId = loadId,
+            category = json.string("category") ?: current?.category ?: "OTHER",
             cloudMediaId = mediaId,
             cloudSyncStatus = ScanEntity.CLOUD_SYNCED,
             cloudUpdatedAt = updatedAt,

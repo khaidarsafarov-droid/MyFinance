@@ -1,26 +1,19 @@
 package com.truckerload.presentation.screens.scanner
 
-import com.truckerload.presentation.icons.AppIcons
-
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,32 +32,23 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.local.entities.ScanEntity
-import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.ScanDocumentCategory
+import com.truckerload.domain.model.ScanDocumentFinder
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalScanRepository
+import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.utils.PDFGenerator
+import com.truckerload.presentation.theme.appFormField
 import com.truckerload.utils.ShareHelper
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private data class ScanListRow(
-    val scan: ScanEntity,
-    val tripId: String,
-    val dateLabel: String,
-    val routeLabel: String,
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanGalleryScreen(
     onBack: () -> Unit,
@@ -76,8 +60,10 @@ fun ScanGalleryScreen(
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
     var rows by remember { mutableStateOf<List<ScanListRow>>(emptyList()) }
-    var selected by remember { mutableStateOf<ScanListRow?>(null) }
+    var selectedId by remember { mutableStateOf<String?>(null) }
     var scanToDelete by remember { mutableStateOf<ScanEntity?>(null) }
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf<ScanDocumentCategory?>(null) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -100,8 +86,28 @@ fun ScanGalleryScreen(
         }
     }
 
+    val categoryCounts = remember(rows) {
+        rows.groupingBy { it.category }.eachCount()
+    }
+    val visibleRows = remember(rows, filter, query) {
+        rows.filter { row ->
+            ScanDocumentFinder.matches(
+                storedCategory = row.scan.category,
+                fileName = row.scan.fileName,
+                ocrText = row.scan.ocrText,
+                tripId = row.tripId,
+                routeLabel = row.routeLabel,
+                dateLabel = row.dateLabel,
+                filter = filter,
+                query = query,
+            )
+        }
+    }
+    val selected = selectedId?.let { id -> rows.find { it.scan.id == id } }
+
     SoftAppPageScaffold(
-        title = stringResource(R.string.scans_gallery),
+        title = stringResource(R.string.drawer_documents),
+        subtitle = stringResource(R.string.scan_gallery_subtitle),
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,
@@ -122,18 +128,59 @@ fun ScanGalleryScreen(
                 )
             }
         } else {
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                items(rows, key = { it.scan.id }) { row ->
-                    ScanSummaryCard(
-                        row = row,
-                        onClick = { selected = row },
-                    )
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .appFormField(),
+                    placeholder = { Text(stringResource(R.string.scan_search_hint)) },
+                    leadingIcon = {
+                        Icon(AppIcons.Search, contentDescription = stringResource(R.string.common_search))
+                    },
+                    singleLine = true,
+                    colors = AppTextFieldDefaults.outlined(),
+                )
+                ScanCategoryFilterChips(
+                    selected = filter,
+                    counts = categoryCounts,
+                    totalCount = rows.size,
+                    onSelect = { filter = it },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+                if (visibleRows.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.no_scans_in_filter),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        items(visibleRows, key = { it.scan.id }) { row ->
+                            ScanSummaryCard(
+                                row = row,
+                                onClick = { selectedId = row.scan.id },
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -142,17 +189,18 @@ fun ScanGalleryScreen(
     selected?.let { row ->
         ScanDetailDialog(
             row = row,
-            onDismiss = { selected = null },
-            onOpen = {
-                openPdf(context, row.scan)
-            },
+            onDismiss = { selectedId = null },
+            onOpen = { openPdf(context, row.scan) },
             onShare = {
                 val file = File(row.scan.filePath)
                 if (file.exists()) ShareHelper(context).sharePdf(file)
             },
             onDelete = {
-                selected = null
+                selectedId = null
                 scanToDelete = row.scan
+            },
+            onCategory = { category ->
+                scope.launch { scanRepository.updateScanCategory(row.scan.id, category) }
             },
         )
     }
@@ -208,6 +256,12 @@ private fun ScanSummaryCard(
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
+                    text = stringResource(row.category.labelRes()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = tc.AccentPrimary,
+                    maxLines = 1,
+                )
+                Text(
                     text = row.tripId,
                     style = MaterialTheme.typography.titleSmall,
                     color = tc.TextPrimary,
@@ -235,165 +289,6 @@ private fun ScanSummaryCard(
             )
         }
     }
-}
-
-@Composable
-private fun ScanDetailDialog(
-    row: ScanListRow,
-    onDismiss: () -> Unit,
-    onOpen: () -> Unit,
-    onShare: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    val scan = row.scan
-    val fileExists = remember(scan.filePath) { File(scan.filePath).exists() }
-    val detailRows = remember(scan, row) {
-        buildList {
-            add(R.string.scan_detail_trip to row.tripId)
-            add(R.string.scan_detail_date to row.dateLabel)
-            add(R.string.scan_detail_route to row.routeLabel)
-            add(R.string.scan_detail_pages to scan.pageCount.toString())
-            add(R.string.scan_detail_size to PDFGenerator.formatFileSize(scan.fileSizeBytes))
-            add(R.string.scan_detail_file to scan.fileName)
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.scan_detail_title),
-                color = tc.TextPrimary,
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                detailRows.forEach { (labelRes, value) ->
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = stringResource(labelRes),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = tc.TextSecondary,
-                        )
-                        Text(
-                            text = value,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = tc.TextPrimary,
-                        )
-                    }
-                }
-                if (!fileExists) {
-                    Text(
-                        text = stringResource(R.string.scan_file_missing),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-                if (scan.ocrText.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.scan_detail_ocr),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = tc.TextSecondary,
-                    )
-                    scan.ocrText
-                        .lineSequence()
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                        .take(24)
-                        .forEach { line ->
-                            Text(
-                                text = "• $line",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = tc.TextPrimary,
-                            )
-                        }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedButton(
-                    onClick = onOpen,
-                    enabled = fileExists,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = stringResource(R.string.scan_open),
-                        maxLines = 1,
-                    )
-                }
-                OutlinedButton(
-                    onClick = onShare,
-                    enabled = fileExists,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = stringResource(R.string.send_to),
-                        maxLines = 1,
-                    )
-                }
-                OutlinedButton(
-                    onClick = onDelete,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = stringResource(R.string.common_delete),
-                        maxLines = 1,
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_close))
-            }
-        },
-    )
-}
-
-private fun resolveTripId(scan: ScanEntity, load: Load?): String {
-    load?.tripId?.takeIf { it.isNotBlank() }?.let { return it }
-    val fromName = scan.fileName.substringBefore('_').substringBefore('.')
-    if (fromName.isNotBlank() && fromName != scan.fileName) return fromName
-    return scan.fileName
-}
-
-private fun resolveRoute(scan: ScanEntity, load: Load?): String {
-    load?.let {
-        val route = it.route.ifBlank {
-            listOf(it.pointA, it.pointB).filter { p -> p.isNotBlank() }.joinToString(" → ")
-        }
-        if (route.isNotBlank()) return route
-    }
-    return extractRouteFromOcr(scan.ocrText)
-        ?: "—"
-}
-
-private fun extractRouteFromOcr(ocr: String): String? {
-    if (ocr.isBlank()) return null
-    val lines = ocr.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
-    val shipper = lines.firstOrNull { it.startsWith("Shipper:", ignoreCase = true) }
-        ?.substringAfter(':')
-        ?.trim()
-    val consignee = lines.firstOrNull {
-        it.startsWith("Consignee:", ignoreCase = true) ||
-            it.startsWith("Receiver:", ignoreCase = true) ||
-            it.startsWith("Delivery:", ignoreCase = true)
-    }?.substringAfter(':')?.trim()
-    return when {
-        !shipper.isNullOrBlank() && !consignee.isNullOrBlank() -> "$shipper → $consignee"
-        !shipper.isNullOrBlank() -> shipper
-        else -> null
-    }
-}
-
-private fun formatScanDate(timestamp: Long): String {
-    return SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(timestamp))
 }
 
 private fun openPdf(context: android.content.Context, scan: ScanEntity) {

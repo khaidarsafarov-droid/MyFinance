@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.domain.model.ScanDocumentCategory
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -51,6 +52,7 @@ fun ScanResultScreen(
     onShare: () -> Unit,
     onAddAnother: () -> Unit,
     onOpenGallery: () -> Unit,
+    onCategoryChange: (ScanDocumentCategory) -> Unit = {},
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -117,6 +119,17 @@ fun ScanResultScreen(
                 text = PhotoManager.formatDateTime(pending.timestamp),
                 style = MaterialTheme.typography.bodySmall,
                 color = tc.TextSecondary,
+            )
+
+            Text(
+                text = stringResource(R.string.scan_category_pick),
+                style = MaterialTheme.typography.titleSmall,
+                color = tc.TextPrimary,
+            )
+            ScanCategoryPickerChips(
+                selected = pending.category,
+                onSelect = onCategoryChange,
+                enabled = !pending.savedToDb,
             )
 
             Text(
