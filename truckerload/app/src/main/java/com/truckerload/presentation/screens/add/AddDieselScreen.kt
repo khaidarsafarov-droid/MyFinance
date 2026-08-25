@@ -32,7 +32,6 @@ import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.formatDateForDisplay
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.formatIsoDate
-import com.truckerload.utils.getWeekRange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +45,6 @@ fun AddDieselScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var datePickerThenTime by remember { mutableStateOf(false) }
-    val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
 
     DieselLocationPermissionEffect(onGranted = viewModel::ensureLocation)
 
@@ -156,12 +154,6 @@ fun AddDieselScreen(
                         )
                     }
                 }
-                JournalWeekSelectorRow(
-                    weekNumber = uiState.weekNumber,
-                    weekLabel = weekLabel,
-                    onPreviousWeek = viewModel::selectPreviousWeek,
-                    onNextWeek = viewModel::selectNextWeek,
-                )
                 DieselAmountFields(
                     uiState = uiState,
                     onGallonsChange = viewModel::setGallonsText,

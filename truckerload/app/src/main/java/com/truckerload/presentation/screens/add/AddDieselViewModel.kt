@@ -15,9 +15,7 @@ import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.OCRService
 import com.truckerload.utils.getCurrentWeekNumberAndYear
-import com.truckerload.utils.getMillisForWeek
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
-import com.truckerload.utils.shiftWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDataUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -168,18 +166,6 @@ class AddDieselViewModel @Inject constructor(
         }
     }
 
-    fun selectPreviousWeek() {
-        val state = _uiState.value
-        val (week, year) = shiftWeekNumberAndYear(state.weekNumber, state.year, -1)
-        setWeekAndYear(week, year)
-    }
-
-    fun selectNextWeek() {
-        val state = _uiState.value
-        val (week, year) = shiftWeekNumberAndYear(state.weekNumber, state.year, 1)
-        setWeekAndYear(week, year)
-    }
-
     fun openSaveDialog() {
         if (_uiState.value.isSaving) return
         val validationError = validateInputs(_uiState.value)
@@ -187,7 +173,7 @@ class AddDieselViewModel @Inject constructor(
             _uiState.update { it.copy(error = validationError) }
             return
         }
-        // Keep recordedAtMillis / selected week — do not force "now".
+        // Keep recordedAtMillis (week is derived from it) — do not force "now".
         savedStateHandle[KEY_SHOW_SAVE_DIALOG] = true
         _uiState.update { it.copy(error = null, showSaveDialog = true) }
     }
@@ -317,21 +303,6 @@ class AddDieselViewModel @Inject constructor(
             return app.getString(R.string.common_amount_must_be_positive)
         }
         return null
-    }
-
-    private fun setWeekAndYear(weekNumber: Int, year: Int) {
-        val millis = getMillisForWeek(weekNumber, year)
-        savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
-        savedStateHandle[KEY_YEAR] = year
-        savedStateHandle[KEY_RECORDED_AT_MILLIS] = millis
-        _uiState.update {
-            it.copy(
-                weekNumber = weekNumber,
-                year = year,
-                recordedAtMillis = millis,
-                error = null,
-            )
-        }
     }
 
     private fun setRecordedAtMillis(value: Long) {
