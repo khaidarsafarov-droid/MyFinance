@@ -58,7 +58,7 @@ object LoadExporter {
 
     private fun formatHeader(count: Int): String = buildString {
         appendLine("========================================")
-        appendLine("📝🚛 TRUCK LOG — ALL LOADS")
+        appendLine("📝🚛 ${BrandConstants.DISPLAY_NAME} — ALL LOADS")
         appendLine("========================================")
         appendLine("Export date: ${formatExportTimestamp()}")
         appendLine("Total loads: $count")

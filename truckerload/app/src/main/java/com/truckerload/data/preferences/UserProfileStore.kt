@@ -19,7 +19,7 @@ data class UserProfile(
     val phoneNumber: String? = null,
     /** Google OpenID `sub` — stable identity key for this Google account. */
     val googleId: String? = null,
-    /** Unique Truck Log handle for finding friends (@nickname). */
+    /** Unique TruckoRig handle for finding friends (@nickname). */
     val nickname: String? = null,
     /** True after the driver sets a display name in the app (not Google's name). */
     val customDisplayName: Boolean = false,

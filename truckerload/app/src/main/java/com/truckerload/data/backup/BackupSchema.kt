@@ -1,5 +1,6 @@
 package com.truckerload.data.backup
 
+import com.truckerload.utils.BrandConstants
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,6 +25,6 @@ object BackupSchema {
 
     fun jsonFileName(exportedAt: Long): String {
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date(exportedAt))
-        return "TruckLog_Backup_$stamp.json"
+        return "${BrandConstants.FILE_PREFIX}_Backup_$stamp.json"
     }
 }

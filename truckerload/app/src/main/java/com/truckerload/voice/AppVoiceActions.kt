@@ -3,7 +3,7 @@ package com.truckerload.voice
 import com.truckerload.presentation.navigation.Routes
 
 /**
- * Voice commands map to real Truck Log screens — the same destinations as
+ * Voice commands map to real TruckoRig screens — the same destinations as
  * [Routes], the drawer, and the bottom tabs.
  */
 sealed class AppVoiceAction {

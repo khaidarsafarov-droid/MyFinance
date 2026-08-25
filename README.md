@@ -1,4 +1,4 @@
-# TruckerLoad
+# TruckoRig
 
 The product source is in [`truckerload/`](truckerload/): a native Android app,
 shared Kotlin contracts, and its Ktor cloud API. It is local-first and can run without

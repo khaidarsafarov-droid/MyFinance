@@ -84,7 +84,7 @@ class BackendMetrics(
 
     private fun resultCounter(name: String, result: String): Counter =
         Counter.builder(name)
-            .description("TruckerLoad backend operation outcomes")
+            .description("TruckoRig backend operation outcomes")
             .tag("result", result)
             .register(registry)
 

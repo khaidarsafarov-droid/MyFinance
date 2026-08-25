@@ -5,7 +5,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import com.truckerload.R
 
-/** Brand sans — DM Sans (Mindwell Forest / Truck Log canvas). */
+/** Brand sans — DM Sans (Mindwell Forest / TruckoRig canvas). */
 val DmSansFontFamily = FontFamily(
     Font(R.font.dm_sans_regular, FontWeight.Normal),
     Font(R.font.dm_sans_medium, FontWeight.Medium),

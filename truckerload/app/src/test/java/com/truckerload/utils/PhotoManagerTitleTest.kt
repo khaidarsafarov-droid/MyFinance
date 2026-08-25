@@ -11,7 +11,7 @@ class PhotoManagerTitleTest {
     fun resolveWatermarkTitle_prefersExplicitTitle() {
         assertEquals(
             "T-ABC",
-            PhotoManager.resolveWatermarkTitle("T-ABC", "T-OTHER", "Truck Log"),
+            PhotoManager.resolveWatermarkTitle("T-ABC", "T-OTHER", "TruckoRig"),
         )
     }
 
@@ -19,11 +19,11 @@ class PhotoManagerTitleTest {
     fun resolveWatermarkTitle_fallsBackToTripThenDefault() {
         assertEquals(
             "T-1",
-            PhotoManager.resolveWatermarkTitle(null, "T-1", "Truck Log"),
+            PhotoManager.resolveWatermarkTitle(null, "T-1", "TruckoRig"),
         )
         assertEquals(
-            "Truck Log",
-            PhotoManager.resolveWatermarkTitle("  ", null, "Truck Log"),
+            "TruckoRig",
+            PhotoManager.resolveWatermarkTitle("  ", null, "TruckoRig"),
         )
     }
 

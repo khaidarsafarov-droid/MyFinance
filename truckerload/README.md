@@ -1,6 +1,6 @@
-# TruckerLoad
+# TruckoRig
 
-TruckerLoad is a native Android trucking journal built with Kotlin, Jetpack Compose,
+TruckoRig is a native Android trucking journal built with Kotlin, Jetpack Compose,
 Room, and WorkManager. It remains fully local-first. When an HTTPS
 `SYNC_BACKEND_URL` is configured, the app also synchronizes account snapshots through
 the Ktor/JDK 21 backend; blank URL or `LOCAL_ONLY_MODE=true` retains the local mirror

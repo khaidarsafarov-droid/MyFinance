@@ -31,10 +31,10 @@ class ImprovementFeedbackMailTest {
         )!!
 
         assertEquals("Truckerlogsupport@gmail.com", draft.to)
-        assertEquals("[Truck Log] Does not work", draft.subject)
+        assertEquals("[TruckoRig] Does not work", draft.subject)
         assertTrue(draft.body.contains("Тема: Does not work"))
         assertTrue(draft.body.contains("Diesel save button does nothing"))
-        assertTrue(draft.body.contains("Truck Log 1.4.2 (88)"))
+        assertTrue(draft.body.contains("TruckoRig 1.4.2 (88)"))
         assertTrue(draft.body.contains("Android 14"))
     }
 
@@ -42,7 +42,7 @@ class ImprovementFeedbackMailTest {
     fun mailtoUri_targetsSupportInboxWithEncodedSubject() {
         val draft = ImprovementFeedbackMail.Draft(
             to = ImprovementFeedbackMail.SUPPORT_EMAIL,
-            subject = "[Truck Log] Need to add",
+            subject = "[TruckoRig] Need to add",
             body = "Please add DEF tracking",
         )
         val uri = ImprovementFeedbackMail.mailtoUriString(draft)

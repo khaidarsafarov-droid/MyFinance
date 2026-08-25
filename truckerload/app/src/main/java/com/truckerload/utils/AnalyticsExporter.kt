@@ -13,7 +13,7 @@ object AnalyticsExporter {
 
     /** Pure CSV body — safe for empty dashboards (zero loads, empty weeks/routes). */
     fun buildCsvContent(dashboard: AnalyticsDashboard, period: AnalyticsPeriod): String = buildString {
-        appendLine("Truck Log Analytics,${period.name}")
+        appendLine("${BrandConstants.DISPLAY_NAME} Analytics,${period.name}")
         appendLine()
         appendLine("Summary")
         val s = dashboard.summary

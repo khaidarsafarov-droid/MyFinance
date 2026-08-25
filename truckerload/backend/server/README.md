@@ -1,4 +1,4 @@
-# TruckerLoad backend
+# TruckoRig backend
 
 Ktor service for account snapshots, per-device cursors, direct object-storage uploads,
 the durable Telegram inbox, and optional FCM sync pushes. The Android app remains

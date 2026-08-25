@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Truck Log</string>
+    <string name="app_name">TruckoRig</string>
     <string name="app_tagline">Log your loads, track your earnings</string>
     <string name="common_back">Back</string>
     <string name="common_menu">Menu</string>
@@ -73,7 +73,7 @@
     <string name="login_google_drive_cta">Signed in with Google. Open Settings → Google Drive to enable backup sync.</string>
     <string name="login_checking">Checking account…</string>
 
-    <string name="home_brand_title">TRUCK LOG</string>
+    <string name="home_brand_title">TruckoRig</string>
     <string name="tablet_detail_empty_title">Select a load</string>
     <string name="tablet_detail_empty_body">Tap a load in the list to see its details</string>
     <string name="home_recent_loads">Recent loads</string>
@@ -200,7 +200,7 @@
 
     <string name="about_app_title">About the app</string>
     <string name="about_app_version">Version %1$s (%2$d)</string>
-    <string name="about_app_intro">How to use TRUCK LOG: Amazon Relay journal, disputes, weekly goal, diesel, paychecks, taxes, map, reports, Telegram, widget, voice, and backups.</string>
+    <string name="about_app_intro">How to use TruckoRig: Amazon Relay journal, disputes, weekly goal, diesel, paychecks, taxes, map, reports, Telegram, widget, voice, and backups.</string>
     <string name="about_guide_loads_title">1. Add a load</string>
     <string name="about_guide_loads_body">On Home tap Add load and pick a method: paste a Relay, Telegram, or email message, fill in the form, or upload a photo/PDF. You need a rate above zero and a pickup or delivery address. Save — the load appears in the journal with miles and RPM. If the trip has not started yet, you can set a start alarm.</string>
     <string name="about_guide_home_title">2. Home journal</string>
@@ -226,7 +226,7 @@
     <string name="about_guide_assistant_title">12. Voice assistant</string>
     <string name="about_guide_assistant_body">Menu → Voice assistant: tap the mic. You can open screens (diesel, goal, taxes), add a fill or paycheck, and ask for this week\'s gross. Nothing is written to the journal until you confirm.</string>
     <string name="about_guide_widget_title">13. Widget</string>
-    <string name="about_guide_widget_body">Add the TRUCK LOG home-screen widget: weekly gross and goal, RPM, plus camera, scanner, and Add diesel buttons.</string>
+    <string name="about_guide_widget_body">Add the TruckoRig home-screen widget: weekly gross and goal, RPM, plus camera, scanner, and Add diesel buttons.</string>
     <string name="about_guide_telegram_title">14. Telegram</string>
     <string name="about_guide_telegram_body">In Settings add a bot token from @BotFather. The on-device bot reads messages and adds loads, paychecks, and diesel to the journal.</string>
     <string name="about_guide_backup_title">15. Backup</string>
@@ -332,7 +332,7 @@
     <string name="camera_share_all">Share all</string>
     <string name="camera_save_all">Save all</string>
     <string name="location_permission_denied">Location permission denied</string>
-    <string name="watermark_app_name">Truck Log</string>
+    <string name="watermark_app_name">TruckoRig</string>
     <string name="watermark_unknown">Unknown</string>
     <string name="scanner">Scanner</string>
     <string name="scanning">Scanning…</string>
@@ -868,15 +868,15 @@
     <string name="telegram_id_hint">Example: 123456789</string>
     <string name="save_telegram_id">Save ID</string>
     <string name="telegram_id_saved">✅ Telegram ID saved</string>
-    <string name="telegram_export_caption">📦 Truck Log load export from %s</string>
+    <string name="telegram_export_caption">📦 TruckoRig load export from %s</string>
     <string name="file_received">📥 File received. Restored %d loads.</string>
     <string name="export_actions_title">Export ready</string>
-    <string name="settings_backup_desc">CSV is a spreadsheet of loads. The JSON file in Downloads/TruckLog is a full copy of loads, paychecks, and diesel.</string>
+    <string name="settings_backup_desc">CSV is a spreadsheet of loads. The JSON file in Downloads/TruckoRig is a full copy of loads, paychecks, and diesel.</string>
     <string name="settings_backup_saved">Backup: %1$d loads → %2$s</string>
     <string name="settings_backup_error">Could not create backup file</string>
     <string name="settings_backup_create">Create backup file</string>
     <string name="settings_backup_restore">Restore from file</string>
-    <string name="settings_backup_restore_hint">.json / .tlb file from Downloads/TruckLog (legacy Loads_….txt still works if it contains JSON)</string>
+    <string name="settings_backup_restore_hint">.json / .tlb file from Downloads/TruckoRig (legacy Loads_….txt still works if it contains JSON)</string>
     <string name="settings_backup_share_title">Share backup</string>
     <string name="drive_sync_title">Google Drive</string>
     <string name="drive_sync_desc">Data stays in Room on the phone. Cloud copy goes to your Google account (hidden app folder). iCloud is not available on Android.</string>
@@ -934,12 +934,12 @@
     <string name="quick_actions_title">Quick actions</string>
     <string name="quick_actions_diesel">Add diesel</string>
     <string name="home_load_deleted_snackbar">Load deleted</string>
-    <string name="widget_description">Truck Log 2×2 — gross and weekly goal</string>
-    <string name="widget_description_wide">Truck Log 4×2 — gross, RPM, and weekly goal</string>
-    <string name="widget_label">Truck Log 2×2</string>
-    <string name="widget_label_wide">Truck Log 4×2</string>
-    <string name="widget_brand_title">📝🚛 TRUCK LOG</string>
-    <string name="widget_brand_title_plain">TRUCK LOG</string>
+    <string name="widget_description">TruckoRig 2×2 — gross and weekly goal</string>
+    <string name="widget_description_wide">TruckoRig 4×2 — gross, RPM, and weekly goal</string>
+    <string name="widget_label">TruckoRig 2×2</string>
+    <string name="widget_label_wide">TruckoRig 4×2</string>
+    <string name="widget_brand_title">📝🚛 TruckoRig</string>
+    <string name="widget_brand_title_plain">TruckoRig</string>
     <string name="widget_goal_out_of">out of %1$s</string>
     <string name="widget_goal_out_of_placeholder">out of $0</string>
     <string name="widget_weekly_summary">Weekly Summary</string>
@@ -1019,14 +1019,14 @@
     <string name="telegram_onboarding_save">Save token</string>
     <string name="telegram_onboarding_skip">Skip for now</string>
     <string name="telegram_onboarding_skip_hint">You can add the bot later in Settings → Telegram bot.</string>
-    <string name="push_notification_channel_name">Truck Log updates</string>
-    <string name="push_notification_fallback_title">Truck Log</string>
+    <string name="push_notification_channel_name">TruckoRig updates</string>
+    <string name="push_notification_fallback_title">TruckoRig</string>
     <string name="push_notification_fallback_body">A new update is available</string>
     
 
 
 <string name="settings_battery_title">Background operation</string>
-    <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for Truck Log.</string>
+    <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for TruckoRig.</string>
     <string name="settings_battery_button">Disable battery optimization</string>
     <string name="settings_battery_ok">✅ Battery optimization disabled — bot runs in background</string>
     <string name="settings_logout_title">Sign out</string>
@@ -1039,7 +1039,7 @@
     <string name="backup_restore_bad_format">Invalid file format</string>
     <string name="backup_restore_corrupted">The file is corrupted</string>
     <string name="backup_restore_chart_note">This is a load chart note, not a backup file. Create a new backup in Settings.</string>
-    <string name="backup_restore_schema_too_new">This file was created by a newer app version. Please update TruckerLoad.</string>
+    <string name="backup_restore_schema_too_new">This file was created by a newer app version. Please update TruckoRig.</string>
     <string name="backup_restore_success">Restored: %1$d loads, %2$d paychecks, %3$d diesel entries</string>
 
 
@@ -1102,12 +1102,12 @@
 
     <string name="sync_processing">⏳ Processing...</string>
     <string name="sync_update_skipped_error">Message skipped due to an internal error. Please resend it.</string>
-    <string name="sync_chat_not_authorized">This bot is already paired with another chat. Change the chat in Truck Log settings.</string>
-    <string name="sync_chat_pair_required">Send /start first to pair this chat with your Truck Log account.</string>
+    <string name="sync_chat_not_authorized">This bot is already paired with another chat. Change the chat in TruckoRig settings.</string>
+    <string name="sync_chat_pair_required">Send /start first to pair this chat with your TruckoRig account.</string>
     <string name="backup_restore_wrong_account">This backup belongs to another account and will not be restored.</string>
-    <string name="sync_welcome">🚛 Welcome to Truck Log!\n\nForward here:\n• load (Trip ID / PU# / Total Rate)\n• settlement text (Grand Total)\n• fuel receipt (Total / gallons)\n\nThe bot works even when the app is closed.\n\n📥 /import — bulk import (HTML, Relay, CSV)\n🔄 \"Restore\" or /restore — restore everything from the bot archive.\nCommands: /help · /status · /stats</string>
-    <string name="sync_help">📋 How to use the Truck Log bot:\n1. Forward Amazon Relay load text or a rate-confirmation PDF\n2. Or settlement / fuel receipt text or photo\n3. Data will be saved in the Truck Log app\n\n🔄 Restore: type \"restore\" or /restore — the bot will reload all saved messages into the app.\n\n/dedup — scan the database and remove duplicates\n\nThe app can be closed — the bot runs in the background on your phone.\n/status — record count in database · /stats — weekly statistics</string>
-    <string name="sync_status">📊 Truck Log status:\n• Loads: %1$d\n• Paychecks: %2$d\n• Diesel: %3$d\n\nBot is active in background. Forward new data — I will add it to the app.</string>
+    <string name="sync_welcome">🚛 Welcome to TruckoRig!\n\nForward here:\n• load (Trip ID / PU# / Total Rate)\n• settlement text (Grand Total)\n• fuel receipt (Total / gallons)\n\nThe bot works even when the app is closed.\n\n📥 /import — bulk import (HTML, Relay, CSV)\n🔄 \"Restore\" or /restore — restore everything from the bot archive.\nCommands: /help · /status · /stats</string>
+    <string name="sync_help">📋 How to use the TruckoRig bot:\n1. Forward Amazon Relay load text or a rate-confirmation PDF\n2. Or settlement / fuel receipt text or photo\n3. Data will be saved in the TruckoRig app\n\n🔄 Restore: type \"restore\" or /restore — the bot will reload all saved messages into the app.\n\n/dedup — scan the database and remove duplicates\n\nThe app can be closed — the bot runs in the background on your phone.\n/status — record count in database · /stats — weekly statistics</string>
+    <string name="sync_status">📊 TruckoRig status:\n• Loads: %1$d\n• Paychecks: %2$d\n• Diesel: %3$d\n\nBot is active in background. Forward new data — I will add it to the app.</string>
     <string name="sync_help_load">📦 Load:\nForward text or a file (photo, PDF, DOCX): Amazon Relay, a carrier rate confirmation, or any document with Rate / Miles / addresses.\nClear loads save immediately — no diesel / DEF / paycheck prompt.</string>
     <string name="sync_help_pay">💰 Paycheck / diesel / DEF:\nSend a photo or file of the receipt. The bot reads the text, shows the amount, and asks the type with buttons. It saves after you choose.</string>
     <string name="sync_ocr_disabled">📷 OCR disabled. Copy and send load, settlement, or receipt text.</string>
@@ -1144,7 +1144,7 @@
     <string name="sync_restore_manual_cancelled">Restore mode cancelled.</string>
     <string name="sync_restore_not_active">Restore mode is not active.</string>
     <string name="sync_stats">📊 Statistics:\nTotal loads: %1$d\nThis week: %2$d\nWeekly gross: $%3$s\nWeekly miles: %4$s</string>
-    <string name="sync_import_prompt">📥 Import mode activated\n\nSend:\n\n1. Telegram Desktop export HTML files\n   messages.html, messages2.html…\n   (Chat settings → Export chat history → HTML)\n\n2. Amazon Relay conversation (text)\n\n3. HTML page or CSV / Truck Log export (.txt)\n\nLimit: 100 loads · max file 10 MB · timeout 30 sec\n/cancel — cancel</string>
+    <string name="sync_import_prompt">📥 Import mode activated\n\nSend:\n\n1. Telegram Desktop export HTML files\n   messages.html, messages2.html…\n   (Chat settings → Export chat history → HTML)\n\n2. Amazon Relay conversation (text)\n\n3. HTML page or CSV / TruckoRig export (.txt)\n\nLimit: 100 loads · max file 10 MB · timeout 30 sec\n/cancel — cancel</string>
     <string name="sync_import_need_command">Send /import first to start import.</string>
     <string name="sync_import_empty_message">❌ Empty message</string>
     <string name="sync_import_analyzing">⏳ Analyzing message…</string>
@@ -1175,7 +1175,7 @@
     <string name="sync_import_reason_no_changes">no changes</string>
     <string name="sync_import_reason_auto_update_off">auto-update off</string>
     <string name="sync_import_reason_suspicious">suspicious duplicate</string>
-    <string name="sync_import_unsupported_file">❌ Unsupported file format.\nSupported: HTML (messages.html), JSON (result.json), or .txt (Truck Log export).</string>
+    <string name="sync_import_unsupported_file">❌ Unsupported file format.\nSupported: HTML (messages.html), JSON (result.json), or .txt (TruckoRig export).</string>
     <string name="sync_import_file_too_large">❌ File too large (max %1$d MB)</string>
     <string name="sync_import_downloading">⏳ Downloading file %1$s…</string>
     <string name="sync_import_download_failed">❌ File download error</string>
@@ -1211,7 +1211,7 @@
     <string name="auto_restore_no_file">Auto-backup not found</string>
     <string name="telegram_bot_channel_name">Background sync</string>
     <string name="telegram_bot_channel_desc">Quiet Telegram sync status</string>
-    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_title">TruckoRig</string>
     <string name="telegram_bot_notification_text">Telegram sync</string>
 
     <string name="export_csv_error">CSV export error</string>
@@ -1470,7 +1470,7 @@
     <string name="tax_send_apps_hint">After Send, pick an app: Telegram, WhatsApp, email, etc.</string>
     <string name="tax_send_preparing">Preparing file…</string>
     <string name="tax_send_action">Send</string>
-    <string name="tax_send_share_body">Truck Log report: %1$s</string>
+    <string name="tax_send_share_body">TruckoRig report: %1$s</string>
     <string name="tax_send_chooser_title">Send via…</string>
     <string name="tax_send_empty">Nothing to send for this year</string>
     <string name="map_rating_bad">Poor</string>
@@ -1497,7 +1497,7 @@
     <string name="social_error_empty_message">Empty message</string>
     <string name="social_error_message_rejected">Message rejected</string>
     <string name="social_error_hide_pii">Phone numbers and emails are not allowed — keep chat in the app</string>
-    <string name="social_error_keep_in_app">Links and other messengers are blocked. Use Truck Log chat</string>
+    <string name="social_error_keep_in_app">Links and other messengers are blocked. Use TruckoRig chat</string>
     <string name="social_error_report_user">Could not submit report</string>
     <string name="social_error_cannot_report_self">You cannot report yourself</string>
     <string name="social_error_chat_not_found">Chat not found</string>

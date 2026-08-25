@@ -54,7 +54,7 @@ class TelegramBotForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // After startForegroundService() or a START_STICKY restart, Android requires
         // startForeground() within a few seconds — even when we decide to stop.
-        // Skipping it causes RemoteServiceException / "Truck Log keeps stopping".
+        // Skipping it causes RemoteServiceException / "TruckoRig keeps stopping".
         startForegroundCompat()
 
         if (TelegramSyncMode.isServer()) {

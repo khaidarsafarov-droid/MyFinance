@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Truck Log</string>
+    <string name="app_name">TruckoRig</string>
     <string name="app_tagline">Записывай грузы, отслеживай доход</string>
     <string name="common_back">Назад</string>
     <string name="common_menu">Меню</string>
@@ -73,7 +73,7 @@
     <string name="login_google_drive_cta">Вход через Google выполнен. Откройте Настройки → Google Drive, чтобы включить синхронизацию бэкапа.</string>
     <string name="login_checking">Проверка аккаунта…</string>
 
-    <string name="home_brand_title">TRUCK LOG</string>
+    <string name="home_brand_title">TruckoRig</string>
     <string name="tablet_detail_empty_title">Выберите груз</string>
     <string name="tablet_detail_empty_body">Нажмите на груз в списке слева, чтобы увидеть детали</string>
     <string name="home_recent_loads">Недавние грузы</string>
@@ -200,7 +200,7 @@
 
     <string name="about_app_title">О приложении</string>
     <string name="about_app_version">Версия %1$s (%2$d)</string>
-    <string name="about_app_intro">Как пользоваться TRUCK LOG: журнал грузов Amazon Relay, диспут, цель недели, дизель, зарплата, налоги, карта, отчёты, Telegram, виджет, голос и бэкап.</string>
+    <string name="about_app_intro">Как пользоваться TruckoRig: журнал грузов Amazon Relay, диспут, цель недели, дизель, зарплата, налоги, карта, отчёты, Telegram, виджет, голос и бэкап.</string>
     <string name="about_guide_loads_title">1. Добавить груз</string>
     <string name="about_guide_loads_body">На главном экране нажмите «Добавить груз» и выберите способ: вставить сообщение Relay, Telegram или почты, заполнить форму или загрузить фото/PDF. Нужны ставка больше нуля и адрес погрузки или выгрузки. Сохраните — груз появится в журнале с милями и RPM. Если рейс ещё не начался, можно поставить будильник на старт.</string>
     <string name="about_guide_home_title">2. Журнал на главной</string>
@@ -226,7 +226,7 @@
     <string name="about_guide_assistant_title">12. Голосовой ассистент</string>
     <string name="about_guide_assistant_body">Меню → «Голосовой ассистент»: нажмите микрофон. Можно открыть экраны («дизель», «цель», «налоги»), добавить заправку или зарплату и спросить гросс недели. В журнал запись попадает только после вашего подтверждения.</string>
     <string name="about_guide_widget_title">13. Виджет</string>
-    <string name="about_guide_widget_body">На рабочий стол можно вынести виджет TRUCK LOG: гросс и цель недели, RPM, кнопки камеры, сканера и «Добавить дизель».</string>
+    <string name="about_guide_widget_body">На рабочий стол можно вынести виджет TruckoRig: гросс и цель недели, RPM, кнопки камеры, сканера и «Добавить дизель».</string>
     <string name="about_guide_telegram_title">14. Telegram</string>
     <string name="about_guide_telegram_body">В Настройках добавьте токен бота от @BotFather. Бот на телефоне читает сообщения и сам добавляет в журнал грузы, зарплату и дизель.</string>
     <string name="about_guide_backup_title">15. Резервная копия</string>
@@ -332,7 +332,7 @@
     <string name="camera_share_all">Поделиться всеми</string>
     <string name="camera_save_all">Сохранить все</string>
     <string name="location_permission_denied">Нет разрешения на определение местоположения</string>
-    <string name="watermark_app_name">Truck Log</string>
+    <string name="watermark_app_name">TruckoRig</string>
     <string name="watermark_unknown">Неизвестно</string>
     <string name="scanner">Сканер</string>
     <string name="scanning">Сканирование…</string>
@@ -868,15 +868,15 @@
     <string name="telegram_id_hint">Например: 123456789</string>
     <string name="save_telegram_id">Сохранить ID</string>
     <string name="telegram_id_saved">✅ Telegram ID сохранён</string>
-    <string name="telegram_export_caption">📦 Экспорт грузов Truck Log от %s</string>
+    <string name="telegram_export_caption">📦 Экспорт грузов TruckoRig от %s</string>
     <string name="file_received">📥 Файл получен. Восстановлено %d грузов.</string>
     <string name="export_actions_title">Экспорт готов</string>
-    <string name="settings_backup_desc">CSV — таблица грузов. JSON в Загрузки/TruckLog — полная копия грузов, зарплат и дизеля.</string>
+    <string name="settings_backup_desc">CSV — таблица грузов. JSON в Загрузки/TruckoRig — полная копия грузов, зарплат и дизеля.</string>
     <string name="settings_backup_saved">Бэкап: %1$d грузов → %2$s</string>
     <string name="settings_backup_error">Не удалось создать файл бэкапа</string>
     <string name="settings_backup_create">Создать файл бэкапа</string>
     <string name="settings_backup_restore">Восстановить из файла</string>
-    <string name="settings_backup_restore_hint">Файл .json / .tlb из Загрузки/TruckLog (старые Loads_….txt тоже читаются, если внутри есть JSON)</string>
+    <string name="settings_backup_restore_hint">Файл .json / .tlb из Загрузки/TruckoRig (старые Loads_….txt тоже читаются, если внутри есть JSON)</string>
     <string name="settings_backup_share_title">Поделиться бэкапом</string>
     <string name="drive_sync_title">Google Drive</string>
     <string name="drive_sync_desc">Данные остаются в Room на телефоне. Облачная копия — в вашем Google-аккаунте (скрытая папка приложения). iCloud на Android недоступен.</string>
@@ -934,12 +934,12 @@
     <string name="quick_actions_title">Быстрые действия</string>
     <string name="quick_actions_diesel">Добавить дизель</string>
     <string name="home_load_deleted_snackbar">Груз удалён</string>
-    <string name="widget_description">Truck Log 2×2 — гросс и цель недели</string>
-    <string name="widget_description_wide">Truck Log 4×2 — гросс, RPM и цель недели</string>
-    <string name="widget_label">Truck Log 2×2</string>
-    <string name="widget_label_wide">Truck Log 4×2</string>
-    <string name="widget_brand_title">📝🚛 TRUCK LOG</string>
-    <string name="widget_brand_title_plain">TRUCK LOG</string>
+    <string name="widget_description">TruckoRig 2×2 — гросс и цель недели</string>
+    <string name="widget_description_wide">TruckoRig 4×2 — гросс, RPM и цель недели</string>
+    <string name="widget_label">TruckoRig 2×2</string>
+    <string name="widget_label_wide">TruckoRig 4×2</string>
+    <string name="widget_brand_title">📝🚛 TruckoRig</string>
+    <string name="widget_brand_title_plain">TruckoRig</string>
     <string name="widget_goal_out_of">из %1$s</string>
     <string name="widget_goal_out_of_placeholder">из $0</string>
     <string name="widget_weekly_summary">Недельный отчёт</string>
@@ -1019,14 +1019,14 @@
     <string name="telegram_onboarding_save">Сохранить токен</string>
     <string name="telegram_onboarding_skip">Пропустить сейчас</string>
     <string name="telegram_onboarding_skip_hint">Можно добавить бота позже в Настройках → Telegram бот.</string>
-    <string name="push_notification_channel_name">Обновления Truck Log</string>
-    <string name="push_notification_fallback_title">Truck Log</string>
+    <string name="push_notification_channel_name">Обновления TruckoRig</string>
+    <string name="push_notification_fallback_title">TruckoRig</string>
     <string name="push_notification_fallback_body">Доступно новое обновление</string>
     
 
 
 <string name="settings_battery_title">Фоновая работа</string>
-    <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для Truck Log.</string>
+    <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для TruckoRig.</string>
     <string name="settings_battery_button">Отключить оптимизацию батареи</string>
     <string name="settings_battery_ok">✅ Оптимизация батареи отключена — бот работает в фоне</string>
     <string name="settings_logout_title">Выйти</string>
@@ -1039,7 +1039,7 @@
     <string name="backup_restore_bad_format">Неверный формат файла</string>
     <string name="backup_restore_corrupted">Файл повреждён</string>
     <string name="backup_restore_chart_note">Это текстовая заметка со списком грузов, а не файл бэкапа. Создайте новый бэкап в Настройках.</string>
-    <string name="backup_restore_schema_too_new">Файл создан более новой версией приложения. Обновите TruckerLoad.</string>
+    <string name="backup_restore_schema_too_new">Файл создан более новой версией приложения. Обновите TruckoRig.</string>
     <string name="backup_restore_success">Восстановлено: %1$d грузов, %2$d зарплат, %3$d записей дизеля</string>
 
 
@@ -1102,12 +1102,12 @@
 
     <string name="sync_processing">⏳ Обрабатываю...</string>
     <string name="sync_update_skipped_error">Сообщение пропущено из‑за внутренней ошибки. Пришлите его ещё раз.</string>
-    <string name="sync_chat_not_authorized">Этот бот уже привязан к другому чату. Откройте настройки Truck Log, чтобы сменить чат.</string>
-    <string name="sync_chat_pair_required">Сначала отправьте /start, чтобы привязать этот чат к аккаунту в Truck Log.</string>
+    <string name="sync_chat_not_authorized">Этот бот уже привязан к другому чату. Откройте настройки TruckoRig, чтобы сменить чат.</string>
+    <string name="sync_chat_pair_required">Сначала отправьте /start, чтобы привязать этот чат к аккаунту в TruckoRig.</string>
     <string name="backup_restore_wrong_account">Резервная копия принадлежит другому аккаунту и не будет восстановлена.</string>
-    <string name="sync_welcome">🚛 Добро пожаловать в Truck Log!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
-    <string name="sync_help">📋 Как пользоваться ботом Truck Log:\n1. Перешлите текст лоуда Amazon Relay или PDF rate confirmation\n2. Или текст / фото settlement / fuel receipt\n3. Данные сохранятся в приложении Truck Log\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
-    <string name="sync_status">📊 Статус Truck Log:\n• Лоудов: %1$d\n• Зарплат: %2$d\n• Дизель: %3$d\n\nБот активен в фоне. Перешлите новые данные — добавлю в приложение.</string>
+    <string name="sync_welcome">🚛 Добро пожаловать в TruckoRig!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
+    <string name="sync_help">📋 Как пользоваться ботом TruckoRig:\n1. Перешлите текст лоуда Amazon Relay или PDF rate confirmation\n2. Или текст / фото settlement / fuel receipt\n3. Данные сохранятся в приложении TruckoRig\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
+    <string name="sync_status">📊 Статус TruckoRig:\n• Лоудов: %1$d\n• Зарплат: %2$d\n• Дизель: %3$d\n\nБот активен в фоне. Перешлите новые данные — добавлю в приложение.</string>
     <string name="sync_help_load">📦 Лоуд:\nПерешлите текст или файл (фото, PDF, DOCX): Amazon Relay, carrier rate confirmation или любой документ с Rate / Miles / адресами.\nЕсли это явно груз — сохраняется сразу, без вопроса про дизель.</string>
     <string name="sync_help_pay">💰 Зарплата / дизель / DEF:\nПришлите фото или файл чека. Бот распознает текст, покажет сумму и спросит тип кнопками. Сохранит после выбора.</string>
     <string name="sync_ocr_disabled">📷 OCR отключён. Скопируйте и отправьте текст лоуда, платёжки или чека.</string>
@@ -1144,7 +1144,7 @@
     <string name="sync_restore_manual_cancelled">Режим восстановления отменён.</string>
     <string name="sync_restore_not_active">Режим восстановления не активен.</string>
     <string name="sync_stats">📊 Статистика:\nВсего грузов: %1$d\nЗа эту неделю: %2$d\nДоход за неделю: $%3$s\nМили за неделю: %4$s</string>
-    <string name="sync_import_prompt">📥 Режим импорта активирован\n\nОтправьте:\n\n1. HTML-файлы экспорта Telegram Desktop\n   messages.html, messages2.html…\n   (Настройки чата → Экспорт истории → HTML)\n\n2. Переписку Amazon Relay (текст)\n\n3. HTML-страницу или CSV / экспорт Truck Log (.txt)\n\nЛимит: 100 лоудов · макс. файл 10 МБ · таймаут 30 сек\n/cancel — отмена</string>
+    <string name="sync_import_prompt">📥 Режим импорта активирован\n\nОтправьте:\n\n1. HTML-файлы экспорта Telegram Desktop\n   messages.html, messages2.html…\n   (Настройки чата → Экспорт истории → HTML)\n\n2. Переписку Amazon Relay (текст)\n\n3. HTML-страницу или CSV / экспорт TruckoRig (.txt)\n\nЛимит: 100 лоудов · макс. файл 10 МБ · таймаут 30 сек\n/cancel — отмена</string>
     <string name="sync_import_need_command">Сначала отправьте /import для начала импорта.</string>
     <string name="sync_import_empty_message">❌ Пустое сообщение</string>
     <string name="sync_import_analyzing">⏳ Анализирую сообщение…</string>
@@ -1175,7 +1175,7 @@
     <string name="sync_import_reason_no_changes">без изменений</string>
     <string name="sync_import_reason_auto_update_off">авто-обновление отключено</string>
     <string name="sync_import_reason_suspicious">подозрительный дубликат</string>
-    <string name="sync_import_unsupported_file">❌ Неподдерживаемый формат файла.\nПоддерживаются: HTML (messages.html), JSON (result.json) или .txt (экспорт Truck Log).</string>
+    <string name="sync_import_unsupported_file">❌ Неподдерживаемый формат файла.\nПоддерживаются: HTML (messages.html), JSON (result.json) или .txt (экспорт TruckoRig).</string>
     <string name="sync_import_file_too_large">❌ Файл слишком большой (макс. %1$d МБ)</string>
     <string name="sync_import_downloading">⏳ Скачиваю файл %1$s…</string>
     <string name="sync_import_download_failed">❌ Ошибка скачивания файла</string>
@@ -1211,7 +1211,7 @@
     <string name="auto_restore_no_file">Авто-бэкап не найден</string>
     <string name="telegram_bot_channel_name">Фоновая синхронизация</string>
     <string name="telegram_bot_channel_desc">Тихий статус синхронизации Telegram</string>
-    <string name="telegram_bot_notification_title">Truck Log</string>
+    <string name="telegram_bot_notification_title">TruckoRig</string>
     <string name="telegram_bot_notification_text">Синхронизация Telegram</string>
 
     <string name="export_csv_error">Ошибка экспорта CSV</string>
@@ -1472,7 +1472,7 @@
     <string name="tax_send_apps_hint">После «Отправить» выберите приложение: Telegram, WhatsApp, почту и т.д.</string>
     <string name="tax_send_preparing">Готовим файл…</string>
     <string name="tax_send_action">Отправить</string>
-    <string name="tax_send_share_body">Отчёт Truck Log: %1$s</string>
+    <string name="tax_send_share_body">Отчёт TruckoRig: %1$s</string>
     <string name="tax_send_chooser_title">Отправить через…</string>
     <string name="tax_send_empty">Нечего отправлять за этот год</string>
     <string name="map_rating_bad">Плохо</string>
@@ -1499,7 +1499,7 @@
     <string name="social_error_empty_message">Пустое сообщение</string>
     <string name="social_error_message_rejected">Сообщение отклонено</string>
     <string name="social_error_hide_pii">Нельзя отправлять телефон или почту — общайтесь только в приложении</string>
-    <string name="social_error_keep_in_app">Ссылки и внешние мессенджеры запрещены. Используйте чат Truck Log</string>
+    <string name="social_error_keep_in_app">Ссылки и внешние мессенджеры запрещены. Используйте чат TruckoRig</string>
     <string name="social_error_report_user">Не удалось отправить жалобу</string>
     <string name="social_error_cannot_report_self">Нельзя пожаловаться на себя</string>
     <string name="social_error_chat_not_found">Чат не найден</string>

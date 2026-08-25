@@ -99,7 +99,7 @@ object AccountantWorkbookBuilder {
         val perDiemTotal = PerDiemCalculator.amount(perDiemDays)
         val maintenanceTotal = input.maintenance.sumOf { it.amount }
         val rows = mutableListOf(
-            listOf("Truck Log — отчёт для бухгалтера", ""),
+            listOf("${BrandConstants.DISPLAY_NAME} — отчёт для бухгалтера", ""),
             listOf("Год", input.year.toString()),
             listOf("Валовой доход (paycheck), USD", money(input.grossIncome, input.locale)),
             listOf("", ""),

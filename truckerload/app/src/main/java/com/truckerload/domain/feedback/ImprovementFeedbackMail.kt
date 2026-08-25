@@ -1,5 +1,6 @@
 package com.truckerload.domain.feedback
 
+import com.truckerload.utils.BrandConstants
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -29,14 +30,14 @@ object ImprovementFeedbackMail {
     ): Draft? {
         val text = message.trim()
         if (text.isEmpty()) return null
-        val subject = "[Truck Log] $topicLabel"
+        val subject = "[${BrandConstants.DISPLAY_NAME}] $topicLabel"
         val body = buildString {
             appendLine("Тема: $topicLabel")
             appendLine()
             appendLine(text)
             appendLine()
             appendLine("—")
-            appendLine("Truck Log $appVersion")
+            appendLine("${BrandConstants.DISPLAY_NAME} $appVersion")
             appendLine("Android $androidRelease")
         }.trimEnd()
         return Draft(to = SUPPORT_EMAIL, subject = subject, body = body)

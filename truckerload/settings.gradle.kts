@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TruckerLoad"
+rootProject.name = "TruckoRig"
 include(":app")
 include(":shared:contract")
 include(":shared:domain")

@@ -68,8 +68,8 @@ class BackupNoteFormatterTest {
         assertTrue(txtName.endsWith(".txt"))
         assertEquals(txtName.removeSuffix(".txt") + ".tlb", BackupNoteFormatter.companionFileName(txtName))
         assertEquals(
-            "TruckLog_Backup_20260721.tlb",
-            BackupNoteFormatter.companionFileName("TruckLog_Backup_20260721.json"),
+            "TruckoRig_Backup_20260721.tlb",
+            BackupNoteFormatter.companionFileName("TruckoRig_Backup_20260721.json"),
         )
     }
 

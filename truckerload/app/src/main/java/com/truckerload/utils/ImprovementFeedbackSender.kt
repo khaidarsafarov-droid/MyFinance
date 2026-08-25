@@ -49,6 +49,6 @@ object ImprovementFeedbackSender {
     private fun copyDraft(context: Context, draft: ImprovementFeedbackMail.Draft) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = "${draft.to}\n${draft.subject}\n\n${draft.body}"
-        clipboard.setPrimaryClip(ClipData.newPlainText("Truck Log", text))
+        clipboard.setPrimaryClip(ClipData.newPlainText(BrandConstants.DISPLAY_NAME, text))
     }
 }

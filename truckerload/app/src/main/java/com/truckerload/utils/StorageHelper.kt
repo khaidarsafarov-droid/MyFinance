@@ -12,7 +12,7 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 /**
- * Saves files into public device folders (Downloads, Documents/TruckLog/Reports).
+ * Saves files into public device folders (Downloads, Documents/TruckoRig/Reports).
  * Uses MediaStore on Android 10+ to avoid WRITE_EXTERNAL_STORAGE.
  */
 class StorageHelper(private val context: Context) {
@@ -21,8 +21,8 @@ class StorageHelper(private val context: Context) {
     data class SaveResult(val uri: Uri, val displayPath: String)
 
     /**
-     * Saves file into Downloads (or Downloads/TruckLog for reports).
-     * Returns content URI for sharing and a display path like "Downloads/TruckLog/Reports/filename".
+     * Saves file into Downloads (or Downloads/TruckoRig for reports).
+     * Returns content URI for sharing and a display path like "Downloads/TruckoRig/Reports/filename".
      */
     fun saveToPublicDownloads(
         fileName: String,

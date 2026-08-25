@@ -1,7 +1,7 @@
 package com.truckerload.domain.ingest
 
 /**
- * Scores OCR / file text against real Truck Log journals: loads, paycheck, diesel, DEF.
+ * Scores OCR / file text against real TruckoRig journals: loads, paycheck, diesel, DEF.
  * Longer / more specific markers beat generic words like «total».
  */
 object ReceiptKindClassifier {
