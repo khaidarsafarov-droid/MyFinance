@@ -30,6 +30,7 @@ data class AddDieselUiState(
     val gallonsText: String = "",
     val pricePerGallonText: String = "",
     val discountPriceText: String = "",
+    val locationText: String = "",
     val recordedAtMillis: Long = System.currentTimeMillis(),
     val weekNumber: Int = 1,
     val year: Int = 1970,
@@ -67,6 +68,7 @@ class AddDieselViewModel @Inject constructor(
             gallonsText = savedStateHandle[KEY_GALLONS_TEXT] ?: "",
             pricePerGallonText = savedStateHandle[KEY_PRICE_TEXT] ?: "",
             discountPriceText = savedStateHandle[KEY_DISCOUNT_TEXT] ?: "",
+            locationText = savedStateHandle[KEY_LOCATION_TEXT] ?: "",
             recordedAtMillis = savedStateHandle[KEY_RECORDED_AT_MILLIS] ?: System.currentTimeMillis(),
             weekNumber = savedStateHandle[KEY_WEEK_NUMBER] ?: initialWeekAndYear.first,
             year = savedStateHandle[KEY_YEAR] ?: initialWeekAndYear.second,
@@ -88,6 +90,11 @@ class AddDieselViewModel @Inject constructor(
     fun setDiscountPriceText(value: String) {
         savedStateHandle[KEY_DISCOUNT_TEXT] = value
         _uiState.update { it.copy(discountPriceText = value, error = null) }
+    }
+
+    fun setLocationText(value: String) {
+        savedStateHandle[KEY_LOCATION_TEXT] = value
+        _uiState.update { it.copy(locationText = value, error = null) }
     }
 
     fun selectPreviousWeek() {
@@ -167,7 +174,7 @@ class AddDieselViewModel @Inject constructor(
             gallons = gallons,
             pricePerGallon = price,
             discountPricePerGallon = discount,
-            location = null,
+            location = state.locationText.trim().ifBlank { null },
             rawExtractedText = "",
             sourceFileName = null,
             addedAt = state.recordedAtMillis,
@@ -183,6 +190,7 @@ class AddDieselViewModel @Inject constructor(
                 savedStateHandle[KEY_GALLONS_TEXT] = ""
                 savedStateHandle[KEY_PRICE_TEXT] = ""
                 savedStateHandle[KEY_DISCOUNT_TEXT] = ""
+                savedStateHandle[KEY_LOCATION_TEXT] = ""
                 savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
                 savedStateHandle[KEY_YEAR] = year
                 savedStateHandle[KEY_SHOW_SAVE_DIALOG] = false
@@ -191,6 +199,7 @@ class AddDieselViewModel @Inject constructor(
                         gallonsText = "",
                         pricePerGallonText = "",
                         discountPriceText = "",
+                        locationText = "",
                         weekNumber = weekNumber,
                         year = year,
                         isSaving = false,
@@ -269,6 +278,7 @@ class AddDieselViewModel @Inject constructor(
         private const val KEY_GALLONS_TEXT = "add_diesel_gallons_text"
         private const val KEY_PRICE_TEXT = "add_diesel_price_text"
         private const val KEY_DISCOUNT_TEXT = "add_diesel_discount_text"
+        private const val KEY_LOCATION_TEXT = "add_diesel_location_text"
         private const val KEY_RECORDED_AT_MILLIS = "add_diesel_recorded_at_millis"
         private const val KEY_WEEK_NUMBER = "add_diesel_week_number"
         private const val KEY_YEAR = "add_diesel_year"

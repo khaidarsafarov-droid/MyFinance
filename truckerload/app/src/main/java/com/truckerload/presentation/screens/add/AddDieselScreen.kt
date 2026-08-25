@@ -205,6 +205,17 @@ fun AddDieselScreen(
                     colors = AppTextFieldDefaults.outlined(),
                     singleLine = true,
                 )
+                OutlinedTextField(
+                    value = uiState.locationText,
+                    onValueChange = viewModel::setLocationText,
+                    label = { Text(stringResource(R.string.add_diesel_location)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = AppTextFieldDefaults.outlined(),
+                    singleLine = true,
+                )
                 uiState.paidTotal?.let { total ->
                     Text(
                         text = stringResource(R.string.add_diesel_paid_total, MoneyFormat.formatCurrency(total)),

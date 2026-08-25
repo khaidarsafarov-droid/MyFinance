@@ -574,12 +574,14 @@
     <string name="route_avg_rate_per_trip">$%1$.2f/trip</string>
 
     <string name="add_paycheck_title">Add paycheck</string>
+    <string name="diesel_title">Diesel</string>
     <string name="add_diesel_title">Add diesel</string>
     <string name="add_diesel_date">Date</string>
     <string name="add_diesel_change_date">Change date</string>
     <string name="add_diesel_gallons">Gallons</string>
     <string name="add_diesel_price_per_gallon">Price per gallon</string>
     <string name="add_diesel_discount_price">Discount price</string>
+    <string name="add_diesel_location">Location</string>
     <string name="add_diesel_paid_total">Amount with discount: %1$s</string>
     <string name="add_diesel_you_saved">You saved: %1$s</string>
     <string name="add_diesel_gallons_preview">%1$s gal</string>
@@ -589,6 +591,11 @@
     <string name="add_diesel_price_required">Enter price per gallon</string>
     <string name="add_diesel_discount_invalid">Invalid discount price</string>
     <string name="add_diesel_discount_above_price">Discount price cannot be higher than list price</string>
+    <string name="diesel_location_unknown">Location not set</string>
+    <string name="diesel_empty_week">No fills this week</string>
+    <string name="diesel_filter_all_days">All days</string>
+    <string name="diesel_filter_pick_date">Pick a date</string>
+    <string name="diesel_week_total">This week: %1$s</string>
     <string name="add_load_title">Add load</string>
     <string name="add_or_edit_week_format">Week %1$d • %2$s</string>
     <string name="add_select_week">📅 Select week</string>

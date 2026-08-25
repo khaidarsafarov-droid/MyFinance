@@ -215,6 +215,7 @@ fun NavGraph(
     val currentRoute = currentDestination?.route
     val showMainNavigation = if (tablet) {
         currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
+            currentRoute != Routes.DIESEL &&
             currentRoute != Routes.VOICE_ASSISTANT &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
@@ -240,7 +241,7 @@ fun NavGraph(
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
-                DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
+                DrawerDestination.DIESEL -> navController.navigate(Routes.DIESEL) { launchSingleTop = true }
                 DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
             }

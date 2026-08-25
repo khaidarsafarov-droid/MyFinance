@@ -574,12 +574,14 @@
     <string name="route_avg_rate_per_trip">$%1$.2f/рейс</string>
 
     <string name="add_paycheck_title">Добавить зарплату</string>
+    <string name="diesel_title">Дизель</string>
     <string name="add_diesel_title">Добавить дизель</string>
     <string name="add_diesel_date">Дата</string>
     <string name="add_diesel_change_date">Изменить дату</string>
     <string name="add_diesel_gallons">Галлоны</string>
     <string name="add_diesel_price_per_gallon">Цена за галлон</string>
     <string name="add_diesel_discount_price">Цена со скидкой</string>
+    <string name="add_diesel_location">Локация</string>
     <string name="add_diesel_paid_total">Сумма со скидкой: %1$s</string>
     <string name="add_diesel_you_saved">Вы сэкономили: %1$s</string>
     <string name="add_diesel_gallons_preview">%1$s гал</string>
@@ -589,6 +591,11 @@
     <string name="add_diesel_price_required">Укажите цену за галлон</string>
     <string name="add_diesel_discount_invalid">Некорректная цена со скидкой</string>
     <string name="add_diesel_discount_above_price">Цена со скидкой не может быть выше обычной</string>
+    <string name="diesel_location_unknown">Локация не указана</string>
+    <string name="diesel_empty_week">Нет заправок на этой неделе</string>
+    <string name="diesel_filter_all_days">Все дни</string>
+    <string name="diesel_filter_pick_date">Выбрать число</string>
+    <string name="diesel_week_total">За неделю: %1$s</string>
     <string name="add_load_title">Добавить груз</string>
     <string name="add_or_edit_week_format">Неделя %1$d • %2$s</string>
     <string name="add_select_week">📅 Выберите неделю</string>
