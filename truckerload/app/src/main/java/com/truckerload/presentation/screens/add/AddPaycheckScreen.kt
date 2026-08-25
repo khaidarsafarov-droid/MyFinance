@@ -1,12 +1,21 @@
 package com.truckerload.presentation.screens.add
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -16,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.components.TlOutlinedButton
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
@@ -45,6 +57,14 @@ fun AddPaycheckScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
+    val fileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.importFile(uri, null)
+        }
+    }
+
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
@@ -78,6 +98,22 @@ fun AddPaycheckScreen(
             onEditDateTime = { showDatePicker = true },
             dateTimeLabel = formatDateTimeForDisplay(uiState.recordedAtMillis),
         ) {
+            val previewAmount = uiState.amountText.replace(",", "").toDoubleOrNull()
+            if (previewAmount != null) {
+                Text(
+                    MoneyFormat.formatCurrency(previewAmount, decimals = 2),
+                    style = AppTypography.HeroNumber,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            uiState.sourceFileName?.let { name ->
+                Text(
+                    stringResource(R.string.add_paycheck_file_name, name),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
             uiState.error?.let {
                 Text(
                     it,
@@ -105,6 +141,71 @@ fun AddPaycheckScreen(
                     onNextWeek = viewModel::selectNextWeek,
                     modifier = Modifier.padding(vertical = 4.dp),
                 )
+                Text(
+                    stringResource(R.string.add_paycheck_file_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                TlOutlinedButton(
+                    onClick = { fileLauncher.launch(arrayOf("*/*")) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    enabled = !uiState.isParsingFile && !uiState.isSaving,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.AttachFile,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Text(stringResource(R.string.add_paycheck_add_file))
+                    }
+                }
+                if (uiState.isParsingFile) {
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = tc.AccentPrimary,
+                        )
+                        Text(
+                            stringResource(R.string.add_paycheck_parsing),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = tc.TextSecondary,
+                        )
+                    }
+                }
+                uiState.sourceFileName?.let { name ->
+                    Text(
+                        stringResource(R.string.add_paycheck_file_name, name),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextPrimary,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+                uiState.parseNotice?.let { notice ->
+                    Text(
+                        notice,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.AccentPrimary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                Text(
+                    stringResource(R.string.add_paycheck_telegram_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 8.dp),
+                )
                 OutlinedTextField(
                     value = uiState.amountText,
                     onValueChange = viewModel::setAmountText,
@@ -119,7 +220,7 @@ fun AddPaycheckScreen(
                 val parsedAmount = uiState.amountText.replace(",", "").toDoubleOrNull()
                 if (parsedAmount != null) {
                     Text(
-                        text = MoneyFormat.formatCurrency(parsedAmount),
+                        text = MoneyFormat.formatCurrency(parsedAmount, decimals = 2),
                         style = AppTypography.HeroNumber,
                         modifier = Modifier.padding(top = 8.dp),
                     )
@@ -133,7 +234,7 @@ fun AddPaycheckScreen(
                         Text(
                             stringResource(
                                 R.string.ux_smart_default_last_amount,
-                                MoneyFormat.formatCurrency(last),
+                                MoneyFormat.formatCurrency(last, decimals = 2),
                             ),
                         )
                     }
