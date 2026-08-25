@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -195,12 +196,19 @@ fun BentoGlassMetricCell(
     accent: Color,
     highlight: Boolean = false,
     hero: Boolean = false,
+    /** Dense cells for narrow grids (load detail stats). */
+    compact: Boolean = false,
 ) {
     val cs = MaterialTheme.colorScheme
     val shape = remember { SoftUiShapes.Chip }
+    val valueStyle = when {
+        compact -> AppTypography.NumbersSmall
+        hero -> AppTypography.HeroNumberCompact
+        else -> AppTypography.NumbersMetric
+    }
     Surface(
         modifier = modifier
-            .heightIn(min = 72.dp)
+            .heightIn(min = if (compact) 56.dp else 72.dp)
             .shadow(
                 elevation = if (highlight) 4.dp else SoftUiElevation.Card,
                 shape = shape,
@@ -214,16 +222,27 @@ fun BentoGlassMetricCell(
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
-                .heightIn(min = 40.dp),
+                .padding(
+                    horizontal = if (compact) 10.dp else 16.dp,
+                    vertical = if (compact) 8.dp else 16.dp,
+                )
+                .heightIn(min = if (compact) 36.dp else 40.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
         ) {
-            Text(text = label, style = AppTypography.CaptionMuted)
+            Text(
+                text = label,
+                style = AppTypography.CaptionMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 text = value,
-                style = if (hero) AppTypography.HeroNumberCompact else AppTypography.NumbersMetric,
+                style = valueStyle,
                 color = if (hero) LocalTruckColors.current.TextNumbers else accent,
-                modifier = Modifier.padding(top = 6.dp),
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = if (compact) 4.dp else 6.dp),
             )
         }
     }

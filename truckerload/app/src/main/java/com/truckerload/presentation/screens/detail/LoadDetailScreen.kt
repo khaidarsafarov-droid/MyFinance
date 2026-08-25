@@ -8,9 +8,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -216,51 +219,65 @@ fun LoadDetailScreen(
                         }
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_total_rate),
                             value = "$${String.format(Locale.US, "%.2f", l.totalRate)}",
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
                             hero = true,
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_miles),
-                            value = "${String.format(Locale.US, "%.2f", l.totalMiles)}",
-                            modifier = Modifier.weight(1f),
+                            value = String.format(Locale.US, "%.2f", l.totalMiles),
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_rpm),
-                            value = formatRpm(l.totalRate, l.totalMiles, stringResource(R.string.rpm_per_mile_format)),
-                            modifier = Modifier.weight(1f),
+                            value = formatRpm(
+                                l.totalRate,
+                                l.totalMiles,
+                                stringResource(R.string.rpm_per_mile_format),
+                            ),
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
                             hero = true,
                         )
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_duration),
                             value = if (l.durationDays > 0) formatDurationDays(l.durationDays) else "—",
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_pace),
                             value = if (l.pace > 0) formatPacePerDay(l.pace) else "—",
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
-                        StatBox(title = stringResource(R.string.load_detail_stat_pu), value = "${l.puCount}", modifier = Modifier.weight(1f))
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         StatBox(
+                            title = stringResource(R.string.load_detail_stat_pu),
+                            value = "${l.puCount}",
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                        )
+                        StatBox(
                             title = stringResource(R.string.load_detail_stat_del),
                             value = "${l.delCount}",
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
                     }
                     ActualFinishSection(
