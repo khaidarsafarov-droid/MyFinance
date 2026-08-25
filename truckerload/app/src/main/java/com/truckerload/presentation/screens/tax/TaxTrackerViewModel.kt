@@ -6,8 +6,10 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.repository.PerDiemOverrideRepository
 import com.truckerload.domain.tax.AccountantExportSection
 import com.truckerload.domain.tax.PerDiemCalculator
+import com.truckerload.domain.tax.PerDiemDayOverrides
 import com.truckerload.utils.AccountantWorkbookBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +28,7 @@ data class TaxTrackerUiState(
     val totalDeductions: Double = 0.0,
     val perDiemDays: Int = 0,
     val perDiemAmount: Double = 0.0,
-    /** Unique on-duty YYYY-MM-DD dates for [year] (calendar dots). */
+    /** Unique on-duty YYYY-MM-DD dates for [year] (calendar dots), after manual edits. */
     val perDiemDates: Set<String> = emptySet(),
     val taxableIncome: Double = 0.0,
     val selfEmploymentTax: Double = 0.0,
@@ -55,10 +57,12 @@ class TaxTrackerViewModel @Inject constructor(
     private val dieselRepository: DieselRepository,
     private val loadRepository: LoadRepository,
     private val maintenanceRepository: MaintenanceRepository,
+    private val perDiemOverrideRepository: PerDiemOverrideRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TaxTrackerUiState())
     val uiState: StateFlow<TaxTrackerUiState> = _uiState.asStateFlow()
+    private var autoPerDiemDates: Set<String> = emptySet()
 
     init {
         loadTaxData(Calendar.getInstance().get(Calendar.YEAR))
@@ -97,6 +101,19 @@ class TaxTrackerViewModel @Inject constructor(
         }
     }
 
+    fun togglePerDiemDate(isoDate: String) {
+        if (isoDate.length != 10 || isoDate[4] != '-' || isoDate[7] != '-') return
+        viewModelScope.launch {
+            val mutation = PerDiemDayOverrides.mutationForToggle(
+                isoDate = isoDate,
+                autoDates = autoPerDiemDates,
+                effectiveDates = _uiState.value.perDiemDates,
+            )
+            perDiemOverrideRepository.applyMutation(isoDate, mutation)
+            loadTaxData(_uiState.value.year)
+        }
+    }
+
     fun clearExportMessage() {
         _uiState.update { it.copy(exportMessage = null) }
     }
@@ -127,11 +144,10 @@ class TaxTrackerViewModel @Inject constructor(
             emptyList()
         }
         val perDiemDates = if (AccountantExportSection.PER_DIEM in resolved) {
-            if (loads.isNotEmpty()) {
-                PerDiemCalculator.uniqueOnDutyDates(loads, year)
-            } else {
-                PerDiemCalculator.uniqueOnDutyDates(loadRepository.getLoadsByYear(year), year)
-            }
+            val yearLoads = if (loads.isNotEmpty()) loads else loadRepository.getLoadsByYear(year)
+            val auto = PerDiemCalculator.uniqueOnDutyDates(yearLoads, year)
+            val overrides = perDiemOverrideRepository.snapshotForYear(year)
+            PerDiemDayOverrides.apply(auto, overrides)
         } else {
             emptySet()
         }
@@ -178,7 +194,12 @@ class TaxTrackerViewModel @Inject constructor(
                     paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
                 }
                 val dieselDed = diesel.sumOf { it.totalAmount }
-                val perDiemDates = PerDiemCalculator.uniqueOnDutyDates(loads, year)
+                val autoDates = PerDiemCalculator.uniqueOnDutyDates(loads, year)
+                autoPerDiemDates = autoDates
+                val perDiemDates = PerDiemDayOverrides.apply(
+                    autoDates,
+                    perDiemOverrideRepository.snapshotForYear(year),
+                )
                 val perDiemDays = perDiemDates.size
                 val perDiemAmt = PerDiemCalculator.amount(perDiemDays)
                 val totalDed = dieselDed

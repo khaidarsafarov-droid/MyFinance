@@ -4,9 +4,11 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.repository.PerDiemOverrideRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.domain.tax.PerDiemOverrideSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -37,6 +39,7 @@ class TaxTrackerViewModelYearSwitchTest {
     private lateinit var dieselRepository: DieselRepository
     private lateinit var loadRepository: LoadRepository
     private lateinit var maintenanceRepository: MaintenanceRepository
+    private lateinit var perDiemOverrideRepository: PerDiemOverrideRepository
     private lateinit var viewModel: TaxTrackerViewModel
 
     @Before
@@ -46,6 +49,7 @@ class TaxTrackerViewModelYearSwitchTest {
         dieselRepository = org.mockito.kotlin.mock()
         loadRepository = org.mockito.kotlin.mock()
         maintenanceRepository = org.mockito.kotlin.mock()
+        perDiemOverrideRepository = org.mockito.kotlin.mock()
 
         whenever(paycheckRepository.getPaychecksForYear(2025)).thenReturn(
             listOf(paycheck(net = 10_000.0, year = 2025)),
@@ -70,6 +74,8 @@ class TaxTrackerViewModelYearSwitchTest {
         )
         whenever(maintenanceRepository.getArchiveForYear(2025)).thenReturn(emptyList())
         whenever(maintenanceRepository.getArchiveForYear(2026)).thenReturn(emptyList())
+        whenever(perDiemOverrideRepository.snapshotForYear(2025)).thenReturn(PerDiemOverrideSnapshot())
+        whenever(perDiemOverrideRepository.snapshotForYear(2026)).thenReturn(PerDiemOverrideSnapshot())
 
         // init loads current calendar year — stub that year too so init does not NPE
         val current = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
@@ -78,6 +84,9 @@ class TaxTrackerViewModelYearSwitchTest {
             whenever(dieselRepository.getDieselForYear(current)).thenReturn(emptyList())
             whenever(loadRepository.getLoadsByYear(current)).thenReturn(emptyList())
             whenever(maintenanceRepository.getArchiveForYear(current)).thenReturn(emptyList())
+            whenever(perDiemOverrideRepository.snapshotForYear(current)).thenReturn(
+                PerDiemOverrideSnapshot(),
+            )
         }
 
         viewModel = TaxTrackerViewModel(
@@ -85,6 +94,7 @@ class TaxTrackerViewModelYearSwitchTest {
             dieselRepository,
             loadRepository,
             maintenanceRepository,
+            perDiemOverrideRepository,
         )
         advanceUntilIdle()
     }

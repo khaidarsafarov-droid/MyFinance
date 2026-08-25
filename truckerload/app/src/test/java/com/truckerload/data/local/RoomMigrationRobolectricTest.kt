@@ -135,6 +135,9 @@ class RoomMigrationRobolectricTest {
             if (version >= 35) {
                 assertTrue(db.hasColumn("scans", "category"))
             }
+            if (version >= 37) {
+                assertTrue(db.hasTable("per_diem_day_overrides"))
+            }
         }
     }
 
