@@ -1458,11 +1458,9 @@
     <string name="tax_per_diem_hint">Дни per-diem ≈ сумма активных дней по каждому грузу (мин. 1 на груз)</string>
     <string name="tax_per_diem_calendar_title">Календарь суточных</string>
     <string name="tax_per_diem_calendar_subtitle">Дней на рейсах: %1$d × $%2$d</string>
-    <string name="tax_export_for_accountant">Экспорт для бухгалтера (CSV)</string>
     <string name="tax_export_share_title">Отправить отчёт per-diem</string>
     <string name="tax_export_success">Отчёт готов: %1$s</string>
     <string name="tax_export_error">Ошибка экспорта: %1$s</string>
-    <string name="tax_export_empty">Нет дней на рейсах за этот год</string>
     <string name="tax_send_title">Отправить данные</string>
     <string name="tax_send_subtitle">Год %1$d — выберите, что отправить</string>
     <string name="tax_send_what_label">Что включить в файл</string>

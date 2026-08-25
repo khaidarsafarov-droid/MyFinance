@@ -143,4 +143,27 @@ class BackupDataCodecTest {
         assertEquals("user-abc", restored!!.accountId)
         assertEquals(BackupSchema.CURRENT, restored.schemaVersion)
     }
+
+    @Test
+    fun hasExportableContent_ignoresSettingsOnlyBackup() {
+        val empty = BackupData(
+            schemaVersion = BackupSchema.CURRENT,
+            appSettings = BackupAppSettings(themeModeOrdinal = 1),
+        )
+        assertTrue(!BackupSnapshotBuilder.hasExportableContent(empty))
+        assertTrue(
+            BackupSnapshotBuilder.hasExportableContent(
+                empty.copy(loads = BackupTestFixtures.sampleBackup().loads),
+            ),
+        )
+    }
+
+    @Test
+    fun carriesMaintenance_onlyForSchemaV2Plus() {
+        assertTrue(!BackupRoomApplier.carriesMaintenance(BackupData(schemaVersion = BackupSchema.V1)))
+        assertTrue(BackupRoomApplier.carriesMaintenance(BackupData(schemaVersion = BackupSchema.V2)))
+        // Legacy version-only field still resolves via codec rules
+        assertTrue(!BackupRoomApplier.carriesMaintenance(BackupData(version = BackupSchema.V1)))
+        assertTrue(!BackupRoomApplier.carriesMaintenance(BackupData()))
+    }
 }

@@ -39,13 +39,13 @@ object BackupSnapshotBuilder {
         )
     }
 
+    /** Journal / ТО rows only — [appSettings] alone must not trigger an empty export. */
     fun hasExportableContent(backup: BackupData): Boolean =
         backup.loads.isNotEmpty() ||
                 backup.paychecks.isNotEmpty() ||
                 backup.diesel.isNotEmpty() ||
                 backup.maintenanceTasks.isNotEmpty() ||
-                backup.maintenanceArchive.isNotEmpty() ||
-                backup.appSettings != null
+                backup.maintenanceArchive.isNotEmpty()
 
     private suspend fun exportSettings(context: Context, accountId: String?): BackupAppSettings {
         val settings = SettingsDataStore(context)
