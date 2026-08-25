@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.truckerload.data.backup.BackupPrefsApplier
 import com.truckerload.data.backup.BackupRoomApplier
-import com.truckerload.data.backup.BackupSchema
 import com.truckerload.data.backup.BackupSnapshotBuilder
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.DriverProfessionalEntity
@@ -261,11 +260,8 @@ object CloudSyncEngine {
                 applied += upserts.size
             }
         }
-        // ТО: snapshot LWW — replace local tables when remote carries maintenance data.
-        if (backup.maintenanceTasks.isNotEmpty() ||
-            backup.maintenanceArchive.isNotEmpty() ||
-            backup.schemaVersion >= BackupSchema.V2
-        ) {
+        // ТО: snapshot LWW — replace local tables only when remote backup includes maintenance.
+        if (BackupRoomApplier.carriesMaintenance(backup)) {
             BackupRoomApplier.applyMaintenanceReplace(db, backup)
         }
         BackupRoomApplier.pruneOrphanMedia(db)

@@ -103,7 +103,7 @@ class ScannerViewModel @Inject constructor(
                         pendingScan = display,
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
@@ -200,7 +200,7 @@ class ScannerViewModel @Inject constructor(
                 } ?: throw IllegalStateException("MediaStore save failed")
                 persistPendingToApp(showSuccess = false)
                 _uiState.update { it.copy(statusMessage = "scan_saved_phone:${result.displayPath}") }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.update {
                     it.copy(
                         errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
@@ -259,7 +259,7 @@ class ScannerViewModel @Inject constructor(
                     autoAttachedAndDone = finishAfter,
                 )
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _uiState.update { it.copy(errorKey = "scan_error_keep") }
         }
     }

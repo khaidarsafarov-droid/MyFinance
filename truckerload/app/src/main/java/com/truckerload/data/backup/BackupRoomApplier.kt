@@ -13,6 +13,8 @@ import com.truckerload.data.repository.LoadRepository
  * Photos/scans are **not** wiped wholesale: after journal replace, [pruneOrphanMedia] removes
  * only rows whose [loadId] no longer exists. Unlinked media and media for restored loads stay.
  * Maintenance receipt [photoPath] files are kept when the archive row is restored.
+ *
+ * Schema v1 backups never carried ТО — local maintenance tables are left untouched on restore.
  */
 object BackupRoomApplier {
 
@@ -23,14 +25,17 @@ object BackupRoomApplier {
         val paycheckDao = db.paycheckDao()
         val dieselDao = db.dieselDao()
         val maintenanceDao = db.maintenanceDao()
+        val replaceMaintenance = carriesMaintenance(backup)
 
         db.withTransaction {
             dieselDao.deleteAll()
             paycheckDao.deleteAll()
             db.loadHistoryDao().deleteAll()
             loadDao.deleteAll()
-            maintenanceDao.deleteAllTasks()
-            maintenanceDao.deleteAllArchive()
+            if (replaceMaintenance) {
+                maintenanceDao.deleteAllTasks()
+                maintenanceDao.deleteAllArchive()
+            }
 
             backup.loads.forEach { load ->
                 loadDao.insert(load.toEntity())
@@ -47,7 +52,9 @@ object BackupRoomApplier {
             if (backup.diesel.isNotEmpty()) {
                 dieselDao.insertAll(backup.diesel.map { it.toEntity() })
             }
-            applyMaintenanceInsideTransaction(db, backup)
+            if (replaceMaintenance) {
+                applyMaintenanceInsideTransaction(db, backup)
+            }
         }
     }
 
@@ -59,6 +66,10 @@ object BackupRoomApplier {
             applyMaintenanceInsideTransaction(db, backup)
         }
     }
+
+    /** True when the backup format includes maintenance (schema ≥ v2). */
+    fun carriesMaintenance(backup: BackupData): Boolean =
+        BackupDataCodec.resolveSchemaVersion(backup) >= BackupSchema.V2
 
     private suspend fun applyMaintenanceInsideTransaction(db: AppDatabase, backup: BackupData) {
         val maintenanceDao = db.maintenanceDao()

@@ -1392,11 +1392,9 @@
     <string name="tax_per_diem_hint">Per-diem days approximate sum of each load active days (min 1 per load)</string>
     <string name="tax_per_diem_calendar_title">Per-diem calendar</string>
     <string name="tax_per_diem_calendar_subtitle">On-duty days: %1$d × $%2$d</string>
-    <string name="tax_export_for_accountant">Export for accountant (CSV)</string>
     <string name="tax_export_share_title">Share per-diem report</string>
     <string name="tax_export_success">Report ready: %1$s</string>
     <string name="tax_export_error">Export failed: %1$s</string>
-    <string name="tax_export_empty">No on-duty days for this year</string>
     <string name="tax_send_title">Send data</string>
     <string name="tax_send_subtitle">Year %1$d — choose what to include</string>
     <string name="tax_send_what_label">Include in the file</string>
