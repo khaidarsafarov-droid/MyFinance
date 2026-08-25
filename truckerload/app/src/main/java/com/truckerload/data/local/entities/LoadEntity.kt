@@ -47,6 +47,12 @@ data class LoadEntity(
     val disputeResponseDate: String? = null,
     /** Диспют закрыт пользователем. */
     val disputeCompleted: Boolean = false,
+    /** Заявленная сумма диспута; null = не указана. */
+    val disputeAmount: Double? = null,
+    /** Добавить [disputeAmount] к totalRate при закрытии диспута. */
+    val disputeApplyToLoad: Boolean = false,
+    /** Сумма уже включена в totalRate. */
+    val disputeAmountApplied: Boolean = false,
     /** Фактическая дата окончания (YYYY-MM-DD); null = из последнего DEL. */
     val actualFinishDate: String? = null,
     /** Trailer type; null = not set (legacy rows). Stored as [EquipmentType] name. */

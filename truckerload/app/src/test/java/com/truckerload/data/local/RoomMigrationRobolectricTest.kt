@@ -117,6 +117,11 @@ class RoomMigrationRobolectricTest {
             if (version >= 34) {
                 assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
             }
+            if (version >= 36) {
+                assertTrue(db.hasColumn("loads", "disputeAmount"))
+                assertTrue(db.hasColumn("loads", "disputeApplyToLoad"))
+                assertTrue(db.hasColumn("loads", "disputeAmountApplied"))
+            }
             assertTrue(db.hasTable("crowd_rates"))
             assertTrue(db.hasTable("media_sync_queue"))
             assertTrue(db.hasTable("maintenance_archive"))

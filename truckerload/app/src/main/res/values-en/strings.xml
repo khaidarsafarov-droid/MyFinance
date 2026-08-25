@@ -734,6 +734,10 @@
     <string name="dispute_response_date_title">Response date</string>
     <string name="dispute_response_date_label">Response date: %1$s</string>
     <string name="dispute_completed_checkbox">Completed</string>
+    <string name="dispute_amount_label">Dispute amount</string>
+    <string name="dispute_apply_to_load">Add to load</string>
+    <string name="dispute_amount_added">Added to load: %1$s</string>
+    <string name="dispute_amount_not_added">Not added to load: %1$s</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
     <string name="load_card_attach_photo">Take photo for load</string>

@@ -79,7 +79,8 @@ class LoadFilterUseCase {
                     list
                 }
             }
-            LoadFilter.DISPUTE -> list.filter { it.isActiveDispute }
+            // Active and completed: a load that was disputed stays findable forever.
+            LoadFilter.DISPUTE -> list.filter { it.isDispute }
         }
 
         return list.sortedWith(compareByDescending<Load> { it.date }.thenByDescending { it.parsedAt })

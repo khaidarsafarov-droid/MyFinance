@@ -26,6 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -106,10 +108,26 @@ private fun LoadCardContent(
         getRpmColor(it, tc, rpmThresholds.minProfit, rpmThresholds.targetProfit)
     }
 
+    val disputeStain = if (load.isDispute) tc.Danger else null
+    val disputeWash = if (load.isActiveDispute) 0.16f else 0.10f
+
     val cardContent: @Composable () -> Unit = {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(
+                    if (disputeStain != null) {
+                        Modifier.drawBehind {
+                            drawRect(disputeStain.copy(alpha = disputeWash))
+                            drawRect(
+                                color = disputeStain,
+                                size = Size(6.dp.toPx(), size.height),
+                            )
+                        }
+                    } else {
+                        Modifier
+                    },
+                )
                 .padding(16.dp),
         ) {
             Row(
@@ -309,11 +327,7 @@ private fun DisputeCardChip(
     } else {
         stringResource(R.string.dispute_active)
     }
-    val color = if (load.hadDispute) {
-        LocalTruckColors.current.Success
-    } else {
-        LocalTruckColors.current.Danger
-    }
+    val color = LocalTruckColors.current.Danger
     Row(
         modifier = modifier
             .clip(CircleShape)

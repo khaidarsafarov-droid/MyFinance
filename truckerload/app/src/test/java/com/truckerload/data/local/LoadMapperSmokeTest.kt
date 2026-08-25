@@ -8,6 +8,7 @@ import com.truckerload.domain.model.Penalty
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LoadMapperSmokeTest {
@@ -124,6 +125,37 @@ class LoadMapperSmokeTest {
         assertEquals(load.route, back.route)
         assertEquals(load.pace, back.pace, 0.0)
         assertEquals(com.truckerload.domain.model.EquipmentType.AMAZON_RELAY, back.equipmentType)
+    }
+
+    @Test
+    fun load_toEntity_roundTrip_preservesDisputePayout() {
+        val load = Load(
+            id = "load-3",
+            tripId = "T-DSP",
+            date = "2026-08-23",
+            totalRate = 2250.0,
+            totalMiles = 400.0,
+            pointA = "A",
+            pointB = "B",
+            puCount = 1,
+            delCount = 1,
+            weekNumber = 34,
+            year = 2026,
+            rawMessage = "",
+            parsedAt = 1L,
+            updatedAt = 1L,
+            isDispute = true,
+            disputeResponseDate = "2026-08-27",
+            disputeCompleted = true,
+            disputeAmount = 250.0,
+            disputeApplyToLoad = true,
+            disputeAmountApplied = true,
+        )
+        val back = load.toEntity().toDomain()
+        assertEquals(250.0, back.disputeAmount)
+        assertTrue(back.disputeApplyToLoad)
+        assertTrue(back.disputeAmountApplied)
+        assertEquals(2250.0, back.totalRate, 0.0)
     }
 
     @Test

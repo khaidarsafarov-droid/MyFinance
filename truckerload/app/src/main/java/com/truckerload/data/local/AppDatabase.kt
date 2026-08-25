@@ -61,7 +61,7 @@ import com.truckerload.data.local.entities.UserAccountEntity
         UserAccountEntity::class,
         DriverProfessionalEntity::class,
     ],
-    version = 35,
+    version = 36,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

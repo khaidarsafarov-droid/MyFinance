@@ -43,7 +43,7 @@ class CloudArchitectureGuardTest {
     @Test
     fun roomSchema_tracksCurrentVersion() {
         val db = readMain("com/truckerload/data/local/AppDatabase.kt")
-        assertTrue(db.contains("version = 35"))
+        assertTrue(db.contains("version = 36"))
         assertFalse(db.contains("syncPending"))
         assertFalse(db.contains("migrateLegacyDatabaseIfNeeded"))
     }

@@ -285,7 +285,7 @@ class HomeViewModel @Inject constructor(
             val trimmed = filter.searchQuery.trim()
             when {
                 trimmed.isNotEmpty() -> loadRepository.pagingLoads(searchQuery = trimmed)
-                filter.filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(activeDisputesOnly = true)
+                filter.filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(disputesOnly = true)
                 filter.filter == LoadFilter.ALL ->
                     loadRepository.pagingLoads(journalYear = filter.selectedYear)
                 filter.filter == LoadFilter.THIS_WEEK -> {

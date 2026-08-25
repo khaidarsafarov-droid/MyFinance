@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→35 (startVersion 25..34). */
+/** Room migrations for schema versions 25→36 (startVersion 25..35). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -335,5 +335,14 @@ val MIGRATION_34_35 = object : Migration(34, 35) {
                 "UPDATE scans SET category = 'LOAD' WHERE IFNULL(loadId, '') != ''",
             )
         }
+    }
+}
+
+/** Dispute claimed amount and whether it should be added to the load rate. */
+val MIGRATION_35_36 = object : Migration(35, 36) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("loads", "disputeAmount", "REAL")
+        db.addColumnIfMissing("loads", "disputeApplyToLoad", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("loads", "disputeAmountApplied", "INTEGER NOT NULL DEFAULT 0")
     }
 }

@@ -739,6 +739,10 @@
     <string name="dispute_response_date_title">Дата ответа</string>
     <string name="dispute_response_date_label">Дата ответа: %1$s</string>
     <string name="dispute_completed_checkbox">Выполнено</string>
+    <string name="dispute_amount_label">Сумма диспута</string>
+    <string name="dispute_apply_to_load">Добавить к грузу</string>
+    <string name="dispute_amount_added">Добавлено к грузу: %1$s</string>
+    <string name="dispute_amount_not_added">Не добавлено к грузу: %1$s</string>
 
     <!-- Парсинг -->
     <string name="load_added">✅ Добавлен новый груз: %1$s</string>

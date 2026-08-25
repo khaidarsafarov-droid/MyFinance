@@ -98,8 +98,8 @@ interface LoadDao {
     )
     fun pagingSearchLoads(query: String): androidx.paging.PagingSource<Int, LoadEntity>
 
-    @Query("SELECT * FROM loads WHERE isDispute = 1 AND disputeCompleted = 0 ORDER BY parsedAt DESC")
-    fun pagingActiveDisputes(): androidx.paging.PagingSource<Int, LoadEntity>
+    @Query("SELECT * FROM loads WHERE isDispute = 1 ORDER BY parsedAt DESC")
+    fun pagingDisputes(): androidx.paging.PagingSource<Int, LoadEntity>
 
     @Query("SELECT * FROM loads WHERE id = :loadId")
     suspend fun getLoadById(loadId: String): LoadEntity?
@@ -145,6 +145,9 @@ interface LoadDao {
             isDispute = :isDispute,
             disputeResponseDate = :disputeResponseDate,
             disputeCompleted = :disputeCompleted,
+            disputeAmount = :disputeAmount,
+            disputeApplyToLoad = :disputeApplyToLoad,
+            disputeAmountApplied = :disputeAmountApplied,
             actualFinishDate = :actualFinishDate
         WHERE id = :loadId
         """
@@ -174,6 +177,9 @@ interface LoadDao {
         isDispute: Boolean,
         disputeResponseDate: String?,
         disputeCompleted: Boolean,
+        disputeAmount: Double?,
+        disputeApplyToLoad: Boolean,
+        disputeAmountApplied: Boolean,
         actualFinishDate: String?,
     )
 

@@ -11,7 +11,7 @@ class LoadFilterUseCaseDisputeTest {
     private val useCase = LoadFilterUseCase()
 
     @Test
-    fun disputeFilter_showsOnlyActiveDisputes() {
+    fun disputeFilter_keepsCompletedDisputes() {
         val loads = listOf(
             sampleLoad(id = "1", isDispute = true, disputeCompleted = false),
             sampleLoad(id = "2", isDispute = true, disputeCompleted = true),
@@ -28,8 +28,7 @@ class LoadFilterUseCaseDisputeTest {
             selectedYear = null,
         )
 
-        assertEquals(1, filtered.size)
-        assertEquals("1", filtered.first().id)
+        assertEquals(listOf("1", "2"), filtered.map { it.id })
     }
 
     private fun sampleLoad(
