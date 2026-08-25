@@ -1,8 +1,8 @@
-# TruckerLoad Release Notes
+# TruckoRig Release Notes
 
 ## Mindwell Forest Design System Unification (2026)
 
-This release completes the design-system migration to **Truck Log — Mindwell Forest**
+This release completes the design-system migration to **TruckoRig — Mindwell Forest**
 across app UI, widgets, dark mode, typography, and forms.
 
 ## Highlights

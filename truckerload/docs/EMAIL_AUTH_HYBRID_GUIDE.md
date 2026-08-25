@@ -1,4 +1,4 @@
-# Email + Password auth & hybrid sync (Truck Load)
+# Email + Password auth & hybrid sync (TruckoRig)
 
 Companion to `GOOGLE_AUTH_OFFLINE_GUIDE.md`. Covers classic email registration,
 driver onboarding, JWT refresh, biometric unlock, and the outbound sync queue.

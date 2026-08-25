@@ -1,6 +1,6 @@
 # Auth entry & stay signed in
 
-Truck Log requires a signed-in session before the main UI. After the **first** successful login, the session is stored on device and the next launches open the app **without** asking again (until the user taps Logout).
+TruckoRig requires a signed-in session before the main UI. After the **first** successful login, the session is stored on device and the next launches open the app **without** asking again (until the user taps Logout).
 
 | Platform | Providers |
 |----------|-----------|

@@ -1,4 +1,4 @@
-# Google Sign-In — professional offline-first flow (Truck Load)
+# Google Sign-In — professional offline-first flow (TruckoRig)
 
 Scopes used at login: `openid` / profile / email via ID token.
 Optional Drive backup uses `drive.appdata` (separate consent in Settings).

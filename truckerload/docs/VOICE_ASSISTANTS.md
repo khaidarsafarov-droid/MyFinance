@@ -1,6 +1,6 @@
 # Голосовой ассистент (Google Assistant / Gemini)
 
-Команды — это **экраны и действия Truck Log**, не абстрактный каталог.
+Команды — это **экраны и действия TruckoRig**, не абстрактный каталог.
 
 Ассистент понимает те же подписи, что на вкладках и в меню.
 
@@ -24,9 +24,9 @@
 
 Примеры:
 
-- «Ok Google, open Truck Log добавить груз»
-- «Ok Google, Truck Log цель недели»
-- «Ok Google, Truck Log карта»
+- «Ok Google, open TruckoRig добавить груз»
+- «Ok Google, TruckoRig цель недели»
+- «Ok Google, TruckoRig карта»
 
 iOS / Siri: отдельного клиента нет. Когда появится, те же `Routes` вешаются на App Intents один-к-одному.
 

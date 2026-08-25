@@ -1,6 +1,6 @@
-# Truck Log — Design Canvas
+# TruckoRig — Design Canvas
 
-Редактируемый design file приложения **Truck Log** (Mindwell Forest).
+Редактируемый design file приложения **TruckoRig** (Mindwell Forest).
 
 ## Как открыть
 

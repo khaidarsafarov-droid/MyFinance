@@ -1,6 +1,6 @@
 # Cloud data synchronization
 
-Truck Load is local-first: screens read Room and mutations commit locally before any
+TruckoRig is local-first: screens read Room and mutations commit locally before any
 network operation. Cloud synchronization is implemented through the Ktor backend when
 `SYNC_BACKEND_URL` is configured and `LOCAL_ONLY_MODE=false`. The on-device account
 mirror remains the fallback; it is not the hosted source of truth.
