@@ -216,7 +216,7 @@
     <string name="about_guide_tax_title">7. Налоги</string>
     <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($69/день). Это ориентир, а не налоговая консультация.</string>
     <string name="about_guide_reports_title">8. Отчёты</string>
-    <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, финансы (зарплата и дизель), экспорт CSV. Оттуда можно открыть финансового советника и спросить про доход, маршруты или налоги.</string>
+    <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, финансы (зарплата и дизель), экспорт CSV.</string>
     <string name="about_guide_map_title">9. Карта</string>
     <string name="about_guide_map_body">Меню → «Карта»: ваши RPM по штатам за неделю, месяц или год (откуда уехал груз). Нажмите штат — свежие ставки и топ-направления.</string>
     <string name="about_guide_docs_title">10. Документы, камера и сканер</string>
@@ -439,7 +439,6 @@
     <string name="finance_fuel_analytics_per_100_miles">На 100 миль: $%1$s</string>
     <string name="finance_fuel_analytics_savings">Скидка: $%1$s</string>
 
-    <string name="stats_cd_advisor">Советник</string>
     <string name="stats_reset_filters">Сброс</string>
     <string name="map_title">Географическая эффективность</string>
     <string name="map_expand_fullscreen">Открыть карту на весь экран</string>
@@ -564,31 +563,6 @@
 
 <string name="calendar_prev_month_cd">Предыдущий месяц</string>
     <string name="calendar_next_month_cd">Следующий месяц</string>
-
-    <string name="advisor_title">Финансовый советник</string>
-    <string name="advisor_missing_key">Финансовый советник временно недоступен.</string>
-    <string name="advisor_thinking">Думаю...</string>
-    <string name="advisor_placeholder_question">Введите вопрос...</string>
-    <string name="advisor_cd_send">Отправить</string>
-    <string name="advisor_health_short">AI</string>
-    <string name="advisor_health_show_details">Показать детали</string>
-    <string name="advisor_health_hide_details">Скрыть детали</string>
-    <string name="advisor_health_copy_details">Скопировать диагностику</string>
-    <string name="advisor_health_copied_short">Скопировано</string>
-    <string name="advisor_health_copied">Диагностика скопирована</string>
-    <string name="advisor_suggestion_income">Как улучшить доход в этом месяце?</string>
-    <string name="advisor_suggestion_routes">Какие маршруты самые выгодные?</string>
-    <string name="advisor_suggestion_taxes">Сколько отложить на налоги?</string>
-    <string name="advisor_suggestion_compare_week">Сравни эту неделю с прошлой</string>
-    <string name="advisor_error_no_response">Сервис не вернул ответ. Попробуйте ещё раз.</string>
-    <string name="advisor_error_api_key">Ошибка AI-сервиса. Попробуйте позже.</string>
-    <string name="advisor_error_rate_limit">Лимит запросов временно исчерпан. Подождите 30-60 секунд и повторите.</string>
-    <string name="advisor_error_unavailable">Сервис AI временно недоступен. Повторите попытку через минуту.</string>
-    <string name="advisor_error_timeout">Сервер отвечает слишком долго. Проверьте интернет и повторите.</string>
-    <string name="advisor_error_network">Нет соединения с интернетом или сервером AI.</string>
-    <string name="advisor_error_empty">Сервис не вернул содержательный ответ. Попробуйте переформулировать запрос.</string>
-    <string name="advisor_error_generic">Не удалось получить ответ от AI. Попробуйте ещё раз.</string>
-    <string name="advisor_error_keyword_no_response">не вернул ответ</string>
 
     <string name="tax_title">Налоги</string>
     <string name="tax_disclaimer">Оценка. Не заменяет консультацию бухгалтера.</string>

@@ -112,7 +112,6 @@ object AppIcons {
     val Send = Icons.AutoMirrored.Filled.Send
     val Settings = Icons.Filled.Settings
     val Share = Icons.Filled.Share
-    val SmartToy = Icons.Filled.Face
     val Speed = Icons.Filled.ArrowForward
     val Star = Icons.Filled.Star
     val Stop = Icons.Filled.Close
