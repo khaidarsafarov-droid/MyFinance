@@ -162,7 +162,9 @@ class ProfileRepositoryImpl(
 
     override suspend fun clearLocalIdentity() {
         val existing = profileDao.getProfile() ?: return
-        avatarStorage.deleteAvatar(existing.avatarUrl)
+        existing.avatarUrl
+            ?.takeIf { it.isNotBlank() && !it.startsWith("http") }
+            ?.let { path -> runCatching { java.io.File(path).takeIf { it.exists() }?.delete() } }
         profileDao.upsert(
             existing.copy(
                 displayName = "",
