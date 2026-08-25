@@ -1,7 +1,6 @@
 package com.truckerload.presentation.screens.analytics
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -16,14 +15,23 @@ import com.truckerload.domain.model.analytics.DailyData
 import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
-import com.truckerload.utils.AnalyticsExporter
+import com.truckerload.utils.AnalyticsExportShare
+import com.truckerload.utils.AnalyticsShareFormat
+import com.truckerload.utils.analyticsExportLabels
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
+
+data class AnalyticsShareReady(
+    val file: File,
+    val format: AnalyticsShareFormat,
+    val caption: String,
+)
 
 data class AnalyticsUiState(
     val isLoading: Boolean = true,
@@ -35,7 +43,7 @@ data class AnalyticsUiState(
     val finance: PeriodFinance = PeriodFinance(),
     val selectedWeekIndex: Int? = null,
     val selectedWeekLoads: List<Load> = emptyList(),
-    val exportPath: String? = null,
+    val shareReady: AnalyticsShareReady? = null,
     val error: String? = null,
 )
 
@@ -111,26 +119,41 @@ class AnalyticsViewModel @Inject constructor(
         }
     }
 
-    fun exportAnalytics() {
+    fun shareAnalytics(format: AnalyticsShareFormat) {
         val dashboard = lastDashboard ?: return
         viewModelScope.launch {
-            AnalyticsExporter.exportToCsv(app, dashboard, _uiState.value.period)
-                .onSuccess { file ->
-                    _uiState.update { it.copy(exportPath = file.absolutePath, error = null) }
+            val labels = analyticsExportLabels(app, _uiState.value.period)
+            runCatching {
+                AnalyticsExportShare.writeReport(app, dashboard, labels, format, _uiState.value.period)
+            }.onSuccess { file ->
+                _uiState.update {
+                    it.copy(
+                        shareReady = AnalyticsShareReady(
+                            file = file,
+                            format = format,
+                            caption = app.getString(
+                                R.string.analytics_share_caption,
+                                labels.appName,
+                                labels.title,
+                                labels.period,
+                            ),
+                        ),
+                        error = null,
+                    )
                 }
-                .onFailure {
-                    _uiState.update {
-                        it.copy(
-                            exportPath = null,
-                            error = app.getString(R.string.export_csv_error),
-                        )
-                    }
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        shareReady = null,
+                        error = app.getString(R.string.analytics_share_failed),
+                    )
                 }
+            }
         }
     }
 
-    fun clearExportPath() {
-        _uiState.update { it.copy(exportPath = null) }
+    fun clearShareReady() {
+        _uiState.update { it.copy(shareReady = null) }
     }
 
 }

@@ -27,8 +27,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +59,8 @@ import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
+import com.truckerload.utils.AnalyticsExportShare
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AnalyticsScreen(
@@ -67,16 +72,20 @@ fun AnalyticsScreen(
     val context = LocalContext.current
     val viewModel: AnalyticsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showShareDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.exportPath) {
-        uiState.exportPath?.let { path ->
+    LaunchedEffect(uiState.shareReady) {
+        val ready = uiState.shareReady ?: return@LaunchedEffect
+        runCatching {
+            AnalyticsExportShare.shareReport(context, ready.file, ready.format, ready.caption)
+        }.onFailure {
             android.widget.Toast.makeText(
                 context,
-                context.getString(R.string.analytics_export_saved, path),
-                android.widget.Toast.LENGTH_LONG
+                context.getString(R.string.analytics_share_failed),
+                android.widget.Toast.LENGTH_LONG,
             ).show()
-            viewModel.clearExportPath()
         }
+        viewModel.clearShareReady()
     }
 
     LaunchedEffect(uiState.error) {
@@ -100,9 +109,9 @@ fun AnalyticsScreen(
                     onClick = onFinancialAdvisor,
                 )
                 SoftActionChip(
-                    icon = AppIcons.FileDownload,
+                    icon = AppIcons.Share,
                     contentDescription = stringResource(R.string.analytics_export_cd),
-                    onClick = viewModel::exportAnalytics,
+                    onClick = { showShareDialog = true },
                 )
             }
         },
@@ -112,6 +121,16 @@ fun AnalyticsScreen(
             uiState = uiState,
             viewModel = viewModel,
             onLoadClick = onLoadClick,
+        )
+    }
+
+    if (showShareDialog) {
+        AnalyticsShareDialog(
+            onDismiss = { showShareDialog = false },
+            onPick = { format ->
+                showShareDialog = false
+                viewModel.shareAnalytics(format)
+            },
         )
     }
 }
