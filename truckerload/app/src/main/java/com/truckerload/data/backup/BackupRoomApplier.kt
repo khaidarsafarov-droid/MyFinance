@@ -1,15 +1,18 @@
 package com.truckerload.data.backup
 
 import androidx.room.withTransaction
+import com.truckerload.data.backup.BackupRoomApplier.applyFullReplace
+import com.truckerload.data.backup.BackupRoomApplier.pruneOrphanMedia
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.repository.LoadRepository
 
 /**
- * Shared full-replace journal restore used by local backup import and cloud full hydration.
+ * Shared full-replace restore used by local backup import and cloud full hydration.
  *
  * Photos/scans are **not** wiped wholesale: after journal replace, [pruneOrphanMedia] removes
  * only rows whose [loadId] no longer exists. Unlinked media and media for restored loads stay.
+ * Maintenance receipt [photoPath] files are kept when the archive row is restored.
  */
 object BackupRoomApplier {
 
@@ -19,12 +22,15 @@ object BackupRoomApplier {
         val penaltyDao = db.penaltyDao()
         val paycheckDao = db.paycheckDao()
         val dieselDao = db.dieselDao()
+        val maintenanceDao = db.maintenanceDao()
 
         db.withTransaction {
             dieselDao.deleteAll()
             paycheckDao.deleteAll()
             db.loadHistoryDao().deleteAll()
             loadDao.deleteAll()
+            maintenanceDao.deleteAllTasks()
+            maintenanceDao.deleteAllArchive()
 
             backup.loads.forEach { load ->
                 loadDao.insert(load.toEntity())
@@ -41,6 +47,28 @@ object BackupRoomApplier {
             if (backup.diesel.isNotEmpty()) {
                 dieselDao.insertAll(backup.diesel.map { it.toEntity() })
             }
+            applyMaintenanceInsideTransaction(db, backup)
+        }
+    }
+
+    /** Replace ТО tables from backup (also used on incremental cloud pull). */
+    suspend fun applyMaintenanceReplace(db: AppDatabase, backup: BackupData) {
+        db.withTransaction {
+            db.maintenanceDao().deleteAllTasks()
+            db.maintenanceDao().deleteAllArchive()
+            applyMaintenanceInsideTransaction(db, backup)
+        }
+    }
+
+    private suspend fun applyMaintenanceInsideTransaction(db: AppDatabase, backup: BackupData) {
+        val maintenanceDao = db.maintenanceDao()
+        if (backup.maintenanceTasks.isNotEmpty()) {
+            maintenanceDao.insertTasks(backup.maintenanceTasks.map { it.toDomain().toEntity() })
+        }
+        if (backup.maintenanceArchive.isNotEmpty()) {
+            maintenanceDao.insertArchives(backup.maintenanceArchive.map {
+                it.toDomain().toEntity()
+            })
         }
     }
 

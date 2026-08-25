@@ -3,18 +3,20 @@ package com.truckerload.data.sync
 import android.content.Context
 import android.util.Log
 import androidx.room.withTransaction
-import com.truckerload.data.backup.BackupData
+import com.truckerload.data.backup.BackupPrefsApplier
 import com.truckerload.data.backup.BackupRoomApplier
+import com.truckerload.data.backup.BackupSchema
+import com.truckerload.data.backup.BackupSnapshotBuilder
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
-import com.truckerload.data.privacy.AesGcmSensitiveFieldCipher
-import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.privacy.AesGcmSensitiveFieldCipher
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.sync.CloudSyncEngine.pushLocalSnapshot
 import com.truckerload.data.sync.cloud.SyncModeStore
 import com.truckerload.widget.WidgetDataUpdater
 import org.json.JSONObject
@@ -105,6 +107,7 @@ object CloudSyncEngine {
             loadsApplied = mergeSnapshotIntoRoom(db, remote)
             pulled = true
             applyDriverProfileIfPresent(db, remote)
+            BackupPrefsApplier.apply(app, remote.backup.appSettings)
         }
 
         val pushed = pushLocalSnapshot(userId, db, backend)
@@ -143,17 +146,11 @@ object CloudSyncEngine {
         db: AppDatabase,
         backend: AccountCloudBackend,
     ): Boolean {
-        val loads = LoadRepository(db).getAllLoadsOnce()
-        val paychecks = PaycheckRepository(db).getAllPaychecksOnce()
-        val diesel = DieselRepository(db).getAllDieselOnce()
+        val appContext = AppDatabase.applicationContext() ?: return false
         val existing = backend.read(userId)
-        // Local Room is the source of truth after pull. Do NOT merge remote-only
-        // entities back in — that resurrects loads the user deleted on this device.
-        val localBackup = BackupData(
-            loads = loads,
-            paychecks = paychecks,
-            diesel = diesel,
-        )
+        // Local Room (+ prefs) is the source of truth after pull. Do NOT merge remote-only
+        // journal entities back in — that resurrects loads the user deleted on this device.
+        val localBackup = BackupSnapshotBuilder.build(appContext, db)
         val publishBackup = localBackup.copy(
             loads = CloudSyncPolicy.localSnapshotForPush(localBackup.loads.associateBy { it.id })
                 .values.toList(),
@@ -195,6 +192,7 @@ object CloudSyncEngine {
         BackupRoomApplier.applyFullReplace(db, backup)
         BackupRoomApplier.pruneOrphanMedia(db)
         applyDriverProfileIfPresent(db, snapshot)
+        BackupPrefsApplier.apply(context, backup.appSettings)
         return backup.loads.size
     }
 
@@ -262,6 +260,13 @@ object CloudSyncEngine {
                 db.paycheckDao().insertAll(upserts)
                 applied += upserts.size
             }
+        }
+        // ТО: snapshot LWW — replace local tables when remote carries maintenance data.
+        if (backup.maintenanceTasks.isNotEmpty() ||
+            backup.maintenanceArchive.isNotEmpty() ||
+            backup.schemaVersion >= BackupSchema.V2
+        ) {
+            BackupRoomApplier.applyMaintenanceReplace(db, backup)
         }
         BackupRoomApplier.pruneOrphanMedia(db)
         return applied

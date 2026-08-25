@@ -4,13 +4,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -18,18 +16,26 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.utils.DocumentScannerService
 import kotlinx.coroutines.delay
+import com.truckerload.presentation.components.TlButton as Button
 
 @Composable
 fun ScannerFlowScreen(
@@ -45,6 +51,32 @@ fun ScannerFlowScreen(
     val activity = context as? ComponentActivity
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    // Share → pause (chooser/app) → resume → then save to load.
+    var shareAwaitingReturn by remember { mutableStateOf(false) }
+    var shareDidPause by remember { mutableStateOf(false) }
+
+    DisposableEffect(lifecycleOwner, shareAwaitingReturn) {
+        if (!shareAwaitingReturn) {
+            return@DisposableEffect onDispose { }
+        }
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> shareDidPause = true
+                Lifecycle.Event.ON_RESUME -> {
+                    if (shareDidPause) {
+                        shareAwaitingReturn = false
+                        shareDidPause = false
+                        viewModel.saveAfterShare()
+                    }
+                }
+
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val scannerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult(),
@@ -138,7 +170,9 @@ fun ScannerFlowScreen(
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)) {
             when {
                 uiState.isProcessing || (uiState.autoAttachedAndDone && uiState.pendingScan != null) -> {
                     ScannerLoadingScreen(
@@ -154,13 +188,27 @@ fun ScannerFlowScreen(
                         ScanResultScreen(
                             pending = pending,
                             sessionCount = uiState.sessionScans.size,
+                            isAttachedToLoad = viewModel.isAttachedToLoad,
                             onSaveToApp = viewModel::saveToApp,
                             onSaveToPhone = viewModel::saveToPhone,
                             onShare = {
                                 val file = viewModel.mergedShareFile()
                                 if (file != null) {
-                                    ShareHelperWrapper.share(context, file)
+                                    val waitForReturn =
+                                        viewModel.isAttachedToLoad && !pending.savedToDb
+                                    if (waitForReturn) {
+                                        shareDidPause = false
+                                        shareAwaitingReturn = true
+                                    }
+                                    val started = ShareHelperWrapper.share(context, file)
+                                    if (!started) {
+                                        shareAwaitingReturn = false
+                                        shareDidPause = false
+                                        viewModel.onShareUnavailable()
+                                    }
                                 } else {
+                                    shareAwaitingReturn = false
+                                    shareDidPause = false
                                     viewModel.onShareUnavailable()
                                 }
                             },
@@ -245,7 +293,10 @@ private fun ScannerLoadingScreen(message: String) {
 }
 
 private object ShareHelperWrapper {
-    fun share(context: android.content.Context, file: java.io.File) {
+    fun share(context: android.content.Context, file: java.io.File): Boolean = try {
         com.truckerload.utils.ShareHelper(context).sharePdf(file)
+        true
+    } catch (_: Exception) {
+        false
     }
 }

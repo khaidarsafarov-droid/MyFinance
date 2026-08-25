@@ -6,8 +6,9 @@ import java.util.Locale
 
 /** Backup JSON format version — independent of Room's schemaVersion. */
 object BackupSchema {
-    const val CURRENT = 1
+    const val CURRENT = 2
     const val V1 = 1
+    const val V2 = 2
 
     const val JSON_MIME = "application/json"
     const val JSON_UTF8_MIME = "application/json; charset=UTF-8"

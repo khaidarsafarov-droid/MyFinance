@@ -1,25 +1,23 @@
 package com.truckerload.utils
 
-import androidx.core.content.edit
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
-import androidx.room.withTransaction
+import androidx.core.content.edit
 import com.truckerload.R
 import com.truckerload.data.backup.BackupData
 import com.truckerload.data.backup.BackupDataCodec
+import com.truckerload.data.backup.BackupPrefsApplier
 import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.BackupRestoreParser
 import com.truckerload.data.backup.BackupRoomApplier
 import com.truckerload.data.backup.BackupSchema
+import com.truckerload.data.backup.BackupSnapshotBuilder
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,32 +69,16 @@ object BackupService {
     suspend fun createAutoBackup(context: Context) = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
         val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext
-        val loadRepository = LoadRepository(db)
-        val paycheckRepository = PaycheckRepository(db)
-        val dieselRepository = DieselRepository(db)
+        val backup = BackupSnapshotBuilder.build(appContext, db)
+        if (!BackupSnapshotBuilder.hasExportableContent(backup)) return@withContext
 
-        val loads = loadRepository.getAllLoadsOnce()
-        if (loads.isEmpty() &&
-            paycheckRepository.getAllPaychecksOnce().isEmpty() &&
-            dieselRepository.getAllDieselOnce().isEmpty()
-        ) {
-            return@withContext
-        }
-
-        val accountId = AuthStore(appContext).currentUserIdOrNull()
-        val backup = BackupData(
-            // FIX: bind backup to active account so restore cannot cross accounts
-            accountId = accountId,
-            loads = loads,
-            paychecks = paycheckRepository.getAllPaychecksOnce(),
-            diesel = dieselRepository.getAllDieselOnce()
-        )
+        val accountId = backup.accountId
         val json = BackupDataCodec.toJson(backup)
         val dir = autoBackupDir(appContext, accountId).apply { mkdirs() }
         val fileName = "auto_backup_${formatAutoBackupTimestamp()}.tlb"
         File(dir, fileName).writeText(json, Charsets.UTF_8)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
-        Log.d(TAG, "createAutoBackup saved $fileName (${loads.size} loads)")
+        Log.d(TAG, "createAutoBackup saved $fileName (${backup.loads.size} loads)")
         runCatching {
             com.truckerload.data.backup.GoogleDriveBackupService.pushAutoBackupIfEnabled(appContext)
         }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", e) }
@@ -143,26 +125,14 @@ object BackupService {
         getAutoBackups(context).isNotEmpty()
     }
 
-    /** Полный JSON бэкапа (loads/paychecks/diesel) для локального файла или Google Drive. */
+    /** Full-account JSON (journal + ТО + settings) for local file or Google Drive. */
     suspend fun createBackupJson(context: Context): String? = withContext(Dispatchers.IO) {
         runCatching {
             val appContext = context.applicationContext
             val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
-            val loadRepository = LoadRepository(db)
-            val paycheckRepository = PaycheckRepository(db)
-            val dieselRepository = DieselRepository(db)
-            val loads = loadRepository.getAllLoadsOnce()
-            val paychecks = paycheckRepository.getAllPaychecksOnce()
-            val diesel = dieselRepository.getAllDieselOnce()
-            if (loads.isEmpty() && paychecks.isEmpty() && diesel.isEmpty()) return@withContext null
-            BackupDataCodec.toJson(
-                BackupData(
-                    accountId = AuthStore(appContext).currentUserIdOrNull(),
-                    loads = loads,
-                    paychecks = paychecks,
-                    diesel = diesel,
-                )
-            )
+            val backup = BackupSnapshotBuilder.build(appContext, db)
+            if (!BackupSnapshotBuilder.hasExportableContent(backup)) return@withContext null
+            BackupDataCodec.toJson(backup)
         }.getOrElse { e ->
             Log.e(TAG, "createBackupJson failed", e)
             null
@@ -178,17 +148,8 @@ object BackupService {
         try {
             val appContext = context.applicationContext
             val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
-            val loadRepository = LoadRepository(db)
-            val paycheckRepository = PaycheckRepository(db)
-            val dieselRepository = DieselRepository(db)
-
-            val loads = loadRepository.getAllLoadsOnce()
-            val backup = BackupData(
-                accountId = AuthStore(appContext).currentUserIdOrNull(),
-                loads = loads,
-                paychecks = paycheckRepository.getAllPaychecksOnce(),
-                diesel = dieselRepository.getAllDieselOnce()
-            )
+            val backup = BackupSnapshotBuilder.build(appContext, db)
+            if (!BackupSnapshotBuilder.hasExportableContent(backup)) return@withContext null
             val json = BackupDataCodec.toJson(backup)
             val jsonBytes = BackupDataCodec.toUtf8Bytes(backup)
             val fileName = BackupSchema.jsonFileName(backup.exportedAt)
@@ -217,7 +178,7 @@ object BackupService {
                 mimeType = BackupSchema.JSON_MIME,
             )
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "createManualBackup failed", e)
+            Log.e(TAG, "createManualBackup failed", e)
             null
         }
     }
@@ -293,8 +254,7 @@ object BackupService {
     suspend fun restoreLatestCompanionBackupIfEmpty(context: Context): Result<String>? = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
         val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
-        val loadRepository = LoadRepository(db)
-        if (loadRepository.getAllLoadsOnce().isNotEmpty()) return@withContext null
+        if (db.loadDao().getAllLoadsOnce().isNotEmpty()) return@withContext null
 
         val userId = AuthStore(appContext).currentUserIdOrNull() ?: return@withContext null
         // FIX: only scan this account's companion dir — shared pool restored wrong user's journal
@@ -306,7 +266,7 @@ object BackupService {
             ?.maxByOrNull { it.lastModified() }
             ?: return@withContext null
 
-        android.util.Log.i(TAG, "Auto-restore from companion ${latest.name}")
+        Log.i(TAG, "Auto-restore from companion ${latest.name}")
         restoreFromJson(appContext, latest.readText(Charsets.UTF_8)).map { backup ->
             WidgetDataUpdater.updateWidgetData(appContext)
             appContext.getString(
@@ -379,6 +339,7 @@ object BackupService {
         }
         BackupRoomApplier.applyFullReplace(db, backup)
         BackupRoomApplier.pruneOrphanMedia(db)
+        BackupPrefsApplier.apply(context.applicationContext, backup.appSettings)
 
         return Result.success(backup)
     }

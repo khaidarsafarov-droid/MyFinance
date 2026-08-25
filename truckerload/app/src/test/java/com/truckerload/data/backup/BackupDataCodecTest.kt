@@ -12,8 +12,8 @@ class BackupDataCodecTest {
     fun roundTrip_preservesLoadsPaychecksDieselAndTimestamps() {
         val original = BackupTestFixtures.sampleBackup()
         val json = BackupDataCodec.toJson(original)
-        assertTrue(json.contains("\"schemaVersion\":1"))
-        assertTrue(json.contains("\"version\":1"))
+        assertTrue(json.contains("\"schemaVersion\":2"))
+        assertTrue(json.contains("\"version\":2"))
         assertTrue(!json.startsWith("\uFEFF"))
 
         val restored = BackupDataCodec.decode(json)
@@ -36,6 +36,48 @@ class BackupDataCodecTest {
         assertTrue(bytes[0] == '{'.code.toByte())
         val decoded = BackupDataCodec.decode(String(bytes, StandardCharsets.UTF_8))
         assertEquals(BackupTestFixtures.sampleBackup(), decoded)
+    }
+
+    @Test
+    fun roundTrip_preservesMaintenanceAndAppSettings() {
+        val original = BackupTestFixtures.sampleBackup().copy(
+            maintenanceTasks = listOf(
+                BackupMaintenanceTask(
+                    id = 7,
+                    title = "Oil change",
+                    startDate = "2026-01-01",
+                    reminderType = "MILES",
+                    intervalMiles = 15000.0,
+                    odometerAtStart = 120000.0,
+                    isCompleted = false,
+                    createdAt = 1L,
+                    updatedAt = 2L,
+                ),
+            ),
+            maintenanceArchive = listOf(
+                BackupMaintenanceArchive(
+                    id = 8,
+                    serviceName = "Oil",
+                    serviceDate = "2025-12-01",
+                    description = "full synthetic",
+                    amount = 89.0,
+                    createdAt = 3L,
+                ),
+            ),
+            appSettings = BackupAppSettings(
+                themeModeOrdinal = 1,
+                languageOrdinal = 0,
+                parserAutoUpdate = true,
+                weeklyProfitGoal = 4500.0,
+                rpmMinProfit = 2.0,
+                rpmTargetProfit = 2.5,
+            ),
+        )
+        val restored = BackupDataCodec.decode(BackupDataCodec.toJson(original))
+        assertEquals(original.maintenanceTasks, restored.maintenanceTasks)
+        assertEquals(original.maintenanceArchive, restored.maintenanceArchive)
+        assertEquals(original.appSettings, restored.appSettings)
+        assertEquals(BackupSchema.V2, restored.schemaVersion)
     }
 
     @Test

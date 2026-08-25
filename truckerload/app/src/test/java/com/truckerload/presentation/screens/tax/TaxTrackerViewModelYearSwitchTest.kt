@@ -2,6 +2,7 @@ package com.truckerload.presentation.screens.tax
 
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Load
@@ -35,6 +36,7 @@ class TaxTrackerViewModelYearSwitchTest {
     private lateinit var paycheckRepository: PaycheckRepository
     private lateinit var dieselRepository: DieselRepository
     private lateinit var loadRepository: LoadRepository
+    private lateinit var maintenanceRepository: MaintenanceRepository
     private lateinit var viewModel: TaxTrackerViewModel
 
     @Before
@@ -43,6 +45,7 @@ class TaxTrackerViewModelYearSwitchTest {
         paycheckRepository = org.mockito.kotlin.mock()
         dieselRepository = org.mockito.kotlin.mock()
         loadRepository = org.mockito.kotlin.mock()
+        maintenanceRepository = org.mockito.kotlin.mock()
 
         whenever(paycheckRepository.getPaychecksForYear(2025)).thenReturn(
             listOf(paycheck(net = 10_000.0, year = 2025)),
@@ -65,6 +68,8 @@ class TaxTrackerViewModelYearSwitchTest {
                 sampleLoad("2026-07-01", year = 2026),
             ),
         )
+        whenever(maintenanceRepository.getArchiveForYear(2025)).thenReturn(emptyList())
+        whenever(maintenanceRepository.getArchiveForYear(2026)).thenReturn(emptyList())
 
         // init loads current calendar year — stub that year too so init does not NPE
         val current = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
@@ -72,9 +77,15 @@ class TaxTrackerViewModelYearSwitchTest {
             whenever(paycheckRepository.getPaychecksForYear(current)).thenReturn(emptyList())
             whenever(dieselRepository.getDieselForYear(current)).thenReturn(emptyList())
             whenever(loadRepository.getLoadsByYear(current)).thenReturn(emptyList())
+            whenever(maintenanceRepository.getArchiveForYear(current)).thenReturn(emptyList())
         }
 
-        viewModel = TaxTrackerViewModel(paycheckRepository, dieselRepository, loadRepository)
+        viewModel = TaxTrackerViewModel(
+            paycheckRepository,
+            dieselRepository,
+            loadRepository,
+            maintenanceRepository,
+        )
         advanceUntilIdle()
     }
 

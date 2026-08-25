@@ -18,8 +18,7 @@ class ShareHelper(private val context: Context) {
     }
 
     fun sharePhotos(files: List<File>) {
-        shareFiles(files, "image/jpeg", com.truckerload.R.string.
-        share_photos_batch)
+        shareFiles(files, "image/jpeg", com.truckerload.R.string.share_photos_batch)
     }
 
     fun sharePdfs(files: List<File>) {
