@@ -61,5 +61,6 @@ class ScanAttachToLoadTest {
         assertEquals(1, byLoad.size)
         assertEquals(saved.id, byLoad[0].id)
         assertEquals("load-attach-1", byLoad[0].loadId)
+        assertEquals("LOAD", byLoad[0].category)
     }
 }

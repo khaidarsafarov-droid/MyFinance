@@ -80,6 +80,7 @@ class RoomMediaSyncEnqueuer(
                 put("timestamp", scan.timestamp)
                 put("pageCount", scan.pageCount)
                 put("ocrText", scan.ocrText)
+                put("category", scan.category)
                 scan.loadId?.let { put("loadId", it) }
             },
         )

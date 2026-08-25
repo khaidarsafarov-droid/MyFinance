@@ -21,6 +21,7 @@ data class ScanEntity(
     val pageCount: Int,
     val ocrText: String = "",
     val loadId: String? = null,
+    val category: String = "OTHER",
     val cloudMediaId: String? = null,
     val cloudSyncStatus: String = CLOUD_LOCAL,
     val cloudUpdatedAt: Long = 0,

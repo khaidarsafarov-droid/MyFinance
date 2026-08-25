@@ -4,6 +4,8 @@ import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.ScanEntity
 import com.truckerload.data.sync.MediaSyncEnqueuer
+import com.truckerload.domain.model.ScanDocumentCategory
+import com.truckerload.domain.model.ScanDocumentFinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -31,8 +33,11 @@ class ScanRepository(
         pageCount: Int,
         ocrText: String,
         loadId: String? = null,
+        category: String? = null,
     ): ScanEntity {
         val syncEnabled = mediaSync.enabled()
+        val resolvedCategory = category?.let { ScanDocumentCategory.fromStored(it).name }
+            ?: ScanDocumentFinder.infer(loadId, fileName, ocrText).name
         val entity = ScanEntity(
             id = UUID.randomUUID().toString(),
             fileName = fileName,
@@ -42,6 +47,7 @@ class ScanRepository(
             pageCount = pageCount,
             ocrText = ocrText,
             loadId = loadId,
+            category = resolvedCategory,
             cloudSyncStatus = if (syncEnabled) ScanEntity.CLOUD_PENDING else ScanEntity.CLOUD_LOCAL,
         )
         db.withTransaction {
@@ -57,6 +63,25 @@ class ScanRepository(
         val syncEnabled = mediaSync.enabled()
         val updated = existing.copy(
             loadId = loadId,
+            category = if (!loadId.isNullOrBlank()) {
+                ScanDocumentCategory.LOAD.name
+            } else {
+                existing.category
+            },
+            cloudSyncStatus = if (syncEnabled) ScanEntity.CLOUD_PENDING else existing.cloudSyncStatus,
+        )
+        db.withTransaction {
+            scanDao.insert(updated)
+            if (syncEnabled) mediaSync.enqueueScanUpsert(updated)
+        }
+        if (syncEnabled) mediaSync.schedule()
+    }
+
+    suspend fun updateScanCategory(scanId: String, category: ScanDocumentCategory) {
+        val existing = scanDao.getById(scanId) ?: return
+        val syncEnabled = mediaSync.enabled()
+        val updated = existing.copy(
+            category = category.name,
             cloudSyncStatus = if (syncEnabled) ScanEntity.CLOUD_PENDING else existing.cloudSyncStatus,
         )
         db.withTransaction {

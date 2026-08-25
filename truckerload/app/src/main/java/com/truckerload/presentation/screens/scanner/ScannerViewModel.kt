@@ -7,10 +7,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.truckerload.data.repository.ScanRepository
+import com.truckerload.domain.model.ScanDocumentCategory
+import com.truckerload.domain.model.ScanDocumentFinder
 import com.truckerload.utils.OCRService
 import com.truckerload.utils.PDFGenerator
 import com.truckerload.utils.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +21,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
-import java.io.File
 
 data class PendingScan(
     val file: File,
@@ -28,6 +30,7 @@ data class PendingScan(
     val usedRussianEngine: Boolean = false,
     val savedToDb: Boolean = false,
     val isMerged: Boolean = false,
+    val category: ScanDocumentCategory = ScanDocumentCategory.OTHER,
 )
 
 data class ScannerUiState(
@@ -90,6 +93,7 @@ class ScannerViewModel @Inject constructor(
                     ocrText = ocrResult.text,
                     timestamp = timestamp,
                     usedRussianEngine = ocrResult.usedRussianEngine,
+                    category = ScanDocumentFinder.infer(attachLoadId, saved.file.name, ocrResult.text),
                 )
                 val session = _uiState.value.sessionScans + newScan
                 val oldMerged = _uiState.value.pendingScan?.takeIf { it.isMerged && !it.savedToDb }
@@ -163,6 +167,13 @@ class ScannerViewModel @Inject constructor(
         _uiState.update { it.copy(errorKey = "share_failed") }
     }
 
+    fun setScanCategory(category: ScanDocumentCategory) {
+        _uiState.update { state ->
+            val pending = state.pendingScan ?: return@update state
+            state.copy(pendingScan = pending.copy(category = category))
+        }
+    }
+
     fun saveToApp() {
         viewModelScope.launch { persistPendingToApp(showSuccess = true) }
     }
@@ -229,6 +240,7 @@ class ScannerViewModel @Inject constructor(
                 pageCount = pending.pageCount,
                 ocrText = pending.ocrText,
                 loadId = attachLoadId,
+                category = pending.category.name,
             )
             val markedSession = if (pending.isMerged) {
                 state.sessionScans.map { it.copy(savedToDb = true) }
@@ -266,6 +278,12 @@ class ScannerViewModel @Inject constructor(
                 loadDate = attachLoadDate,
             ),
         )
+        val previousCategory = _uiState.value.pendingScan?.category
+        val inferred = ScanDocumentFinder.infer(
+            attachLoadId,
+            mergedFile.name,
+            session.joinToString("\n") { it.ocrText },
+        )
         return PendingScan(
             file = mergedFile,
             pageCount = session.sumOf { it.pageCount },
@@ -275,6 +293,7 @@ class ScannerViewModel @Inject constructor(
             timestamp = timestamp,
             usedRussianEngine = session.any { it.usedRussianEngine },
             isMerged = true,
+            category = previousCategory ?: inferred,
         )
     }
 

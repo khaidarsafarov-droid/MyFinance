@@ -168,6 +168,7 @@ fun ScannerFlowScreen(
                             onOpenGallery = {
                                 viewModel.saveThenOpenGallery(onOpenGallery)
                             },
+                            onCategoryChange = viewModel::setScanCategory,
                             onClose = {
                                 viewModel.clearPendingScan()
                                 onFinished()
