@@ -602,6 +602,15 @@
     <string name="route_avg_rate_per_trip">$%1$.2f/рейс</string>
 
     <string name="add_paycheck_title">Добавить зарплату</string>
+
+    <string name="add_paycheck_add_file">Добавить файл</string>
+    <string name="add_paycheck_file_hint">Выберите PDF, фото или документ — приложение подставит total. Сохранение только после вашего подтверждения.</string>
+    <string name="add_paycheck_parsing">Читаем файл…</string>
+    <string name="add_paycheck_file_name">Файл: %1$s</string>
+    <string name="add_paycheck_file_parsed">Зарплата распознана. Проверьте сумму и неделю, затем нажмите «Сохранить».</string>
+    <string name="add_paycheck_file_read_failed">Не удалось прочитать файл. Попробуйте другой документ или введите сумму вручную.</string>
+    <string name="add_paycheck_file_parse_failed">В файле не найдена сумма зарплаты. Проверьте документ или введите total вручную.</string>
+    <string name="add_paycheck_telegram_hint">Или перешлите файл боту в Telegram — он тоже распознает зарплату и спросит подтверждение.</string>
     <string name="add_diesel_title">Добавить дизель</string>
     <string name="add_diesel_date">Дата</string>
     <string name="add_diesel_change_date">Изменить дату</string>

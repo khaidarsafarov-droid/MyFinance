@@ -602,6 +602,15 @@
     <string name="route_avg_rate_per_trip">$%1$.2f/trip</string>
 
     <string name="add_paycheck_title">Add paycheck</string>
+
+    <string name="add_paycheck_add_file">Add file</string>
+    <string name="add_paycheck_file_hint">Pick a PDF, photo, or document — the app fills in the total. Nothing is saved until you confirm.</string>
+    <string name="add_paycheck_parsing">Reading file…</string>
+    <string name="add_paycheck_file_name">File: %1$s</string>
+    <string name="add_paycheck_file_parsed">Paycheck recognized. Check the amount and week, then tap Save.</string>
+    <string name="add_paycheck_file_read_failed">Could not read the file. Try another document or enter the amount manually.</string>
+    <string name="add_paycheck_file_parse_failed">No paycheck total found in the file. Check the document or enter the total manually.</string>
+    <string name="add_paycheck_telegram_hint">Or forward the file to the Telegram bot — it also recognizes paychecks and asks before saving.</string>
     <string name="add_diesel_title">Add diesel</string>
     <string name="add_diesel_date">Date</string>
     <string name="add_diesel_change_date">Change date</string>

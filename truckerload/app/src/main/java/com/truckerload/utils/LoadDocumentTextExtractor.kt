@@ -44,7 +44,7 @@ class LoadDocumentTextExtractor(context: Context) {
     }
 
     /** Display name drives extension-based decoding for content:// URIs. */
-    private fun displayName(uri: Uri): String {
+    fun displayName(uri: Uri): String {
         val fromProvider = runCatching {
             appContext.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
                 ?.use { cursor ->

@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.add
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -11,6 +12,9 @@ import com.truckerload.R
 import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.utils.getWeekNumberAndYearFromDate
+import com.truckerload.utils.LoadDocumentTextExtractor
+import com.truckerload.domain.parser.PaycheckTextParser
 import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getMillisForWeek
@@ -33,10 +37,16 @@ data class AddPaycheckUiState(
     val weekNumber: Int = 1,
     val year: Int = 1970,
     val isSaving: Boolean = false,
+    val isParsingFile: Boolean = false,
     val error: String? = null,
     val saved: Boolean = false,
     val showSaveDialog: Boolean = false,
     val lastAmount: Double? = null,
+    val sourceFileName: String? = null,
+    val rawExtractedText: String = "",
+    val driverName: String? = null,
+    val grossAmount: Double? = null,
+    val parseNotice: String? = null,
 )
 
 @HiltViewModel
@@ -71,6 +81,74 @@ class AddPaycheckViewModel @Inject constructor(
         val text = if (last % 1.0 == 0.0) last.toLong().toString()
         else String.format(Locale.US, "%.2f", last)
         setAmountText(text)
+    }
+
+    fun importFile(uri: Uri, mimeType: String?) {
+        if (_uiState.value.isParsingFile || _uiState.value.isSaving) return
+        val extractor = LoadDocumentTextExtractor(getApplication())
+        val displayName = extractor.displayName(uri).ifBlank {
+            uri.lastPathSegment?.substringAfterLast('/').orEmpty()
+        }
+        _uiState.update {
+            it.copy(
+                isParsingFile = true,
+                error = null,
+                parseNotice = null,
+                sourceFileName = displayName.ifBlank { null },
+            )
+        }
+        viewModelScope.launch {
+            val textResult = withContext(Dispatchers.IO) {
+                extractor.extract(uri, mimeType)
+            }
+            textResult.fold(
+                onSuccess = { text -> applyParsedFile(text, displayName) },
+                onFailure = {
+                    _uiState.update {
+                        it.copy(
+                            isParsingFile = false,
+                            error = getApplication<Application>().getString(R.string.add_paycheck_file_read_failed),
+                            parseNotice = null,
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    private fun applyParsedFile(text: String, fileName: String) {
+        val parsed = PaycheckTextParser.parse(text)
+        if (parsed == null) {
+            _uiState.update {
+                it.copy(
+                    isParsingFile = false,
+                    rawExtractedText = text,
+                    sourceFileName = fileName.ifBlank { null },
+                    error = getApplication<Application>().getString(R.string.add_paycheck_file_parse_failed),
+                    parseNotice = null,
+                )
+            }
+            return
+        }
+        val amountText = formatAmountText(parsed.netAmount)
+        savedStateHandle[KEY_AMOUNT_TEXT] = amountText
+        val weekStart = parsed.weekStartDate
+        if (!weekStart.isNullOrBlank()) {
+            val (week, year) = getWeekNumberAndYearFromDate(weekStart)
+            setWeekAndYear(week, year)
+        }
+        _uiState.update {
+            it.copy(
+                amountText = amountText,
+                isParsingFile = false,
+                error = null,
+                rawExtractedText = text,
+                sourceFileName = fileName.ifBlank { null },
+                driverName = parsed.driverName,
+                grossAmount = parsed.grossAmount,
+                parseNotice = getApplication<Application>().getString(R.string.add_paycheck_file_parsed),
+            )
+        }
     }
 
     fun selectPreviousWeek() {
@@ -149,11 +227,11 @@ class AddPaycheckViewModel @Inject constructor(
             weekLabel = weekLabel,
             weekStartDate = weekStart,
             weekEndDate = weekEnd,
-            driverName = null,
-            grossAmount = null,
+            driverName = state.driverName,
+            grossAmount = state.grossAmount,
             netAmount = amount,
-            rawExtractedText = "",
-            sourceFileName = null,
+            rawExtractedText = state.rawExtractedText,
+            sourceFileName = state.sourceFileName,
             addedAt = state.recordedAtMillis,
         )
 
@@ -177,6 +255,11 @@ class AddPaycheckViewModel @Inject constructor(
                         saved = true,
                         showSaveDialog = false,
                         lastAmount = amount,
+                        sourceFileName = null,
+                        rawExtractedText = "",
+                        driverName = null,
+                        grossAmount = null,
+                        parseNotice = null,
                     )
                 }
             } catch (e: Exception) {
@@ -226,6 +309,11 @@ class AddPaycheckViewModel @Inject constructor(
 
 
     companion object {
+        internal fun formatAmountText(amount: Double): String =
+            if (amount % 1.0 == 0.0) amount.toLong().toString()
+            else String.format(Locale.US, "%.2f", amount)
+
+
         private const val KEY_AMOUNT_TEXT = "add_paycheck_amount_text"
         private const val KEY_RECORDED_AT_MILLIS = "add_paycheck_recorded_at_millis"
         private const val KEY_WEEK_NUMBER = "add_paycheck_week_number"
