@@ -19,6 +19,7 @@ object Routes {
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
     const val DIESEL = "diesel"
+    const val MISC_EXPENSES = "misc_expenses"
     const val MAINTENANCE = "maintenance"
     const val TAX_TRACKER = "tax_tracker"
     const val FINANCIAL_ADVISOR = "financial_advisor"

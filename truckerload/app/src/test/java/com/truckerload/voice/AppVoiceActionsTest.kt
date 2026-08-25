@@ -23,6 +23,8 @@ class AppVoiceActionsTest {
         assertEquals(Routes.ADD_DIESEL, screen("добавить дизель"))
         assertEquals(Routes.DIESEL, screen("дизель"))
         assertEquals(Routes.DIESEL, screen("diesel"))
+        assertEquals(Routes.MISC_EXPENSES, screen("разные расходы"))
+        assertEquals(Routes.MISC_EXPENSES, screen("other expenses"))
         assertEquals(Routes.MAINTENANCE, screen("обслуживание"))
         assertEquals(Routes.TAX_TRACKER, screen("налоги"))
         assertEquals(Routes.TAX_TRACKER, screen("tax"))

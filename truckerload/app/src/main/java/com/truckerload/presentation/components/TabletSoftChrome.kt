@@ -52,6 +52,7 @@ fun SoftAppPageScaffold(
     showPhoneMenu: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val tc = LocalTruckColors.current
@@ -62,6 +63,7 @@ fun SoftAppPageScaffold(
         modifier = modifier,
         containerColor = BentoGlassTheme.ScreenBackground,
         snackbarHost = snackbarHost,
+        floatingActionButton = floatingActionButton,
         topBar = {
             if (tabletChrome) {
                 SoftTabletPageHeader(

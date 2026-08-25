@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→36 (startVersion 25..35). */
+/** Room migrations for schema versions 25→37 (startVersion 25..36). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -344,5 +344,26 @@ val MIGRATION_35_36 = object : Migration(35, 36) {
         db.addColumnIfMissing("loads", "disputeAmount", "REAL")
         db.addColumnIfMissing("loads", "disputeApplyToLoad", "INTEGER NOT NULL DEFAULT 0")
         db.addColumnIfMissing("loads", "disputeAmountApplied", "INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/** Free-form miscellaneous expenses with a description. */
+val MIGRATION_36_37 = object : Migration(36, 37) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execLogged(
+            """
+            CREATE TABLE IF NOT EXISTS misc_expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                amount REAL NOT NULL,
+                description TEXT NOT NULL,
+                date TEXT NOT NULL,
+                createdAt INTEGER NOT NULL,
+                updatedAt INTEGER NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execLogged(
+            "CREATE INDEX IF NOT EXISTS index_misc_expenses_date ON misc_expenses(date)",
+        )
     }
 }

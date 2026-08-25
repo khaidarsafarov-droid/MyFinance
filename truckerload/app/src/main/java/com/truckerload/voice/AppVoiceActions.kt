@@ -58,6 +58,12 @@ object AppVoiceActions {
         Routes.TAX_TRACKER to listOf("налоги", "налог", "taxes", "tax tracker", "tax"),
         Routes.ADD_PAYCHECK to listOf("добавить зарплату", "зарплата", "add paycheck", "paycheck"),
         Routes.DIESEL to listOf("дизель", "diesel"),
+        Routes.MISC_EXPENSES to listOf(
+            "разные расходы",
+            "расходы",
+            "misc expenses",
+            "other expenses",
+        ),
         Routes.ADD_DIESEL to listOf("добавить дизель", "add diesel"),
         Routes.SCANNER to listOf("сканер", "scanner"),
         Routes.CAMERA to listOf("камера", "camera"),

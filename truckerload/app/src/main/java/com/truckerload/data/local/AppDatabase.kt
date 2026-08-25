@@ -12,6 +12,7 @@ import com.truckerload.data.local.dao.LoadDao
 import com.truckerload.data.local.dao.LoadHistoryDao
 import com.truckerload.data.local.dao.MaintenanceDao
 import com.truckerload.data.local.dao.MediaSyncQueueDao
+import com.truckerload.data.local.dao.MiscExpenseDao
 import com.truckerload.data.local.dao.PaycheckDao
 import com.truckerload.data.local.dao.PenaltyDao
 import com.truckerload.data.local.dao.PhotoDao
@@ -29,6 +30,7 @@ import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.data.local.entities.MaintenanceArchiveEntity
 import com.truckerload.data.local.entities.MaintenanceTaskEntity
 import com.truckerload.data.local.entities.MediaSyncQueueEntity
+import com.truckerload.data.local.entities.MiscExpenseEntity
 import com.truckerload.data.local.entities.PaycheckEntity
 import com.truckerload.data.local.entities.PenaltyEntity
 import com.truckerload.data.local.entities.PhotoEntity
@@ -60,8 +62,9 @@ import com.truckerload.data.local.entities.UserAccountEntity
         CrowdRateEntity::class,
         UserAccountEntity::class,
         DriverProfessionalEntity::class,
+        MiscExpenseEntity::class,
     ],
-    version = 36,
+    version = 37,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -81,6 +84,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun crowdRateDao(): com.truckerload.data.local.dao.CrowdRateDao
     abstract fun userAccountDao(): UserAccountDao
     abstract fun driverProfessionalDao(): DriverProfessionalDao
+    abstract fun miscExpenseDao(): MiscExpenseDao
 
     companion object {
         @Volatile
