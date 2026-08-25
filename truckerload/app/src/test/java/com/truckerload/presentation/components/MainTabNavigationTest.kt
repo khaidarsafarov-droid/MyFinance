@@ -31,6 +31,7 @@ class MainTabNavigationTest {
         assertFalse(shouldShowPhoneBottomBar(Routes.CAMERA))
         assertFalse(shouldShowPhoneBottomBar("camera_load/a/b/c"))
         assertFalse(shouldShowPhoneBottomBar(Routes.SCANNER))
+        assertFalse(shouldShowPhoneBottomBar(Routes.DIESEL))
         assertNull(phoneTabForRoute(Routes.CAMERA))
     }
 

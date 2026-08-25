@@ -45,7 +45,7 @@ enum class DrawerDestination {
     MAINTENANCE,
     TAX_TRACKER,
     ADD_PAYCHECK,
-    ADD_DIESEL,
+    DIESEL,
     VOICE_ASSISTANT,
     CAMERA,
     SCANNER,
@@ -103,8 +103,8 @@ fun AppDrawerContent(
             )
             drawerItem(
                 icon = AppIcons.LocalGasStation,
-                label = stringResource(R.string.add_diesel_title),
-                onClick = { onNavigate(DrawerDestination.ADD_DIESEL); onClose() },
+                label = stringResource(R.string.diesel_title),
+                onClick = { onNavigate(DrawerDestination.DIESEL); onClose() },
             )
             drawerItem(
                 icon = AppIcons.BarChart,

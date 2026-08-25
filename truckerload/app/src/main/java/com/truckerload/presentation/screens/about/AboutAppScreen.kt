@@ -25,6 +25,25 @@ import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButto
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 
+private val AboutGuideSections = listOf(
+    R.string.about_guide_loads_title to R.string.about_guide_loads_body,
+    R.string.about_guide_home_title to R.string.about_guide_home_body,
+    R.string.about_guide_dispute_title to R.string.about_guide_dispute_body,
+    R.string.about_guide_goal_title to R.string.about_guide_goal_body,
+    R.string.about_guide_diesel_title to R.string.about_guide_diesel_body,
+    R.string.about_guide_paycheck_title to R.string.about_guide_paycheck_body,
+    R.string.about_guide_tax_title to R.string.about_guide_tax_body,
+    R.string.about_guide_reports_title to R.string.about_guide_reports_body,
+    R.string.about_guide_map_title to R.string.about_guide_map_body,
+    R.string.about_guide_docs_title to R.string.about_guide_docs_body,
+    R.string.about_guide_tools_title to R.string.about_guide_tools_body,
+    R.string.about_guide_assistant_title to R.string.about_guide_assistant_body,
+    R.string.about_guide_widget_title to R.string.about_guide_widget_body,
+    R.string.about_guide_telegram_title to R.string.about_guide_telegram_body,
+    R.string.about_guide_backup_title to R.string.about_guide_backup_body,
+    R.string.about_guide_settings_title to R.string.about_guide_settings_body,
+)
+
 /**
  * In-app how-to overview opened from the drawer «О приложении».
  */
@@ -69,38 +88,12 @@ fun AboutAppScreen(
                 color = tc.TextPrimary,
             )
 
-            GuideSection(
-                title = stringResource(R.string.about_guide_loads_title),
-                body = stringResource(R.string.about_guide_loads_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_home_title),
-                body = stringResource(R.string.about_guide_home_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_goal_title),
-                body = stringResource(R.string.about_guide_goal_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_tools_title),
-                body = stringResource(R.string.about_guide_tools_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_docs_title),
-                body = stringResource(R.string.about_guide_docs_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_reports_title),
-                body = stringResource(R.string.about_guide_reports_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_backup_title),
-                body = stringResource(R.string.about_guide_backup_body),
-            )
-            GuideSection(
-                title = stringResource(R.string.about_guide_settings_title),
-                body = stringResource(R.string.about_guide_settings_body),
-            )
+            AboutGuideSections.forEach { (titleRes, bodyRes) ->
+                GuideSection(
+                    title = stringResource(titleRes),
+                    body = stringResource(bodyRes),
+                )
+            }
 
             OutlinedButton(
                 onClick = onWriteImprove,
