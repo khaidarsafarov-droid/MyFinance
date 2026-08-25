@@ -26,7 +26,7 @@ class WidgetBudgetRingActionsTest {
         val src = readSource("widget/glance/OneUiGlanceWidgets.kt")
         val camera = src.indexOf("ROUTE_ATTACH_CAMERA")
         val scanner = src.indexOf("ROUTE_ATTACH_SCANNER")
-        val diesel = src.indexOf("ROUTE_ADD_DIESEL")
+        val diesel = src.indexOf("dieselQuickAddIntent")
         assertTrue(camera >= 0)
         assertTrue(scanner > camera)
         assertTrue(diesel > scanner)

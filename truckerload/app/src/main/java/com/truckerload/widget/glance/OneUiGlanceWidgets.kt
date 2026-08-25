@@ -153,7 +153,7 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 context = context,
                 iconRes = R.drawable.ic_widget_diesel,
                 label = context.getString(R.string.widget_diesel_short),
-                route = WidgetDeepLink.ROUTE_ADD_DIESEL,
+                launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
                 showLabel = false,
             )
         }
@@ -263,7 +263,7 @@ private fun WideBudgetContent(context: Context, stats: WidgetStats) {
                         context = context,
                         iconRes = R.drawable.ic_widget_diesel,
                         label = context.getString(R.string.widget_diesel_short),
-                        route = WidgetDeepLink.ROUTE_ADD_DIESEL,
+                        launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
                         showLabel = true,
                         modifier = GlanceModifier.defaultWeight(),
                     )
@@ -347,13 +347,15 @@ private fun QuickAction(
     context: Context,
     iconRes: Int,
     label: String,
-    route: String,
     showLabel: Boolean,
     modifier: GlanceModifier = GlanceModifier,
+    route: String? = null,
+    launchIntent: Intent? = null,
 ) {
+    val intent = launchIntent ?: routeIntent(context, requireNotNull(route))
     Column(
         modifier = modifier
-            .clickable(actionStartActivity(routeIntent(context, route)))
+            .clickable(actionStartActivity(intent))
             .padding(horizontal = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

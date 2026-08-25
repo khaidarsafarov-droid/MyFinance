@@ -1,7 +1,9 @@
 package com.truckerload.widget
 
-import androidx.core.content.edit
 import android.content.Context
+import android.content.Intent
+import com.truckerload.presentation.screens.add.DieselQuickAddActivity
+import androidx.core.content.edit
 
 object WidgetDeepLink {
     const val ROUTE_HOME = "home"
@@ -57,5 +59,17 @@ object WidgetDeepLink {
             prefs.edit {remove(KEY_OPEN_THIS_WEEK)}
         }
         return open
+    }
+
+    /**
+     * Home-screen diesel button: mid-size overlay, not the full app.
+     * Explicit component so the launcher PendingIntent can start a non-exported activity.
+     */
+    fun dieselQuickAddIntent(context: Context): Intent {
+        return Intent(context, DieselQuickAddActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+        }
     }
 }
