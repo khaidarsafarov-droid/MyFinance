@@ -30,7 +30,7 @@ class ImprovementFeedbackMailTest {
             androidRelease = "14",
         )!!
 
-        assertEquals("Truckerlogsupport@gmail.com", draft.to)
+        assertEquals("Truckorig@gmail.com", draft.to)
         assertEquals("[TruckoRig] Does not work", draft.subject)
         assertTrue(draft.body.contains("Тема: Does not work"))
         assertTrue(draft.body.contains("Diesel save button does nothing"))
@@ -46,7 +46,7 @@ class ImprovementFeedbackMailTest {
             body = "Please add DEF tracking",
         )
         val uri = ImprovementFeedbackMail.mailtoUriString(draft)
-        assertTrue(uri.startsWith("mailto:Truckerlogsupport@gmail.com?"))
+        assertTrue(uri.startsWith("mailto:Truckorig@gmail.com?"))
         assertTrue(uri.contains("subject="))
         assertTrue(uri.contains("Need%20to%20add") || uri.contains("Need+to+add"))
         assertTrue(uri.contains("body="))

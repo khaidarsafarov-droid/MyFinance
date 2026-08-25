@@ -147,7 +147,10 @@ fun ImprovementFeedbackScreen(
                                 ImprovementFeedbackSendResult.OPENED_EMAIL ->
                                     context.getString(R.string.improve_opened)
                                 ImprovementFeedbackSendResult.COPIED_FALLBACK ->
-                                    context.getString(R.string.improve_copied)
+                                    context.getString(
+                                        R.string.improve_copied,
+                                        ImprovementFeedbackMail.SUPPORT_EMAIL,
+                                    )
                             }
                             Toast.makeText(context, toast, Toast.LENGTH_LONG).show()
                         },

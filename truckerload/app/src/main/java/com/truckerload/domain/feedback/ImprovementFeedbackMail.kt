@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 
 /** Builds the support email the driver sends from in-app improvement feedback. */
 object ImprovementFeedbackMail {
-    const val SUPPORT_EMAIL = "Truckerlogsupport@gmail.com"
+    const val SUPPORT_EMAIL = "Truckorig@gmail.com"
 
     enum class Topic {
         ADD,
