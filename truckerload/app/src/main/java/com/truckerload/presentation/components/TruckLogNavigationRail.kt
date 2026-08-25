@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -68,7 +69,8 @@ private val toolDestinations = listOf(
 )
 
 /**
- * Wide soft-UI sidebar for tablets (replaces the skinny Material NavigationRail).
+ * Tablet navigation: compact icon rail on 7–10″ portrait, wide labeled sidebar
+ * on large landscape windows.
  */
 @Composable
 fun TruckLogNavigationRail(
@@ -76,6 +78,7 @@ fun TruckLogNavigationRail(
     onNavigate: (String) -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
         .collectAsStateWithLifecycle(initialValue = null)
@@ -97,10 +100,21 @@ fun TruckLogNavigationRail(
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .width(248.dp)
+            .width(if (compact) UiDimens.CompactRailWidth else UiDimens.WideSidebarWidth)
             .background(SoftUiColors.ForestPrimary)
-            .padding(horizontal = 16.dp, vertical = 20.dp),
+            .padding(
+                horizontal = if (compact) 8.dp else 16.dp,
+                vertical = if (compact) 12.dp else 20.dp,
+            ),
     ) {
+        if (compact) {
+            CompactTabletRailContent(
+                currentRoute = currentRoute,
+                onNavigate = onNavigate,
+                onDrawerNavigate = onDrawerNavigate,
+            )
+            return@Column
+        }
         Text(
             text = stringResource(R.string.home_brand_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -163,6 +177,95 @@ fun TruckLogNavigationRail(
 
         Spacer(Modifier.height(12.dp))
         BackupSidebarCard(onOpenSettings = { onDrawerNavigate(DrawerDestination.SETTINGS) })
+    }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.ColumnScope.CompactTabletRailContent(
+    currentRoute: String?,
+    onNavigate: (String) -> Unit,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+) {
+    Text(
+        text = stringResource(R.string.home_brand_title),
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+        color = Color.White,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+    )
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        (primaryDestinations + toolDestinations).forEach { dest ->
+            val selected = when {
+                dest.route != null -> isRailDestinationSelected(currentRoute, dest.route)
+                dest.drawer == DrawerDestination.SETTINGS ->
+                    currentRoute == Routes.SETTINGS || currentRoute == Routes.FINANCIAL_ADVISOR
+                dest.drawer == DrawerDestination.REPORTS ->
+                    currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
+                dest.drawer == DrawerDestination.DOCUMENTS ->
+                    currentRoute == Routes.SCAN_GALLERY || currentRoute == Routes.SCANNER
+                else -> false
+            }
+            CompactRailItem(
+                selected = selected,
+                icon = dest.icon,
+                label = stringResource(dest.labelRes),
+                onClick = {
+                    when {
+                        dest.route != null -> onNavigate(dest.route)
+                        dest.drawer != null -> onDrawerNavigate(dest.drawer)
+                    }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactRailItem(
+    selected: Boolean,
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    val bg = if (selected) SoftUiColors.Sage else Color.Transparent
+    val fg = if (selected) SoftUiColors.ForestPrimary else Color.White.copy(alpha = 0.92f)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(bg)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            )
+            .heightIn(min = UiDimens.TouchTarget)
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(
+            icon,
+            contentDescription = label,
+            tint = fg,
+            modifier = Modifier.size(UiDimens.IconNav),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            ),
+            color = fg,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

@@ -22,6 +22,7 @@ import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.adaptiveVerticalPadding
 import com.truckerload.presentation.utils.rememberWindowSizeClass
 import com.truckerload.presentation.utils.useNavigationRail
+import com.truckerload.presentation.utils.useWideTabletSidebar
 import kotlinx.coroutines.launch
 
 val LocalOpenDrawer = staticCompositionLocalOf<() -> Unit> { {} }
@@ -104,6 +105,7 @@ private fun TabletScaffold(
             currentRoute = currentRoute,
             onNavigate = onNavigate,
             onDrawerNavigate = onDrawerNavigate,
+            compact = !useWideTabletSidebar(),
         )
         Box(
             modifier = Modifier

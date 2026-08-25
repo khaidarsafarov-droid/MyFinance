@@ -4,12 +4,13 @@ import com.truckerload.presentation.icons.AppIcons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +33,7 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.useWideTabletSidebar
 import java.util.Locale
 
 /**
@@ -65,6 +67,7 @@ internal fun TabletHomeDashboard(
     } else {
         "—"
     }
+    val wide = useWideTabletSidebar()
     val goalProgress = if (weeklyGoal > 0) {
         (totals.totalRate / weeklyGoal).toFloat().coerceIn(0f, 1f)
     } else {
@@ -79,22 +82,41 @@ internal fun TabletHomeDashboard(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = "tablet_header") {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.nav_logbook),
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    color = tc.TextPrimary,
-                    modifier = Modifier.weight(1f),
-                )
-                Box(modifier = Modifier.width(320.dp)) {
+            if (wide) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.nav_logbook),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        color = tc.TextPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(modifier = Modifier.widthIn(min = 200.dp, max = 360.dp)) {
+                        BentoGlassSearchField(
+                            value = searchQuery,
+                            onValueChange = viewModel::setSearchQuery,
+                            placeholder = stringResource(R.string.tablet_home_search_hint),
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.nav_logbook),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        color = tc.TextPrimary,
+                    )
                     BentoGlassSearchField(
                         value = searchQuery,
                         onValueChange = viewModel::setSearchQuery,
                         placeholder = stringResource(R.string.tablet_home_search_hint),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -127,60 +149,52 @@ internal fun TabletHomeDashboard(
         }
 
         item(key = "tablet_stats") {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                SoftStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = AppIcons.LocalShipping,
-                    tint = Color(0xFFD9ECF8),
-                    label = stringResource(R.string.tablet_stat_loads),
-                    value = totals.loadCount.toString(),
-                )
-                SoftStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = AppIcons.Route,
-                    tint = Color(0xFFE4F2E8),
-                    label = stringResource(R.string.tablet_stat_miles),
-                    value = MoneyFormat.formatNumber(totals.totalMiles),
-                )
-                SoftStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = AppIcons.Speed,
-                    tint = Color(0xFFF7F0D9),
-                    label = stringResource(R.string.tablet_stat_rpm),
-                    value = rpmLabel,
-                    hero = true,
-                )
-                SoftStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = AppIcons.LocalGasStation,
-                    tint = Color(0xFFE8E4F5),
-                    label = stringResource(R.string.tablet_stat_gross),
-                    value = gross,
-                    hero = true,
-                )
-            }
+            TabletStatsGrid(
+                loadCount = totals.loadCount.toString(),
+                miles = MoneyFormat.formatNumber(totals.totalMiles),
+                rpm = rpmLabel,
+                gross = gross,
+                compact = !wide,
+            )
         }
 
         item(key = "tablet_panels") {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                SoftRecentCard(
-                    modifier = Modifier.weight(1.35f),
-                    loads = recentLoads.take(6),
-                    onLoadClick = onLoadClick,
-                )
-                SoftGoalCard(
-                    modifier = Modifier.weight(1f),
-                    weeklyGoal = weeklyGoal,
-                    currentGross = totals.totalRate,
-                    progress = goalProgress,
-                    onOpenWeeklyGoal = onOpenWeeklyGoal,
-                )
+            if (wide) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    SoftRecentCard(
+                        modifier = Modifier.weight(1.35f),
+                        loads = recentLoads.take(6),
+                        onLoadClick = onLoadClick,
+                    )
+                    SoftGoalCard(
+                        modifier = Modifier.weight(1f),
+                        weeklyGoal = weeklyGoal,
+                        currentGross = totals.totalRate,
+                        progress = goalProgress,
+                        onOpenWeeklyGoal = onOpenWeeklyGoal,
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    SoftRecentCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        loads = recentLoads.take(6),
+                        onLoadClick = onLoadClick,
+                    )
+                    SoftGoalCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        weeklyGoal = weeklyGoal,
+                        currentGross = totals.totalRate,
+                        progress = goalProgress,
+                        onOpenWeeklyGoal = onOpenWeeklyGoal,
+                    )
+                }
             }
         }
 

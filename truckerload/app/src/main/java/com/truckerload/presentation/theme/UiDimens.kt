@@ -25,6 +25,10 @@ object UiDimens {
     val FormFieldSpacing = 16.dp
     val FormSectionSpacing = 24.dp
 
+    // Tablet navigation — compact rail on 7–10" portrait, wide sidebar on landscape
+    val CompactRailWidth = 88.dp
+    val WideSidebarWidth = 248.dp
+
     // Tablet list | detail
     val ListPaneMinWidth = 320.dp
 

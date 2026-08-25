@@ -20,10 +20,12 @@ class MainActivityConfigChangesTest {
         val text = candidates.firstOrNull { it.exists() }?.readText()
             ?: error("AndroidManifest.xml not found")
         assertTrue(text.contains("android:name=\".presentation.MainActivity\""))
-        assertTrue(
-            text.contains(
-                "android:configChanges=\"orientation|screenSize|screenLayout|smallestScreenSize\"",
-            ),
-        )
+        val mainBlock = text.substringAfter("android:name=\".presentation.MainActivity\"")
+            .substringBefore("<activity")
+        assertTrue(mainBlock.contains("orientation"))
+        assertTrue(mainBlock.contains("screenSize"))
+        assertTrue(mainBlock.contains("screenLayout"))
+        assertTrue(mainBlock.contains("smallestScreenSize"))
+        assertTrue(mainBlock.contains("android:resizeableActivity=\"true\""))
     }
 }

@@ -301,3 +301,95 @@ internal fun SoftGoalCard(
         )
     }
 }
+
+@Composable
+internal fun TabletStatsGrid(
+    loadCount: String,
+    miles: String,
+    rpm: String,
+    gross: String,
+    compact: Boolean,
+) {
+    @Composable
+    fun StatsRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
+    }
+    if (compact) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            StatsRow {
+                SoftStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = AppIcons.LocalShipping,
+                    tint = Color(0xFFD9ECF8),
+                    label = stringResource(R.string.tablet_stat_loads),
+                    value = loadCount,
+                )
+                SoftStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = AppIcons.Route,
+                    tint = Color(0xFFE4F2E8),
+                    label = stringResource(R.string.tablet_stat_miles),
+                    value = miles,
+                )
+            }
+            StatsRow {
+                SoftStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = AppIcons.Speed,
+                    tint = Color(0xFFF7F0D9),
+                    label = stringResource(R.string.tablet_stat_rpm),
+                    value = rpm,
+                    hero = true,
+                )
+                SoftStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = AppIcons.LocalGasStation,
+                    tint = Color(0xFFE8E4F5),
+                    label = stringResource(R.string.tablet_stat_gross),
+                    value = gross,
+                    hero = true,
+                )
+            }
+        }
+    } else {
+        StatsRow {
+            SoftStatCard(
+                modifier = Modifier.weight(1f),
+                icon = AppIcons.LocalShipping,
+                tint = Color(0xFFD9ECF8),
+                label = stringResource(R.string.tablet_stat_loads),
+                value = loadCount,
+            )
+            SoftStatCard(
+                modifier = Modifier.weight(1f),
+                icon = AppIcons.Route,
+                tint = Color(0xFFE4F2E8),
+                label = stringResource(R.string.tablet_stat_miles),
+                value = miles,
+            )
+            SoftStatCard(
+                modifier = Modifier.weight(1f),
+                icon = AppIcons.Speed,
+                tint = Color(0xFFF7F0D9),
+                label = stringResource(R.string.tablet_stat_rpm),
+                value = rpm,
+                hero = true,
+            )
+            SoftStatCard(
+                modifier = Modifier.weight(1f),
+                icon = AppIcons.LocalGasStation,
+                tint = Color(0xFFE8E4F5),
+                label = stringResource(R.string.tablet_stat_gross),
+                value = gross,
+                hero = true,
+            )
+        }
+    }
+}
