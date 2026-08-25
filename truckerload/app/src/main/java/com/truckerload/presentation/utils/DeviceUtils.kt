@@ -35,13 +35,31 @@ fun windowSizeClassForWidth(widthDp: Int): WindowSizeClass = when {
     else -> WindowSizeClass.COMPACT
 }
 
+/** Smallest-width gate used by Android `sw600dp` (7–13″ tablets, not phone landscape). */
+const val TABLET_SMALLEST_WIDTH_DP = 600
+
+/** Wide labeled sidebar needs this much window width so content stays readable. */
+const val WIDE_SIDEBAR_MIN_WIDTH_DP = 1024
+
+/** True tablet / large-screen device (does not flip with orientation). */
+fun isTabletDevice(smallestWidthDp: Int): Boolean =
+    smallestWidthDp >= TABLET_SMALLEST_WIDTH_DP
+
+/** Tablet chrome when this is a tablet and the current pane is still ≥600dp. */
+fun useTabletChrome(smallestWidthDp: Int, widthDp: Int): Boolean =
+    isTabletDevice(smallestWidthDp) && widthDp >= TABLET_SMALLEST_WIDTH_DP
+
+/** Forest sidebar with labels; otherwise a compact icon rail. */
+fun useWideTabletSidebar(smallestWidthDp: Int, widthDp: Int): Boolean =
+    useTabletChrome(smallestWidthDp, widthDp) && widthDp >= WIDE_SIDEBAR_MIN_WIDTH_DP
+
 /** Tablet-class window (portrait tablet or wide pane). */
 fun isTabletClassWidth(widthDp: Int): Boolean =
     windowSizeClassForWidth(widthDp) != WindowSizeClass.COMPACT
 
-/** Side-by-side list/detail when the content pane is wide enough. */
-fun useTwoPaneForWidth(widthDp: Int): Boolean =
-    windowSizeClassForWidth(widthDp) == WindowSizeClass.EXPANDED
+/** Side-by-side list/detail: tablet device and an Expanded pane (not phone landscape). */
+fun useTwoPaneForWidth(widthDp: Int, smallestWidthDp: Int = widthDp): Boolean =
+    isTabletDevice(smallestWidthDp) && widthDp >= 840
 
 /** Card / metric grid columns: 1 phone, 2 tablet portrait, 3 tablet landscape. */
 fun adaptiveGridColumnsForWidth(
@@ -65,6 +83,9 @@ fun rememberWindowSizeClass(): WindowSizeClass {
 fun rememberScreenWidthDp(): Int = LocalConfiguration.current.screenWidthDp
 
 @Composable
+fun rememberSmallestWidthDp(): Int = LocalConfiguration.current.smallestScreenWidthDp
+
+@Composable
 fun isLandscape(): Boolean {
     val config = LocalConfiguration.current
     return remember(config.screenWidthDp, config.screenHeightDp) {
@@ -72,27 +93,39 @@ fun isLandscape(): Boolean {
     }
 }
 
-/** Width ≥ 600dp — tablet route chrome, wider padding, etc. */
-@Composable
-fun isTablet(): Boolean = rememberWindowSizeClass() != WindowSizeClass.COMPACT
-
 /**
- * Fixed navigation rail: landscape tablets and any Expanded width.
- * Portrait tablets keep the bottom bar so content uses the full width.
+ * Tablet shell for this window: real tablet (sw ≥ 600) with a pane still ≥ 600dp.
+ * Phone landscape stays on the phone bottom bar.
  */
 @Composable
-fun useNavigationRail(): Boolean {
-    val sizeClass = rememberWindowSizeClass()
-    return sizeClass == WindowSizeClass.EXPANDED ||
-        (sizeClass == WindowSizeClass.MEDIUM && isLandscape())
+fun isTablet(): Boolean {
+    val smallest = rememberSmallestWidthDp()
+    val width = rememberScreenWidthDp()
+    return remember(smallest, width) { useTabletChrome(smallest, width) }
+}
+
+/** Side rail (compact or wide) instead of the phone bottom bar. */
+@Composable
+fun useNavigationRail(): Boolean = isTablet()
+
+/** Wide labeled sidebar; false → compact 88dp icon rail. */
+@Composable
+fun useWideTabletSidebar(): Boolean {
+    val smallest = rememberSmallestWidthDp()
+    val width = rememberScreenWidthDp()
+    return remember(smallest, width) { useWideTabletSidebar(smallest, width) }
 }
 
 @Composable
 fun isFoldable(): Boolean = rememberWindowSizeClass() == WindowSizeClass.MEDIUM
 
-/** List | detail panes (Expanded / landscape tablets). */
+/** List | detail panes on tablets with an Expanded-width window. */
 @Composable
-fun useTwoPaneLayout(): Boolean = rememberWindowSizeClass() == WindowSizeClass.EXPANDED
+fun useTwoPaneLayout(): Boolean {
+    val smallest = rememberSmallestWidthDp()
+    val width = rememberScreenWidthDp()
+    return remember(smallest, width) { useTwoPaneForWidth(width, smallest) }
+}
 
 @Composable
 fun adaptiveGridColumns(
