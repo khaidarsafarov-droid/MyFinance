@@ -34,7 +34,7 @@ class RoomMigrationInstrumentedTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrate6To34_smoke() {
+    fun migrate6To35_smoke() {
         createFixtureDatabase(6) {
             execSQL(V6_LOADS_DDL)
             execSQL(
@@ -55,7 +55,7 @@ class RoomMigrationInstrumentedTest {
 
         // validate=false: pre-v6 core tables (stops/penalties/…) were never created by
         // forward migrations; we assert row survival + key columns via PRAGMA instead.
-        val db = helper.runMigrationsAndValidate(testDb, 34, false, *ALL_MIGRATIONS_FROM_V6)
+        val db = helper.runMigrationsAndValidate(testDb, 35, false, *ALL_MIGRATIONS_FROM_V6)
         db.query("SELECT COUNT(*) FROM loads").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
@@ -66,6 +66,9 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasTable("crowd_rates"))
         assertTrue(db.hasColumn("crowd_rates", "equipmentType"))
         assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
+        assertTrue(db.hasColumn("loads", "disputeAmount"))
+        assertTrue(db.hasColumn("loads", "disputeApplyToLoad"))
+        assertTrue(db.hasColumn("loads", "disputeAmountApplied"))
         assertTrue(db.hasTable("media_sync_queue"))
         assertTrue(db.hasTable("user_accounts"))
         assertTrue(db.hasTable("driver_professional_profiles"))
@@ -200,9 +203,19 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasColumn("diesel", "discountPricePerGallon"))
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate34To35() {
+        helper.createDatabase(testDb, 34).apply { close() }
+        val db = helper.runMigrationsAndValidate(testDb, 35, true, MIGRATION_34_35)
+        assertTrue(db.hasColumn("loads", "disputeAmount"))
+        assertTrue(db.hasColumn("loads", "disputeApplyToLoad"))
+        assertTrue(db.hasColumn("loads", "disputeAmountApplied"))
+    }
+
     /**
      * Builds a named DB at [version] without requiring an exported schema JSON
-     * (historical schemas are not committed; only 28–34 are).
+     * (historical schemas are not committed; only 28–35 are).
      */
     private fun createFixtureDatabase(version: Int, setup: SupportSQLiteDatabase.() -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

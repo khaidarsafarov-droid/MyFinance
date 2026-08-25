@@ -374,6 +374,9 @@ class LoadRepository(
                 isDispute = normalized.isDispute,
                 disputeResponseDate = normalized.disputeResponseDate,
                 disputeCompleted = normalized.disputeCompleted,
+                disputeAmount = normalized.disputeAmount,
+                disputeApplyToLoad = normalized.disputeApplyToLoad,
+                disputeAmountApplied = normalized.disputeAmountApplied,
                 actualFinishDate = normalized.actualFinishDate,
             )
             stopDao.deleteByLoadId(normalized.id)

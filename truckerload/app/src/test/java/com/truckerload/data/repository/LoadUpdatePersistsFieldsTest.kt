@@ -92,6 +92,28 @@ class LoadUpdatePersistsFieldsTest {
         assertTrue(db.loadHistoryDao().getHistory("load-h").isEmpty())
     }
 
+    @Test
+    fun updateLoad_persistsDisputePayoutFields() = runBlocking {
+        repo.insertLoad(sampleLoad("load-d", tripId = "T-DSP"), playFeedback = false)
+        repo.updateLoad(
+            sampleLoad("load-d", tripId = "T-DSP").copy(
+                totalRate = 2250.0,
+                isDispute = true,
+                disputeResponseDate = "2026-08-27",
+                disputeCompleted = true,
+                disputeAmount = 250.0,
+                disputeApplyToLoad = true,
+                disputeAmountApplied = true,
+            ),
+        )
+        val reloaded = repo.getLoadById("load-d")!!
+        assertEquals(2250.0, reloaded.totalRate, 0.0)
+        assertEquals(250.0, reloaded.disputeAmount)
+        assertTrue(reloaded.disputeApplyToLoad)
+        assertTrue(reloaded.disputeAmountApplied)
+        assertTrue(reloaded.hadDispute)
+    }
+
     private fun sampleLoad(id: String, tripId: String) = Load(
         id = id,
         tripId = tripId,

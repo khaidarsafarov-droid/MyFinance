@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.ActualFinishDate
+import com.truckerload.domain.model.DisputePayout
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 data class LoadDetailUiState(
     val isLoading: Boolean = true,
@@ -46,6 +49,7 @@ class LoadDetailViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<LoadDetailEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<LoadDetailEvent> = _events.asSharedFlow()
+    private val disputePersistMutex = Mutex()
 
     init {
         refresh()
@@ -124,11 +128,19 @@ class LoadDetailViewModel @Inject constructor(
 
     fun updateDispute(updated: Load, saveErrorFallback: String) {
         viewModelScope.launch {
-            try {
-                loadRepository.updateLoad(updated)
-                _uiState.update { it.copy(load = updated) }
-            } catch (e: Exception) {
-                _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+            disputePersistMutex.withLock {
+                try {
+                    val previous = loadRepository.getLoadById(loadId)
+                        ?: _uiState.value.load
+                        ?: updated
+                    val merged = DisputePayout.mergeIncoming(previous, updated)
+                    val settled = DisputePayout.settleFrom(previous, merged).withRouteMetrics()
+                    loadRepository.updateLoad(settled)
+                    val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: settled
+                    _uiState.update { it.copy(load = reloaded) }
+                } catch (e: Exception) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                }
             }
         }
     }

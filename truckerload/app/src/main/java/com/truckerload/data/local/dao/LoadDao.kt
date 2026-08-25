@@ -145,6 +145,9 @@ interface LoadDao {
             isDispute = :isDispute,
             disputeResponseDate = :disputeResponseDate,
             disputeCompleted = :disputeCompleted,
+            disputeAmount = :disputeAmount,
+            disputeApplyToLoad = :disputeApplyToLoad,
+            disputeAmountApplied = :disputeAmountApplied,
             actualFinishDate = :actualFinishDate
         WHERE id = :loadId
         """
@@ -174,6 +177,9 @@ interface LoadDao {
         isDispute: Boolean,
         disputeResponseDate: String?,
         disputeCompleted: Boolean,
+        disputeAmount: Double?,
+        disputeApplyToLoad: Boolean,
+        disputeAmountApplied: Boolean,
         actualFinishDate: String?,
     )
 

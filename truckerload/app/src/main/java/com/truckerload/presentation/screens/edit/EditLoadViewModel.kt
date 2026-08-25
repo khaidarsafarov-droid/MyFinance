@@ -11,6 +11,7 @@ import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.ActualFinishDate
+import com.truckerload.domain.model.DisputePayout
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.lastDelDateFromStops
@@ -145,7 +146,7 @@ class EditLoadViewModel @Inject constructor(
             return
         }
         val actualFinish = ActualFinishDate.normalize(state.finishDate)
-        val updated = (state.disputeLoad ?: original).copy(
+        val merged = (state.disputeLoad ?: original).copy(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
             totalRate = parsedRate,
@@ -155,7 +156,8 @@ class EditLoadViewModel @Inject constructor(
             equipmentType = state.equipmentType,
             actualFinishDate = actualFinish,
             updatedAt = System.currentTimeMillis(),
-        ).withRouteMetrics()
+        )
+        val updated = DisputePayout.settleFrom(original, merged).withRouteMetrics()
         _uiState.update { it.copy(isSaving = true, saveError = null) }
         viewModelScope.launch {
             try {

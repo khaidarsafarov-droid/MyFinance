@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
@@ -42,6 +44,7 @@ import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +55,9 @@ fun DisputeSection(
 ) {
     val tc = LocalTruckColors.current
     var showDatePicker by remember { mutableStateOf(false) }
+    var amountText by remember(load.id) {
+        mutableStateOf(formatDisputeAmountInput(load.disputeAmount))
+    }
 
     if (showDatePicker) {
         val today = Calendar.getInstance(Locale.US)
@@ -85,6 +91,8 @@ fun DisputeSection(
                                     isDispute = true,
                                     disputeResponseDate = date,
                                     disputeCompleted = false,
+                                    disputeAmount = parseDisputeAmount(amountText)
+                                        ?: load.disputeAmount,
                                 ),
                             )
                         }
@@ -122,6 +130,21 @@ fun DisputeSection(
                     color = tc.TextSecondary,
                 )
             }
+            load.disputeAmount?.takeIf { it > 0 }?.let { amount ->
+                val formatted = formatDisputeUsd(amount)
+                Text(
+                    text = stringResource(
+                        if (load.disputeAmountApplied) {
+                            R.string.dispute_amount_added
+                        } else {
+                            R.string.dispute_amount_not_added
+                        },
+                        formatted,
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextSecondary,
+                )
+            }
             return@Column
         }
 
@@ -135,11 +158,15 @@ fun DisputeSection(
                     if (checked) {
                         showDatePicker = true
                     } else {
+                        amountText = ""
                         onDisputeChanged(
                             load.copy(
                                 isDispute = false,
                                 disputeResponseDate = null,
                                 disputeCompleted = false,
+                                disputeAmount = null,
+                                disputeApplyToLoad = false,
+                                disputeAmountApplied = false,
                             ),
                         )
                     }
@@ -177,12 +204,59 @@ fun DisputeSection(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { raw ->
+                        val cleaned = raw.filter { it.isDigit() || it == '.' || it == ',' }
+                        amountText = cleaned
+                        onDisputeChanged(
+                            load.copy(disputeAmount = parseDisputeAmount(cleaned)),
+                        )
+                    },
+                    label = { Text(stringResource(R.string.dispute_amount_label)) },
+                    prefix = { Text("$") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    colors = AppTextFieldDefaults.outlined(),
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Checkbox(
+                        checked = load.disputeApplyToLoad,
+                        onCheckedChange = { checked ->
+                            onDisputeChanged(
+                                load.copy(
+                                    disputeAmount = parseDisputeAmount(amountText)
+                                        ?: load.disputeAmount,
+                                    disputeApplyToLoad = checked,
+                                ),
+                            )
+                        },
+                    )
+                    Text(
+                        text = stringResource(R.string.dispute_apply_to_load),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = tc.TextSecondary,
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(
                     checked = load.disputeCompleted,
                     onCheckedChange = { completed ->
                         if (completed) {
-                            onDisputeChanged(load.copy(disputeCompleted = true))
+                            onDisputeChanged(
+                                load.copy(
+                                    disputeCompleted = true,
+                                    disputeAmount = parseDisputeAmount(amountText)
+                                        ?: load.disputeAmount,
+                                ),
+                            )
                         }
                     },
                 )
@@ -221,3 +295,25 @@ fun DisputeBadge(
         )
     }
 }
+
+internal fun parseDisputeAmount(raw: String): Double? {
+    val cleaned = raw.replace(',', '.').trim()
+    if (cleaned.isEmpty() || cleaned == ".") return null
+    return cleaned.toDoubleOrNull()?.takeIf { it >= 0.0 }
+}
+
+internal fun formatDisputeAmountInput(amount: Double?): String {
+    if (amount == null) return ""
+    return if (abs(amount - amount.toLong()) < 0.0001) {
+        amount.toLong().toString()
+    } else {
+        amount.toString()
+    }
+}
+
+internal fun formatDisputeUsd(amount: Double): String =
+    if (abs(amount - amount.toLong()) < 0.005) {
+        "$${amount.toLong()}"
+    } else {
+        String.format(Locale.US, "$%.2f", amount)
+    }
