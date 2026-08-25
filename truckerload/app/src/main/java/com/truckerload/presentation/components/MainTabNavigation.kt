@@ -83,7 +83,7 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
         route == Routes.PHOTO_GALLERY ||
         route.startsWith("photo_detail") ||
         route == Routes.ADD_PAYCHECK ||
-        route == Routes.ADD_DIESEL ||
+        route.startsWith(Routes.ADD_DIESEL) ||
         route == Routes.DIESEL ||
         route == Routes.VOICE_ASSISTANT
 
