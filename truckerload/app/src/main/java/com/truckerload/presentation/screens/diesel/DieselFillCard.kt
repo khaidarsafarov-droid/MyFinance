@@ -19,7 +19,6 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.utils.formatDateForDisplay
-import java.util.Locale
 
 @Composable
 fun DieselFillCard(
@@ -63,16 +62,12 @@ fun DieselFillCard(
     }
 }
 
-private fun dieselCardMeta(diesel: Diesel): String {
-    val parts = mutableListOf<String>()
-    diesel.gallons?.let { gallons ->
-        parts += String.format(Locale.US, "%.2f gal", gallons)
-    }
-    diesel.pricePerGallon?.let { price ->
-        parts += String.format(Locale.US, "$%.2f/gal", price)
-    }
-    diesel.savingsAmount?.takeIf { it > 0.0 }?.let { saved ->
-        parts += "−${MoneyFormat.formatCurrency(saved, decimals = 2)}"
-    }
-    return parts.joinToString("  ·  ")
-}
+@Composable
+private fun dieselCardMeta(diesel: Diesel): String =
+    DieselFillCardMetaFormatter.format(
+        diesel = diesel,
+        withDiscountFormat = stringResource(R.string.diesel_card_meta_with_discount),
+        listOnlyFormat = stringResource(R.string.diesel_card_meta_list_only),
+        savedSuffixFormat = stringResource(R.string.diesel_card_meta_saved_suffix),
+        formatSavedAmount = { MoneyFormat.formatCurrency(it, decimals = 2) },
+    )

@@ -663,6 +663,9 @@
     <string name="diesel_filter_all_days">Все дни</string>
     <string name="diesel_filter_pick_date">Выбрать число</string>
     <string name="diesel_week_total">За неделю: %1$s</string>
+    <string name="diesel_card_meta_with_discount">%1$s · $%2$.2f/гал → $%3$.2f/гал</string>
+    <string name="diesel_card_meta_list_only">%1$s · $%2$.2f/гал</string>
+    <string name="diesel_card_meta_saved_suffix"> · −%1$s</string>
     <string name="add_load_title">Добавить груз</string>
     <string name="add_or_edit_week_format">Неделя %1$d • %2$s</string>
     <string name="add_select_week">📅 Выберите неделю</string>
