@@ -62,6 +62,13 @@ object AppVoiceActions {
         Routes.SCANNER to listOf("сканер", "scanner"),
         Routes.CAMERA to listOf("камера", "camera"),
         Routes.ABOUT to listOf("о приложении", "about app", "about"),
+        Routes.IMPROVE to listOf(
+            "что улучшить",
+            "предложить улучшение",
+            "написать в поддержку",
+            "what to improve",
+            "suggest improvement",
+        ),
         Routes.FINANCIAL_ADVISOR to listOf(
             "финансовый советник",
             "советник",

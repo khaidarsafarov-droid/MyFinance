@@ -32,6 +32,8 @@ class AppVoiceActionsTest {
         assertEquals(Routes.VOICE_ASSISTANT, screen("voice assistant"))
         assertEquals(Routes.PHOTO_GALLERY, screen("галерея фото"))
         assertEquals(Routes.PROFILE, screen("профиль"))
+        assertEquals(Routes.IMPROVE, screen("что улучшить"))
+        assertEquals(Routes.IMPROVE, screen("suggest improvement"))
     }
 
     @Test

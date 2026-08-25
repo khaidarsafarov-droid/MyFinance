@@ -193,6 +193,7 @@
 <string name="drawer_documents">Documents</string>
     <string name="drawer_tools">Tools</string>
     <string name="drawer_about">About app</string>
+    <string name="drawer_improve">What to improve</string>
     <string name="drawer_logout">Sign out</string>
 
     <string name="about_app_title">About the app</string>
@@ -214,6 +215,21 @@
     <string name="about_guide_backup_body">In Settings create a backup file on the phone or save to Google Drive and restore when you change devices.</string>
     <string name="about_guide_settings_title">8. Settings and profile</string>
     <string name="about_guide_settings_body">Settings covers theme, backup, paychecks, and diesel. Profile holds driver info. The left menu opens all of these sections.</string>
+
+    <string name="improve_title">What to improve</string>
+    <string name="improve_intro">Tell us what to add, what to improve, what works, or what is broken. We receive the message by email.</string>
+    <string name="improve_to">Email: %1$s</string>
+    <string name="improve_topic">Topic</string>
+    <string name="improve_topic_add">Add</string>
+    <string name="improve_topic_improve">Improve</string>
+    <string name="improve_topic_works">Works</string>
+    <string name="improve_topic_broken">Broken</string>
+    <string name="improve_message_label">Message</string>
+    <string name="improve_message_hint">Briefly describe what you want changed</string>
+    <string name="improve_send">Send</string>
+    <string name="improve_empty">Write a message first</string>
+    <string name="improve_opened">Open your mail app and tap send</string>
+    <string name="improve_copied">No mail app found. The text is copied — paste it into an email to Truckerlogsupport@gmail.com</string>
 
     <string name="goal_screen_title">Weekly Goal</string>
     <string name="goal_pace_period_hint">On the road: %1$s days</string>
