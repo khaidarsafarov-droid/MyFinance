@@ -121,11 +121,14 @@ private fun SquareContent(context: Context, stats: WidgetStats) {
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ImageProvider(R.drawable.widget_oneui_plate))
-            .padding(16.dp)
-            .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = GlanceModifier.defaultWeight()) {
+        Column(
+            modifier = GlanceModifier
+                .defaultWeight()
+                .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
+        ) {
             Text(
                 text = context.getString(R.string.widget_brand_title_plain),
                 style = labelStyle(),
@@ -150,9 +153,20 @@ private fun SquareContent(context: Context, stats: WidgetStats) {
             Image(
                 provider = ImageProvider(ring),
                 contentDescription = context.getString(R.string.widget_weekly_summary),
-                modifier = GlanceModifier.width(56.dp).height(56.dp),
+                modifier = GlanceModifier
+                    .width(56.dp)
+                    .height(56.dp)
+                    .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
             )
         }
+        Image(
+            provider = ImageProvider(R.drawable.ic_widget_diesel),
+            contentDescription = context.getString(R.string.widget_diesel),
+            modifier = GlanceModifier
+                .width(28.dp)
+                .height(28.dp)
+                .clickable(actionStartActivity(WidgetDeepLink.dieselQuickAddIntent(context))),
+        )
     }
 }
 
@@ -164,8 +178,7 @@ private fun WideContent(context: Context, stats: WidgetStats) {
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ImageProvider(R.drawable.widget_oneui_plate))
-            .padding(16.dp)
-            .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -176,15 +189,28 @@ private fun WideContent(context: Context, stats: WidgetStats) {
                 text = context.getString(R.string.widget_brand_title_plain),
                 style = labelStyle(),
                 maxLines = 1,
-                modifier = GlanceModifier.defaultWeight(),
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
             )
             if (stats.weekLabel.isNotBlank()) {
                 Text(text = stats.weekLabel, style = labelStyle(), maxLines = 1)
             }
+            Image(
+                provider = ImageProvider(R.drawable.ic_widget_diesel),
+                contentDescription = context.getString(R.string.widget_diesel),
+                modifier = GlanceModifier
+                    .width(28.dp)
+                    .height(28.dp)
+                    .padding(start = 8.dp)
+                    .clickable(actionStartActivity(WidgetDeepLink.dieselQuickAddIntent(context))),
+            )
         }
         Spacer(modifier = GlanceModifier.height(8.dp))
         Row(
-            modifier = GlanceModifier.fillMaxWidth(),
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
             verticalAlignment = Alignment.Bottom,
         ) {
             Column(modifier = GlanceModifier.defaultWeight()) {
@@ -226,7 +252,10 @@ private fun WideContent(context: Context, stats: WidgetStats) {
         Spacer(modifier = GlanceModifier.height(10.dp))
         LinearProgressIndicator(
             progress = progress,
-            modifier = GlanceModifier.fillMaxWidth().height(8.dp),
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clickable(actionStartActivity(homeIntent(context, WidgetDeepLink.ROUTE_HOME))),
             color = ColorProvider(
                 WidgetProgressRingBitmap.progressColorResForStatus(
                     stats.goalPaceStatus,

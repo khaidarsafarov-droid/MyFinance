@@ -4,16 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,24 +20,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.presentation.icons.AppIcons
-import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.formatDateForDisplay
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekRange
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +47,8 @@ fun AddDieselScreen(
     var showTimePicker by remember { mutableStateOf(false) }
     var datePickerThenTime by remember { mutableStateOf(false) }
     val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
+
+    DieselLocationPermissionEffect(onGranted = viewModel::ensureLocation)
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
@@ -169,67 +162,14 @@ fun AddDieselScreen(
                     onPreviousWeek = viewModel::selectPreviousWeek,
                     onNextWeek = viewModel::selectNextWeek,
                 )
-                OutlinedTextField(
-                    value = uiState.gallonsText,
-                    onValueChange = viewModel::setGallonsText,
-                    label = { Text(stringResource(R.string.add_diesel_gallons)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
-                    shape = RoundedCornerShape(14.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = AppTextFieldDefaults.outlined(),
-                    singleLine = true,
+                DieselAmountFields(
+                    uiState = uiState,
+                    onGallonsChange = viewModel::setGallonsText,
+                    onPriceChange = viewModel::setPricePerGallonText,
+                    onDiscountChange = viewModel::setDiscountPriceText,
+                    onLocationChange = viewModel::setLocationText,
+                    onImagePicked = viewModel::scanReceipt,
                 )
-                OutlinedTextField(
-                    value = uiState.pricePerGallonText,
-                    onValueChange = viewModel::setPricePerGallonText,
-                    label = { Text(stringResource(R.string.add_diesel_price_per_gallon)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
-                    shape = RoundedCornerShape(14.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = AppTextFieldDefaults.outlined(),
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = uiState.discountPriceText,
-                    onValueChange = viewModel::setDiscountPriceText,
-                    label = { Text(stringResource(R.string.add_diesel_discount_price)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
-                    shape = RoundedCornerShape(14.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = AppTextFieldDefaults.outlined(),
-                    singleLine = true,
-                )
-                uiState.paidTotal?.let { total ->
-                    Text(
-                        text = stringResource(R.string.add_diesel_paid_total, MoneyFormat.formatCurrency(total)),
-                        style = AppTypography.HeroNumber,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
-                    Text(
-                        text = stringResource(R.string.add_diesel_you_saved, MoneyFormat.formatCurrency(saved)),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = tc.AccentProfit,
-                    )
-                }
-                uiState.gallons?.let { gallons ->
-                    Text(
-                        text = stringResource(
-                            R.string.add_diesel_gallons_preview,
-                            String.format(Locale.US, "%.2f", gallons),
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextSecondary,
-                    )
-                }
             }
         }
     }

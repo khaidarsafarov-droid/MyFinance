@@ -11,6 +11,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.truckerload.domain.geo.BalancedLocationFix
 import com.truckerload.domain.geo.LatLngPoint
+import com.truckerload.domain.geo.StopLabelFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -46,6 +47,30 @@ class LocationHelper(private val context: Context) {
             state = geo?.second ?: "",
             zipCode = geo?.third ?: "",
         )
+    }
+
+    /** Reverse-geocode the current fix into "Love's Travel Stop, 4120 I-40, Oklahoma City, OK". */
+    suspend fun getCurrentStopLabel(): String? = withContext(Dispatchers.IO) {
+        val fix = getBalancedCurrentLocation() ?: return@withContext null
+        if (!Geocoder.isPresent()) return@withContext null
+        try {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            @Suppress("DEPRECATION")
+            val addresses = geocoder.getFromLocation(fix.latitude, fix.longitude, 3).orEmpty()
+            addresses.firstNotNullOfOrNull { address ->
+                StopLabelFormatter.format(
+                    featureName = address.featureName,
+                    subThoroughfare = address.subThoroughfare,
+                    thoroughfare = address.thoroughfare,
+                    locality = address.locality,
+                    subAdminArea = address.subAdminArea,
+                    adminArea = address.adminArea,
+                ).takeIf { it.isNotBlank() }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("LocationHelper", "stop label failed", e)
+            null
+        }
     }
 
     /**

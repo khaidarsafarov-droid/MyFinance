@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.add
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -9,12 +10,16 @@ import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselPurchaseMath
+import com.truckerload.domain.parser.DieselReceiptExtractor
 import com.truckerload.utils.AmountInputValidator
+import com.truckerload.utils.LocationHelper
+import com.truckerload.utils.OCRService
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getMillisForWeek
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.shiftWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
+import com.truckerload.widget.WidgetDataUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,10 +35,15 @@ data class AddDieselUiState(
     val gallonsText: String = "",
     val pricePerGallonText: String = "",
     val discountPriceText: String = "",
+    val locationText: String = "",
+    val rawExtractedText: String = "",
     val recordedAtMillis: Long = System.currentTimeMillis(),
     val weekNumber: Int = 1,
     val year: Int = 1970,
     val isSaving: Boolean = false,
+    val isScanning: Boolean = false,
+    val isResolvingLocation: Boolean = false,
+    val scanMessage: String? = null,
     val error: String? = null,
     val saved: Boolean = false,
     val showSaveDialog: Boolean = false,
@@ -67,6 +77,8 @@ class AddDieselViewModel @Inject constructor(
             gallonsText = savedStateHandle[KEY_GALLONS_TEXT] ?: "",
             pricePerGallonText = savedStateHandle[KEY_PRICE_TEXT] ?: "",
             discountPriceText = savedStateHandle[KEY_DISCOUNT_TEXT] ?: "",
+            locationText = savedStateHandle[KEY_LOCATION_TEXT] ?: "",
+            rawExtractedText = savedStateHandle[KEY_RAW_TEXT] ?: "",
             recordedAtMillis = savedStateHandle[KEY_RECORDED_AT_MILLIS] ?: System.currentTimeMillis(),
             weekNumber = savedStateHandle[KEY_WEEK_NUMBER] ?: initialWeekAndYear.first,
             year = savedStateHandle[KEY_YEAR] ?: initialWeekAndYear.second,
@@ -88,6 +100,72 @@ class AddDieselViewModel @Inject constructor(
     fun setDiscountPriceText(value: String) {
         savedStateHandle[KEY_DISCOUNT_TEXT] = value
         _uiState.update { it.copy(discountPriceText = value, error = null) }
+    }
+
+    fun setLocationText(value: String) {
+        savedStateHandle[KEY_LOCATION_TEXT] = value
+        _uiState.update { it.copy(locationText = value, error = null) }
+    }
+
+    fun ensureLocation() {
+        if (_uiState.value.locationText.isNotBlank() || _uiState.value.isResolvingLocation) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isResolvingLocation = true) }
+            val label = withContext(Dispatchers.IO) {
+                LocationHelper(getApplication()).getCurrentStopLabel()
+            }
+            _uiState.update { state ->
+                val next = state.locationText.ifBlank { label.orEmpty() }
+                savedStateHandle[KEY_LOCATION_TEXT] = next
+                state.copy(isResolvingLocation = false, locationText = next)
+            }
+        }
+    }
+
+    fun scanReceipt(uri: Uri) {
+        if (_uiState.value.isScanning) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isScanning = true, scanMessage = null, error = null) }
+            val app = getApplication<Application>()
+            val ocr = OCRService(app)
+            val result = runCatching {
+                withContext(Dispatchers.IO) { ocr.recognizeFromUri(app, uri) }
+            }
+            ocr.close()
+            val text = result.getOrNull()?.text.orEmpty()
+            if (result.isFailure || text.isBlank()) {
+                _uiState.update {
+                    it.copy(
+                        isScanning = false,
+                        scanMessage = app.getString(R.string.add_diesel_scan_failed),
+                    )
+                }
+                return@launch
+            }
+            applyExtractedText(text)
+        }
+    }
+
+    internal fun applyExtractedText(text: String) {
+        val app = getApplication<Application>()
+        val fields = DieselReceiptExtractor.extract(text)
+        val labels = DieselScanLabels(
+            gallons = app.getString(R.string.add_diesel_gallons),
+            price = app.getString(R.string.add_diesel_price_per_gallon),
+            discount = app.getString(R.string.add_diesel_discount_price),
+            location = app.getString(R.string.add_diesel_location),
+            noneMessage = app.getString(R.string.add_diesel_scan_none),
+            foundTemplate = app.getString(R.string.add_diesel_scan_found),
+        )
+        _uiState.update { state ->
+            val next = DieselFormFill.applyScan(state, fields, text, labels)
+            savedStateHandle[KEY_GALLONS_TEXT] = next.gallonsText
+            savedStateHandle[KEY_PRICE_TEXT] = next.pricePerGallonText
+            savedStateHandle[KEY_DISCOUNT_TEXT] = next.discountPriceText
+            savedStateHandle[KEY_LOCATION_TEXT] = next.locationText
+            savedStateHandle[KEY_RAW_TEXT] = next.rawExtractedText
+            next
+        }
     }
 
     fun selectPreviousWeek() {
@@ -167,9 +245,9 @@ class AddDieselViewModel @Inject constructor(
             gallons = gallons,
             pricePerGallon = price,
             discountPricePerGallon = discount,
-            location = null,
-            rawExtractedText = "",
-            sourceFileName = null,
+            location = state.locationText.trim().takeIf { it.isNotBlank() },
+            rawExtractedText = state.rawExtractedText,
+            sourceFileName = state.rawExtractedText.takeIf { it.isNotBlank() }?.let { "diesel_scan.jpg" },
             addedAt = state.recordedAtMillis,
         )
 
@@ -180,9 +258,12 @@ class AddDieselViewModel @Inject constructor(
                     dieselRepository.insertDiesel(diesel)
                 }
                 lastUsedDefaultsStore.saveDieselAmount(paidTotal)
+                WidgetDataUpdater.updateWidgetData(getApplication())
                 savedStateHandle[KEY_GALLONS_TEXT] = ""
                 savedStateHandle[KEY_PRICE_TEXT] = ""
                 savedStateHandle[KEY_DISCOUNT_TEXT] = ""
+                savedStateHandle[KEY_LOCATION_TEXT] = ""
+                savedStateHandle[KEY_RAW_TEXT] = ""
                 savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
                 savedStateHandle[KEY_YEAR] = year
                 savedStateHandle[KEY_SHOW_SAVE_DIALOG] = false
@@ -191,6 +272,9 @@ class AddDieselViewModel @Inject constructor(
                         gallonsText = "",
                         pricePerGallonText = "",
                         discountPriceText = "",
+                        locationText = "",
+                        rawExtractedText = "",
+                        scanMessage = null,
                         weekNumber = weekNumber,
                         year = year,
                         isSaving = false,
@@ -269,6 +353,8 @@ class AddDieselViewModel @Inject constructor(
         private const val KEY_GALLONS_TEXT = "add_diesel_gallons_text"
         private const val KEY_PRICE_TEXT = "add_diesel_price_text"
         private const val KEY_DISCOUNT_TEXT = "add_diesel_discount_text"
+        private const val KEY_LOCATION_TEXT = "add_diesel_location_text"
+        private const val KEY_RAW_TEXT = "add_diesel_raw_text"
         private const val KEY_RECORDED_AT_MILLIS = "add_diesel_recorded_at_millis"
         private const val KEY_WEEK_NUMBER = "add_diesel_week_number"
         private const val KEY_YEAR = "add_diesel_year"
