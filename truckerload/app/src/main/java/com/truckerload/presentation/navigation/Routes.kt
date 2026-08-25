@@ -16,6 +16,7 @@ object Routes {
     const val LOAD_DETAIL = "load_detail/{loadId}"
     const val ADD_LOAD = "add_load"
     const val EDIT_LOAD = "edit_load/{loadId}?focusFinish={focusFinish}"
+    const val PAYCHECK = "paycheck"
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
     const val DIESEL = "diesel"

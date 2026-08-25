@@ -212,7 +212,7 @@
     <string name="about_guide_diesel_title">5. Diesel</string>
     <string name="about_guide_diesel_body">Menu → Diesel opens the fill journal. Pick a week, All days, or a specific date. Each card shows date, location, amount, gallons, price, and discount; the week total is at the top. Plus (+) opens the add form. From the widget or by saying add diesel you go straight to the form.</string>
     <string name="about_guide_paycheck_title">6. Paycheck</string>
-    <string name="about_guide_paycheck_body">Menu → Add paycheck: pick a week and enter the amount. It feeds Reports: net profit is paycheck minus diesel.</string>
+    <string name="about_guide_paycheck_body">Menu → Paycheck opens the payout journal. You see every previous paycheck; pick a week or search by amount and file. Plus (+) opens the form: file/photo, Telegram, or enter the amount. It feeds Reports: net profit is paycheck minus diesel.</string>
     <string name="about_guide_tax_title">7. Taxes</string>
     <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($69/day). It is a guide, not tax advice.</string>
     <string name="about_guide_reports_title">8. Reports</string>
@@ -619,6 +619,7 @@
     <string name="route_loads">%1$d trips</string>
     <string name="route_avg_rate_per_trip">$%1$.2f/trip</string>
 
+    <string name="paycheck_title">Paycheck</string>
     <string name="add_paycheck_title">Add paycheck</string>
 
     <string name="add_paycheck_add_file">Add file</string>
@@ -663,6 +664,15 @@
     <string name="diesel_filter_all_days">All days</string>
     <string name="diesel_filter_pick_date">Pick a date</string>
     <string name="diesel_week_total">This week: %1$s</string>
+    <string name="paycheck_empty_week">No paycheck this week</string>
+    <string name="paycheck_empty_all">No paychecks yet</string>
+    <string name="paycheck_empty_search">Nothing matched</string>
+    <string name="paycheck_filter_all_weeks">All weeks</string>
+    <string name="paycheck_search_hint">Find: week, amount, or file</string>
+    <string name="paycheck_week_total">This week: %1$s</string>
+    <string name="paycheck_all_total">Total: %1$s</string>
+    <string name="paycheck_week_fallback">Week %1$d · %2$d</string>
+    <string name="paycheck_gross_line">Gross: %1$s</string>
     <string name="add_load_title">Add load</string>
     <string name="add_or_edit_week_format">Week %1$d • %2$s</string>
     <string name="add_select_week">📅 Select week</string>
