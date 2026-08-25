@@ -1239,6 +1239,10 @@
 
     <!-- Сообщество -->
     <string name="profile">Профиль</string>
+    <string name="profile_name_section_title">Имя и фамилия</string>
+    <string name="profile_name_section_hint">Это имя попадёт в файлы, которыми вы делитесь с экрана «Мои цифры».</string>
+    <string name="profile_name_saved">Имя сохранено</string>
+    <string name="profile_name_required">Введите имя или фамилию</string>
     <string name="profile_setup_title">Настройка профиля</string>
     <string name="profile_setup_next">Далее</string>
     <string name="profile_setup_name_required">Введите имя</string>

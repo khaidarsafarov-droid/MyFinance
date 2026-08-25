@@ -1239,6 +1239,10 @@
 
     <!-- Community -->
     <string name="profile">Profile</string>
+    <string name="profile_name_section_title">First and last name</string>
+    <string name="profile_name_section_hint">This name goes into files you share from My numbers.</string>
+    <string name="profile_name_saved">Name saved</string>
+    <string name="profile_name_required">Enter a first or last name</string>
     <string name="profile_setup_title">Profile setup</string>
     <string name="profile_setup_next">Next</string>
     <string name="profile_setup_name_required">Enter your name</string>

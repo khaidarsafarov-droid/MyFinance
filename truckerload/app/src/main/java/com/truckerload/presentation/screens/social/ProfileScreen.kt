@@ -63,6 +63,15 @@ fun ProfileScreen(
                     },
                 )
             }
+            item {
+                ProfileNameSection(
+                    givenName = uiState.givenName,
+                    familyName = uiState.familyName,
+                    message = uiState.nameMessage,
+                    messageIsError = uiState.nameMessageIsError,
+                    onSave = viewModel::saveName,
+                )
+            }
             if (profile.about.isNotBlank()) {
                 item { ProfileAboutSection(profile.about) }
             }

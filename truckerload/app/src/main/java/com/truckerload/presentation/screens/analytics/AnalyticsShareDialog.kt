@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.AnalyticsShareFormat
 
@@ -52,6 +53,7 @@ fun AnalyticsShareDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     label = { Text(stringResource(R.string.analytics_share_given_name)) },
+                    colors = AppTextFieldDefaults.outlined(),
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -60,6 +62,7 @@ fun AnalyticsShareDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     label = { Text(stringResource(R.string.analytics_share_family_name)) },
+                    colors = AppTextFieldDefaults.outlined(),
                 )
                 Text(
                     text = stringResource(R.string.analytics_share_name_hint),
