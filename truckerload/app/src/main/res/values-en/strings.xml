@@ -305,6 +305,8 @@
     <string name="scan_success">Document scanned successfully</string>
     <string name="scan_attached_to_load">Scan saved and attached to the load</string>
     <string name="scan_attaching">Saving scan…</string>
+    <string name="scan_send_then_save_hint">Share the document first — after you send it, it will be saved to this load.</string>
+    <string name="save_to_load_without_share">Save to load without sharing</string>
     <string name="scan_cancelled">Scan cancelled</string>
     <string name="scan_error">Scan failed</string>
     <string name="scan_results">Scan results</string>
@@ -1388,6 +1390,13 @@
     <string name="settings_cd_export_json">Export JSON</string>
     <string name="settings_cd_import">Import</string>
     <string name="tax_per_diem_hint">Per-diem days approximate sum of each load active days (min 1 per load)</string>
+    <string name="tax_per_diem_calendar_title">Per-diem calendar</string>
+    <string name="tax_per_diem_calendar_subtitle">On-duty days: %1$d × $%2$d</string>
+    <string name="tax_export_for_accountant">Export for accountant (CSV)</string>
+    <string name="tax_export_share_title">Share per-diem report</string>
+    <string name="tax_export_success">Report ready: %1$s</string>
+    <string name="tax_export_error">Export failed: %1$s</string>
+    <string name="tax_export_empty">No on-duty days for this year</string>
     <string name="map_rating_bad">Poor</string>
     <string name="map_rating_neutral">Neutral</string>
     <string name="map_rating_no_data">No data</string>
