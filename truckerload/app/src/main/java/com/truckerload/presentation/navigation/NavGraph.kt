@@ -243,6 +243,7 @@ fun NavGraph(
                 DrawerDestination.ADD_DIESEL -> navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
+                DrawerDestination.IMPROVE -> navController.navigate(Routes.IMPROVE) { launchSingleTop = true }
             }
         },
     ) { padding ->

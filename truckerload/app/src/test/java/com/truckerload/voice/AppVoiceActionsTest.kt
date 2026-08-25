@@ -34,6 +34,8 @@ class AppVoiceActionsTest {
         assertEquals(Routes.PROFILE, screen("профиль"))
         assertEquals(Routes.PROFILE, screen("редактировать профиль"))
         assertEquals(Routes.PROFILE, screen("edit profile"))
+        assertEquals(Routes.IMPROVE, screen("что улучшить"))
+        assertEquals(Routes.IMPROVE, screen("suggest improvement"))
     }
 
     @Test

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 
@@ -31,6 +32,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 @Composable
 fun AboutAppScreen(
     onBack: () -> Unit,
+    onWriteImprove: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     SoftAppPageScaffold(
@@ -99,6 +101,13 @@ fun AboutAppScreen(
                 title = stringResource(R.string.about_guide_settings_title),
                 body = stringResource(R.string.about_guide_settings_body),
             )
+
+            OutlinedButton(
+                onClick = onWriteImprove,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.improve_title))
+            }
 
             Spacer(Modifier.height(24.dp))
         }

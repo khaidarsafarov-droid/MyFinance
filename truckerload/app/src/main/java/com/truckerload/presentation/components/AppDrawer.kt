@@ -48,6 +48,7 @@ enum class DrawerDestination {
     ADD_DIESEL,
     VOICE_ASSISTANT,
     ABOUT,
+    IMPROVE,
 }
 
 @Composable
@@ -131,6 +132,11 @@ fun AppDrawerContent(
                 icon = AppIcons.Description,
                 label = stringResource(R.string.drawer_documents),
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
+            )
+            drawerItem(
+                icon = AppIcons.EditNote,
+                label = stringResource(R.string.drawer_improve),
+                onClick = { onNavigate(DrawerDestination.IMPROVE); onClose() },
             )
             drawerItem(
                 icon = AppIcons.Info,

@@ -25,6 +25,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val PRIVACY_SETTINGS = "privacy_settings"
     const val ABOUT = "about"
+    const val IMPROVE = "improve"
     const val CAMERA = "camera"
     const val CAMERA_FOR_LOAD = "camera_load/{loadId}/{tripId}/{loadDate}"
     const val SCANNER = "scanner"

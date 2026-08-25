@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.truckerload.presentation.screens.about.AboutAppScreen
+import com.truckerload.presentation.screens.feedback.ImprovementFeedbackScreen
 import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
 import com.truckerload.presentation.screens.assistant.VoiceAssistantScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsScreen
@@ -101,6 +102,12 @@ fun NavGraphBuilder.toolsNavGraph(
     }
     composable(Routes.ABOUT) {
         AboutAppScreen(
+            onBack = { navController.popBackStack() },
+            onWriteImprove = { navController.navigate(Routes.IMPROVE) { launchSingleTop = true } },
+        )
+    }
+    composable(Routes.IMPROVE) {
+        ImprovementFeedbackScreen(
             onBack = { navController.popBackStack() },
         )
     }

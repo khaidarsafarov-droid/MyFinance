@@ -191,6 +191,7 @@
 <string name="drawer_documents">Документы</string>
     <string name="drawer_tools">Инструменты</string>
     <string name="drawer_about">О приложении</string>
+    <string name="drawer_improve">Что улучшить</string>
     <string name="drawer_logout">Выход</string>
 
     <string name="about_app_title">О приложении</string>
@@ -212,6 +213,21 @@
     <string name="about_guide_backup_body">В Настройках создайте файл-бэкап на телефоне или сохраните данные в Google Drive и восстановите их при смене устройства.</string>
     <string name="about_guide_settings_title">8. Настройки и профиль</string>
     <string name="about_guide_settings_body">В Настройках — тема, бэкап, зарплата и дизель. Профиль — данные водителя. Меню слева открывает все эти разделы.</string>
+
+    <string name="improve_title">Что улучшить</string>
+    <string name="improve_intro">Напишите, что добавить, что улучшить, что работает или что сломалось. Сообщение уйдёт нам на почту.</string>
+    <string name="improve_to">Письмо: %1$s</string>
+    <string name="improve_topic">Тема</string>
+    <string name="improve_topic_add">Добавить</string>
+    <string name="improve_topic_improve">Улучшить</string>
+    <string name="improve_topic_works">Работает</string>
+    <string name="improve_topic_broken">Не работает</string>
+    <string name="improve_message_label">Сообщение</string>
+    <string name="improve_message_hint">Коротко опишите, что хотите изменить</string>
+    <string name="improve_send">Отправить</string>
+    <string name="improve_empty">Напишите сообщение</string>
+    <string name="improve_opened">Откройте почту и нажмите отправить</string>
+    <string name="improve_copied">Почтовое приложение не найдено. Текст скопирован — вставьте его в письмо на Truckerlogsupport@gmail.com</string>
 
     <string name="goal_screen_title">Цель недели</string>
     <string name="goal_pace_period_hint">В рейсе: %1$s дн.</string>
