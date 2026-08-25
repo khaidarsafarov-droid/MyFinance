@@ -28,12 +28,11 @@
     <string name="nav_community">Сообщество</string>
 
     <string name="analytics_title">Мои цифры</string>
-    <string name="analytics_subtitle">Сколько заработали, куда ездили и что осталось после дизеля</string>
+    <string name="analytics_subtitle">Зарплата, дизель и маршруты — цифры рядом, без вычетов</string>
     <string name="analytics_finance_title">Деньги за период</string>
-    <string name="analytics_finance_empty">Добавьте зарплату или дизель — здесь будет видно, сколько осталось.</string>
-    <string name="analytics_finance_net_profit">Осталось после дизеля</string>
-    <string name="analytics_finance_paycheck">Зарплата на руки</string>
-    <string name="analytics_finance_diesel">Потрачено на дизель</string>
+    <string name="analytics_finance_empty">Добавьте зарплату или дизель — здесь будет общий отчёт.</string>
+    <string name="analytics_finance_paycheck">Зарплата</string>
+    <string name="analytics_finance_diesel">Дизель</string>
     <string name="analytics_finance_gallons">Сколько галлонов</string>
     <string name="analytics_finance_avg_price">Средняя цена за галлон</string>
     <string name="analytics_finance_savings">Сэкономили на скидке: %1$s</string>
@@ -212,11 +211,11 @@
     <string name="about_guide_diesel_title">5. Дизель</string>
     <string name="about_guide_diesel_body">Меню → «Дизель» открывает журнал заправок. Выберите неделю, «Все дни» или конкретное число. На карточке — дата, локация, сумма, галлоны, цена и скидка; сверху — итог за неделю. Плюс (+) открывает форму новой заправки. С виджета или голосом «добавить дизель» сразу открывается форма.</string>
     <string name="about_guide_paycheck_title">6. Зарплата</string>
-    <string name="about_guide_paycheck_body">Меню → «Добавить зарплату»: выберите неделю и введите сумму. Запись попадёт в отчёты: чистая прибыль считается как зарплата минус дизель.</string>
+    <string name="about_guide_paycheck_body">Меню → «Добавить зарплату»: выберите неделю и введите сумму. Запись попадёт в «Мои цифры» зелёным рядом с дизелем — без вычета.</string>
     <string name="about_guide_tax_title">7. Налоги</string>
     <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($69/день). Это ориентир, а не налоговая консультация.</string>
     <string name="about_guide_reports_title">8. Отчёты</string>
-    <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, финансы (зарплата и дизель), экспорт CSV. Оттуда можно открыть финансового советника и спросить про доход, маршруты или налоги.</string>
+    <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, зарплата и дизель рядом по цветам (без вычета), экспорт CSV. Оттуда можно открыть финансового советника и спросить про доход, маршруты или налоги.</string>
     <string name="about_guide_map_title">9. Карта</string>
     <string name="about_guide_map_body">Меню → «Карта»: ваши RPM по штатам за неделю, месяц или год (откуда уехал груз). Нажмите штат — свежие ставки и топ-направления.</string>
     <string name="about_guide_docs_title">10. Документы, камера и сканер</string>

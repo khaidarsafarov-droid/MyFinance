@@ -28,12 +28,11 @@
     <string name="nav_community">Community</string>
 
     <string name="analytics_title">My numbers</string>
-    <string name="analytics_subtitle">What you earned, where you ran, and what was left after diesel</string>
+    <string name="analytics_subtitle">Paycheck, diesel, and routes — side by side, no subtraction</string>
     <string name="analytics_finance_title">Money for this period</string>
-    <string name="analytics_finance_empty">Add a paycheck or diesel — then you will see what is left here.</string>
-    <string name="analytics_finance_net_profit">Left after diesel</string>
-    <string name="analytics_finance_paycheck">Paycheck take-home</string>
-    <string name="analytics_finance_diesel">Spent on diesel</string>
+    <string name="analytics_finance_empty">Add a paycheck or diesel — the report will show here.</string>
+    <string name="analytics_finance_paycheck">Paycheck</string>
+    <string name="analytics_finance_diesel">Diesel</string>
     <string name="analytics_finance_gallons">Gallons filled</string>
     <string name="analytics_finance_avg_price">Average price per gallon</string>
     <string name="analytics_finance_savings">Saved with discount: %1$s</string>
@@ -212,11 +211,11 @@
     <string name="about_guide_diesel_title">5. Diesel</string>
     <string name="about_guide_diesel_body">Menu → Diesel opens the fill journal. Pick a week, All days, or a specific date. Each card shows date, location, amount, gallons, price, and discount; the week total is at the top. Plus (+) opens the add form. From the widget or by saying add diesel you go straight to the form.</string>
     <string name="about_guide_paycheck_title">6. Paycheck</string>
-    <string name="about_guide_paycheck_body">Menu → Add paycheck: pick a week and enter the amount. It feeds Reports: net profit is paycheck minus diesel.</string>
+    <string name="about_guide_paycheck_body">Menu → Add paycheck: pick a week and enter the amount. It shows in My numbers in green next to diesel — no subtraction.</string>
     <string name="about_guide_tax_title">7. Taxes</string>
     <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($69/day). It is a guide, not tax advice.</string>
     <string name="about_guide_reports_title">8. Reports</string>
-    <string name="about_guide_reports_body">Menu → Reports: weekly and route income, finances (paycheck and diesel), and CSV export. From there you can open the financial advisor and ask about income, lanes, or taxes.</string>
+    <string name="about_guide_reports_body">Menu → Reports: weekly and route income, paycheck and diesel side by side in color (no subtraction), and CSV export. From there you can open the financial advisor and ask about income, lanes, or taxes.</string>
     <string name="about_guide_map_title">9. Map</string>
     <string name="about_guide_map_body">Menu → Map: your RPM by origin state for the week, month, or year. Tap a state for recent rates and top lanes.</string>
     <string name="about_guide_docs_title">10. Documents, camera, and scanner</string>

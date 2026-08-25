@@ -30,7 +30,6 @@ object AnalyticsExporter {
         val f = dashboard.finance
         appendLine("Paycheck,${f.paycheckTotal}")
         appendLine("Diesel,${f.dieselTotal}")
-        appendLine("Net profit,${f.netProfit}")
         appendLine("Diesel gallons,${f.dieselGallons}")
         appendLine("Diesel discount saved,${f.dieselSavings}")
         appendLine()
