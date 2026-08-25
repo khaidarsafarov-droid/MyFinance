@@ -241,12 +241,17 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                             style = MaterialTheme.typography.bodySmall,
                             color = tc.TextSecondary,
                         )
+                        Text(
+                            stringResource(R.string.tax_per_diem_calendar_hint),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = tc.TextLabel,
+                        )
                         LoadCalendarWithDots(
                             year = uiState.year,
                             month = uiState.calendarMonth,
                             datesWithLoads = uiState.perDiemDates,
                             selectedDate = null,
-                            onDateSelect = { },
+                            onDateSelect = viewModel::togglePerDiemDate,
                             onMonthChange = { y, m -> viewModel.setCalendarMonth(y, m) },
                         )
                     }

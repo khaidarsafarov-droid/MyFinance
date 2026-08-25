@@ -1455,9 +1455,10 @@
     <string name="settings_cd_export_csv">Экспорт CSV</string>
     <string name="settings_cd_export_json">Экспорт JSON</string>
     <string name="settings_cd_import">Импорт</string>
-    <string name="tax_per_diem_hint">Дни per-diem ≈ сумма активных дней по каждому грузу (мин. 1 на груз)</string>
+    <string name="tax_per_diem_hint">Дни суточных считаются по рейсам. В календаре ниже день можно добавить или убрать нажатием.</string>
     <string name="tax_per_diem_calendar_title">Календарь суточных</string>
     <string name="tax_per_diem_calendar_subtitle">Дней на рейсах: %1$d × $%2$d</string>
+    <string name="tax_per_diem_calendar_hint">Нажмите день, чтобы включить или выключить суточные</string>
     <string name="tax_export_share_title">Отправить отчёт per-diem</string>
     <string name="tax_export_success">Отчёт готов: %1$s</string>
     <string name="tax_export_error">Ошибка экспорта: %1$s</string>
