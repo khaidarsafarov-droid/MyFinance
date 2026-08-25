@@ -212,7 +212,7 @@
     <string name="about_guide_diesel_title">5. Дизель</string>
     <string name="about_guide_diesel_body">Меню → «Дизель» открывает журнал заправок. Выберите неделю, «Все дни» или конкретное число. На карточке — дата, локация, сумма, галлоны, цена и скидка; сверху — итог за неделю. Плюс (+) открывает форму новой заправки. С виджета или голосом «добавить дизель» сразу открывается форма.</string>
     <string name="about_guide_paycheck_title">6. Зарплата</string>
-    <string name="about_guide_paycheck_body">Меню → «Добавить зарплату»: выберите неделю и введите сумму. Запись попадёт в отчёты: чистая прибыль считается как зарплата минус дизель.</string>
+    <string name="about_guide_paycheck_body">Меню → «Зарплата» открывает журнал выплат. Сразу видны все предыдущие зарплаты; можно выбрать неделю или найти по сумме и файлу. Плюс (+) открывает форму: файл/фото, Telegram или сумма вручную. Запись попадёт в отчёты: чистая прибыль считается как зарплата минус дизель.</string>
     <string name="about_guide_tax_title">7. Налоги</string>
     <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($69/день). Это ориентир, а не налоговая консультация.</string>
     <string name="about_guide_reports_title">8. Отчёты</string>
@@ -619,6 +619,7 @@
     <string name="route_loads">%1$d рейсов</string>
     <string name="route_avg_rate_per_trip">$%1$.2f/рейс</string>
 
+    <string name="paycheck_title">Зарплата</string>
     <string name="add_paycheck_title">Добавить зарплату</string>
 
     <string name="add_paycheck_add_file">Добавить файл</string>
@@ -663,6 +664,15 @@
     <string name="diesel_filter_all_days">Все дни</string>
     <string name="diesel_filter_pick_date">Выбрать число</string>
     <string name="diesel_week_total">За неделю: %1$s</string>
+    <string name="paycheck_empty_week">Нет зарплаты на этой неделе</string>
+    <string name="paycheck_empty_all">Пока нет зарплат</string>
+    <string name="paycheck_empty_search">Ничего не нашлось</string>
+    <string name="paycheck_filter_all_weeks">Все недели</string>
+    <string name="paycheck_search_hint">Найти: неделя, сумма или файл</string>
+    <string name="paycheck_week_total">За неделю: %1$s</string>
+    <string name="paycheck_all_total">Всего: %1$s</string>
+    <string name="paycheck_week_fallback">Неделя %1$d · %2$d</string>
+    <string name="paycheck_gross_line">Гросс: %1$s</string>
     <string name="add_load_title">Добавить груз</string>
     <string name="add_or_edit_week_format">Неделя %1$d • %2$s</string>
     <string name="add_select_week">📅 Выберите неделю</string>

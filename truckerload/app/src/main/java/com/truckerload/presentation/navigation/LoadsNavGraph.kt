@@ -12,6 +12,7 @@ import com.truckerload.presentation.screens.add.AddDieselScreen
 import com.truckerload.presentation.screens.add.AddLoadScreen
 import com.truckerload.presentation.screens.add.AddPaycheckScreen
 import com.truckerload.presentation.screens.diesel.DieselJournalScreen
+import com.truckerload.presentation.screens.paycheck.PaycheckJournalScreen
 import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.home.HomeViewModel
@@ -71,6 +72,12 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
             onBack = { navController.popBackStack() },
             onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
             onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
+        )
+    }
+    composable(Routes.PAYCHECK) {
+        PaycheckJournalScreen(
+            onBack = { navController.popBackStack() },
+            onAdd = { navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true } },
         )
     }
     composable(Routes.ADD_PAYCHECK) {
