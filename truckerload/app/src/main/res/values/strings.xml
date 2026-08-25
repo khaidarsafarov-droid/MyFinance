@@ -100,12 +100,17 @@
     <string name="analytics_share_as_csv_hint">Откроется в Excel и Google Таблицах</string>
     <string name="analytics_share_failed">Не удалось подготовить отчёт</string>
     <string name="analytics_share_caption">%1$s — %2$s (%3$s)</string>
+    <string name="analytics_share_caption_named">%1$s — %2$s (%3$s)\n%4$s</string>
     <string name="analytics_share_period">Период: %1$s</string>
     <string name="analytics_share_summary_section">Сводка</string>
     <string name="analytics_share_savings">Сэкономили на скидке</string>
     <string name="analytics_share_amount">Сумма</string>
     <string name="analytics_share_route">Маршрут</string>
     <string name="analytics_share_day">День</string>
+    <string name="analytics_share_owner">Водитель</string>
+    <string name="analytics_share_given_name">Имя</string>
+    <string name="analytics_share_family_name">Фамилия</string>
+    <string name="analytics_share_name_hint">Имя и фамилия из профиля попадут в файл. Можно поправить перед отправкой.</string>
     <string name="social_chat_name_hint">Название чата</string>
     <string name="social_chat_create_error">Не удалось создать чат: %1$s</string>
     <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckerload, SHA-1).</string>

@@ -1,14 +1,18 @@
 package com.truckerload.presentation.screens.analytics
 
 import android.app.Application
+import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.AnalyticsDashboard
 import com.truckerload.data.repository.AnalyticsRepository
+import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.domain.model.analytics.WeekData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -35,13 +39,19 @@ import org.robolectric.annotation.Config
 class AnalyticsViewModelTest {
 
     private lateinit var repository: AnalyticsRepository
+    private lateinit var profileRepository: ProfileRepository
+    private lateinit var userProfileStore: UserProfileStore
     private lateinit var app: Application
 
     @Before
     fun setUp() {
         repository = mock()
+        profileRepository = mock()
+        userProfileStore = mock()
         app = mock()
         whenever(app.getString(any())).thenReturn("error")
+        whenever(userProfileStore.profile).thenReturn(MutableStateFlow(null))
+        whenever(profileRepository.watchMyProfile()).thenReturn(emptyFlow())
     }
 
     @After
@@ -72,7 +82,7 @@ class AnalyticsViewModelTest {
         whenever(repository.loadDashboard(AnalyticsPeriod.ALL_TIME)).thenReturn(fastDashboard)
         whenever(repository.getLoadsForWeek(any(), any())).thenReturn(emptyList())
 
-        val viewModel = AnalyticsViewModel(repository, app)
+        val viewModel = AnalyticsViewModel(repository, profileRepository, userProfileStore, app)
         runCurrent()
 
         viewModel.setPeriod(AnalyticsPeriod.ALL_TIME)

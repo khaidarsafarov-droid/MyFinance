@@ -6,8 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.AnalyticsDashboard
 import com.truckerload.data.repository.AnalyticsRepository
+import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
@@ -16,12 +18,14 @@ import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.utils.AnalyticsExportShare
+import com.truckerload.utils.AnalyticsOwnerName
 import com.truckerload.utils.AnalyticsShareFormat
 import com.truckerload.utils.analyticsExportLabels
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -43,6 +47,8 @@ data class AnalyticsUiState(
     val finance: PeriodFinance = PeriodFinance(),
     val selectedWeekIndex: Int? = null,
     val selectedWeekLoads: List<Load> = emptyList(),
+    val ownerGivenName: String = "",
+    val ownerFamilyName: String = "",
     val shareReady: AnalyticsShareReady? = null,
     val error: String? = null,
 )
@@ -50,6 +56,8 @@ data class AnalyticsUiState(
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
     private val repository: AnalyticsRepository,
+    private val profileRepository: ProfileRepository,
+    private val userProfileStore: UserProfileStore,
     private val app: Application,
 ) : ViewModel() {
 
@@ -63,6 +71,21 @@ class AnalyticsViewModel @Inject constructor(
 
     init {
         refresh()
+        viewModelScope.launch {
+            combine(
+                userProfileStore.profile,
+                profileRepository.watchMyProfile(),
+            ) { user, social ->
+                AnalyticsOwnerName.fromProfile(
+                    givenName = user?.givenName,
+                    familyName = user?.familyName,
+                    email = user?.email,
+                    socialDisplayName = social.displayName,
+                )
+            }.collect { (given, family) ->
+                _uiState.update { it.copy(ownerGivenName = given, ownerFamilyName = family) }
+            }
+        }
     }
 
     fun setPeriod(period: AnalyticsPeriod) {
@@ -119,25 +142,42 @@ class AnalyticsViewModel @Inject constructor(
         }
     }
 
-    fun shareAnalytics(format: AnalyticsShareFormat) {
+    fun shareAnalytics(format: AnalyticsShareFormat, givenName: String, familyName: String) {
         val dashboard = lastDashboard ?: return
         viewModelScope.launch {
-            val labels = analyticsExportLabels(app, _uiState.value.period)
+            val given = givenName.trim()
+            val family = familyName.trim()
+            runCatching { profileRepository.updateOwnName(given, family) }
+            val owner = AnalyticsOwnerName.display(given, family)
+            val labels = analyticsExportLabels(app, _uiState.value.period, owner)
             runCatching {
                 AnalyticsExportShare.writeReport(app, dashboard, labels, format, _uiState.value.period)
             }.onSuccess { file ->
+                val caption = if (owner.isBlank()) {
+                    app.getString(
+                        R.string.analytics_share_caption,
+                        labels.appName,
+                        labels.title,
+                        labels.period,
+                    )
+                } else {
+                    app.getString(
+                        R.string.analytics_share_caption_named,
+                        labels.appName,
+                        labels.title,
+                        labels.period,
+                        owner,
+                    )
+                }
                 _uiState.update {
                     it.copy(
                         shareReady = AnalyticsShareReady(
                             file = file,
                             format = format,
-                            caption = app.getString(
-                                R.string.analytics_share_caption,
-                                labels.appName,
-                                labels.title,
-                                labels.period,
-                            ),
+                            caption = caption,
                         ),
+                        ownerGivenName = given,
+                        ownerFamilyName = family,
                         error = null,
                     )
                 }

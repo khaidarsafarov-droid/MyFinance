@@ -17,6 +17,7 @@ class AnalyticsReportBuilderTest {
         val csv = AnalyticsReportBuilder.buildCsvContent(emptyDashboard(), englishLabels())
         assertTrue(csv.startsWith("\uFEFF"))
         assertTrue(csv.contains("Loads,0"))
+        assertTrue(!csv.contains("Driver:"))
         assertTrue(csv.contains("Paycheck,0.00"))
         assertTrue(csv.contains("Diesel,"))
         assertFalse(csv.contains("Net profit"))
@@ -67,9 +68,10 @@ class AnalyticsReportBuilderTest {
                 dieselSavings = 450.0,
             ),
         )
-        val text = AnalyticsReportBuilder.buildReadableText(dashboard, englishLabels())
+        val text = AnalyticsReportBuilder.buildReadableText(dashboard, englishLabels(ownerName = "Ivan Petrov"))
         assertTrue(text.contains("TruckoRig — My numbers"))
         assertTrue(text.contains("Period: Last 12 weeks"))
+        assertTrue(text.contains("Driver: Ivan Petrov"))
         assertTrue(text.contains("• Loads: 47"))
         assertTrue(text.contains("$112,619"))
         assertTrue(text.contains("$2.95/mi"))
@@ -97,7 +99,7 @@ class AnalyticsReportBuilderTest {
         ),
     )
 
-    private fun englishLabels() = AnalyticsExportLabels(
+    private fun englishLabels(ownerName: String = "") = AnalyticsExportLabels(
         appName = "TruckoRig",
         title = "My numbers",
         period = "Last 12 weeks",
@@ -127,5 +129,7 @@ class AnalyticsReportBuilderTest {
         dailySection = "Daily distribution",
         dayColumn = "Day",
         empty = "No data for this period yet",
+        ownerLabel = "Driver",
+        ownerName = ownerName,
     )
 }

@@ -126,10 +126,12 @@ fun AnalyticsScreen(
 
     if (showShareDialog) {
         AnalyticsShareDialog(
+            givenName = uiState.ownerGivenName,
+            familyName = uiState.ownerFamilyName,
             onDismiss = { showShareDialog = false },
-            onPick = { format ->
+            onPick = { format, given, family ->
                 showShareDialog = false
-                viewModel.shareAnalytics(format)
+                viewModel.shareAnalytics(format, given, family)
             },
         )
     }

@@ -160,6 +160,30 @@ class ProfileRepositoryImpl(
         SocialResult.Success(Unit)
     }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_save_profile, it), it) }
 
+    override suspend fun updateOwnName(givenName: String, familyName: String) {
+        val given = givenName.trim()
+        val family = familyName.trim()
+        val display = listOf(given, family).filter { it.isNotBlank() }.joinToString(" ")
+        if (ProfileIdentity.isPlaceholderName(display)) return
+        val existing = profileDao.getProfile() ?: DriverProfileEntity()
+        profileDao.upsert(
+            existing.copy(
+                displayName = display,
+                lastActive = System.currentTimeMillis(),
+            ),
+        )
+        val current = userProfileStore.profile.value
+        if (current != null) {
+            userProfileStore.saveProfile(
+                current.copy(
+                    givenName = given,
+                    familyName = family,
+                    customDisplayName = true,
+                ),
+            )
+        }
+    }
+
     override suspend fun clearLocalIdentity() {
         val existing = profileDao.getProfile() ?: return
         existing.avatarUrl

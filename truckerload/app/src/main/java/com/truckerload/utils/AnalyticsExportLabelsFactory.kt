@@ -4,7 +4,11 @@ import android.content.Context
 import com.truckerload.R
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 
-fun analyticsExportLabels(context: Context, period: AnalyticsPeriod): AnalyticsExportLabels {
+fun analyticsExportLabels(
+    context: Context,
+    period: AnalyticsPeriod,
+    ownerName: String = "",
+): AnalyticsExportLabels {
     val periodLabel = context.getString(
         when (period) {
             AnalyticsPeriod.LAST_12_WEEKS -> R.string.analytics_period_12_weeks
@@ -42,5 +46,7 @@ fun analyticsExportLabels(context: Context, period: AnalyticsPeriod): AnalyticsE
         dailySection = context.getString(R.string.analytics_daily_distribution),
         dayColumn = context.getString(R.string.analytics_share_day),
         empty = context.getString(R.string.analytics_chart_empty),
+        ownerLabel = context.getString(R.string.analytics_share_owner),
+        ownerName = ownerName.trim(),
     )
 }

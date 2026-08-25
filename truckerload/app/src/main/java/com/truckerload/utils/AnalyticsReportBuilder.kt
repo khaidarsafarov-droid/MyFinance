@@ -35,6 +35,8 @@ data class AnalyticsExportLabels(
     val dailySection: String,
     val dayColumn: String,
     val empty: String,
+    val ownerLabel: String,
+    val ownerName: String,
 )
 
 enum class AnalyticsShareFormat {
@@ -51,6 +53,7 @@ object AnalyticsReportBuilder {
     ): String = buildString {
         appendLine("${labels.appName} — ${labels.title}")
         appendLine(labels.periodLine)
+        ownerLine(labels)?.let { appendLine(it) }
         appendLine()
 
         val s = dashboard.summary
@@ -128,6 +131,7 @@ object AnalyticsReportBuilder {
         append('\uFEFF')
         appendLine("# ${labels.appName} — ${labels.title}")
         appendLine("# ${labels.periodLine}")
+        ownerLine(labels)?.let { appendLine("# $it") }
         appendLine()
 
         val s = dashboard.summary
@@ -208,6 +212,12 @@ object AnalyticsReportBuilder {
                     .joinToString(","),
             )
         }
+    }
+
+    private fun ownerLine(labels: AnalyticsExportLabels): String? {
+        val name = labels.ownerName.trim()
+        if (name.isEmpty()) return null
+        return "${labels.ownerLabel}: $name"
     }
 
     private fun money(value: Double): String = String.format(Locale.US, "%.2f", value)
