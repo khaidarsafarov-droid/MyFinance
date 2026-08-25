@@ -38,6 +38,16 @@ object WidgetStatsFormatter {
     fun formatRpmPerMile(context: android.content.Context, rpm: Double): String =
         context.getString(com.truckerload.R.string.rpm_per_mile_format, rpm)
 
+    /** Sketch cabin copy: `RPM 2$` (whole dollars) or `RPM 2.46$`. */
+    fun formatWidgetRpm(rpm: Double): String {
+        val amount = if (kotlin.math.abs(rpm - kotlin.math.round(rpm)) < 0.05) {
+            String.format(Locale.US, "%.0f$", kotlin.math.round(rpm))
+        } else {
+            String.format(Locale.US, "%.2f$", rpm)
+        }
+        return "RPM $amount"
+    }
+
     @Deprecated("Use formatRpmPerMile(context, rpm) for localized unit")
     fun formatRpmPerMile(rpm: Double): String =
         String.format(Locale.US, "$%.2f/mi", rpm)

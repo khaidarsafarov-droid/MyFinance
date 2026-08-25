@@ -21,6 +21,12 @@ data class WidgetStats(
      * (bit 0 = Sunday). Built from [com.truckerload.domain.model.Load.date] and PU date.
      */
     val weekLoadMask: Int = 0,
+    /** Per-day load counts Sun=0 … Sat=6 for the current trucking week. */
+    val dayLoads: List<Int> = List(7) { 0 },
+    /** Per-day gross Sun=0 … Sat=6. */
+    val dayGross: List<Double> = List(7) { 0.0 },
+    /** Per-day miles Sun=0 … Sat=6. */
+    val dayMiles: List<Double> = List(7) { 0.0 },
     /** Sum of PU→finish active days (respects actualFinishDate). */
     val totalActiveDays: Double = 0.0,
     val updatedAtMillis: Long = 0L,

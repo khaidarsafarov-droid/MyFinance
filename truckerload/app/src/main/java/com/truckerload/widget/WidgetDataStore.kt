@@ -28,6 +28,9 @@ object WidgetDataStore {
     private const val KEY_GOAL_DAYS = "goal_days_remaining"
     private const val KEY_GOAL_PACE = "goal_pace_status"
     private const val KEY_WEEK_LOAD_MASK = "week_load_mask"
+    private const val KEY_DAY_LOADS = "day_loads"
+    private const val KEY_DAY_GROSS = "day_gross"
+    private const val KEY_DAY_MILES = "day_miles"
     private const val KEY_ACTIVE_DAYS = "total_active_days"
     private const val KEY_UPDATED = "updated_at"
 
@@ -85,6 +88,9 @@ object WidgetDataStore {
             putInt(KEY_GOAL_DAYS, stats.goalDaysRemaining)
             putString(KEY_GOAL_PACE, stats.goalPaceStatus)
             putInt(KEY_WEEK_LOAD_MASK, stats.weekLoadMask)
+            putString(KEY_DAY_LOADS, packInts(stats.dayLoads))
+            putString(KEY_DAY_GROSS, packDoubles(stats.dayGross))
+            putString(KEY_DAY_MILES, packDoubles(stats.dayMiles))
             putFloat(KEY_ACTIVE_DAYS, stats.totalActiveDays.toFloat())
             putLong(KEY_UPDATED, stats.updatedAtMillis)
         }
@@ -109,8 +115,32 @@ object WidgetDataStore {
             goalDaysRemaining = prefs.getInt(KEY_GOAL_DAYS, 0),
             goalPaceStatus = prefs.getString(KEY_GOAL_PACE, "").orEmpty(),
             weekLoadMask = prefs.getInt(KEY_WEEK_LOAD_MASK, 0),
+            dayLoads = unpackInts(prefs.getString(KEY_DAY_LOADS, null)),
+            dayGross = unpackDoubles(prefs.getString(KEY_DAY_GROSS, null)),
+            dayMiles = unpackDoubles(prefs.getString(KEY_DAY_MILES, null)),
             totalActiveDays = prefs.getFloat(KEY_ACTIVE_DAYS, 0f).toDouble(),
             updatedAtMillis = prefs.getLong(KEY_UPDATED, 0L)
         )
     }
+
+    internal fun packInts(values: List<Int>): String =
+        pad7(values, 0).joinToString(",")
+
+    internal fun packDoubles(values: List<Double>): String =
+        pad7(values, 0.0).joinToString(",")
+
+    internal fun unpackInts(raw: String?): List<Int> {
+        val parts = raw?.split(',').orEmpty()
+        if (parts.size != 7) return List(7) { 0 }
+        return List(7) { parts[it].toIntOrNull() ?: 0 }
+    }
+
+    internal fun unpackDoubles(raw: String?): List<Double> {
+        val parts = raw?.split(',').orEmpty()
+        if (parts.size != 7) return List(7) { 0.0 }
+        return List(7) { parts[it].toDoubleOrNull() ?: 0.0 }
+    }
+
+    private fun <T> pad7(values: List<T>, fill: T): List<T> =
+        (0..6).map { values.getOrElse(it) { fill } }
 }

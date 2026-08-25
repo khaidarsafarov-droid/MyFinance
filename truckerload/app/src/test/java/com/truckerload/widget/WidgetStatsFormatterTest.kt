@@ -60,6 +60,13 @@ class WidgetStatsFormatterTest {
     }
 
     @Test
+    fun formatWidgetRpm_matchesCabinSketch() {
+        assertEquals("RPM 2$", WidgetStatsFormatter.formatWidgetRpm(2.0))
+        assertEquals("RPM 2$", WidgetStatsFormatter.formatWidgetRpm(1.96))
+        assertEquals("RPM 2.46$", WidgetStatsFormatter.formatWidgetRpm(2.46))
+    }
+
+    @Test
     fun formatMiles_usesEnglishUnitSuffix() {
         assertEquals("1,250 mi", WidgetStatsFormatter.formatMiles(1250.4))
     }
