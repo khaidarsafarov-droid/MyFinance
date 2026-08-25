@@ -36,7 +36,6 @@ fun QuickActionsBottomSheet(
     onCamera: () -> Unit,
     onScan: () -> Unit,
     onAddDiesel: () -> Unit,
-    onVoiceAssistant: () -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val tc = LocalTruckColors.current
@@ -93,15 +92,6 @@ fun QuickActionsBottomSheet(
                     FeedbackManager.onNavSelect()
                     onDismiss()
                     onAddDiesel()
-                },
-            )
-            QuickActionRow(
-                icon = AppIcons.Mic,
-                title = stringResource(R.string.assistant_title),
-                onClick = {
-                    FeedbackManager.onNavSelect()
-                    onDismiss()
-                    onVoiceAssistant()
                 },
             )
         }

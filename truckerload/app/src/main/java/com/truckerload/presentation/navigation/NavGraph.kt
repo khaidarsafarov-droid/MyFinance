@@ -202,6 +202,10 @@ fun NavGraph(
                 navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true }
                 onDeepLinkHandled()
             }
+            Routes.ADD_PAYCHECK -> {
+                navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
+                onDeepLinkHandled()
+            }
             else -> {
                 if (destination.startsWith("attach_pick/")) {
                     navController.navigate(destination) { launchSingleTop = true }
@@ -214,9 +218,8 @@ fun NavGraph(
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
     val showMainNavigation = if (tablet) {
-        currentRoute != Routes.ADD_PAYCHECK && currentRoute != Routes.ADD_DIESEL &&
+        currentRoute != Routes.ADD_PAYCHECK &&         currentRoute != Routes.ADD_DIESEL &&
             currentRoute != Routes.DIESEL &&
-            currentRoute != Routes.VOICE_ASSISTANT &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
             currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
@@ -242,7 +245,6 @@ fun NavGraph(
                 DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
                 DrawerDestination.ADD_PAYCHECK -> navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
                 DrawerDestination.DIESEL -> navController.navigate(Routes.DIESEL) { launchSingleTop = true }
-                DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }
                 DrawerDestination.ABOUT -> navController.navigate(Routes.ABOUT) { launchSingleTop = true }
@@ -279,7 +281,6 @@ fun NavGraph(
                         onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
                         onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
                         onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
-                        onVoiceAssistant = { navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true } },
                         onLoadCamera = { loadId, tripId, loadDate ->
                             navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
                         },

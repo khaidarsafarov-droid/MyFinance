@@ -46,7 +46,6 @@ enum class DrawerDestination {
     TAX_TRACKER,
     ADD_PAYCHECK,
     DIESEL,
-    VOICE_ASSISTANT,
     CAMERA,
     SCANNER,
     ABOUT,
@@ -118,11 +117,6 @@ fun AppDrawerContent(
             )
 
             DrawerSectionLabel(stringResource(R.string.drawer_section_data_entry))
-            drawerItem(
-                icon = AppIcons.Mic,
-                label = stringResource(R.string.assistant_title),
-                onClick = { onNavigate(DrawerDestination.VOICE_ASSISTANT); onClose() },
-            )
             drawerItem(
                 icon = AppIcons.CameraAlt,
                 label = stringResource(R.string.camera),

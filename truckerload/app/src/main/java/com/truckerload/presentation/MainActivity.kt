@@ -324,9 +324,12 @@ class MainActivity : AppCompatActivity() {
     private fun handleIncomingIntent(intent: Intent?) {
         if (intent == null) return
         handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
-        com.truckerload.voice.VoiceIntentReader.parse(intent)?.let { command ->
-            com.truckerload.voice.VoiceCommandBus.offer(command)
-        }
+        intent.dataString
+            ?.takeIf { it.startsWith("truckerload://app/") }
+            ?.let { uri ->
+                val path = uri.removePrefix("truckerload://app/").substringBefore('?').trim('/')
+                WidgetDeepLink.resolveNavRoute(path)?.let { handleDeepLinkRoute(it) }
+            }
     }
 
     private fun handleDeepLinkRoute(route: String?) {

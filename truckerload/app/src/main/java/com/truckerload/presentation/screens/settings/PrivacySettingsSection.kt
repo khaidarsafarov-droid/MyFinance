@@ -39,7 +39,6 @@ fun PrivacySettingsSection(
     val tc = LocalTruckColors.current
 
     val cameraGranted = permissionGranted(context, Manifest.permission.CAMERA)
-    val micGranted = permissionGranted(context, Manifest.permission.RECORD_AUDIO)
     val locationGranted = permissionGranted(context, Manifest.permission.ACCESS_FINE_LOCATION) ||
         permissionGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
     val notificationsGranted = if (Build.VERSION.SDK_INT >= 33) {
@@ -103,12 +102,6 @@ fun PrivacySettingsSection(
             title = stringResource(R.string.settings_privacy_camera),
             status = permissionStatusLabel(cameraGranted),
             granted = cameraGranted,
-        )
-        PrivacyPermissionRow(
-            icon = AppIcons.Mic,
-            title = stringResource(R.string.settings_privacy_mic),
-            status = permissionStatusLabel(micGranted),
-            granted = micGranted,
         )
         PrivacyPermissionRow(
             icon = AppIcons.Notifications,
