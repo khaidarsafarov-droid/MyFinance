@@ -1,7 +1,6 @@
 package com.truckerload.data.repository.social
 
 import android.content.Context
-import android.graphics.Bitmap
 import com.truckerload.R
 import com.truckerload.data.local.dao.DriverProfileDao
 import com.truckerload.data.local.entities.DriverProfileEntity
@@ -9,12 +8,9 @@ import com.truckerload.data.preferences.ProfileIdentity
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.social.AvatarStorage
-import com.truckerload.data.social.SocialMediaOptimizer
 import com.truckerload.di.UserScope
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.social.DriverProfile
-import com.truckerload.domain.social.DriverStatus
 import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.domain.social.SocialResult
 import com.truckerload.domain.social.toLegacyProfile
@@ -29,7 +25,6 @@ class ProfileRepositoryImpl(
     private val profileDao: DriverProfileDao,
     private val loadRepository: LoadRepository,
     private val userProfileStore: UserProfileStore,
-    private val avatarStorage: AvatarStorage,
     private val appContext: Context,
 ) : ProfileRepository {
 
@@ -213,89 +208,6 @@ class ProfileRepositoryImpl(
 
     override fun watchMyProfile(): Flow<DriverProfile> =
         watchMyEnhancedProfile().map { it.toLegacyProfile() }.flowOn(Dispatchers.IO)
-
-    override suspend fun updateProfile(
-        displayName: String,
-        truckType: String,
-        experienceYears: Int,
-        homeState: String,
-        routes: List<String>,
-        about: String,
-        status: DriverStatus,
-        licenseClass: String,
-        endorsements: List<String>,
-        specialties: List<String>,
-        phoneNumber: String?,
-        maxRadius: Int,
-    ): SocialResult<Unit> = runCatching {
-        val existing = profileDao.getProfile() ?: DriverProfileEntity()
-        val country = homeState.trim().uppercase().take(2)
-        profileDao.upsert(
-            existing.copy(
-                displayName = displayName,
-                truckType = truckType,
-                experienceYears = experienceYears,
-                homeState = country,
-                routesJson = routes.joinToString(","),
-                about = about,
-                status = status.name,
-                licenseClass = licenseClass.trim(),
-                endorsementsJson = endorsements.joinToString(","),
-                specialtiesJson = specialties.joinToString(","),
-                phoneNumber = phoneNumber?.trim()?.ifBlank { null },
-                maxRadius = maxRadius.coerceAtLeast(50),
-                lastActive = System.currentTimeMillis(),
-            ),
-        )
-        userProfileStore.profile.value?.let { current ->
-            val parts = displayName.trim().split(" ", limit = 2)
-            userProfileStore.saveProfile(
-                current.copy(
-                    givenName = parts.firstOrNull().orEmpty(),
-                    familyName = parts.getOrNull(1).orEmpty(),
-                    phoneNumber = phoneNumber?.trim()?.ifBlank { null },
-                    customDisplayName = true,
-                ),
-            )
-        }
-        if (displayName.isNotBlank() &&
-            !phoneNumber.isNullOrBlank() &&
-            CountryCatalog.byIso2(homeState) != null
-        ) {
-            userProfileStore.setSetupComplete(true)
-        }
-        SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_save_profile, it), it) }
-
-    override suspend fun updateStatus(status: DriverStatus): SocialResult<Unit> = runCatching {
-        val existing = profileDao.getProfile() ?: DriverProfileEntity()
-        profileDao.upsert(existing.copy(status = status.name))
-        SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_update_status, it), it) }
-
-    override suspend fun uploadAvatar(bitmap: Bitmap): SocialResult<String> = runCatching {
-        val compressed = SocialMediaOptimizer.compressImage(bitmap)
-        val path = avatarStorage.saveAvatar(DriverProfileEntity.LOCAL_USER_ID, compressed)
-        val existing = profileDao.getProfile() ?: DriverProfileEntity()
-        avatarStorage.deleteAvatar(existing.avatarUrl)
-        profileDao.upsert(existing.copy(avatarUrl = path))
-        userProfileStore.profile.value?.let { profile ->
-            userProfileStore.saveProfile(
-                profile.copy(photoUrl = path, customPhoto = true),
-            )
-        }
-        SocialResult.Success(path)
-    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_upload_avatar, it), it) }
-
-    override suspend fun removeAvatar(): SocialResult<Unit> = runCatching {
-        val existing = profileDao.getProfile() ?: DriverProfileEntity()
-        avatarStorage.deleteAvatar(existing.avatarUrl)
-        profileDao.upsert(existing.copy(avatarUrl = null))
-        userProfileStore.profile.value?.let { profile ->
-            userProfileStore.saveProfile(profile.copy(photoUrl = null, customPhoto = true))
-        }
-        SocialResult.Success(Unit)
-    }.getOrElse { SocialResult.Error(socialError(appContext, R.string.social_error_upload_avatar, it), it) }
 }
 
 private fun socialError(context: Context, resId: Int, error: Throwable): String =

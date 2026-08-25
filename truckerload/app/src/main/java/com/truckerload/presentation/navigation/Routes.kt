@@ -11,7 +11,6 @@ object Routes {
     const val STATS = "stats"
     const val ANALYTICS = "analytics"
     const val PROFILE = "profile"
-    const val PROFILE_EDIT = "profile_edit"
     const val PROFILE_SETUP = "profile_setup"
     const val MAP = "map"
     const val LOAD_DETAIL = "load_detail/{loadId}"

@@ -99,8 +99,9 @@ class MainTabNavigationTest {
     }
 
     @Test
-    fun profileNestedStayOnProfileTab() {
-        assertEquals(Routes.PROFILE, phoneTabForRoute(Routes.PROFILE_EDIT))
+    fun profileTabIsOnlyTheProfileScreen() {
+        assertEquals(Routes.PROFILE, phoneTabForRoute(Routes.PROFILE))
         assertEquals(Routes.HOME, phoneTabForRoute(Routes.ADD_LOAD))
+        assertFalse(Routes::class.java.declaredFields.any { it.name == "PROFILE_EDIT" })
     }
 }

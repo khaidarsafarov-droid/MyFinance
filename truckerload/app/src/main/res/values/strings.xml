@@ -160,8 +160,6 @@
     <string name="analytics_error_loading">Ошибка загрузки</string>
     <string name="load_delete_failed">Не удалось удалить груз</string>
     <string name="social_error_save_profile">Не удалось сохранить профиль</string>
-    <string name="social_error_update_status">Не удалось обновить статус</string>
-    <string name="social_error_upload_avatar">Не удалось загрузить аватар</string>
     <string name="social_error_load_messages">Не удалось загрузить сообщения</string>
     <string name="social_error_send_message">Не удалось отправить</string>
     <string name="social_error_add_reaction">Не удалось добавить реакцию</string>
@@ -1142,7 +1140,6 @@
 
     <!-- Сообщество -->
     <string name="profile">Профиль</string>
-    <string name="edit_profile">Редактировать профиль</string>
     <string name="profile_setup_title">Настройка профиля</string>
     <string name="profile_setup_next">Далее</string>
     <string name="profile_setup_name_required">Введите имя</string>
@@ -1157,8 +1154,6 @@
     <string name="permission_rationale_not_now">Не сейчас</string>
     <string name="permission_rationale_location_title">Зачем нужна геолокация</string>
     <string name="permission_rationale_location_body">Координаты нужны, чтобы показать вас на карте друзей и привязать фото к рейсу. Мы не публикуем точное местоположение в сообществе без вашего согласия.</string>
-    <string name="permission_rationale_avatar_title">Зачем нужен доступ к камере</string>
-    <string name="permission_rationale_avatar_body">Камера нужна, чтобы сделать фото для аватара сообщества. Снимок хранится в профиле и виден другим только если вы это разрешите.</string>
     <string name="settings_delete_account_title">Удалить аккаунт</string>
     <string name="settings_delete_account_desc">Полностью удалит профиль, CDL, сообщество и журнал грузов на этом устройстве. Это нельзя отменить.</string>
     <string name="settings_delete_account_button">Удалить аккаунт</string>
@@ -1208,13 +1203,7 @@
     <string name="default_driver_name">Водитель</string>
     <string name="profile_name_placeholder">Без имени</string>
     <string name="profile_photo">Фото профиля</string>
-    <string name="profile_change_photo">Изменить фото</string>
     <string name="profile_photo_from_gallery">Выбрать из галереи</string>
-    <string name="profile_photo_take_selfie">Сделать селфи</string>
-    <string name="profile_photo_remove">Удалить фото</string>
-    <string name="profile_photo_load_failed">Не удалось загрузить фото</string>
-    <string name="profile_crop_photo">Обрезка фото</string>
-    <string name="profile_crop_hint">Увеличьте и переместите фото в круг</string>
     <string name="social_reputation_short">реп</string>
     <string name="experience_years">лет опыта</string>
     <string name="about_me">О себе</string>
@@ -1309,7 +1298,6 @@
     <string name="social_stat_miles">Миль</string>
     <string name="social_stat_revenue">Доход</string>
     <string name="social_display_name">Имя</string>
-    <string name="social_truck_type">Тип трака</string>
     <string name="social_favorite_routes">Любимые маршруты</string>
     <string name="social_join_challenge">Присоединиться к челленджу</string>
     <string name="social_participants">участников</string>
@@ -1327,8 +1315,6 @@
     <string name="social_followers">Подписчики</string>
     <string name="social_following">Подписки</string>
     <string name="social_on_time">Вовремя</string>
-    <string name="social_license_class">Класс CDL</string>
-    <string name="social_specialties">Специализация</string>
     <string name="social_phone">Телефон</string>
     <string name="social_reply_to">Ответ на</string>
     <string name="social_announcement">Анонс</string>

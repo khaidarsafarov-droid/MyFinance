@@ -51,7 +51,6 @@ object AppVoiceActions {
         ),
         Routes.MAP to listOf("карта штатов", "heatmap", "rpm map", "карта", "map"),
         Routes.PROFILE to listOf("профиль", "profile"),
-        Routes.PROFILE_EDIT to listOf("редактировать профиль", "edit profile"),
         Routes.SETTINGS to listOf("настройки", "settings"),
         Routes.SCAN_GALLERY to listOf("документы", "галерея сканов", "documents"),
         Routes.PHOTO_GALLERY to listOf("галерея фото", "фото", "photo gallery"),

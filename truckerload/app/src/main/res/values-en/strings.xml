@@ -160,8 +160,6 @@
     <string name="analytics_error_loading">Loading error</string>
     <string name="load_delete_failed">Could not delete load</string>
     <string name="social_error_save_profile">Could not save profile</string>
-    <string name="social_error_update_status">Could not update status</string>
-    <string name="social_error_upload_avatar">Could not upload avatar</string>
     <string name="social_error_load_messages">Could not load messages</string>
     <string name="social_error_send_message">Could not send</string>
     <string name="social_error_add_reaction">Could not add reaction</string>
@@ -1142,7 +1140,6 @@
 
     <!-- Community -->
     <string name="profile">Profile</string>
-    <string name="edit_profile">Edit profile</string>
     <string name="profile_setup_title">Profile setup</string>
     <string name="profile_setup_next">Next</string>
     <string name="profile_setup_name_required">Enter your name</string>
@@ -1157,8 +1154,6 @@
     <string name="permission_rationale_not_now">Not now</string>
     <string name="permission_rationale_location_title">Why we need location</string>
     <string name="permission_rationale_location_body">Location is used to show you on the friends map and geotag trip photos. We do not publish your exact position in the community without your consent.</string>
-    <string name="permission_rationale_avatar_title">Why we need the camera</string>
-    <string name="permission_rationale_avatar_body">The camera is used to take a community avatar photo. It stays in your profile and is visible to others only if you allow it.</string>
     <string name="settings_delete_account_title">Delete account</string>
     <string name="settings_delete_account_desc">Permanently deletes your profile, CDL, community data, and load journal on this device. This cannot be undone.</string>
     <string name="settings_delete_account_button">Delete account</string>
@@ -1208,13 +1203,7 @@
     <string name="default_driver_name">Driver</string>
     <string name="profile_name_placeholder">No name yet</string>
     <string name="profile_photo">Profile photo</string>
-    <string name="profile_change_photo">Change photo</string>
     <string name="profile_photo_from_gallery">Choose from gallery</string>
-    <string name="profile_photo_take_selfie">Take a selfie</string>
-    <string name="profile_photo_remove">Remove photo</string>
-    <string name="profile_photo_load_failed">Could not load photo</string>
-    <string name="profile_crop_photo">Crop photo</string>
-    <string name="profile_crop_hint">Pinch to zoom and drag to position your photo</string>
     <string name="social_reputation_short">rep</string>
     <string name="experience_years">years of experience</string>
     <string name="about_me">About me</string>
@@ -1307,7 +1296,6 @@
     <string name="social_stat_miles">Miles</string>
     <string name="social_stat_revenue">Revenue</string>
     <string name="social_display_name">Name</string>
-    <string name="social_truck_type">Truck type</string>
     <string name="social_favorite_routes">Favorite routes</string>
     <string name="social_join_challenge">Join challenge</string>
     <string name="social_participants">participants</string>
@@ -1325,8 +1313,6 @@
     <string name="social_followers">Followers</string>
     <string name="social_following">Following</string>
     <string name="social_on_time">On time</string>
-    <string name="social_license_class">CDL class</string>
-    <string name="social_specialties">Specialties</string>
     <string name="social_phone">Phone</string>
     <string name="social_reply_to">Reply to</string>
     <string name="social_announcement">Announcement</string>

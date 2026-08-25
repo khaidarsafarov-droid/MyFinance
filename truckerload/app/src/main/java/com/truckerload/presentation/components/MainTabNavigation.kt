@@ -99,5 +99,4 @@ internal fun isStatsTabRoute(route: String): Boolean =
         route == Routes.FINANCIAL_ADVISOR
 
 internal fun isProfileTabRoute(route: String): Boolean =
-    route == Routes.PROFILE ||
-        route == Routes.PROFILE_EDIT
+    route == Routes.PROFILE

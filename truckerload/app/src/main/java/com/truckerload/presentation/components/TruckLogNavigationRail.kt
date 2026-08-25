@@ -295,8 +295,7 @@ internal fun isRailDestinationSelected(currentRoute: String?, targetRoute: Strin
             currentRoute.startsWith("edit_load") ||
             currentRoute == Routes.ADD_LOAD
         Routes.STATS -> currentRoute == Routes.STATS
-        Routes.PROFILE -> currentRoute == Routes.PROFILE ||
-            currentRoute == Routes.PROFILE_EDIT
+        Routes.PROFILE -> currentRoute == Routes.PROFILE
         Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
         Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
             currentRoute == Routes.FINANCIAL_ADVISOR

@@ -7,7 +7,6 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.data.repository.social.ProfileRepositoryImpl
-import com.truckerload.data.social.AvatarStorage
 
 /**
  * Account-scoped own-profile + crowd RPM wiring.
@@ -30,12 +29,10 @@ object SocialGraphModule {
         userProfileStore: UserProfileStore,
     ): Bundle {
         val appContext = context.applicationContext
-        val avatarStorage = AvatarStorage(context)
         val profileRepository = ProfileRepositoryImpl(
             profileDao = db.driverProfileDao(),
             loadRepository = loadRepository,
             userProfileStore = userProfileStore,
-            avatarStorage = avatarStorage,
             appContext = appContext,
         )
         return Bundle(
