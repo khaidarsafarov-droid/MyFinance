@@ -39,10 +39,13 @@ class LoadFilterUseCaseMatrixTest {
 
     @Test
     fun disputeFilter() {
-        val loads = listOf(load("a", "2026-07-01", dispute = true), load("b", "2026-07-02"))
+        val loads = listOf(
+            load("a", "2026-07-01", dispute = true),
+            load("done", "2026-07-01", dispute = true).copy(disputeCompleted = true),
+            load("b", "2026-07-02"),
+        )
         val filtered = useCase.filterLoads(loads, LoadFilter.DISPUTE, "", null, null, null, null)
-        assertEquals(1, filtered.size)
-        assertEquals("a", filtered[0].id)
+        assertEquals(listOf("a", "done"), filtered.map { it.id })
     }
 
     @Test

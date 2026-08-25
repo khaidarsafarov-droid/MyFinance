@@ -180,7 +180,7 @@ class LoadRepository(
         endDate: String? = null,
         exactDate: String? = null,
         searchQuery: String? = null,
-        activeDisputesOnly: Boolean = false,
+        disputesOnly: Boolean = false,
         journalYear: Int? = null,
     ): Flow<PagingData<Load>> {
         val trimmedSearch = searchQuery?.trim().orEmpty()
@@ -193,7 +193,7 @@ class LoadRepository(
             pagingSourceFactory = {
                 when {
                     trimmedSearch.isNotEmpty() -> loadDao.pagingSearchLoads(trimmedSearch)
-                    activeDisputesOnly -> loadDao.pagingActiveDisputes()
+                    disputesOnly -> loadDao.pagingDisputes()
                     weekNumber != null && year != null -> loadDao.pagingLoadsByWeek(weekNumber, year)
                     journalYear != null -> loadDao.pagingLoadsByYear(journalYear.toString())
                     !exactDate.isNullOrBlank() -> loadDao.pagingLoadsByDate(exactDate)

@@ -121,7 +121,7 @@ fun DisputeSection(
         if (load.hadDispute) {
             DisputeBadge(
                 label = stringResource(R.string.dispute_was_dispute),
-                color = tc.Success,
+                color = tc.Danger,
             )
             load.disputeResponseDate?.let { date ->
                 Text(
