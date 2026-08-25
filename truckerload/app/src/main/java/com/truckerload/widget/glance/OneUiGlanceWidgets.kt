@@ -14,10 +14,13 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalSize
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
@@ -44,6 +47,8 @@ import com.truckerload.R
 import com.truckerload.presentation.MainActivity
 import com.truckerload.presentation.theme.forestDarkColorScheme
 import com.truckerload.widget.WidgetDataStore
+import com.truckerload.widget.WidgetDayProjection
+import com.truckerload.widget.WidgetDaySelectionStore
 import com.truckerload.widget.WidgetDeepLink
 import com.truckerload.widget.WidgetProgressRingBitmap
 import com.truckerload.widget.WidgetStats
@@ -67,13 +72,10 @@ object OneUiGlanceWidgets {
 }
 
 internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(Size2x2))
+    override val sizeMode = SizeMode.Responsive(setOf(Size2x2, Size4x2))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val stats = WidgetDataStore.load(context)
-        provideContent {
-            CabinGlanceTheme { SquareBudgetContent(context, stats) }
-        }
+        provideCabinGlance(context, id)
     }
 }
 
@@ -81,10 +83,7 @@ internal class OneUiWideGlanceWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Responsive(setOf(Size4x2))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val stats = WidgetDataStore.load(context)
-        provideContent {
-            CabinGlanceTheme { WideBudgetContent(context, stats) }
-        }
+        provideCabinGlance(context, id)
     }
 }
 
@@ -94,6 +93,37 @@ class OneUiSquareGlanceReceiver : GlanceAppWidgetReceiver() {
 
 class OneUiWideGlanceReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = OneUiWideGlanceWidget()
+}
+
+private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: GlanceId) {
+    val week = WidgetDataStore.load(context)
+    val stored = WidgetDaySelectionStore.load(context, id)
+    val todayOffset = WidgetDayProjection.todayOffset()
+    val selected = WidgetDayProjection.clampSelection(stored, todayOffset)
+    val shown = WidgetDayProjection.project(week, stored, todayOffset)
+    provideContent {
+        CabinGlanceTheme {
+            CabinBudgetBySize(
+                context = context,
+                shown = shown,
+                selectedOffset = selected,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CabinBudgetBySize(
+    context: Context,
+    shown: WidgetStats,
+    selectedOffset: Int,
+) {
+    val size = LocalSize.current
+    if (size.width >= Size4x2.width) {
+        WideBudgetContent(context, shown, selectedOffset)
+    } else {
+        SquareBudgetContent(context, shown)
+    }
 }
 
 @Composable
@@ -161,12 +191,11 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
 }
 
 @Composable
-private fun WideBudgetContent(context: Context, stats: WidgetStats) {
+private fun WideBudgetContent(context: Context, stats: WidgetStats, selectedOffset: Int) {
     val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = stats.weeklyProfitGoal > 0
     val rpm = stats.currentWeeklyRpm
     val ring = buildRingBitmap(context, stats, compact = false)
-    val weekDays = buildWeekDaysBitmap(context, stats)
 
     Column(
         modifier = GlanceModifier
@@ -216,21 +245,14 @@ private fun WideBudgetContent(context: Context, stats: WidgetStats) {
                 modifier = GlanceModifier.defaultWeight().fillMaxHeight(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (weekDays != null) {
-                    Image(
-                        provider = ImageProvider(weekDays),
-                        contentDescription = context.getString(R.string.widget_weekly_summary),
-                        modifier = GlanceModifier.fillMaxWidth().height(28.dp),
-                    )
-                    Spacer(modifier = GlanceModifier.height(6.dp))
-                }
-                Text(
-                    text = context.getString(R.string.widget_rpm_label),
-                    style = cabinLabelStyle(),
-                    maxLines = 1,
+                WeekDaySelector(
+                    context = context,
+                    weekLoadMask = stats.weekLoadMask,
+                    selectedOffset = selectedOffset,
                 )
+                Spacer(modifier = GlanceModifier.height(6.dp))
                 Text(
-                    text = WidgetStatsFormatter.formatRpmPerMile(context, rpm),
+                    text = WidgetStatsFormatter.formatWidgetRpm(rpm),
                     style = TextStyle(
                         color = ColorProvider(CabinAccent),
                         fontSize = 18.sp,
@@ -310,6 +332,16 @@ private fun BudgetRing(
                 ),
                 maxLines = 1,
             )
+            Text(
+                text = stats.loadsCount.toString(),
+                style = TextStyle(
+                    color = ColorProvider(CabinSecondary),
+                    fontSize = if (compact) 8.sp else 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                ),
+                maxLines = 1,
+            )
             if (goalSet) {
                 Text(
                     text = context.getString(
@@ -385,6 +417,44 @@ private fun QuickAction(
     }
 }
 
+@Composable
+private fun WeekDaySelector(
+    context: Context,
+    weekLoadMask: Int,
+    selectedOffset: Int,
+) {
+    val chips = WidgetWeekDayHelper.chips(weekLoadMask)
+    val chipPx = WidgetWeekDaysBitmap.rowHeightPx(context, compact = true)
+    Row(
+        modifier = GlanceModifier.fillMaxWidth().height(28.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        chips.forEachIndexed { offset, chip ->
+            val bitmap = runCatching {
+                WidgetWeekDaysBitmap.createChip(context, chip, selectedOffset == offset, chipPx)
+            }.getOrNull()
+            val imageModifier = GlanceModifier.defaultWeight().height(28.dp)
+            if (bitmap != null) {
+                Image(
+                    provider = ImageProvider(bitmap),
+                    contentDescription = chip.label,
+                    modifier = if (chip.isFuture) {
+                        imageModifier
+                    } else {
+                        imageModifier.clickable(
+                            actionRunCallback<SelectWidgetDayAction>(
+                                actionParametersOf(SelectWidgetDayAction.DAY_OFFSET to offset),
+                            ),
+                        )
+                    },
+                )
+            } else {
+                Spacer(modifier = imageModifier)
+            }
+        }
+    }
+}
+
 private fun buildRingBitmap(
     context: Context,
     stats: WidgetStats,
@@ -410,21 +480,6 @@ private fun buildRingBitmap(
                 stats.goalDaysRemaining,
             ),
         )
-    }.getOrNull()
-}
-
-private fun buildWeekDaysBitmap(context: Context, stats: WidgetStats): Bitmap? {
-    val chips = WidgetWeekDayHelper.chips(stats.weekLoadMask)
-    val width = WidgetWeekDaysBitmap.columnWidthPx(
-        context = context,
-        appWidgetId = android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID,
-        horizontalPaddingDp = 14,
-        ringWidthDp = 96,
-        columnGapDp = 12,
-    )
-    val height = WidgetWeekDaysBitmap.rowHeightPx(context, compact = true)
-    return runCatching {
-        WidgetWeekDaysBitmap.create(context, chips, width, height)
     }.getOrNull()
 }
 

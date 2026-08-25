@@ -18,7 +18,10 @@ class WidgetBudgetRingActionsTest {
         assertTrue(src.contains("R.string.widget_goal_out_of"))
         assertTrue(src.contains("formatRingPercent"))
         assertTrue(src.contains("WidgetWeekDaysBitmap"))
-        assertTrue(src.contains("R.string.widget_rpm_label"))
+        assertTrue(src.contains("formatWidgetRpm"))
+        assertTrue(src.contains("SelectWidgetDayAction"))
+        assertTrue(src.contains("loadsCount.toString()"))
+        assertTrue(src.contains("Size2x2, Size4x2"))
     }
 
     @Test

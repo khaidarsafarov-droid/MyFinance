@@ -43,6 +43,7 @@ object WidgetStatsLoader {
             listOfNotNull(load.date, getPickUpDate(load))
         }
         val weekLoadMask = WidgetWeekDayHelper.maskFromIsoDates(weekDateHints, weekStart)
+        val dayTotals = WidgetDayProjection.totalsByDay(weekLoads, weekStart)
         val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
         val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)
@@ -84,6 +85,9 @@ object WidgetStatsLoader {
             goalDaysRemaining = goalProgress.daysRemainingInWeek,
             goalPaceStatus = goalProgress.paceStatus.name,
             weekLoadMask = weekLoadMask,
+            dayLoads = dayTotals.map { it.loadsCount },
+            dayGross = dayTotals.map { it.gross },
+            dayMiles = dayTotals.map { it.miles },
             totalActiveDays = sqlYield.totalActiveDays.takeIf { it > 0.0 }
                 ?: LoadYieldCalculator.totalActiveDays(weekLoads),
             updatedAtMillis = System.currentTimeMillis()
