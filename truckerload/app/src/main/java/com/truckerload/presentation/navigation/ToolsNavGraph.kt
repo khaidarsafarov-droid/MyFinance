@@ -41,6 +41,8 @@ fun NavGraphBuilder.toolsNavGraph(
         AnalyticsScreen(
             onBack = { navController.popBackStack() },
             onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
+            onAbout = { navController.navigate(Routes.ABOUT) { launchSingleTop = true } },
+            onImprove = { navController.navigate(Routes.IMPROVE) { launchSingleTop = true } },
         )
     }
     composable(

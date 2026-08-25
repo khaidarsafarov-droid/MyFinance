@@ -61,6 +61,8 @@ import com.truckerload.presentation.utils.useNavigationRail
 fun AnalyticsScreen(
     onBack: () -> Unit = {},
     onLoadClick: (String) -> Unit = {},
+    onAbout: () -> Unit = {},
+    onImprove: () -> Unit = {},
     embedded: Boolean = false,
 ) {
     val context = LocalContext.current
@@ -93,6 +95,16 @@ fun AnalyticsScreen(
         showPhoneMenu = false,
         actions = {
             if (!embedded) {
+                SoftActionChip(
+                    icon = AppIcons.Info,
+                    contentDescription = stringResource(R.string.analytics_cd_about),
+                    onClick = onAbout,
+                )
+                SoftActionChip(
+                    icon = AppIcons.EditNote,
+                    contentDescription = stringResource(R.string.analytics_cd_feedback),
+                    onClick = onImprove,
+                )
                 SoftActionChip(
                     icon = AppIcons.FileDownload,
                     contentDescription = stringResource(R.string.analytics_export_cd),

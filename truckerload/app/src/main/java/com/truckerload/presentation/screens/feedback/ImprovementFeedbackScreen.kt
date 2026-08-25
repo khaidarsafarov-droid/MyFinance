@@ -20,9 +20,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.truckerload.BuildConfig
 import com.truckerload.R
@@ -45,6 +48,7 @@ fun ImprovementFeedbackScreen(
     val tc = LocalTruckColors.current
     var topic by rememberSaveable { mutableStateOf(ImprovementFeedbackMail.Topic.IMPROVE) }
     var message by rememberSaveable { mutableStateOf("") }
+    var submitted by rememberSaveable { mutableStateOf(false) }
 
     SoftAppPageScaffold(
         title = stringResource(R.string.improve_title),
@@ -60,6 +64,11 @@ fun ImprovementFeedbackScreen(
                 .padding(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            if (submitted) {
+                FeedbackThankYou(onBack = onBack)
+                return@Column
+            }
+
             Text(
                 text = stringResource(R.string.improve_intro),
                 style = MaterialTheme.typography.bodyLarge,
@@ -143,7 +152,7 @@ fun ImprovementFeedbackScreen(
                                 return@Button
                             }
                             val result = ImprovementFeedbackSender.send(context, draft)
-                            val toast = when (result) {
+                            val followUp = when (result) {
                                 ImprovementFeedbackSendResult.OPENED_EMAIL ->
                                     context.getString(R.string.improve_opened)
                                 ImprovementFeedbackSendResult.COPIED_FALLBACK ->
@@ -152,13 +161,51 @@ fun ImprovementFeedbackScreen(
                                         ImprovementFeedbackMail.SUPPORT_EMAIL,
                                     )
                             }
-                            Toast.makeText(context, toast, Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                context,
+                                "${context.getString(R.string.improve_thank_you)}\n$followUp",
+                                Toast.LENGTH_LONG,
+                            ).show()
+                            submitted = true
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(R.string.improve_send))
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeedbackThankYou(onBack: () -> Unit) {
+    val tc = LocalTruckColors.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.improve_thank_you),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = tc.AccentPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = stringResource(R.string.improve_thank_you_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = tc.TextPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Button(
+                onClick = onBack,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.improve_thank_you_close))
             }
         }
     }
