@@ -5,20 +5,20 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.truckerload.data.repository.ScanRepository
 import com.truckerload.utils.OCRService
 import com.truckerload.utils.PDFGenerator
 import com.truckerload.utils.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.lifecycle.viewModelScope
 import java.io.File
+import javax.inject.Inject
 
 data class PendingScan(
     val file: File,
@@ -95,15 +95,13 @@ class ScannerViewModel @Inject constructor(
                 val oldMerged = _uiState.value.pendingScan?.takeIf { it.isMerged && !it.savedToDb }
                 val display = buildMergedPending(session, timestamp)
                 oldMerged?.file?.delete()
+                // Attached-to-load: show result first (share, then save). Do not auto-persist.
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
                         sessionScans = session,
                         pendingScan = display,
                     )
-                }
-                if (isAttachedToLoad) {
-                    persistPendingToApp(showSuccess = true, finishAfter = true)
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -164,7 +162,19 @@ class ScannerViewModel @Inject constructor(
     }
 
     fun saveToApp() {
-        viewModelScope.launch { persistPendingToApp(showSuccess = true) }
+        viewModelScope.launch {
+            persistPendingToApp(
+                showSuccess = true,
+                finishAfter = isAttachedToLoad,
+            )
+        }
+    }
+
+    /** After the user returns from the share sheet, persist and leave the scanner. */
+    fun saveAfterShare() {
+        viewModelScope.launch {
+            persistPendingToApp(showSuccess = true, finishAfter = isAttachedToLoad)
+        }
     }
 
     /** Persists the current scan (if needed), then invokes [onReady] on the main thread. */

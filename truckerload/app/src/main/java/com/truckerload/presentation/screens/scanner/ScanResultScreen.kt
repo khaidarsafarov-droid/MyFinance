@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.scanner
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,19 +31,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.ClipboardUtils
 import com.truckerload.utils.PDFGenerator
 import com.truckerload.utils.PhotoManager
 import com.truckerload.utils.ocr.LanguageDetector
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanResultScreen(
     pending: PendingScan,
     sessionCount: Int = 1,
+    isAttachedToLoad: Boolean = false,
     onSaveToApp: () -> Unit,
     onSaveToPhone: () -> Unit,
     onShare: () -> Unit,
@@ -118,6 +118,14 @@ fun ScanResultScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = tc.TextSecondary,
             )
+
+            if (isAttachedToLoad && !pending.savedToDb) {
+                Text(
+                    text = stringResource(R.string.scan_send_then_save_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.AccentPrimary,
+                )
+            }
 
             Text(
                 text = stringResource(R.string.ocr_text),
@@ -193,38 +201,11 @@ fun ScanResultScreen(
                 }
             }
 
-            Button(
-                onClick = onSaveToApp,
-                enabled = !pending.savedToDb,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = tc.AccentProfit),
-            ) {
-                Text(
-                    stringResource(
-                        if (pending.savedToDb) R.string.scan_already_saved else R.string.save_to_app,
-                    ),
-                )
-            }
-            OutlinedButton(
-                onClick = onAddAnother,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.scan_add_another))
-            }
-            Button(
-                onClick = onSaveToPhone,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = tc.AccentPrimary),
-            ) {
-                Text(stringResource(R.string.save_to_phone))
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            if (isAttachedToLoad) {
                 Button(
                     onClick = onShare,
-                    modifier = Modifier.weight(1f),
+                    enabled = !pending.savedToDb,
+                    modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = tc.AccentSecondary),
                 ) {
                     Text(
@@ -236,10 +217,76 @@ fun ScanResultScreen(
                     )
                 }
                 OutlinedButton(
-                    onClick = onOpenGallery,
-                    modifier = Modifier.weight(1f),
+                    onClick = onSaveToApp,
+                    enabled = !pending.savedToDb,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(stringResource(R.string.scans_gallery))
+                    Text(
+                        stringResource(
+                            if (pending.savedToDb) {
+                                R.string.scan_already_saved
+                            } else {
+                                R.string.save_to_load_without_share
+                            },
+                        ),
+                    )
+                }
+                OutlinedButton(
+                    onClick = onAddAnother,
+                    enabled = !pending.savedToDb,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.scan_add_another))
+                }
+            } else {
+                Button(
+                    onClick = onSaveToApp,
+                    enabled = !pending.savedToDb,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = tc.AccentProfit),
+                ) {
+                    Text(
+                        stringResource(
+                            if (pending.savedToDb) R.string.scan_already_saved else R.string.save_to_app,
+                        ),
+                    )
+                }
+                OutlinedButton(
+                    onClick = onAddAnother,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.scan_add_another))
+                }
+                Button(
+                    onClick = onSaveToPhone,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = tc.AccentPrimary),
+                ) {
+                    Text(stringResource(R.string.save_to_phone))
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = onShare,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = tc.AccentSecondary),
+                    ) {
+                        Text(
+                            if (sessionCount > 1) {
+                                stringResource(R.string.scan_share_all)
+                            } else {
+                                stringResource(R.string.send_to)
+                            },
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = onOpenGallery,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.scans_gallery))
+                    }
                 }
             }
             OutlinedButton(

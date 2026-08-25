@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.domain.tax.AccountantExportSection
 import com.truckerload.domain.tax.PerDiemCalculator
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.TlButton
@@ -41,7 +42,7 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.utils.TaxPerDiemExporter
+import com.truckerload.utils.AccountantExportShare
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -55,6 +56,35 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
     val viewModel: TaxTrackerViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    var showSendSheet by remember { mutableStateOf(false) }
+
+    fun sendWorkbook(sections: Set<AccountantExportSection>) {
+        viewModel.setExporting(true)
+        scope.launch {
+            runCatching {
+                val input = viewModel.prepareWorkbookInput(sections)
+                if (viewModel.isWorkbookEmpty(input, sections)) {
+                    viewModel.setExporting(false, context.getString(R.string.tax_send_empty))
+                    return@launch
+                }
+                val file = AccountantExportShare.writeWorkbook(context, input, sections)
+                AccountantExportShare.shareWorkbook(context, file)
+                viewModel.setExporting(
+                    false,
+                    context.getString(R.string.tax_export_success, file.name)
+                )
+                showSendSheet = false
+            }.onFailure { err ->
+                viewModel.setExporting(
+                    false,
+                    context.getString(
+                        R.string.tax_export_error,
+                        err.message ?: err.javaClass.simpleName,
+                    ),
+                )
+            }
+        }
+    }
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
@@ -72,46 +102,12 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            val snapshot = viewModel.exportSnapshot()
-                            if (snapshot.dates.isEmpty()) {
-                                viewModel.setExporting(
-                                    false,
-                                    context.getString(R.string.tax_export_empty),
-                                )
-                                return@IconButton
-                            }
-                            viewModel.setExporting(true)
-                            scope.launch {
-                                runCatching {
-                                    val file = TaxPerDiemExporter.writeCsvFile(
-                                        context = context,
-                                        year = snapshot.year,
-                                        dates = snapshot.dates,
-                                        dailyRate = snapshot.dailyRate,
-                                        dieselDeductions = snapshot.dieselDeductions,
-                                        grossIncome = snapshot.grossIncome,
-                                    )
-                                    TaxPerDiemExporter.shareCsv(context, file)
-                                    context.getString(R.string.tax_export_success, file.name)
-                                }.onSuccess { msg ->
-                                    viewModel.setExporting(false, msg)
-                                }.onFailure { err ->
-                                    viewModel.setExporting(
-                                        false,
-                                        context.getString(
-                                            R.string.tax_export_error,
-                                            err.message ?: err.javaClass.simpleName,
-                                        ),
-                                    )
-                                }
-                            }
-                        },
+                        onClick = { showSendSheet = true },
                         enabled = !uiState.isExporting && !uiState.isLoading,
                     ) {
                         Icon(
                             AppIcons.Share,
-                            contentDescription = stringResource(R.string.tax_export_share_title),
+                            contentDescription = stringResource(R.string.tax_send_title),
                             tint = tc.TextPrimary,
                         )
                     }
@@ -292,45 +288,11 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                 }
 
                 TlButton(
-                    onClick = {
-                        val snapshot = viewModel.exportSnapshot()
-                        if (snapshot.dates.isEmpty()) {
-                            viewModel.setExporting(
-                                false,
-                                context.getString(R.string.tax_export_empty),
-                            )
-                            return@TlButton
-                        }
-                        viewModel.setExporting(true)
-                        scope.launch {
-                            runCatching {
-                                val file = TaxPerDiemExporter.writeCsvFile(
-                                    context = context,
-                                    year = snapshot.year,
-                                    dates = snapshot.dates,
-                                    dailyRate = snapshot.dailyRate,
-                                    dieselDeductions = snapshot.dieselDeductions,
-                                    grossIncome = snapshot.grossIncome,
-                                )
-                                TaxPerDiemExporter.shareCsv(context, file)
-                                context.getString(R.string.tax_export_success, file.name)
-                            }.onSuccess { msg ->
-                                viewModel.setExporting(false, msg)
-                            }.onFailure { err ->
-                                viewModel.setExporting(
-                                    false,
-                                    context.getString(
-                                        R.string.tax_export_error,
-                                        err.message ?: err.javaClass.simpleName,
-                                    ),
-                                )
-                            }
-                        }
-                    },
+                    onClick = { showSendSheet = true },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !uiState.isExporting,
                 ) {
-                    Text(stringResource(R.string.tax_export_for_accountant))
+                    Text(stringResource(R.string.tax_send_title))
                 }
 
                 uiState.exportMessage?.let { msg ->
@@ -356,6 +318,15 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                 )
             }
         }
+    }
+
+    if (showSendSheet) {
+        TaxSendDataSheet(
+            year = uiState.year,
+            exporting = uiState.isExporting,
+            onDismiss = { showSendSheet = false },
+            onSend = ::sendWorkbook,
+        )
     }
 }
 

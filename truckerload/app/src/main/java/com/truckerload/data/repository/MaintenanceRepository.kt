@@ -92,6 +92,15 @@ class MaintenanceRepository(
         scheduleAutoBackup()
     }
 
+    /** Completed ТО expenses for a calendar year (by serviceDate YYYY-MM-DD). */
+    suspend fun getArchiveForYear(year: Int): List<MaintenanceArchiveEntry> {
+        val prefix = "%04d-".format(year)
+        return dao.getAllArchiveOnce()
+            .map { it.toDomain() }
+            .filter { it.serviceDate.startsWith(prefix) }
+            .sortedBy { it.serviceDate }
+    }
+
     suspend fun getDueProgressForNotifications(today: LocalDate = LocalDate.now()): List<MaintenanceProgress> {
         val active = dao.getActiveTasksOnce().map { it.toDomain() }
         val loads = loadDao.getAllLoadsOnce().map { entity ->

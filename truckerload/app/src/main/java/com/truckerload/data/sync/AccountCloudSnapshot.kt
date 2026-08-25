@@ -17,7 +17,12 @@ data class AccountCloudSnapshot(
     val driverProfileJson: String? = null,
 ) {
     val entityCount: Int
-        get() = backup.loads.size + backup.paychecks.size + backup.diesel.size
+        get() = backup.loads.size +
+                backup.paychecks.size +
+                backup.diesel.size +
+                backup.maintenanceTasks.size +
+                backup.maintenanceArchive.size +
+                if (backup.appSettings != null) 1 else 0
 }
 
 object AccountCloudSnapshotCodec {

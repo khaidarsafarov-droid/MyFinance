@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.domain.tax.AccountantExportSection
 import com.truckerload.domain.tax.PerDiemCalculator
+import com.truckerload.utils.AccountantWorkbookBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +54,7 @@ class TaxTrackerViewModel @Inject constructor(
     private val paycheckRepository: PaycheckRepository,
     private val dieselRepository: DieselRepository,
     private val loadRepository: LoadRepository,
+    private val maintenanceRepository: MaintenanceRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TaxTrackerUiState())
@@ -97,20 +101,68 @@ class TaxTrackerViewModel @Inject constructor(
         _uiState.update { it.copy(exportMessage = null) }
     }
 
-    fun exportSnapshot(): TaxExportSnapshot {
-        val state = _uiState.value
-        return TaxExportSnapshot(
-            year = state.year,
-            dates = state.perDiemDates,
-            dailyRate = PerDiemCalculator.DAILY_RATE,
-            dieselDeductions = state.dieselDeductions,
-            grossIncome = state.totalGrossIncome,
-        )
-    }
-
     fun setExporting(exporting: Boolean, message: String? = null) {
         _uiState.update {
             it.copy(isExporting = exporting, exportMessage = message, errorMessage = null)
+        }
+    }
+
+    /**
+     * Loads year-scoped rows for the accountant workbook.
+     * Call from a coroutine; empty selected sections still produce a Summary sheet.
+     */
+    suspend fun prepareWorkbookInput(
+        sections: Set<AccountantExportSection>,
+    ): AccountantWorkbookBuilder.Input {
+        val year = _uiState.value.year
+        val resolved = AccountantWorkbookBuilder.resolveSections(sections)
+        val loads = if (AccountantExportSection.LOADS in resolved) {
+            loadRepository.getLoadsByYear(year)
+        } else {
+            emptyList()
+        }
+        val diesel = if (AccountantExportSection.DIESEL in resolved) {
+            dieselRepository.getDieselForYear(year)
+        } else {
+            emptyList()
+        }
+        val perDiemDates = if (AccountantExportSection.PER_DIEM in resolved) {
+            if (loads.isNotEmpty()) {
+                PerDiemCalculator.uniqueOnDutyDates(loads, year)
+            } else {
+                PerDiemCalculator.uniqueOnDutyDates(loadRepository.getLoadsByYear(year), year)
+            }
+        } else {
+            emptySet()
+        }
+        val maintenance = if (AccountantExportSection.MAINTENANCE in resolved) {
+            maintenanceRepository.getArchiveForYear(year)
+        } else {
+            emptyList()
+        }
+        return AccountantWorkbookBuilder.Input(
+            year = year,
+            loads = loads,
+            diesel = diesel,
+            perDiemDates = perDiemDates,
+            maintenance = maintenance,
+            grossIncome = _uiState.value.totalGrossIncome,
+        )
+    }
+
+    fun isWorkbookEmpty(
+        input: AccountantWorkbookBuilder.Input,
+        sections: Set<AccountantExportSection>,
+    ): Boolean {
+        val resolved = AccountantWorkbookBuilder.resolveSections(sections)
+        return resolved.all { section ->
+            when (section) {
+                AccountantExportSection.LOADS -> input.loads.isEmpty()
+                AccountantExportSection.DIESEL -> input.diesel.isEmpty()
+                AccountantExportSection.PER_DIEM -> input.perDiemDates.isEmpty()
+                AccountantExportSection.MAINTENANCE -> input.maintenance.isEmpty()
+                AccountantExportSection.ALL -> true
+            }
         }
     }
 
@@ -216,11 +268,3 @@ class TaxTrackerViewModel @Inject constructor(
         return Pair(0, "")
     }
 }
-
-data class TaxExportSnapshot(
-    val year: Int,
-    val dates: Set<String>,
-    val dailyRate: Double,
-    val dieselDeductions: Double,
-    val grossIncome: Double,
-)
