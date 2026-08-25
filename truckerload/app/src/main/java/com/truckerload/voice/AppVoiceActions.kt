@@ -59,6 +59,12 @@ object AppVoiceActions {
         Routes.PAYCHECK to listOf("зарплата", "paycheck"),
         Routes.ADD_PAYCHECK to listOf("добавить зарплату", "add paycheck"),
         Routes.DIESEL to listOf("дизель", "diesel"),
+        Routes.MISC_EXPENSES to listOf(
+            "разные расходы",
+            "расходы",
+            "misc expenses",
+            "other expenses",
+        ),
         Routes.ADD_DIESEL to listOf("добавить дизель", "add diesel"),
         Routes.SCANNER to listOf("сканер", "scanner"),
         Routes.CAMERA to listOf("камера", "camera"),

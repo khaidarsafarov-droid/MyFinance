@@ -86,6 +86,7 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
         route == Routes.ADD_PAYCHECK ||
         route.startsWith(Routes.ADD_DIESEL) ||
         route == Routes.DIESEL ||
+        route == Routes.MISC_EXPENSES ||
         route == Routes.VOICE_ASSISTANT
 
 internal fun isHomeTabRoute(route: String): Boolean =

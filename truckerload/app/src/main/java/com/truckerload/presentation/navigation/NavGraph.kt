@@ -217,6 +217,7 @@ fun NavGraph(
         currentRoute != Routes.PAYCHECK && currentRoute != Routes.ADD_PAYCHECK &&
             !currentRoute.orEmpty().startsWith(Routes.ADD_DIESEL) &&
             currentRoute != Routes.DIESEL &&
+            currentRoute != Routes.MISC_EXPENSES &&
             currentRoute != Routes.VOICE_ASSISTANT &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
             currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
@@ -243,6 +244,7 @@ fun NavGraph(
                 DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
                 DrawerDestination.PAYCHECK -> navController.navigate(Routes.PAYCHECK) { launchSingleTop = true }
                 DrawerDestination.DIESEL -> navController.navigate(Routes.DIESEL) { launchSingleTop = true }
+                DrawerDestination.MISC_EXPENSES -> navController.navigate(Routes.MISC_EXPENSES) { launchSingleTop = true }
                 DrawerDestination.VOICE_ASSISTANT -> navController.navigate(Routes.VOICE_ASSISTANT) { launchSingleTop = true }
                 DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA) { launchSingleTop = true }
                 DrawerDestination.SCANNER -> navController.navigate(Routes.SCANNER) { launchSingleTop = true }

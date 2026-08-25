@@ -27,6 +27,8 @@ class AppVoiceActionsTest {
         assertEquals(Routes.PAYCHECK, screen("зарплата"))
         assertEquals(Routes.PAYCHECK, screen("paycheck"))
         assertEquals(Routes.ADD_PAYCHECK, screen("add paycheck"))
+        assertEquals(Routes.MISC_EXPENSES, screen("разные расходы"))
+        assertEquals(Routes.MISC_EXPENSES, screen("other expenses"))
         assertEquals(Routes.MAINTENANCE, screen("обслуживание"))
         assertEquals(Routes.TAX_TRACKER, screen("налоги"))
         assertEquals(Routes.TAX_TRACKER, screen("tax"))

@@ -11,6 +11,7 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.MaintenanceRepository
+import com.truckerload.data.repository.MiscExpenseRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PerDiemOverrideRepository
 import com.truckerload.data.repository.PhotoRepository
@@ -107,6 +108,10 @@ object UserAccountModule {
     @Provides
     fun providePerDiemOverrideRepository(manager: UserComponentManager): PerDiemOverrideRepository =
         manager.require().perDiemOverrideRepository
+
+    @Provides
+    fun provideMiscExpenseRepository(manager: UserComponentManager): MiscExpenseRepository =
+        manager.require().miscExpenseRepository
 
     @Provides
     fun provideRegistrationService(manager: UserComponentManager): RegistrationService =

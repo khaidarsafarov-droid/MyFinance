@@ -15,6 +15,7 @@ import com.truckerload.presentation.screens.diesel.DieselJournalScreen
 import com.truckerload.presentation.screens.paycheck.PaycheckJournalScreen
 import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.edit.EditLoadScreen
+import com.truckerload.presentation.screens.expenses.MiscExpenseScreen
 import com.truckerload.presentation.screens.home.HomeViewModel
 
 fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
@@ -102,5 +103,8 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
         ),
     ) {
         AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+    }
+    composable(Routes.MISC_EXPENSES) {
+        MiscExpenseScreen(onBack = { navController.popBackStack() })
     }
 }

@@ -14,6 +14,7 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.crowd.CrowdRpmRepository
 import com.truckerload.data.repository.MaintenanceRepository
+import com.truckerload.data.repository.MiscExpenseRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PerDiemOverrideRepository
 import com.truckerload.data.repository.PhotoRepository
@@ -51,6 +52,7 @@ class UserComponent private constructor(
     val aiRepository: AiRepository,
     val maintenanceRepository: MaintenanceRepository,
     val perDiemOverrideRepository: PerDiemOverrideRepository,
+    val miscExpenseRepository: MiscExpenseRepository,
     val registrationService: RegistrationService,
     val driverProfessionalRepository: DriverProfessionalRepository,
     val accountDeletionService: AccountDeletionService,
@@ -101,6 +103,7 @@ class UserComponent private constructor(
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),
                 perDiemOverrideRepository = PerDiemOverrideRepository(db),
+                miscExpenseRepository = MiscExpenseRepository(db),
                 registrationService = account.registration,
                 driverProfessionalRepository = account.professional,
                 accountDeletionService = account.deletion,

@@ -21,6 +21,7 @@ object Routes {
     const val ADD_DIESEL = "add_diesel"
     const val ADD_DIESEL_WITH_ID = "add_diesel?dieselId={dieselId}"
     const val DIESEL = "diesel"
+    const val MISC_EXPENSES = "misc_expenses"
     const val MAINTENANCE = "maintenance"
     const val TAX_TRACKER = "tax_tracker"
     const val VOICE_ASSISTANT = "voice_assistant"
