@@ -29,8 +29,8 @@ object DieselReceiptExtractor {
     private val gallonsInline = listOf(
         Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)\s*(?:gal(?:lons?)?|gals?|гл)\b""", RegexOption.IGNORE_CASE),
         Regex(
-            """(?:gallons?|gals?|sale\s*gals?|volume|объем|галлоны?)\s*[:\-]?\s*\$?\s*([\d]{1,3}(?:[.,]\d{1,4})?)""",
-            RegexOption.IGNORE_CASE,
+            """(?:^|[\n\s])(?:gallons?|gals?|sale\s*gals?|volume|объем|галлоны?)\s*[:\-]?\s*\$?\s*([\d]{1,3}(?:[.,]\d{1,4})?)""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
         ),
     )
     private val ppgInline = listOf(
@@ -112,11 +112,15 @@ object DieselReceiptExtractor {
             if (total == null) total = t
         }
 
-        if (gallons == null && total != null && ppg != null && ppg > 0.0) {
-            gallons = asGallons(total / ppg)
+        val gallonsSoFar = gallons
+        val ppgSoFar = ppg
+        val totalSoFar = total
+        if (gallonsSoFar == null && totalSoFar != null && ppgSoFar != null && ppgSoFar > 0.0) {
+            gallons = asGallons(totalSoFar / ppgSoFar)
         }
-        if (ppg == null && total != null && gallons != null && gallons > 0.0) {
-            ppg = asPpg(total / gallons)
+        val gallonsAfter = gallons
+        if (ppgSoFar == null && totalSoFar != null && gallonsAfter != null && gallonsAfter > 0.0) {
+            ppg = asPpg(totalSoFar / gallonsAfter)
         }
 
         val vendor = findVendor(raw)
