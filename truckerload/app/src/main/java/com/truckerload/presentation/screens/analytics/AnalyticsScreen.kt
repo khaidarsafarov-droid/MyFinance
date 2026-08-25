@@ -151,6 +151,12 @@ private fun AnalyticsScreenBody(
 
                     uiState.summary?.let { summary ->
                         SummaryMetricsGrid(summary = summary)
+                                                Text(
+                            stringResource(R.string.analytics_rpm_legend_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tc.TextSecondary,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+                        )
                         RpmColorLegend(
                             compact = true,
                             modifier = Modifier.padding(top = 4.dp),
@@ -166,6 +172,12 @@ private fun AnalyticsScreenBody(
                                 style = MaterialTheme.typography.titleMedium,
                                 color = tc.TextPrimary,
                                 fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                stringResource(R.string.analytics_weekly_revenue_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(top = 4.dp),
                             )
                             WeeklyRevenueLineChart(
                                 weeks = uiState.weeks,
@@ -223,6 +235,12 @@ private fun AnalyticsScreenBody(
                                 color = tc.TextPrimary,
                                 fontWeight = FontWeight.SemiBold,
                             )
+                            Text(
+                                stringResource(R.string.analytics_top_routes_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
                             TopRoutesBarChart(
                                 routes = uiState.routes,
                                 modifier = Modifier.padding(top = 12.dp),
@@ -237,6 +255,12 @@ private fun AnalyticsScreenBody(
                                 style = MaterialTheme.typography.titleMedium,
                                 color = tc.TextPrimary,
                                 fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                stringResource(R.string.analytics_daily_distribution_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                                modifier = Modifier.padding(top = 4.dp),
                             )
                             DailyDistributionChart(
                                 dailyData = uiState.daily,
