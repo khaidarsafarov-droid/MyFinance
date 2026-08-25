@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.diesel
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,9 +25,14 @@ import com.truckerload.utils.formatDateForDisplay
 fun DieselFillCard(
     diesel: Diesel,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     val tc = LocalTruckColors.current
-    BentoGlassCard(modifier = modifier.fillMaxWidth()) {
+    BentoGlassCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+    ) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),

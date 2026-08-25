@@ -87,9 +87,20 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
         DieselJournalScreen(
             onBack = { navController.popBackStack() },
             onAdd = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+            onEditDiesel = { id ->
+                navController.navigate(Routes.editDiesel(id)) { launchSingleTop = true }
+            },
         )
     }
-    composable(Routes.ADD_DIESEL) {
+    composable(
+        route = Routes.ADD_DIESEL_WITH_ID,
+        arguments = listOf(
+            navArgument("dieselId") {
+                type = NavType.IntType
+                defaultValue = -1
+            },
+        ),
+    ) {
         AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
     }
 }

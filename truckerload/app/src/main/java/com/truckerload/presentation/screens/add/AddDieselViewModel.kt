@@ -30,6 +30,7 @@ import java.util.Calendar
 import javax.inject.Inject
 
 data class AddDieselUiState(
+    val editingId: Int? = null,
     val gallonsText: String = "",
     val pricePerGallonText: String = "",
     val discountPriceText: String = "",
@@ -69,6 +70,7 @@ class AddDieselViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     private val initialWeekAndYear = getCurrentWeekNumberAndYear()
+    private val editDieselId: Int = savedStateHandle.get<Int>("dieselId")?.takeIf { it > 0 } ?: -1
 
     private val _uiState = MutableStateFlow(
         AddDieselUiState(
@@ -84,6 +86,20 @@ class AddDieselViewModel @Inject constructor(
         ),
     )
     val uiState: StateFlow<AddDieselUiState> = _uiState.asStateFlow()
+
+    init {
+        if (editDieselId > 0) {
+            viewModelScope.launch {
+                runCatching {
+                    dieselRepository.getDieselById(editDieselId)
+                }.onSuccess { existing ->
+                    if (existing != null) {
+                        loadForEdit(existing)
+                    }
+                }
+            }
+        }
+    }
 
     fun setGallonsText(value: String) {
         savedStateHandle[KEY_GALLONS_TEXT] = value
@@ -221,7 +237,7 @@ class AddDieselViewModel @Inject constructor(
         val year = state.year
         val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
         val diesel = Diesel(
-            id = 0,
+            id = state.editingId ?: 0,
             weekNumber = weekNumber,
             year = year,
             weekLabel = weekLabel,
@@ -282,6 +298,40 @@ class AddDieselViewModel @Inject constructor(
     fun clearSaved() {
         _uiState.update { it.copy(saved = false) }
     }
+
+    private fun loadForEdit(existing: Diesel) {
+        val gallons = existing.gallons?.let { formatAmount(it) }.orEmpty()
+        val price = existing.pricePerGallon?.let { formatAmount(it) }.orEmpty()
+        val discount = existing.discountPricePerGallon?.let { formatAmount(it) }.orEmpty()
+        savedStateHandle[KEY_GALLONS_TEXT] = gallons
+        savedStateHandle[KEY_PRICE_TEXT] = price
+        savedStateHandle[KEY_DISCOUNT_TEXT] = discount
+        savedStateHandle[KEY_LOCATION_TEXT] = existing.location.orEmpty()
+        savedStateHandle[KEY_RAW_TEXT] = existing.rawExtractedText
+        savedStateHandle[KEY_RECORDED_AT_MILLIS] = existing.addedAt
+        savedStateHandle[KEY_WEEK_NUMBER] = existing.weekNumber
+        savedStateHandle[KEY_YEAR] = existing.year
+        _uiState.update {
+            it.copy(
+                editingId = existing.id,
+                gallonsText = gallons,
+                pricePerGallonText = price,
+                discountPriceText = discount,
+                locationText = existing.location.orEmpty(),
+                rawExtractedText = existing.rawExtractedText,
+                recordedAtMillis = existing.addedAt,
+                weekNumber = existing.weekNumber,
+                year = existing.year,
+            )
+        }
+    }
+
+    private fun formatAmount(value: Double): String =
+        if (value % 1.0 == 0.0) {
+            value.toLong().toString()
+        } else {
+            String.format(java.util.Locale.US, "%.2f", value)
+        }
 
     private fun validateInputs(state: AddDieselUiState): String? {
         val app = getApplication<Application>()

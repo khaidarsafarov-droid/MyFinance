@@ -112,7 +112,9 @@ fun AddDieselScreen(
     }
 
     JournalEntryScaffold(
-        title = stringResource(R.string.add_diesel_title),
+        title = stringResource(
+            if (uiState.editingId != null) R.string.edit_diesel_title else R.string.add_diesel_title,
+        ),
         onBack = onBack,
         onSave = viewModel::openSaveDialog,
         saveEnabled = !uiState.isSaving,

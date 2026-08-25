@@ -21,6 +21,12 @@ class DieselRepository(private val db: AppDatabase) {
     fun getDieselForWeek(weekNumber: Int, year: Int): Flow<List<Diesel>> =
         dao.getDieselForWeek(weekNumber, year).map { list -> list.map { it.toDomain() } }.flowOn(Dispatchers.IO)
 
+    suspend fun getDieselForWeekOnce(weekNumber: Int, year: Int): List<Diesel> =
+        getDieselForWeek(weekNumber, year).first()
+
+    suspend fun getDieselById(id: Int): Diesel? =
+        dao.getById(id)?.toDomain()
+
     suspend fun insertDiesel(diesel: Diesel) {
         dao.insert(diesel.toEntity())
         scheduleAutoBackup()
@@ -41,6 +47,13 @@ class DieselRepository(private val db: AppDatabase) {
     suspend fun deleteDiesel(id: Int) {
         dao.deleteById(id)
         scheduleAutoBackup()
+    }
+
+    /** Deletes all fills for the trucking week, then inserts [fills]. */
+    suspend fun replaceWeekFills(weekNumber: Int, year: Int, fills: List<Diesel>) {
+        val existing = getDieselForWeekOnce(weekNumber, year)
+        existing.forEach { deleteDiesel(it.id) }
+        fills.forEach { insertDiesel(it) }
     }
 
     suspend fun deleteAllDiesel() {

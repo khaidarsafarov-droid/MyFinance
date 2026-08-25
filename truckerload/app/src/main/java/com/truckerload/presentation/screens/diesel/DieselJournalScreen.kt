@@ -1,5 +1,8 @@
 package com.truckerload.presentation.screens.diesel
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,8 +19,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.screens.add.JournalDatePickerDialog
@@ -43,11 +50,37 @@ import com.truckerload.utils.utcDatePickerMillisToDateString
 fun DieselJournalScreen(
     onBack: () -> Unit,
     onAdd: () -> Unit,
+    onEditDiesel: (Int) -> Unit,
 ) {
     val tc = LocalTruckColors.current
     val viewModel: DieselJournalViewModel = hiltViewModel()
+    val importViewModel: DieselImportViewModel = hiltViewModel()
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
+    val importState by importViewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
+
+    val fileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            importViewModel.parseFile(uri)
+        }
+    }
+
+    LaunchedEffect(importState) {
+        when (val state = importState) {
+            is DieselImportUiState.Error -> {
+                snackbarHostState.showSnackbar(state.message)
+                importViewModel.dismiss()
+            }
+            is DieselImportUiState.Success -> {
+                snackbarHostState.showSnackbar(state.message)
+                importViewModel.dismiss()
+            }
+            else -> Unit
+        }
+    }
 
     if (showDatePicker) {
         val initial = ui.selectedDateIso?.let { dateStringToUtcDatePickerMillis(it) }
@@ -62,11 +95,41 @@ fun DieselJournalScreen(
         )
     }
 
+    if (importState is DieselImportUiState.Review) {
+        val reviewState = importState as DieselImportUiState.Review
+        DieselImportReviewSheet(
+            review = reviewState.review,
+            isApplying = reviewState.isApplying,
+            onDismiss = importViewModel::dismiss,
+            onApply = importViewModel::apply,
+            onEditExisting = { id ->
+                importViewModel.dismiss()
+                onEditDiesel(id)
+            },
+        )
+    }
+
     SoftAppPageScaffold(
         title = stringResource(R.string.diesel_title),
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        actions = {
+            SoftActionChip(
+                icon = AppIcons.FileDownload,
+                contentDescription = stringResource(R.string.diesel_import_action),
+                onClick = {
+                    fileLauncher.launch(
+                        arrayOf(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/vnd.ms-excel",
+                            "application/octet-stream",
+                        ),
+                    )
+                },
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAdd,
@@ -131,6 +194,16 @@ fun DieselJournalScreen(
                     )
                 }
             }
+            if (importState is DieselImportUiState.Loading) {
+                item {
+                    Text(
+                        text = stringResource(R.string.diesel_import_loading),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
             if (ui.entries.isEmpty()) {
                 item {
                     Text(
@@ -142,7 +215,10 @@ fun DieselJournalScreen(
                 }
             } else {
                 items(ui.entries, key = { it.id }) { fill ->
-                    DieselFillCard(diesel = fill)
+                    DieselFillCard(
+                        diesel = fill,
+                        onClick = { onEditDiesel(fill.id) },
+                    )
                 }
             }
         }

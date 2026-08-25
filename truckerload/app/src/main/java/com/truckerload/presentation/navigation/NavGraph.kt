@@ -215,7 +215,7 @@ fun NavGraph(
     val currentRoute = currentDestination?.route
     val showMainNavigation = if (tablet) {
         currentRoute != Routes.PAYCHECK && currentRoute != Routes.ADD_PAYCHECK &&
-            currentRoute != Routes.ADD_DIESEL &&
+            !currentRoute.orEmpty().startsWith(Routes.ADD_DIESEL) &&
             currentRoute != Routes.DIESEL &&
             currentRoute != Routes.VOICE_ASSISTANT &&
             currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&

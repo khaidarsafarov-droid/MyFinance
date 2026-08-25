@@ -19,6 +19,7 @@ object Routes {
     const val PAYCHECK = "paycheck"
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
+    const val ADD_DIESEL_WITH_ID = "add_diesel?dieselId={dieselId}"
     const val DIESEL = "diesel"
     const val MAINTENANCE = "maintenance"
     const val TAX_TRACKER = "tax_tracker"
@@ -50,6 +51,8 @@ object Routes {
     }
 
     fun attachPick(mode: String): String = "attach_pick/${encodePathSegment(mode)}"
+
+    fun editDiesel(dieselId: Int): String = "add_diesel?dieselId=$dieselId"
 
     private fun encodePathSegment(value: String): String =
         Uri.encode(value.ifBlank { "_" }) ?: "_"
