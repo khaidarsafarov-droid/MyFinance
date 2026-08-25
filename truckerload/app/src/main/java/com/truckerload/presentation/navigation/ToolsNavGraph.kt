@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.truckerload.presentation.screens.about.AboutAppScreen
 import com.truckerload.presentation.screens.feedback.ImprovementFeedbackScreen
-import com.truckerload.presentation.screens.advisor.FinancialAdvisorScreen
 import com.truckerload.presentation.screens.assistant.VoiceAssistantScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsScreen
 import com.truckerload.presentation.screens.attach.AttachLoadPickScreen
@@ -42,7 +41,6 @@ fun NavGraphBuilder.toolsNavGraph(
         AnalyticsScreen(
             onBack = { navController.popBackStack() },
             onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
-            onFinancialAdvisor = { navController.navigate(Routes.FINANCIAL_ADVISOR) },
         )
     }
     composable(
@@ -68,9 +66,6 @@ fun NavGraphBuilder.toolsNavGraph(
     }
     composable(Routes.TAX_TRACKER) {
         TaxTrackerScreen(onBack = { navController.popBackStack() })
-    }
-    composable(Routes.FINANCIAL_ADVISOR) {
-        FinancialAdvisorScreen(onBack = { navController.popBackStack() })
     }
     composable(Routes.VOICE_ASSISTANT) {
         VoiceAssistantScreen(onBack = { navController.popBackStack() })

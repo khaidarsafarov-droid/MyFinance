@@ -22,7 +22,6 @@ object Routes {
     const val DIESEL = "diesel"
     const val MAINTENANCE = "maintenance"
     const val TAX_TRACKER = "tax_tracker"
-    const val FINANCIAL_ADVISOR = "financial_advisor"
     const val VOICE_ASSISTANT = "voice_assistant"
     const val SETTINGS = "settings"
     const val PRIVACY_SETTINGS = "privacy_settings"

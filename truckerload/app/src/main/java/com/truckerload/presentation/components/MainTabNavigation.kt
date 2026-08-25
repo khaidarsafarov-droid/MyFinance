@@ -97,8 +97,7 @@ internal fun isHomeTabRoute(route: String): Boolean =
 internal fun isStatsTabRoute(route: String): Boolean =
     route == Routes.STATS ||
         route == Routes.ANALYTICS ||
-        route == Routes.MAP ||
-        route == Routes.FINANCIAL_ADVISOR
+        route == Routes.MAP
 
 internal fun isProfileTabRoute(route: String): Boolean =
     route == Routes.PROFILE

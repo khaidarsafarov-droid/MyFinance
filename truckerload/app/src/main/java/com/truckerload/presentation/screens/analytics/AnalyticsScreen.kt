@@ -66,7 +66,6 @@ import com.truckerload.utils.AnalyticsExportShare
 fun AnalyticsScreen(
     onBack: () -> Unit = {},
     onLoadClick: (String) -> Unit = {},
-    onFinancialAdvisor: () -> Unit = {},
     embedded: Boolean = false,
 ) {
     val context = LocalContext.current
@@ -104,10 +103,6 @@ fun AnalyticsScreen(
         actions = {
             if (!embedded) {
                 SoftActionChip(
-                    icon = AppIcons.SmartToy,
-                    contentDescription = stringResource(R.string.stats_cd_advisor),
-                    onClick = onFinancialAdvisor,
-                )
                 SoftActionChip(
                     icon = AppIcons.Share,
                     contentDescription = stringResource(R.string.analytics_export_cd),

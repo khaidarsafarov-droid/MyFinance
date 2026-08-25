@@ -1,36 +1,17 @@
 package com.truckerload.data.repository
 
-import com.truckerload.domain.advisor.DeterministicAdvisorService
-import com.truckerload.domain.advisor.LogisticsInsight
 import com.truckerload.domain.model.DieselParseResult
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PaycheckParseResult
 import com.truckerload.domain.parser.AmazonRelayParseResult
 import com.truckerload.domain.parser.MessageParseService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 
 /**
- * Facade for parsing and local advisor logic — no external AI providers.
+ * Facade for message parsing — no external AI providers.
  */
 class AiRepository(
     private val messageParseService: MessageParseService = MessageParseService(),
-    private val advisorService: DeterministicAdvisorService = DeterministicAdvisorService()
 ) {
-
-    fun chatStream(
-        history: List<Pair<String, String>>,
-        userMessage: String,
-        appContext: String? = null
-    ): Flow<String> = advisorService.chatStream(history, userMessage, appContext)
-        .flowOn(Dispatchers.Default)
-
-    suspend fun chat(
-        history: List<Pair<String, String>>,
-        userMessage: String,
-        appContext: String? = null
-    ): Result<String> = advisorService.chat(history, userMessage, appContext)
 
     suspend fun extractTextFromImage(imageBytes: ByteArray, mimeType: String): Result<String> =
         Result.failure(UnsupportedOperationException(OCR_IMAGE_DISABLED_CODE))
@@ -60,23 +41,4 @@ class AiRepository(
 
     suspend fun parseDieselFromText(text: String): Result<DieselParseResult> =
         messageParseService.parseDieselFromText(text)
-
-    suspend fun healthCheck(): Result<String> = advisorService.healthCheck()
-
-    suspend fun generateRealTimeLogisticsInsight(
-        userName: String,
-        rpm: Double,
-        profit: Double,
-        fuelCost: Double,
-        miles: Double,
-        topStates: List<String>,
-        anomalies: String
-    ): Result<LogisticsInsight> = advisorService.generateInsight(
-        rpm = rpm,
-        profit = profit,
-        fuelCost = fuelCost,
-        miles = miles,
-        topStates = topStates,
-        anomalies = anomalies
-    )
 }

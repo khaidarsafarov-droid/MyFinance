@@ -235,7 +235,7 @@
     <string name="about_guide_tax_title">7. Taxes</string>
     <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($69/day). It is a guide, not tax advice.</string>
     <string name="about_guide_reports_title">8. Reports</string>
-    <string name="about_guide_reports_body">Menu → Reports: weekly and route income, paycheck and diesel side by side in color (no subtraction), and CSV export. From there you can open the financial advisor and ask about income, lanes, or taxes.</string>
+    <string name="about_guide_reports_body">Menu → Reports: weekly and route income, paycheck and diesel side by side in color (no subtraction), and CSV export.</string>
     <string name="about_guide_map_title">9. Map</string>
     <string name="about_guide_map_body">Menu → Map: your RPM by origin state for the week, month, or year. Tap a state for recent rates and top lanes.</string>
     <string name="about_guide_docs_title">10. Documents, camera, and scanner</string>
@@ -458,7 +458,6 @@
     <string name="finance_fuel_analytics_per_100_miles">Per 100 miles: $%1$s</string>
     <string name="finance_fuel_analytics_savings">Discount saved: $%1$s</string>
 
-    <string name="stats_cd_advisor">Advisor</string>
     <string name="stats_reset_filters">Reset</string>
     <string name="map_title">Geographic efficiency</string>
     <string name="map_expand_fullscreen">Open map fullscreen</string>
@@ -583,31 +582,6 @@
 
 <string name="calendar_prev_month_cd">Previous month</string>
     <string name="calendar_next_month_cd">Next month</string>
-
-    <string name="advisor_title">Financial Advisor</string>
-    <string name="advisor_missing_key">Financial advisor is temporarily unavailable.</string>
-    <string name="advisor_thinking">Thinking...</string>
-    <string name="advisor_placeholder_question">Enter a question...</string>
-    <string name="advisor_cd_send">Send</string>
-    <string name="advisor_health_short">AI</string>
-    <string name="advisor_health_show_details">Show details</string>
-    <string name="advisor_health_hide_details">Hide details</string>
-    <string name="advisor_health_copy_details">Copy diagnostics</string>
-    <string name="advisor_health_copied_short">Copied</string>
-    <string name="advisor_health_copied">Diagnostics copied</string>
-    <string name="advisor_suggestion_income">How can I improve income this month?</string>
-    <string name="advisor_suggestion_routes">Which routes are most profitable?</string>
-    <string name="advisor_suggestion_taxes">How much should I set aside for taxes?</string>
-    <string name="advisor_suggestion_compare_week">Compare this week with last week</string>
-    <string name="advisor_error_no_response">Service did not return a response. Please try again.</string>
-    <string name="advisor_error_api_key">AI service error. Please try again later.</string>
-    <string name="advisor_error_rate_limit">Request limit temporarily exceeded. Wait 30–60 seconds and retry.</string>
-    <string name="advisor_error_unavailable">AI service temporarily unavailable. Try again in a minute.</string>
-    <string name="advisor_error_timeout">Server is taking too long to respond. Check your internet and retry.</string>
-    <string name="advisor_error_network">No connection to the internet or AI server.</string>
-    <string name="advisor_error_empty">Service did not return a meaningful response. Try rephrasing your question.</string>
-    <string name="advisor_error_generic">Could not get a response from AI. Please try again.</string>
-    <string name="advisor_error_keyword_no_response">did not return a response</string>
 
     <string name="tax_title">Taxes</string>
     <string name="tax_disclaimer">Estimate only. Not a substitute for professional tax advice.</string>

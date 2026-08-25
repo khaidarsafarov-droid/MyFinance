@@ -70,11 +70,6 @@ object AppVoiceActions {
             "what to improve",
             "suggest improvement",
         ),
-        Routes.FINANCIAL_ADVISOR to listOf(
-            "финансовый советник",
-            "советник",
-            "financial advisor",
-        ),
         Routes.VOICE_ASSISTANT to listOf(
             "голосовой ассистент",
             "ассистент",

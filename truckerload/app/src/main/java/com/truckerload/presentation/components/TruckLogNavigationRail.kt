@@ -140,8 +140,7 @@ fun TruckLogNavigationRail(
                 val selected = when {
                     dest.route != null -> isRailDestinationSelected(currentRoute, dest.route)
                     dest.drawer == DrawerDestination.SETTINGS ->
-                        currentRoute == Routes.SETTINGS ||
-                            currentRoute == Routes.FINANCIAL_ADVISOR
+                        currentRoute == Routes.SETTINGS
                     dest.drawer == DrawerDestination.REPORTS ->
                         currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
                     dest.drawer == DrawerDestination.DOCUMENTS ->
@@ -297,8 +296,7 @@ internal fun isRailDestinationSelected(currentRoute: String?, targetRoute: Strin
         Routes.STATS -> currentRoute == Routes.STATS
         Routes.PROFILE -> currentRoute == Routes.PROFILE
         Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
-        Routes.SETTINGS -> currentRoute == Routes.SETTINGS ||
-            currentRoute == Routes.FINANCIAL_ADVISOR
+        Routes.SETTINGS -> currentRoute == Routes.SETTINGS
         Routes.CAMERA -> currentRoute == Routes.CAMERA
         else -> currentRoute == targetRoute
     }
