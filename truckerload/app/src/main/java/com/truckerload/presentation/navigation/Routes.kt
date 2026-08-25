@@ -24,7 +24,6 @@ object Routes {
     const val MISC_EXPENSES = "misc_expenses"
     const val MAINTENANCE = "maintenance"
     const val TAX_TRACKER = "tax_tracker"
-    const val VOICE_ASSISTANT = "voice_assistant"
     const val SETTINGS = "settings"
     const val PRIVACY_SETTINGS = "privacy_settings"
     const val ABOUT = "about"

@@ -37,7 +37,6 @@ private val AboutGuideSections = listOf(
     R.string.about_guide_map_title to R.string.about_guide_map_body,
     R.string.about_guide_docs_title to R.string.about_guide_docs_body,
     R.string.about_guide_tools_title to R.string.about_guide_tools_body,
-    R.string.about_guide_assistant_title to R.string.about_guide_assistant_body,
     R.string.about_guide_widget_title to R.string.about_guide_widget_body,
     R.string.about_guide_telegram_title to R.string.about_guide_telegram_body,
     R.string.about_guide_backup_title to R.string.about_guide_backup_body,

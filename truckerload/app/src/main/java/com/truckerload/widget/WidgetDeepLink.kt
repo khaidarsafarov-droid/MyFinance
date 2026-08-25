@@ -19,6 +19,7 @@ object WidgetDeepLink {
     const val ROUTE_CAMERA = "camera"
     const val ROUTE_SCANNER = "scanner"
     const val ROUTE_ADD_DIESEL = "add_diesel"
+    const val ROUTE_ADD_PAYCHECK = "add_paycheck"
     /** Pick a recent load, then open camera attached to it. */
     const val ROUTE_ATTACH_CAMERA = "attach_pick/camera"
     /** Pick a recent load, then open scanner attached to it. */
@@ -41,7 +42,8 @@ object WidgetDeepLink {
         ROUTE_WEEKLY_GOAL -> "stats" // WeeklyGoalScreen lives at Routes.STATS
         ROUTE_CAMERA, "camera", ROUTE_ATTACH_CAMERA -> ROUTE_ATTACH_CAMERA
         ROUTE_SCANNER, "scanner", ROUTE_ATTACH_SCANNER -> ROUTE_ATTACH_SCANNER
-        ROUTE_ADD_DIESEL, "diesel" -> ROUTE_ADD_DIESEL
+        ROUTE_ADD_DIESEL, "diesel", "add_diesel" -> ROUTE_ADD_DIESEL
+        ROUTE_ADD_PAYCHECK, "add_paycheck" -> "add_paycheck"
         else -> null
     }
 
