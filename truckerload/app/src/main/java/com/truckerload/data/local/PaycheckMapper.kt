@@ -16,7 +16,8 @@ fun PaycheckEntity.toDomain(): Paycheck =
         netAmount = netAmount,
         rawExtractedText = rawExtractedText,
         sourceFileName = sourceFileName,
-        addedAt = addedAt
+        addedAt = addedAt,
+        sourceFilePath = sourceFilePath,
     )
 
 fun Paycheck.toEntity(): PaycheckEntity =
@@ -32,5 +33,6 @@ fun Paycheck.toEntity(): PaycheckEntity =
         netAmount = netAmount,
         rawExtractedText = rawExtractedText,
         sourceFileName = sourceFileName,
-        addedAt = addedAt
+        addedAt = addedAt,
+        sourceFilePath = sourceFilePath,
     )

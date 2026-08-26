@@ -20,5 +20,6 @@ data class PaycheckEntity(
     val netAmount: Double,
     val rawExtractedText: String,
     val sourceFileName: String?,
-    val addedAt: Long
+    val addedAt: Long,
+    val sourceFilePath: String? = null,
 )
