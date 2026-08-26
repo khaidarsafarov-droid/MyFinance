@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +25,7 @@ import com.truckerload.R
 import com.truckerload.domain.expense.MiscExpenseFields
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton
+import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.screens.add.JournalDatePickerDialog
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -61,7 +60,7 @@ fun MiscExpenseEditorDialog(
         },
         text = {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier.dialogBodyScroll(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 OutlinedTextField(

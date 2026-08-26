@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +53,7 @@ import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.PhoneWithCountryField
 import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -346,7 +345,7 @@ fun SignUpScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .verticalScroll(rememberScrollState())
+                    .verticalContentScroll()
                     .padding(24.dp)
             ) {
                 Text(

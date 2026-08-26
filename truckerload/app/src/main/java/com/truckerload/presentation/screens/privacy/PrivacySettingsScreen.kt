@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -18,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.SoftAppPageScaffold
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
 
@@ -41,7 +40,7 @@ fun PrivacySettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalContentScroll()
                 .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {

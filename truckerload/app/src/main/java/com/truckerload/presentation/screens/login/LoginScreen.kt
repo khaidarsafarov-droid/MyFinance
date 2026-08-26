@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.BuildConfig
+import com.truckerload.presentation.components.FillViewportScrollColumn
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.screens.auth.AuthUiEvent
@@ -75,10 +77,8 @@ fun LoginScreen(
 
     BentoGlassScreenBackground {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
+            FillViewportScrollColumn(
+                contentPadding = PaddingValues(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {

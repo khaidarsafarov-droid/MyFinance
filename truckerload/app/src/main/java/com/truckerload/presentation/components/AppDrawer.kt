@@ -6,8 +6,11 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -84,6 +87,12 @@ fun AppDrawerContent(
             HorizontalDivider(color = BentoGlassTheme.CardBorderMuted)
             Spacer(Modifier.height(8.dp))
 
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+            ) {
             drawerItem(
                 icon = AppIcons.Settings,
                 label = stringResource(R.string.nav_settings),
@@ -155,8 +164,8 @@ fun AppDrawerContent(
                 label = stringResource(R.string.drawer_about),
                 onClick = { onNavigate(DrawerDestination.ABOUT); onClose() },
             )
+            }
 
-            Spacer(Modifier.weight(1f))
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 color = BentoGlassTheme.CardBorderMuted,

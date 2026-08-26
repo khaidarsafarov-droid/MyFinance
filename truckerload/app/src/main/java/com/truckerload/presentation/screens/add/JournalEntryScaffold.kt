@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.OneUiBottomActionBar
+import com.truckerload.presentation.components.dialogBodyScroll
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.icons.AppIcons
@@ -86,6 +89,8 @@ fun JournalEntryScaffold(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .fillMaxSize()
+                .verticalContentScroll()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             content = content,
@@ -202,7 +207,7 @@ fun JournalSaveConfirmDialog(
         textContentColor = tc.TextPrimary,
         title = { Text(stringResource(R.string.common_save)) },
         text = {
-            Column {
+            Column(modifier = Modifier.dialogBodyScroll()) {
                 Text(stringResource(R.string.common_date_time), style = MaterialTheme.typography.labelMedium)
                 Row(
                     modifier = Modifier
