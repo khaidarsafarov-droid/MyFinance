@@ -2,6 +2,6 @@
 <!-- Forest cabin plate — matches app dark theme + widget mockup. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FF12251C" />
+    <solid android:color="#FF1E3D2E" />
     <corners android:radius="20dp" />
 </shape>

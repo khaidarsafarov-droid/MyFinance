@@ -45,6 +45,7 @@ object WidgetWeekDaysBitmap {
         chip: WidgetWeekDayHelper.DayChip,
         selected: Boolean,
         sizePx: Int,
+        colors: WidgetCabinColors = WidgetCabinColors.Forest,
     ): Bitmap {
         val safe = sizePx.coerceAtLeast(24)
         val bitmap = createBitmap(safe, safe)
@@ -57,6 +58,7 @@ object WidgetWeekDaysBitmap {
             cy = safe / 2f,
             cellWidth = safe.toFloat(),
             cellHeight = safe.toFloat(),
+            colors = colors,
         )
         return bitmap
     }
@@ -78,6 +80,7 @@ object WidgetWeekDaysBitmap {
         cy: Float,
         cellWidth: Float,
         cellHeight: Float,
+        colors: WidgetCabinColors = WidgetCabinColors.Forest,
     ) {
         val circleSize = minOf(cellWidth, cellHeight)
         val radius = circleSize / 2f
@@ -90,15 +93,15 @@ object WidgetWeekDaysBitmap {
             style = Paint.Style.STROKE
             strokeCap = Paint.Cap.BUTT
             this.strokeWidth = strokeWidth
-            color = WidgetCabinPalette.DAY_OUTLINE
+            color = colors.dayOutline
         }
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER
             isFakeBoldText = true
-            color = WidgetDayChipStyle.letterColor(kind)
+            color = WidgetDayChipStyle.letterColor(kind, colors)
         }
 
-        val fill = WidgetDayChipStyle.fillColor(kind)
+        val fill = WidgetDayChipStyle.fillColor(kind, colors)
         if (fill != null) {
             fillPaint.color = fill
             canvas.drawOval(bounds, fillPaint)

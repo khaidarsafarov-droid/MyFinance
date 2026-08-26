@@ -96,9 +96,6 @@ internal fun WidgetLivePreview(
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,
                 accent = accent,
-                ringColor = ringColor,
-                track = track,
-                progress = progress,
             )
         } else {
             StandardPreviewBody(
@@ -124,44 +121,59 @@ private fun CompactPreviewBody(
     textPrimary: Color,
     textSecondary: Color,
     accent: Color,
-    ringColor: Color,
-    track: Color,
-    progress: Float,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (showGross) {
+        Column(modifier = Modifier.weight(1f)) {
+            if (showGross) {
+                Text(
+                    text = stringResource(R.string.widget_configure_preview_gross),
+                    color = textPrimary,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp,
+                    maxLines = 1,
+                )
+            }
+            if (showGoal) {
+                Text(
+                    text = "72%",
+                    color = textSecondary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                )
+            }
+        }
+        Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = stringResource(R.string.widget_configure_preview_gross),
+                text = stringResource(R.string.widget_metric_goal),
+                color = textSecondary,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
+            Text(
+                text = "$13,000",
                 color = textPrimary,
                 fontWeight = FontWeight.Medium,
-                fontSize = 22.sp,
+                fontSize = 12.sp,
                 maxLines = 1,
-                modifier = Modifier.weight(1f),
             )
-        } else {
-            Box(modifier = Modifier.weight(1f))
+            Text(
+                text = stringResource(R.string.widget_metric_rpm),
+                color = textSecondary,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
+            Text(
+                text = "$1.74",
+                color = accent,
+                fontWeight = FontWeight.Medium,
+                fontSize = 12.sp,
+                maxLines = 1,
+            )
         }
-        PreviewRing(
-            size = 52.dp,
-            progress = progress,
-            accent = ringColor,
-            track = track,
-            hole = {
-                if (showGoal) {
-                    Text(
-                        text = "72%",
-                        color = textSecondary,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                    )
-                }
-            },
-        )
         PreviewActionRow(accent = accent, labeled = false)
     }
 }

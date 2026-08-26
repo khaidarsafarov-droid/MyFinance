@@ -3,8 +3,9 @@ package com.truckerload.widget.glance
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
@@ -22,7 +23,6 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -38,10 +38,9 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
-import com.truckerload.presentation.theme.forestDarkColorScheme
+import com.truckerload.widget.WidgetCabinColors
 import com.truckerload.widget.WidgetCabinPalette
 import com.truckerload.widget.WidgetDataStore
 import com.truckerload.widget.WidgetDayProjection
@@ -55,13 +54,6 @@ internal val CabinSize2x2 = DpSize(110.dp, 110.dp)
 internal val CabinSize4x2 = DpSize(250.dp, 110.dp)
 internal val CabinSize4x3 = DpSize(250.dp, 180.dp)
 internal val CabinSize4x4 = DpSize(250.dp, 260.dp)
-
-internal val CabinGlancePrimary = Color(0xFFEAFAF0)
-internal val CabinGlanceSecondary = Color(0xFF8FAE9C)
-internal val CabinGlanceAccent = Color(0xFF5EDB97)
-internal val CabinGlanceActionLabel = Color(0xFFC4DCCD)
-internal val CabinGlanceDivider = Color(0xFF233C2C)
-internal val CabinGlanceEmptyCaption = Color(0xFF3D4A41)
 
 object OneUiGlanceWidgets {
     suspend fun updateAll(context: Context) {
@@ -104,14 +96,17 @@ private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: Gla
     val todayOffset = WidgetDayProjection.todayOffset()
     val selected = WidgetDayProjection.clampSelection(stored, todayOffset)
     val shown = WidgetDayProjection.project(week, stored, todayOffset)
+    val (scheme, colors) = WidgetCabinColors.resolve(context)
     provideContent {
-        CabinGlanceTheme {
-            CabinBudgetBySize(
-                context = context,
-                shown = shown,
-                week = week,
-                selectedOffset = selected,
-            )
+        CompositionLocalProvider(LocalCabinColors provides colors) {
+            CabinGlanceTheme(scheme) {
+                CabinBudgetBySize(
+                    context = context,
+                    shown = shown,
+                    week = week,
+                    selectedOffset = selected,
+                )
+            }
         }
     }
 }
@@ -132,11 +127,11 @@ private fun CabinBudgetBySize(
 }
 
 @Composable
-private fun CabinGlanceTheme(content: @Composable () -> Unit) {
+private fun CabinGlanceTheme(scheme: ColorScheme, content: @Composable () -> Unit) {
     GlanceTheme(
         colors = ColorProviders(
-            light = forestDarkColorScheme(),
-            dark = forestDarkColorScheme(),
+            light = scheme,
+            dark = scheme,
         ),
         content = content,
     )
@@ -147,27 +142,46 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
     val layout = cabinLayoutFor(LocalSize.current)
     val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = stats.weeklyProfitGoal > 0
-    val ring = buildRingBitmap(context, stats, layout.ringDp)
+    val colors = LocalCabinColors.current
+    val ring = if (layout.showRing) {
+        buildRingBitmap(context, stats, layout.ringDp, colors)
+    } else {
+        null
+    }
 
     Row(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(ImageProvider(R.drawable.widget_cabin_plate))
+            .cabinPlate(colors)
             .padding(layout.paddingH)
             .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME))),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BudgetRing(
-            context = context,
-            ring = ring,
-            stats = stats,
-            progress = progress,
-            goalSet = goalSet,
-            ringDp = layout.ringDp,
-            amountSp = layout.amountSp,
-            percentSp = layout.percentSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
+        if (layout.showRing) {
+            BudgetRing(
+                context = context,
+                ring = ring,
+                stats = stats,
+                progress = progress,
+                goalSet = goalSet,
+                ringDp = layout.ringDp,
+                amountSp = layout.amountSp,
+                percentSp = layout.percentSp,
+                modifier = GlanceModifier.defaultWeight(),
+            )
+        } else {
+            CompactFinanceBlock(
+                context = context,
+                shown = stats,
+                progress = progress,
+                goalSet = goalSet,
+                amountSp = layout.amountSp,
+                percentSp = layout.percentSp,
+                metricSp = layout.metricSp,
+                metricGap = layout.metricGap,
+                modifier = GlanceModifier.defaultWeight(),
+            )
+        }
         Spacer(modifier = GlanceModifier.width(layout.financeGap))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             QuickAction(
@@ -237,7 +251,7 @@ internal fun BudgetRing(
             Text(
                 text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
                 style = TextStyle(
-                    color = ColorProvider(CabinGlancePrimary),
+                    color = cabinColor(LocalCabinColors.current.text),
                     fontSize = amountSp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
@@ -251,7 +265,7 @@ internal fun BudgetRing(
                     context.getString(R.string.widget_goal_not_set)
                 },
                 style = TextStyle(
-                    color = ColorProvider(CabinGlanceSecondary),
+                    color = cabinColor(LocalCabinColors.current.muted),
                     fontSize = percentSp,
                     fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
@@ -275,6 +289,7 @@ internal fun QuickAction(
     route: String? = null,
     launchIntent: Intent? = null,
 ) {
+    val colors = LocalCabinColors.current
     val intent = launchIntent ?: routeIntent(context, requireNotNull(route))
     Column(
         modifier = modifier.clickable(actionStartActivity(intent)),
@@ -283,7 +298,7 @@ internal fun QuickAction(
         Box(
             modifier = GlanceModifier
                 .size(btnDp)
-                .background(ImageProvider(R.drawable.widget_cabin_action_btn)),
+                .cabinActionFill(colors),
             contentAlignment = Alignment.Center,
         ) {
             Image(
@@ -297,7 +312,7 @@ internal fun QuickAction(
             Text(
                 text = label,
                 style = TextStyle(
-                    color = ColorProvider(CabinGlanceActionLabel),
+                    color = cabinColor(colors.actionLabel),
                     fontSize = labelSp,
                     textAlign = TextAlign.Center,
                 ),
@@ -311,6 +326,7 @@ internal fun buildRingBitmap(
     context: Context,
     stats: WidgetStats,
     ringDp: Dp,
+    colors: WidgetCabinColors = WidgetCabinColors.Forest,
 ): Bitmap? {
     val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = stats.weeklyProfitGoal > 0
@@ -319,8 +335,8 @@ internal fun buildRingBitmap(
         WidgetProgressRingBitmap.create(
             progressPercent = if (goalSet) progress else 0f,
             sizePx = ringPx,
-            progressColor = WidgetCabinPalette.RING,
-            trackColor = WidgetCabinPalette.RING_TRACK,
+            progressColor = colors.ring,
+            trackColor = colors.ringTrack,
             strokeRatio = WidgetCabinPalette.RING_STROKE_RATIO,
         )
     }.getOrNull()

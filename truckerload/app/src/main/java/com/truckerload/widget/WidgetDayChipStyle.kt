@@ -14,14 +14,20 @@ object WidgetDayChipStyle {
         else -> Kind.OUTLINE
     }
 
-    fun fillColor(kind: Kind): Int? = when (kind) {
-        Kind.FILLED -> WidgetCabinPalette.DAY_FILLED
-        Kind.TODAY -> WidgetCabinPalette.DAY_TODAY
+    fun fillColor(
+        kind: Kind,
+        colors: WidgetCabinColors = WidgetCabinColors.Forest,
+    ): Int? = when (kind) {
+        Kind.FILLED -> colors.dayFilled
+        Kind.TODAY -> colors.dayToday
         Kind.OUTLINE -> null
     }
 
-    fun letterColor(kind: Kind): Int = when (kind) {
-        Kind.OUTLINE -> WidgetCabinPalette.DAY_FUTURE_LETTER
-        Kind.FILLED, Kind.TODAY -> WidgetCabinPalette.ON_FILLED
+    fun letterColor(
+        kind: Kind,
+        colors: WidgetCabinColors = WidgetCabinColors.Forest,
+    ): Int = when (kind) {
+        Kind.OUTLINE -> colors.dayFutureLetter
+        Kind.FILLED, Kind.TODAY -> colors.onFilled
     }
 }

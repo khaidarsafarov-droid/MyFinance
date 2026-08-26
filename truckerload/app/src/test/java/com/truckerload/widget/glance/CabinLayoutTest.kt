@@ -20,6 +20,7 @@ class CabinLayoutTest {
         assertTrue(layout.showDayCaptions)
         assertTrue(layout.showDivider)
         assertTrue(layout.showActionLabels)
+        assertTrue(layout.showRing)
     }
 
     @Test
@@ -29,6 +30,7 @@ class CabinLayoutTest {
         assertTrue(layout.showDivider)
         assertTrue(layout.showActionLabels)
         assertTrue(layout.ringDp < 92.dp)
+        assertTrue(layout.showRing)
     }
 
     @Test
@@ -37,6 +39,7 @@ class CabinLayoutTest {
         assertFalse(layout.showDayCaptions)
         assertFalse(layout.showDivider)
         assertTrue(layout.showActionLabels)
+        assertFalse(layout.showRing)
     }
 
     @Test
@@ -45,5 +48,6 @@ class CabinLayoutTest {
         assertFalse(layout.showDayCaptions)
         assertFalse(layout.showDivider)
         assertFalse(layout.showActionLabels)
+        assertFalse(layout.showRing)
     }
 }

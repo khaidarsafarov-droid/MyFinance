@@ -13,10 +13,14 @@ class WidgetBudgetRingActionsTest {
     fun glanceWideBudget_matchesGreenMockup() {
         val wide = readSource("widget/glance/CabinWideGlanceContent.kt")
         val core = readSource("widget/glance/OneUiGlanceWidgets.kt")
-        assertTrue(core.contains("widget_cabin_plate"))
+        val chrome = readSource("widget/glance/CabinChrome.kt")
+        assertTrue(chrome.contains("widget_cabin_plate"))
+        assertTrue(core.contains("cabinPlate"))
         assertTrue(core.contains("BudgetRing"))
         assertTrue(core.contains("formatGrossUsd"))
         assertTrue(core.contains("formatRingPercent"))
+        assertTrue(core.contains("WidgetCabinColors.resolve"))
+        assertTrue(core.contains("LocalCabinColors"))
         assertTrue(!core.contains("R.string.widget_goal_out_of"))
         assertTrue(wide.contains("WidgetWeekDaysBitmap"))
         assertTrue(wide.contains("formatUsdRpm"))
@@ -25,10 +29,19 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("widget_metric_rpm"))
         assertTrue(wide.contains("widget_metric_trips"))
         assertTrue(wide.contains("WidgetDayCaption"))
-        assertTrue(wide.contains("CabinGlanceAccent"))
-        assertTrue(core.contains("CabinGlanceActionLabel"))
+        assertTrue(wide.contains("CompactFinanceBlock"))
+        assertTrue(wide.contains("showRing"))
+        assertTrue(core.contains("cabinActionFill"))
         assertTrue(core.contains("CabinSize4x4"))
         assertTrue(core.contains("CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4"))
+    }
+
+    @Test
+    fun themeSettings_repaintWidgetWhenDynamicColorChanges() {
+        val src = readSource("presentation/screens/settings/ThemeSettingsSection.kt")
+        assertTrue(src.contains("saveDynamicColor"))
+        assertTrue(src.contains("WidgetRefresh.refreshAndUpdateAsync"))
+        assertTrue(src.contains("saveThemeMode"))
     }
 
     @Test
@@ -48,8 +61,9 @@ class WidgetBudgetRingActionsTest {
     @Test
     fun cabinPlateDrawable_isForestGreen() {
         val xml = readRes("drawable/widget_cabin_plate.xml")
-        assertTrue(xml.contains("#FF12251C"))
+        assertTrue(xml.contains("#FF1E3D2E"))
         assertTrue(xml.contains("20dp"))
+        assertTrue(!xml.contains("#FF12251C"))
         assertTrue(!xml.contains("#FF0B1A12"))
         assertTrue(!xml.contains("#FF07140E"))
         assertTrue(!xml.contains("#FF143882"))
