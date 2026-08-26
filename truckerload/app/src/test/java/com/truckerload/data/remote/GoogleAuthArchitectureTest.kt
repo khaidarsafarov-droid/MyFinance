@@ -128,16 +128,22 @@ class GoogleAuthArchitectureTest {
     }
 
     @Test
-    fun signUpScreen_googleFirstWithoutConsentGate() {
+    fun signUpScreen_emailPasswordWithoutPhoneOrConsents() {
         val signUp = readMainSource("com/truckerload/presentation/screens/auth/SignUpScreen.kt")
         val googleIdx = signUp.indexOf("GoogleSignInButton(")
         val emailFieldIdx = signUp.indexOf("auth_email_hint")
         assertTrue(googleIdx >= 0 && emailFieldIdx > googleIdx)
         assertTrue(signUp.contains("googleSignIn.launch()"))
-        val googleBlock = signUp.substring(googleIdx, emailFieldIdx)
-        assertFalse(googleBlock.contains("signup_error_age_required"))
-        assertFalse(googleBlock.contains("signup_error_tos_required"))
         assertTrue(signUp.contains("signup_email_alternative"))
+        assertTrue(signUp.contains("auth_full_name_hint"))
+        assertTrue(signUp.contains("auth_confirm_password_hint"))
+        assertTrue(signUp.contains("SignUpFormValidation.errorResId"))
+        assertFalse(signUp.contains("PhoneWithCountryField"))
+        assertFalse(signUp.contains("RegistrationConsentSection"))
+        assertFalse(signUp.contains("signup_age_confirm"))
+        assertFalse(signUp.contains("signup_tos_confirm"))
+        assertFalse(signUp.contains("signup_analytics_confirm"))
+        assertFalse(signUp.contains("auth_phone_hint"))
     }
 
     @Test

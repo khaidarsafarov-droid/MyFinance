@@ -63,7 +63,6 @@ class AccountRegistrationPrivacyTest {
             identity = identity,
             professional = professional,
             progressStore = progressStore,
-            consentStore = ConsentStore(context),
             userProfileStore = userProfileStore,
             nowMillis = { now },
         )
@@ -94,7 +93,6 @@ class AccountRegistrationPrivacyTest {
             email = "a@example.com",
             authProvider = "EMAIL",
             displayName = "Ann Driver",
-            consents = AccountConsents(tosAccepted = true, analyticsAccepted = false, ageConfirmed = true),
             isVerified = true,
         )
         assertTrue(created.isSuccess)
@@ -111,8 +109,8 @@ class AccountRegistrationPrivacyTest {
 
         val user = identity.get(userId)!!
         assertEquals("a@example.com", user.email)
-        assertTrue(user.ageConfirmed)
-        assertNotNull(user.acceptedTosAt)
+        assertFalse(user.ageConfirmed)
+        assertNull(user.acceptedTosAt)
         assertNull(user.analyticsConsentAt)
 
         val pro = professional.getOwn(userId)!!
@@ -133,7 +131,6 @@ class AccountRegistrationPrivacyTest {
                 email = "b@example.com",
                 authProvider = "EMAIL",
                 displayName = "Bob",
-                consents = AccountConsents(tosAccepted = true, ageConfirmed = true),
                 isVerified = true,
             ).isSuccess,
         )
@@ -151,7 +148,6 @@ class AccountRegistrationPrivacyTest {
             email = "owner@example.com",
             authProvider = "EMAIL",
             displayName = "Owner",
-            consents = AccountConsents(tosAccepted = true, ageConfirmed = true),
             isVerified = true,
         )
         registration.completeBasicProfile("Owner", DriverRole.OWNER_OPERATOR)
@@ -181,7 +177,6 @@ class AccountRegistrationPrivacyTest {
             email = "gone@example.com",
             authProvider = "EMAIL",
             displayName = "Gone",
-            consents = AccountConsents(tosAccepted = true, ageConfirmed = true),
             isVerified = true,
         )
         registration.completeBasicProfile("Gone", DriverRole.OWNER_OPERATOR)
@@ -219,25 +214,19 @@ class AccountRegistrationPrivacyTest {
     }
 
     @Test
-    fun credentialsRejectedWithoutAgeAndTos() = runBlocking {
-        val noAge = registration.completeCredentials(
+    fun credentialsCompleteWithoutAgeOrTos() = runBlocking {
+        val created = registration.completeCredentials(
             phone = null,
             email = "x@example.com",
             authProvider = "EMAIL",
             displayName = "X",
-            consents = AccountConsents(tosAccepted = true, ageConfirmed = false),
             isVerified = true,
         )
-        assertTrue(noAge.isFailure)
-        val noTos = registration.completeCredentials(
-            phone = null,
-            email = "x@example.com",
-            authProvider = "EMAIL",
-            displayName = "X",
-            consents = AccountConsents(tosAccepted = false, ageConfirmed = true),
-            isVerified = true,
-        )
-        assertTrue(noTos.isFailure)
+        assertTrue(created.isSuccess)
+        val user = identity.get(userId)!!
+        assertFalse(user.ageConfirmed)
+        assertNull(user.acceptedTosAt)
+        assertNull(user.analyticsConsentAt)
     }
 
     private fun professionalProfile(

@@ -1,10 +1,8 @@
 package com.truckerload.data.repository.account
 
-import com.truckerload.data.preferences.ConsentStore
 import com.truckerload.data.preferences.RegistrationProgressStore
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.domain.account.AccountConsents
 import com.truckerload.domain.account.DriverProfessionalProfile
 import com.truckerload.domain.account.DriverRole
 import com.truckerload.domain.account.RegistrationProgress
@@ -16,7 +14,6 @@ class RegistrationService(
     private val identity: AccountIdentityRepository,
     private val professional: DriverProfessionalRepository,
     private val progressStore: RegistrationProgressStore,
-    private val consentStore: ConsentStore,
     private val userProfileStore: UserProfileStore,
     private val nowMillis: () -> Long = { System.currentTimeMillis() },
 ) {
@@ -26,30 +23,14 @@ class RegistrationService(
 
     fun needsRequiredOnboarding(): Boolean = !progress().basicComplete
 
-    fun consents(): AccountConsents = consentStore.load(userId)
-
     suspend fun completeCredentials(
         phone: String?,
         email: String?,
         authProvider: String,
         displayName: String,
-        consents: AccountConsents,
         isVerified: Boolean,
     ): Result<UserAccount> {
-        if (!consents.ageConfirmed) {
-            return Result.failure(IllegalArgumentException("AGE_REQUIRED"))
-        }
-        if (!consents.tosAccepted) {
-            return Result.failure(IllegalArgumentException("TOS_REQUIRED"))
-        }
         val now = nowMillis()
-        consentStore.save(
-            userId = userId,
-            tosAccepted = true,
-            analyticsAccepted = consents.analyticsAccepted,
-            ageConfirmed = true,
-            nowMillis = now,
-        )
         val account = UserAccount(
             id = userId,
             phone = phone?.takeIf { it.isNotBlank() },
@@ -58,9 +39,9 @@ class RegistrationService(
             displayName = displayName.trim(),
             createdAt = now,
             isVerified = isVerified,
-            ageConfirmed = true,
-            acceptedTosAt = now,
-            analyticsConsentAt = now.takeIf { consents.analyticsAccepted },
+            ageConfirmed = false,
+            acceptedTosAt = null,
+            analyticsConsentAt = null,
         )
         identity.upsert(account)
         progressStore.save(
@@ -100,7 +81,7 @@ class RegistrationService(
                 displayName = name,
                 createdAt = now,
                 isVerified = false,
-                ageConfirmed = true,
+                ageConfirmed = false,
                 acceptedTosAt = null,
                 analyticsConsentAt = null,
             )).copy(

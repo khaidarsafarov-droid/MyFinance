@@ -132,20 +132,15 @@
     <string name="signup_button">Зарегистрироваться</string>
     <string name="signup_loading">Регистрация…</string>
     <string name="auth_full_name_hint">Имя и Фамилия</string>
-    <string name="auth_phone_hint">Номер телефона</string>
     <string name="auth_error_name_required">Введите имя</string>
-    <string name="auth_error_phone_required">Введите номер телефона</string>
-    <string name="signup_age_confirm">Мне есть 18 лет</string>
-    <string name="signup_tos_confirm">Я принимаю Условия использования и Политику конфиденциальности</string>
-    <string name="signup_analytics_confirm">Разрешить использование данных для аналитики и уведомлений (необязательно)</string>
-    <string name="signup_error_age_required">Подтвердите, что вам есть 18 лет</string>
-    <string name="signup_error_tos_required">Нужно принять Условия и Политику конфиденциальности</string>
 
     <string name="login_email_title">Вход по почте</string>
     <string name="login_email_subtitle">Введите email и пароль для входа</string>
 
     <string name="auth_email_hint">Email</string>
     <string name="auth_password_hint">Пароль</string>
+    <string name="auth_confirm_password_hint">Подтвердите пароль</string>
+    <string name="auth_error_password_mismatch">Пароли не совпадают</string>
     <string name="auth_password_show_cd">Показать пароль</string>
     <string name="auth_password_hide_cd">Скрыть пароль</string>
     <string name="auth_error_email_required">Введите email</string>

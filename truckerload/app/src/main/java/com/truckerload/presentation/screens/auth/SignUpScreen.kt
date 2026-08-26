@@ -41,17 +41,16 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthLogin
+import com.truckerload.data.preferences.RegistrationBootstrap
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.SupabaseAuthService
 import com.truckerload.data.sync.DeviceSlotLogin
-import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.presentation.auth.BiometricOptInDialog
 import com.truckerload.presentation.auth.GoogleAuthCallbacks
 import com.truckerload.presentation.auth.enableBiometricUnlock
 import com.truckerload.presentation.auth.rememberGoogleSignInLauncher
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import com.truckerload.presentation.components.GoogleSignInButton
-import com.truckerload.presentation.components.PhoneWithCountryField
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
@@ -79,15 +78,13 @@ fun SignUpScreen(
     val scope = rememberCoroutineScope()
 
     var fullName by remember { mutableStateOf("") }
-    var phoneCountry by remember { mutableStateOf(CountryCatalog.default) }
-    var nationalNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var isGoogleLoading by remember { mutableStateOf(false) }
-    var consents by remember { mutableStateOf(RegistrationConsentState()) }
 
     val googleSignIn = rememberGoogleSignInLauncher(
         GoogleAuthCallbacks(
@@ -95,15 +92,10 @@ fun SignUpScreen(
             onSignedIn = {
                 val uid = authStore.currentUserIdOrNull()
                 if (uid != null) {
-                    com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+                    RegistrationBootstrap.afterCredentialsCreated(
                         context = context,
                         userId = uid,
                         isVerified = true,
-                        consents = com.truckerload.domain.account.AccountConsents(
-                            tosAccepted = consents.tosAccepted,
-                            analyticsAccepted = consents.analyticsAccepted,
-                            ageConfirmed = consents.ageConfirmed,
-                        ),
                     )
                 }
                 onSuccess()
@@ -121,15 +113,18 @@ fun SignUpScreen(
         }
     }
 
+    fun nameParts(nameTrimmed: String): Pair<String, String> {
+        val parts = nameTrimmed.split(" ", limit = 2)
+        return (parts.firstOrNull() ?: "") to (parts.getOrNull(1) ?: "")
+    }
+
     fun finishLocalSignUp(
         emailTrimmed: String,
         passwordValue: String,
         nameTrimmed: String,
-        phoneFormatted: String,
         toastRes: Int,
     ) {
-        // Credentials must not block session creation — offline login needs the verifier,
-        // but the user should still be signed in if the write fails for any reason.
+        val (given, family) = nameParts(nameTrimmed)
         runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
         AuthLogin.completeLogin(
             authStore = authStore,
@@ -137,23 +132,17 @@ fun SignUpScreen(
             userId = AccountIds.fromEmail(emailTrimmed),
             profile = UserProfile(
                 email = emailTrimmed,
-                givenName = nameTrimmed,
-                familyName = "",
+                givenName = given,
+                familyName = family,
                 photoUrl = null,
-                phoneNumber = phoneFormatted,
+                phoneNumber = null,
             ),
         )
-        com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+        RegistrationBootstrap.afterCredentialsCreated(
             context = context,
             userId = AccountIds.fromEmail(emailTrimmed),
             isVerified = true,
-            consents = com.truckerload.domain.account.AccountConsents(
-                tosAccepted = consents.tosAccepted,
-                analyticsAccepted = consents.analyticsAccepted,
-                ageConfirmed = consents.ageConfirmed,
-            ),
         )
-        // No outbound email without Supabase — treat on-device accounts as verified.
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .markVerified(emailTrimmed)
         android.widget.Toast.makeText(context, context.getString(toastRes), android.widget.Toast.LENGTH_LONG).show()
@@ -164,13 +153,12 @@ fun SignUpScreen(
         emailTrimmed: String,
         passwordValue: String,
         nameTrimmed: String,
-        phoneFormatted: String,
         userId: String,
         accessToken: String,
         refreshToken: String?,
         profileWarning: Boolean,
     ) {
-        val parts = nameTrimmed.split(" ", limit = 2)
+        val (given, family) = nameParts(nameTrimmed)
         runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
         AuthLogin.completeLogin(
             authStore = authStore,
@@ -178,23 +166,18 @@ fun SignUpScreen(
             userId = userId,
             profile = UserProfile(
                 email = emailTrimmed,
-                givenName = parts.firstOrNull() ?: "",
-                familyName = parts.getOrNull(1) ?: "",
+                givenName = given,
+                familyName = family,
                 photoUrl = null,
-                phoneNumber = phoneFormatted,
+                phoneNumber = null,
             ),
             accessToken = accessToken,
             refreshToken = refreshToken,
         )
-        com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+        RegistrationBootstrap.afterCredentialsCreated(
             context = context,
             userId = userId,
             isVerified = false,
-            consents = com.truckerload.domain.account.AccountConsents(
-                tosAccepted = consents.tosAccepted,
-                analyticsAccepted = consents.analyticsAccepted,
-                ageConfirmed = consents.ageConfirmed,
-            ),
         )
         com.truckerload.data.preferences.EmailVerificationStore(context)
             .beginVerification(emailTrimmed)
@@ -223,104 +206,91 @@ fun SignUpScreen(
         error = null
         val nameTrimmed = fullName.trim()
         val emailTrimmed = email.trim()
-        val phoneFormatted = CountryCatalog.formatE164(phoneCountry, nationalNumber)
-        val phoneDigits = phoneFormatted.filter { it.isDigit() }
-        when {
-            !consents.ageConfirmed -> error = context.getString(R.string.signup_error_age_required)
-            !consents.tosAccepted -> error = context.getString(R.string.signup_error_tos_required)
-            nameTrimmed.isBlank() -> error = context.getString(R.string.auth_error_name_required)
-            phoneDigits.length < 8 -> error = context.getString(R.string.auth_error_phone_required)
-            emailTrimmed.isBlank() -> error = context.getString(R.string.auth_error_email_required)
-            else -> {
-                val policy = com.truckerload.data.auth.PasswordPolicy.validate(password)
-                if (!policy.ok) {
-                    error = context.getString(policy.errorResId)
-                    return
-                }
-                if (!supabaseAuth.isConfigured()) {
-                    finishLocalSignUp(
-                        emailTrimmed,
-                        password,
-                        nameTrimmed,
-                        phoneFormatted,
-                        R.string.supabase_not_configured_local,
-                    )
-                    return
-                }
-                isLoading = true
-                scope.launch {
-                    val checkResult = supabaseAuth.checkRegistration(emailTrimmed, phoneFormatted)
-                    val shouldProceed = checkResult.fold(
-                        onSuccess = { (emailTaken, phoneTaken) ->
-                            if (emailTaken || phoneTaken) {
+        val formError = SignUpFormValidation.errorResId(
+            name = nameTrimmed,
+            email = emailTrimmed,
+            password = password,
+            confirmPassword = confirmPassword,
+        )
+        if (formError != null) {
+            error = context.getString(formError)
+            return
+        }
+        if (!supabaseAuth.isConfigured()) {
+            finishLocalSignUp(
+                emailTrimmed,
+                password,
+                nameTrimmed,
+                R.string.supabase_not_configured_local,
+            )
+            return
+        }
+        isLoading = true
+        scope.launch {
+            val checkResult = supabaseAuth.checkRegistration(emailTrimmed, "")
+            val shouldProceed = checkResult.fold(
+                onSuccess = { (emailTaken, _) ->
+                    if (emailTaken) {
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                            error = context.getString(R.string.auth_error_user_exists)
+                        }
+                        false
+                    } else true
+                },
+                onFailure = { true },
+            )
+            if (!shouldProceed) return@launch
+            val signUpResult = supabaseAuth.signUp(emailTrimmed, password, nameTrimmed, "")
+            withContext(Dispatchers.Main) {
+                signUpResult.fold(
+                    onSuccess = { r ->
+                        if (r.accessToken.isNotBlank()) {
+                            scope.launch {
+                                val upsertResult = supabaseAuth.upsertProfile(
+                                    r.accessToken,
+                                    r.user.id,
+                                    nameTrimmed,
+                                    "",
+                                    r.user.email ?: emailTrimmed,
+                                )
                                 withContext(Dispatchers.Main) {
-                                    isLoading = false
-                                    error = context.getString(R.string.auth_error_user_exists)
-                                }
-                                false
-                            } else true
-                        },
-                        onFailure = { true },
-                    )
-                    if (!shouldProceed) return@launch
-                    val signUpResult = supabaseAuth.signUp(emailTrimmed, password, nameTrimmed, phoneFormatted)
-                    withContext(Dispatchers.Main) {
-                        signUpResult.fold(
-                            onSuccess = { r ->
-                                if (r.accessToken.isNotBlank()) {
-                                    scope.launch {
-                                        val upsertResult = supabaseAuth.upsertProfile(
-                                            r.accessToken,
-                                            r.user.id,
-                                            nameTrimmed,
-                                            phoneFormatted,
-                                            r.user.email ?: emailTrimmed,
-                                        )
-                                        withContext(Dispatchers.Main) {
-                                            // Always persist local credentials + session after a
-                                            // successful Supabase signUp — profile RPC failure must
-                                            // not force the user to register again.
-                                            finishCloudSignUp(
-                                                emailTrimmed = r.user.email ?: emailTrimmed,
-                                                passwordValue = password,
-                                                nameTrimmed = nameTrimmed,
-                                                phoneFormatted = phoneFormatted,
-                                                userId = r.user.id,
-                                                accessToken = r.accessToken,
-                                                refreshToken = r.refreshToken,
-                                                profileWarning = upsertResult.isFailure,
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    isLoading = false
-                                    finishLocalSignUp(
-                                        emailTrimmed,
-                                        password,
-                                        nameTrimmed,
-                                        phoneFormatted,
-                                        R.string.signup_success_confirm_email,
+                                    finishCloudSignUp(
+                                        emailTrimmed = r.user.email ?: emailTrimmed,
+                                        passwordValue = password,
+                                        nameTrimmed = nameTrimmed,
+                                        userId = r.user.id,
+                                        accessToken = r.accessToken,
+                                        refreshToken = r.refreshToken,
+                                        profileWarning = upsertResult.isFailure,
                                     )
                                 }
-                            },
-                            onFailure = { err ->
-                                isLoading = false
-                                if (SupabaseAuthService.isEmailSendRateLimited(err)) {
-                                    finishLocalSignUp(
-                                        emailTrimmed,
-                                        password,
-                                        nameTrimmed,
-                                        phoneFormatted,
-                                        R.string.auth_error_email_rate_limit,
-                                    )
-                                } else {
-                                    error = err.message
-                                        ?: context.getString(R.string.signup_error_register)
-                                }
-                            },
-                        )
-                    }
-                }
+                            }
+                        } else {
+                            isLoading = false
+                            finishLocalSignUp(
+                                emailTrimmed,
+                                password,
+                                nameTrimmed,
+                                R.string.signup_success_confirm_email,
+                            )
+                        }
+                    },
+                    onFailure = { err ->
+                        isLoading = false
+                        if (SupabaseAuthService.isEmailSendRateLimited(err)) {
+                            finishLocalSignUp(
+                                emailTrimmed,
+                                password,
+                                nameTrimmed,
+                                R.string.auth_error_email_rate_limit,
+                            )
+                        } else {
+                            error = err.message
+                                ?: context.getString(R.string.signup_error_register)
+                        }
+                    },
+                )
             }
         }
     }
@@ -405,14 +375,6 @@ fun SignUpScreen(
                     colors = tfColors
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                PhoneWithCountryField(
-                    country = phoneCountry,
-                    nationalNumber = nationalNumber,
-                    onCountryChange = { phoneCountry = it; error = null },
-                    onNationalNumberChange = { nationalNumber = it; error = null },
-                    label = stringResource(R.string.auth_phone_hint),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it; error = null },
@@ -423,31 +385,22 @@ fun SignUpScreen(
                     colors = tfColors
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                SignUpPasswordField(
                     value = password,
                     onValueChange = { password = it; error = null },
-                    label = { Text(stringResource(R.string.auth_password_hint)) },
-                    singleLine = true,
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                if (passwordVisible) AppIcons.VisibilityOff else AppIcons.Visibility,
-                                contentDescription = stringResource(
-                                    if (passwordVisible) R.string.auth_password_hide_cd
-                                    else R.string.auth_password_show_cd,
-                                )
-                            )
-                        }
-                    },
-                    colors = tfColors
+                    labelRes = R.string.auth_password_hint,
+                    visible = passwordVisible,
+                    onToggleVisible = { passwordVisible = !passwordVisible },
+                    colors = tfColors,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                RegistrationConsentSection(
-                    state = consents,
-                    onChange = { consents = it; error = null },
+                Spacer(modifier = Modifier.height(16.dp))
+                SignUpPasswordField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it; error = null },
+                    labelRes = R.string.auth_confirm_password_hint,
+                    visible = passwordVisible,
+                    onToggleVisible = { passwordVisible = !passwordVisible },
+                    colors = tfColors,
                 )
                 error?.let { Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -479,4 +432,36 @@ fun SignUpScreen(
             },
         )
     }
+}
+
+@Composable
+private fun SignUpPasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    labelRes: Int,
+    visible: Boolean,
+    onToggleVisible: () -> Unit,
+    colors: androidx.compose.material3.TextFieldColors,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(labelRes)) },
+        singleLine = true,
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        trailingIcon = {
+            IconButton(onClick = onToggleVisible) {
+                Icon(
+                    if (visible) AppIcons.VisibilityOff else AppIcons.Visibility,
+                    contentDescription = stringResource(
+                        if (visible) R.string.auth_password_hide_cd
+                        else R.string.auth_password_show_cd,
+                    )
+                )
+            }
+        },
+        colors = colors,
+    )
 }

@@ -46,7 +46,6 @@ object AccountGraphModule {
             identity = identity,
             professional = professional,
             progressStore = progressStore,
-            consentStore = consentStore,
             userProfileStore = userProfileStore,
         )
         val deletion = AccountDeletionService(
