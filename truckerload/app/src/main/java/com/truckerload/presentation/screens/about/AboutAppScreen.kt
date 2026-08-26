@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.BuildConfig
 import com.truckerload.R
+import com.truckerload.presentation.components.AppBrandLogo
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -67,6 +68,7 @@ fun AboutAppScreen(
                 .padding(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
+            AppBrandLogo(size = 88.dp)
             Text(
                 text = stringResource(R.string.home_brand_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
