@@ -234,7 +234,7 @@ class TelegramBotForegroundService : Service() {
         private const val CHANNEL_ID = "telegram_bot_sync_quiet"
         private const val LEGACY_CHANNEL_ID = "telegram_bot_sync"
         private const val NOTIFICATION_ID = 4101
-        private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
+        private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v4"
 
         private val isRunningFlag = AtomicBoolean(false)
         private val startRequested = AtomicBoolean(false)
