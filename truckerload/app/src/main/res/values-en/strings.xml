@@ -1313,10 +1313,10 @@
     <string name="permission_rationale_location_title">Why we need location</string>
     <string name="permission_rationale_location_body">Location is used to show you on the friends map and geotag trip photos. We do not publish your exact position in the community without your consent.</string>
     <string name="settings_delete_account_title">Delete account</string>
-    <string name="settings_delete_account_desc">Permanently deletes your profile, CDL, community data, and load journal on this device. This cannot be undone.</string>
+    <string name="settings_delete_account_desc">Permanently deletes your profile and journal on this device: loads, paychecks, and diesel. This cannot be undone.</string>
     <string name="settings_delete_account_button">Delete account</string>
     <string name="settings_delete_account_confirm_title">Delete account permanently?</string>
-    <string name="settings_delete_account_confirm_message">User, DriverProfile, CommunityProfile, and related data including the load journal will be deleted. You cannot recover the account.</string>
+    <string name="settings_delete_account_confirm_message">Your account, profile, and all journal records on this phone will be deleted. You cannot recover the account.</string>
     <string name="settings_delete_account_success">Account deleted</string>
     <string name="email_verify_title">Verify email</string>
     <string name="email_verify_subtitle">Soft verification for %1$s. The code is shown below on this screen (the app does not email the code). The journal is already available — you can verify later.</string>
