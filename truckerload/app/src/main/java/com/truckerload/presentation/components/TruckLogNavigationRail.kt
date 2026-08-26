@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -26,7 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,29 +51,10 @@ import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
 
-private data class SidebarDestination(
-    val route: String?,
-    val drawer: DrawerDestination?,
-    val icon: ImageVector,
-    val labelRes: Int,
-)
-
-private val primaryDestinations = listOf(
-    SidebarDestination(Routes.HOME, null, AppIcons.Assignment, R.string.nav_logbook),
-    SidebarDestination(Routes.STATS, null, AppIcons.Flag, R.string.nav_weekly_goal),
-    SidebarDestination(Routes.PROFILE, null, AppIcons.Person, R.string.nav_profile),
-)
-
-private val toolDestinations = listOf(
-    SidebarDestination(null, DrawerDestination.SETTINGS, AppIcons.Settings, R.string.nav_settings),
-    SidebarDestination(null, DrawerDestination.REPORTS, AppIcons.BarChart, R.string.drawer_reports),
-    SidebarDestination(null, DrawerDestination.DOCUMENTS, AppIcons.Description, R.string.drawer_documents),
-    SidebarDestination(Routes.CAMERA, null, AppIcons.CameraAlt, R.string.camera),
-)
-
 /**
  * Tablet navigation: compact icon rail on 7–10″ portrait, wide labeled sidebar
- * on large landscape windows.
+ * on large landscape windows. Holds every drawer destination so the overlay
+ * drawer is not used in tablet mode.
  */
 @Composable
 fun TruckLogNavigationRail(
@@ -96,6 +80,15 @@ fun TruckLogNavigationRail(
         providerPhotoUrl = userProfile?.photoUrl,
         customPhoto = userProfile?.customPhoto == true,
     )
+    var showLogoutConfirm by remember { mutableStateOf(false) }
+    val onItemClick: (TabletRailSpec) -> Unit = { item ->
+        activateTabletRailItem(
+            item = item,
+            onNavigate = onNavigate,
+            onDrawerNavigate = onDrawerNavigate,
+            onLogout = { showLogoutConfirm = true },
+        )
+    }
 
     Column(
         modifier = modifier
@@ -110,83 +103,85 @@ fun TruckLogNavigationRail(
         if (compact) {
             CompactTabletRailContent(
                 currentRoute = currentRoute,
-                onNavigate = onNavigate,
-                onDrawerNavigate = onDrawerNavigate,
+                onItemClick = onItemClick,
             )
-            return@Column
+        } else {
+            WideTabletRailContent(
+                photoUrl = photoUrl,
+                displayName = displayName,
+                currentRoute = currentRoute,
+                onItemClick = onItemClick,
+                onOpenSettings = { onDrawerNavigate(DrawerDestination.SETTINGS) },
+            )
         }
-        AppBrandLogo(size = 48.dp, cornerRadius = 12.dp)
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.home_brand_title),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = Color.White,
-        )
-        Spacer(Modifier.height(20.dp))
-        SidebarAvatar(photoUrl = photoUrl, name = displayName)
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = stringResource(R.string.tablet_sidebar_greeting, displayName),
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = Color.White,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(20.dp))
+    }
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            primaryDestinations.forEach { dest ->
-                val selected = dest.route != null && isRailDestinationSelected(currentRoute, dest.route)
-                SoftSidebarItem(
-                    selected = selected,
-                    icon = dest.icon,
-                    label = stringResource(dest.labelRes),
-                    onClick = {
-                        dest.route?.let(onNavigate)
-                    },
-                )
-            }
-            Spacer(Modifier.height(12.dp))
-            toolDestinations.forEach { dest ->
-                val selected = when {
-                    dest.route != null -> isRailDestinationSelected(currentRoute, dest.route)
-                    dest.drawer == DrawerDestination.SETTINGS ->
-                        currentRoute == Routes.SETTINGS
-                    dest.drawer == DrawerDestination.REPORTS ->
-                        currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
-                    dest.drawer == DrawerDestination.DOCUMENTS ->
-                        currentRoute == Routes.SCAN_GALLERY || currentRoute == Routes.SCANNER
-                    else -> false
-                }
-                SoftSidebarItem(
-                    selected = selected,
-                    icon = dest.icon,
-                    label = stringResource(dest.labelRes),
-                    onClick = {
-                        when {
-                            dest.route != null -> onNavigate(dest.route)
-                            dest.drawer != null -> onDrawerNavigate(dest.drawer)
-                        }
-                    },
-                )
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-        BackupSidebarCard(onOpenSettings = { onDrawerNavigate(DrawerDestination.SETTINGS) })
+    if (showLogoutConfirm) {
+        LogoutConfirmDialog(onDismiss = { showLogoutConfirm = false })
     }
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.ColumnScope.CompactTabletRailContent(
+private fun ColumnScope.WideTabletRailContent(
+    photoUrl: String?,
+    displayName: String,
     currentRoute: String?,
-    onNavigate: (String) -> Unit,
-    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onItemClick: (TabletRailSpec) -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    AppBrandLogo(size = 48.dp, cornerRadius = 12.dp)
+    Spacer(Modifier.height(12.dp))
+    Text(
+        text = stringResource(R.string.home_brand_title),
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        color = Color.White,
+    )
+    Spacer(Modifier.height(20.dp))
+    SidebarAvatar(photoUrl = photoUrl, name = displayName)
+    Spacer(Modifier.height(10.dp))
+    Text(
+        text = stringResource(R.string.tablet_sidebar_greeting, displayName),
+        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+        color = Color.White,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+    Spacer(Modifier.height(20.dp))
+
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        tabletRailPrimaryItems.forEach { dest ->
+            SoftSidebarItem(
+                selected = isTabletRailItemSelected(currentRoute, dest),
+                icon = railIcon(dest),
+                label = stringResource(dest.labelRes),
+                onClick = { onItemClick(dest) },
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        tabletRailToolItems.forEach { dest ->
+            dest.sectionLabelRes?.let { SoftSidebarSectionLabel(stringResource(it)) }
+            SoftSidebarItem(
+                selected = isTabletRailItemSelected(currentRoute, dest),
+                icon = railIcon(dest),
+                label = stringResource(dest.labelRes),
+                onClick = { onItemClick(dest) },
+            )
+        }
+    }
+
+    Spacer(Modifier.height(12.dp))
+    BackupSidebarCard(onOpenSettings = onOpenSettings)
+}
+
+@Composable
+private fun ColumnScope.CompactTabletRailContent(
+    currentRoute: String?,
+    onItemClick: (TabletRailSpec) -> Unit,
 ) {
     Text(
         text = stringResource(R.string.home_brand_title),
@@ -203,30 +198,27 @@ private fun androidx.compose.foundation.layout.ColumnScope.CompactTabletRailCont
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        (primaryDestinations + toolDestinations).forEach { dest ->
-            val selected = when {
-                dest.route != null -> isRailDestinationSelected(currentRoute, dest.route)
-                dest.drawer == DrawerDestination.SETTINGS ->
-                    currentRoute == Routes.SETTINGS || currentRoute == Routes.PRIVACY_SETTINGS
-                dest.drawer == DrawerDestination.REPORTS ->
-                    currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
-                dest.drawer == DrawerDestination.DOCUMENTS ->
-                    currentRoute == Routes.SCAN_GALLERY || currentRoute == Routes.SCANNER
-                else -> false
-            }
+        (tabletRailPrimaryItems + tabletRailToolItems).forEach { dest ->
             CompactRailItem(
-                selected = selected,
-                icon = dest.icon,
+                selected = isTabletRailItemSelected(currentRoute, dest),
+                icon = railIcon(dest),
                 label = stringResource(dest.labelRes),
-                onClick = {
-                    when {
-                        dest.route != null -> onNavigate(dest.route)
-                        dest.drawer != null -> onDrawerNavigate(dest.drawer)
-                    }
-                },
+                onClick = { onItemClick(dest) },
             )
         }
     }
+}
+
+@Composable
+private fun SoftSidebarSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+        color = Color.White.copy(alpha = 0.62f),
+        modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 2.dp),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @Composable
@@ -258,15 +250,6 @@ private fun CompactRailItem(
             contentDescription = label,
             tint = fg,
             modifier = Modifier.size(UiDimens.IconNav),
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            ),
-            color = fg,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -391,18 +374,40 @@ private fun BackupSidebarCard(onOpenSettings: () -> Unit) {
     }
 }
 
-internal fun isRailDestinationSelected(currentRoute: String?, targetRoute: String): Boolean {
-    if (currentRoute == null) return false
-    return when (targetRoute) {
-        Routes.HOME -> currentRoute == Routes.HOME ||
-            currentRoute.startsWith("load_detail") ||
-            currentRoute.startsWith("edit_load") ||
-            currentRoute == Routes.ADD_LOAD
-        Routes.STATS -> currentRoute == Routes.STATS
-        Routes.PROFILE -> currentRoute == Routes.PROFILE
-        Routes.ANALYTICS -> currentRoute == Routes.ANALYTICS || currentRoute == Routes.MAP
-        Routes.SETTINGS -> currentRoute == Routes.SETTINGS
-        Routes.CAMERA -> currentRoute == Routes.CAMERA
-        else -> currentRoute == targetRoute
+private fun railIcon(item: TabletRailSpec): ImageVector {
+    if (item.isLogout) return AppIcons.Logout
+    return when (item.drawer) {
+        DrawerDestination.SETTINGS -> AppIcons.Settings
+        DrawerDestination.MAP -> AppIcons.Map
+        DrawerDestination.PAYCHECK -> AppIcons.Payments
+        DrawerDestination.DIESEL -> AppIcons.LocalGasStation
+        DrawerDestination.MISC_EXPENSES -> AppIcons.Description
+        DrawerDestination.REPORTS -> AppIcons.BarChart
+        DrawerDestination.TAX_TRACKER -> AppIcons.TableChart
+        DrawerDestination.CAMERA -> AppIcons.CameraAlt
+        DrawerDestination.SCANNER -> AppIcons.DocumentScanner
+        DrawerDestination.MAINTENANCE -> AppIcons.Build
+        DrawerDestination.DOCUMENTS -> AppIcons.Description
+        DrawerDestination.IMPROVE -> AppIcons.EditNote
+        DrawerDestination.ABOUT -> AppIcons.Info
+        null -> when (item.route) {
+            Routes.HOME -> AppIcons.Assignment
+            Routes.STATS -> AppIcons.Flag
+            Routes.PROFILE -> AppIcons.Person
+            else -> AppIcons.Assignment
+        }
+    }
+}
+
+private fun activateTabletRailItem(
+    item: TabletRailSpec,
+    onNavigate: (String) -> Unit,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onLogout: () -> Unit,
+) {
+    when {
+        item.isLogout -> onLogout()
+        item.route != null -> onNavigate(item.route)
+        item.drawer != null -> onDrawerNavigate(item.drawer)
     }
 }
