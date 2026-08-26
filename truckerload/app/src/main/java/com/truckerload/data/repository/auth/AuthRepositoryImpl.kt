@@ -72,7 +72,10 @@ class AuthRepositoryImpl @Inject constructor(
         return GoogleTokenRequestResult.FallBackToLegacy
     }
 
-    override suspend fun signInWithGoogle(credential: GoogleAuthCredential): Result<AuthSignInResult> =
+    override suspend fun signInWithGoogle(
+        credential: GoogleAuthCredential,
+        replaceOccupant: Boolean,
+    ): Result<AuthSignInResult> =
         withContext(Dispatchers.IO) {
             val idToken = credential.idToken
             val toasts = mutableListOf<String>()
@@ -80,7 +83,7 @@ class AuthRepositoryImpl @Inject constructor(
                 runCatching { supabaseAuth.signInWithIdToken(idToken) }
                     .getOrElse { e ->
                         toasts += appContext.getString(R.string.login_google_fallback, e.message ?: "")
-                        return@withContext completeLocalGoogle(credential, toasts)
+                        return@withContext completeLocalGoogle(credential, toasts, replaceOccupant)
                     }
                     .fold(
                         onSuccess = { signInResult ->
@@ -106,6 +109,7 @@ class AuthRepositoryImpl @Inject constructor(
                                 refreshToken = signInResult.refreshToken,
                                 googleIdToken = idToken,
                                 toasts = toasts,
+                                replaceOccupant = replaceOccupant,
                             )
                         },
                         onFailure = { err ->
@@ -113,16 +117,17 @@ class AuthRepositoryImpl @Inject constructor(
                                 R.string.login_google_fallback,
                                 err.message ?: "",
                             )
-                            return@withContext completeLocalGoogle(credential, toasts)
+                            return@withContext completeLocalGoogle(credential, toasts, replaceOccupant)
                         },
                     )
             }
-            completeLocalGoogle(credential, toasts)
+            completeLocalGoogle(credential, toasts, replaceOccupant)
         }
 
     private suspend fun completeLocalGoogle(
         credential: GoogleAuthCredential,
         toasts: MutableList<String>,
+        replaceOccupant: Boolean,
     ): Result<AuthSignInResult> {
         val claims = credential.idToken?.let { decodeGoogleIdToken(it) }
         val profile = UserProfile(
@@ -139,10 +144,15 @@ class AuthRepositoryImpl @Inject constructor(
             accessToken = credential.idToken,
             googleIdToken = credential.idToken,
             toasts = toasts,
+            replaceOccupant = replaceOccupant,
         )
     }
 
-    override suspend fun signInWithEmail(email: String, password: String): Result<AuthSignInResult> =
+    override suspend fun signInWithEmail(
+        email: String,
+        password: String,
+        replaceOccupant: Boolean,
+    ): Result<AuthSignInResult> =
         withContext(Dispatchers.IO) {
             val emailTrimmed = email.trim()
             when {
@@ -150,12 +160,16 @@ class AuthRepositoryImpl @Inject constructor(
                     Result.failure(IllegalArgumentException(appContext.getString(R.string.auth_error_email_required)))
                 password.isBlank() ->
                     Result.failure(IllegalArgumentException(appContext.getString(R.string.auth_error_password_required)))
-                !supabaseAuth.isConfigured() -> signInEmailLocal(emailTrimmed, password)
-                else -> signInEmailSupabase(emailTrimmed, password)
+                !supabaseAuth.isConfigured() -> signInEmailLocal(emailTrimmed, password, replaceOccupant)
+                else -> signInEmailSupabase(emailTrimmed, password, replaceOccupant)
             }
         }
 
-    private suspend fun signInEmailLocal(email: String, password: String): Result<AuthSignInResult> {
+    private suspend fun signInEmailLocal(
+        email: String,
+        password: String,
+        replaceOccupant: Boolean,
+    ): Result<AuthSignInResult> {
         // FIX: never auto-register on failed login — that created accounts with weak/typo passwords
         if (!credentialsStore.hasCredentialsFor(email)) {
             return Result.failure(
@@ -174,10 +188,15 @@ class AuthRepositoryImpl @Inject constructor(
             supabaseUserId = credentialsStore.boundUserIdFor(email),
             toasts = toasts,
             biometricEnabled = biometric,
+            replaceOccupant = replaceOccupant,
         )
     }
 
-    private suspend fun signInEmailSupabase(email: String, password: String): Result<AuthSignInResult> {
+    private suspend fun signInEmailSupabase(
+        email: String,
+        password: String,
+        replaceOccupant: Boolean,
+    ): Result<AuthSignInResult> {
         val result = supabaseAuth.signInWithPassword(email, password)
         return result.fold(
             onSuccess = { r ->
@@ -203,6 +222,7 @@ class AuthRepositoryImpl @Inject constructor(
                             accessToken = r.accessToken,
                             refreshToken = r.refreshToken,
                             biometricEnabled = biometric,
+                            replaceOccupant = replaceOccupant,
                         )
                     },
                     onFailure = {
@@ -218,6 +238,7 @@ class AuthRepositoryImpl @Inject constructor(
                             accessToken = r.accessToken,
                             refreshToken = r.refreshToken,
                             biometricEnabled = biometric,
+                            replaceOccupant = replaceOccupant,
                         )
                     },
                 )
@@ -231,6 +252,7 @@ class AuthRepositoryImpl @Inject constructor(
                         supabaseUserId = credentialsStore.boundUserIdFor(email),
                         toasts = toasts,
                         biometricEnabled = biometric,
+                        replaceOccupant = replaceOccupant,
                     )
                 } else {
                     Result.failure(
@@ -290,7 +312,15 @@ class AuthRepositoryImpl @Inject constructor(
         googleIdToken: String? = null,
         toasts: List<String> = emptyList(),
         biometricEnabled: Boolean = false,
+        replaceOccupant: Boolean = false,
     ): Result<AuthSignInResult> {
+        DeviceSlotLogin.beforeSessionPersisted(
+            context = appContext,
+            accessToken = accessToken,
+            replaceOccupant = replaceOccupant,
+        ).exceptionOrNull()?.let { denied ->
+            return Result.failure(denied)
+        }
         delay(400)
         val ok = AuthLogin.tryCompleteLogin(
             authStore = authStore,
@@ -306,9 +336,6 @@ class AuthRepositoryImpl @Inject constructor(
             return Result.failure(
                 IllegalStateException(appContext.getString(R.string.auth_error_email_required)),
             )
-        }
-        DeviceSlotLogin.afterSessionPersisted(appContext, authStore).exceptionOrNull()?.let { denied ->
-            return Result.failure(denied)
         }
         val userId = authStore.currentUserIdOrNull().orEmpty()
         if (profile.googleId.isNullOrBlank() && profile.email.isNotBlank() && userId.isNotBlank()) {

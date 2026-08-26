@@ -171,47 +171,49 @@ fun SignUpScreen(
         profileWarning: Boolean,
     ) {
         val parts = nameTrimmed.split(" ", limit = 2)
-        runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
-        AuthLogin.completeLogin(
-            authStore = authStore,
-            userProfileStore = userProfileStore,
-            userId = userId,
-            profile = UserProfile(
-                email = emailTrimmed,
-                givenName = parts.firstOrNull() ?: "",
-                familyName = parts.getOrNull(1) ?: "",
-                photoUrl = null,
-                phoneNumber = phoneFormatted,
-            ),
-            accessToken = accessToken,
-            refreshToken = refreshToken,
-        )
-        com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
-            context = context,
-            userId = userId,
-            isVerified = false,
-            consents = com.truckerload.domain.account.AccountConsents(
-                tosAccepted = consents.tosAccepted,
-                analyticsAccepted = consents.analyticsAccepted,
-                ageConfirmed = consents.ageConfirmed,
-            ),
-        )
-        com.truckerload.data.preferences.EmailVerificationStore(context)
-            .beginVerification(emailTrimmed)
-        if (profileWarning) {
-            android.widget.Toast.makeText(
-                context,
-                context.getString(R.string.signup_profile_sync_deferred),
-                android.widget.Toast.LENGTH_LONG,
-            ).show()
-        }
         scope.launch {
             val gate = withContext(Dispatchers.IO) {
-                DeviceSlotLogin.afterSessionPersisted(context, authStore)
+                DeviceSlotLogin.beforeSessionPersisted(context, accessToken)
             }
             isLoading = false
             gate.fold(
-                onSuccess = { completeSignUp() },
+                onSuccess = {
+                    runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
+                    AuthLogin.completeLogin(
+                        authStore = authStore,
+                        userProfileStore = userProfileStore,
+                        userId = userId,
+                        profile = UserProfile(
+                            email = emailTrimmed,
+                            givenName = parts.firstOrNull() ?: "",
+                            familyName = parts.getOrNull(1) ?: "",
+                            photoUrl = null,
+                            phoneNumber = phoneFormatted,
+                        ),
+                        accessToken = accessToken,
+                        refreshToken = refreshToken,
+                    )
+                    com.truckerload.data.preferences.RegistrationBootstrap.afterCredentialsCreated(
+                        context = context,
+                        userId = userId,
+                        isVerified = false,
+                        consents = com.truckerload.domain.account.AccountConsents(
+                            tosAccepted = consents.tosAccepted,
+                            analyticsAccepted = consents.analyticsAccepted,
+                            ageConfirmed = consents.ageConfirmed,
+                        ),
+                    )
+                    com.truckerload.data.preferences.EmailVerificationStore(context)
+                        .beginVerification(emailTrimmed)
+                    if (profileWarning) {
+                        android.widget.Toast.makeText(
+                            context,
+                            context.getString(R.string.signup_profile_sync_deferred),
+                            android.widget.Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                    completeSignUp()
+                },
                 onFailure = { denied ->
                     error = denied.message ?: context.getString(R.string.auth_error_device_slot_unavailable)
                 },

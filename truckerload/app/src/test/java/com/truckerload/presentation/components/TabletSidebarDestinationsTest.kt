@@ -10,6 +10,13 @@ import org.junit.Test
 class TabletSidebarDestinationsTest {
 
     @Test
+    fun statsTabHighlightsAnalyticsAndMapOnTabletRail() {
+        assertTrue(isRailDestinationSelected(Routes.ANALYTICS, Routes.STATS))
+        assertTrue(isRailDestinationSelected(Routes.MAP, Routes.STATS))
+        assertFalse(isRailDestinationSelected(Routes.HOME, Routes.STATS))
+    }
+
+    @Test
     fun railIncludesEveryDrawerDestinationAndLogout() {
         val inRail = tabletRailToolItems.mapNotNull { it.drawer }.toSet()
         assertEquals(DrawerDestination.entries.toSet(), inRail)

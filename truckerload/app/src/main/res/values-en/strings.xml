@@ -160,6 +160,11 @@
     <string name="auth_error_device_slot_phone">This account is already in use on another phone. You can also use one tablet, but not a second phone.</string>
     <string name="auth_error_device_slot_tablet">This account is already in use on another tablet. You can also use one phone, but not a second tablet.</string>
     <string name="auth_error_device_slot_unavailable">Couldn’t verify this device. Check your internet connection and try again.</string>
+    <string name="auth_device_replace_title_tablet">Replace tablet?</string>
+    <string name="auth_device_replace_title_phone">Replace phone?</string>
+    <string name="auth_device_replace_body_tablet">This account is already linked to another tablet. Sign in here and unlink the previous tablet?</string>
+    <string name="auth_device_replace_body_phone">This account is already linked to another phone. Sign in here and unlink the previous phone?</string>
+    <string name="auth_device_replace_confirm">Sign in on this device</string>
     <string name="auth_device_limit_hint">You can use this account on one phone and one tablet. Your data syncs between them.</string>
     <string name="auth_error_no_network">No network connection</string>
     <string name="auth_remember_me">Remember me</string>

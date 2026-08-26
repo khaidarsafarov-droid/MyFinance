@@ -73,7 +73,9 @@ internal fun isRailDestinationSelected(currentRoute: String?, targetRoute: Strin
             currentRoute.startsWith("load_detail") ||
             currentRoute.startsWith("edit_load") ||
             currentRoute == Routes.ADD_LOAD
-        Routes.STATS -> currentRoute == Routes.STATS
+        Routes.STATS -> currentRoute == Routes.STATS ||
+            currentRoute == Routes.ANALYTICS ||
+            currentRoute == Routes.MAP
         Routes.PROFILE -> currentRoute == Routes.PROFILE
         else -> currentRoute == targetRoute
     }

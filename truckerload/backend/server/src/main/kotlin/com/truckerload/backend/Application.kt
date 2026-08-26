@@ -350,6 +350,14 @@ private fun io.ktor.server.routing.Route.deviceRoutes(repositories: Repositories
             val request = call.receiveJson<DeviceRegisterRequest>(MAX_SMALL_JSON_BODY_BYTES)
             val deviceId = validDeviceId(request.deviceId)
             val formFactor = validFormFactor(request.formFactor)
+            val replace = call.request.queryParameters["replace"]?.equals("true", ignoreCase = true) == true
+            if (replace) {
+                repositories.accountDevices.deleteByFormFactor(
+                    userId = user.id,
+                    formFactor = formFactor,
+                    excludingDeviceId = deviceId,
+                )
+            }
             when (val claimed = repositories.accountDevices.claim(user.id, deviceId, formFactor)) {
                 is DeviceClaimResult.Claimed -> call.respond(claimed.record.toRegisterResponse())
                 is DeviceClaimResult.SlotTaken -> throw ApiException(
