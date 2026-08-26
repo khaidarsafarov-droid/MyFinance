@@ -23,6 +23,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.truckerload.presentation.theme.rememberReduceMotion
+import com.truckerload.presentation.theme.navForwardEnter
+import com.truckerload.presentation.theme.navForwardExit
+import com.truckerload.presentation.theme.navPopEnter
+import com.truckerload.presentation.theme.navPopExit
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 import com.truckerload.presentation.components.AdaptiveScaffold
@@ -263,7 +267,11 @@ fun NavGraph(
         NavHost(
             navController = navController,
             startDestination = Routes.HOME,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            enterTransition = { navForwardEnter(reduceMotion) },
+            exitTransition = { navForwardExit(reduceMotion) },
+            popEnterTransition = { navPopEnter(reduceMotion) },
+            popExitTransition = { navPopExit(reduceMotion) },
         ) {
             composable(
                 route = Routes.HOME,
@@ -295,7 +303,7 @@ fun NavGraph(
                 }
             }
             profileNavGraph(navController, reduceMotion)
-            loadsNavGraph(navController)
+            loadsNavGraph(navController, reduceMotion)
             toolsNavGraph(navController, tablet, reduceMotion)
         }
         }

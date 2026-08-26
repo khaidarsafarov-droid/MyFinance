@@ -2,12 +2,18 @@ package com.truckerload.presentation.theme
 
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -57,6 +63,68 @@ fun tabExitTransition(reduceMotion: Boolean = false) =
         ),
     )
 
+/**
+ * Material shared-axis X (forward): list → detail, home → add, drawer push screens.
+ * When [reduceMotion] is on, falls back to an instant fade (no slide).
+ */
+fun navForwardEnter(reduceMotion: Boolean = false): EnterTransition {
+    if (reduceMotion) return fadeIn(animationSpec = tween(0))
+    return slideInHorizontally(
+        animationSpec = tween(280, easing = EaseOutCubic),
+        initialOffsetX = { fullWidth -> fullWidth / 4 },
+    ) + fadeIn(animationSpec = tween(220, easing = EaseOutCubic))
+}
+
+fun navForwardExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return slideOutHorizontally(
+        animationSpec = tween(280, easing = EaseOutCubic),
+        targetOffsetX = { fullWidth -> -fullWidth / 10 },
+    ) + fadeOut(animationSpec = tween(180, easing = EaseOutCubic))
+}
+
+/** Shared-axis X reverse for [popBackStack]. */
+fun navPopEnter(reduceMotion: Boolean = false): EnterTransition {
+    if (reduceMotion) return fadeIn(animationSpec = tween(0))
+    return slideInHorizontally(
+        animationSpec = tween(280, easing = EaseOutCubic),
+        initialOffsetX = { fullWidth -> -fullWidth / 10 },
+    ) + fadeIn(animationSpec = tween(220, easing = EaseOutCubic))
+}
+
+fun navPopExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return slideOutHorizontally(
+        animationSpec = tween(280, easing = EaseOutCubic),
+        targetOffsetX = { fullWidth -> fullWidth / 4 },
+    ) + fadeOut(animationSpec = tween(180, easing = EaseOutCubic))
+}
+
+/** Modal / immersive: camera, scanner, galleries, attach picker. */
+fun navModalEnter(reduceMotion: Boolean = false): EnterTransition {
+    if (reduceMotion) return fadeIn(animationSpec = tween(0))
+    return slideInVertically(
+        animationSpec = tween(280, easing = EaseOutCubic),
+        initialOffsetY = { fullHeight -> fullHeight / 5 },
+    ) + fadeIn(animationSpec = tween(220, easing = EaseOutCubic))
+}
+
+fun navModalExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
+}
+
+fun navModalPopEnter(reduceMotion: Boolean = false): EnterTransition =
+    fadeIn(animationSpec = tween(motionDurationMs(reduceMotion, 160), easing = EaseOutCubic))
+
+fun navModalPopExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return slideOutVertically(
+        animationSpec = tween(240, easing = EaseOutCubic),
+        targetOffsetY = { fullHeight -> fullHeight / 5 },
+    ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
+}
+
 fun screenEnterAnimation(reduceMotion: Boolean = false) =
     fadeIn(
         animationSpec = tween(
@@ -104,7 +172,7 @@ fun StaggeredAnimatedItem(
 fun Modifier.neoGlassPressScale(): Modifier = composed {
     val reduceMotion = LocalReduceMotion.current
     var pressed by remember { mutableStateOf(false) }
-        val scale by animateFloatAsState(
+    val scale by animateFloatAsState(
         targetValue = if (pressed && !reduceMotion) 0.95f else 1f,
         animationSpec = tween(motionDurationMs(reduceMotion, 120)),
         label = "neoGlassPress",

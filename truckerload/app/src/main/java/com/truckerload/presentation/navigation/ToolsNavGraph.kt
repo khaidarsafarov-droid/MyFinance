@@ -22,6 +22,14 @@ import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
+import com.truckerload.presentation.theme.navForwardEnter
+import com.truckerload.presentation.theme.navForwardExit
+import com.truckerload.presentation.theme.navModalEnter
+import com.truckerload.presentation.theme.navModalExit
+import com.truckerload.presentation.theme.navModalPopEnter
+import com.truckerload.presentation.theme.navModalPopExit
+import com.truckerload.presentation.theme.navPopEnter
+import com.truckerload.presentation.theme.navPopExit
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 
@@ -62,18 +70,30 @@ fun NavGraphBuilder.toolsNavGraph(
     ) {
         MapScreen(onBack = { navController.popBackStack() })
     }
-    composable(Routes.MAINTENANCE) {
+    composable(
+        route = Routes.MAINTENANCE,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         MaintenanceScreen(onBack = { navController.popBackStack() })
     }
-    composable(Routes.TAX_TRACKER) {
+    composable(
+        route = Routes.TAX_TRACKER,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         TaxTrackerScreen(onBack = { navController.popBackStack() })
     }
     composable(
         route = Routes.SETTINGS,
-        enterTransition = { tabEnterTransition(reduceMotion) },
-        exitTransition = { tabExitTransition(reduceMotion) },
-        popEnterTransition = { tabEnterTransition(reduceMotion) },
-        popExitTransition = { tabExitTransition(reduceMotion) },
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
     ) {
         SettingsScreen(
             onBack = { navController.popBackStack() },
@@ -83,23 +103,35 @@ fun NavGraphBuilder.toolsNavGraph(
     }
     composable(
         route = Routes.PRIVACY_SETTINGS,
-        enterTransition = { tabEnterTransition(reduceMotion) },
-        exitTransition = { tabExitTransition(reduceMotion) },
-        popEnterTransition = { tabEnterTransition(reduceMotion) },
-        popExitTransition = { tabExitTransition(reduceMotion) },
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
     ) {
         PrivacySettingsScreen(
             onBack = { navController.popBackStack() },
             showBack = !tablet,
         )
     }
-    composable(Routes.ABOUT) {
+    composable(
+        route = Routes.ABOUT,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         AboutAppScreen(
             onBack = { navController.popBackStack() },
             onWriteImprove = { navController.navigate(Routes.IMPROVE) { launchSingleTop = true } },
         )
     }
-    composable(Routes.IMPROVE) {
+    composable(
+        route = Routes.IMPROVE,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         ImprovementFeedbackScreen(
             onBack = { navController.popBackStack() },
         )
@@ -109,6 +141,10 @@ fun NavGraphBuilder.toolsNavGraph(
         arguments = listOf(
             navArgument("mode") { type = NavType.StringType },
         ),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
     ) { entry ->
         val modeArg = Uri.decode(entry.arguments?.getString("mode").orEmpty())
         val mode = when (modeArg) {
@@ -132,7 +168,13 @@ fun NavGraphBuilder.toolsNavGraph(
             },
         )
     }
-    composable(Routes.CAMERA) {
+    composable(
+        route = Routes.CAMERA,
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) {
         CameraFlowScreen(
             onFinished = { navController.popBackStack() },
             onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
@@ -145,6 +187,10 @@ fun NavGraphBuilder.toolsNavGraph(
             navArgument("tripId") { type = NavType.StringType },
             navArgument("loadDate") { type = NavType.StringType },
         ),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
     ) { entry ->
         val loadId = Uri.decode(entry.arguments?.getString("loadId").orEmpty())
         val tripId = Uri.decode(entry.arguments?.getString("tripId").orEmpty())
@@ -167,7 +213,13 @@ fun NavGraphBuilder.toolsNavGraph(
             attachLoadDate = loadDate,
         )
     }
-    composable(Routes.SCANNER) {
+    composable(
+        route = Routes.SCANNER,
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) {
         ScannerFlowScreen(
             onFinished = { navController.popBackStack() },
             onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
@@ -184,6 +236,10 @@ fun NavGraphBuilder.toolsNavGraph(
             navArgument("tripId") { type = NavType.StringType },
             navArgument("loadDate") { type = NavType.StringType },
         ),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
     ) { entry ->
         val loadId = Uri.decode(entry.arguments?.getString("loadId").orEmpty())
         val tripId = Uri.decode(entry.arguments?.getString("tripId").orEmpty())
@@ -207,10 +263,22 @@ fun NavGraphBuilder.toolsNavGraph(
             attachLoadDate = loadDate,
         )
     }
-    composable(Routes.SCAN_GALLERY) {
+    composable(
+        route = Routes.SCAN_GALLERY,
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) {
         ScanGalleryScreen(onBack = { navController.popBackStack() })
     }
-    composable(Routes.PHOTO_GALLERY) {
+    composable(
+        route = Routes.PHOTO_GALLERY,
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) {
         PhotoGalleryScreen(
             onBack = { navController.popBackStack() },
             onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
@@ -219,6 +287,10 @@ fun NavGraphBuilder.toolsNavGraph(
     composable(
         route = Routes.PHOTO_DETAIL,
         arguments = listOf(navArgument("photoId") { type = NavType.StringType }),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
     ) { backStackEntry ->
         val photoId = backStackEntry.arguments?.getString("photoId").orEmpty()
         PhotoDetailScreen(

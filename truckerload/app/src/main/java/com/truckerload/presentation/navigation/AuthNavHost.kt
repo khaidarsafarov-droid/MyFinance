@@ -7,6 +7,11 @@ import androidx.navigation.compose.rememberNavController
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.presentation.screens.auth.SignUpScreen
 import com.truckerload.presentation.screens.login.LoginScreen
+import com.truckerload.presentation.theme.navForwardEnter
+import com.truckerload.presentation.theme.navForwardExit
+import com.truckerload.presentation.theme.navPopEnter
+import com.truckerload.presentation.theme.navPopExit
+import com.truckerload.presentation.theme.rememberReduceMotion
 
 /**
  * Auth gate before the main app.
@@ -19,10 +24,15 @@ fun AuthNavHost(
     onLoginSuccess: () -> Unit
 ) {
     val navController = rememberNavController()
+    val reduceMotion = rememberReduceMotion()
 
     NavHost(
         navController = navController,
-        startDestination = AuthRoutes.LOGIN
+        startDestination = AuthRoutes.LOGIN,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
     ) {
         composable(AuthRoutes.LOGIN) {
             LoginScreen(

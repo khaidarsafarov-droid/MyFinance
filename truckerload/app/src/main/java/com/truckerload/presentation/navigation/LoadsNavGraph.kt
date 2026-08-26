@@ -17,11 +17,22 @@ import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.expenses.MiscExpenseScreen
 import com.truckerload.presentation.screens.home.HomeViewModel
+import com.truckerload.presentation.theme.navForwardEnter
+import com.truckerload.presentation.theme.navForwardExit
+import com.truckerload.presentation.theme.navPopEnter
+import com.truckerload.presentation.theme.navPopExit
 
-fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
+fun NavGraphBuilder.loadsNavGraph(
+    navController: NavHostController,
+    reduceMotion: Boolean,
+) {
     composable(
         route = Routes.LOAD_DETAIL,
-        arguments = listOf(navArgument("loadId") { type = NavType.StringType })
+        arguments = listOf(navArgument("loadId") { type = NavType.StringType }),
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
     ) { backStackEntry ->
         val loadId = Uri.decode(backStackEntry.arguments?.getString("loadId").orEmpty())
         LoadDetailScreen(
@@ -34,7 +45,13 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
             onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
         )
     }
-    composable(Routes.ADD_LOAD) { addLoadEntry ->
+    composable(
+        route = Routes.ADD_LOAD,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) { addLoadEntry ->
         val homeEntry = remember(addLoadEntry) {
             runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
         }
@@ -57,6 +74,10 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
                 defaultValue = false
             },
         ),
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
     ) { editBackStackEntry ->
         val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
         val focusFinish = editBackStackEntry.arguments?.getBoolean("focusFinish") == true
@@ -75,16 +96,34 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
             onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
         )
     }
-    composable(Routes.PAYCHECK) {
+    composable(
+        route = Routes.PAYCHECK,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         PaycheckJournalScreen(
             onBack = { navController.popBackStack() },
             onAdd = { navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true } },
         )
     }
-    composable(Routes.ADD_PAYCHECK) {
+    composable(
+        route = Routes.ADD_PAYCHECK,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         AddPaycheckScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
     }
-    composable(Routes.DIESEL) {
+    composable(
+        route = Routes.DIESEL,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         DieselJournalScreen(
             onBack = { navController.popBackStack() },
             onAdd = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
@@ -101,10 +140,20 @@ fun NavGraphBuilder.loadsNavGraph(navController: NavHostController) {
                 defaultValue = -1
             },
         ),
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
     ) {
         AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
     }
-    composable(Routes.MISC_EXPENSES) {
+    composable(
+        route = Routes.MISC_EXPENSES,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
         MiscExpenseScreen(onBack = { navController.popBackStack() })
     }
 }
