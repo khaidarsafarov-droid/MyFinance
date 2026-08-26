@@ -26,9 +26,9 @@ class WidgetDieselQuickAddIntentTest {
 
     @Test
     fun glanceWidgets_wireDieselQuickAdd() {
-        val src = readSource("java/com/truckerload/widget/glance/OneUiGlanceWidgets.kt")
-        assertTrue(src.contains("dieselQuickAddIntent"))
-        assertTrue(src.contains("ic_widget_diesel"))
+        val wide = readSource("java/com/truckerload/widget/glance/CabinWideGlanceContent.kt")
+        assertTrue(wide.contains("dieselQuickAddIntent"))
+        assertTrue(wide.contains("ic_widget_diesel"))
     }
 
     private fun readSource(relativePath: String): String {

@@ -19,6 +19,12 @@ class WidgetCabinColorsTest {
     }
 
     @Test
+    fun forestDarkPlate_usesNavyMockup() {
+        assertEquals(WidgetCabinPalette.Dark.BG, WidgetCabinColors.ForestDark.bg)
+        assertEquals(WidgetCabinPalette.Dark.PROGRESS_END, WidgetCabinColors.ForestDark.progressEnd)
+    }
+
+    @Test
     fun forestLightPlate_usesDarkReadableText() {
         assertEquals(0xFF1A1A1A.toInt(), WidgetCabinColors.Forest.text)
         assertEquals(0xFF5C5C5C.toInt(), WidgetCabinColors.Forest.muted)
@@ -34,7 +40,7 @@ class WidgetCabinColorsTest {
         assertEquals(scheme.surface.toArgb(), colors.bg)
         assertEquals(scheme.primary.toArgb(), colors.accent)
         assertEquals(scheme.onSurface.toArgb(), colors.text)
-        assertEquals(scheme.primary.toArgb(), colors.actionBg)
+        assertEquals(scheme.primaryContainer.toArgb(), colors.actionBg)
         assertEquals(scheme.onPrimary.toArgb(), colors.actionLabel)
     }
 

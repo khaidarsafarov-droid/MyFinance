@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Indigo cabin — Glance follows this when the system is in night mode. -->
-    <color name="widget_bg">#FF16141F</color>
-    <color name="widget_bg_bottom">#FF16141F</color>
+    <color name="widget_bg">#FF1E2238</color>
+    <color name="widget_bg_bottom">#FF1E2238</color>
     <color name="widget_glass_fill">#1AFFFFFF</color>
     <color name="widget_bg_stroke">#FF353148</color>
     <color name="widget_loading_bg">#FF16141F</color>
@@ -18,7 +18,8 @@
     <color name="widget_value_gold">#FFF4F3FA</color>
     <color name="widget_metric_cell_bg">#FF2A2640</color>
     <color name="widget_divider">#FF353148</color>
-    <color name="widget_progress_track">#FF2A2640</color>
+    <color name="widget_progress_track">#FF2A3050</color>
+    <color name="widget_progress_end">#FF48C9B0</color>
     <color name="widget_progress_fill">#FFB4AFFF</color>
     <color name="widget_success">#FF5EE0C8</color>
     <color name="widget_rpm_good">#FF5EE0C8</color>
