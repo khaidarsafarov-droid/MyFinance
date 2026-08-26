@@ -25,6 +25,12 @@ class WidgetCabinColorsTest {
     }
 
     @Test
+    fun forestLight_actionsUseBrandPurpleFill() {
+        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.actionBg)
+        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.ring)
+    }
+
+    @Test
     fun forestLightPlate_usesDarkReadableText() {
         assertEquals(0xFF1A1A1A.toInt(), WidgetCabinColors.Forest.text)
         assertEquals(0xFF5C5C5C.toInt(), WidgetCabinColors.Forest.muted)
