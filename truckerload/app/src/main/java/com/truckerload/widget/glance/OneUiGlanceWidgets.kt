@@ -15,12 +15,10 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
-import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
@@ -30,9 +28,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
@@ -46,6 +42,7 @@ import androidx.glance.unit.ColorProvider
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
 import com.truckerload.presentation.theme.forestDarkColorScheme
+import com.truckerload.widget.WidgetCabinPalette
 import com.truckerload.widget.WidgetDataStore
 import com.truckerload.widget.WidgetDayProjection
 import com.truckerload.widget.WidgetDaySelectionStore
@@ -53,16 +50,14 @@ import com.truckerload.widget.WidgetDeepLink
 import com.truckerload.widget.WidgetProgressRingBitmap
 import com.truckerload.widget.WidgetStats
 import com.truckerload.widget.WidgetStatsFormatter
-import com.truckerload.widget.WidgetWeekDayHelper
-import com.truckerload.widget.WidgetWeekDaysBitmap
 
-private val Size2x2 = DpSize(110.dp, 110.dp)
-private val Size4x2 = DpSize(250.dp, 110.dp)
+internal val CabinSize2x2 = DpSize(110.dp, 110.dp)
+internal val CabinSize4x2 = DpSize(250.dp, 110.dp)
+internal val CabinSize4x3 = DpSize(250.dp, 180.dp)
 
-/** Always-dark cabin budget palette (TruckoRig shield blue). */
-private val CabinPrimary = Color(0xFFF2F7FC)
-private val CabinSecondary = Color(0xFFB8C9E0)
-private val CabinAccent = Color(0xFF5EE0A0)
+internal val CabinGlancePrimary = Color(0xFFFFFFFF)
+internal val CabinGlanceSecondary = Color(0xFF9EAEA4)
+internal val CabinGlanceAccent = Color(0xFF00E676)
 
 object OneUiGlanceWidgets {
     suspend fun updateAll(context: Context) {
@@ -72,7 +67,7 @@ object OneUiGlanceWidgets {
 }
 
 internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(Size2x2, Size4x2))
+    override val sizeMode = SizeMode.Responsive(setOf(CabinSize2x2, CabinSize4x2, CabinSize4x3))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -80,7 +75,7 @@ internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
 }
 
 internal class OneUiWideGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(Size4x2))
+    override val sizeMode = SizeMode.Responsive(setOf(CabinSize4x2, CabinSize4x3))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -106,6 +101,7 @@ private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: Gla
             CabinBudgetBySize(
                 context = context,
                 shown = shown,
+                week = week,
                 selectedOffset = selected,
             )
         }
@@ -116,11 +112,12 @@ private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: Gla
 private fun CabinBudgetBySize(
     context: Context,
     shown: WidgetStats,
+    week: WidgetStats,
     selectedOffset: Int,
 ) {
     val size = LocalSize.current
-    if (size.width >= Size4x2.width) {
-        WideBudgetContent(context, shown, selectedOffset)
+    if (size.width >= CabinSize4x2.width) {
+        WideBudgetContent(context, shown, week, selectedOffset)
     } else {
         SquareBudgetContent(context, shown)
     }
@@ -191,112 +188,7 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
 }
 
 @Composable
-private fun WideBudgetContent(context: Context, stats: WidgetStats, selectedOffset: Int) {
-    val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
-    val goalSet = stats.weeklyProfitGoal > 0
-    val rpm = stats.currentWeeklyRpm
-    val ring = buildRingBitmap(context, stats, compact = false)
-
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .background(ImageProvider(R.drawable.widget_cabin_plate))
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-    ) {
-        Row(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME))),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = context.getString(R.string.widget_brand_title_plain),
-                style = cabinLabelStyle(bold = true),
-                maxLines = 1,
-                modifier = GlanceModifier.defaultWeight(),
-            )
-            if (stats.weekLabel.isNotBlank()) {
-                Text(
-                    text = stats.weekLabel,
-                    style = cabinLabelStyle(),
-                    maxLines = 1,
-                )
-            }
-        }
-        Spacer(modifier = GlanceModifier.height(6.dp))
-        Row(
-            modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BudgetRing(
-                context = context,
-                ring = ring,
-                stats = stats,
-                progress = progress,
-                goalSet = goalSet,
-                ringDp = 96.dp,
-                compact = false,
-                modifier = GlanceModifier.clickable(
-                    actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL)),
-                ),
-            )
-            Spacer(modifier = GlanceModifier.width(12.dp))
-            Column(
-                modifier = GlanceModifier.defaultWeight().fillMaxHeight(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                WeekDaySelector(
-                    context = context,
-                    weekLoadMask = stats.weekLoadMask,
-                    selectedOffset = selectedOffset,
-                )
-                Spacer(modifier = GlanceModifier.height(6.dp))
-                Text(
-                    text = WidgetStatsFormatter.formatWidgetRpm(rpm),
-                    style = TextStyle(
-                        color = ColorProvider(CabinAccent),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    maxLines = 1,
-                    modifier = GlanceModifier.clickable(
-                        actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_STATS)),
-                    ),
-                )
-                Spacer(modifier = GlanceModifier.height(8.dp))
-                Row(modifier = GlanceModifier.fillMaxWidth()) {
-                    QuickAction(
-                        context = context,
-                        iconRes = R.drawable.ic_widget_camera,
-                        label = context.getString(R.string.widget_camera_short),
-                        route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
-                        showLabel = true,
-                        modifier = GlanceModifier.defaultWeight(),
-                    )
-                    QuickAction(
-                        context = context,
-                        iconRes = R.drawable.ic_widget_scanner,
-                        label = context.getString(R.string.widget_scanner_short),
-                        route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
-                        showLabel = true,
-                        modifier = GlanceModifier.defaultWeight(),
-                    )
-                    QuickAction(
-                        context = context,
-                        iconRes = R.drawable.ic_widget_diesel,
-                        label = context.getString(R.string.widget_diesel_short),
-                        launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
-                        showLabel = true,
-                        modifier = GlanceModifier.defaultWeight(),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BudgetRing(
+internal fun BudgetRing(
     context: Context,
     ring: Bitmap?,
     stats: WidgetStats,
@@ -325,37 +217,13 @@ private fun BudgetRing(
             Text(
                 text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
                 style = TextStyle(
-                    color = ColorProvider(CabinPrimary),
-                    fontSize = if (compact) 13.sp else 15.sp,
+                    color = ColorProvider(CabinGlancePrimary),
+                    fontSize = if (compact) 14.sp else 18.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 ),
                 maxLines = 1,
             )
-            Text(
-                text = stats.loadsCount.toString(),
-                style = TextStyle(
-                    color = ColorProvider(CabinSecondary),
-                    fontSize = if (compact) 8.sp else 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                ),
-                maxLines = 1,
-            )
-            if (goalSet) {
-                Text(
-                    text = context.getString(
-                        R.string.widget_goal_out_of,
-                        WidgetStatsFormatter.formatGrossUsd(stats.weeklyProfitGoal),
-                    ),
-                    style = TextStyle(
-                        color = ColorProvider(CabinSecondary),
-                        fontSize = if (compact) 8.sp else 9.sp,
-                        textAlign = TextAlign.Center,
-                    ),
-                    maxLines = 1,
-                )
-            }
             Text(
                 text = if (goalSet) {
                     WidgetStatsFormatter.formatRingPercent(progress)
@@ -363,8 +231,8 @@ private fun BudgetRing(
                     context.getString(R.string.widget_goal_not_set)
                 },
                 style = TextStyle(
-                    color = ColorProvider(CabinSecondary),
-                    fontSize = if (compact) 9.sp else 11.sp,
+                    color = ColorProvider(CabinGlanceSecondary),
+                    fontSize = if (compact) 10.sp else 12.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                 ),
@@ -375,7 +243,7 @@ private fun BudgetRing(
 }
 
 @Composable
-private fun QuickAction(
+internal fun QuickAction(
     context: Context,
     iconRes: Int,
     label: String,
@@ -393,7 +261,7 @@ private fun QuickAction(
     ) {
         Box(
             modifier = GlanceModifier
-                .size(32.dp)
+                .size(34.dp)
                 .background(ImageProvider(R.drawable.widget_cabin_action_btn)),
             contentAlignment = Alignment.Center,
         ) {
@@ -407,8 +275,8 @@ private fun QuickAction(
             Text(
                 text = label,
                 style = TextStyle(
-                    color = ColorProvider(CabinSecondary),
-                    fontSize = 9.sp,
+                    color = ColorProvider(CabinGlancePrimary),
+                    fontSize = 10.sp,
                     textAlign = TextAlign.Center,
                 ),
                 maxLines = 1,
@@ -417,45 +285,7 @@ private fun QuickAction(
     }
 }
 
-@Composable
-private fun WeekDaySelector(
-    context: Context,
-    weekLoadMask: Int,
-    selectedOffset: Int,
-) {
-    val chips = WidgetWeekDayHelper.chips(weekLoadMask)
-    val chipPx = WidgetWeekDaysBitmap.rowHeightPx(context, compact = true)
-    Row(
-        modifier = GlanceModifier.fillMaxWidth().height(28.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        chips.forEachIndexed { offset, chip ->
-            val bitmap = runCatching {
-                WidgetWeekDaysBitmap.createChip(context, chip, selectedOffset == offset, chipPx)
-            }.getOrNull()
-            val imageModifier = GlanceModifier.defaultWeight().height(28.dp)
-            if (bitmap != null) {
-                Image(
-                    provider = ImageProvider(bitmap),
-                    contentDescription = chip.label,
-                    modifier = if (chip.isFuture) {
-                        imageModifier
-                    } else {
-                        imageModifier.clickable(
-                            actionRunCallback<SelectWidgetDayAction>(
-                                actionParametersOf(SelectWidgetDayAction.DAY_OFFSET to offset),
-                            ),
-                        )
-                    },
-                )
-            } else {
-                Spacer(modifier = imageModifier)
-            }
-        }
-    }
-}
-
-private fun buildRingBitmap(
+internal fun buildRingBitmap(
     context: Context,
     stats: WidgetStats,
     compact: Boolean,
@@ -470,27 +300,22 @@ private fun buildRingBitmap(
     )
     return runCatching {
         WidgetProgressRingBitmap.create(
-            context,
-            if (goalSet) progress else 0f,
-            ringPx,
-            WidgetProgressRingBitmap.progressColorForStatus(
-                context,
-                stats.goalPaceStatus,
-                goalSet && stats.totalLoadRate >= stats.weeklyProfitGoal,
-                stats.goalDaysRemaining,
-            ),
+            progressPercent = if (goalSet) progress else 0f,
+            sizePx = ringPx,
+            progressColor = WidgetCabinPalette.ACCENT,
+            trackColor = WidgetCabinPalette.TRACK,
         )
     }.getOrNull()
 }
 
 @Composable
-private fun cabinLabelStyle(bold: Boolean = false) = TextStyle(
-    color = ColorProvider(CabinSecondary),
+internal fun cabinLabelStyle(bold: Boolean = false) = TextStyle(
+    color = ColorProvider(CabinGlanceSecondary),
     fontSize = 11.sp,
     fontWeight = if (bold) FontWeight.Bold else FontWeight.Medium,
 )
 
-private fun routeIntent(context: Context, route: String): Intent =
+internal fun routeIntent(context: Context, route: String): Intent =
     Intent(context, MainActivity::class.java).apply {
         putExtra(MainActivity.EXTRA_ROUTE, route)
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP

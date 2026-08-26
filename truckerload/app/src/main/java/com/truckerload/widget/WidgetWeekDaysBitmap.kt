@@ -7,7 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import androidx.core.graphics.createBitmap
 
-/** Sun–Sat chips: Success fill when a load exists; accent ring marks today. */
+/** Sun–Sat chips for the green cabin mockup: selected fill, today fill, outline otherwise. */
 object WidgetWeekDaysBitmap {
 
     fun create(
@@ -69,6 +69,7 @@ object WidgetWeekDaysBitmap {
         isFuture = true,
     )
 
+    @Suppress("UNUSED_PARAMETER")
     private fun drawChip(
         context: Context,
         canvas: Canvas,
@@ -83,15 +84,8 @@ object WidgetWeekDaysBitmap {
         val highlighted = chip.isToday || selected
         val circleSize = if (highlighted) baseCircleSize * 1.06f else baseCircleSize
         val radius = circleSize / 2f
-        val strokeWidth = (radius * 0.16f).coerceIn(2f, 4.5f)
+        val strokeWidth = (radius * 0.14f).coerceIn(2f, 4f)
         val bounds = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
-
-        val success = WidgetThemeColors.success(context)
-        val pastEmpty = WidgetThemeColors.dayPastEmpty(context)
-        val futureStroke = WidgetThemeColors.dayFutureStroke(context)
-        val todayStroke = WidgetThemeColors.dayTodayStroke(context)
-        val onSuccess = WidgetThemeColors.onAccent(context)
-        val labelMuted = WidgetThemeColors.onSurfaceVariant(context)
 
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -104,18 +98,18 @@ object WidgetWeekDaysBitmap {
         }
 
         when {
-            chip.hasLoad -> {
-                fillPaint.color = success
+            selected -> {
+                fillPaint.color = WidgetCabinPalette.ACCENT
                 canvas.drawOval(bounds, fillPaint)
-                textPaint.color = onSuccess
+                textPaint.color = WidgetCabinPalette.ON_ACCENT
             }
-            chip.isPast -> {
-                fillPaint.color = pastEmpty
+            chip.isToday -> {
+                fillPaint.color = WidgetCabinPalette.TODAY_FILL
                 canvas.drawOval(bounds, fillPaint)
-                textPaint.color = labelMuted
+                textPaint.color = WidgetCabinPalette.PRIMARY
             }
             else -> {
-                strokePaint.color = futureStroke
+                strokePaint.color = WidgetCabinPalette.OUTLINE
                 strokePaint.strokeWidth = strokeWidth
                 val inset = strokeWidth / 2f
                 canvas.drawOval(
@@ -127,23 +121,8 @@ object WidgetWeekDaysBitmap {
                     ),
                     strokePaint,
                 )
-                textPaint.color = labelMuted
+                textPaint.color = WidgetCabinPalette.SECONDARY
             }
-        }
-
-        if (highlighted) {
-            strokePaint.color = todayStroke
-            strokePaint.strokeWidth = strokeWidth
-            val inset = strokeWidth / 2f + 0.5f
-            canvas.drawOval(
-                RectF(
-                    bounds.left + inset,
-                    bounds.top + inset,
-                    bounds.right - inset,
-                    bounds.bottom - inset,
-                ),
-                strokePaint,
-            )
         }
 
         textPaint.textSize = circleSize * 0.38f
