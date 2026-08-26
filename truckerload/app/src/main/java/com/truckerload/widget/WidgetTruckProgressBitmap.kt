@@ -17,20 +17,27 @@ import kotlin.math.roundToInt
 /** Horizontal goal progress bar with truck marker — mockup-style Glance bitmap. */
 object WidgetTruckProgressBitmap {
 
+    /** Extra canvas height above the track so the truck badge is not clipped. */
+    const val TRUCK_HEADROOM_RATIO = 0.85f
+
     fun create(
         context: Context,
         progressPercent: Float,
         goalSet: Boolean,
         widthPx: Int,
-        heightPx: Int,
+        barHeightPx: Int,
         colors: WidgetCabinColors,
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
-        val safeHeight = heightPx.coerceAtLeast(10)
+        val trackHeight = barHeightPx.coerceAtLeast(10)
+        val truckSize = (trackHeight * 2.1f).roundToInt().coerceIn(22, 56)
+        val headroom = (truckSize * TRUCK_HEADROOM_RATIO).roundToInt()
+        val safeHeight = trackHeight + headroom
         val bitmap = createBitmap(safeWidth, safeHeight)
         val canvas = Canvas(bitmap)
-        val corner = safeHeight / 2f
-        val bounds = RectF(0f, 0f, safeWidth.toFloat(), safeHeight.toFloat())
+        val corner = trackHeight / 2f
+        val barTop = headroom.toFloat()
+        val bounds = RectF(0f, barTop, safeWidth.toFloat(), barTop + trackHeight)
 
         val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = colors.ringTrack }
         canvas.drawRoundRect(bounds, corner, corner, trackPaint)
@@ -38,13 +45,13 @@ object WidgetTruckProgressBitmap {
         val progress = if (goalSet) progressPercent.coerceIn(0f, 100f) else 0f
         val fillWidth = safeWidth * (progress / 100f)
         if (fillWidth > 1f) {
-            val fillRect = RectF(0f, 0f, fillWidth, safeHeight.toFloat())
+            val fillRect = RectF(0f, barTop, fillWidth, barTop + trackHeight)
             val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 shader = LinearGradient(
                     0f,
-                    0f,
+                    barTop,
                     fillWidth.coerceAtLeast(1f),
-                    0f,
+                    barTop,
                     colors.ring,
                     colors.progressEnd,
                     Shader.TileMode.CLAMP,
@@ -56,21 +63,21 @@ object WidgetTruckProgressBitmap {
                 val label = WidgetStatsFormatter.formatRingPercent(progress)
                 val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = colors.onFilled
-                    textSize = safeHeight * 0.52f
+                    textSize = trackHeight * 0.55f
                     typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 }
-                val pad = safeHeight * 0.28f
-                canvas.drawText(label, pad, safeHeight * 0.72f, textPaint)
+                val textX = (truckSize * 0.65f).coerceAtMost(fillWidth - trackHeight)
+                canvas.drawText(label, textX.coerceAtLeast(trackHeight * 0.2f), barTop + trackHeight * 0.72f, textPaint)
             }
         }
 
         if (goalSet && progress > 0f) {
-            val truckSize = (safeHeight * 1.35f).roundToInt().coerceIn(14, safeHeight + 8)
             val truckX = fillWidth.coerceIn(
                 truckSize / 2f,
                 safeWidth - truckSize / 2f,
             )
-            drawTruck(context, canvas, truckX, safeHeight / 2f, truckSize, colors.onFilled)
+            val truckCenterY = barTop - (truckSize * 0.08f)
+            drawTruck(context, canvas, truckX, truckCenterY, truckSize, colors.onFilled)
         }
 
         return bitmap

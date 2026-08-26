@@ -17,9 +17,9 @@ object WidgetCabinPalette {
     const val PROGRESS_END = 0xFF48C9B0.toInt()
     /** Brand title on mockup plate. */
     const val BRAND = 0xFF5B54E6.toInt()
-    const val ACTION_BG = 0x265B54E6.toInt()
-    const val ACTION_STROKE = 0x405B54E6.toInt()
-    const val ACTION_LABEL = 0xFFFFFFFF.toInt()
+    const val ACTION_BG = 0xFFEEEDFF.toInt()
+    const val ACTION_STROKE = 0xFFD4D2E8.toInt()
+    const val ACTION_LABEL = 0xFF5C5C5C.toInt()
     const val DIVIDER = 0xFFE8E7F4.toInt()
     const val DAY_FILLED = 0xFF5B54E6.toInt()
     const val DAY_TODAY = 0xFFEEEDFF.toInt()

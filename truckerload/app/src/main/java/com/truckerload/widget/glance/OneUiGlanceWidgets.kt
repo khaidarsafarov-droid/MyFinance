@@ -179,6 +179,7 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
             progress = progress,
             goalSet = goalSet,
             barDp = layout.progressBarDp,
+            headroomDp = layout.progressBarHeadroomDp,
         )
         Spacer(modifier = GlanceModifier.height(layout.sectionGap))
         Row(
@@ -259,26 +260,28 @@ private fun TruckProgressBarSquare(
     progress: Float,
     goalSet: Boolean,
     barDp: Dp,
+    headroomDp: Dp,
 ) {
     val colors = LocalCabinColors.current
     val density = context.resources.displayMetrics.density
     val widthPx = (LocalSize.current.width.value * density).toInt().coerceAtLeast(80)
-    val heightPx = (barDp.value * density).toInt().coerceAtLeast(6)
+    val barHeightPx = (barDp.value * density).toInt().coerceAtLeast(6)
     val bitmap = runCatching {
         WidgetTruckProgressBitmap.create(
             context = context,
             progressPercent = progress,
             goalSet = goalSet,
             widthPx = widthPx,
-            heightPx = heightPx,
+            barHeightPx = barHeightPx,
             colors = colors,
         )
     }.getOrNull()
+    val totalHeight = barDp + headroomDp
     if (bitmap != null) {
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = context.getString(R.string.widget_weekly_summary),
-            modifier = GlanceModifier.fillMaxWidth().height(barDp),
+            modifier = GlanceModifier.fillMaxWidth().height(totalHeight),
         )
     }
 }

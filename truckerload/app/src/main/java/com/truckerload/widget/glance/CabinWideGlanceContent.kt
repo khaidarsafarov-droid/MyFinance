@@ -63,6 +63,7 @@ internal fun WideBudgetContent(
             progress = progress,
             goalSet = goalSet,
             barDp = layout.progressBarDp,
+            headroomDp = layout.progressBarHeadroomDp,
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
@@ -87,18 +88,6 @@ internal fun WideBudgetContent(
         )
         if (layout.showQuickActions) {
             Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-            if (layout.showQuickActionsTitle) {
-                Text(
-                    text = context.getString(R.string.widget_quick_actions),
-                    style = TextStyle(
-                        color = cabinColor(colors.text),
-                        fontSize = layout.metricSp,
-                        fontWeight = FontWeight.Medium,
-                    ),
-                    maxLines = 1,
-                )
-                Spacer(modifier = GlanceModifier.height(6.dp))
-            }
             ActionRow(context, layout)
         }
     }
@@ -110,30 +99,32 @@ private fun TruckProgressBar(
     progress: Float,
     goalSet: Boolean,
     barDp: Dp,
+    headroomDp: Dp,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     val colors = LocalCabinColors.current
     val density = context.resources.displayMetrics.density
     val widthPx = (LocalSize.current.width.value * density).toInt().coerceAtLeast(120)
-    val heightPx = (barDp.value * density).toInt().coerceAtLeast(8)
+    val barHeightPx = (barDp.value * density).toInt().coerceAtLeast(8)
     val bitmap = runCatching {
         WidgetTruckProgressBitmap.create(
             context = context,
             progressPercent = progress,
             goalSet = goalSet,
             widthPx = widthPx,
-            heightPx = heightPx,
+            barHeightPx = barHeightPx,
             colors = colors,
         )
     }.getOrNull()
+    val totalHeight = barDp + headroomDp
     if (bitmap != null) {
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = context.getString(R.string.widget_weekly_summary),
-            modifier = modifier.height(barDp),
+            modifier = modifier.height(totalHeight),
         )
     } else {
-        Spacer(modifier = modifier.height(barDp))
+        Spacer(modifier = modifier.height(totalHeight))
     }
 }
 
@@ -414,7 +405,7 @@ private fun ActionRow(context: Context, layout: CabinLayout) {
         QuickAction(
             context = context,
             iconRes = R.drawable.ic_widget_diesel,
-            label = context.getString(R.string.widget_fuel_short),
+            label = context.getString(R.string.widget_diesel_short),
             launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
             showLabel = layout.showActionLabels,
             btnDp = layout.actionBtnDp,
