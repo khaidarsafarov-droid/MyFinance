@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 39,
+    "version": 40,
     "identityHash": "3795ac1ec8d76131ca32fa868fc9f3b3",
     "entities": [
       {
@@ -1875,6 +1875,12 @@
             "columnName": "date",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "receiptPhotoPath",
+            "columnName": "receiptPhotoPath",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "createdAt",

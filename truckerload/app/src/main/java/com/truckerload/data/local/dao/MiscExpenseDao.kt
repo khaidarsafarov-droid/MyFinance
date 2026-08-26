@@ -16,6 +16,9 @@ interface MiscExpenseDao {
     @Query("SELECT * FROM misc_expenses ORDER BY date DESC, id DESC")
     suspend fun getAll(): List<MiscExpenseEntity>
 
+    @Query("SELECT * FROM misc_expenses WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): MiscExpenseEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(row: MiscExpenseEntity): Long
 

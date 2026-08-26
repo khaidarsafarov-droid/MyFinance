@@ -246,9 +246,17 @@ class RoomMigrationInstrumentedTest {
         assertTrue(db.hasColumn("paychecks", "sourceFilePath"))
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate39To40() {
+        helper.createDatabase(testDb, 39).apply { close() }
+        val db = helper.runMigrationsAndValidate(testDb, 40, true, MIGRATION_39_40)
+        assertTrue(db.hasColumn("misc_expenses", "receiptPhotoPath"))
+    }
+
     /**
      * Builds a named DB at [version] without requiring an exported schema JSON
-     * (historical schemas are not committed; only 28–39 are).
+     * (historical schemas are not committed; only 28–40 are).
      */
     private fun createFixtureDatabase(version: Int, setup: SupportSQLiteDatabase.() -> Unit) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

@@ -144,6 +144,9 @@ class RoomMigrationRobolectricTest {
             if (version >= 39) {
                 assertTrue(db.hasColumn("paychecks", "sourceFilePath"))
             }
+            if (version >= 40) {
+                assertTrue(db.hasColumn("misc_expenses", "receiptPhotoPath"))
+            }
         }
     }
 

@@ -388,3 +388,12 @@ val MIGRATION_38_39 = object : Migration(38, 39) {
         db.addColumnIfMissing("paychecks", "sourceFilePath", "TEXT")
     }
 }
+
+/** Optional receipt photo path on miscellaneous expenses. */
+val MIGRATION_39_40 = object : Migration(39, 40) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execLogged(
+            "ALTER TABLE misc_expenses ADD COLUMN receiptPhotoPath TEXT",
+        )
+    }
+}
