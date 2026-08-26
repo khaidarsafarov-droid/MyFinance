@@ -1,8 +1,10 @@
 package com.truckerload.widget.glance
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -18,6 +20,7 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
@@ -46,6 +49,8 @@ import com.truckerload.widget.WidgetDataStore
 import com.truckerload.widget.WidgetDayProjection
 import com.truckerload.widget.WidgetDaySelectionStore
 import com.truckerload.widget.WidgetDeepLink
+import com.truckerload.widget.WidgetPrefs
+import com.truckerload.widget.WidgetPrefsStore
 import com.truckerload.widget.WidgetProgressRingBitmap
 import com.truckerload.widget.WidgetStats
 import com.truckerload.widget.WidgetStatsFormatter
@@ -55,6 +60,15 @@ internal val CabinSize4x2 = DpSize(250.dp, 110.dp)
 internal val CabinSize4x3 = DpSize(250.dp, 180.dp)
 internal val CabinSize4x4 = DpSize(250.dp, 260.dp)
 
+private val CabinResponsiveSizes = setOf(CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4)
+
+private val cabinSizeMode: SizeMode
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        SizeMode.Exact
+    } else {
+        SizeMode.Responsive(CabinResponsiveSizes)
+    }
+
 object OneUiGlanceWidgets {
     suspend fun updateAll(context: Context) {
         OneUiSquareGlanceWidget().updateAll(context)
@@ -63,9 +77,8 @@ object OneUiGlanceWidgets {
 }
 
 internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(
-        setOf(CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4),
-    )
+    /** Exact on API 31+ so shrinking to 2 rows switches layout; Responsive on older APIs. */
+    override val sizeMode: SizeMode get() = cabinSizeMode
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -73,9 +86,7 @@ internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
 }
 
 internal class OneUiWideGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(
-        setOf(CabinSize4x2, CabinSize4x3, CabinSize4x4),
-    )
+    override val sizeMode: SizeMode get() = cabinSizeMode
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -97,8 +108,19 @@ private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: Gla
     val selected = WidgetDayProjection.clampSelection(stored, todayOffset)
     val shown = WidgetDayProjection.project(week, stored, todayOffset)
     val (scheme, colors) = WidgetCabinColors.resolve(context)
+    val appWidgetId = runCatching {
+        GlanceAppWidgetManager(context).getAppWidgetId(id)
+    }.getOrDefault(AppWidgetManager.INVALID_APPWIDGET_ID)
+    val prefs = if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+        WidgetPrefsStore.load(context, appWidgetId)
+    } else {
+        WidgetPrefs()
+    }
     provideContent {
-        CompositionLocalProvider(LocalCabinColors provides colors) {
+        CompositionLocalProvider(
+            LocalCabinColors provides colors,
+            LocalWidgetSizeMode provides prefs.sizeMode,
+        ) {
             CabinGlanceTheme(scheme) {
                 CabinBudgetBySize(
                     context = context,
@@ -139,7 +161,7 @@ private fun CabinGlanceTheme(scheme: ColorScheme, content: @Composable () -> Uni
 
 @Composable
 private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
-    val layout = cabinLayoutFor(LocalSize.current)
+    val layout = cabinLayoutFor(LocalSize.current, LocalWidgetSizeMode.current)
     val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = stats.weeklyProfitGoal > 0
     val colors = LocalCabinColors.current

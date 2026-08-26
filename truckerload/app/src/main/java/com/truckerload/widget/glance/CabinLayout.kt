@@ -5,8 +5,9 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.truckerload.widget.WidgetSizeMode
 
-/** Spacing and type scale for the forest cabin widget. Full spec at 4×4; smaller sizes scale down. */
+/** Spacing and type scale. Full spec at 4×4; 2-row / squeezed plates drop the ring. */
 internal data class CabinLayout(
     val paddingH: Dp,
     val paddingV: Dp,
@@ -27,106 +28,132 @@ internal data class CabinLayout(
     val actionIconDp: Dp,
     val actionLabelSp: TextUnit,
     val showActionLabels: Boolean,
-    /** Circle only when the plate is tall enough; compact sizes use two text lines. */
+    /** Circle only when the plate is tall enough for a round ring. */
     val showRing: Boolean,
 )
 
-internal fun cabinLayoutFor(size: DpSize): CabinLayout {
-    val wide = size.width >= CabinSize4x2.width
-    val tall = size.height >= CabinSize4x3.height
-    val full = size.height >= CabinSize4x4.height
-    if (!wide) {
-        return CabinLayout(
-            paddingH = 12.dp,
-            paddingV = 12.dp,
-            sectionGap = 0.dp,
-            financeGap = 8.dp,
-            ringDp = 72.dp,
-            headerSp = 13.sp,
-            dateSp = 10.sp,
-            amountSp = 14.sp,
-            percentSp = 10.sp,
-            metricSp = 11.sp,
-            metricGap = 4.dp,
-            dayChipDp = 22.dp,
-            dayCaptionSp = 8.sp,
-            showDayCaptions = false,
-            showDivider = false,
-            actionBtnDp = 34.dp,
-            actionIconDp = 16.dp,
-            actionLabelSp = 10.sp,
-            showActionLabels = false,
-            showRing = false,
-        )
-    }
-    if (full) {
-        return CabinLayout(
-            paddingH = 20.dp,
-            paddingV = 20.dp,
-            sectionGap = 18.dp,
-            financeGap = 14.dp,
-            ringDp = 92.dp,
-            headerSp = 15.sp,
-            dateSp = 12.sp,
-            amountSp = 20.sp,
-            percentSp = 11.sp,
-            metricSp = 13.sp,
-            metricGap = 8.dp,
-            dayChipDp = 30.dp,
-            dayCaptionSp = 10.sp,
-            showDayCaptions = true,
-            showDivider = true,
-            actionBtnDp = 44.dp,
-            actionIconDp = 20.dp,
-            actionLabelSp = 11.sp,
-            showActionLabels = true,
-            showRing = true,
-        )
-    }
-    if (tall) {
-        return CabinLayout(
-            paddingH = 14.dp,
-            paddingV = 12.dp,
-            sectionGap = 10.dp,
-            financeGap = 12.dp,
-            ringDp = 76.dp,
-            headerSp = 14.sp,
-            dateSp = 11.sp,
-            amountSp = 16.sp,
-            percentSp = 10.sp,
-            metricSp = 12.sp,
-            metricGap = 6.dp,
-            dayChipDp = 26.dp,
-            dayCaptionSp = 9.sp,
-            showDayCaptions = true,
-            showDivider = true,
-            actionBtnDp = 38.dp,
-            actionIconDp = 18.dp,
-            actionLabelSp = 10.sp,
-            showActionLabels = true,
-            showRing = true,
-        )
-    }
-    return CabinLayout(
-        paddingH = 12.dp,
-        paddingV = 8.dp,
-        sectionGap = 6.dp,
-        financeGap = 10.dp,
-        ringDp = 64.dp,
-        headerSp = 13.sp,
-        dateSp = 10.sp,
-        amountSp = 14.sp,
-        percentSp = 10.sp,
-        metricSp = 11.sp,
-        metricGap = 4.dp,
-        dayChipDp = 24.dp,
-        dayCaptionSp = 8.sp,
-        showDayCaptions = false,
-        showDivider = false,
-        actionBtnDp = 32.dp,
-        actionIconDp = 16.dp,
-        actionLabelSp = 10.sp,
-        showActionLabels = true,
-        showRing = false,
-    )
+internal enum class CabinBucket { SQUARE, COMPACT, TALL, FULL }
+
+internal fun cabinLayoutFor(
+    size: DpSize,
+    sizeMode: WidgetSizeMode = WidgetSizeMode.AUTO,
+): CabinLayout = when (cabinBucket(size, sizeMode)) {
+    CabinBucket.SQUARE -> squareLayout()
+    CabinBucket.COMPACT -> compactWideLayout()
+    CabinBucket.TALL -> tallWideLayout()
+    CabinBucket.FULL -> fullWideLayout()
 }
+
+internal fun cabinBucket(
+    size: DpSize,
+    sizeMode: WidgetSizeMode = WidgetSizeMode.AUTO,
+): CabinBucket {
+    val wide = size.width >= CabinSize4x2.width
+    val fromSize = when {
+        !wide -> CabinBucket.SQUARE
+        size.height >= CabinSize4x4.height -> CabinBucket.FULL
+        size.height >= CabinSize4x3.height -> CabinBucket.TALL
+        else -> CabinBucket.COMPACT
+    }
+    return when (sizeMode) {
+        WidgetSizeMode.SMALL -> if (wide) CabinBucket.COMPACT else CabinBucket.SQUARE
+        WidgetSizeMode.MEDIUM -> when {
+            !wide -> CabinBucket.SQUARE
+            fromSize == CabinBucket.COMPACT -> CabinBucket.COMPACT
+            else -> CabinBucket.TALL
+        }
+        WidgetSizeMode.LARGE, WidgetSizeMode.AUTO -> fromSize
+    }
+}
+
+private fun squareLayout() = CabinLayout(
+    paddingH = 12.dp,
+    paddingV = 12.dp,
+    sectionGap = 0.dp,
+    financeGap = 8.dp,
+    ringDp = 72.dp,
+    headerSp = 13.sp,
+    dateSp = 10.sp,
+    amountSp = 14.sp,
+    percentSp = 10.sp,
+    metricSp = 11.sp,
+    metricGap = 4.dp,
+    dayChipDp = 22.dp,
+    dayCaptionSp = 8.sp,
+    showDayCaptions = false,
+    showDivider = false,
+    actionBtnDp = 34.dp,
+    actionIconDp = 16.dp,
+    actionLabelSp = 10.sp,
+    showActionLabels = false,
+    showRing = false,
+)
+
+private fun compactWideLayout() = CabinLayout(
+    paddingH = 12.dp,
+    paddingV = 8.dp,
+    sectionGap = 6.dp,
+    financeGap = 10.dp,
+    ringDp = 64.dp,
+    headerSp = 13.sp,
+    dateSp = 10.sp,
+    amountSp = 14.sp,
+    percentSp = 10.sp,
+    metricSp = 11.sp,
+    metricGap = 4.dp,
+    dayChipDp = 24.dp,
+    dayCaptionSp = 8.sp,
+    showDayCaptions = false,
+    showDivider = false,
+    actionBtnDp = 32.dp,
+    actionIconDp = 16.dp,
+    actionLabelSp = 10.sp,
+    showActionLabels = false,
+    showRing = false,
+)
+
+private fun tallWideLayout() = CabinLayout(
+    paddingH = 14.dp,
+    paddingV = 12.dp,
+    sectionGap = 10.dp,
+    financeGap = 12.dp,
+    ringDp = 76.dp,
+    headerSp = 14.sp,
+    dateSp = 11.sp,
+    amountSp = 16.sp,
+    percentSp = 10.sp,
+    metricSp = 12.sp,
+    metricGap = 6.dp,
+    dayChipDp = 26.dp,
+    dayCaptionSp = 9.sp,
+    showDayCaptions = true,
+    showDivider = true,
+    actionBtnDp = 38.dp,
+    actionIconDp = 18.dp,
+    actionLabelSp = 10.sp,
+    showActionLabels = true,
+    showRing = true,
+)
+
+private fun fullWideLayout() = CabinLayout(
+    paddingH = 20.dp,
+    paddingV = 20.dp,
+    sectionGap = 18.dp,
+    financeGap = 14.dp,
+    ringDp = 92.dp,
+    headerSp = 15.sp,
+    dateSp = 12.sp,
+    amountSp = 20.sp,
+    percentSp = 11.sp,
+    metricSp = 13.sp,
+    metricGap = 8.dp,
+    dayChipDp = 30.dp,
+    dayCaptionSp = 10.sp,
+    showDayCaptions = true,
+    showDivider = true,
+    actionBtnDp = 44.dp,
+    actionIconDp = 20.dp,
+    actionLabelSp = 11.sp,
+    showActionLabels = true,
+    showRing = true,
+)

@@ -47,7 +47,7 @@ internal fun WideBudgetContent(
     week: WidgetStats,
     selectedOffset: Int,
 ) {
-    val layout = cabinLayoutFor(LocalSize.current)
+    val layout = cabinLayoutFor(LocalSize.current, LocalWidgetSizeMode.current)
     val progress = shown.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = shown.weeklyProfitGoal > 0
     val colors = LocalCabinColors.current
