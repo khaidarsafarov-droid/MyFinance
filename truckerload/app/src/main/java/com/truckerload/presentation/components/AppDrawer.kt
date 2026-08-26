@@ -2,7 +2,6 @@ package com.truckerload.presentation.components
 
 import com.truckerload.presentation.icons.AppIcons
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -11,34 +10,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.di.userComponentManager
-import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.sync.SessionTeardown
-import kotlinx.coroutines.launch
 
 enum class DrawerDestination {
     SETTINGS,
@@ -63,9 +53,6 @@ fun AppDrawerContent(
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
-    val authStore = LocalAuthStore.current
-    val scope = rememberCoroutineScope()
     var showLogoutConfirm by remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
@@ -187,47 +174,9 @@ fun AppDrawerContent(
     }
 
     if (showLogoutConfirm) {
-        AlertDialog(
-            onDismissRequest = { showLogoutConfirm = false },
-            title = {
-                Text(
-                    stringResource(R.string.settings_logout_confirm_title),
-                    color = tc.TextPrimary,
-                )
-            },
-            text = {
-                Text(
-                    stringResource(R.string.settings_logout_confirm_message),
-                    color = tc.TextSecondary,
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            SessionTeardown.signOut(
-                                context = context,
-                                authStore = authStore,
-                                endSession = { context.userComponentManager().endSession() },
-                            )
-                            showLogoutConfirm = false
-                            onClose()
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.settings_logout_success),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                    },
-                ) {
-                    Text(stringResource(R.string.settings_logout_button))
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showLogoutConfirm = false }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            },
+        LogoutConfirmDialog(
+            onDismiss = { showLogoutConfirm = false },
+            onSignedOut = onClose,
         )
     }
 }
