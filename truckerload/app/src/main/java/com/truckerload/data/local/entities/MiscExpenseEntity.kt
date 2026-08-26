@@ -13,6 +13,8 @@ data class MiscExpenseEntity(
     val amount: Double,
     val description: String,
     val date: String,
+    /** Absolute path to an attached receipt photo in app files (optional). */
+    val receiptPhotoPath: String? = null,
     val createdAt: Long,
     val updatedAt: Long,
 )

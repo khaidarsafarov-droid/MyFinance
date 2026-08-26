@@ -1,46 +1,49 @@
 # KMP → iOS roadmap
 
-Подготовка почвы, не порт iPhone. Android остаётся основным клиентом. Sign in with
-Apple и публикация в App Store — **последний этап**, когда будет Apple Developer
-Program ($99/год) и Mac с Xcode.
+Android remains the production client. Portable contracts and weekly-goal math live in
+Kotlin Multiplatform so the iOS app in `ios/` can call the same code.
 
-## Что уже сделано
+## What already exists
 
-| Модуль | Зачем |
+| Piece | Role |
 |---|---|
-| `:shared:contract` | KMP. JSON-контракт API (snapshots, media, Telegram inbox, push tokens). |
-| `:shared:domain` | KMP. `GoalMoneyMath`, типы weekly goal, `PlatformTime`, зарезервированный `AuthProvider.APPLE`. |
-| API `platform=ios` | Можно сохранить iOS push-token. FCM их **не** шлёт — APNs ещё нет. |
+| `:shared:contract` | KMP JSON API contracts (snapshots, media, Telegram inbox, push tokens). |
+| `:shared:domain` | KMP `GoalMoneyMath`, weekly-goal types, `PlatformTime`, reserved `AuthProvider.APPLE`. |
+| `:shared` | Umbrella module. On macOS it builds **one** static framework `TruckerLoadShared` that exports contract + domain. |
+| `ios/` | SwiftUI client. Xcode embeds `TruckerLoadShared` via `ios/embed-shared-framework.sh`. |
+| API `platform=ios` | Backend can store an iOS push token. FCM still does not deliver to APNs. |
 
-iOS-таргеты Gradle включаются **только на macOS** (нужен Xcode). Linux/CI собирают JVM.
-Принудительно: `-Ptruckerload.enableIos=true` или `false`.
+iOS Gradle targets are **on by default only on macOS** (Xcode required). Linux/CI compile JVM.
+Force: `-Ptruckerload.enableIos=true` or `false`.
 
-Android продолжает жить в `:app`. Новые фичи пишите там как обычно. В `:shared:domain`
-переносите только чистый Kotlin без `android.*`, `java.time`, `org.json`.
+Android stays in `:app`. New Android features go there as usual. Move into `:shared:domain`
+only pure Kotlin (no `android.*`, `java.time`, `org.json`).
 
-## Что не трогаем сейчас
+## What is still out of scope
 
-- Sign in with Apple / AuthenticationServices / Apple JWT на backend
-- APNs ключи и sender
-- Xcode-проект, SwiftUI, Compose Multiplatform UI
-- Foreground Telegram на iPhone (на iOS только `TELEGRAM_SYNC_MODE=server`)
+- Sign in with Apple / AuthenticationServices / Apple JWT on the backend
+- APNs keys and a push sender
+- Compose Multiplatform UI (the iOS UI is SwiftUI)
+- Foreground Telegram on iPhone (iOS should use `TELEGRAM_SYNC_MODE=server`)
 
-`AuthProvider.APPLE` — имя в общем модуле, без UI и без вызовов Apple.
+`AuthProvider.APPLE` is a reserved name in shared code, with no Apple SDK and no login UI.
 
-## Как развивать Android, не ломая KMP
+## How to develop Android without breaking KMP
 
-1. UI, Room, WorkManager, камера, ML Kit, виджеты, Google Sign-In — только `:app`.
-2. Парсеры Relay, goal-математика, CSV — кандидаты в `:shared:domain`, когда из них
-   уйдут `Calendar` / `Locale` / `java.time` (через `PlatformTime` + kotlinx-datetime).
-3. Не подключайте Apple SDK «на будущее» в Android-логин.
+1. UI, Room, WorkManager, camera, ML Kit, widgets, Google Sign-In — only `:app`.
+2. Relay parsers, goal math, CSV — candidates for `:shared:domain` after `Calendar` /
+   `Locale` / `java.time` are replaced (`PlatformTime` + kotlinx-datetime).
+3. Do not add Apple SDKs to the Android login flow “for later”.
 
-## Когда дойдёте до iPhone
+## Build the iPhone app (Mac)
 
-1. Mac + Xcode; `sh ./gradlew :shared:contract:linkDebugFrameworkIosSimulatorArm64`
-   (и domain). Позже — один umbrella-framework `TruckerLoadShared`.
-2. iOS UI (SwiftUI или Compose Multiplatform) поверх shared.
-3. Telegram **только server webhook**, не long-poll на устройстве.
-4. В конце: Apple Developer, Sign in with Apple (обязателен, если остаётся Google),
+1. Open `ios/TruckoRig.xcodeproj` (repo path `truckerload/ios`).
+2. Xcode runs `sh ./gradlew :shared:embedAndSignAppleFrameworkForXcode` (and domain/contract
+   transitively) before Swift compile.
+3. Swift: `import TruckerLoadShared` then `SharedBusinessLogic.shared`.
+4. Telegram **server webhook only**, not long-poll on device.
+5. Later: Apple Developer Program, Sign in with Apple (required if Google Sign-In stays),
    APNs, TestFlight, App Store.
 
-Подробности по облаку: [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md).
+Details: [ios/README.md](../ios/README.md), [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md).
+

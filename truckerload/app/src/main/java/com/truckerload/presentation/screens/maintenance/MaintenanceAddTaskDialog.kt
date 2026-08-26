@@ -25,6 +25,7 @@ import com.truckerload.R
 import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 
@@ -48,7 +49,10 @@ internal fun AddTaskDialog(
         containerColor = tc.CardBackground,
         title = { Text(stringResource(R.string.maintenance_add_task_title), color = tc.TextPrimary) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.dialogBodyScroll(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 OutlinedTextField(
                     value = draft.title,
                     onValueChange = { value -> onChange { it.copy(title = value) } },

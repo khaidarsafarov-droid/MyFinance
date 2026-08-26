@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import com.truckerload.R
 import com.truckerload.data.repository.AnalyticsDashboard
-import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -28,7 +27,7 @@ object AnalyticsExportShare {
         dashboard: AnalyticsDashboard,
         labels: AnalyticsExportLabels,
         format: AnalyticsShareFormat,
-        period: AnalyticsPeriod,
+        periodKey: String,
     ): File = withContext(Dispatchers.IO) {
         val body = when (format) {
             AnalyticsShareFormat.TEXT -> AnalyticsReportBuilder.buildReadableText(dashboard, labels)
@@ -36,7 +35,7 @@ object AnalyticsExportShare {
         }
         val ext = if (format == AnalyticsShareFormat.TEXT) "txt" else "csv"
         val dir = File(context.getExternalFilesDir(null), EXPORTS_SUBDIR).apply { mkdirs() }
-        val periodSlug = period.name.lowercase(Locale.US)
+        val periodSlug = periodKey.lowercase(Locale.US).replace(Regex("[^a-z0-9_]+"), "_")
         val name = "${BrandConstants.FILE_PREFIX}_MyNumbers_${periodSlug}_${LocalDateTime.now().format(stamp)}.$ext"
         File(dir, name).apply { writeText(body, Charsets.UTF_8) }
     }

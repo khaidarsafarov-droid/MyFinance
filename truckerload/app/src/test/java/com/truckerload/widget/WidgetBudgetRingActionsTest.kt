@@ -39,10 +39,17 @@ class WidgetBudgetRingActionsTest {
     }
 
     @Test
-    fun cabinPlateDrawable_isAlwaysDark() {
+    fun cabinPlateDrawable_isBrandBlue() {
         val xml = readRes("drawable/widget_cabin_plate.xml")
-        assertTrue(xml.contains("#FF1A2420"))
-        assertTrue(xml.contains("#FF24302A"))
+        assertTrue(xml.contains("#FF143882"))
+        assertTrue(xml.contains("#FF0F2A5C"))
+        assertTrue(xml.contains("#66A8D4F0"))
+    }
+
+    @Test
+    fun glanceQuickActions_useCabinActionChip() {
+        val src = readSource("widget/glance/OneUiGlanceWidgets.kt")
+        assertTrue(src.contains("widget_cabin_action_btn"))
     }
 
     private fun readSource(relativePath: String): String {

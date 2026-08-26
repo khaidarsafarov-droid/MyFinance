@@ -9,6 +9,7 @@ fun MiscExpenseEntity.toDomain(): MiscExpense =
         amount = amount,
         description = description,
         date = date,
+        receiptPhotoPath = receiptPhotoPath,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )
@@ -19,6 +20,7 @@ fun MiscExpense.toEntity(): MiscExpenseEntity =
         amount = amount,
         description = description,
         date = date,
+        receiptPhotoPath = receiptPhotoPath,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )

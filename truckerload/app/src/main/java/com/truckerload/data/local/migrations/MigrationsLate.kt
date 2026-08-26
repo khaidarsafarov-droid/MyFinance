@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→38 (startVersion 25..37). */
+/** Room migrations for schema versions 25→39 (startVersion 25..38). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -378,6 +378,22 @@ val MIGRATION_37_38 = object : Migration(37, 38) {
         )
         db.execLogged(
             "CREATE INDEX IF NOT EXISTS index_misc_expenses_date ON misc_expenses(date)",
+        )
+    }
+}
+
+/** Original paycheck PDF/photo copied into app storage so the journal can reopen it. */
+val MIGRATION_38_39 = object : Migration(38, 39) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing("paychecks", "sourceFilePath", "TEXT")
+    }
+}
+
+/** Optional receipt photo path on miscellaneous expenses. */
+val MIGRATION_39_40 = object : Migration(39, 40) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execLogged(
+            "ALTER TABLE misc_expenses ADD COLUMN receiptPhotoPath TEXT",
         )
     }
 }

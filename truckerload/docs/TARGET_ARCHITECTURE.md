@@ -2,9 +2,9 @@
 
 ```mermaid
 flowchart LR
-    S[shared/contract + shared/domain\nKMP: JVM always, iOS on macOS]
+    S[shared umbrella + contract + domain\nKMP: JVM always, iOS framework on macOS]
     A[Native Android\nKotlin + Jetpack Compose] -->|uses| S
-    I[Future iOS client] -.->|uses| S
+    I[iOS client\nSwiftUI in ios/] -->|TruckerLoadShared| S
     A -->|Supabase JWT| K[Ktor API\nDigitalOcean App Platform]
     A -->|sign in| U[Supabase Auth]
     A <-->|local-first| R[(Room per account)]
@@ -22,7 +22,8 @@ flowchart LR
 - Keep the native Android application. Kotlin, Room, WorkManager, and Jetpack Compose
   remain the offline-first client. There is no Expo or React Native migration.
   Portable domain and API contracts live in Kotlin Multiplatform modules
-  (`:shared:contract`, `:shared:domain`) so an iOS client can share them later.
+  (`:shared:contract`, `:shared:domain`, `:shared` umbrella) so the iOS client in `ios/`
+  can share them. The Xcode app does not include Sign in with Apple or APNs yet.
 - Ktor on JDK 21 is the stateless API and Telegram webhook receiver.
 - Supabase Auth remains the identity provider. Android obtains the JWT; Ktor validates
   issuer, audience, signature, and UUID subject. Supabase is not the application
@@ -46,10 +47,10 @@ flowchart LR
   constraints provide sufficient coordination. Add a cache or distributed lock only
   after measured contention, rate-limiting, or queue requirements cannot be met safely
   in PostgreSQL.
-- Do not add Sign in with Apple, APNs credentials, or an Xcode app until the Apple
-  Developer Program account is enrolled at publication. The API already accepts
-  `platform=ios` push-token rows so that client can register later. See
-  [KMP_IOS_ROADMAP.md](KMP_IOS_ROADMAP.md).
+- Do not add Sign in with Apple or APNs credentials until the Apple Developer
+  Program account is enrolled at publication. The SwiftUI shell in `ios/` already
+  links `TruckerLoadShared`. The API accepts `platform=ios` push-token rows so that
+  client can register later. See [KMP_IOS_ROADMAP.md](KMP_IOS_ROADMAP.md).
 
 ## Android dependency scopes
 

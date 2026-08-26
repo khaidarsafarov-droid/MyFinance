@@ -74,13 +74,21 @@ object GoogleDriveBackupService {
         val client = GoogleDriveApiClient(app, prefs)
         client.uploadBackupJson(json).fold(
             onSuccess = {
+                prefs.lastSyncAt = System.currentTimeMillis()
+                prefs.lastSyncError = null
+                prefs.lastSyncErrorAt = 0L
                 val msg = app.getString(
                     R.string.drive_sync_backup_ok,
                     prefs.accountEmail.orEmpty(),
                 )
                 Result.success(msg)
             },
-            onFailure = { Result.failure(mapError(app, it)) },
+            onFailure = {
+                val mapped = mapError(app, it)
+                prefs.lastSyncError = mapped.message ?: it.message ?: "backup_failed"
+                prefs.lastSyncErrorAt = System.currentTimeMillis()
+                Result.failure(mapped)
+            },
         )
     }
 
@@ -99,6 +107,8 @@ object GoogleDriveBackupService {
         BackupService.restoreBackupJson(app, json).fold(
             onSuccess = { backup ->
                 prefs.lastSyncAt = System.currentTimeMillis()
+                prefs.lastSyncError = null
+                prefs.lastSyncErrorAt = 0L
                 Result.success(
                     app.getString(
                         R.string.backup_restore_success,
@@ -121,8 +131,17 @@ object GoogleDriveBackupService {
         syncLinkedAccountFromGoogle(app)
         val json = BackupService.createBackupJson(app) ?: return
         GoogleDriveApiClient(app, prefs).uploadBackupJson(json)
-            .onSuccess { Log.d(TAG, "auto push ok") }
-            .onFailure { Log.w(TAG, "auto push failed: ${it.message}") }
+            .onSuccess {
+                prefs.lastSyncAt = System.currentTimeMillis()
+                prefs.lastSyncError = null
+                prefs.lastSyncErrorAt = 0L
+                Log.d(TAG, "auto push ok")
+            }
+            .onFailure {
+                prefs.lastSyncError = it.message ?: "auto_push_failed"
+                prefs.lastSyncErrorAt = System.currentTimeMillis()
+                Log.w(TAG, "auto push failed: ${it.message}")
+            }
     }
 
     /**

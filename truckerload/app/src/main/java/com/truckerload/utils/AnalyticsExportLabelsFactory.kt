@@ -2,20 +2,17 @@ package com.truckerload.utils
 
 import android.content.Context
 import com.truckerload.R
+import com.truckerload.domain.model.analytics.AnalyticsFilter
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
+import java.text.DateFormatSymbols
+import java.util.Locale
 
 fun analyticsExportLabels(
     context: Context,
-    period: AnalyticsPeriod,
+    filter: AnalyticsFilter,
     ownerName: String = "",
 ): AnalyticsExportLabels {
-    val periodLabel = context.getString(
-        when (period) {
-            AnalyticsPeriod.LAST_12_WEEKS -> R.string.analytics_period_12_weeks
-            AnalyticsPeriod.LAST_6_MONTHS -> R.string.analytics_period_6_months
-            AnalyticsPeriod.ALL_TIME -> R.string.analytics_period_all
-        },
-    )
+    val periodLabel = analyticsPeriodLabel(context, filter)
     return AnalyticsExportLabels(
         appName = BrandConstants.DISPLAY_NAME,
         title = context.getString(R.string.analytics_title),
@@ -49,4 +46,41 @@ fun analyticsExportLabels(
         ownerLabel = context.getString(R.string.analytics_share_owner),
         ownerName = ownerName.trim(),
     )
+}
+
+fun analyticsPeriodLabel(context: Context, filter: AnalyticsFilter): String {
+    val week = filter.weekNumber
+    val weekYear = filter.weekYear
+    if (week != null && weekYear != null) {
+        return getWeekLabelShort(week, weekYear)
+    }
+    val month = filter.month
+    val year = filter.year
+    if (month != null && year != null) {
+        return context.getString(
+            R.string.analytics_period_month_of,
+            monthLongLabel(month),
+            year,
+        )
+    }
+    if (year != null) {
+        return year.toString()
+    }
+    return context.getString(
+        when (filter.preset ?: AnalyticsPeriod.LAST_12_WEEKS) {
+            AnalyticsPeriod.LAST_12_WEEKS -> R.string.analytics_period_12_weeks
+            AnalyticsPeriod.LAST_6_MONTHS -> R.string.analytics_period_6_months
+            AnalyticsPeriod.ALL_TIME -> R.string.analytics_period_all
+        },
+    )
+}
+
+private fun monthLongLabel(month: Int): String {
+    val long = DateFormatSymbols(Locale.getDefault())
+        .months
+        .getOrNull((month - 1).coerceIn(0, 11))
+        .orEmpty()
+    return long.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    }
 }

@@ -58,11 +58,22 @@ class MiscExpenseExporterTest {
         val rows = csv.lines().filter { it.startsWith("2026-") }
         assertEquals(
             listOf(
-                "2026-08-01,Parking,12.50",
-                "2026-08-03,\"Scales, NJ\",20.00",
+                "2026-08-01,Parking,12.50,no",
+                "2026-08-03,\"Scales, NJ\",20.00,no",
             ),
             rows,
         )
+    }
+
+    @Test
+    fun buildCsv_marksAttachedReceipt() {
+        val csv = MiscExpenseExporter.buildCsv(
+            listOf(
+                expense(id = 1, date = "2026-08-01", description = "Parking", amount = 12.5)
+                    .copy(receiptPhotoPath = "/tmp/receipt.jpg"),
+            ),
+        )
+        assertTrue(csv.contains("2026-08-01,Parking,12.50,yes"))
     }
 
     private fun expense(

@@ -5,16 +5,14 @@ import com.truckerload.data.local.toDomain
 import com.truckerload.domain.analytics.RouteDisplayHelper
 import com.truckerload.domain.model.DieselPurchaseMath
 import com.truckerload.domain.model.Load
-import com.truckerload.domain.model.analytics.AnalyticsPeriod
+import com.truckerload.domain.model.analytics.AnalyticsFilter
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.domain.model.analytics.DailyData
 import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
-import com.truckerload.utils.enumerateRecentWeekSlots
-import com.truckerload.utils.getWeekRange
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.truckerload.utils.dateBounds
+import com.truckerload.utils.weekSlots
 
 class AnalyticsRepository(private val db: AppDatabase) {
 
@@ -22,13 +20,14 @@ class AnalyticsRepository(private val db: AppDatabase) {
     private val stopDao = db.stopDao()
     private val paycheckDao = db.paycheckDao()
     private val dieselDao = db.dieselDao()
-    private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-    suspend fun loadDashboard(period: AnalyticsPeriod): AnalyticsDashboard {
-        val minDate = minDateFor(period)
-        val weekRows = loadDao.getWeeklyRevenue(minDate)
+    suspend fun loadDashboard(filter: AnalyticsFilter): AnalyticsDashboard {
+        val bounds = filter.dateBounds()
+        val minDate = bounds.minDate
+        val maxDate = bounds.maxDate
+        val weekRows = loadDao.getWeeklyRevenue(minDate, maxDate)
         val dataByKey = weekRows.associateBy { it.weekNumber to it.year }
-        val slots = weekSlotsFor(period, weekRows)
+        val slots = weekSlotsFor(filter, weekRows)
         val weeks = slots.map { (weekNumber, year) ->
             val row = dataByKey[weekNumber to year]
             WeekData(
@@ -40,9 +39,9 @@ class AnalyticsRepository(private val db: AppDatabase) {
                 loadCount = row?.loadCount ?: 0,
             )
         }
-        val routes = loadTopRoutes(minDate, 5)
-        val daily = mapDailyDistribution(loadDao.getDailyDistribution(minDate))
-        val totals = loadDao.getAnalyticsTotals(minDate)
+        val routes = loadTopRoutes(minDate, maxDate, 5)
+        val daily = mapDailyDistribution(loadDao.getDailyDistribution(minDate, maxDate))
+        val totals = loadDao.getAnalyticsTotals(minDate, maxDate)
         val avgRpm = if (totals.miles > 0) totals.gross / totals.miles else 0.0
         val avgPerLoad = if (totals.loadCount > 0) totals.gross / totals.loadCount else 0.0
         val bestWeek = weeks.maxByOrNull { it.gross }
@@ -59,7 +58,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
             routes = routes,
             daily = daily,
             summary = summary,
-            finance = loadFinance(minDate),
+            finance = loadFinance(minDate, maxDate),
         )
     }
 
@@ -67,12 +66,12 @@ class AnalyticsRepository(private val db: AppDatabase) {
      * Paycheck follows the week rule used elsewhere in the journal: one settlement
      * per week, so extra rows for the same week are ignored instead of double-counted.
      */
-    private suspend fun loadFinance(minDate: String): PeriodFinance {
-        val paycheckTotal = paycheckDao.getPaychecksSince(minDate)
+    private suspend fun loadFinance(minDate: String, maxDate: String): PeriodFinance {
+        val paycheckTotal = paycheckDao.getPaychecksSince(minDate, maxDate)
             .groupBy { it.weekNumber to it.year }
             .values
             .sumOf { rows -> rows.first().netAmount }
-        val diesel = dieselDao.getDieselSince(minDate)
+        val diesel = dieselDao.getDieselSince(minDate, maxDate)
         return PeriodFinance(
             paycheckTotal = paycheckTotal,
             dieselTotal = diesel.sumOf { it.totalAmount },
@@ -99,8 +98,8 @@ class AnalyticsRepository(private val db: AppDatabase) {
         }
     }
 
-    private suspend fun loadTopRoutes(minDate: String, limit: Int): List<RouteData> {
-        val entities = loadDao.getLoadsSince(minDate)
+    private suspend fun loadTopRoutes(minDate: String, maxDate: String, limit: Int): List<RouteData> {
+        val entities = loadDao.getLoadsSince(minDate, maxDate)
         if (entities.isEmpty()) return emptyList()
         val loadIds = entities.map { it.id }
         val stopsByLoadId = loadIds.chunked(500)
@@ -113,25 +112,13 @@ class AnalyticsRepository(private val db: AppDatabase) {
     }
 
     private fun weekSlotsFor(
-        period: AnalyticsPeriod,
+        filter: AnalyticsFilter,
         weekRows: List<com.truckerload.data.local.entities.analytics.WeeklyRevenueAgg>,
-    ): List<Pair<Int, Int>> = when (period) {
-        AnalyticsPeriod.LAST_12_WEEKS -> enumerateRecentWeekSlots(12)
-        AnalyticsPeriod.LAST_6_MONTHS -> enumerateRecentWeekSlots(26)
-        AnalyticsPeriod.ALL_TIME -> weekRows
+    ): List<Pair<Int, Int>> = filter.weekSlots()
+        ?: weekRows
             .map { it.weekNumber to it.year }
             .distinct()
             .sortedWith(compareBy<Pair<Int, Int>> { it.second }.thenBy { it.first })
-    }
-
-    private fun minDateFor(period: AnalyticsPeriod): String = when (period) {
-        AnalyticsPeriod.LAST_12_WEEKS -> {
-            val (firstWeek, firstYear) = enumerateRecentWeekSlots(12).first()
-            getWeekRange(firstWeek, firstYear).first
-        }
-        AnalyticsPeriod.LAST_6_MONTHS -> LocalDate.now().minusMonths(6).format(dateFormatter)
-        AnalyticsPeriod.ALL_TIME -> ""
-    }
 
     private fun mapDailyDistribution(rows: List<com.truckerload.data.local.entities.analytics.DailyGrossAgg>): List<DailyData> {
         val byDay = rows.associateBy { it.dayOfWeek }

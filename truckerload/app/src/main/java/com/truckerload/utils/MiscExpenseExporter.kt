@@ -18,7 +18,7 @@ object MiscExpenseExporter {
     private const val EXPORTS_SUBDIR = "exports"
     private val dayStamp: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.US)
 
-    const val CSV_HEADER = "date,description,amount_usd"
+    const val CSV_HEADER = "date,description,amount_usd,receipt_attached"
 
     fun buildCsv(expenses: List<MiscExpense>): String {
         val sorted = expenses.sortedWith(compareBy<MiscExpense> { it.date }.thenBy { it.id })
@@ -29,11 +29,13 @@ object MiscExpenseExporter {
             appendLine("# total_usd,${String.format(Locale.US, "%.2f", total)}")
             appendLine(CSV_HEADER)
             for (row in sorted) {
+                val hasReceipt = if (!row.receiptPhotoPath.isNullOrBlank()) "yes" else "no"
                 appendLine(
                     listOf(
                         row.date,
                         MiscExpenseFields.csvQuote(row.description),
                         String.format(Locale.US, "%.2f", row.amount),
+                        hasReceipt,
                     ).joinToString(","),
                 )
             }

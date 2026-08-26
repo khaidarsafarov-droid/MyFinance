@@ -20,7 +20,9 @@
 
 Аудитория: owner-operators / company drivers на Amazon Relay в США. UI — **русский + английский** (`AppLanguage`), дизайн — Material 3, тема **Mindwell Forest / Soft UI** (DM Sans).
 
-**Нет** iOS-клиента, **нет** веб/Expo/React Native. Telegram-бот — не отдельный сервис: либо foreground-сервис на телефоне, либо webhook на Ktor.
+**Нет** веб/Expo/React Native. iOS-клиент — SwiftUI в `ios/`, логика через KMP
+`TruckerLoadShared`. Telegram-бот — не отдельный сервис: либо foreground-сервис на
+Android, либо webhook на Ktor.
 
 Версия приложения: `1.5.6` (`versionCode` 11), package `com.truckerload`, `minSdk` 24, `compileSdk`/`targetSdk` 35.
 
@@ -33,6 +35,8 @@
 ```
 truckerload/
 ├── app/                      # Android-клиент (Kotlin + Jetpack Compose), модуль :app
+├── ios/                      # SwiftUI-клиент; линкует TruckerLoadShared (:shared)
+├── shared/                   # KMP umbrella → TruckerLoadShared.framework (macOS)
 ├── shared/contract/          # KMP: JSON-контракты API (JVM всегда; iOS target только на macOS)
 ├── shared/domain/            # KMP: портабельная доменная математика (цели недели)
 ├── backend/server/           # Ktor API на JDK 21
@@ -45,6 +49,7 @@ truckerload/
 Gradle-модули (`settings.gradle.kts`):
 
 - `:app`
+- `:shared` (umbrella framework for iOS)
 - `:shared:contract`
 - `:shared:domain`
 - `:backend:server`

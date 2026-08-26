@@ -5,7 +5,7 @@ import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.utils.BackupService
-import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.PaycheckSourceFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -30,8 +30,19 @@ class PaycheckRepository(private val db: AppDatabase) {
         scheduleAutoBackup()
     }
 
+    suspend fun updatePaycheck(paycheck: Paycheck) {
+        dao.update(paycheck.toEntity())
+        scheduleAutoBackup()
+    }
+
     suspend fun deletePaycheck(id: Int) {
+        val existing = dao.getById(id)
         dao.deleteById(id)
+        existing?.sourceFilePath?.let { path ->
+            AppDatabase.applicationContext()?.let { ctx ->
+                PaycheckSourceFiles.delete(ctx, path)
+            }
+        }
         scheduleAutoBackup()
     }
 

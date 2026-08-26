@@ -8,6 +8,7 @@ import androidx.paging.map as mapPaging
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
+import com.truckerload.data.local.entities.LoadDateSpan
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.data.local.entities.LoadStatsAgg
@@ -95,6 +96,14 @@ class LoadRepository(
 
     fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg> =
         loadDao.watchWeeklyLoadStats(weekNumber, year).flowOn(Dispatchers.IO)
+
+
+    fun watchLoadDateSpans(): Flow<List<LoadDateSpan>> =
+        loadDao.watchLoadDateSpans().flowOn(Dispatchers.IO)
+
+    fun watchDisputeLoadStats(): Flow<WeeklyLoadStatsAgg> =
+        loadDao.watchDisputeLoadStats().flowOn(Dispatchers.IO)
+
 
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg =
         loadDao.getWeeklyLoadStatsOnce(weekNumber, year)

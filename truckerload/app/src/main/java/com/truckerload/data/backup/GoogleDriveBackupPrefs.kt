@@ -45,6 +45,17 @@ class GoogleDriveBackupPrefs(
         get() = prefs.getLong(KEY_REMOTE_MODIFIED, 0L)
         set(value) = prefs.edit { putLong(KEY_REMOTE_MODIFIED, value) }
 
+    /** Last auto/manual Drive sync failure message (cleared on success). */
+    var lastSyncError: String?
+        get() = prefs.getString(KEY_LAST_ERROR, null)
+        set(value) = prefs.edit {
+            if (value == null) remove(KEY_LAST_ERROR) else putString(KEY_LAST_ERROR, value.take(240))
+        }
+
+    var lastSyncErrorAt: Long
+        get() = prefs.getLong(KEY_LAST_ERROR_AT, 0L)
+        set(value) = prefs.edit { putLong(KEY_LAST_ERROR_AT, value) }
+
     val isLinked: Boolean
         get() = !accountEmail.isNullOrBlank()
 
@@ -59,6 +70,8 @@ class GoogleDriveBackupPrefs(
         private const val KEY_AUTO_SYNC = "auto_sync"
         private const val KEY_LAST_SYNC = "last_sync_at"
         private const val KEY_REMOTE_MODIFIED = "remote_modified_at"
+        private const val KEY_LAST_ERROR = "last_sync_error"
+        private const val KEY_LAST_ERROR_AT = "last_sync_error_at"
 
         const val BACKUP_FILE_NAME = "truckerload_backup.tlb"
         const val DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"

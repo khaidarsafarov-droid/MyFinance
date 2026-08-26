@@ -21,6 +21,9 @@ data class MiscExpenseEditorState(
     val amountText: String = "",
     val description: String = "",
     val dateIso: String,
+    val receiptPhotoPath: String? = null,
+    /** Path already saved in Room; used to avoid deleting it on Cancel. */
+    val initialReceiptPhotoPath: String? = null,
     val createdAt: Long = 0L,
     val error: MiscExpenseFields.Error? = null,
 )
@@ -71,14 +74,25 @@ class MiscExpenseViewModel @Inject constructor(
             amountText = String.format(Locale.US, "%.2f", expense.amount),
             description = expense.description,
             dateIso = expense.date,
+            receiptPhotoPath = expense.receiptPhotoPath,
+            initialReceiptPhotoPath = expense.receiptPhotoPath,
             createdAt = expense.createdAt,
         )
     }
 
     fun dismissEditor() {
         if (isSaving.value) return
+        val current = editor.value
         editor.value = null
         confirmDeleteId.value = null
+        if (current != null) {
+            viewModelScope.launch {
+                repository.discardUnsavedReceipt(
+                    currentPath = current.receiptPhotoPath,
+                    initialPath = current.initialReceiptPhotoPath,
+                )
+            }
+        }
     }
 
     fun updateEditor(transform: (MiscExpenseEditorState) -> MiscExpenseEditorState) {
@@ -107,6 +121,7 @@ class MiscExpenseViewModel @Inject constructor(
                     amount = amount,
                     description = current.description.trim(),
                     date = current.dateIso.trim(),
+                    receiptPhotoPath = current.receiptPhotoPath,
                     createdAt = current.createdAt.takeIf { it > 0L } ?: now,
                     updatedAt = now,
                 ),

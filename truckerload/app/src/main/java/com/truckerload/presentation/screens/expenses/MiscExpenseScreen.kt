@@ -198,6 +198,24 @@ private fun MiscExpenseCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.TextSecondary,
             )
+            if (!expense.receiptPhotoPath.isNullOrBlank()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        AppIcons.PhotoCamera,
+                        contentDescription = null,
+                        tint = tc.Success,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.misc_expense_receipt_attached),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = tc.Success,
+                    )
+                }
+            }
         }
     }
 }
