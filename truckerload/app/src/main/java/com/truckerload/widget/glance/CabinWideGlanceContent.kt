@@ -3,8 +3,9 @@ package com.truckerload.widget.glance
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
@@ -46,19 +47,19 @@ internal fun WideBudgetContent(
     week: WidgetStats,
     selectedOffset: Int,
 ) {
-    val tall = LocalSize.current.height >= CabinSize4x3.height
+    val layout = cabinLayoutFor(LocalSize.current)
     val progress = shown.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = shown.weeklyProfitGoal > 0
-    val ring = buildRingBitmap(context, shown, compact = false)
+    val ring = buildRingBitmap(context, shown, layout.ringDp)
 
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ImageProvider(R.drawable.widget_cabin_plate))
-            .padding(horizontal = 14.dp, vertical = if (tall) 10.dp else 8.dp),
+            .padding(horizontal = layout.paddingH, vertical = layout.paddingV),
     ) {
-        CabinHeader(context, shown.weekLabel)
-        Spacer(modifier = GlanceModifier.height(if (tall) 8.dp else 4.dp))
+        CabinHeader(context, shown.weekLabel, layout.headerSp, layout.dateSp)
+        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
         Row(
             modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
             verticalAlignment = Alignment.CenterVertically,
@@ -69,44 +70,54 @@ internal fun WideBudgetContent(
                 stats = shown,
                 progress = progress,
                 goalSet = goalSet,
-                ringDp = if (tall) 88.dp else 72.dp,
-                compact = !tall,
+                ringDp = layout.ringDp,
+                amountSp = layout.amountSp,
+                percentSp = layout.percentSp,
                 modifier = GlanceModifier.clickable(
                     actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL)),
                 ),
             )
-            Spacer(modifier = GlanceModifier.width(12.dp))
+            Spacer(modifier = GlanceModifier.width(layout.financeGap))
             MetricStack(
                 context = context,
                 shown = shown,
+                metricSp = layout.metricSp,
+                metricGap = layout.metricGap,
                 modifier = GlanceModifier.defaultWeight().fillMaxHeight(),
             )
         }
-        Spacer(modifier = GlanceModifier.height(if (tall) 8.dp else 4.dp))
+        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
         WeekDaySelector(
             context = context,
             week = week,
             selectedOffset = selectedOffset,
-            showCaptions = tall,
+            chipDp = layout.dayChipDp,
+            captionSp = layout.dayCaptionSp,
+            showCaptions = layout.showDayCaptions,
         )
-        if (tall) {
-            Spacer(modifier = GlanceModifier.height(8.dp))
+        if (layout.showDivider) {
+            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(ColorProvider(Color(0x33FFFFFF))),
+                    .background(ColorProvider(CabinGlanceDivider)),
             ) {}
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(14.dp))
         } else {
-            Spacer(modifier = GlanceModifier.height(4.dp))
+            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
         }
-        ActionRow(context)
+        ActionRow(context, layout)
     }
 }
 
 @Composable
-private fun CabinHeader(context: Context, weekLabel: String) {
+private fun CabinHeader(
+    context: Context,
+    weekLabel: String,
+    headerSp: TextUnit,
+    dateSp: TextUnit,
+) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -117,8 +128,8 @@ private fun CabinHeader(context: Context, weekLabel: String) {
             text = context.getString(R.string.widget_brand_title_plain),
             style = TextStyle(
                 color = ColorProvider(CabinGlancePrimary),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = headerSp,
+                fontWeight = FontWeight.Medium,
             ),
             maxLines = 1,
             modifier = GlanceModifier.defaultWeight(),
@@ -126,7 +137,11 @@ private fun CabinHeader(context: Context, weekLabel: String) {
         if (weekLabel.isNotBlank()) {
             Text(
                 text = weekLabel,
-                style = cabinLabelStyle(),
+                style = TextStyle(
+                    color = ColorProvider(CabinGlanceSecondary),
+                    fontSize = dateSp,
+                    fontWeight = FontWeight.Normal,
+                ),
                 maxLines = 1,
             )
         }
@@ -137,6 +152,8 @@ private fun CabinHeader(context: Context, weekLabel: String) {
 private fun MetricStack(
     context: Context,
     shown: WidgetStats,
+    metricSp: TextUnit,
+    metricGap: Dp,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     Column(
@@ -151,20 +168,23 @@ private fun MetricStack(
                 context.getString(R.string.widget_goal_not_set)
             },
             valueColor = CabinGlancePrimary,
+            fontSize = metricSp,
         )
-        Spacer(modifier = GlanceModifier.height(4.dp))
+        Spacer(modifier = GlanceModifier.height(metricGap))
         MetricRow(
             label = context.getString(R.string.widget_metric_rpm),
             value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
             valueColor = CabinGlanceAccent,
+            fontSize = metricSp,
             onClickRoute = WidgetDeepLink.ROUTE_STATS,
             context = context,
         )
-        Spacer(modifier = GlanceModifier.height(4.dp))
+        Spacer(modifier = GlanceModifier.height(metricGap))
         MetricRow(
             label = context.getString(R.string.widget_metric_trips),
             value = shown.loadsCount.toString(),
             valueColor = CabinGlancePrimary,
+            fontSize = metricSp,
         )
     }
 }
@@ -174,6 +194,7 @@ private fun MetricRow(
     label: String,
     value: String,
     valueColor: Color,
+    fontSize: TextUnit,
     context: Context? = null,
     onClickRoute: String? = null,
 ) {
@@ -192,7 +213,7 @@ private fun MetricRow(
             text = label,
             style = TextStyle(
                 color = ColorProvider(CabinGlanceSecondary),
-                fontSize = 11.sp,
+                fontSize = fontSize,
             ),
             maxLines = 1,
         )
@@ -201,8 +222,8 @@ private fun MetricRow(
             text = value,
             style = TextStyle(
                 color = ColorProvider(valueColor),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.End,
             ),
             maxLines = 1,
@@ -215,11 +236,13 @@ private fun WeekDaySelector(
     context: Context,
     week: WidgetStats,
     selectedOffset: Int,
+    chipDp: Dp,
+    captionSp: TextUnit,
     showCaptions: Boolean,
 ) {
     val chips = WidgetWeekDayHelper.chips(week.weekLoadMask)
     val todayLabel = context.getString(R.string.widget_day_today)
-    val chipPx = WidgetWeekDaysBitmap.rowHeightPx(context, compact = true)
+    val chipPx = (chipDp.value * context.resources.displayMetrics.density).toInt().coerceAtLeast(24)
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
@@ -229,10 +252,15 @@ private fun WeekDaySelector(
                 WidgetWeekDaysBitmap.createChip(context, chip, selectedOffset == offset, chipPx)
             }.getOrNull()
             val caption = WidgetDayCaption.text(
-                selected = selectedOffset == offset,
+                isFuture = chip.isFuture,
                 isToday = chip.isToday,
                 dayGross = week.dayGross.getOrElse(offset) { 0.0 },
                 todayLabel = todayLabel,
+            )
+            val emptyCaption = WidgetDayCaption.usesEmptyColor(
+                isFuture = chip.isFuture,
+                isToday = chip.isToday,
+                dayGross = week.dayGross.getOrElse(offset) { 0.0 },
             )
             val cell = GlanceModifier.defaultWeight()
             Column(
@@ -251,19 +279,20 @@ private fun WeekDaySelector(
                     Image(
                         provider = ImageProvider(bitmap),
                         contentDescription = chip.label,
-                        modifier = GlanceModifier.size(26.dp),
+                        modifier = GlanceModifier.size(chipDp),
                     )
                 } else {
-                    Spacer(modifier = GlanceModifier.size(26.dp))
+                    Spacer(modifier = GlanceModifier.size(chipDp))
                 }
                 if (showCaptions) {
+                    Spacer(modifier = GlanceModifier.height(4.dp))
                     Text(
                         text = caption,
                         style = TextStyle(
                             color = ColorProvider(
-                                if (selectedOffset == offset) CabinGlancePrimary else CabinGlanceSecondary,
+                                if (emptyCaption) CabinGlanceEmptyCaption else CabinGlancePrimary,
                             ),
-                            fontSize = 8.sp,
+                            fontSize = captionSp,
                             textAlign = TextAlign.Center,
                         ),
                         maxLines = 1,
@@ -275,14 +304,17 @@ private fun WeekDaySelector(
 }
 
 @Composable
-private fun ActionRow(context: Context) {
+private fun ActionRow(context: Context, layout: CabinLayout) {
     Row(modifier = GlanceModifier.fillMaxWidth()) {
         QuickAction(
             context = context,
             iconRes = R.drawable.ic_widget_camera,
             label = context.getString(R.string.widget_camera_short),
             route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
-            showLabel = true,
+            showLabel = layout.showActionLabels,
+            btnDp = layout.actionBtnDp,
+            iconDp = layout.actionIconDp,
+            labelSp = layout.actionLabelSp,
             modifier = GlanceModifier.defaultWeight(),
         )
         QuickAction(
@@ -290,7 +322,10 @@ private fun ActionRow(context: Context) {
             iconRes = R.drawable.ic_widget_scanner,
             label = context.getString(R.string.widget_scanner_short),
             route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
-            showLabel = true,
+            showLabel = layout.showActionLabels,
+            btnDp = layout.actionBtnDp,
+            iconDp = layout.actionIconDp,
+            labelSp = layout.actionLabelSp,
             modifier = GlanceModifier.defaultWeight(),
         )
         QuickAction(
@@ -298,7 +333,10 @@ private fun ActionRow(context: Context) {
             iconRes = R.drawable.ic_widget_diesel,
             label = context.getString(R.string.widget_diesel_short),
             launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
-            showLabel = true,
+            showLabel = layout.showActionLabels,
+            btnDp = layout.actionBtnDp,
+            iconDp = layout.actionIconDp,
+            labelSp = layout.actionLabelSp,
             modifier = GlanceModifier.defaultWeight(),
         )
     }

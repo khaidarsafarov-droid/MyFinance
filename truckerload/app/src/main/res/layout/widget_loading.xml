@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.TruckerLoad.Widget"
-    android:background="@drawable/widget_soft_gradient"
+    android:background="@drawable/widget_cabin_plate"
     android:padding="16dp">
 
     <LinearLayout

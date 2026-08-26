@@ -4,7 +4,6 @@ import com.truckerload.presentation.icons.AppIcons
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,18 +42,14 @@ internal fun WidgetLivePreview(
     showGross: Boolean,
     showPace: Boolean,
     showGoal: Boolean,
-    themeMode: WidgetThemeMode,
+    @Suppress("UNUSED_PARAMETER") themeMode: WidgetThemeMode,
 ) {
-    val dark = when (themeMode) {
-        WidgetThemeMode.DARK -> true
-        WidgetThemeMode.LIGHT -> false
-        WidgetThemeMode.SYSTEM -> isSystemInDarkTheme()
-    }
-    val bg = if (dark) Color(0xFF143882) else Color.White
-    val textPrimary = if (dark) Color(0xFFF2F7FC) else Color(0xFF010101)
-    val textSecondary = if (dark) Color(0xFFB8C9E0) else Color(0x99010101)
-    val accent = if (dark) Color(0xFF5EE0A0) else SoftUiColors.ForestAccent
-    val track = if (dark) Color(0x661A4A8A) else Color(0xFFE8E8E8)
+    val bg = Color(WidgetCabinPalette.BG)
+    val textPrimary = Color(WidgetCabinPalette.TEXT)
+    val textSecondary = Color(WidgetCabinPalette.MUTED)
+    val accent = Color(WidgetCabinPalette.ACCENT)
+    val track = Color(WidgetCabinPalette.RING_TRACK)
+    val ringColor = Color(WidgetCabinPalette.RING)
     val compact = sizeMode == WidgetSizeMode.SMALL
     val height = when (sizeMode) {
         WidgetSizeMode.SMALL -> 100.dp
@@ -67,8 +62,8 @@ internal fun WidgetLivePreview(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
-            .shadow(4.dp, RoundedCornerShape(22.dp), ambientColor = SoftUiColors.ShadowTint)
-            .clip(RoundedCornerShape(22.dp))
+            .shadow(4.dp, RoundedCornerShape(20.dp), ambientColor = SoftUiColors.ShadowTint)
+            .clip(RoundedCornerShape(20.dp))
             .background(bg)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -81,7 +76,7 @@ internal fun WidgetLivePreview(
             Text(
                 text = stringResource(R.string.widget_brand_title_plain),
                 color = textPrimary,
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                 maxLines = 1,
             )
             if (!compact) {
@@ -101,6 +96,7 @@ internal fun WidgetLivePreview(
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,
                 accent = accent,
+                ringColor = ringColor,
                 track = track,
                 progress = progress,
             )
@@ -113,6 +109,7 @@ internal fun WidgetLivePreview(
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,
                 accent = accent,
+                ringColor = ringColor,
                 track = track,
                 progress = progress,
             )
@@ -127,6 +124,7 @@ private fun CompactPreviewBody(
     textPrimary: Color,
     textSecondary: Color,
     accent: Color,
+    ringColor: Color,
     track: Color,
     progress: Float,
 ) {
@@ -139,7 +137,7 @@ private fun CompactPreviewBody(
             Text(
                 text = stringResource(R.string.widget_configure_preview_gross),
                 color = textPrimary,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 fontSize = 22.sp,
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
@@ -150,7 +148,7 @@ private fun CompactPreviewBody(
         PreviewRing(
             size = 52.dp,
             progress = progress,
-            accent = accent,
+            accent = ringColor,
             track = track,
             hole = {
                 if (showGoal) {
@@ -177,6 +175,7 @@ private fun StandardPreviewBody(
     textPrimary: Color,
     textSecondary: Color,
     accent: Color,
+    ringColor: Color,
     track: Color,
     progress: Float,
 ) {
@@ -188,7 +187,7 @@ private fun StandardPreviewBody(
         PreviewRing(
             size = if (sizeMode == WidgetSizeMode.LARGE) 78.dp else 64.dp,
             progress = progress,
-            accent = accent,
+            accent = ringColor,
             track = track,
             hole = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -196,7 +195,7 @@ private fun StandardPreviewBody(
                         Text(
                             text = stringResource(R.string.widget_configure_preview_gross),
                             color = textPrimary,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             fontSize = if (sizeMode == WidgetSizeMode.LARGE) 12.sp else 11.sp,
                             maxLines = 1,
                         )
@@ -250,7 +249,7 @@ private fun PreviewRing(
 ) {
     Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
-            val stroke = size.toPx() * 0.12f
+            val stroke = size.toPx() * (6f / 92f)
             val inset = stroke / 2f + 1.5f
             val arcSize = Size(this.size.width - inset * 2, this.size.height - inset * 2)
             val topLeft = Offset(inset, inset)
@@ -310,7 +309,7 @@ private fun PreviewActionChip(
             modifier = Modifier
                 .size(if (labeled) 28.dp else 26.dp)
                 .clip(CircleShape)
-                .background(accent.copy(alpha = 0.16f)),
+                .background(Color(WidgetCabinPalette.ACTION_BG)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -323,7 +322,7 @@ private fun PreviewActionChip(
         if (labeled) {
             Text(
                 text = label,
-                color = SoftUiColors.TextSecondaryLight,
+                color = Color(WidgetCabinPalette.ACTION_LABEL),
                 fontSize = 8.sp,
                 maxLines = 1,
             )

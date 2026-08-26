@@ -1,17 +1,24 @@
 package com.truckerload.widget
 
-/** Captions under Sun–Sat chips on the green cabin widget. */
+/** Captions under Sun–Sat chips: earnings, "today", or an em dash. */
 object WidgetDayCaption {
     const val EMPTY = "—"
 
     fun text(
-        selected: Boolean,
+        isFuture: Boolean,
         isToday: Boolean,
         dayGross: Double,
         todayLabel: String,
     ): String = when {
-        selected -> WidgetStatsFormatter.formatGrossUsd(dayGross)
         isToday -> todayLabel
+        isFuture -> EMPTY
+        dayGross > 0.0 -> WidgetStatsFormatter.formatGrossUsd(dayGross)
         else -> EMPTY
     }
+
+    fun usesEmptyColor(
+        isFuture: Boolean,
+        isToday: Boolean,
+        dayGross: Double,
+    ): Boolean = text(isFuture, isToday, dayGross, todayLabel = "x") == EMPTY
 }
