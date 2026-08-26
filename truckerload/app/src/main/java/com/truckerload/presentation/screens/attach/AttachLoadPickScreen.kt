@@ -48,6 +48,7 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.truckerload.presentation.components.LoadListSkeleton
 
 enum class AttachPickMode {
     CAMERA,
@@ -147,15 +148,11 @@ fun AttachLoadPickScreen(
     ) { padding ->
         when {
             displayedLoads == null -> {
-                Column(
+                LoadListSkeleton(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    CircularProgressIndicator()
-                }
+                )
             }
             browseMode == AttachPickBrowseMode.THIS_WEEK && displayedLoads.isEmpty() -> {
                 Column(

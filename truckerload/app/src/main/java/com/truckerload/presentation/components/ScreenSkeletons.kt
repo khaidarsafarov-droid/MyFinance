@@ -155,3 +155,166 @@ private fun StatRowSkeleton(columns: Int = 3) {
         }
     }
 }
+
+
+/**
+ * Edit-load form placeholder: stacked field bones matching the edit screen layout.
+ */
+@Composable
+fun EditLoadSkeleton(
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .shimmerPulse()
+            .then(
+                if (contentDescription != null) {
+                    Modifier.semantics { this.contentDescription = contentDescription }
+                } else {
+                    Modifier
+                },
+            ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        SkeletonBone(modifier = Modifier.fillMaxWidth(0.55f), height = 14.dp)
+        repeat(5) {
+            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    SkeletonBone(modifier = Modifier.fillMaxWidth(0.35f), height = 12.dp)
+                    SkeletonBone(modifier = Modifier.fillMaxWidth(), height = 44.dp, cornerRadius = 12.dp)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Weekly goal placeholder: hero ring + summary cards.
+ */
+@Composable
+fun WeeklyGoalSkeleton(
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .shimmerPulse()
+            .then(
+                if (contentDescription != null) {
+                    Modifier.semantics { this.contentDescription = contentDescription }
+                } else {
+                    Modifier
+                },
+            ),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                SkeletonBone(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .padding(bottom = 8.dp),
+                    height = 18.dp,
+                )
+                SkeletonBone(
+                    modifier = Modifier.fillMaxWidth(),
+                    height = 160.dp,
+                    cornerRadius = 80.dp,
+                )
+                SkeletonBone(modifier = Modifier.fillMaxWidth(0.4f), height = 22.dp)
+                SkeletonBone(modifier = Modifier.fillMaxWidth(0.6f), height = 14.dp)
+            }
+        }
+        StatRowSkeleton(columns = 2)
+        StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+    }
+}
+
+/**
+ * Map placeholder: chip row + large map plate.
+ */
+@Composable
+fun MapSkeleton(
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .shimmerPulse()
+            .then(
+                if (contentDescription != null) {
+                    Modifier.semantics { this.contentDescription = contentDescription }
+                } else {
+                    Modifier
+                },
+            ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(3) {
+                SkeletonBone(
+                    modifier = Modifier.weight(1f),
+                    height = 36.dp,
+                    cornerRadius = 18.dp,
+                )
+            }
+        }
+        SkeletonBone(
+            modifier = Modifier.fillMaxWidth(),
+            height = 280.dp,
+            cornerRadius = 16.dp,
+        )
+        StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+    }
+}
+
+/**
+ * Generic list-of-cards placeholder (attach picker / journals).
+ */
+@Composable
+fun LoadListSkeleton(
+    modifier: Modifier = Modifier,
+    rows: Int = 4,
+    contentDescription: String? = null,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .shimmerPulse()
+            .then(
+                if (contentDescription != null) {
+                    Modifier.semantics { this.contentDescription = contentDescription }
+                } else {
+                    Modifier
+                },
+            ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        repeat(rows) {
+            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SkeletonBone(modifier = Modifier.fillMaxWidth(0.65f), height = 16.dp)
+                    SkeletonBone(modifier = Modifier.fillMaxWidth(0.4f), height = 12.dp)
+                    SkeletonBone(modifier = Modifier.fillMaxWidth(0.85f), height = 12.dp)
+                }
+            }
+        }
+    }
+}

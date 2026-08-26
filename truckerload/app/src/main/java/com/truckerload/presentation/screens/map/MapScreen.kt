@@ -46,6 +46,8 @@ import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import com.truckerload.presentation.components.MapSkeleton
+import com.truckerload.presentation.theme.focusAfterNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,12 +92,11 @@ private fun MapScreenBody(
     val tc = LocalTruckColors.current
     var mapFullscreen by remember { mutableStateOf(false) }
     if (uiState.isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentAlignment = Alignment.Center,
-        ) {
-            CircularProgressIndicator(color = tc.AccentPrimary)
-        }
+        MapSkeleton(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        )
         return
     }
 

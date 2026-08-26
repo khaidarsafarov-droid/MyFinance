@@ -46,6 +46,8 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.formatDateTimeForDisplay
+import com.truckerload.presentation.components.EditLoadSkeleton
+import com.truckerload.presentation.theme.focusAfterNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +84,16 @@ fun EditLoadScreen(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.edit_load_title), color = tc.TextPrimary) },
+                title = {
+                    Text(
+                        stringResource(R.string.edit_load_title),
+                        modifier = Modifier.focusAfterNavigate(
+                            key = loadId,
+                            enabled = !uiState.isLoading && uiState.original != null,
+                        ),
+                        color = tc.TextPrimary,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -111,14 +122,7 @@ fun EditLoadScreen(
                 Text(err, color = tc.AccentExpense, modifier = Modifier.padding(bottom = 16.dp))
             }
             if (uiState.isLoading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    CircularProgressIndicator()
-                }
+                EditLoadSkeleton(modifier = Modifier.fillMaxWidth())
             }
             uiState.original?.let { l ->
                 Text(
