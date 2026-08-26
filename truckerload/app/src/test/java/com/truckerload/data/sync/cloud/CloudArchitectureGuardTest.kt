@@ -65,6 +65,27 @@ class CloudArchitectureGuardTest {
         assertTrue(mainExists("com/truckerload/presentation/components/SyncStatusBanner.kt"))
     }
 
+    @Test
+    fun stage2_syncFixes_areWired() {
+        val engine = readMain("com/truckerload/data/sync/CloudSyncEngine.kt")
+        assertTrue(engine.contains("lastReadUsedStaleMirror"))
+        assertTrue(engine.contains("if (pulled || pushed)"))
+        val paycheck = readMain("com/truckerload/data/repository/PaycheckRepository.kt")
+        assertTrue(paycheck.contains("JournalSyncClock.bump"))
+        val diesel = readMain("com/truckerload/data/repository/DieselRepository.kt")
+        assertTrue(diesel.contains("JournalSyncClock.bump"))
+        val cdc = readMain("com/truckerload/data/repository/LoadRepositorySync.kt")
+        assertTrue(cdc.indexOf("db.withTransaction") < cdc.indexOf("getExistingTripIds(tripIds)"))
+        val telegramWorker = readMain("com/truckerload/sync/TelegramSyncWorker.kt")
+        assertFalse(telegramWorker.contains("TelegramPollCoordinator.withPollLock"))
+        val driveWorker = readMain("com/truckerload/data/backup/DriveSyncWorker.kt")
+        assertTrue(driveWorker.contains("if (ok) Result.success() else Result.retry()"))
+        val app = readMain("com/truckerload/TruckerLoadApp.kt")
+        assertTrue(app.contains("allowsCloudCalls()"))
+        val hybrid = readMain("com/truckerload/data/sync/AccountCloudBackend.kt")
+        assertTrue(hybrid.contains("lastReadUsedStaleMirror = true"))
+    }
+
     private fun mainExists(relative: String): Boolean =
         listOf(
             File("src/main/java/$relative"),

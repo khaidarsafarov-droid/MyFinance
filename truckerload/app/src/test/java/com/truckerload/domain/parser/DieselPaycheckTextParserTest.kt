@@ -72,6 +72,19 @@ class DieselPaycheckTextParserTest {
     }
 
     @Test
+    fun paycheck_prefersNetPayOverGrandTotal() {
+        val parsed = PaycheckTextParser.parse(
+            """
+            Gross Pay: ${'$'}3,400.00
+            Net Pay: ${'$'}2,750.25
+            Grand Total: ${'$'}3,400.00
+            """.trimIndent(),
+        )
+        assertEquals(2750.25, parsed!!.netAmount, 0.01)
+        assertEquals(3400.0, parsed.grossAmount!!, 0.01)
+    }
+
+    @Test
     fun paycheck_rejectsMissingNetAmount() {
         assertFalse(PaycheckTextParser.looksLikePaycheck("Driver Settlement\nGross Pay: ${'$'}900"))
         assertNull(PaycheckTextParser.parse("Net Pay: ${'$'}0.00"))

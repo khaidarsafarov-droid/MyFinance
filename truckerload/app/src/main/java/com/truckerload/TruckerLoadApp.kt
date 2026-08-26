@@ -23,6 +23,7 @@ import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
+import com.truckerload.data.sync.cloud.SyncModeStore
 import com.truckerload.sync.TelegramBotForegroundService
 import com.truckerload.sync.ServerTelegramInboxWorker
 import com.truckerload.sync.PushTokenRegistrationWorker
@@ -108,7 +109,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             override fun onStart(owner: LifecycleOwner) {
                 val userId = authStore.currentUserIdOrNull()
                 if (userId != null) {
-                    PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
+                    if (SyncModeStore(this@TruckerLoadApp).allowsCloudCalls()) {
+                        PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
+                    }
                     if (TelegramSyncMode.isServer()) {
                         ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
                     } else {

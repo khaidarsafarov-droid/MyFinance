@@ -14,7 +14,7 @@ object GoalMoneyMath {
 
     /** Linear calendar plan marker for progress ring. */
     fun expectedGrossByNow(goal: Double, daysActive: Int): Double {
-        if (goal <= 0.0) return 0.0
-        return roundMoney(goal * daysActive.coerceAtLeast(1) / 7.0)
+        if (goal <= 0.0 || daysActive <= 0) return 0.0
+        return roundMoney(goal * daysActive.coerceAtMost(7) / 7.0)
     }
 }

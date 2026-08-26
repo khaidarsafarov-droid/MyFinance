@@ -72,14 +72,12 @@ class TelegramSyncWorker @AssistedInject constructor(
             Log.d("TelegramSync", "FGS is active (app in foreground) — skip background poll")
             return Result.success()
         }
-        TelegramPollCoordinator.withPollLock {
-            try {
-                val engine = TelegramBotSyncEngine(applicationContext)
-                engine.runOnce(token, expectedUserId = userId)
-                Log.d("TelegramSync", "Background poll completed")
-            } catch (e: Exception) {
-                Log.w("TelegramSync", "Background poll failed", e)
-            }
+        try {
+            val engine = TelegramBotSyncEngine(applicationContext)
+            engine.runOnce(token, expectedUserId = userId)
+            Log.d("TelegramSync", "Background poll completed")
+        } catch (e: Exception) {
+            Log.w("TelegramSync", "Background poll failed", e)
         }
         return Result.success()
     }

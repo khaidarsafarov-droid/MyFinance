@@ -45,6 +45,23 @@ class CsvLoadParserTest {
     }
 
     @Test
+    fun parse_ignoresCorporateColumnAsRate() {
+        val csv = """
+            tripId,corporate,miles,origin,destination,date
+            T-CORP,9999,850,Austin TX,Dallas TX,2026-03-01
+        """.trimIndent()
+        assertTrue(CsvLoadParser().parse(csv).isEmpty())
+    }
+
+    @Test
+    fun headerHasToken_doesNotMatchRateInsideCorporate() {
+        assertTrue(CsvLoadParser.headerHasToken("total rate", setOf("rate")))
+        assertTrue(CsvLoadParser.headerHasToken("trip_id", setOf("trip", "tripid")))
+        assertTrue(!CsvLoadParser.headerHasToken("corporate", setOf("rate")))
+        assertTrue(!CsvLoadParser.headerHasToken("milestone", setOf("trip", "tripid")))
+    }
+
+    @Test
     fun parse_rejectsUndatedRows() {
         val csv = """
             tripId,rate,miles,origin,destination

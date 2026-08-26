@@ -97,6 +97,14 @@ class CloudSyncPolicyTest {
     }
 
     @Test
+    fun remoteIntIdsToApplyOnPull_equalAddedAt_skipsEvenIfAmountChanged() {
+        val local = mapOf(1 to IntRow(1, 100L, 50.0))
+        val remote = mapOf(1 to IntRow(1, 100L, 99.0))
+        val apply = CloudSyncPolicy.remoteIntIdsToApplyOnPull(local, remote) { it.addedAt }
+        assertTrue(apply.isEmpty())
+    }
+
+    @Test
     fun mergeById_stillUnionsRemoteOnly_forIncrementalFieldMerge() {
         // Documented: mergeById is NOT for full-snapshot push (would resurrect deletes).
         val local = mapOf("a" to Row("a", 10, "local-a"))

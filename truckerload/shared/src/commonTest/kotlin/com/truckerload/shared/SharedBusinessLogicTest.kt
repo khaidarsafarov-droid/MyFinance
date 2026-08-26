@@ -17,6 +17,7 @@ class SharedBusinessLogicTest {
     @Test
     fun `expectedGrossByNow is linear across a seven day week`() {
         assertEquals(100.0, SharedBusinessLogic.expectedGrossByNow(goal = 700.0, daysActive = 1))
+        assertEquals(0.0, SharedBusinessLogic.expectedGrossByNow(goal = 700.0, daysActive = 0))
     }
 
     @Test

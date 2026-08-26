@@ -44,6 +44,8 @@ class AuthRepositoryArchitectureTest {
         val paycheck = readMainSource("com/truckerload/presentation/screens/add/AddPaycheckViewModel.kt")
         assertTrue(paycheck.contains("applyUtcDatePickerDay"))
         assertTrue(paycheck.contains("getPaycheckForWeek"))
+        assertTrue(auth.contains("isOfflineAuthFailure"))
+        assertTrue(auth.contains("IOException"))
     }
 
     @Test

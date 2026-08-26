@@ -15,6 +15,7 @@ import com.truckerload.data.sync.DeviceSlotDenialStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -87,7 +88,12 @@ class AuthViewModel @Inject constructor(
                     }
                     GoogleTokenRequestResult.FallBackToLegacy -> {
                         _events.emit(AuthUiEvent.LaunchLegacyGoogleSignIn)
-                        // Keep isLoading=true until legacy result arrives
+                        viewModelScope.launch {
+                            delay(LEGACY_GOOGLE_LOADING_TIMEOUT_MS)
+                            if (_uiState.value.isLoading) {
+                                _uiState.update { it.copy(isLoading = false) }
+                            }
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -189,5 +195,9 @@ class AuthViewModel @Inject constructor(
             _events.emit(AuthUiEvent.ShowBiometricOfferDialog)
         }
         _uiState.update { it.copy(isLoading = false, errorMessage = null) }
+    }
+
+    companion object {
+        private const val LEGACY_GOOGLE_LOADING_TIMEOUT_MS = 30_000L
     }
 }

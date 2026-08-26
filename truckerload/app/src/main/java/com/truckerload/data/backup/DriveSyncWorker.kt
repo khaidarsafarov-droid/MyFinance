@@ -32,9 +32,9 @@ class DriveSyncWorker @AssistedInject constructor(
             return Result.success()
         }
         return try {
-            GoogleDriveBackupService.pushAutoBackupIfEnabled(applicationContext)
+            val ok = GoogleDriveBackupService.pushAutoBackupIfEnabled(applicationContext)
             Log.i(TAG, "Drive auto backup attempted")
-            Result.success()
+            if (ok) Result.success() else Result.retry()
         } catch (e: Exception) {
             Log.w(TAG, "Drive sync worker failed", e)
             Result.retry()

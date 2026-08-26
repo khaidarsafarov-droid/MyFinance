@@ -21,10 +21,19 @@ class MessageTypeDetectorTest {
   }
 
   @Test
-  fun detect_html() {
+    fun detect_html() {
     val html = "<html><body><table><tr><th>Trip</th></tr></table></body></html>"
     assertEquals(ImportMessageType.HTML, detector.detect(html))
   }
+
+    @Test
+    fun detect_csvBeforeHtmlishDivInCell() {
+        val csv = """
+            tripId,rate,miles,origin,destination,date
+            T-1,2500,100,"<div>Austin, TX</div>",Dallas TX,2026-03-01
+        """.trimIndent()
+        assertEquals(ImportMessageType.CSV, detector.detect(csv))
+    }
 
     @Test
     fun detect_exportText() {

@@ -122,22 +122,22 @@ object GoogleDriveBackupService {
         )
     }
 
-    /** Фоновый push после локального auto-backup — без UI. */
-    suspend fun pushAutoBackupIfEnabled(context: Context) {
+    /** Фоновый push после локального auto-backup — без UI. Returns false when upload failed. */
+    suspend fun pushAutoBackupIfEnabled(context: Context): Boolean {
         val app = context.applicationContext
         val prefs = prefs(app)
-        if (!prefs.autoSyncEnabled) return
-        if (!prefs.isLinked && !isDriveScopeGranted(app)) return
+        if (!prefs.autoSyncEnabled) return true
+        if (!prefs.isLinked && !isDriveScopeGranted(app)) return true
         syncLinkedAccountFromGoogle(app)
         val client = GoogleDriveApiClient(app, prefs)
         runCatching { client.hasRemoteBackup() }
         // FIX: auto-push used to PATCH Drive even when remote was newer (or this device never synced)
         if (DriveSyncPolicy.shouldSkipAutoPush(prefs.remoteModifiedAt, prefs.lastSyncAt)) {
             Log.i(TAG, "auto push skipped — remote backup is newer or unsynced on this device")
-            return
+            return true
         }
-        val json = BackupService.createBackupJson(app) ?: return
-        client.uploadBackupJson(json)
+        val json = BackupService.createBackupJson(app) ?: return true
+        return client.uploadBackupJson(json)
             .onSuccess {
                 prefs.lastSyncAt = System.currentTimeMillis()
                 prefs.lastSyncError = null
@@ -149,6 +149,7 @@ object GoogleDriveBackupService {
                 prefs.lastSyncErrorAt = System.currentTimeMillis()
                 Log.w(TAG, "auto push failed: ${it.message}")
             }
+            .isSuccess
     }
 
     /**

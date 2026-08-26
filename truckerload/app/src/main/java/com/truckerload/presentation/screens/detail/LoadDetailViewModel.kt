@@ -49,7 +49,7 @@ class LoadDetailViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<LoadDetailEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<LoadDetailEvent> = _events.asSharedFlow()
-    private val disputePersistMutex = Mutex()
+    private val persistMutex = Mutex()
 
     init {
         refresh()
@@ -108,27 +108,30 @@ class LoadDetailViewModel @Inject constructor(
     }
 
     fun setActualFinishDate(isoDate: String?, saveErrorFallback: String) {
-        val current = _uiState.value.load ?: return
         viewModelScope.launch {
-            try {
-                val normalizedDate = ActualFinishDate.normalize(isoDate)
-                val next = current.copy(
-                    actualFinishDate = normalizedDate,
-                    updatedAt = System.currentTimeMillis(),
-                ).withRouteMetrics()
-                loadRepository.updateLoad(next)
-                // Reload from Room so UI reflects persisted durationDays/pace/lastDelMillis.
-                val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
-                _uiState.update { it.copy(load = reloaded) }
-            } catch (e: Exception) {
-                _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+            persistMutex.withLock {
+                try {
+                    val current = loadRepository.getLoadById(loadId)
+                        ?: _uiState.value.load
+                        ?: return@withLock
+                    val normalizedDate = ActualFinishDate.normalize(isoDate)
+                    val next = current.copy(
+                        actualFinishDate = normalizedDate,
+                        updatedAt = System.currentTimeMillis(),
+                    ).withRouteMetrics()
+                    loadRepository.updateLoad(next)
+                    val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
+                    _uiState.update { it.copy(load = reloaded) }
+                } catch (e: Exception) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                }
             }
         }
     }
 
     fun updateDispute(updated: Load, saveErrorFallback: String) {
         viewModelScope.launch {
-            disputePersistMutex.withLock {
+            persistMutex.withLock {
                 try {
                     val previous = loadRepository.getLoadById(loadId)
                         ?: _uiState.value.load

@@ -66,6 +66,10 @@ fun EditLoadScreen(
     val scrollState = rememberScrollState()
     val finishFocusRequester = remember { FocusRequester() }
 
+    LaunchedEffect(loadId) {
+        viewModel.refresh()
+    }
+
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
             viewModel.clearSaved()

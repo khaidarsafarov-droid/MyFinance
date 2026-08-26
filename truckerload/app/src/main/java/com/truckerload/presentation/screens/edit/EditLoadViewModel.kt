@@ -63,6 +63,8 @@ class EditLoadViewModel @Inject constructor(
         load()
     }
 
+    fun refresh() = load()
+
     fun setTripId(value: String) {
         savedStateHandle[KEY_TRIP] = value
         _uiState.update { it.copy(tripId = value, saveError = null) }

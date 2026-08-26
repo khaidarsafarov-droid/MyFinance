@@ -16,6 +16,7 @@ import com.truckerload.data.sync.DeviceSlotLogin
 import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -222,7 +223,7 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             },
             onFailure = { err ->
-                if (credentialsStore.validateCredentials(email, password)) {
+                if (isOfflineAuthFailure(err) && credentialsStore.validateCredentials(email, password)) {
                     val toasts = mutableListOf(appContext.getString(R.string.auth_local_login_fallback))
                     val biometric = shouldOfferBiometricUnlock(appContext)
                     completeLoginResult(
@@ -329,6 +330,24 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     companion object {
+        fun isOfflineAuthFailure(err: Throwable): Boolean {
+            var cur: Throwable? = err
+            while (cur != null) {
+                if (cur is IOException) return true
+                val msg = cur.message.orEmpty().lowercase()
+                if (
+                    msg.contains("unable to resolve host") ||
+                    msg.contains("failed to connect") ||
+                    msg.contains("unknownhost") ||
+                    msg.contains("timed out") ||
+                    msg.contains("timeout")
+                ) {
+                    return true
+                }
+                cur = cur.cause
+            }
+            return false
+        }
         private fun decodeGoogleIdToken(idToken: String): JSONObject? {
             return try {
                 val parts = idToken.split(".")

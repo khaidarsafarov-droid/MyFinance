@@ -4,6 +4,7 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.model.JournalSyncClock
 import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +29,7 @@ class DieselRepository(private val db: AppDatabase) {
         dao.getById(id)?.toDomain()
 
     suspend fun insertDiesel(diesel: Diesel) {
-        dao.insert(diesel.toEntity())
+        dao.insert(diesel.copy(addedAt = JournalSyncClock.bump(diesel.addedAt)).toEntity())
         scheduleAutoBackup()
         AppDatabase.applicationContext()?.let { ctx ->
             runCatching {

@@ -29,12 +29,12 @@ internal suspend fun importLoadsIfNotDuplicateImpl(
     parsedCount: Int,
 ): com.truckerload.utils.LoadImporter.ImportResult {
     val incomingTripIds = loads.map { normalizeTripId(it.tripId) }.filter { it.isNotBlank() }
-    val existingTripIds = loadDao.getExistingTripIds(incomingTripIds)
-        .map { normalizeTripId(it) }
-        .toMutableSet()
     var imported = 0
     var skipped = 0
     runBatchWrite {
+        val existingTripIds = loadDao.getExistingTripIds(incomingTripIds)
+            .map { normalizeTripId(it) }
+            .toMutableSet()
         for (load in loads) {
             val tripId = normalizeTripId(load.tripId)
             if (tripId in existingTripIds) {
@@ -74,46 +74,50 @@ internal suspend fun syncLoadsCdcImpl(
     }
 
     val tripIds = validLoads.map { normalizeTripId(it.tripId) }
-    val existingIds = loadDao.getExistingTripIds(tripIds).map { normalizeTripId(it) }.toSet()
-
-    val toInsert = validLoads.filter { normalizeTripId(it.tripId) !in existingIds }
-    if (toInsert.isEmpty()) {
-        return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
-    }
-
-    val now = System.currentTimeMillis()
-    val parsedAt = messageDateSeconds?.times(1000) ?: now
-    val messageYear = messageDateSeconds
-        ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
-    val loadEntities = mutableListOf<LoadEntity>()
-    val stopEntities = mutableListOf<StopEntity>()
-
-    for (load in toInsert) {
-        val normalized = load.copy(tripId = normalizeTripId(load.tripId), parsedAt = parsedAt)
-        val repaired = LoadDateRepair.repair(normalized, messageYear, parsedAt)
-        val dated = when {
-            repaired.date.isBlank() && messageDateSeconds != null ->
-                repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
-            else -> repaired
-        }
-        val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
-            parsedAt = parsedAt,
-            updatedAt = now,
-        )
-        loadEntities.add(loadWithWeek.toEntity())
-        stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
-    }
+    var result = SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
 
     db.withTransaction {
+        val existingIds = loadDao.getExistingTripIds(tripIds).map { normalizeTripId(it) }.toSet()
+        val toInsert = validLoads.filter { normalizeTripId(it.tripId) !in existingIds }
+        if (toInsert.isEmpty()) return@withTransaction
+
+        val now = System.currentTimeMillis()
+        val parsedAt = messageDateSeconds?.times(1000) ?: now
+        val messageYear = messageDateSeconds
+            ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
+        val loadEntities = mutableListOf<LoadEntity>()
+        val stopEntities = mutableListOf<StopEntity>()
+
+        for (load in toInsert) {
+            val normalized = load.copy(tripId = normalizeTripId(load.tripId), parsedAt = parsedAt)
+            val repaired = LoadDateRepair.repair(normalized, messageYear, parsedAt)
+            val dated = when {
+                repaired.date.isBlank() && messageDateSeconds != null ->
+                    repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
+                else -> repaired
+            }
+            val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
+                parsedAt = parsedAt,
+                updatedAt = now,
+            )
+            loadEntities.add(loadWithWeek.toEntity())
+            stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
+        }
+
         loadDao.insertAll(loadEntities)
         if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
+
+        val lastAdded = toInsert.last()
+        val lastAddedText =
+            "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"
+        result = SyncLoadsResult(toInsert.size, lastAddedText, SyncStatus.SUCCESS)
     }
 
-    val lastAdded = toInsert.last()
-    val lastAddedText = "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"
-    onPersisted()
-    if (playFeedback && toInsert.isNotEmpty()) {
-        FeedbackManager.onLoadAdded()
+    if (result.status == SyncStatus.SUCCESS) {
+        onPersisted()
+        if (playFeedback) {
+            FeedbackManager.onLoadAdded()
+        }
     }
-    return SyncLoadsResult(toInsert.size, lastAddedText, SyncStatus.SUCCESS)
+    return result
 }
