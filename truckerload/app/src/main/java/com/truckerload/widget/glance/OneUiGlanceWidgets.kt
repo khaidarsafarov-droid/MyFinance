@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -54,10 +54,14 @@ import com.truckerload.widget.WidgetStatsFormatter
 internal val CabinSize2x2 = DpSize(110.dp, 110.dp)
 internal val CabinSize4x2 = DpSize(250.dp, 110.dp)
 internal val CabinSize4x3 = DpSize(250.dp, 180.dp)
+internal val CabinSize4x4 = DpSize(250.dp, 260.dp)
 
-internal val CabinGlancePrimary = Color(0xFFFFFFFF)
-internal val CabinGlanceSecondary = Color(0xFF9EAEA4)
-internal val CabinGlanceAccent = Color(0xFF00E676)
+internal val CabinGlancePrimary = Color(0xFFEAFAF0)
+internal val CabinGlanceSecondary = Color(0xFF8FAE9C)
+internal val CabinGlanceAccent = Color(0xFF5EDB97)
+internal val CabinGlanceActionLabel = Color(0xFFC4DCCD)
+internal val CabinGlanceDivider = Color(0xFF233C2C)
+internal val CabinGlanceEmptyCaption = Color(0xFF3D4A41)
 
 object OneUiGlanceWidgets {
     suspend fun updateAll(context: Context) {
@@ -67,7 +71,9 @@ object OneUiGlanceWidgets {
 }
 
 internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(CabinSize2x2, CabinSize4x2, CabinSize4x3))
+    override val sizeMode = SizeMode.Responsive(
+        setOf(CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4),
+    )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -75,7 +81,9 @@ internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
 }
 
 internal class OneUiWideGlanceWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(setOf(CabinSize4x2, CabinSize4x3))
+    override val sizeMode = SizeMode.Responsive(
+        setOf(CabinSize4x2, CabinSize4x3, CabinSize4x4),
+    )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -136,15 +144,16 @@ private fun CabinGlanceTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
+    val layout = cabinLayoutFor(LocalSize.current)
     val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = stats.weeklyProfitGoal > 0
-    val ring = buildRingBitmap(context, stats, compact = true)
+    val ring = buildRingBitmap(context, stats, layout.ringDp)
 
     Row(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(ImageProvider(R.drawable.widget_cabin_plate))
-            .padding(12.dp)
+            .padding(layout.paddingH)
             .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME))),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -154,11 +163,12 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
             stats = stats,
             progress = progress,
             goalSet = goalSet,
-            ringDp = 72.dp,
-            compact = true,
+            ringDp = layout.ringDp,
+            amountSp = layout.amountSp,
+            percentSp = layout.percentSp,
             modifier = GlanceModifier.defaultWeight(),
         )
-        Spacer(modifier = GlanceModifier.width(8.dp))
+        Spacer(modifier = GlanceModifier.width(layout.financeGap))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             QuickAction(
                 context = context,
@@ -166,6 +176,9 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 label = context.getString(R.string.widget_camera_short),
                 route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
                 showLabel = false,
+                btnDp = layout.actionBtnDp,
+                iconDp = layout.actionIconDp,
+                labelSp = layout.actionLabelSp,
             )
             Spacer(modifier = GlanceModifier.height(6.dp))
             QuickAction(
@@ -174,6 +187,9 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 label = context.getString(R.string.widget_scanner_short),
                 route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
                 showLabel = false,
+                btnDp = layout.actionBtnDp,
+                iconDp = layout.actionIconDp,
+                labelSp = layout.actionLabelSp,
             )
             Spacer(modifier = GlanceModifier.height(6.dp))
             QuickAction(
@@ -182,6 +198,9 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 label = context.getString(R.string.widget_diesel_short),
                 launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
                 showLabel = false,
+                btnDp = layout.actionBtnDp,
+                iconDp = layout.actionIconDp,
+                labelSp = layout.actionLabelSp,
             )
         }
     }
@@ -195,7 +214,8 @@ internal fun BudgetRing(
     progress: Float,
     goalSet: Boolean,
     ringDp: Dp,
-    compact: Boolean,
+    amountSp: TextUnit,
+    percentSp: TextUnit,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     Box(
@@ -212,14 +232,14 @@ internal fun BudgetRing(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = GlanceModifier.padding(horizontal = if (compact) 8.dp else 12.dp),
+            modifier = GlanceModifier.padding(horizontal = 8.dp),
         ) {
             Text(
                 text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
                 style = TextStyle(
                     color = ColorProvider(CabinGlancePrimary),
-                    fontSize = if (compact) 14.sp else 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = amountSp,
+                    fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                 ),
                 maxLines = 1,
@@ -232,8 +252,8 @@ internal fun BudgetRing(
                 },
                 style = TextStyle(
                     color = ColorProvider(CabinGlanceSecondary),
-                    fontSize = if (compact) 10.sp else 12.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = percentSp,
+                    fontWeight = FontWeight.Normal,
                     textAlign = TextAlign.Center,
                 ),
                 maxLines = 1,
@@ -248,35 +268,37 @@ internal fun QuickAction(
     iconRes: Int,
     label: String,
     showLabel: Boolean,
+    btnDp: Dp,
+    iconDp: Dp,
+    labelSp: TextUnit,
     modifier: GlanceModifier = GlanceModifier,
     route: String? = null,
     launchIntent: Intent? = null,
 ) {
     val intent = launchIntent ?: routeIntent(context, requireNotNull(route))
     Column(
-        modifier = modifier
-            .clickable(actionStartActivity(intent))
-            .padding(horizontal = 2.dp),
+        modifier = modifier.clickable(actionStartActivity(intent)),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
             modifier = GlanceModifier
-                .size(34.dp)
+                .size(btnDp)
                 .background(ImageProvider(R.drawable.widget_cabin_action_btn)),
             contentAlignment = Alignment.Center,
         ) {
             Image(
                 provider = ImageProvider(iconRes),
                 contentDescription = label,
-                modifier = GlanceModifier.size(18.dp),
+                modifier = GlanceModifier.size(iconDp),
             )
         }
         if (showLabel) {
+            Spacer(modifier = GlanceModifier.height(6.dp))
             Text(
                 text = label,
                 style = TextStyle(
-                    color = ColorProvider(CabinGlancePrimary),
-                    fontSize = 10.sp,
+                    color = ColorProvider(CabinGlanceActionLabel),
+                    fontSize = labelSp,
                     textAlign = TextAlign.Center,
                 ),
                 maxLines = 1,
@@ -288,32 +310,21 @@ internal fun QuickAction(
 internal fun buildRingBitmap(
     context: Context,
     stats: WidgetStats,
-    compact: Boolean,
+    ringDp: Dp,
 ): Bitmap? {
     val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = stats.weeklyProfitGoal > 0
-    val ringPx = WidgetProgressRingBitmap.ringSizePx(
-        context = context,
-        compact = compact,
-        expanded = !compact,
-        splitLayout = !compact,
-    )
+    val ringPx = (ringDp.value * context.resources.displayMetrics.density).toInt().coerceAtLeast(48)
     return runCatching {
         WidgetProgressRingBitmap.create(
             progressPercent = if (goalSet) progress else 0f,
             sizePx = ringPx,
-            progressColor = WidgetCabinPalette.ACCENT,
-            trackColor = WidgetCabinPalette.TRACK,
+            progressColor = WidgetCabinPalette.RING,
+            trackColor = WidgetCabinPalette.RING_TRACK,
+            strokeRatio = WidgetCabinPalette.RING_STROKE_RATIO,
         )
     }.getOrNull()
 }
-
-@Composable
-internal fun cabinLabelStyle(bold: Boolean = false) = TextStyle(
-    color = ColorProvider(CabinGlanceSecondary),
-    fontSize = 11.sp,
-    fontWeight = if (bold) FontWeight.Bold else FontWeight.Medium,
-)
 
 internal fun routeIntent(context: Context, route: String): Intent =
     Intent(context, MainActivity::class.java).apply {

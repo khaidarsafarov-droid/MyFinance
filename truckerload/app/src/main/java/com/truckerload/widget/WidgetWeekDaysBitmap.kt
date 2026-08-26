@@ -69,7 +69,6 @@ object WidgetWeekDaysBitmap {
         isFuture = true,
     )
 
-    @Suppress("UNUSED_PARAMETER")
     private fun drawChip(
         context: Context,
         canvas: Canvas,
@@ -80,52 +79,43 @@ object WidgetWeekDaysBitmap {
         cellWidth: Float,
         cellHeight: Float,
     ) {
-        val baseCircleSize = minOf(cellWidth * 0.82f, cellHeight * 0.78f)
-        val highlighted = chip.isToday || selected
-        val circleSize = if (highlighted) baseCircleSize * 1.06f else baseCircleSize
+        val circleSize = minOf(cellWidth, cellHeight)
         val radius = circleSize / 2f
-        val strokeWidth = (radius * 0.14f).coerceIn(2f, 4f)
+        val strokeWidth = context.resources.displayMetrics.density.coerceAtLeast(1f)
         val bounds = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
+        val kind = WidgetDayChipStyle.kind(chip.hasLoad, chip.isToday, selected)
 
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
+            strokeCap = Paint.Cap.BUTT
+            this.strokeWidth = strokeWidth
+            color = WidgetCabinPalette.DAY_OUTLINE
         }
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER
             isFakeBoldText = true
+            color = WidgetDayChipStyle.letterColor(kind)
         }
 
-        when {
-            selected -> {
-                fillPaint.color = WidgetCabinPalette.ACCENT
-                canvas.drawOval(bounds, fillPaint)
-                textPaint.color = WidgetCabinPalette.ON_ACCENT
-            }
-            chip.isToday -> {
-                fillPaint.color = WidgetCabinPalette.TODAY_FILL
-                canvas.drawOval(bounds, fillPaint)
-                textPaint.color = WidgetCabinPalette.PRIMARY
-            }
-            else -> {
-                strokePaint.color = WidgetCabinPalette.OUTLINE
-                strokePaint.strokeWidth = strokeWidth
-                val inset = strokeWidth / 2f
-                canvas.drawOval(
-                    RectF(
-                        bounds.left + inset,
-                        bounds.top + inset,
-                        bounds.right - inset,
-                        bounds.bottom - inset,
-                    ),
-                    strokePaint,
-                )
-                textPaint.color = WidgetCabinPalette.SECONDARY
-            }
+        val fill = WidgetDayChipStyle.fillColor(kind)
+        if (fill != null) {
+            fillPaint.color = fill
+            canvas.drawOval(bounds, fillPaint)
+        } else {
+            val inset = strokeWidth / 2f
+            canvas.drawOval(
+                RectF(
+                    bounds.left + inset,
+                    bounds.top + inset,
+                    bounds.right - inset,
+                    bounds.bottom - inset,
+                ),
+                strokePaint,
+            )
         }
 
-        textPaint.textSize = circleSize * 0.38f
+        textPaint.textSize = circleSize * 0.40f
         val textY = cy - (textPaint.descent() + textPaint.ascent()) / 2f
         canvas.drawText(chip.label, cx, textY, textPaint)
     }

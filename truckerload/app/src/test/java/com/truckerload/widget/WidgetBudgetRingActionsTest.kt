@@ -25,8 +25,10 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("widget_metric_rpm"))
         assertTrue(wide.contains("widget_metric_trips"))
         assertTrue(wide.contains("WidgetDayCaption"))
-        assertTrue(core.contains("CabinSize4x3"))
-        assertTrue(core.contains("CabinSize2x2, CabinSize4x2, CabinSize4x3"))
+        assertTrue(wide.contains("CabinGlanceAccent"))
+        assertTrue(core.contains("CabinGlanceActionLabel"))
+        assertTrue(core.contains("CabinSize4x4"))
+        assertTrue(core.contains("CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4"))
     }
 
     @Test
@@ -46,9 +48,12 @@ class WidgetBudgetRingActionsTest {
     @Test
     fun cabinPlateDrawable_isForestGreen() {
         val xml = readRes("drawable/widget_cabin_plate.xml")
-        assertTrue(xml.contains("#FF0B1A12"))
-        assertTrue(xml.contains("#FF07140E"))
+        assertTrue(xml.contains("#FF12251C"))
+        assertTrue(xml.contains("20dp"))
+        assertTrue(!xml.contains("#FF0B1A12"))
+        assertTrue(!xml.contains("#FF07140E"))
         assertTrue(!xml.contains("#FF143882"))
+        assertTrue(!xml.contains("#FF00E676"))
     }
 
     private fun readSource(relativePath: String): String {

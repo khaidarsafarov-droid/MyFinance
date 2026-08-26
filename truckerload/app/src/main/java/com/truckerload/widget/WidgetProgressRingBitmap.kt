@@ -30,12 +30,13 @@ object WidgetProgressRingBitmap {
         sizePx: Int,
         progressColor: Int,
         trackColor: Int,
+        strokeRatio: Float = 0.13f,
     ): Bitmap {
         val safeSize = sizePx.coerceAtLeast(48)
         val bitmap = createBitmap(safeSize, safeSize)
         val canvas = Canvas(bitmap)
-        val stroke = (safeSize * 0.13f).coerceIn(safeSize * 0.10f, safeSize * 0.16f)
-        val inset = stroke / 2f + 1.5f
+        val stroke = (safeSize * strokeRatio).coerceAtLeast(2f)
+        val inset = stroke / 2f + 1f
         val arcBounds = RectF(inset, inset, safeSize - inset, safeSize - inset)
 
         val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
