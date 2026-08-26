@@ -233,7 +233,7 @@
     <string name="about_guide_diesel_title">5. Дизель</string>
     <string name="about_guide_diesel_body">Меню → «Дизель» открывает журнал заправок. Выберите неделю, «Все дни» или конкретное число. На карточке — дата, локация, сумма, галлоны, цена и скидка; сверху — итог за неделю. Плюс (+) открывает форму новой заправки. С виджета или голосом «добавить дизель» сразу открывается форма.</string>
     <string name="about_guide_paycheck_title">6. Зарплата</string>
-    <string name="about_guide_paycheck_body">Меню → «Зарплата» открывает журнал выплат. Сразу видны все предыдущие зарплаты; можно выбрать неделю или найти по сумме и файлу. Плюс (+) открывает форму: файл/фото, Telegram или сумма вручную. В «Мои цифры» зарплата и дизель рядом по цветам — без вычета.</string>
+    <string name="about_guide_paycheck_body">Меню → «Зарплата» открывает журнал выплат. Сразу видны все предыдущие зарплаты; можно выбрать неделю или найти по сумме и файлу. Нажмите карточку, чтобы изменить сумму; нажмите имя файла, чтобы открыть оригинал. Плюс (+) открывает форму: файл/фото, Telegram или сумма вручную. В «Мои цифры» зарплата и дизель рядом по цветам — без вычета.</string>
     <string name="about_guide_tax_title">7. Налоги</string>
     <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($69/день). Это ориентир, а не налоговая консультация.</string>
     <string name="about_guide_reports_title">8. Отчёты</string>
@@ -694,6 +694,18 @@
     <string name="paycheck_all_total">Всего: %1$s</string>
     <string name="paycheck_week_fallback">Неделя %1$d · %2$d</string>
     <string name="paycheck_gross_line">Гросс: %1$s</string>
+    <string name="paycheck_edit_title">Изменить зарплату</string>
+    <string name="paycheck_edit_hint">Можно изменить только суммы. Неделя и дата остаются как есть.</string>
+    <string name="paycheck_journal_hint">Нажмите карточку, чтобы изменить сумму. Нажмите имя файла, чтобы открыть оригинал.</string>
+    <string name="paycheck_net_amount">Сумма на руки</string>
+    <string name="paycheck_gross_amount">Гросс (необязательно)</string>
+    <string name="paycheck_open_file">Открыть файл</string>
+    <string name="paycheck_attach_file">Прикрепить оригинал</string>
+    <string name="paycheck_file_missing">Оригинал не сохранён на телефоне. Прикрепите файл, чтобы открыть его снова.</string>
+    <string name="paycheck_file_open_failed">Не удалось открыть файл.</string>
+    <string name="paycheck_attach_failed">Не удалось сохранить файл. Попробуйте другой документ.</string>
+    <string name="paycheck_error_net">Введите сумму на руки больше нуля.</string>
+    <string name="paycheck_error_gross">Гросс должен быть больше нуля или пустым.</string>
     <string name="misc_expense_title">Разные расходы</string>
     <string name="misc_expense_add">Добавить расход</string>
     <string name="misc_expense_edit_title">Редактировать расход</string>

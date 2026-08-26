@@ -12,5 +12,7 @@ data class Paycheck(
     val netAmount: Double,
     val rawExtractedText: String,
     val sourceFileName: String?,
-    val addedAt: Long
+    val addedAt: Long,
+    /** App-private relative path such as `paychecks/uuid.pdf`, if the original was copied. */
+    val sourceFilePath: String? = null,
 )

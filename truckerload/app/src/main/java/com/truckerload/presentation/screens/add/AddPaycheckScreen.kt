@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.add
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -52,6 +54,7 @@ fun AddPaycheckScreen(
     onBack: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val context = LocalContext.current
     val viewModel: AddPaycheckViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -110,8 +113,10 @@ fun AddPaycheckScreen(
                 Text(
                     stringResource(R.string.add_paycheck_file_name, name),
                     style = MaterialTheme.typography.bodySmall,
-                    color = tc.TextSecondary,
-                    modifier = Modifier.padding(top = 4.dp),
+                    color = tc.AccentPrimary,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clickable { viewModel.openImportedFile(context) },
                 )
             }
             uiState.error?.let {
@@ -188,8 +193,10 @@ fun AddPaycheckScreen(
                     Text(
                         stringResource(R.string.add_paycheck_file_name, name),
                         style = MaterialTheme.typography.bodySmall,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.padding(top = 6.dp),
+                        color = tc.AccentPrimary,
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .clickable { viewModel.openImportedFile(context) },
                     )
                 }
                 uiState.parseNotice?.let { notice ->

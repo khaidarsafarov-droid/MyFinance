@@ -4,23 +4,22 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
-import com.truckerload.utils.getWeekNumberAndYearFromDate
-import com.truckerload.utils.LoadDocumentTextExtractor
 import com.truckerload.domain.parser.PaycheckTextParser
 import com.truckerload.utils.AmountInputValidator
+import com.truckerload.utils.LoadDocumentTextExtractor
+import com.truckerload.utils.PaycheckSourceFiles
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getMillisForWeek
+import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
-import com.truckerload.utils.shiftWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.shiftWeekNumberAndYear
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Locale
+import javax.inject.Inject
 
 data class AddPaycheckUiState(
     val amountText: String = "",
@@ -43,6 +43,7 @@ data class AddPaycheckUiState(
     val showSaveDialog: Boolean = false,
     val lastAmount: Double? = null,
     val sourceFileName: String? = null,
+    val sourceFilePath: String? = null,
     val rawExtractedText: String = "",
     val driverName: String? = null,
     val grossAmount: Double? = null,
@@ -71,6 +72,8 @@ class AddPaycheckViewModel @Inject constructor(
     )
     val uiState: StateFlow<AddPaycheckUiState> = _uiState.asStateFlow()
 
+    private var pendingSourceUri: Uri? = null
+
     fun setAmountText(value: String) {
         savedStateHandle[KEY_AMOUNT_TEXT] = value
         _uiState.update { it.copy(amountText = value, error = null) }
@@ -89,24 +92,31 @@ class AddPaycheckViewModel @Inject constructor(
         val displayName = extractor.displayName(uri).ifBlank {
             uri.lastPathSegment?.substringAfterLast('/').orEmpty()
         }
+        pendingSourceUri = uri
+        PaycheckSourceFiles.takePersistableRead(getApplication(), uri)
         _uiState.update {
             it.copy(
                 isParsingFile = true,
                 error = null,
                 parseNotice = null,
                 sourceFileName = displayName.ifBlank { null },
+                sourceFilePath = null,
             )
         }
         viewModelScope.launch {
+            val copiedPath = withContext(Dispatchers.IO) {
+                PaycheckSourceFiles.copyFromUri(getApplication(), uri, displayName)
+            }
             val textResult = withContext(Dispatchers.IO) {
                 extractor.extract(uri, mimeType)
             }
             textResult.fold(
-                onSuccess = { text -> applyParsedFile(text, displayName) },
+                onSuccess = { text -> applyParsedFile(text, displayName, copiedPath) },
                 onFailure = {
                     _uiState.update {
                         it.copy(
                             isParsingFile = false,
+                            sourceFilePath = copiedPath,
                             error = getApplication<Application>().getString(R.string.add_paycheck_file_read_failed),
                             parseNotice = null,
                         )
@@ -116,7 +126,16 @@ class AddPaycheckViewModel @Inject constructor(
         }
     }
 
-    private fun applyParsedFile(text: String, fileName: String) {
+    fun openImportedFile(context: android.content.Context): Boolean {
+        val state = _uiState.value
+        if (PaycheckSourceFiles.open(context, state.sourceFilePath, state.sourceFileName)) {
+            return true
+        }
+        val uri = pendingSourceUri ?: return false
+        return PaycheckSourceFiles.openUri(context, uri, state.sourceFileName)
+    }
+
+    private fun applyParsedFile(text: String, fileName: String, sourceFilePath: String?) {
         val parsed = PaycheckTextParser.parse(text)
         if (parsed == null) {
             _uiState.update {
@@ -124,6 +143,7 @@ class AddPaycheckViewModel @Inject constructor(
                     isParsingFile = false,
                     rawExtractedText = text,
                     sourceFileName = fileName.ifBlank { null },
+                    sourceFilePath = sourceFilePath,
                     error = getApplication<Application>().getString(R.string.add_paycheck_file_parse_failed),
                     parseNotice = null,
                 )
@@ -144,6 +164,7 @@ class AddPaycheckViewModel @Inject constructor(
                 error = null,
                 rawExtractedText = text,
                 sourceFileName = fileName.ifBlank { null },
+                sourceFilePath = sourceFilePath,
                 driverName = parsed.driverName,
                 grossAmount = parsed.grossAmount,
                 parseNotice = getApplication<Application>().getString(R.string.add_paycheck_file_parsed),
@@ -220,27 +241,49 @@ class AddPaycheckViewModel @Inject constructor(
         val weekNumber = state.weekNumber
         val year = state.year
         val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
-        val paycheck = Paycheck(
-            id = 0,
-            weekNumber = weekNumber,
-            year = year,
-            weekLabel = weekLabel,
-            weekStartDate = weekStart,
-            weekEndDate = weekEnd,
-            driverName = state.driverName,
-            grossAmount = state.grossAmount,
-            netAmount = amount,
-            rawExtractedText = state.rawExtractedText,
-            sourceFileName = state.sourceFileName,
-            addedAt = state.recordedAtMillis,
-        )
-
+        val pendingUri = pendingSourceUri
         _uiState.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             try {
+                val copiedPath = withContext(Dispatchers.IO) {
+                    state.sourceFilePath?.takeIf { path ->
+                        PaycheckSourceFiles.exists(getApplication(), path)
+                    } ?: pendingUri?.let { uri ->
+                        PaycheckSourceFiles.copyFromUri(
+                            getApplication(),
+                            uri,
+                            state.sourceFileName,
+                        )
+                    }
+                }
+                if (state.sourceFileName != null && copiedPath == null && pendingUri != null) {
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            error = getApplication<Application>().getString(R.string.paycheck_attach_failed),
+                        )
+                    }
+                    return@launch
+                }
+                val paycheck = Paycheck(
+                    id = 0,
+                    weekNumber = weekNumber,
+                    year = year,
+                    weekLabel = weekLabel,
+                    weekStartDate = weekStart,
+                    weekEndDate = weekEnd,
+                    driverName = state.driverName,
+                    grossAmount = state.grossAmount,
+                    netAmount = amount,
+                    rawExtractedText = state.rawExtractedText,
+                    sourceFileName = state.sourceFileName,
+                    addedAt = state.recordedAtMillis,
+                    sourceFilePath = copiedPath,
+                )
                 withContext(Dispatchers.IO) {
                     paycheckRepository.insertPaycheck(paycheck)
                 }
+                pendingSourceUri = null
                 lastUsedDefaultsStore.savePaycheckAmount(amount)
                 savedStateHandle[KEY_AMOUNT_TEXT] = ""
                 savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
@@ -256,6 +299,7 @@ class AddPaycheckViewModel @Inject constructor(
                         showSaveDialog = false,
                         lastAmount = amount,
                         sourceFileName = null,
+                        sourceFilePath = null,
                         rawExtractedText = "",
                         driverName = null,
                         grossAmount = null,

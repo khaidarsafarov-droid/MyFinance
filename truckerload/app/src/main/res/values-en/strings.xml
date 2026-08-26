@@ -233,7 +233,7 @@
     <string name="about_guide_diesel_title">5. Diesel</string>
     <string name="about_guide_diesel_body">Menu → Diesel opens the fill journal. Pick a week, All days, or a specific date. Each card shows date, location, amount, gallons, price, and discount; the week total is at the top. Plus (+) opens the add form. From the widget or by saying add diesel you go straight to the form.</string>
     <string name="about_guide_paycheck_title">6. Paycheck</string>
-    <string name="about_guide_paycheck_body">Menu → Paycheck opens the payout journal. You see every previous paycheck; pick a week or search by amount and file. Plus (+) opens the form: file/photo, Telegram, or enter the amount. In My numbers, paycheck and diesel sit side by side in color — no subtraction.</string>
+    <string name="about_guide_paycheck_body">Menu → Paycheck opens the payout journal. You see every previous paycheck; pick a week or search by amount and file. Tap a card to edit the amount; tap the file name to open the original. Plus (+) opens the form: file/photo, Telegram, or enter the amount. In My numbers, paycheck and diesel sit side by side in color — no subtraction.</string>
     <string name="about_guide_tax_title">7. Taxes</string>
     <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($69/day). It is a guide, not tax advice.</string>
     <string name="about_guide_reports_title">8. Reports</string>
@@ -694,6 +694,18 @@
     <string name="paycheck_all_total">Total: %1$s</string>
     <string name="paycheck_week_fallback">Week %1$d · %2$d</string>
     <string name="paycheck_gross_line">Gross: %1$s</string>
+    <string name="paycheck_edit_title">Edit paycheck</string>
+    <string name="paycheck_edit_hint">Only the salary amounts can change. Week and date stay as they are.</string>
+    <string name="paycheck_journal_hint">Tap a card to edit the amount. Tap the file name to open the original.</string>
+    <string name="paycheck_net_amount">Take-home (net)</string>
+    <string name="paycheck_gross_amount">Gross (optional)</string>
+    <string name="paycheck_open_file">Open file</string>
+    <string name="paycheck_attach_file">Attach original</string>
+    <string name="paycheck_file_missing">The original is not saved on this phone. Attach the file to open it again.</string>
+    <string name="paycheck_file_open_failed">Could not open the file.</string>
+    <string name="paycheck_attach_failed">Could not save the file. Try another document.</string>
+    <string name="paycheck_error_net">Enter a take-home amount greater than zero.</string>
+    <string name="paycheck_error_gross">Gross must be greater than zero, or left blank.</string>
     <string name="misc_expense_title">Other expenses</string>
     <string name="misc_expense_add">Add expense</string>
     <string name="misc_expense_edit_title">Edit expense</string>
