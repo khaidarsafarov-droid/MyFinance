@@ -21,6 +21,7 @@ internal object HomePagedFilterTotals {
             loadCount = loadCount,
             totalRate = totalRevenue,
             totalMiles = totalMiles,
+            avgRpm = if (totalMiles > 0) totalRevenue / totalMiles else 0.0,
         )
 
     fun observe(
