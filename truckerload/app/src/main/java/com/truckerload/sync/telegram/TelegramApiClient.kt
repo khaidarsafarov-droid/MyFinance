@@ -15,7 +15,8 @@ import java.util.Locale
 import org.json.JSONObject
 
 /**
- * Thin wrapper around [TelegramApi] for the sync engine: create client, poll, reply with menu.
+ * Thin wrapper around [TelegramApi] for the sync engine: create client, poll, reply.
+ * Commands live in Telegram's Menu button; replies hide the old reply keyboard.
  * Raw HTTP lives in [TelegramApi] (`data/remote`).
  */
 class TelegramApiClient(
@@ -30,7 +31,7 @@ class TelegramApiClient(
     ): Result<TelegramGetUpdatesResult> = telegramApi.getUpdates(offset, timeoutSeconds)
 
     suspend fun sendWithMenu(chatId: String, text: String) {
-        telegramApi.sendMessage(chatId, text, TelegramBotFeatures.mainMenuKeyboard())
+        telegramApi.sendMessage(chatId, text, TelegramBotFeatures.removeReplyKeyboard())
             .onFailure { e -> Log.e(TAG, "menu reply failed: ${LogRedactor.redact(e.message)}") }
     }
 

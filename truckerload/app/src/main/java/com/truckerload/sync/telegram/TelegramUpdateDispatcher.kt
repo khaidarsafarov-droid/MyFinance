@@ -81,6 +81,7 @@ class TelegramUpdateDispatcher(
         if (TelegramBotFeatures.isMenuButtonText(rawText)) {
             rawText = TelegramBotFeatures.menuButtonToCommand(rawText) ?: rawText
         }
+        rawText = TelegramBotFeatures.aliasCommand(rawText)
 
         when {
             isCommand(rawText, "/start") -> {
@@ -327,34 +328,35 @@ class TelegramUpdateDispatcher(
         prefs: SharedPreferences,
         stateMachine: TelegramStateMachine,
     ) {
+        val resolved = TelegramBotFeatures.aliasCommand(command)
         when {
-            isCommand(command, "/start") -> apiClient.sendWithMenu(chatId, context.getString(R.string.sync_welcome))
-            isCommand(command, "/help") -> apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help))
-            isCommand(command, "/status") -> {
+            isCommand(resolved, "/start") -> apiClient.sendWithMenu(chatId, context.getString(R.string.sync_welcome))
+            isCommand(resolved, "/help") -> apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help))
+            isCommand(resolved, "/status") -> {
                 val status = buildStatusMessage(loadRepository, paycheckRepository, dieselRepository)
                 apiClient.sendWithMenu(chatId, status)
             }
-            isCommand(command, "/stats") -> {
+            isCommand(resolved, "/stats") -> {
                 val stats = buildStatsMessage(loadRepository)
                 apiClient.sendWithMenu(chatId, stats)
             }
-            isCommand(command, "/dedup") -> {
+            isCommand(resolved, "/dedup") -> {
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_dedup_running))
                 val report = messageParser.runDuplicateAudit(loadRepository, paycheckRepository, dieselRepository)
                 apiClient.sendWithMenu(chatId, report)
             }
-            isCommand(command, "/help_load") ->
+            isCommand(resolved, "/help_load") ->
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help_load))
-            isCommand(command, "/help_pay") ->
+            isCommand(resolved, "/help_pay") ->
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help_pay))
-            isCommand(command, "/import") -> {
+            isCommand(resolved, "/import") -> {
                 val importSessions = ImportSessionManager(prefs)
                 if (stateMachine.isManualRestoreActive(chatId)) stateMachine.clearManualRestore(chatId)
                 ImportCommandHandler(context, importSessions)
                     .startImport(chatId) { id -> stateMachine.clearManualRestore(id) }
                 ImportCommandHandler(context, importSessions).sendPrompt(chatId, apiClient.api())
             }
-            isCommand(command, "/cancel") -> {
+            isCommand(resolved, "/cancel") -> {
                 val importSessions = ImportSessionManager(prefs)
                 val importCancelled = importSessions.cancelSession(chatId)
                 val restoreCancelled = if (stateMachine.isManualRestoreActive(chatId)) {
@@ -373,7 +375,7 @@ class TelegramUpdateDispatcher(
                 }
                 apiClient.sendWithMenu(chatId, message)
             }
-            isCommand(command, "/restore") || TelegramBotFeatures.isRestoreRequest(command) -> {
+            isCommand(resolved, "/restore") || TelegramBotFeatures.isRestoreRequest(resolved) -> {
                 ImportSessionManager(prefs).endSession(chatId)
                 stateMachine.startManualRestore(chatId)
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_restore_manual_prompt))
