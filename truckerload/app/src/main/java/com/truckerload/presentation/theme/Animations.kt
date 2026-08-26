@@ -125,6 +125,26 @@ fun navModalPopExit(reduceMotion: Boolean = false): ExitTransition {
     ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
 }
 
+/**
+ * Fade-through for shared-element destinations (list ↔ load detail).
+ * Shared bounds morph the card; non-shared chrome fades instead of sliding.
+ */
+fun navSharedElementEnter(reduceMotion: Boolean = false): EnterTransition =
+    fadeIn(
+        animationSpec = tween(
+            motionDurationMs(reduceMotion, 220),
+            easing = EaseOutCubic,
+        ),
+    )
+
+fun navSharedElementExit(reduceMotion: Boolean = false): ExitTransition =
+    fadeOut(
+        animationSpec = tween(
+            motionDurationMs(reduceMotion, 180),
+            easing = EaseOutCubic,
+        ),
+    )
+
 fun screenEnterAnimation(reduceMotion: Boolean = false) =
     fadeIn(
         animationSpec = tween(
