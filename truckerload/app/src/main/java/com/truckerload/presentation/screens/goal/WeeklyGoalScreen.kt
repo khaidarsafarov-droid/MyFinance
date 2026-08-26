@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +26,7 @@ import com.truckerload.R
 import com.truckerload.domain.goal.PaceStatus
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -88,7 +87,7 @@ fun WeeklyGoalScreen() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .verticalScroll(rememberScrollState())
+                    .verticalContentScroll()
                     .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {

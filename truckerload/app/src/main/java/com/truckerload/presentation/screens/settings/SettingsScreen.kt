@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -47,6 +45,7 @@ import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -95,7 +94,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalContentScroll()
                 .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
         ) {
             SoftTabletTwoPane(

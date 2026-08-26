@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.EmailVerificationStore
 import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -87,6 +88,7 @@ fun EmailVerificationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalContentScroll()
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {

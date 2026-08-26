@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -73,6 +74,7 @@ fun LoginEmailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalContentScroll()
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
