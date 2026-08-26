@@ -1,6 +1,8 @@
 package com.truckerload.presentation.navigation
 
 import android.net.Uri
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,6 +24,7 @@ import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
+import com.truckerload.presentation.theme.ProvideLoadSharedElementScopes
 import com.truckerload.presentation.theme.navForwardEnter
 import com.truckerload.presentation.theme.navForwardExit
 import com.truckerload.presentation.theme.navModalEnter
@@ -33,10 +36,12 @@ import com.truckerload.presentation.theme.navPopExit
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.toolsNavGraph(
     navController: NavHostController,
     tablet: Boolean,
     reduceMotion: Boolean,
+    sharedTransitionScope: SharedTransitionScope,
 ) {
     composable(
         route = Routes.ANALYTICS,
@@ -45,12 +50,17 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { tabEnterTransition(reduceMotion) },
         popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
-        AnalyticsScreen(
-            onBack = { navController.popBackStack() },
-            onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
-            onAbout = { navController.navigate(Routes.ABOUT) { launchSingleTop = true } },
-            onImprove = { navController.navigate(Routes.IMPROVE) { launchSingleTop = true } },
-        )
+        ProvideLoadSharedElementScopes(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this,
+        ) {
+            AnalyticsScreen(
+                onBack = { navController.popBackStack() },
+                onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
+                onAbout = { navController.navigate(Routes.ABOUT) { launchSingleTop = true } },
+                onImprove = { navController.navigate(Routes.IMPROVE) { launchSingleTop = true } },
+            )
+        }
     }
     composable(
         route = Routes.STATS,

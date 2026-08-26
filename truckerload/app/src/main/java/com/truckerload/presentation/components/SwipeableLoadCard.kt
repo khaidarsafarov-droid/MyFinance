@@ -34,6 +34,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.SoftUiElevation
+import com.truckerload.presentation.theme.loadSharedBounds
 
 private val DeleteSwipeColor = Color(0xFFE57373)
 
@@ -56,7 +57,9 @@ fun SwipeableLoadCard(
 
     if (!enableSwipe) {
         Surface(
-            modifier = modifier.clip(cardShape),
+            modifier = modifier
+                .loadSharedBounds(load.id)
+                .clip(cardShape),
             shape = cardShape,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
@@ -130,7 +133,9 @@ fun SwipeableLoadCard(
             }
         },
         // Horizontal padding owned by the caller (HomeLoadCardRow / adaptive padding).
-        modifier = modifier.clip(cardShape),
+        modifier = modifier
+            .loadSharedBounds(load.id)
+            .clip(cardShape),
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),

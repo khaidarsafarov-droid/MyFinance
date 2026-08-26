@@ -77,6 +77,7 @@ import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.theme.loadSharedBounds
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -199,7 +200,11 @@ fun LoadDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    BentoGlassCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .loadSharedBounds(l.id),
+                    ) {
                         Column(modifier = Modifier.padding(20.dp)) {
                             Text(
                                 formatLoadRoute(l),

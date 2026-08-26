@@ -1,6 +1,8 @@
 package com.truckerload.presentation.navigation
 
 import android.net.Uri
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.remember
 import androidx.navigation.NavGraphBuilder
@@ -17,33 +19,43 @@ import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.expenses.MiscExpenseScreen
 import com.truckerload.presentation.screens.home.HomeViewModel
+import com.truckerload.presentation.theme.ProvideLoadSharedElementScopes
 import com.truckerload.presentation.theme.navForwardEnter
 import com.truckerload.presentation.theme.navForwardExit
 import com.truckerload.presentation.theme.navPopEnter
 import com.truckerload.presentation.theme.navPopExit
+import com.truckerload.presentation.theme.navSharedElementEnter
+import com.truckerload.presentation.theme.navSharedElementExit
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.loadsNavGraph(
     navController: NavHostController,
     reduceMotion: Boolean,
+    sharedTransitionScope: SharedTransitionScope,
 ) {
     composable(
         route = Routes.LOAD_DETAIL,
         arguments = listOf(navArgument("loadId") { type = NavType.StringType }),
-        enterTransition = { navForwardEnter(reduceMotion) },
-        exitTransition = { navForwardExit(reduceMotion) },
-        popEnterTransition = { navPopEnter(reduceMotion) },
-        popExitTransition = { navPopExit(reduceMotion) },
+        enterTransition = { navSharedElementEnter(reduceMotion) },
+        exitTransition = { navSharedElementExit(reduceMotion) },
+        popEnterTransition = { navSharedElementEnter(reduceMotion) },
+        popExitTransition = { navSharedElementExit(reduceMotion) },
     ) { backStackEntry ->
         val loadId = Uri.decode(backStackEntry.arguments?.getString("loadId").orEmpty())
-        LoadDetailScreen(
-            loadId = loadId,
-            onBack = { navController.popBackStack() },
-            onEdit = { navController.navigate(Routes.editLoad(loadId)) },
-            onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
-            onDelete = { navController.popBackStack() },
-            onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
-            onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
-        )
+        ProvideLoadSharedElementScopes(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this,
+        ) {
+            LoadDetailScreen(
+                loadId = loadId,
+                onBack = { navController.popBackStack() },
+                onEdit = { navController.navigate(Routes.editLoad(loadId)) },
+                onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
+                onDelete = { navController.popBackStack() },
+                onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+            )
+        }
     }
     composable(
         route = Routes.ADD_LOAD,

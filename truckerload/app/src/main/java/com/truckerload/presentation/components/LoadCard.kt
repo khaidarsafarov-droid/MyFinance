@@ -48,6 +48,7 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.loadSharedBounds
 import java.util.Locale
 
 @Composable
@@ -245,10 +246,18 @@ private fun LoadCardContent(
         }
     }
 
+    // Shared bounds only when this composable owns the outer card chrome.
+    // SwipeableLoadCard applies [loadSharedBounds] on its Surface instead.
+    val cardModifier = if (wrapInCard) {
+        modifier.loadSharedBounds(load.id)
+    } else {
+        modifier
+    }
+
     if (wrapInCard) {
         BentoGlassClickableCard(
             onClick = onClick,
-            modifier = modifier
+            modifier = cardModifier
                 .fillMaxWidth()
                 .heightIn(min = UiDimens.LoadCardMinHeight),
             solidBackground = solidBackground,
@@ -257,7 +266,7 @@ private fun LoadCardContent(
         )
     } else {
         androidx.compose.foundation.layout.Box(
-            modifier = modifier
+            modifier = cardModifier
                 .fillMaxWidth()
                 .heightIn(min = UiDimens.LoadCardMinHeight)
                 .clickable(

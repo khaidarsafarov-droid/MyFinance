@@ -1,6 +1,8 @@
 package com.truckerload.presentation.navigation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.truckerload.presentation.theme.rememberReduceMotion
+import com.truckerload.presentation.theme.ProvideLoadSharedElementScopes
 import com.truckerload.presentation.theme.navForwardEnter
 import com.truckerload.presentation.theme.navForwardExit
 import com.truckerload.presentation.theme.navPopEnter
@@ -43,7 +46,7 @@ import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.widget.WidgetDeepLink
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun NavGraph(
     navController: androidx.navigation.NavHostController = rememberNavController(),
@@ -264,7 +267,9 @@ fun NavGraph(
             modifier = Modifier.padding(padding),
             useFullWidth = navigationRail && showMainNavigation,
         ) {
-        NavHost(
+        SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+            val sharedTransitionScope = this
+            NavHost(
             navController = navController,
             startDestination = Routes.HOME,
             modifier = Modifier.fillMaxSize(),
@@ -280,31 +285,37 @@ fun NavGraph(
                 popEnterTransition = { tabEnterTransition(reduceMotion) },
                 popExitTransition = { tabExitTransition(reduceMotion) },
             ) {
-                if (useTwoPaneLayout()) {
-                    JournalListDetailHost(navController = navController)
-                } else {
-                    HomeScreen(
-                        onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
-                        onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
-                        onStats = { navController.navigate(Routes.ANALYTICS) },
-                        onWeeklyGoal = { navigateToMainRoute(Routes.STATS, navController) },
-                        onSettings = { navController.navigate(Routes.SETTINGS) },
-                        onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
-                        onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
-                        onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
-                        onLoadCamera = { loadId, tripId, loadDate ->
-                            navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
-                        },
-                        onLoadScan = { loadId, tripId, loadDate ->
-                            navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
-                        },
-                        onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
-                    )
+                ProvideLoadSharedElementScopes(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = this,
+                ) {
+                    if (useTwoPaneLayout()) {
+                        JournalListDetailHost(navController = navController)
+                    } else {
+                        HomeScreen(
+                            onLoadClick = { navController.navigate(Routes.loadDetail(it)) },
+                            onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
+                            onStats = { navController.navigate(Routes.ANALYTICS) },
+                            onWeeklyGoal = { navigateToMainRoute(Routes.STATS, navController) },
+                            onSettings = { navController.navigate(Routes.SETTINGS) },
+                            onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+                            onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
+                            onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                            onLoadCamera = { loadId, tripId, loadDate ->
+                                navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
+                            },
+                            onLoadScan = { loadId, tripId, loadDate ->
+                                navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
+                            },
+                            onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+                        )
+                    }
                 }
             }
             profileNavGraph(navController, reduceMotion)
-            loadsNavGraph(navController, reduceMotion)
-            toolsNavGraph(navController, tablet, reduceMotion)
+            loadsNavGraph(navController, reduceMotion, sharedTransitionScope)
+            toolsNavGraph(navController, tablet, reduceMotion, sharedTransitionScope)
+        }
         }
         }
         }
