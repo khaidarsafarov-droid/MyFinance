@@ -38,7 +38,7 @@ object WidgetStatsLoader {
         val (weekStartIso, _, weekLabel) = getWeekRange(weekNumber, year)
         val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val weekStart = runCatching { LocalDate.parse(weekStartIso.take(10)) }
-            .getOrElse { WidgetWeekDayHelper.sundayOfWeek() }
+            .getOrElse { WidgetWeekDayHelper.startOfWeek() }
         val weekDateHints = weekLoads.flatMap { load ->
             listOfNotNull(load.date, getPickUpDate(load))
         }

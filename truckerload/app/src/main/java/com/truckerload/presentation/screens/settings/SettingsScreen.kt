@@ -71,6 +71,12 @@ fun SettingsScreen(
     val notifyMissingWeek by settingsDataStore.notifyMissingWeek.collectAsStateWithLifecycle(initialValue = true)
     val notifyMaintenance by settingsDataStore.notifyMaintenance.collectAsStateWithLifecycle(initialValue = true)
     val appLanguage by settingsDataStore.language.collectAsStateWithLifecycle(initialValue = com.truckerload.data.preferences.AppLanguage.RU)
+    val loadWeekStartDay by settingsDataStore.loadWeekStartDay.collectAsStateWithLifecycle(
+        initialValue = com.truckerload.domain.week.WeekStartDay.DEFAULT,
+    )
+    val dieselWeekStartDay by settingsDataStore.dieselWeekStartDay.collectAsStateWithLifecycle(
+        initialValue = com.truckerload.domain.week.WeekStartDay.DEFAULT,
+    )
     val tc = LocalTruckColors.current
     val authStore = LocalAuthStore.current
     val store = LocalRpmThresholdsStore.current
@@ -107,6 +113,10 @@ fun SettingsScreen(
                         )
                         AccessibilitySettingsSection(reduceMotion = reduceMotion)
                         LanguageSettingsSection(selected = appLanguage)
+                        WeekStartSettingsSection(
+                            loadsStart = loadWeekStartDay,
+                            dieselStart = dieselWeekStartDay,
+                        )
                         FeedbackSettingsSection(settingsViewModel = settingsViewModel)
                     }
                 },

@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.truckerload.domain.model.EquipmentType
+import com.truckerload.domain.week.WeekStartDay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -35,6 +36,8 @@ private val KEY_QUIET_HOURS_START = intPreferencesKey("quiet_hours_start")
 private val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
 private val KEY_NOTIFY_MISSING_WEEK = booleanPreferencesKey("notify_missing_week")
 private val KEY_NOTIFY_MAINTENANCE = booleanPreferencesKey("notify_maintenance")
+private val KEY_LOAD_WEEK_START_DAY = intPreferencesKey("load_week_start_day")
+private val KEY_DIESEL_WEEK_START_DAY = intPreferencesKey("diesel_week_start_day")
 
 class SettingsDataStore(context: Context) {
 
@@ -131,6 +134,28 @@ class SettingsDataStore(context: Context) {
 
     val notifyMaintenance: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
         accountScopedBool(prefs, "notify_maintenance", KEY_NOTIFY_MAINTENANCE, default = true)
+    }
+
+    val loadWeekStartDay: Flow<WeekStartDay> = appContext.settingsDataStore.data.map { prefs ->
+        WeekStartDay.fromCalendarDay(
+            accountScopedInt(
+                prefs,
+                "load_week_start_day",
+                KEY_LOAD_WEEK_START_DAY,
+                default = WeekStartDay.DEFAULT.calendarDay,
+            ),
+        )
+    }
+
+    val dieselWeekStartDay: Flow<WeekStartDay> = appContext.settingsDataStore.data.map { prefs ->
+        WeekStartDay.fromCalendarDay(
+            accountScopedInt(
+                prefs,
+                "diesel_week_start_day",
+                KEY_DIESEL_WEEK_START_DAY,
+                default = WeekStartDay.DEFAULT.calendarDay,
+            ),
+        )
     }
 
     private fun accountScopedBool(
@@ -320,6 +345,24 @@ class SettingsDataStore(context: Context) {
     }
 
     suspend fun getNotifyMaintenanceOnce(): Boolean = notifyMaintenance.first()
+
+    suspend fun getLoadWeekStartDayOnce(): WeekStartDay = loadWeekStartDay.first()
+
+    suspend fun saveLoadWeekStartDay(day: WeekStartDay) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[intKey("load_week_start_day", account)] = day.calendarDay
+        }
+    }
+
+    suspend fun getDieselWeekStartDayOnce(): WeekStartDay = dieselWeekStartDay.first()
+
+    suspend fun saveDieselWeekStartDay(day: WeekStartDay) {
+        val account = accountPart()
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[intKey("diesel_week_start_day", account)] = day.calendarDay
+        }
+    }
 
     suspend fun saveNotifyMaintenance(enabled: Boolean) {
         val account = accountPart()

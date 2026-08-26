@@ -2,6 +2,7 @@ package com.truckerload.data.preferences
 
 import android.content.Context
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -62,6 +63,32 @@ class SettingsAccountIsolationTest {
         assertFalse(settings.getParserAutoUpdateOnce())
         assertTrue(settings.getQuietHoursEnabledOnce())
         assertFalse(settings.getNotifyMaintenanceOnce())
+    }
+
+    @Test
+    fun weekStartDays_areIsolatedPerUser() = runBlocking {
+        loginAs("user-a", "a@example.com")
+        settings.saveLoadWeekStartDay(com.truckerload.domain.week.WeekStartDay.MONDAY)
+        settings.saveDieselWeekStartDay(com.truckerload.domain.week.WeekStartDay.SATURDAY)
+        assertEquals(
+            com.truckerload.domain.week.WeekStartDay.MONDAY,
+            settings.getLoadWeekStartDayOnce(),
+        )
+        assertEquals(
+            com.truckerload.domain.week.WeekStartDay.SATURDAY,
+            settings.getDieselWeekStartDayOnce(),
+        )
+
+        authStore.logout()
+        loginAs("user-b", "b@example.com")
+        assertEquals(
+            com.truckerload.domain.week.WeekStartDay.SUNDAY,
+            settings.getLoadWeekStartDayOnce(),
+        )
+        assertEquals(
+            com.truckerload.domain.week.WeekStartDay.SUNDAY,
+            settings.getDieselWeekStartDayOnce(),
+        )
     }
 
     private fun loginAs(userId: String, email: String) {

@@ -3,6 +3,7 @@ package com.truckerload.data.repository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PeriodSummary
 import com.truckerload.domain.model.WeekSummary
+import com.truckerload.domain.week.WeekStartRebinder
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getWeeksInMonth
 import com.truckerload.utils.weeksEndingInRange
@@ -22,8 +23,11 @@ class WeekRepository(
         val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
         val loads = loadRepository.getLoadsByWeek(weekNumber, year)
         val paychecks = paycheckRepository.getPaychecksForWeek(weekNumber, year)
-        val diesel = dieselRepository.getDieselForWeek(weekNumber, year)
-        return combine(loads, paychecks, diesel) { loadList, paycheckList, dieselList ->
+        val diesel = dieselRepository.getAllDiesel()
+        return combine(loads, paychecks, diesel) { loadList, paycheckList, allDiesel ->
+            val dieselList = allDiesel.filter {
+                WeekStartRebinder.dieselIsoInRange(it.addedAt, weekStartDate, weekEndDate)
+            }
             val totalLoadRate = loadList.sumOf { it.totalRate }
             val totalMiles = loadList.sumOf { it.totalMiles }
             // Paycheck amount comes only from Paycheck.netAmount.
@@ -53,7 +57,9 @@ class WeekRepository(
         val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
         val loadList = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val paycheckList = paycheckRepository.getPaychecksForWeek(weekNumber, year).first()
-        val dieselList = dieselRepository.getDieselForWeek(weekNumber, year).first()
+        val dieselList = dieselRepository.getAllDieselOnce().filter {
+            WeekStartRebinder.dieselIsoInRange(it.addedAt, weekStartDate, weekEndDate)
+        }
         val totalLoadRate = loadList.sumOf { it.totalRate }
         val totalMiles = loadList.sumOf { it.totalMiles }
         // Paycheck amount comes only from Paycheck.netAmount.

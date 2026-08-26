@@ -6,6 +6,7 @@ import com.truckerload.domain.model.Paycheck
 import com.truckerload.utils.getMonthRange
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.dateStringToStartOfDayMillis
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -33,7 +34,10 @@ class WeekRepositoryPeriodSummaryTest {
         dieselRepository = mock()
         whenever(loadRepository.getLoadsByWeek(any(), any())).thenReturn(flowOf(emptyList()))
         whenever(paycheckRepository.getPaychecksForWeek(any(), any())).thenReturn(flowOf(emptyList()))
-        whenever(dieselRepository.getDieselForWeek(any(), any())).thenReturn(flowOf(emptyList()))
+        whenever(dieselRepository.getAllDiesel()).thenReturn(flowOf(emptyList()))
+        runBlocking {
+            whenever(dieselRepository.getAllDieselOnce()).thenReturn(emptyList())
+        }
         weekRepository = WeekRepository(loadRepository, paycheckRepository, dieselRepository)
     }
 
@@ -50,9 +54,16 @@ class WeekRepositoryPeriodSummaryTest {
         whenever(paycheckRepository.getPaychecksForWeek(wn, wy)).thenReturn(
             flowOf(listOf(paycheck(weekNumber = wn, year = wy, start = start, end = end, net = 1800.0))),
         )
-        whenever(dieselRepository.getDieselForWeek(wn, wy)).thenReturn(
-            flowOf(listOf(diesel(weekNumber = wn, year = wy, start = start, end = end, amount = 400.0))),
+        val dieselFill = diesel(
+            weekNumber = wn,
+            year = wy,
+            start = start,
+            end = end,
+            amount = 400.0,
+            addedAt = dateStringToStartOfDayMillis("2025-01-30") ?: 0L,
         )
+        runBlocking { whenever(dieselRepository.getAllDieselOnce()).thenReturn(listOf(dieselFill)) }
+        whenever(dieselRepository.getAllDiesel()).thenReturn(flowOf(listOf(dieselFill)))
 
         val (janStart, janEnd) = getMonthRange(1, 2025)
         val (febStart, febEnd) = getMonthRange(2, 2025)
@@ -134,6 +145,7 @@ class WeekRepositoryPeriodSummaryTest {
         start: String,
         end: String,
         amount: Double,
+        addedAt: Long = 1L,
     ) = Diesel(
         id = 1,
         weekNumber = weekNumber,
@@ -147,6 +159,6 @@ class WeekRepositoryPeriodSummaryTest {
         location = null,
         rawExtractedText = "",
         sourceFileName = null,
-        addedAt = 1L,
+        addedAt = addedAt,
     )
 }

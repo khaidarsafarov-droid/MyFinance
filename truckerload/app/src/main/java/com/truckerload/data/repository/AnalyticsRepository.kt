@@ -12,7 +12,10 @@ import com.truckerload.domain.model.analytics.PeriodFinance
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.utils.dateBounds
+import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.weekSlots
+import com.truckerload.domain.week.WeekStartRuntime
+import kotlinx.coroutines.flow.first
 
 class AnalyticsRepository(private val db: AppDatabase) {
 
@@ -71,7 +74,10 @@ class AnalyticsRepository(private val db: AppDatabase) {
             .groupBy { it.weekNumber to it.year }
             .values
             .sumOf { rows -> rows.first().netAmount }
-        val diesel = dieselDao.getDieselSince(minDate, maxDate)
+        val diesel = dieselDao.getAllDiesel().first().filter { row ->
+            val iso = formatIsoDate(row.addedAt)
+            (minDate.isEmpty() || iso >= minDate) && (maxDate.isEmpty() || iso <= maxDate)
+        }
         return PeriodFinance(
             paycheckTotal = paycheckTotal,
             dieselTotal = diesel.sumOf { it.totalAmount },
@@ -122,12 +128,13 @@ class AnalyticsRepository(private val db: AppDatabase) {
 
     private fun mapDailyDistribution(rows: List<com.truckerload.data.local.entities.analytics.DailyGrossAgg>): List<DailyData> {
         val byDay = rows.associateBy { it.dayOfWeek }
-        val order = listOf(0, 1, 2, 3, 4, 5, 6)
         val labels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-        return order.mapIndexed { index, dow ->
+        val startDow = WeekStartRuntime.loads.calendarDay - 1
+        val order = (0..6).map { (startDow + it) % 7 }
+        return order.map { dow ->
             val row = byDay[dow]
             DailyData(
-                dayLabel = labels[index],
+                dayLabel = labels[dow],
                 dayOfWeek = dow,
                 gross = row?.gross ?: 0.0,
                 loadCount = row?.loadCount ?: 0,

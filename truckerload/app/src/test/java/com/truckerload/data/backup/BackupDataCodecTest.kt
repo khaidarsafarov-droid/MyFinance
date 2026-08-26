@@ -71,6 +71,8 @@ class BackupDataCodecTest {
                 weeklyProfitGoal = 4500.0,
                 rpmMinProfit = 2.0,
                 rpmTargetProfit = 2.5,
+                loadWeekStartDay = java.util.Calendar.MONDAY,
+                dieselWeekStartDay = java.util.Calendar.SUNDAY,
             ),
         )
         val restored = BackupDataCodec.decode(BackupDataCodec.toJson(original))

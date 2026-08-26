@@ -65,4 +65,14 @@ class WidgetWeekDayHelperTest {
         assertFalse(today.isPast)
         assertFalse(today.isFuture)
     }
+
+    @Test
+    fun chips_mondayWeekStartRotatesLabels() {
+        val monday = LocalDate.of(2026, 8, 17)
+        val chips = WidgetWeekDayHelper.chips(weekLoadMask = 0, today = wednesday, weekStart = monday)
+        assertEquals(listOf("M", "T", "W", "T", "F", "S", "S"), chips.map { it.label })
+        assertEquals(monday, chips.first().date)
+        assertEquals(LocalDate.of(2026, 8, 23), chips.last().date)
+        assertTrue(chips[2].isToday)
+    }
 }

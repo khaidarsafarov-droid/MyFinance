@@ -1,5 +1,7 @@
 package com.truckerload.utils
 
+import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.domain.week.WeekStartRuntime
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
@@ -38,21 +40,26 @@ fun enumerateYearWeekSlots(year: Int, throughWeek: Int): List<Pair<Int, Int>> =
     (1..throughWeek.coerceAtLeast(1)).map { it to year }
 
 /**
- * Reporting weeks whose Saturday falls in [startDate]…[endDate] (inclusive).
- * A Sun–Sat week is owned by exactly one calendar month/year — no overlap.
+ * Reporting weeks whose last day falls in [startDate]…[endDate] (inclusive).
+ * A week is owned by exactly one calendar month/year — no overlap.
  */
-fun weeksEndingInRange(startDate: String, endDate: String): List<Pair<Int, Int>> {
+fun weeksEndingInRange(
+    startDate: String,
+    endDate: String,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): List<Pair<Int, Int>> {
     val startParts = parseIsoDateParts(startDate) ?: return emptyList()
     val endParts = parseIsoDateParts(endDate) ?: return emptyList()
-    val cal = truckingWeekCalendar()
+    val cal = truckingWeekCalendar(firstDay)
     cal.clear()
     cal.set(startParts.first, startParts.second - 1, startParts.third)
-    val endCal = truckingWeekCalendar()
+    val endCal = truckingWeekCalendar(firstDay)
     endCal.clear()
     endCal.set(endParts.first, endParts.second - 1, endParts.third)
     if (cal.after(endCal)) return emptyList()
-    val daysUntilSaturday = (Calendar.SATURDAY - cal.get(Calendar.DAY_OF_WEEK) + 7) % 7
-    cal.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
+    val lastDay = firstDay.endCalendarDay
+    val daysUntilEnd = (lastDay - cal.get(Calendar.DAY_OF_WEEK) + 7) % 7
+    cal.add(Calendar.DAY_OF_YEAR, daysUntilEnd)
     val result = mutableListOf<Pair<Int, Int>>()
     while (!cal.after(endCal)) {
         result.add(cal.get(Calendar.WEEK_OF_YEAR) to cal.truckingWeekYear())
@@ -61,7 +68,7 @@ fun weeksEndingInRange(startDate: String, endDate: String): List<Pair<Int, Int>>
     return result
 }
 
-/** Недели, принадлежащие месяцу (суббота недели внутри месяца). Неделя с воскресенья. */
+/** Недели, принадлежащие месяцу (последний день недели внутри месяца). */
 fun getWeeksInMonth(year: Int, month: Int): List<Pair<Int, Int>> {
     val (start, end) = getMonthRange(month, year)
     return weeksEndingInRange(start, end)

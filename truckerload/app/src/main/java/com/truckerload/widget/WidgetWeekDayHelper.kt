@@ -1,18 +1,29 @@
 package com.truckerload.widget
 
+import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.domain.week.WeekStartRuntime
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 
 /**
- * Sun–Sat trucking-week chips for the home-screen widget.
+ * Reporting-week chips for the home-screen widget.
  *
  * Fill = load presence. Stroke = "today". Those two signals are independent.
+ * Chip order follows the loads week-start day from Settings.
  */
 object WidgetWeekDayHelper {
 
-    val dayLabels: List<String> = listOf("S", "M", "T", "W", "T", "F", "S")
+    private val sundayFirstLabels: List<String> = listOf("S", "M", "T", "W", "T", "F", "S")
+
+    val dayLabels: List<String>
+        get() = labelsFor(WeekStartRuntime.loads)
+
+    fun labelsFor(firstDay: WeekStartDay): List<String> {
+        val startIndex = firstDay.calendarDay - 1
+        return (0..6).map { sundayFirstLabels[(startIndex + it) % 7] }
+    }
 
     data class DayChip(
         val label: String,
@@ -24,8 +35,13 @@ object WidgetWeekDayHelper {
         val isPast: Boolean get() = !isToday && !isFuture
     }
 
-    fun sundayOfWeek(today: LocalDate = LocalDate.now()): LocalDate =
-        today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+    fun startOfWeek(
+        today: LocalDate = LocalDate.now(),
+        firstDay: DayOfWeek = WeekStartRuntime.loads.javaDayOfWeek,
+    ): LocalDate = today.with(TemporalAdjusters.previousOrSame(firstDay))
+
+    /** @deprecated Use [startOfWeek]; kept for existing call sites / tests. */
+    fun sundayOfWeek(today: LocalDate = LocalDate.now()): LocalDate = startOfWeek(today)
 
     fun maskFromIsoDates(isoDates: Collection<String>, weekStart: LocalDate): Int {
         var mask = 0
@@ -42,15 +58,18 @@ object WidgetWeekDayHelper {
     fun chips(
         weekLoadMask: Int,
         today: LocalDate = LocalDate.now(),
-        weekStart: LocalDate = sundayOfWeek(today),
-    ): List<DayChip> = (0..6).map { offset ->
-        val date = weekStart.plusDays(offset.toLong())
-        DayChip(
-            label = dayLabels[offset],
-            date = date,
-            hasLoad = (weekLoadMask shr offset) and 1 == 1,
-            isToday = date == today,
-            isFuture = date.isAfter(today),
-        )
+        weekStart: LocalDate = startOfWeek(today),
+    ): List<DayChip> {
+        val labels = labelsFor(WeekStartDay.fromJavaDayOfWeek(weekStart.dayOfWeek))
+        return (0..6).map { offset ->
+            val date = weekStart.plusDays(offset.toLong())
+            DayChip(
+                label = labels[offset],
+                date = date,
+                hasLoad = (weekLoadMask shr offset) and 1 == 1,
+                isToday = date == today,
+                isFuture = date.isAfter(today),
+            )
+        }
     }
 }

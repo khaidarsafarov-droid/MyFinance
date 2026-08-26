@@ -55,6 +55,12 @@ class PaycheckRepository(private val db: AppDatabase) {
 
     suspend fun getAllPaychecksOnce(): List<Paycheck> = getAllPaychecks().first()
 
+    /** Overwrites week fields in place without bumping [Paycheck.addedAt]. */
+    suspend fun replaceReportingWeeks(updated: List<Paycheck>) {
+        if (updated.isEmpty()) return
+        dao.insertAll(updated.map { it.toEntity() })
+    }
+
     private fun scheduleAutoBackup() {
         AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
     }

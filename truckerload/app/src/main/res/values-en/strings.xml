@@ -870,6 +870,10 @@
     <string name="settings_language_desc">App and widget interface language</string>
     <string name="settings_language_ru">Русский</string>
     <string name="settings_language_en">English</string>
+    <string name="settings_week_start_title">Week starts on</string>
+    <string name="settings_week_start_desc">Journals, reports, the weekly goal, and the widget count the week from the day you pick. Existing rows are reassigned. Paychecks follow the loads week.</string>
+    <string name="settings_week_start_loads">Loads and paychecks</string>
+    <string name="settings_week_start_diesel">Diesel</string>
     <string name="rpm_legend_red">Low: under \$%1$.2f per mile</string>
     <string name="rpm_legend_yellow">OK: \$%1$.2f–\$%2$.2f per mile</string>
     <string name="rpm_legend_green">Good: over \$%1$.2f per mile</string>

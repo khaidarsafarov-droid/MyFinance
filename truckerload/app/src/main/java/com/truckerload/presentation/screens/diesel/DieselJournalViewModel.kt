@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselJournalFilter
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class DieselJournalUiState(
@@ -31,20 +33,32 @@ class DieselJournalViewModel @Inject constructor(
     dieselRepository: DieselRepository,
 ) : ViewModel() {
 
-    private val initialWeek = getCurrentWeekNumberAndYear()
+    private val initialWeek = getCurrentWeekNumberAndYear(WeekStartRuntime.diesel)
     private val weekNumber = MutableStateFlow(initialWeek.first)
     private val year = MutableStateFlow(initialWeek.second)
     private val selectedDateIso = MutableStateFlow<String?>(null)
+
+    init {
+        viewModelScope.launch {
+            WeekStartRuntime.revision.collect {
+                val (week, yr) = getCurrentWeekNumberAndYear(WeekStartRuntime.diesel)
+                weekNumber.value = week
+                year.value = yr
+                selectedDateIso.value = null
+            }
+        }
+    }
 
     val uiState: StateFlow<DieselJournalUiState> = combine(
         dieselRepository.getAllDiesel(),
         weekNumber,
         year,
         selectedDateIso,
-    ) { all, week, yr, dateIso ->
+        WeekStartRuntime.revision,
+    ) { all, week, yr, dateIso, _ ->
         val inWeek = DieselJournalFilter.forWeek(all, week, yr)
         val visible = if (dateIso == null) inWeek else DieselJournalFilter.forDate(inWeek, dateIso)
-        val (_, _, weekLabel) = getWeekRange(week, yr)
+        val (_, _, weekLabel) = getWeekRange(week, yr, WeekStartRuntime.diesel)
         DieselJournalUiState(
             weekNumber = week,
             year = yr,
@@ -59,7 +73,7 @@ class DieselJournalViewModel @Inject constructor(
         initialValue = DieselJournalUiState(
             weekNumber = initialWeek.first,
             year = initialWeek.second,
-            weekLabel = getWeekRange(initialWeek.first, initialWeek.second).third,
+            weekLabel = getWeekRange(initialWeek.first, initialWeek.second, WeekStartRuntime.diesel).third,
             selectedDateIso = null,
             entries = emptyList(),
             weekTotal = 0.0,
@@ -75,14 +89,14 @@ class DieselJournalViewModel @Inject constructor(
     }
 
     fun selectDate(dateIso: String) {
-        val (week, yr) = getWeekNumberAndYearFromDate(dateIso)
+        val (week, yr) = getWeekNumberAndYearFromDate(dateIso, WeekStartRuntime.diesel)
         weekNumber.value = week
         year.value = yr
         selectedDateIso.value = dateIso
     }
 
     private fun shiftWeek(delta: Int) {
-        val (week, yr) = shiftWeekNumberAndYear(weekNumber.value, year.value, delta)
+        val (week, yr) = shiftWeekNumberAndYear(weekNumber.value, year.value, delta, WeekStartRuntime.diesel)
         weekNumber.value = week
         year.value = yr
         selectedDateIso.value = null

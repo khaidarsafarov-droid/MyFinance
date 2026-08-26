@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.domain.week.WeekStartRuntime
 import java.util.Calendar
 import java.text.DateFormatSymbols
 import java.util.Locale
@@ -42,8 +43,8 @@ fun LoadCalendarWithDots(
 ) {
     val tc = LocalTruckColors.current
 
-    // Trucking week is always Sunday–Saturday (matches WeekUtils / "Select week").
-    val firstDayOfWeek = Calendar.SUNDAY
+    // Reporting week follows the loads week-start day from Settings.
+    val firstDayOfWeek = WeekStartRuntime.loads.calendarDay
     val cal = Calendar.getInstance(Locale.US).apply {
         this.firstDayOfWeek = firstDayOfWeek
         minimalDaysInFirstWeek = 1

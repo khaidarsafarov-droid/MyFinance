@@ -1,5 +1,6 @@
 package com.truckerload.domain.importing
 
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import java.util.Locale
@@ -54,8 +55,8 @@ object DieselSpreadsheetParser {
         val weekStart = meta?.second ?: fills.firstNotNullOfOrNull { it.transactionDate }
             ?: error("week_unknown")
         val weekEnd = meta?.third ?: weekStart
-        val (weekNumber, year) = getWeekNumberAndYearFromDate(weekStart)
-        val (canonicalStart, canonicalEnd, _) = getWeekRange(weekNumber, year)
+        val (weekNumber, year) = getWeekNumberAndYearFromDate(weekStart, WeekStartRuntime.diesel)
+        val (canonicalStart, canonicalEnd, _) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
         return DieselSpreadsheetImport(
             fileName = fileName,
             driverName = meta?.first,

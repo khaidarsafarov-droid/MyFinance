@@ -2,6 +2,7 @@ package com.truckerload.domain.importing
 
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getMillisForWeek
 import com.truckerload.utils.getWeekRange
 import java.util.Calendar
@@ -48,9 +49,9 @@ class DieselImportUseCase @Inject constructor(
     }
 
     fun toDiesel(import: DieselSpreadsheetImport, fill: ParsedDieselFill, id: Int): Diesel {
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(import.weekNumber, import.year)
+        val (weekStart, weekEnd, weekLabel) = getWeekRange(import.weekNumber, import.year, WeekStartRuntime.diesel)
         val addedAt = fill.transactionDate?.let { dateToMillis(it) }
-            ?: getMillisForWeek(import.weekNumber, import.year)
+            ?: getMillisForWeek(import.weekNumber, import.year, WeekStartRuntime.diesel)
         return Diesel(
             id = id,
             weekNumber = import.weekNumber,

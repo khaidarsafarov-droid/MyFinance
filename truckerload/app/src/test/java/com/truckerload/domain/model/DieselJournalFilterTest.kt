@@ -1,5 +1,6 @@
 package com.truckerload.domain.model
 
+import com.truckerload.utils.getMillisForWeek
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -7,10 +8,12 @@ class DieselJournalFilterTest {
 
     @Test
     fun forWeek_keepsMatchingWeekOnly() {
+        val week35 = getMillisForWeek(35, 2026)
+        val week34 = getMillisForWeek(34, 2026)
         val fills = listOf(
-            sample(id = 1, week = 35, year = 2026, addedAt = 2_000L),
-            sample(id = 2, week = 34, year = 2026, addedAt = 3_000L),
-            sample(id = 3, week = 35, year = 2026, addedAt = 4_000L),
+            sample(id = 1, week = 35, year = 2026, addedAt = week35),
+            sample(id = 2, week = 34, year = 2026, addedAt = week34),
+            sample(id = 3, week = 35, year = 2026, addedAt = week35 + 3_600_000L),
         )
         assertEquals(listOf(3, 1), DieselJournalFilter.forWeek(fills, 35, 2026).map { it.id })
     }
