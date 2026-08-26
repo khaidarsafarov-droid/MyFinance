@@ -36,6 +36,7 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("widget_scanner_short"))
         assertTrue(wide.contains("widget_diesel_short"))
         assertTrue(!wide.contains("widget_quick_actions"))
+        assertTrue(readSource("widget/WidgetTruckProgressBitmap.kt").contains("colors.ring"))
         assertTrue(wide.contains("WidgetDayCaption"))
         assertTrue(core.contains("cabinActionFill"))
         assertTrue(core.contains("CabinSize4x4"))

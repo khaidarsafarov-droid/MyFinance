@@ -17,9 +17,6 @@ import kotlin.math.roundToInt
 /** Horizontal goal progress bar with truck marker — mockup-style Glance bitmap. */
 object WidgetTruckProgressBitmap {
 
-    /** Extra canvas height above the track so the truck badge is not clipped. */
-    const val TRUCK_HEADROOM_RATIO = 0.85f
-
     fun create(
         context: Context,
         progressPercent: Float,
@@ -30,14 +27,15 @@ object WidgetTruckProgressBitmap {
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val trackHeight = barHeightPx.coerceAtLeast(10)
-        val truckSize = (trackHeight * 2.1f).roundToInt().coerceIn(22, 56)
-        val headroom = (truckSize * TRUCK_HEADROOM_RATIO).roundToInt()
+        val truckSize = (trackHeight * 2.55f).roundToInt().coerceIn(26, 68)
+        val headroom = (truckSize - trackHeight).coerceAtLeast(6)
         val safeHeight = trackHeight + headroom
         val bitmap = createBitmap(safeWidth, safeHeight)
         val canvas = Canvas(bitmap)
         val corner = trackHeight / 2f
         val barTop = headroom.toFloat()
-        val bounds = RectF(0f, barTop, safeWidth.toFloat(), barTop + trackHeight)
+        val barBottom = barTop + trackHeight
+        val bounds = RectF(0f, barTop, safeWidth.toFloat(), barBottom)
 
         val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = colors.ringTrack }
         canvas.drawRoundRect(bounds, corner, corner, trackPaint)
@@ -76,8 +74,9 @@ object WidgetTruckProgressBitmap {
                 truckSize / 2f,
                 safeWidth - truckSize / 2f,
             )
-            val truckCenterY = barTop - (truckSize * 0.08f)
-            drawTruck(context, canvas, truckX, truckCenterY, truckSize, colors.onFilled)
+            // Wheels sit on the bottom edge of the progress track.
+            val truckCenterY = barBottom - truckSize / 2f
+            drawTruck(context, canvas, truckX, truckCenterY, truckSize, colors.ring)
         }
 
         return bitmap
