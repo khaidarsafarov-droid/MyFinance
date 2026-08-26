@@ -1678,8 +1678,12 @@
     <string name="settings_backup_working">Создаём резервную копию…</string>
     <string name="settings_backup_restoring">Восстанавливаем данные…</string>
     <string name="settings_share_app_title">Поделиться приложением</string>
-    <string name="settings_share_app_body">Отправьте другу установочный APK или ссылку на сборку. Данные остаются только на его телефоне — сервер не нужен.</string>
-    <string name="settings_share_app_button">Поделиться APK</string>
-    <string name="settings_share_app_unavailable">Не удалось найти APK этого приложения на устройстве</string>
+    <string name="settings_share_app_body">Отправьте другу ссылку: Google Play для Android, App Store для iPhone. Данные остаются на его телефоне.</string>
+    <string name="settings_share_app_body_play_only">Отправьте другу ссылку на Google Play. Ссылка на App Store для iPhone подставится сама, когда аккаунт в магазине будет готов.</string>
+    <string name="settings_share_app_button">Поделиться ссылкой</string>
+    <string name="settings_share_app_unavailable">Не удалось открыть меню «Поделиться»</string>
     <string name="settings_share_app_chooser">Поделиться TruckoRig</string>
+    <string name="settings_share_app_message_intro">TruckoRig — журнал для водителя</string>
+    <string name="settings_share_app_android_label">Android (Google Play):</string>
+    <string name="settings_share_app_ios_label">iPhone (App Store):</string>
 </resources>
