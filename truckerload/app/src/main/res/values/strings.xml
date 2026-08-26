@@ -1313,10 +1313,10 @@
     <string name="permission_rationale_location_title">Зачем нужна геолокация</string>
     <string name="permission_rationale_location_body">Координаты нужны, чтобы показать вас на карте друзей и привязать фото к рейсу. Мы не публикуем точное местоположение в сообществе без вашего согласия.</string>
     <string name="settings_delete_account_title">Удалить аккаунт</string>
-    <string name="settings_delete_account_desc">Полностью удалит профиль, CDL, сообщество и журнал грузов на этом устройстве. Это нельзя отменить.</string>
+    <string name="settings_delete_account_desc">Полностью удалит профиль и журнал на этом устройстве: грузы, зарплату и дизель. Это нельзя отменить.</string>
     <string name="settings_delete_account_button">Удалить аккаунт</string>
     <string name="settings_delete_account_confirm_title">Удалить аккаунт навсегда?</string>
-    <string name="settings_delete_account_confirm_message">Будут удалены User, DriverProfile, CommunityProfile и связанные данные, включая журнал грузов. Восстановить аккаунт будет нельзя.</string>
+    <string name="settings_delete_account_confirm_message">Будут удалены аккаунт, профиль и все записи журнала на этом телефоне. Восстановить аккаунт будет нельзя.</string>
     <string name="settings_delete_account_success">Аккаунт удалён</string>
     <string name="email_verify_title">Подтверждение email</string>
     <string name="email_verify_subtitle">Мягкое подтверждение для %1$s. Код показан ниже на этом экране (письмо с кодом приложение не отправляет). Журнал уже доступен — можно подтвердить позже.</string>
