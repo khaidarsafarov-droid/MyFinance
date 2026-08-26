@@ -2,9 +2,9 @@ package com.truckerload.presentation.screens.auth
 
 import com.truckerload.presentation.icons.AppIcons
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,7 +52,7 @@ import com.truckerload.presentation.auth.rememberGoogleSignInLauncher
 import com.truckerload.presentation.auth.shouldOfferBiometricUnlock
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.PhoneWithCountryField
-import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.di.LocalAuthCredentialsStore
 import com.truckerload.presentation.di.LocalAuthStore
@@ -354,6 +354,45 @@ fun SignUpScreen(
                     color = tc.TextSecondary,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
+                GoogleSignInButton(
+                    onClick = { googleSignIn.launch() },
+                    enabled = !isLoading && !isGoogleLoading,
+                    loading = isGoogleLoading,
+                    text = stringResource(R.string.signup_with_google),
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.login_google_sync_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = tc.TextSecondary.copy(alpha = 0.35f),
+                    )
+                    Text(
+                        text = stringResource(R.string.login_or_divider),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tc.TextSecondary,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = tc.TextSecondary.copy(alpha = 0.35f),
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.signup_email_alternative),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
                 val tfColors = AppTextFieldDefaults.outlined()
                 OutlinedTextField(
                     value = fullName,
@@ -412,33 +451,13 @@ fun SignUpScreen(
                 )
                 error?.let { Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }
                 Spacer(modifier = Modifier.height(24.dp))
-                GoogleSignInButton(
-                    onClick = {
-                        when {
-                            !consents.ageConfirmed -> error = context.getString(R.string.signup_error_age_required)
-                            !consents.tosAccepted -> error = context.getString(R.string.signup_error_tos_required)
-                            else -> googleSignIn.launch()
-                        }
-                    },
-                    enabled = !isLoading && !isGoogleLoading,
-                    loading = isGoogleLoading,
-                    text = stringResource(R.string.signup_with_google),
-                )
-                Text(
-                    text = stringResource(R.string.login_or_divider),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tc.TextSecondary,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(vertical = 16.dp),
-                )
-                Button(
+                OutlinedButton(
                     onClick = { if (!isLoading) performSignUp() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    enabled = !isLoading,
+                    enabled = !isLoading && !isGoogleLoading,
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = tc.Background)
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = tc.AccentPrimary)
                         Spacer(modifier = Modifier.width(12.dp))
                     }
                     Text(if (isLoading) stringResource(R.string.signup_loading) else stringResource(R.string.signup_button))

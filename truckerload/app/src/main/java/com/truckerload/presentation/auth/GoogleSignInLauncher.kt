@@ -17,6 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.truckerload.BuildConfig
 import com.truckerload.R
+import com.truckerload.data.backup.DriveSyncEligibility
+import com.truckerload.data.backup.DriveSyncWorker
+import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.GoogleSignInClients
@@ -94,7 +97,14 @@ fun rememberGoogleSignInLauncher(
             }
             callbacksState.value.onBusy(false)
             persisted.fold(
-                onSuccess = { callbacksState.value.onSignedIn() },
+                onSuccess = {
+                    GoogleDriveBackupService.syncLinkedAccountFromGoogle(context)
+                    val userId = authStore.currentUserIdOrNull()
+                    if (DriveSyncEligibility.shouldEnqueuePeriodic(userId)) {
+                        DriveSyncWorker.enqueuePeriodic(context.applicationContext)
+                    }
+                    callbacksState.value.onSignedIn()
+                },
                 onFailure = { error ->
                     Toast.makeText(
                         context,
