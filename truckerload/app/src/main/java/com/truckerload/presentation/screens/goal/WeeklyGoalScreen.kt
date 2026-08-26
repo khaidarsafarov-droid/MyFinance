@@ -34,6 +34,8 @@ import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.GoalCelebrationStore
+import com.truckerload.presentation.components.WeeklyGoalSkeleton
+import com.truckerload.presentation.theme.focusAfterNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,13 +74,12 @@ fun WeeklyGoalScreen() {
         title = stringResource(R.string.goal_screen_title),
         subtitle = progress?.weekLabel,
     ) { padding ->
-        if (uiState.isLoading || progress == null) {
-            Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(color = FinanceCockpitColors.SalaryAccent)
-            }
+                if (uiState.isLoading || progress == null) {
+            WeeklyGoalSkeleton(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            )
             return@SoftAppPageScaffold
         }
 
@@ -86,6 +87,7 @@ fun WeeklyGoalScreen() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .focusAfterNavigate(key = "weekly-goal", enabled = true)
                     .padding(padding)
                     .verticalContentScroll()
                     .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),

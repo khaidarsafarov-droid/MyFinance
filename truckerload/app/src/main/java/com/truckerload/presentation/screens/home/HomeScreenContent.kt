@@ -441,8 +441,7 @@ internal fun HomeInitialLoadingOverlay() {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            CircularProgressIndicator(color = tc.AccentPrimary)
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
