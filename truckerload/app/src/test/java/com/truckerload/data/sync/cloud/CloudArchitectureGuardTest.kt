@@ -60,6 +60,8 @@ class CloudArchitectureGuardTest {
 
         val activity = readMain("com/truckerload/presentation/MainActivity.kt")
         assertTrue(activity.contains("cloudSyncEngine.onSessionReady()"))
+        assertTrue(activity.contains("SessionTeardown.signOut"))
+        assertTrue(worker.contains("SessionTeardown.signOut"))
         assertTrue(mainExists("com/truckerload/presentation/components/SyncStatusBanner.kt"))
     }
 

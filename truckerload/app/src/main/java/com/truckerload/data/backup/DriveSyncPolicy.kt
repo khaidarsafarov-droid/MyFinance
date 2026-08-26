@@ -42,4 +42,18 @@ object DriveSyncPolicy {
 
     fun remoteIsNewer(remoteModifiedAt: Long, lastSyncAt: Long, skewMs: Long = DEFAULT_SKEW_MS): Boolean =
         remoteModifiedAt > 0L && lastSyncAt > 0L && remoteModifiedAt > lastSyncAt + skewMs
+
+    /**
+     * Skip background Drive upload when this device has never synced but Drive
+     * already has a file, or when the remote file is newer than our last push.
+     */
+    fun shouldSkipAutoPush(
+        remoteModifiedAt: Long,
+        lastSyncAt: Long,
+        skewMs: Long = DEFAULT_SKEW_MS,
+    ): Boolean {
+        if (remoteModifiedAt <= 0L) return false
+        if (lastSyncAt <= 0L) return true
+        return remoteIsNewer(remoteModifiedAt, lastSyncAt, skewMs)
+    }
 }

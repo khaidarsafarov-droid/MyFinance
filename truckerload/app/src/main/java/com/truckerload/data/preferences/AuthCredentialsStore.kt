@@ -77,11 +77,25 @@ class AuthCredentialsStore(context: Context) {
 
     fun hasCredentialsFor(email: String): Boolean = !passwordFor(email).isNullOrBlank()
 
+    fun saveBoundUserId(email: String, userId: String) {
+        val key = normalizeEmail(email)
+        val id = userId.trim()
+        if (key.isBlank() || id.isBlank()) return
+        prefs.edit { putString(uidKey(key), id) }
+    }
+
+    fun boundUserIdFor(email: String): String? {
+        val key = normalizeEmail(email)
+        if (key.isBlank()) return null
+        return prefs.getString(uidKey(key), null)?.trim()?.takeIf { it.isNotBlank() }
+    }
+
     fun clearCredentials(email: String) {
         val key = normalizeEmail(email)
         if (key.isBlank()) return
         prefs.edit {
             remove(pwdKey(key))
+            remove(uidKey(key))
             if (getEmail() == key) {
                 remove(KEY_LAST_EMAIL)
                 remove(KEY_EMAIL)
@@ -98,10 +112,13 @@ class AuthCredentialsStore(context: Context) {
         private const val KEY_PASSWORD = "password"
         private const val KEY_LAST_EMAIL = "last_email"
         private const val KEY_PWD_PREFIX = "pwd:"
+        private const val KEY_UID_PREFIX = "uid:"
 
         fun normalizeEmail(email: String): String = email.normalizeKey()
 
         private fun pwdKey(normalizedEmail: String): String = KEY_PWD_PREFIX + normalizedEmail
+
+        private fun uidKey(normalizedEmail: String): String = KEY_UID_PREFIX + normalizedEmail
 
         private const val TAG = "AuthCredentialsStore"
 

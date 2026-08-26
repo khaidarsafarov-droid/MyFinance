@@ -19,7 +19,8 @@ object DieselPurchaseMath {
             pricePerGallon != null && pricePerGallon > 0.0 -> pricePerGallon
             else -> return null
         }
-        return g * paidPrice
+        // FIX: persist cents, not IEEE remainder (500 * 4.09 → 2044.999…)
+        return com.truckerload.domain.goal.GoalMoneyMath.roundMoney(g * paidPrice)
     }
 
     fun savings(
@@ -31,6 +32,6 @@ object DieselPurchaseMath {
         val list = pricePerGallon ?: return null
         val disc = discountPricePerGallon ?: return null
         if (g <= 0.0 || list <= 0.0 || disc <= 0.0) return null
-        return ((list - disc) * g).coerceAtLeast(0.0)
+        return com.truckerload.domain.goal.GoalMoneyMath.roundMoney((list - disc) * g).coerceAtLeast(0.0)
     }
 }

@@ -170,6 +170,7 @@ class AuthRepositoryImpl @Inject constructor(
         val biometric = shouldOfferBiometricUnlock(appContext)
         return completeLoginResult(
             profile = UserProfile(email = email, givenName = "", familyName = "", photoUrl = null),
+            supabaseUserId = credentialsStore.boundUserIdFor(email),
             toasts = toasts,
             biometricEnabled = biometric,
         )
@@ -226,6 +227,7 @@ class AuthRepositoryImpl @Inject constructor(
                     val biometric = shouldOfferBiometricUnlock(appContext)
                     completeLoginResult(
                         profile = UserProfile(email = email, givenName = "", familyName = "", photoUrl = null),
+                        supabaseUserId = credentialsStore.boundUserIdFor(email),
                         toasts = toasts,
                         biometricEnabled = biometric,
                     )
@@ -308,6 +310,9 @@ class AuthRepositoryImpl @Inject constructor(
             return Result.failure(denied)
         }
         val userId = authStore.currentUserIdOrNull().orEmpty()
+        if (profile.googleId.isNullOrBlank() && profile.email.isNotBlank() && userId.isNotBlank()) {
+            runCatching { credentialsStore.saveBoundUserId(profile.email, userId) }
+        }
         return Result.success(
             AuthSignInResult(
                 user = AuthUser(

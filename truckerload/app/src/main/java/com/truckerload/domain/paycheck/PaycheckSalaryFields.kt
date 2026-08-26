@@ -9,7 +9,14 @@ object PaycheckSalaryFields {
         NET,
     }
 
-    fun parseAmount(raw: String): Double? {
+    fun parseAmount(raw: String): Double? =
+        parseAmountAllowingZero(raw)?.takeIf { it > 0.0 }
+
+    /**
+     * Locale-aware money parse (US `2,500.50` and EU `2500,50` / `1.234,56`).
+     * Returns 0 and negatives; [parseAmount] still requires a positive value.
+     */
+    fun parseAmountAllowingZero(raw: String): Double? {
         val trimmed = raw.trim()
             .replace('\u00A0', ' ')
             .replace(" ", "")
@@ -31,7 +38,7 @@ object PaycheckSalaryFields {
             }
             else -> trimmed
         }
-        return normalized.toDoubleOrNull()?.takeIf { it > 0.0 }
+        return normalized.toDoubleOrNull()
     }
 
     fun validate(netText: String): Error? =

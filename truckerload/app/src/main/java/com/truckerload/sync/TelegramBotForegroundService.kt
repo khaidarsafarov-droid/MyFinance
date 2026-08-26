@@ -133,8 +133,8 @@ class TelegramBotForegroundService : Service() {
     private fun setupBotFeaturesOnce(token: String) {
         val prefs = getSharedPreferences(TelegramSyncWorker.PREFS_NAME, MODE_PRIVATE)
         val tokenFp = TelegramBotTokenFingerprint.of(token)
-        val featuresDone = prefs.getBoolean(KEY_BOT_FEATURES_SETUP, false)
-        val photoDone = prefs.getString(KEY_BOT_PROFILE_PHOTO_FP, "") == tokenFp
+        val featuresDone = storedTokenFingerprint(prefs, KEY_BOT_FEATURES_SETUP) == tokenFp
+        val photoDone = storedTokenFingerprint(prefs, KEY_BOT_PROFILE_PHOTO_FP) == tokenFp
         if (featuresDone && photoDone) return
         scope.launch {
             val api = TelegramApi(token)
@@ -143,7 +143,8 @@ class TelegramBotForegroundService : Service() {
                     Log.w(TAG, "deleteWebhook: ${LogRedactor.redact(e.message)}")
                 }
                 api.setMyCommands().onSuccess {
-                    prefs.edit { putBoolean(KEY_BOT_FEATURES_SETUP, true) }
+                    // FIX: key setup by token fingerprint so account B's bot is not skipped
+                    prefs.edit { putString(KEY_BOT_FEATURES_SETUP, tokenFp) }
                 }.onFailure { e -> Log.w(TAG, "setMyCommands: ${LogRedactor.redact(e.message)}") }
                 api.setChatMenuButton().onFailure { e ->
                     Log.w(TAG, "setChatMenuButton: ${LogRedactor.redact(e.message)}")
@@ -154,6 +155,10 @@ class TelegramBotForegroundService : Service() {
             }
         }
     }
+
+    /** Legacy builds stored a Boolean for features-setup; reading it as String crashes. */
+    private fun storedTokenFingerprint(prefs: SharedPreferences, key: String): String =
+        prefs.all[key] as? String ?: ""
 
     private suspend fun applyBrandProfilePhoto(
         api: TelegramApi,

@@ -54,4 +54,12 @@ class DriveSyncPolicyTest {
         assertFalse(DriveSyncPolicy.remoteIsNewer(5_000L, 5_000L))
         assertFalse(DriveSyncPolicy.remoteIsNewer(5_500L, 5_000L, skewMs = 2_000L))
     }
+
+    @Test
+    fun shouldSkipAutoPush_whenNeverSyncedButRemoteExists() {
+        assertTrue(DriveSyncPolicy.shouldSkipAutoPush(remoteModifiedAt = 9_000L, lastSyncAt = 0L))
+        assertFalse(DriveSyncPolicy.shouldSkipAutoPush(remoteModifiedAt = 0L, lastSyncAt = 0L))
+        assertTrue(DriveSyncPolicy.shouldSkipAutoPush(remoteModifiedAt = 20_000L, lastSyncAt = 1_000L))
+        assertFalse(DriveSyncPolicy.shouldSkipAutoPush(remoteModifiedAt = 1_000L, lastSyncAt = 20_000L))
+    }
 }

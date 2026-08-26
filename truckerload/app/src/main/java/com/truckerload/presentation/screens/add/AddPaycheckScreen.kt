@@ -44,7 +44,9 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.formatDateTimeForDisplay
+import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekRange
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +81,8 @@ fun AddPaycheckScreen(
     if (showDatePicker) {
         JournalDatePickerDialog(
             recordedAtMillis = uiState.recordedAtMillis,
-            initialDateMillis = uiState.recordedAtMillis,
+            initialDateMillis = dateStringToUtcDatePickerMillis(formatIsoDate(uiState.recordedAtMillis))
+                ?: uiState.recordedAtMillis,
             onDismiss = { showDatePicker = false },
             onConfirm = viewModel::setRecordedDate,
             openTimePickerAfterConfirm = true,

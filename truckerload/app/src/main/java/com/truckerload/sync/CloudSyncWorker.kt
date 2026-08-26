@@ -15,6 +15,7 @@ import androidx.work.WorkerParameters
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.sync.CloudSyncEngine as LegacyCloudSyncEngine
 import com.truckerload.data.sync.cloud.CloudSyncEngine
+import com.truckerload.di.UserComponentManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
@@ -29,6 +30,7 @@ class CloudSyncWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val cloudSyncEngine: CloudSyncEngine,
     private val authStore: AuthStore,
+    private val userComponentManager: UserComponentManager,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -37,7 +39,9 @@ class CloudSyncWorker @AssistedInject constructor(
             val result = cloudSyncEngine.onSessionReady()
             Log.i(TAG, "Cloud sync: $result")
             if (result.mode == LegacyCloudSyncEngine.SyncResult.Mode.DEVICE_SLOT_DENIED) {
-                authStore.logout()
+                SessionTeardown.signOut(applicationContext, authStore) {
+                    userComponentManager.endSession()
+                }
                 return Result.success()
             }
             if (result.retryableFailure) Result.retry() else Result.success()

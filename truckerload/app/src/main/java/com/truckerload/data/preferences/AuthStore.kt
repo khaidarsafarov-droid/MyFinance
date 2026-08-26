@@ -3,6 +3,7 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.truckerload.data.local.EmailAccountUnifier
 import com.truckerload.data.local.GoogleAccountUnifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -220,6 +221,9 @@ class AuthStore(context: Context) {
                 }
             }
             GoogleAccountUnifier.relocateAliases(appContext, id, aliases)
+        } else if (mail.isNotBlank()) {
+            // FIX: offline email login used local_<hash> while cloud used UUID — two journals
+            EmailAccountUnifier.relocateLocalEmailJournal(appContext, id, mail)
         }
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE

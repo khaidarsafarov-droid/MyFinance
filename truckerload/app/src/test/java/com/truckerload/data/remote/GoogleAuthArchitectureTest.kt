@@ -20,6 +20,14 @@ class GoogleAuthArchitectureTest {
     }
 
     @Test
+    fun driveAutoPush_skipsWhenRemoteNewer() {
+        val service = readMainSource("com/truckerload/data/backup/GoogleDriveBackupService.kt")
+        assertTrue(service.contains("DriveSyncPolicy.shouldSkipAutoPush"))
+        val policy = readMainSource("com/truckerload/data/backup/DriveSyncPolicy.kt")
+        assertTrue(policy.contains("fun shouldSkipAutoPush"))
+    }
+
+    @Test
     fun logout_signsOutGoogleAccount() {
         val source = readMainSource("com/truckerload/sync/SessionTeardown.kt")
         assertTrue(source.contains("GoogleSignInClients.signOutDevice"))

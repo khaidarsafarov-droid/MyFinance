@@ -33,12 +33,14 @@ object WeeklyGoalCalculator {
         val isCurrentWeek = weekNumber == currentWeek && year == currentYear
         val daysActiveCalendar = getDaysActiveForWeek(weekNumber, year)
         val daysRemaining = getDaysRemainingForWeek(weekNumber, year)
-        val totalActiveDays = if (sqlYield != null && sqlYield.totalActiveDays > 0.0) {
+        // FIX: SQL yield can undercount weekNumber=0 rows already included in loadGross
+        val sqlUndercounts = sqlYield != null && loadGross > sqlGross + 0.009
+        val totalActiveDays = if (!sqlUndercounts && sqlYield != null && sqlYield.totalActiveDays > 0.0) {
             sqlYield.totalActiveDays
         } else {
             LoadYieldCalculator.totalActiveDays(weekLoads)
         }
-        val actualDailyYield = if (sqlYield != null && sqlYield.totalActiveDays > 0.0) {
+        val actualDailyYield = if (!sqlUndercounts && sqlYield != null && sqlYield.totalActiveDays > 0.0) {
             sqlYield.actualDailyYield
         } else {
             calculateDailyPace(weekLoads)
