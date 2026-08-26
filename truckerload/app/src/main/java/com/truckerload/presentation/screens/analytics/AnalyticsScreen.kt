@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -39,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.presentation.components.charts.DailyDistributionChart
 import com.truckerload.presentation.components.charts.TopRoutesBarChart
@@ -51,17 +47,15 @@ import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.AppFilterChipDefaults
-import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.AnalyticsExportShare
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(
     onBack: () -> Unit = {},
@@ -171,9 +165,12 @@ private fun AnalyticsScreenBody(
                         .navigationBarsPadding(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    PeriodFilterRow(
-                        selected = uiState.period,
-                        onSelect = viewModel::setPeriod,
+                    AnalyticsPeriodPicker(
+                        filter = uiState.filter,
+                        onSelectPreset = viewModel::setPeriod,
+                        onSelectYear = viewModel::selectYear,
+                        onSelectMonth = viewModel::selectMonth,
+                        onSelectWeek = viewModel::selectCalendarWeek,
                     )
 
                     uiState.summary?.let { summary ->
@@ -305,32 +302,6 @@ private fun AnalyticsScreenBody(
                     }
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun PeriodFilterRow(
-    selected: AnalyticsPeriod,
-    onSelect: (AnalyticsPeriod) -> Unit,
-) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        AnalyticsPeriod.entries.forEach { period ->
-            FilterChip(
-                selected = selected == period,
-                onClick = { onSelect(period) },
-                label = {
-                    Text(
-                        when (period) {
-                            AnalyticsPeriod.LAST_12_WEEKS -> stringResource(R.string.analytics_period_12_weeks)
-                            AnalyticsPeriod.LAST_6_MONTHS -> stringResource(R.string.analytics_period_6_months)
-                            AnalyticsPeriod.ALL_TIME -> stringResource(R.string.analytics_period_all)
-                        }
-                    )
-                },
-                colors = AppFilterChipDefaults.colors(),
-            )
         }
     }
 }

@@ -5,6 +5,7 @@ import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.repository.AnalyticsDashboard
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.domain.model.analytics.AnalyticsFilter
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.domain.model.analytics.WeekData
@@ -73,13 +74,17 @@ class AnalyticsViewModelTest {
             weekNumber = 2,
         )
 
-        whenever(repository.loadDashboard(AnalyticsPeriod.LAST_12_WEEKS)).thenAnswer {
-            runBlocking {
-                delay(1_000)
-                slowDashboard
+        whenever(repository.loadDashboard(any())).thenAnswer { invocation ->
+            val filter = invocation.getArgument<AnalyticsFilter>(0)
+            if (filter.preset == AnalyticsPeriod.LAST_12_WEEKS && !filter.isCalendar) {
+                runBlocking {
+                    delay(1_000)
+                    slowDashboard
+                }
+            } else {
+                fastDashboard
             }
         }
-        whenever(repository.loadDashboard(AnalyticsPeriod.ALL_TIME)).thenReturn(fastDashboard)
         whenever(repository.getLoadsForWeek(any(), any())).thenReturn(emptyList())
 
         val viewModel = AnalyticsViewModel(repository, profileRepository, userProfileStore, app)
@@ -91,9 +96,33 @@ class AnalyticsViewModelTest {
         advanceTimeBy(2_000)
         runCurrent()
 
-        assertEquals(AnalyticsPeriod.ALL_TIME, viewModel.uiState.value.period)
+        assertEquals(AnalyticsPeriod.ALL_TIME, viewModel.uiState.value.filter.preset)
         assertEquals("fast-period", viewModel.uiState.value.weeks.single().label)
         assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun selectYear_loadsCalendarFilterInsteadOfPreset() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+
+        whenever(repository.loadDashboard(any())).thenReturn(
+            dashboard(periodLabel = "year-2025", weekNumber = 10),
+        )
+        whenever(repository.getLoadsForWeek(any(), any())).thenReturn(emptyList())
+
+        val viewModel = AnalyticsViewModel(repository, profileRepository, userProfileStore, app)
+        runCurrent()
+
+        viewModel.selectYear(2025)
+        viewModel.selectMonth(2)
+        advanceUntilIdle()
+
+        val filter = viewModel.uiState.value.filter
+        assertEquals(2025, filter.year)
+        assertEquals(2, filter.month)
+        assertEquals(null, filter.preset)
+        assertEquals("year-2025", viewModel.uiState.value.weeks.single().label)
     }
 
     private fun dashboard(periodLabel: String, weekNumber: Int): AnalyticsDashboard {

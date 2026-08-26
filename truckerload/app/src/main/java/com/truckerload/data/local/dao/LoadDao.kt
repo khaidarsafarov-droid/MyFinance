@@ -63,8 +63,15 @@ interface LoadDao {
     @Query("SELECT * FROM loads ORDER BY updatedAt DESC, parsedAt DESC LIMIT :limit")
     suspend fun getLoadsForLinking(limit: Int): List<LoadEntity>
 
-    @Query("SELECT * FROM loads WHERE (:minDate = '' OR date >= :minDate) ORDER BY parsedAt DESC")
-    suspend fun getLoadsSince(minDate: String): List<LoadEntity>
+    @Query(
+        """
+        SELECT * FROM loads
+        WHERE (:minDate = '' OR date >= :minDate)
+          AND (:maxDate = '' OR date <= :maxDate)
+        ORDER BY parsedAt DESC
+        """,
+    )
+    suspend fun getLoadsSince(minDate: String, maxDate: String): List<LoadEntity>
 
     @Query("SELECT * FROM loads ORDER BY parsedAt DESC")
     fun getAllLoads(): Flow<List<LoadEntity>>
@@ -283,11 +290,12 @@ interface LoadDao {
             COUNT(*) AS loadCount
         FROM loads
         WHERE (:minDate = '' OR date >= :minDate)
+          AND (:maxDate = '' OR date <= :maxDate)
         GROUP BY year, weekNumber
         ORDER BY year ASC, weekNumber ASC
         """
     )
-    suspend fun getWeeklyRevenue(minDate: String): List<WeeklyRevenueAgg>
+    suspend fun getWeeklyRevenue(minDate: String, maxDate: String): List<WeeklyRevenueAgg>
 
     @Query("SELECT * FROM loads WHERE weekNumber = :weekNumber AND year = :year ORDER BY parsedAt DESC")
     suspend fun getLoadsByWeekOnce(weekNumber: Int, year: Int): List<LoadEntity>
@@ -303,10 +311,11 @@ interface LoadDao {
             COUNT(*) AS loadCount
         FROM loads
         WHERE (:minDate = '' OR date >= :minDate)
+          AND (:maxDate = '' OR date <= :maxDate)
         GROUP BY dayOfWeek
         """
     )
-    suspend fun getDailyDistribution(minDate: String): List<DailyGrossAgg>
+    suspend fun getDailyDistribution(minDate: String, maxDate: String): List<DailyGrossAgg>
 
     @Query(
         """
@@ -316,9 +325,10 @@ interface LoadDao {
             COALESCE(SUM(totalMiles), 0.0) AS miles
         FROM loads
         WHERE (:minDate = '' OR date >= :minDate)
+          AND (:maxDate = '' OR date <= :maxDate)
         """
     )
-    suspend fun getAnalyticsTotals(minDate: String): AnalyticsTotalsAgg
+    suspend fun getAnalyticsTotals(minDate: String, maxDate: String): AnalyticsTotalsAgg
 
     @Query(
         """

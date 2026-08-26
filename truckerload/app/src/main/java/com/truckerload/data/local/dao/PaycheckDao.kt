@@ -20,9 +20,15 @@ interface PaycheckDao {
     @Query("SELECT * FROM paychecks WHERE weekNumber = :weekNumber AND year = :year")
     fun getPaychecksForWeek(weekNumber: Int, year: Int): Flow<List<PaycheckEntity>>
 
-    /** Reporting-period rows; pass an empty [minDate] for all time. */
-    @Query("SELECT * FROM paychecks WHERE weekEndDate >= :minDate")
-    suspend fun getPaychecksSince(minDate: String): List<PaycheckEntity>
+    /** Reporting-period rows; pass empty [minDate] / [maxDate] for an open bound. */
+    @Query(
+        """
+        SELECT * FROM paychecks
+        WHERE (:minDate = '' OR weekEndDate >= :minDate)
+          AND (:maxDate = '' OR weekEndDate <= :maxDate)
+        """,
+    )
+    suspend fun getPaychecksSince(minDate: String, maxDate: String): List<PaycheckEntity>
 
     @Query("SELECT * FROM paychecks WHERE id = :id LIMIT 1")
     suspend fun getById(id: Int): PaycheckEntity?
