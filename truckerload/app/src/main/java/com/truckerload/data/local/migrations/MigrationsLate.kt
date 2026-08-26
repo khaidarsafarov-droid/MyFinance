@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→39 (startVersion 25..38). */
+/** Room migrations for schema versions 25→41 (startVersion 25..40). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -394,6 +394,34 @@ val MIGRATION_39_40 = object : Migration(39, 40) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execLogged(
             "ALTER TABLE misc_expenses ADD COLUMN receiptPhotoPath TEXT",
+        )
+    }
+}
+
+/**
+ * One paycheck per trucking week: drop duplicate rows (keep latest [addedAt],
+ * then highest id) and replace the non-unique week index with a UNIQUE index.
+ */
+val MIGRATION_40_41 = object : Migration(40, 41) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execLogged(
+            """
+            DELETE FROM paychecks
+            WHERE EXISTS (
+              SELECT 1 FROM paychecks AS newer
+              WHERE newer.weekNumber = paychecks.weekNumber
+                AND newer.year = paychecks.year
+                AND (
+                  newer.addedAt > paychecks.addedAt
+                  OR (newer.addedAt = paychecks.addedAt AND newer.id > paychecks.id)
+                )
+            )
+            """.trimIndent(),
+        )
+        db.execLogged("DROP INDEX IF EXISTS index_paychecks_weekNumber_year")
+        db.execLogged(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_paychecks_weekNumber_year` " +
+                "ON `paychecks` (`weekNumber`, `year`)",
         )
     }
 }

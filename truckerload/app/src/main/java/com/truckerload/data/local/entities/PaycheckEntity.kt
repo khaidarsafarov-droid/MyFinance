@@ -6,7 +6,10 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "paychecks",
-    indices = [Index(value = ["weekNumber", "year"]), Index(value = ["addedAt"])],
+    indices = [
+        Index(value = ["weekNumber", "year"], unique = true),
+        Index(value = ["addedAt"]),
+    ],
 )
 data class PaycheckEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

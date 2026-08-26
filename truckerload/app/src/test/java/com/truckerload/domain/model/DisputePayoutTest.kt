@@ -51,7 +51,15 @@ class DisputePayoutTest {
             .copy(disputeCompleted = true, disputeAmountApplied = true, totalRate = 2250.0)
         val cleared = DisputePayout.settleFrom(load, load.copy(disputeCompleted = false))
         assertFalse(cleared.disputeAmountApplied)
-        assertEquals(2250.0, cleared.totalRate, 0.0)
+        assertEquals(2000.0, cleared.totalRate, 0.0)
+    }
+
+    @Test
+    fun uncompleteWithoutAppliedFlag_doesNotChangeRate() {
+        val load = sample(totalRate = 2000.0, amount = 250.0, apply = true)
+        val cleared = DisputePayout.settleFrom(load, load.copy(disputeCompleted = false))
+        assertFalse(cleared.disputeAmountApplied)
+        assertEquals(2000.0, cleared.totalRate, 0.0)
     }
 
     @Test

@@ -80,32 +80,14 @@ class HomeViewModel @Inject constructor(
     /**
      * Room subscription scoped by filter.
      * Week / ALL / DISPUTE journals use [roomPagedLoads] + SQL totals — avoid dual hydrate.
-     * THIS_MONTH loads only the current month prefix (not the whole fleet).
+     * Day / month load only the overlapping PU–DEL window (not the whole fleet).
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val loadsFromDb: StateFlow<List<Load>> = _uiState
-        .map { Triple(it.filter, it.selectedWeekStart, it.selectedWeekEnd) }
+        .map { it.filter to it.selectedDate }
         .distinctUntilChanged()
-        .flatMapLatest { (filter, weekStart, _) ->
-            when (filter) {
-                // List comes from Room paging; header totals from [pagedFilterTotals].
-                LoadFilter.THIS_WEEK,
-                LoadFilter.LAST_WEEK,
-                LoadFilter.CALENDAR_WEEK,
-                LoadFilter.DISPUTE,
-                LoadFilter.ALL,
-                -> flowOf(emptyList())
-                LoadFilter.THIS_MONTH -> {
-                    val cal = java.util.Calendar.getInstance()
-                    val prefix = "%04d-%02d".format(
-                        cal.get(java.util.Calendar.YEAR),
-                        cal.get(java.util.Calendar.MONTH) + 1,
-                    )
-                    loadRepository.getLoadsByMonth("$prefix%")
-                }
-                // YESTERDAY / CALENDAR_DATE need active trip-day ranges via stops.
-                else -> loadRepository.watchLoads()
-            }
+        .flatMapLatest { (filter, selectedDate) ->
+            HomeScopedLoadQuery.observe(filter, selectedDate, loadRepository)
         }
         .conflate()
         .stateIn(
@@ -292,9 +274,9 @@ class HomeViewModel @Inject constructor(
         )
 
     /**
-     * True Room SQL paging for week / dispute journal filters.
-     * Day/month filters stay in-memory so they use active trip-day ranges,
-     * matching header totals and calendar day selection.
+     * True Room SQL paging for week / dispute / ALL journal filters.
+     * Day/month filters stay in-memory after a scoped overlap query so
+     * spanning trips match header totals and calendar day selection.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val roomPagedLoads: Flow<PagingData<Load>> =

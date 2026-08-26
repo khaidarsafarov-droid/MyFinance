@@ -226,6 +226,30 @@ interface LoadDao {
     @Query("SELECT * FROM loads WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC, parsedAt DESC")
     fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<LoadEntity>>
 
+    /**
+     * Loads whose PU–DEL span overlaps startMillis..endMillis, plus rows whose
+     * `date` column falls in startDate..endDate (inclusive) when millis are missing.
+     */
+    @Query(
+        """
+        SELECT * FROM loads
+        WHERE (date >= :startDate AND date <= :endDate)
+           OR (
+                firstPuMillis IS NOT NULL
+                AND lastDelMillis IS NOT NULL
+                AND firstPuMillis <= :endMillis
+                AND lastDelMillis >= :startMillis
+           )
+        ORDER BY parsedAt DESC
+        """,
+    )
+    fun getLoadsOverlappingRange(
+        startDate: String,
+        endDate: String,
+        startMillis: Long,
+        endMillis: Long,
+    ): Flow<List<LoadEntity>>
+
     @Query("DELETE FROM loads WHERE id = :loadId")
     suspend fun deleteById(loadId: String)
 

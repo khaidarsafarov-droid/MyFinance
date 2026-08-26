@@ -147,6 +147,87 @@ class RoomMigrationRobolectricTest {
             if (version >= 40) {
                 assertTrue(db.hasColumn("misc_expenses", "receiptPhotoPath"))
             }
+            if (version >= 41) {
+                db.query(
+                    "SELECT sql FROM sqlite_master WHERE type = 'index' " +
+                        "AND name = 'index_paychecks_weekNumber_year'",
+                ).use { c ->
+                    assertTrue(c.moveToFirst())
+                    assertTrue(c.getString(0).uppercase().contains("UNIQUE"))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun migrate40To41_keepsLatestPaycheckPerWeek() {
+        val context = RuntimeEnvironment.getApplication()
+        val dbName = "robo-migration-40-41-paychecks"
+        context.deleteDatabase(dbName)
+        val config = SupportSQLiteOpenHelper.Configuration.builder(context)
+            .name(dbName)
+            .callback(object : SupportSQLiteOpenHelper.Callback(40) {
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS paychecks (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            weekNumber INTEGER NOT NULL,
+                            year INTEGER NOT NULL,
+                            weekLabel TEXT NOT NULL,
+                            weekStartDate TEXT NOT NULL,
+                            weekEndDate TEXT NOT NULL,
+                            driverName TEXT,
+                            grossAmount REAL,
+                            netAmount REAL NOT NULL,
+                            rawExtractedText TEXT NOT NULL,
+                            sourceFileName TEXT,
+                            addedAt INTEGER NOT NULL,
+                            sourceFilePath TEXT
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_paychecks_weekNumber_year` " +
+                            "ON `paychecks` (`weekNumber`, `year`)",
+                    )
+                    db.execSQL(
+                        """
+                        INSERT INTO paychecks (
+                          weekNumber, year, weekLabel, weekStartDate, weekEndDate,
+                          netAmount, rawExtractedText, addedAt
+                        ) VALUES
+                          (10, 2026, 'W10', '2026-03-01', '2026-03-07', 100.0, 'old', 1),
+                          (10, 2026, 'W10', '2026-03-01', '2026-03-07', 200.0, 'new', 9),
+                          (11, 2026, 'W11', '2026-03-08', '2026-03-14', 300.0, 'other', 5)
+                        """.trimIndent(),
+                    )
+                }
+
+                override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+            })
+            .build()
+
+        FrameworkSQLiteOpenHelperFactory().create(config).writableDatabase.use { db ->
+            MIGRATION_40_41.migrate(db)
+            db.query("SELECT COUNT(*) FROM paychecks").use { c ->
+                assertTrue(c.moveToFirst())
+                assertEquals(2, c.getInt(0))
+            }
+            db.query(
+                "SELECT netAmount FROM paychecks WHERE weekNumber = 10 AND year = 2026",
+            ).use { c ->
+                assertTrue(c.moveToFirst())
+                assertEquals(200.0, c.getDouble(0), 0.0)
+                assertTrue(!c.moveToNext())
+            }
+            db.query(
+                "SELECT sql FROM sqlite_master WHERE type = 'index' " +
+                    "AND name = 'index_paychecks_weekNumber_year'",
+            ).use { c ->
+                assertTrue(c.moveToFirst())
+                assertTrue(c.getString(0).uppercase().contains("UNIQUE"))
+            }
         }
     }
 

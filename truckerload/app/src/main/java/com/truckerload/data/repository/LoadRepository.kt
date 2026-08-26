@@ -23,6 +23,8 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.StopsHasher
+import com.truckerload.utils.dateStringToEndOfDayMillis
+import com.truckerload.utils.dateStringToStartOfDayMillis
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
@@ -177,6 +179,24 @@ class LoadRepository(
     /** Диапазон дат (включительно). */
     fun getLoadsByDateRange(startDate: String, endDate: String): Flow<List<Load>> =
         loadDao.getLoadsByDateRange(startDate, endDate).hydrateOnIo(stopDao, penaltyDao)
+
+    /**
+     * Home day/month journals: overlap PU–DEL millis with the local day/range,
+     * falling back to the `date` column when the span is not denormalized.
+     */
+    fun getLoadsOverlappingDay(isoDate: String): Flow<List<Load>> =
+        getLoadsOverlappingRange(isoDate, isoDate)
+
+    fun getLoadsOverlappingRange(startDate: String, endDate: String): Flow<List<Load>> {
+        val startMillis = dateStringToStartOfDayMillis(startDate)
+        val endMillis = dateStringToEndOfDayMillis(endDate)
+        val rows = if (startMillis == null || endMillis == null) {
+            loadDao.getLoadsByDateRange(startDate, endDate)
+        } else {
+            loadDao.getLoadsOverlappingRange(startDate, endDate, startMillis, endMillis)
+        }
+        return rows.hydrateOnIo(stopDao, penaltyDao)
+    }
 
     /**
      * True Room [PagingSource] journal rows (entity → domain without stop hydrate —

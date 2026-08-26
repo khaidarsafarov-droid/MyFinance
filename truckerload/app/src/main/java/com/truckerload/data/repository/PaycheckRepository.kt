@@ -27,7 +27,9 @@ class PaycheckRepository(private val db: AppDatabase) {
         dao.getPaychecksForWeek(weekNumber, year).map { list -> list.map { it.toDomain() } }.flowOn(Dispatchers.IO)
 
     suspend fun insertPaycheck(paycheck: Paycheck) {
-        dao.insert(paycheck.withSyncTimestamp().toEntity())
+        val existing = dao.getPaycheckForWeek(paycheck.weekNumber, paycheck.year)
+        val resolved = existing?.let { paycheck.copy(id = it.id) } ?: paycheck
+        dao.insert(resolved.withSyncTimestamp().toEntity())
         scheduleAutoBackup()
     }
 

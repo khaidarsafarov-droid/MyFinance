@@ -43,7 +43,7 @@ class CloudArchitectureGuardTest {
     @Test
     fun roomSchema_tracksCurrentVersion() {
         val db = readMain("com/truckerload/data/local/AppDatabase.kt")
-        assertTrue(db.contains("version = 40"))
+        assertTrue(db.contains("version = 41"))
         assertFalse(db.contains("syncPending"))
         assertFalse(db.contains("migrateLegacyDatabaseIfNeeded"))
     }
@@ -84,6 +84,23 @@ class CloudArchitectureGuardTest {
         assertTrue(app.contains("allowsCloudCalls()"))
         val hybrid = readMain("com/truckerload/data/sync/AccountCloudBackend.kt")
         assertTrue(hybrid.contains("lastReadUsedStaleMirror = true"))
+    }
+
+    @Test
+    fun remainingAuditFixes_areWired() {
+        val home = readMain("com/truckerload/presentation/screens/home/HomeViewModel.kt")
+        assertFalse(home.contains("else -> loadRepository.watchLoads()"))
+        val scoped = readMain("com/truckerload/presentation/screens/home/HomeScopedLoadQuery.kt")
+        assertTrue(scoped.contains("getLoadsOverlappingDay"))
+        assertTrue(scoped.contains("getLoadsOverlappingRange"))
+        val paycheckEntity = readMain("com/truckerload/data/local/entities/PaycheckEntity.kt")
+        assertTrue(paycheckEntity.contains("unique = true"))
+        val paycheckRepo = readMain("com/truckerload/data/repository/PaycheckRepository.kt")
+        assertTrue(paycheckRepo.contains("getPaycheckForWeek(paycheck.weekNumber, paycheck.year)"))
+        val dispute = readMain("com/truckerload/domain/model/DisputePayout.kt")
+        assertTrue(dispute.contains("previous.totalRate - amount"))
+        val migrations = readMain("com/truckerload/data/local/DatabaseMigrations.kt")
+        assertTrue(migrations.contains("MIGRATION_40_41"))
     }
 
     private fun mainExists(relative: String): Boolean =
