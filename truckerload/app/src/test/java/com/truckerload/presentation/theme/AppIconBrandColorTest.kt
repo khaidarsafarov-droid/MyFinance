@@ -33,6 +33,59 @@ class AppIconBrandColorTest {
     }
 
     @Test
+    fun adaptiveIconForeground_hasSafeZoneInset() {
+        val layer = readRes("drawable/ic_launcher_foreground_layer.xml")
+        assertTrue(layer.contains("inset"))
+        assertTrue(layer.contains("@drawable/ic_launcher_image"))
+        assertTrue(layer.contains("21dp"))
+
+        val adaptive = readRes("mipmap-anydpi-v26/ic_launcher.xml")
+        assertTrue(adaptive.contains("@drawable/ic_launcher_foreground_layer"))
+    }
+
+    @Test
+    fun legacyLauncherMipmap_hasSafeZoneMargins() {
+        val image = readResImage("mipmap-xxxhdpi/ic_launcher.png")
+        val margin = transparentMarginPx(image)
+        // ~17% of 192px ≈ 33px per side for 66/108 safe zone.
+        assertTrue("Expected transparent launcher margins, got $margin", margin >= 28)
+    }
+
+    private fun transparentMarginPx(image: BufferedImage): Int {
+        val w = image.width
+        val h = image.height
+        fun rowTransparent(y: Int): Boolean {
+            for (x in 0 until w) {
+                if (image.getRGB(x, y) ushr 24 and 0xFF >= 16) return false
+            }
+            return true
+        }
+        fun colTransparent(x: Int): Boolean {
+            for (y in 0 until h) {
+                if (image.getRGB(x, y) ushr 24 and 0xFF >= 16) return false
+            }
+            return true
+        }
+        var top = 0
+        while (top < h && rowTransparent(top)) top++
+        var bottom = 0
+        var y = h - 1
+        while (y >= 0 && rowTransparent(y)) {
+            bottom++
+            y--
+        }
+        var left = 0
+        while (left < w && colTransparent(left)) left++
+        var right = 0
+        var x = w - 1
+        while (x >= 0 && colTransparent(x)) {
+            right++
+            x--
+        }
+        return minOf(top, bottom, left, right)
+    }
+
+    @Test
     fun launcherForegroundPng_usesKitPalette_notLegacyForestGreen() {
         val image = readResImage("drawable-nodpi/ic_launcher_image.png")
         assertTrue(image.width > 32 && image.height > 32)
