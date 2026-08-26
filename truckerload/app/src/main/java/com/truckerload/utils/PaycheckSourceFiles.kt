@@ -21,12 +21,27 @@ object PaycheckSourceFiles {
         val name = PaycheckSourceFileNames.sanitize(
             displayName?.takeIf { it.isNotBlank() } ?: displayName(context, uri),
         )
-        val dir = File(context.filesDir, DIR).apply { mkdirs() }
-        val dest = File(dir, "${UUID.randomUUID()}_$name")
         return try {
             context.contentResolver.openInputStream(uri)?.use { input ->
-                dest.outputStream().use { output -> input.copyTo(output) }
-            } ?: return null
+                writeBytes(context, input.readBytes(), name)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun copyFromBytes(context: Context, bytes: ByteArray, displayName: String?): String? {
+        if (bytes.isEmpty()) return null
+        val name = PaycheckSourceFileNames.sanitize(displayName)
+        return writeBytes(context, bytes, name)
+    }
+
+    private fun writeBytes(context: Context, bytes: ByteArray, sanitizedName: String): String? {
+        if (bytes.isEmpty()) return null
+        val dir = File(context.filesDir, DIR).apply { mkdirs() }
+        val dest = File(dir, "${UUID.randomUUID()}_$sanitizedName")
+        return try {
+            dest.outputStream().use { output -> output.write(bytes) }
             if (!dest.exists() || dest.length() == 0L) {
                 dest.delete()
                 return null

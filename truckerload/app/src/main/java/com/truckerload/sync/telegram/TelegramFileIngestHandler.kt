@@ -18,6 +18,7 @@ import com.truckerload.domain.parser.LoadField
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.utils.LogRedactor
+import com.truckerload.utils.PaycheckSourceFiles
 
 class TelegramFileIngestHandler(
     private val context: Context,
@@ -54,7 +55,10 @@ class TelegramFileIngestHandler(
             )
             return
         }
-        val fileText = extractor.extract(bytes, update.documentFileName, update.documentMimeType)
+        val fileName = update.documentFileName?.takeIf { it.isNotBlank() }
+            ?: if (update.photoFileId != null) "telegram_photo.jpg" else "telegram_file"
+        val storedPath = PaycheckSourceFiles.copyFromBytes(context, bytes, fileName)
+        val fileText = extractor.extract(bytes, fileName, update.documentMimeType)
             .getOrElse { e ->
                 Log.e(TAG, "extract failed: ${LogRedactor.redact(e.message)}", e)
                 ""
@@ -62,16 +66,18 @@ class TelegramFileIngestHandler(
         val caption = update.text.trim()
         val combined = listOf(caption, fileText).filter { it.isNotBlank() }.joinToString("\n\n")
         if (combined.isBlank()) {
+            PaycheckSourceFiles.delete(context, storedPath)
             apiClient.sendWithMenu(update.chatId, context.getString(R.string.sync_receipt_empty_ocr))
             return
         }
         applyText(
             chatId = update.chatId,
             text = combined,
-            fileName = update.documentFileName,
+            fileName = fileName,
             messageDateSeconds = update.messageDateSeconds,
             loadRepository = loadRepository,
             prefs = prefs,
+            sourceFilePath = storedPath,
         )
     }
 
@@ -82,6 +88,7 @@ class TelegramFileIngestHandler(
         messageDateSeconds: Long?,
         loadRepository: LoadRepository,
         prefs: SharedPreferences,
+        sourceFilePath: String? = null,
     ) {
         val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
         val decision = InboundDocumentResolver.resolve(
@@ -92,10 +99,12 @@ class TelegramFileIngestHandler(
             parseService = parseService,
         )
         if (decision.autoSaveLoads) {
+            PaycheckSourceFiles.delete(context, sourceFilePath)
             saveLoads(chatId, decision.loads, text, messageDateSeconds, loadRepository)
             return
         }
         decision.incompleteLoad?.let { gaps ->
+            PaycheckSourceFiles.delete(context, sourceFilePath)
             apiClient.sendWithMenu(
                 chatId,
                 context.getString(
@@ -105,7 +114,11 @@ class TelegramFileIngestHandler(
             )
             return
         }
-        askConfirmation(chatId, decision.preview, prefs)
+        askConfirmation(
+            chatId,
+            decision.preview.copy(sourceFilePath = sourceFilePath),
+            prefs,
+        )
     }
 
     private fun loadFieldLabel(field: LoadField): Int = when (field) {
@@ -126,9 +139,9 @@ class TelegramFileIngestHandler(
         prefs: SharedPreferences,
         callbackQueryId: String?,
     ) {
-        val store = TelegramReceiptConfirmStore(prefs)
+        val store = TelegramReceiptConfirmStore(prefs, context)
         if (data == TelegramReceiptKeyboard.CANCEL) {
-            store.clear(chatId)
+            store.clear(chatId, discardFile = true)
             callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_cancelled))
             return
@@ -158,6 +171,7 @@ class TelegramFileIngestHandler(
             }
             store.clear(chatId)
             if (loads.isEmpty()) {
+                PaycheckSourceFiles.delete(context, preview.sourceFilePath)
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_load_parse_failed))
                 return
             }
@@ -168,6 +182,7 @@ class TelegramFileIngestHandler(
                 messageDateSeconds = preview.messageDateSeconds,
                 loadRepository = loadRepository,
             )
+            PaycheckSourceFiles.delete(context, preview.sourceFilePath)
             return
         }
         val reply = writer.save(kind, preview, paycheckRepository, dieselRepository, prefs)
@@ -212,7 +227,7 @@ class TelegramFileIngestHandler(
         preview: ReceiptPreview,
         prefs: SharedPreferences,
     ) {
-        TelegramReceiptConfirmStore(prefs).save(chatId, preview)
+        TelegramReceiptConfirmStore(prefs, context).save(chatId, preview)
         val guessed = when (preview.kind) {
             ReceiptKind.PAYCHECK -> context.getString(R.string.sync_receipt_guess_paycheck)
             ReceiptKind.DIESEL -> context.getString(R.string.sync_receipt_guess_diesel)

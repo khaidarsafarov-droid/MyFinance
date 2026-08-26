@@ -27,7 +27,6 @@ import javax.inject.Inject
 data class PaycheckEditorState(
     val paycheck: Paycheck,
     val netText: String,
-    val grossText: String,
     val sourceFileName: String?,
     val sourceFilePath: String?,
     val originalSourceFilePath: String?,
@@ -132,10 +131,6 @@ class PaycheckJournalViewModel @Inject constructor(
         editor.value = PaycheckEditorState(
             paycheck = paycheck,
             netText = PaycheckSalaryFields.formatAmount(paycheck.netAmount),
-            grossText = paycheck.grossAmount
-                ?.takeIf { it > 0.0 }
-                ?.let { PaycheckSalaryFields.formatAmount(it) }
-                .orEmpty(),
             sourceFileName = paycheck.sourceFileName,
             sourceFilePath = paycheck.sourceFilePath,
             originalSourceFilePath = paycheck.sourceFilePath,
@@ -187,19 +182,17 @@ class PaycheckJournalViewModel @Inject constructor(
 
     fun saveEditor() {
         val current = editor.value ?: return
-        val error = PaycheckSalaryFields.validate(current.netText, current.grossText)
+        val error = PaycheckSalaryFields.validate(current.netText)
         if (error != null) {
             editor.value = current.copy(error = error)
             return
         }
         val net = PaycheckSalaryFields.parseAmount(current.netText) ?: return
-        val gross = PaycheckSalaryFields.parseOptionalAmount(current.grossText)
         viewModelScope.launch {
             isSaving.value = true
             paycheckRepository.updatePaycheck(
                 current.paycheck.copy(
                     netAmount = net,
-                    grossAmount = gross,
                     sourceFileName = current.sourceFileName,
                     sourceFilePath = current.sourceFilePath,
                 ),

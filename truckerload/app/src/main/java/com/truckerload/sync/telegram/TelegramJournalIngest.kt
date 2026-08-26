@@ -36,6 +36,7 @@ class TelegramJournalIngest(
         messageDateSeconds: Long?,
         rawText: String,
         sourceFileName: String? = null,
+        sourceFilePath: String? = null,
         addedAt: Long = System.currentTimeMillis(),
     ): PaycheckOutcome {
         if (netAmount <= 0) return PaycheckOutcome.InvalidAmount
@@ -58,6 +59,7 @@ class TelegramJournalIngest(
                 rawExtractedText = rawText,
                 sourceFileName = sourceFileName,
                 addedAt = addedAt,
+                sourceFilePath = sourceFilePath,
             ),
         )
         return PaycheckOutcome.Inserted(weekNumber, year, netAmount)
