@@ -11,8 +11,11 @@ enum class MainTabClickAction {
     SWITCH_TAB,
 }
 
-fun shouldShowPhoneBottomBar(route: String?): Boolean =
-    phoneTabForRoute(route) != null
+fun shouldShowPhoneBottomBar(route: String?): Boolean {
+    val current = route ?: return false
+    if (isImmersivePhoneRoute(current)) return false
+    return phoneTabForRoute(current) != null || isPhoneChromeToolRoute(current)
+}
 
 fun isPhoneDestinationSelected(currentRoute: String?, targetRoute: String): Boolean =
     phoneTabForRoute(currentRoute) == targetRoute
@@ -54,7 +57,8 @@ fun navigateToMainRoute(
     navController: NavHostController,
 ) {
     val current = navController.currentDestination?.route
-    when (resolveMainTabClick(current, route, tabRootInBackStack = true)) {
+    val tabRootInBackStack = tabRootInBackStack(navController, route)
+    when (resolveMainTabClick(current, route, tabRootInBackStack)) {
         MainTabClickAction.NO_OP -> Unit
         MainTabClickAction.POP_TO_TAB_ROOT,
         MainTabClickAction.POP_ONCE,
@@ -64,6 +68,11 @@ fun navigateToMainRoute(
             }
         }
         MainTabClickAction.SWITCH_TAB -> {
+            // Profile/settings stacks: pop to tab root when it exists instead of
+            // launchSingleTop leaving tool screens on top.
+            if (navController.popBackStack(route, inclusive = false)) {
+                return
+            }
             navController.navigate(route) {
                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                 launchSingleTop = true
@@ -72,6 +81,9 @@ fun navigateToMainRoute(
         }
     }
 }
+
+private fun tabRootInBackStack(navController: NavHostController, route: String): Boolean =
+    navController.currentBackStack.value.any { it.destination.route == route }
 
 internal fun isImmersivePhoneRoute(route: String): Boolean =
     route == Routes.CAMERA ||
@@ -87,6 +99,15 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
         route.startsWith(Routes.ADD_DIESEL) ||
         route == Routes.DIESEL ||
         route == Routes.MISC_EXPENSES
+
+/** Non-immersive tool screens where phone users still need the bottom tab bar. */
+internal fun isPhoneChromeToolRoute(route: String): Boolean =
+    route == Routes.SETTINGS ||
+        route == Routes.PRIVACY_SETTINGS ||
+        route == Routes.ABOUT ||
+        route == Routes.IMPROVE ||
+        route == Routes.MAINTENANCE ||
+        route == Routes.TAX_TRACKER
 
 internal fun isHomeTabRoute(route: String): Boolean =
     route == Routes.HOME ||
