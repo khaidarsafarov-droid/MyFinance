@@ -52,6 +52,10 @@
     <string name="analytics_period_12_weeks">Последние 12 недель</string>
     <string name="analytics_period_6_months">Полгода</string>
     <string name="analytics_period_all">Всё время</string>
+    <string name="analytics_filter_years">Год</string>
+    <string name="analytics_filter_months">Месяц</string>
+    <string name="analytics_filter_weeks">Неделя</string>
+    <string name="analytics_period_month_of">%1$s %2$d</string>
     <string name="analytics_export_saved">Отчёт сохранён: %1$s</string>
     <string name="analytics_chart_week_detail">%1$s: %2$s · %3$d грузов</string>
     <string name="analytics_chart_empty">Пока нет данных за этот период</string>

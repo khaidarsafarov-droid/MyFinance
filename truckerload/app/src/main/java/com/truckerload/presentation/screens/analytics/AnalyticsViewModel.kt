@@ -11,6 +11,7 @@ import com.truckerload.data.repository.AnalyticsDashboard
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.social.ProfileRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.analytics.AnalyticsFilter
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
 import com.truckerload.domain.model.analytics.AnalyticsSummary
 import com.truckerload.domain.model.analytics.DailyData
@@ -39,7 +40,7 @@ data class AnalyticsShareReady(
 
 data class AnalyticsUiState(
     val isLoading: Boolean = true,
-    val period: AnalyticsPeriod = AnalyticsPeriod.LAST_12_WEEKS,
+    val filter: AnalyticsFilter = AnalyticsFilter.DEFAULT,
     val weeks: List<WeekData> = emptyList(),
     val routes: List<RouteData> = emptyList(),
     val daily: List<DailyData> = emptyList(),
@@ -89,8 +90,24 @@ class AnalyticsViewModel @Inject constructor(
     }
 
     fun setPeriod(period: AnalyticsPeriod) {
-        if (period == _uiState.value.period) return
-        _uiState.update { it.copy(period = period) }
+        applyFilter(_uiState.value.filter.selectPreset(period))
+    }
+
+    fun selectYear(year: Int) {
+        applyFilter(_uiState.value.filter.selectYear(year))
+    }
+
+    fun selectMonth(month: Int) {
+        applyFilter(_uiState.value.filter.selectMonth(month))
+    }
+
+    fun selectCalendarWeek(weekNumber: Int, weekYear: Int) {
+        applyFilter(_uiState.value.filter.selectWeek(weekNumber, weekYear))
+    }
+
+    private fun applyFilter(filter: AnalyticsFilter) {
+        if (filter == _uiState.value.filter) return
+        _uiState.update { it.copy(filter = filter) }
         refresh()
     }
 
@@ -111,11 +128,11 @@ class AnalyticsViewModel @Inject constructor(
     fun refresh() {
         refreshJob?.cancel()
         val generation = refreshGeneration.incrementAndGet()
-        val period = _uiState.value.period
+        val filter = _uiState.value.filter
         refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
-                repository.loadDashboard(period)
+                repository.loadDashboard(filter)
             }.onSuccess { dashboard ->
                 if (generation != refreshGeneration.get()) return@launch
                 lastDashboard = dashboard
@@ -149,9 +166,10 @@ class AnalyticsViewModel @Inject constructor(
             val family = familyName.trim()
             runCatching { profileRepository.updateOwnName(given, family) }
             val owner = AnalyticsOwnerName.display(given, family)
-            val labels = analyticsExportLabels(app, _uiState.value.period, owner)
+            val filter = _uiState.value.filter
+            val labels = analyticsExportLabels(app, filter, owner)
             runCatching {
-                AnalyticsExportShare.writeReport(app, dashboard, labels, format, _uiState.value.period)
+                AnalyticsExportShare.writeReport(app, dashboard, labels, format, filter.exportKey())
             }.onSuccess { file ->
                 val caption = if (owner.isBlank()) {
                     app.getString(
