@@ -34,6 +34,7 @@ fun PaycheckEditorDialog(
     onDismiss: () -> Unit,
     onChange: ((PaycheckEditorState) -> PaycheckEditorState) -> Unit,
     onSave: () -> Unit,
+    onDelete: () -> Unit,
     onOpenFile: () -> Unit,
     onAttachFile: () -> Unit,
 ) {
@@ -161,6 +162,12 @@ fun PaycheckEditorDialog(
         },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TlTextButton(onClick = onDelete, enabled = !isSaving) {
+                    Text(
+                        text = stringResource(R.string.common_delete),
+                        color = tc.AccentExpense,
+                    )
+                }
                 TlTextButton(onClick = onDismiss, enabled = !isSaving) {
                     Text(stringResource(R.string.common_cancel))
                 }

@@ -19,9 +19,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -54,6 +59,7 @@ fun PaycheckJournalScreen(
     val viewModel: PaycheckJournalViewModel = hiltViewModel()
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val fileMissing = stringResource(R.string.paycheck_file_missing)
     val fileOpenFailed = stringResource(R.string.paycheck_file_open_failed)
@@ -72,12 +78,37 @@ fun PaycheckJournalScreen(
             onDismiss = viewModel::dismissEditor,
             onChange = viewModel::updateEditor,
             onSave = viewModel::saveEditor,
+            onDelete = { showDeleteConfirm = true },
             onOpenFile = {
                 if (!PaycheckSourceFiles.open(context, editor.sourceFilePath, editor.sourceFileName)) {
                     scope.launch { snackbarHostState.showSnackbar(fileOpenFailed) }
                 }
             },
             onAttachFile = { attachLauncher.launch(arrayOf("*/*")) },
+        )
+    }
+
+    if (showDeleteConfirm && editor != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.paycheck_delete_title)) },
+            text = { Text(stringResource(R.string.paycheck_delete_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        viewModel.deleteEditor()
+                    },
+                    enabled = !ui.isSaving,
+                ) {
+                    Text(stringResource(R.string.common_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
         )
     }
 

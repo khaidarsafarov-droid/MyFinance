@@ -207,6 +207,25 @@ class PaycheckJournalViewModel @Inject constructor(
         }
     }
 
+    fun deleteEditor() {
+        val current = editor.value ?: return
+        if (isSaving.value) return
+        viewModelScope.launch {
+            isSaving.value = true
+            val id = current.paycheck.id
+            val paths = buildSet {
+                current.sourceFilePath?.let { add(it) }
+                current.originalSourceFilePath?.let { add(it) }
+            }
+            paycheckRepository.deletePaycheck(id)
+            paths.forEach { path ->
+                PaycheckSourceFiles.delete(appContext, path)
+            }
+            isSaving.value = false
+            editor.value = null
+        }
+    }
+
     private fun shiftWeek(delta: Int) {
         val (week, yr) = shiftWeekNumberAndYear(weekNumber.value, year.value, delta)
         weekNumber.value = week

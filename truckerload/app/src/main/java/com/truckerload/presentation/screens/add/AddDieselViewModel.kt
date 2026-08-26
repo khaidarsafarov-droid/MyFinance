@@ -47,6 +47,7 @@ data class AddDieselUiState(
     val scanMessage: String? = null,
     val error: String? = null,
     val saved: Boolean = false,
+    val deleted: Boolean = false,
     val showSaveDialog: Boolean = false,
 ) {
     val gallons: Double? get() = AmountInputValidator.parsePositiveAmount(gallonsText)
@@ -289,6 +290,36 @@ class AddDieselViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+
+    fun delete() {
+        val id = _uiState.value.editingId ?: return
+        if (_uiState.value.isSaving) return
+        _uiState.update { it.copy(isSaving = true, error = null, showSaveDialog = false) }
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    dieselRepository.deleteDiesel(id)
+                }
+                WidgetDataUpdater.updateWidgetData(getApplication())
+                _uiState.update {
+                    it.copy(isSaving = false, deleted = true, showSaveDialog = false)
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message
+                            ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearDeleted() {
+        _uiState.update { it.copy(deleted = false) }
     }
 
     fun clearSaved() {

@@ -690,6 +690,10 @@
     <string name="diesel_import_replaced">Week replaced with %1$d fills from file</string>
     <string name="diesel_import_tap_to_edit">Tap to edit</string>
     <string name="edit_diesel_title">Edit fill</string>
+    <string name="diesel_delete_title">Delete fill?</string>
+    <string name="diesel_delete_message">This entry will be permanently deleted.</string>
+    <string name="paycheck_delete_title">Delete paycheck?</string>
+    <string name="paycheck_delete_message">This entry will be permanently deleted.</string>
     <string name="paycheck_empty_week">No paycheck this week</string>
     <string name="paycheck_empty_all">No paychecks yet</string>
     <string name="paycheck_empty_search">Nothing matched</string>

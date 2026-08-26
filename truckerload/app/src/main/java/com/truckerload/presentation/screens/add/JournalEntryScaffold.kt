@@ -46,6 +46,7 @@ fun JournalEntryScaffold(
     onSave: () -> Unit,
     saveEnabled: Boolean,
     errorMessage: String?,
+    onDelete: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val tc = LocalTruckColors.current
@@ -61,6 +62,17 @@ fun JournalEntryScaffold(
                             contentDescription = stringResource(R.string.common_back),
                             tint = tc.TextPrimary,
                         )
+                    }
+                },
+                actions = {
+                    if (onDelete != null) {
+                        IconButton(onClick = onDelete, enabled = saveEnabled) {
+                            Icon(
+                                AppIcons.Delete,
+                                contentDescription = stringResource(R.string.common_delete),
+                                tint = tc.Danger,
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
