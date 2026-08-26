@@ -199,7 +199,7 @@ internal fun PremiumStatsRow(profile: EnhancedDriverProfile) {
             BentoGlassMetricCell(
                 modifier = Modifier.weight(1f),
                 label = stringResource(R.string.social_stat_rpm),
-                value = MoneyFormat.formatCurrency(profile.averageRpm),
+                value = MoneyFormat.formatRpmShort(profile.averageRpm),
                 accent = tc.AccentProfit,
             )
         }
