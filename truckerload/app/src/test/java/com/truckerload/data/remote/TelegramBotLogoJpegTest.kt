@@ -1,10 +1,11 @@
 package com.truckerload.data.remote
 
+import android.graphics.Bitmap
+import android.graphics.Color
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -12,10 +13,13 @@ import org.robolectric.annotation.Config
 class TelegramBotLogoJpegTest {
 
     @Test
-    fun encode_producesJpegOfBrandLogo() {
-        val jpeg = TelegramBotLogoJpeg.encode(RuntimeEnvironment.getApplication())
+    fun encodeBitmap_producesJpeg() {
+        val src = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888)
+        src.eraseColor(Color.BLUE)
+        val jpeg = TelegramBotLogoJpeg.encodeBitmap(src)
         assertTrue(jpeg != null && jpeg.size > 100)
         assertTrue(TelegramBotLogoJpeg.isJpeg(jpeg!!))
+        src.recycle()
     }
 
     @Test
