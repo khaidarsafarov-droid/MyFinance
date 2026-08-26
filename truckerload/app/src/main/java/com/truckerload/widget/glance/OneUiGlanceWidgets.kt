@@ -59,9 +59,9 @@ import com.truckerload.widget.WidgetWeekDaysBitmap
 private val Size2x2 = DpSize(110.dp, 110.dp)
 private val Size4x2 = DpSize(250.dp, 110.dp)
 
-/** Always-dark cabin budget palette (classic home-screen ring form). */
-private val CabinPrimary = Color(0xFFF2F7F4)
-private val CabinSecondary = Color(0xFFC5D3C9)
+/** Always-dark cabin budget palette (TruckoRig shield blue). */
+private val CabinPrimary = Color(0xFFF2F7FC)
+private val CabinSecondary = Color(0xFFB8C9E0)
 private val CabinAccent = Color(0xFF5EE0A0)
 
 object OneUiGlanceWidgets {
@@ -394,7 +394,7 @@ private fun QuickAction(
         Box(
             modifier = GlanceModifier
                 .size(32.dp)
-                .background(ImageProvider(R.drawable.widget_action_btn_bg)),
+                .background(ImageProvider(R.drawable.widget_cabin_action_btn)),
             contentAlignment = Alignment.Center,
         ) {
             Image(
