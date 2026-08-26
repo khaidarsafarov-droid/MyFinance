@@ -10,10 +10,11 @@ import androidx.compose.ui.graphics.toArgb
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.presentation.theme.forestDarkColorScheme
+import com.truckerload.presentation.theme.forestLightColorScheme
 
 /**
- * Resolved widget paint tokens. Forest cabin by default; Material You when
- * Settings → Dynamic colors is on (API 31+).
+ * Resolved widget paint tokens. Kit light plate by default; indigo cabin in
+ * dark theme; Material You when Settings → Dynamic colors is on (API 31+).
  */
 data class WidgetCabinColors(
     val bg: Int,
@@ -34,7 +35,7 @@ data class WidgetCabinColors(
     val dynamic: Boolean = false,
 ) {
     companion object {
-        val Forest = WidgetCabinColors(
+        val ForestLight = WidgetCabinColors(
             bg = WidgetCabinPalette.BG,
             text = WidgetCabinPalette.TEXT,
             muted = WidgetCabinPalette.MUTED,
@@ -53,6 +54,28 @@ data class WidgetCabinColors(
             dynamic = false,
         )
 
+        val ForestDark = WidgetCabinColors(
+            bg = WidgetCabinPalette.Dark.BG,
+            text = WidgetCabinPalette.Dark.TEXT,
+            muted = WidgetCabinPalette.Dark.MUTED,
+            accent = WidgetCabinPalette.Dark.ACCENT,
+            ring = WidgetCabinPalette.Dark.RING,
+            ringTrack = WidgetCabinPalette.Dark.RING_TRACK,
+            actionBg = WidgetCabinPalette.Dark.ACTION_BG,
+            actionLabel = WidgetCabinPalette.Dark.ACTION_LABEL,
+            divider = WidgetCabinPalette.Dark.DIVIDER,
+            dayFilled = WidgetCabinPalette.Dark.DAY_FILLED,
+            dayToday = WidgetCabinPalette.Dark.DAY_TODAY,
+            dayOutline = WidgetCabinPalette.Dark.DAY_OUTLINE,
+            dayFutureLetter = WidgetCabinPalette.Dark.DAY_FUTURE_LETTER,
+            dayEmptyCaption = WidgetCabinPalette.Dark.DAY_EMPTY_CAPTION,
+            onFilled = WidgetCabinPalette.Dark.ON_FILLED,
+            dynamic = false,
+        )
+
+        /** Default plate used by Glance previews — light kit. */
+        val Forest = ForestLight
+
         fun fromScheme(scheme: ColorScheme, dynamic: Boolean = true) = WidgetCabinColors(
             bg = scheme.surface.toArgb(),
             text = scheme.onSurface.toArgb(),
@@ -60,8 +83,8 @@ data class WidgetCabinColors(
             accent = scheme.primary.toArgb(),
             ring = scheme.primary.toArgb(),
             ringTrack = scheme.surfaceVariant.toArgb(),
-            actionBg = scheme.secondaryContainer.toArgb(),
-            actionLabel = scheme.onSecondaryContainer.toArgb(),
+            actionBg = scheme.primary.toArgb(),
+            actionLabel = scheme.onPrimary.toArgb(),
             divider = scheme.outlineVariant.toArgb(),
             dayFilled = scheme.primary.toArgb(),
             dayToday = scheme.tertiaryContainer.toArgb(),
@@ -92,11 +115,16 @@ data class WidgetCabinColors(
                 val scheme = when {
                     wantDynamic && dark -> dynamicDarkColorScheme(app)
                     wantDynamic && !dark -> dynamicLightColorScheme(app)
-                    else -> forestDarkColorScheme()
+                    dark -> forestDarkColorScheme()
+                    else -> forestLightColorScheme()
                 }
-                val colors = if (wantDynamic) fromScheme(scheme, dynamic = true) else Forest
+                val colors = when {
+                    wantDynamic -> fromScheme(scheme, dynamic = true)
+                    dark -> ForestDark
+                    else -> ForestLight
+                }
                 scheme to colors
-            }.getOrElse { forestDarkColorScheme() to Forest }
+            }.getOrElse { forestLightColorScheme() to ForestLight }
         }
     }
 }

@@ -28,6 +28,8 @@ object WidgetDayChipStyle {
         colors: WidgetCabinColors = WidgetCabinColors.Forest,
     ): Int = when (kind) {
         Kind.OUTLINE -> colors.dayFutureLetter
-        Kind.FILLED, Kind.TODAY -> colors.onFilled
+        Kind.FILLED -> colors.onFilled
+        // Today uses a light lavender plate — body text, not white-on-primary.
+        Kind.TODAY -> colors.text
     }
 }

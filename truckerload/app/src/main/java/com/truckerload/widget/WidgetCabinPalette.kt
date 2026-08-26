@@ -1,28 +1,45 @@
 package com.truckerload.widget
 
 /**
- * Home-screen widget tokens — forest cabin, aligned with
- * [com.truckerload.presentation.theme.SoftUiColors] but lifted a step so the
- * plate is readable on a home screen (not near-black).
- * Accent is reserved for RPM and action icons.
+ * Home-screen widget tokens — Daily Task Tracker kit, aligned with
+ * [com.truckerload.presentation.theme.SoftUiColors]. Light plate by default
+ * so body text stays near-black; dark indigo tokens for night / Dark theme.
  */
 object WidgetCabinPalette {
-    /** Plate fill — brighter forest than the old `#12251C` cabin. */
-    const val BG = 0xFF1E3D2E.toInt()
-    const val TEXT = 0xFFEAFAF0.toInt()
-    const val MUTED = 0xFF9CBEAC.toInt()
-    const val ACCENT = 0xFF5EDB97.toInt()
-    const val RING = 0xFF3A7D56.toInt()
-    const val RING_TRACK = 0xFF2C4F40.toInt()
-    const val ACTION_BG = 0xFF2C4F40.toInt()
-    const val ACTION_LABEL = 0xFFC4DCCD.toInt()
-    const val DIVIDER = 0xFF3A5A4A.toInt()
-    const val DAY_FILLED = 0xFF3A7D56.toInt()
-    const val DAY_TODAY = 0xFF44564C.toInt()
-    const val DAY_OUTLINE = 0xFF4E6358.toInt()
-    const val DAY_FUTURE_LETTER = 0xFF6B8578.toInt()
-    const val DAY_EMPTY_CAPTION = 0xFF4E6358.toInt()
-    const val ON_FILLED = TEXT
+    /** Light kit plate — brighter than the old `#12251C` cabin. */
+    const val BG = 0xFFF8F9FE.toInt()
+    const val TEXT = 0xFF1A1A1A.toInt()
+    const val MUTED = 0xFF5C5C5C.toInt()
+    const val ACCENT = 0xFF5B54E6.toInt()
+    const val RING = 0xFF5B54E6.toInt()
+    const val RING_TRACK = 0xFFEEEDFF.toInt()
+    const val ACTION_BG = 0xFF5B54E6.toInt()
+    const val ACTION_LABEL = 0xFFFFFFFF.toInt()
+    const val DIVIDER = 0xFFE8E7F4.toInt()
+    const val DAY_FILLED = 0xFF5B54E6.toInt()
+    const val DAY_TODAY = 0xFFEEEDFF.toInt()
+    const val DAY_OUTLINE = 0xFFD4D2E8.toInt()
+    const val DAY_FUTURE_LETTER = 0xFF5C5C5C.toInt()
+    const val DAY_EMPTY_CAPTION = 0xFF5C5C5C.toInt()
+    const val ON_FILLED = 0xFFFFFFFF.toInt()
+
+    object Dark {
+        const val BG = 0xFF16141F.toInt()
+        const val TEXT = 0xFFF4F3FA.toInt()
+        const val MUTED = 0xFFC8C6D8.toInt()
+        const val ACCENT = 0xFFB4AFFF.toInt()
+        const val RING = 0xFFB4AFFF.toInt()
+        const val RING_TRACK = 0xFF2A2640.toInt()
+        const val ACTION_BG = 0xFF2A2640.toInt()
+        const val ACTION_LABEL = 0xFFD4D0FF.toInt()
+        const val DIVIDER = 0xFF353148.toInt()
+        const val DAY_FILLED = 0xFF5B54E6.toInt()
+        const val DAY_TODAY = 0xFF2A2640.toInt()
+        const val DAY_OUTLINE = 0xFF4A4660.toInt()
+        const val DAY_FUTURE_LETTER = 0xFFC8C6D8.toInt()
+        const val DAY_EMPTY_CAPTION = 0xFF4A4660.toInt()
+        const val ON_FILLED = 0xFFFFFFFF.toInt()
+    }
 
     /** Mockup ring is 6px on a 92px circle. */
     const val RING_STROKE_RATIO = 6f / 92f

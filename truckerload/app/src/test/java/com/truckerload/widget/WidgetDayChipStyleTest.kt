@@ -13,7 +13,7 @@ class WidgetDayChipStyleTest {
             WidgetDayChipStyle.kind(hasLoad = true, isToday = true, selected = true),
         )
         assertEquals(WidgetCabinPalette.DAY_TODAY, WidgetDayChipStyle.fillColor(WidgetDayChipStyle.Kind.TODAY))
-        assertEquals(WidgetCabinPalette.ON_FILLED, WidgetDayChipStyle.letterColor(WidgetDayChipStyle.Kind.TODAY))
+        assertEquals(WidgetCabinPalette.TEXT, WidgetDayChipStyle.letterColor(WidgetDayChipStyle.Kind.TODAY))
     }
 
     @Test
