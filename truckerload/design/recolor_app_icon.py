@@ -24,6 +24,9 @@ SAGE = (0xEE, 0xED, 0xFF)
 WHITE = (0xFF, 0xFF, 0xFF)
 OLD_NAVY = (0x14, 0x38, 0x82)
 
+# Android adaptive-icon keyline: 66dp logo in 108dp layer.
+LAUNCHER_SAFE_SCALE = 66 / 108
+
 
 def _dist(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
     return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
@@ -84,6 +87,16 @@ def save_png(img: Image.Image, path: Path) -> None:
     img.save(path, format="PNG", optimize=True)
 
 
+def fit_launcher_safe_zone(source: Image.Image, size: int) -> Image.Image:
+    """Scale logo into the adaptive-icon safe zone with transparent margins."""
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    inner = max(1, round(size * LAUNCHER_SAFE_SCALE))
+    scaled = source.resize((inner, inner), Image.Resampling.LANCZOS)
+    offset = (size - inner) // 2
+    canvas.paste(scaled, (offset, offset), scaled)
+    return canvas
+
+
 def write_mipmaps(source: Image.Image) -> None:
     sizes = {
         "mipmap-mdpi": 48,
@@ -93,7 +106,7 @@ def write_mipmaps(source: Image.Image) -> None:
         "mipmap-xxxhdpi": 192,
     }
     for folder, size in sizes.items():
-        scaled = source.resize((size, size), Image.Resampling.LANCZOS)
+        scaled = fit_launcher_safe_zone(source, size)
         for name in ("ic_launcher.png", "ic_launcher_round.png"):
             save_png(scaled, RES / folder / name)
 
