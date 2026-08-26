@@ -8,6 +8,7 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
+import com.truckerload.utils.PaycheckSourceFiles
 import java.util.Locale
 
 class TelegramReceiptWriter(
@@ -23,9 +24,15 @@ class TelegramReceiptWriter(
         val ingest = TelegramJournalIngest(paycheckRepository, dieselRepository)
         return when (kind) {
             ReceiptKind.PAYCHECK -> savePaycheck(preview, ingest)
-            ReceiptKind.DIESEL, ReceiptKind.DEF -> saveFuel(kind, preview, ingest, prefs)
-            ReceiptKind.LOAD, ReceiptKind.UNKNOWN ->
+            ReceiptKind.DIESEL, ReceiptKind.DEF -> {
+                val reply = saveFuel(kind, preview, ingest, prefs)
+                discardPaycheckFile(preview)
+                reply
+            }
+            ReceiptKind.LOAD, ReceiptKind.UNKNOWN -> {
+                discardPaycheckFile(preview)
                 context.getString(R.string.sync_receipt_need_choice)
+            }
         }
     }
 
@@ -33,7 +40,10 @@ class TelegramReceiptWriter(
         preview: ReceiptPreview,
         ingest: TelegramJournalIngest,
     ): String {
-        val amount = preview.amount ?: return context.getString(R.string.sync_paycheck_not_found)
+        val amount = preview.amount ?: run {
+            discardPaycheckFile(preview)
+            return context.getString(R.string.sync_paycheck_not_found)
+        }
         return when (
             val outcome = ingest.insertPaycheck(
                 netAmount = amount,
@@ -43,12 +53,17 @@ class TelegramReceiptWriter(
                 messageDateSeconds = preview.messageDateSeconds,
                 rawText = preview.extractedText,
                 sourceFileName = preview.sourceFileName,
+                sourceFilePath = preview.sourceFilePath,
             )
         ) {
-            TelegramJournalIngest.PaycheckOutcome.InvalidAmount ->
+            TelegramJournalIngest.PaycheckOutcome.InvalidAmount -> {
+                discardPaycheckFile(preview)
                 context.getString(R.string.sync_paycheck_not_found)
-            is TelegramJournalIngest.PaycheckOutcome.AlreadyExists ->
+            }
+            is TelegramJournalIngest.PaycheckOutcome.AlreadyExists -> {
+                discardPaycheckFile(preview)
                 context.getString(R.string.sync_paycheck_exists, outcome.weekNumber)
+            }
             is TelegramJournalIngest.PaycheckOutcome.Inserted ->
                 context.getString(
                     R.string.sync_last_paycheck,
@@ -56,6 +71,10 @@ class TelegramReceiptWriter(
                     outcome.weekNumber,
                 )
         }
+    }
+
+    private fun discardPaycheckFile(preview: ReceiptPreview) {
+        PaycheckSourceFiles.delete(context, preview.sourceFilePath)
     }
 
     private suspend fun saveFuel(

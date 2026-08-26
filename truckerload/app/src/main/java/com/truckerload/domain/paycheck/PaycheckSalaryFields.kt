@@ -2,12 +2,11 @@ package com.truckerload.domain.paycheck
 
 import java.util.Locale
 
-/** Net (required) and optional gross for paycheck edit / add forms. */
+/** Net amount for paycheck edit / add forms. */
 object PaycheckSalaryFields {
 
     enum class Error {
         NET,
-        GROSS,
     }
 
     fun parseAmount(raw: String): Double? {
@@ -35,16 +34,8 @@ object PaycheckSalaryFields {
         return normalized.toDoubleOrNull()?.takeIf { it > 0.0 }
     }
 
-    fun parseOptionalAmount(raw: String): Double? {
-        if (raw.trim().isEmpty()) return null
-        return parseAmount(raw)
-    }
-
-    fun validate(netText: String, grossText: String): Error? {
-        if (parseAmount(netText) == null) return Error.NET
-        if (grossText.trim().isNotEmpty() && parseAmount(grossText) == null) return Error.GROSS
-        return null
-    }
+    fun validate(netText: String): Error? =
+        if (parseAmount(netText) == null) Error.NET else null
 
     fun formatAmount(amount: Double): String =
         if (amount % 1.0 == 0.0) amount.toLong().toString()

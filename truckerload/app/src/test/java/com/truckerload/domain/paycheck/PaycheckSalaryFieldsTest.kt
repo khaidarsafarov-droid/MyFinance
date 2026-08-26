@@ -15,19 +15,10 @@ class PaycheckSalaryFieldsTest {
     }
 
     @Test
-    fun parseOptionalAmount_blankIsNull() {
-        assertNull(PaycheckSalaryFields.parseOptionalAmount(""))
-        assertNull(PaycheckSalaryFields.parseOptionalAmount("  "))
-        assertEquals(3200.0, PaycheckSalaryFields.parseOptionalAmount("3200")!!, 0.001)
-    }
-
-    @Test
     fun validate_requiresPositiveNet() {
-        assertEquals(PaycheckSalaryFields.Error.NET, PaycheckSalaryFields.validate("", ""))
-        assertEquals(PaycheckSalaryFields.Error.NET, PaycheckSalaryFields.validate("0", "100"))
-        assertNull(PaycheckSalaryFields.validate("2500.50", ""))
-        assertNull(PaycheckSalaryFields.validate("2500.50", "3000"))
-        assertEquals(PaycheckSalaryFields.Error.GROSS, PaycheckSalaryFields.validate("2500", "abc"))
+        assertEquals(PaycheckSalaryFields.Error.NET, PaycheckSalaryFields.validate(""))
+        assertEquals(PaycheckSalaryFields.Error.NET, PaycheckSalaryFields.validate("0"))
+        assertNull(PaycheckSalaryFields.validate("2500.50"))
     }
 
     @Test

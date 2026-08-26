@@ -119,7 +119,7 @@ class TelegramUpdateDispatcher(
                 } else {
                     false
                 }
-                TelegramReceiptConfirmStore(prefs).clear(update.chatId)
+                TelegramReceiptConfirmStore(prefs, context).clear(update.chatId, discardFile = true)
                 val message = when {
                     importCancelled && restoreCancelled ->
                         context.getString(R.string.sync_import_and_restore_cancelled)
@@ -363,7 +363,7 @@ class TelegramUpdateDispatcher(
                 } else {
                     false
                 }
-                TelegramReceiptConfirmStore(prefs).clear(chatId)
+                TelegramReceiptConfirmStore(prefs, context).clear(chatId, discardFile = true)
                 val message = when {
                     importCancelled && restoreCancelled ->
                         context.getString(R.string.sync_import_and_restore_cancelled)

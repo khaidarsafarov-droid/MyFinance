@@ -1,13 +1,16 @@
 package com.truckerload.sync.telegram
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
+import com.truckerload.utils.PaycheckSourceFiles
 import org.json.JSONObject
 
 class TelegramReceiptConfirmStore(
     private val prefs: SharedPreferences,
+    private val context: Context? = null,
 ) {
     fun save(chatId: String, preview: ReceiptPreview) {
         prefs.edit {
@@ -19,18 +22,26 @@ class TelegramReceiptConfirmStore(
     fun load(chatId: String): ReceiptPreview? {
         val savedAt = prefs.getLong(timeKey(chatId), 0L)
         if (savedAt != 0L && System.currentTimeMillis() - savedAt > TTL_MS) {
-            clear(chatId)
+            clear(chatId, discardFile = true)
             return null
         }
         val raw = prefs.getString(key(chatId), null) ?: return null
         return runCatching { fromJson(JSONObject(raw)) }.getOrNull()
     }
 
-    fun clear(chatId: String) {
+    fun clear(chatId: String, discardFile: Boolean = false) {
+        if (discardFile) discardStoredFile(chatId)
         prefs.edit {
             remove(key(chatId))
             remove(timeKey(chatId))
         }
+    }
+
+    private fun discardStoredFile(chatId: String) {
+        val ctx = context ?: return
+        val raw = prefs.getString(key(chatId), null) ?: return
+        val path = runCatching { fromJson(JSONObject(raw)).sourceFilePath }.getOrNull()
+        PaycheckSourceFiles.delete(ctx, path)
     }
 
     private fun key(chatId: String) = "tg_receipt_$chatId"
@@ -52,6 +63,7 @@ class TelegramReceiptConfirmStore(
         put("text", preview.extractedText.take(12_000))
         put("highlight", preview.highlightToken ?: JSONObject.NULL)
         put("file", preview.sourceFileName ?: JSONObject.NULL)
+        put("filePath", preview.sourceFilePath ?: JSONObject.NULL)
         put("msgDate", preview.messageDateSeconds ?: JSONObject.NULL)
     }
 
@@ -72,6 +84,7 @@ class TelegramReceiptConfirmStore(
         extractedText = json.optString("text"),
         highlightToken = json.optStringOrNull("highlight"),
         sourceFileName = json.optStringOrNull("file"),
+        sourceFilePath = json.optStringOrNull("filePath"),
         messageDateSeconds = if (json.has("msgDate") && !json.isNull("msgDate")) {
             json.optLong("msgDate")
         } else {

@@ -96,19 +96,6 @@ fun PaycheckEditorDialog(
                     singleLine = true,
                     colors = fieldColors,
                 )
-                OutlinedTextField(
-                    value = editor.grossText,
-                    onValueChange = { value ->
-                        onChange {
-                            it.copy(grossText = value.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' })
-                        }
-                    },
-                    label = { Text(stringResource(R.string.paycheck_gross_amount)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = fieldColors,
-                )
                 val fileLabel = editor.sourceFileName?.takeIf { it.isNotBlank() }
                 if (fileLabel != null) {
                     Text(
@@ -153,8 +140,6 @@ fun PaycheckEditorDialog(
                         text = when (error) {
                             PaycheckSalaryFields.Error.NET ->
                                 stringResource(R.string.paycheck_error_net)
-                            PaycheckSalaryFields.Error.GROSS ->
-                                stringResource(R.string.paycheck_error_gross)
                         },
                         color = tc.AccentExpense,
                         style = MaterialTheme.typography.bodySmall,

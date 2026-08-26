@@ -702,14 +702,12 @@
     <string name="paycheck_edit_hint">Можно изменить только суммы. Неделя и дата остаются как есть.</string>
     <string name="paycheck_journal_hint">Нажмите карточку, чтобы изменить сумму. Нажмите имя файла, чтобы открыть оригинал.</string>
     <string name="paycheck_net_amount">Сумма на руки</string>
-    <string name="paycheck_gross_amount">Гросс (необязательно)</string>
     <string name="paycheck_open_file">Открыть файл</string>
     <string name="paycheck_attach_file">Прикрепить оригинал</string>
     <string name="paycheck_file_missing">Оригинал не сохранён на телефоне. Прикрепите файл, чтобы открыть его снова.</string>
     <string name="paycheck_file_open_failed">Не удалось открыть файл.</string>
     <string name="paycheck_attach_failed">Не удалось сохранить файл. Попробуйте другой документ.</string>
     <string name="paycheck_error_net">Введите сумму на руки больше нуля.</string>
-    <string name="paycheck_error_gross">Гросс должен быть больше нуля или пустым.</string>
     <string name="misc_expense_title">Разные расходы</string>
     <string name="misc_expense_add">Добавить расход</string>
     <string name="misc_expense_edit_title">Редактировать расход</string>

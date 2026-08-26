@@ -702,14 +702,12 @@
     <string name="paycheck_edit_hint">Only the salary amounts can change. Week and date stay as they are.</string>
     <string name="paycheck_journal_hint">Tap a card to edit the amount. Tap the file name to open the original.</string>
     <string name="paycheck_net_amount">Take-home (net)</string>
-    <string name="paycheck_gross_amount">Gross (optional)</string>
     <string name="paycheck_open_file">Open file</string>
     <string name="paycheck_attach_file">Attach original</string>
     <string name="paycheck_file_missing">The original is not saved on this phone. Attach the file to open it again.</string>
     <string name="paycheck_file_open_failed">Could not open the file.</string>
     <string name="paycheck_attach_failed">Could not save the file. Try another document.</string>
     <string name="paycheck_error_net">Enter a take-home amount greater than zero.</string>
-    <string name="paycheck_error_gross">Gross must be greater than zero, or left blank.</string>
     <string name="misc_expense_title">Other expenses</string>
     <string name="misc_expense_add">Add expense</string>
     <string name="misc_expense_edit_title">Edit expense</string>

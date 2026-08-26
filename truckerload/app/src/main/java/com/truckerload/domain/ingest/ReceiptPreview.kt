@@ -16,5 +16,6 @@ data class ReceiptPreview(
     val extractedText: String,
     val highlightToken: String?,
     val sourceFileName: String? = null,
+    val sourceFilePath: String? = null,
     val messageDateSeconds: Long? = null,
 )
