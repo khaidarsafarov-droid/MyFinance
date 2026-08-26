@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Action chip on the brand-blue cabin plate (camera / scanner / diesel). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="#331A4A8A" />
-    <stroke
-        android:width="1.5dp"
-        android:color="#FF5EE0A0" />
+    <solid android:color="#FF163326" />
     <size
-        android:width="32dp"
-        android:height="32dp" />
+        android:width="34dp"
+        android:height="34dp" />
 </shape>

@@ -48,6 +48,10 @@ object WidgetStatsFormatter {
         return "RPM $amount"
     }
 
+    /** Mockup metric value: `$1.74`. */
+    fun formatUsdRpm(rpm: Double): String =
+        String.format(Locale.US, "$%.2f", rpm)
+
     @Deprecated("Use formatRpmPerMile(context, rpm) for localized unit")
     fun formatRpmPerMile(rpm: Double): String =
         String.format(Locale.US, "$%.2f/mi", rpm)

@@ -67,6 +67,12 @@ class WidgetStatsFormatterTest {
     }
 
     @Test
+    fun formatUsdRpm_alwaysTwoDecimals() {
+        assertEquals("$1.74", WidgetStatsFormatter.formatUsdRpm(1.74))
+        assertEquals("$2.00", WidgetStatsFormatter.formatUsdRpm(2.0))
+    }
+
+    @Test
     fun formatMiles_usesEnglishUnitSuffix() {
         assertEquals("1,250 mi", WidgetStatsFormatter.formatMiles(1250.4))
     }

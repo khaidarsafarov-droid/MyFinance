@@ -5,28 +5,33 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Guards the restored cabin budget widget: ring hero + camera/scanner/diesel shortcuts.
+ * Guards the green cabin mockup: ring hole, side metrics, day captions, actions.
  */
 class WidgetBudgetRingActionsTest {
 
     @Test
-    fun glanceWideBudget_usesCabinPlateAndRingHero() {
-        val src = readSource("widget/glance/OneUiGlanceWidgets.kt")
-        assertTrue(src.contains("widget_cabin_plate"))
-        assertTrue(src.contains("BudgetRing"))
-        assertTrue(src.contains("formatGrossUsd"))
-        assertTrue(src.contains("R.string.widget_goal_out_of"))
-        assertTrue(src.contains("formatRingPercent"))
-        assertTrue(src.contains("WidgetWeekDaysBitmap"))
-        assertTrue(src.contains("formatWidgetRpm"))
-        assertTrue(src.contains("SelectWidgetDayAction"))
-        assertTrue(src.contains("loadsCount.toString()"))
-        assertTrue(src.contains("Size2x2, Size4x2"))
+    fun glanceWideBudget_matchesGreenMockup() {
+        val wide = readSource("widget/glance/CabinWideGlanceContent.kt")
+        val core = readSource("widget/glance/OneUiGlanceWidgets.kt")
+        assertTrue(core.contains("widget_cabin_plate"))
+        assertTrue(core.contains("BudgetRing"))
+        assertTrue(core.contains("formatGrossUsd"))
+        assertTrue(core.contains("formatRingPercent"))
+        assertTrue(!core.contains("R.string.widget_goal_out_of"))
+        assertTrue(wide.contains("WidgetWeekDaysBitmap"))
+        assertTrue(wide.contains("formatUsdRpm"))
+        assertTrue(wide.contains("SelectWidgetDayAction"))
+        assertTrue(wide.contains("widget_metric_goal"))
+        assertTrue(wide.contains("widget_metric_rpm"))
+        assertTrue(wide.contains("widget_metric_trips"))
+        assertTrue(wide.contains("WidgetDayCaption"))
+        assertTrue(core.contains("CabinSize4x3"))
+        assertTrue(core.contains("CabinSize2x2, CabinSize4x2, CabinSize4x3"))
     }
 
     @Test
     fun glanceQuickActions_areCameraThenScannerThenDiesel() {
-        val src = readSource("widget/glance/OneUiGlanceWidgets.kt")
+        val src = readSource("widget/glance/CabinWideGlanceContent.kt")
         val camera = src.indexOf("ROUTE_ATTACH_CAMERA")
         val scanner = src.indexOf("ROUTE_ATTACH_SCANNER")
         val diesel = src.indexOf("dieselQuickAddIntent")
@@ -39,17 +44,11 @@ class WidgetBudgetRingActionsTest {
     }
 
     @Test
-    fun cabinPlateDrawable_isBrandBlue() {
+    fun cabinPlateDrawable_isForestGreen() {
         val xml = readRes("drawable/widget_cabin_plate.xml")
-        assertTrue(xml.contains("#FF143882"))
-        assertTrue(xml.contains("#FF0F2A5C"))
-        assertTrue(xml.contains("#66A8D4F0"))
-    }
-
-    @Test
-    fun glanceQuickActions_useCabinActionChip() {
-        val src = readSource("widget/glance/OneUiGlanceWidgets.kt")
-        assertTrue(src.contains("widget_cabin_action_btn"))
+        assertTrue(xml.contains("#FF0B1A12"))
+        assertTrue(xml.contains("#FF07140E"))
+        assertTrue(!xml.contains("#FF143882"))
     }
 
     private fun readSource(relativePath: String): String {
