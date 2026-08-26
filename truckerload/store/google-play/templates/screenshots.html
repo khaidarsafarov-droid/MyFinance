@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TruckoRig Play screenshots</title>
+  <style>
+    @font-face {
+      font-family: "DM Sans";
+      src: url("../assets/dm_sans_regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "DM Sans";
+      src: url("../assets/dm_sans_medium.ttf") format("truetype");
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "DM Sans";
+      src: url("../assets/dm_sans_semibold.ttf") format("truetype");
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "DM Sans";
+      src: url("../assets/dm_sans_bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+
+    :root {
+      --kit: #5B54E6;
+      --kit-deep: #3F3AB8;
+      --lavender: #A29BFE;
+      --soft: #D4D0FF;
+      --sage: #EEEDFF;
+      --sage-hover: #E0DEFF;
+      --border: #E8E7F4;
+      --border-strong: #C4C1E0;
+      --bg: #F8F9FE;
+      --shell: #F0F1FA;
+      --surface: #FFFFFF;
+      --text: #1A1A1A;
+      --muted: #5C5C5C;
+      --success: #1A7A68;
+      --success-bg: #D4F5EE;
+      --warning: #9A6400;
+      --danger: #C4395A;
+      --teal: #48C9B0;
+      --orange: #FFB74D;
+      --pink: #FF708D;
+      --dark: #16141F;
+      --dark-surface: #1E1B2C;
+      --radius-card: 24px;
+      --radius-btn: 16px;
+      --font: "DM Sans", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      font-family: var(--font);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .canvas {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      position: relative;
+      background:
+        radial-gradient(ellipse at 20% 0%, #7a74f0 0%, transparent 55%),
+        radial-gradient(ellipse at 100% 80%, #2a2460 0%, transparent 50%),
+        linear-gradient(165deg, #5B54E6 0%, #3F3AB8 42%, #16141F 100%);
+    }
+    .canvas.tablet {
+      width: 1920px;
+      height: 1200px;
+      background:
+        radial-gradient(ellipse at 10% 0%, #7a74f0 0%, transparent 50%),
+        linear-gradient(120deg, #5B54E6 0%, #2a2460 55%, #16141F 100%);
+    }
+    .canvas.feature {
+      width: 1024px;
+      height: 500px;
+      background:
+        radial-gradient(ellipse at 0% 50%, #8a85f5 0%, transparent 55%),
+        linear-gradient(105deg, #5B54E6 0%, #3F3AB8 45%, #16141F 100%);
+    }
+
+    .caption {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      top: 64px;
+      color: #fff;
+      text-align: center;
+      z-index: 2;
+    }
+    .caption h1 {
+      margin: 0;
+      font-size: 56px;
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .caption p {
+      margin: 18px 0 0;
+      font-size: 28px;
+      line-height: 1.35;
+      font-weight: 500;
+      color: var(--soft);
+    }
+    .canvas.tablet .caption {
+      left: 64px;
+      right: auto;
+      top: 72px;
+      width: 520px;
+      text-align: left;
+    }
+    .canvas.tablet .caption h1 { font-size: 52px; }
+    .canvas.tablet .caption p { font-size: 24px; }
+
+    .device {
+      position: absolute;
+      left: 50%;
+      bottom: 36px;
+      transform: translateX(-50%);
+      width: 720px;
+      height: 1488px;
+      background: #1E1B2C;
+      border-radius: 56px;
+      padding: 14px;
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.35),
+        0 0 0 2px rgba(255, 255, 255, 0.08);
+    }
+    .device::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 18px;
+      background: #0d0b14;
+      border-radius: 12px;
+      z-index: 4;
+    }
+    .canvas.tablet .device {
+      left: auto;
+      right: 48px;
+      bottom: 48px;
+      transform: none;
+      width: 1240px;
+      height: 860px;
+      border-radius: 36px;
+      padding: 12px;
+    }
+    .canvas.tablet .device::before {
+      width: 10px;
+      height: 10px;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      border-radius: 50%;
+    }
+
+    .phone {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      border-radius: 44px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      color: var(--text);
+    }
+    .canvas.tablet .phone { border-radius: 26px; }
+
+    .status {
+      height: 42px;
+      padding: 10px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      flex-shrink: 0;
+      background: var(--sage);
+    }
+    .status .dots { letter-spacing: 2px; color: var(--kit); }
+
+    .hdr {
+      background: var(--sage);
+      padding: 4px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      border-bottom: 1px solid #D4D2E8;
+    }
+    .hdr .left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .hdr h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .hdr .sub { margin: 2px 0 0; font-size: 13px; color: var(--muted); font-weight: 500; }
+    .ico-btn {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      color: var(--kit);
+      flex-shrink: 0;
+    }
+
+    .body {
+      flex: 1;
+      overflow: hidden;
+      padding: 16px 18px 96px;
+      background: var(--bg);
+    }
+    .canvas.tablet .body { padding: 16px 18px; display: flex; gap: 16px; }
+
+    .hero {
+      background: linear-gradient(160deg, #5B54E6 0%, #3F3AB8 100%);
+      color: #fff;
+      border-radius: var(--radius-card);
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 28px rgba(91, 84, 230, 0.35);
+    }
+    .hero .kicker {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+    .hero .amt { font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+    .hero .meta { margin-top: 6px; font-size: 15px; color: var(--soft); font-weight: 500; }
+    .week-dots {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    .week-dots span {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.8);
+      font-weight: 600;
+    }
+    .week-dots i {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+      display: block;
+    }
+    .week-dots i.on { background: #fff; }
+    .week-dots i.past { background: rgba(255,255,255,0.85); }
+
+    .btn {
+      width: 100%;
+      border: 0;
+      background: var(--kit);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 14px;
+      border-radius: var(--radius-btn);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      box-shadow: 0 6px 16px rgba(91, 84, 230, 0.35);
+    }
+    .btn.ghost {
+      background: var(--surface);
+      color: var(--kit);
+      border: 1px solid var(--border);
+      box-shadow: none;
+      margin-bottom: 10px;
+    }
+
+    .section {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 10px 4px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(91, 84, 230, 0.06);
+    }
+    .card .row { display: flex; justify-content: space-between; align-items: baseline; }
+    .card .id { font-weight: 700; font-size: 16px; }
+    .card .date { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .card .route { font-weight: 700; font-size: 14px; margin: 6px 0 8px; }
+    .card .stats { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .card .stats b { color: var(--text); }
+    .rpm {
+      display: inline-block;
+      margin-top: 10px;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+    .rpm.warn { background: #FFF3D6; color: var(--warning); }
+
+    .nav {
+      position: absolute;
+      left: 16px; right: 16px; bottom: 14px;
+      height: 64px;
+      background: var(--surface);
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      padding: 8px;
+      z-index: 5;
+    }
+    .nav button {
+      border: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: rgba(26,26,26,0.72);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .nav button.active {
+      background: var(--text);
+      color: #fff;
+    }
+    .nav svg { width: 22px; height: 22px; fill: currentColor; }
+
+    .ring-wrap { display: grid; place-items: center; margin: 8px 0 12px; }
+    .ring {
+      width: 168px; height: 168px;
+      border-radius: 50%;
+      background: conic-gradient(#48C9B0 0 72%, rgba(255,255,255,0.18) 72% 100%);
+      display: grid; place-items: center;
+    }
+    .ring-inner {
+      width: 128px; height: 128px;
+      border-radius: 50%;
+      background: #3F3AB8;
+      display: grid; place-items: center;
+      text-align: center;
+      color: #fff;
+    }
+    .ring-inner .pct { font-size: 32px; font-weight: 700; }
+    .ring-inner .lbl { font-size: 12px; color: var(--soft); }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 14px;
+    }
+    .tile .k { font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+    .tile .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .field .box, .field textarea, .field input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--radius-btn);
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .field textarea { min-height: 132px; line-height: 1.45; resize: none; }
+    .chips { display: flex; gap: 8px; margin-bottom: 12px; }
+    .chip {
+      flex: 1;
+      text-align: center;
+      padding: 8px 6px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .chip.on { background: var(--kit); color: #fff; border-color: var(--kit); }
+
+    .preview {
+      background: var(--sage);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .preview b { display: block; font-size: 18px; margin-bottom: 4px; }
+
+    .list {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .list .mark {
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: var(--sage);
+      color: var(--kit);
+      display: grid; place-items: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .list .chev { margin-left: auto; color: var(--muted); }
+    .list .ok { color: var(--success); font-size: 12px; font-weight: 700; }
+
+    .avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--kit);
+      color: #fff;
+      display: grid; place-items: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 4px auto 10px;
+    }
+    .pname { text-align: center; font-size: 22px; font-weight: 700; margin: 0; }
+    .pmeta { text-align: center; font-size: 14px; color: var(--muted); margin: 4px 0 16px; }
+
+    .login-hero { text-align: center; padding: 36px 8px 20px; }
+    .login-hero img {
+      width: 96px; height: 96px;
+      border-radius: 24px;
+      display: block;
+      margin: 0 auto 16px;
+    }
+    .login-hero h3 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .login-hero p { color: var(--muted); font-size: 15px; margin: 8px 0 0; }
+
+    .gbtn {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: var(--radius-btn);
+      padding: 14px;
+      font: inherit;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .chart {
+      height: 88px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 8px 4px 0;
+    }
+    .chart i {
+      flex: 1;
+      border-radius: 8px 8px 4px 4px;
+      background: var(--kit);
+      display: block;
+    }
+    .chart i.alt { background: var(--teal); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .rail {
+      width: 88px;
+      flex-shrink: 0;
+      background: var(--sage);
+      border-right: 1px solid #D4D2E8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 8px;
+      gap: 12px;
+    }
+    .rail .rbtn {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: grid; place-items: center;
+      color: var(--muted);
+    }
+    .rail .rbtn.on { background: var(--text); color: #fff; }
+    .tablet-main { display: flex; flex: 1; min-width: 0; }
+    .tablet-col { flex: 1; min-width: 0; padding: 8px 12px; }
+    .tablet-col.side { max-width: 340px; }
+
+    .feature-inner {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 48px 56px;
+      gap: 36px;
+      color: #fff;
+    }
+    .feature-inner img {
+      width: 220px;
+      height: 220px;
+      border-radius: 48px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      flex-shrink: 0;
+    }
+    .feature-inner h1 {
+      margin: 0;
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .feature-inner p {
+      margin: 12px 0 0;
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--soft);
+      max-width: 560px;
+      line-height: 1.3;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    const ICO = {
+      menu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>`,
+      back: `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>`,
+      truck: `<svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9 1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`,
+      flag: `<svg viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>`,
+      person: `<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V22h19.2v-2.8c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`,
+      search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>`,
+    };
+
+    const COPY = {
+      ru: {
+        journalH: "Журнал Amazon Relay",
+        journalP: "Ставка, мили и RPM — сразу после вставки лоуда",
+        goalH: "Цель недели под контролем",
+        goalP: "Сколько осталось и какой темп нужен каждый день",
+        addH: "Вставьте лоуд из Relay",
+        addP: "Парсер сам разберёт Trip ID, ставку и адреса",
+        analyticsH: "Мои цифры без сюрпризов",
+        analyticsP: "Зарплата, дизель и маршруты рядом — без скрытых вычетов",
+        dieselH: "Учёт заправок",
+        dieselP: "Галлоны, цена и скидки с чеков",
+        profileH: "Кабинет водителя",
+        profileP: "Имя, техника и синхронизация в одном месте",
+        telegramH: "Бот в Telegram",
+        telegramP: "Перешлите лоуд — он попадёт в журнал даже с закрытым приложением",
+        loginH: "Работает офлайн",
+        loginP: "Журнал на телефоне. Google и Drive — по желанию",
+        navLoads: "Грузы",
+        navGoal: "Цель",
+        navProfile: "Профиль",
+        hello: "Привет, Алекс",
+        week: "Эта неделя · 4 груза",
+        weekShort: "Эта неделя",
+        period: "Период",
+        periodVal: "Эта неделя",
+        addLoad: "Добавить груз",
+        recent: "Недавние грузы",
+        goalTitle: "Цель недели",
+        goalSub: "Неделя 34 · 2026",
+        goalKicker: "Недельная цель (гросс)",
+        toGoal: "к цели",
+        ofGoal: "из $17,000 · осталось $4,685",
+        miles: "Миль",
+        loads: "Грузов",
+        perDay: "$/день",
+        editGoal: "Изменить цель",
+        addTitle: "Добавить груз",
+        addSub: "Вставьте Relay / Telegram",
+        how: "Как добавить груз",
+        paste: "Вставить",
+        manual: "Вручную",
+        photo: "Фото / PDF",
+        msg: "Сообщение о грузе",
+        save: "Сохранить",
+        parsed: "Разобрано",
+        analytics: "Мои цифры",
+        analyticsSub: "Зарплата, дизель и маршруты",
+        money: "Деньги за период",
+        pay: "Зарплата",
+        diesel: "Дизель",
+        gal: "Галлонов",
+        avgGal: "Средняя цена",
+        weeks: "Деньги по неделям",
+        dieselTitle: "Дизель",
+        dieselSub: "Чеки и галлоны",
+        addFill: "Добавить заправку",
+        profile: "Профиль",
+        driver: "Водитель",
+        truckMeta: "Volvo VNL · 8 лет стажа",
+        settings: "Настройки",
+        drive: "Google Drive backup",
+        reports: "Отчёты и аналитика",
+        bio: "Биометрия",
+        tgTitle: "Telegram бот",
+        tgSub: "Синхронизация лоудов",
+        tgActive: "Бот отслеживает сообщения",
+        tgToken: "Токен настроен (скрыт)",
+        tgTest: "Проверить",
+        tgChange: "Изменить",
+        loginSub: "Журнал грузов · offline-first",
+        google: "Войти через Google",
+        email: "Войти через почту",
+        offline: "Продолжить офлайн",
+        featureP: "Журнал грузов Amazon Relay · цель недели · дизель",
+        tabletH: "Журнал на планшете",
+        tabletP: "Список грузов и цифры недели — на одном экране",
+      },
+      en: {
+        journalH: "Amazon Relay journal",
+        journalP: "Rate, miles and RPM the moment you paste a load",
+        goalH: "Weekly goal, always in view",
+        goalP: "See remaining gross and the daily pace you need",
+        addH: "Paste a Relay load",
+        addP: "We parse Trip ID, rate and addresses for you",
+        analyticsH: "Your numbers, no surprises",
+        analyticsP: "Paychecks, diesel and routes side by side — no hidden math",
+        dieselH: "Diesel, tracked",
+        dieselP: "Gallons, price and discounts from receipts",
+        profileH: "Driver cabin",
+        profileP: "Name, truck and sync in one place",
+        telegramH: "Telegram bot",
+        telegramP: "Forward a load — it lands in the journal even if the app is closed",
+        loginH: "Works offline",
+        loginP: "The journal stays on your phone. Google and Drive are optional",
+        navLoads: "Loads",
+        navGoal: "Goal",
+        navProfile: "Profile",
+        hello: "Hi, Alex",
+        week: "This week · 4 loads",
+        weekShort: "This week",
+        period: "Period",
+        periodVal: "This week",
+        addLoad: "Add load",
+        recent: "Recent loads",
+        goalTitle: "Weekly Goal",
+        goalSub: "Week 34 · 2026",
+        goalKicker: "Weekly target (gross)",
+        toGoal: "of goal",
+        ofGoal: "of $17,000 · $4,685 left",
+        miles: "Miles",
+        loads: "Loads",
+        perDay: "$/day",
+        editGoal: "Edit goal",
+        addTitle: "Add load",
+        addSub: "Paste Relay / Telegram",
+        how: "How to add a load",
+        paste: "Paste",
+        manual: "Manual",
+        photo: "Photo / PDF",
+        msg: "Load message",
+        save: "Save",
+        parsed: "Parsed",
+        analytics: "My numbers",
+        analyticsSub: "Paychecks, diesel and routes",
+        money: "Money this period",
+        pay: "Paycheck",
+        diesel: "Diesel",
+        gal: "Gallons",
+        avgGal: "Avg $/gal",
+        weeks: "Money by week",
+        dieselTitle: "Diesel",
+        dieselSub: "Receipts and gallons",
+        addFill: "Add fill-up",
+        profile: "Profile",
+        driver: "Driver",
+        truckMeta: "Volvo VNL · 8 years",
+        settings: "Settings",
+        drive: "Google Drive backup",
+        reports: "Reports and analytics",
+        bio: "Biometrics",
+        tgTitle: "Telegram bot",
+        tgSub: "Load sync",
+        tgActive: "Bot is listening for messages",
+        tgToken: "Token configured (hidden)",
+        tgTest: "Test",
+        tgChange: "Change",
+        loginSub: "Load journal · offline-first",
+        google: "Continue with Google",
+        email: "Sign in with email",
+        offline: "Continue offline",
+        featureP: "Amazon Relay journal · weekly goal · diesel",
+        tabletH: "Journal on tablet",
+        tabletP: "Load list and weekly numbers on one screen",
+      },
+    };
+
+    const params = new URLSearchParams(location.search);
+    const lang = params.get("lang") === "en" ? "en" : "ru";
+    const kind = params.get("kind") || "phone";
+    const slide = params.get("slide") || "journal";
+    const t = COPY[lang];
+
+    function statusBar() {
+      return `<div class="status"><span>9:41</span><span class="dots">●●●&nbsp;&nbsp;▮</span></div>`;
+    }
+    function hdr(title, sub, back = false) {
+      return `<header class="hdr">
+        <div class="left">
+          <div class="ico-btn">${back ? ICO.back : ICO.menu}</div>
+          <div><h2>${title}</h2>${sub ? `<p class="sub">${sub}</p>` : ""}</div>
+        </div>
+        ${back ? "" : `<div class="ico-btn">${ICO.search}</div>`}
+      </header>`;
+    }
+    function nav(active) {
+      const item = (id, icon, label) =>
+        `<button class="${id === active ? "active" : ""}">${icon}<span>${id === active ? label : ""}</span></button>`;
+      return `<nav class="nav">
+        ${item("home", ICO.truck, t.navLoads)}
+        ${item("goal", ICO.flag, t.navGoal)}
+        ${item("profile", ICO.person, t.navProfile)}
+      </nav>`;
+    }
+    function weekDots() {
+      const days = ["S","M","T","W","T","F","S"];
+      const today = 3; // Wednesday for a stable store shot
+      return `<div class="week-dots">${days.map((d, i) => {
+        const cls = i + 1 === today ? "on" : (i + 1 < today ? "past" : "");
+        return `<span>${d}<i class="${cls}"></i></span>`;
+      }).join("")}</div>`;
+    }
+
+    const SCREENS = {
+      journal: () => `
+        ${statusBar()}
+        ${hdr("TruckoRig", t.hello)}
+        <div class="body">
+          <div class="hero">
+            <div class="kicker">${t.week}</div>
+            <div class="amt">$12,315</div>
+            <div class="meta">4,617 mi · $2.67 / mi</div>
+            ${weekDots()}
+          </div>
+          <button class="btn">+ ${t.addLoad}</button>
+          <h3 class="section">${t.recent}</h3>
+          <article class="card">
+            <div class="row"><span class="id">114RS221Y</span><span class="date">21 Jul</span></div>
+            <div class="route">AURORA, CO → ARLINGTON, WA</div>
+            <div class="stats">2 stops · 1,369 mi · <b>$3,815.90</b></div>
+            <span class="rpm">$2.79 / mi</span>
+          </article>
+          <article class="card">
+            <div class="row"><span class="id">112VW8VQZ</span><span class="date">20 Jul</span></div>
+            <div class="route">WOODBURY, MN → DENVER, CO</div>
+            <div class="stats">2 stops · 924 mi · <b>$1,806.90</b></div>
+            <span class="rpm warn">$1.96 / mi</span>
+          </article>
+        </div>
+        ${nav("home")}
+      `,
+      weekly_goal: () => `
+        ${statusBar()}
+        ${hdr(t.goalTitle, t.goalSub)}
+        <div class="body">
+          <div class="hero" style="text-align:center">
+            <div class="kicker">${t.goalKicker}</div>
+            <div class="ring-wrap"><div class="ring"><div class="ring-inner">
+              <div><div class="pct">72%</div><div class="lbl">${t.toGoal}</div></div>
+            </div></div></div>
+            <div class="amt">$12,315</div>
+            <div class="meta">${t.ofGoal}</div>
+          </div>
+          <div class="grid2">
+            <div class="tile"><div class="k">${t.miles}</div><div class="v">4,617</div></div>
+            <div class="tile"><div class="k">RPM</div><div class="v">$2.67</div></div>
+            <div class="tile"><div class="k">${t.loads}</div><div class="v">4</div></div>
+            <div class="tile"><div class="k">${t.perDay}</div><div class="v">$1,759</div></div>
+          </div>
+          <button class="btn">${t.editGoal}</button>
+        </div>
+        ${nav("goal")}
+      `,
+      add_load: () => `
+        ${statusBar()}
+        ${hdr(t.addTitle, t.addSub, true)}
+        <div class="body" style="padding-bottom:24px">
+          <div class="section">${t.how}</div>
+          <div class="chips">
+            <div class="chip on">${t.paste}</div>
+            <div class="chip">${t.manual}</div>
+            <div class="chip">${t.photo}</div>
+          </div>
+          <div class="field">
+            <label>${t.msg}</label>
+            <textarea>Trip ID: T-116KYL6KW
+Total Rate: 2500.00
+Total Loaded Miles: 850 mi
+Pu-address: SWF2, Garner, NC
+Del-address: DFW7, Dallas, TX</textarea>
+          </div>
+          <div class="preview">
+            <b>$2,500.00 · 850 mi</b>
+            ${t.parsed}: Garner, NC → Dallas, TX · $2.94 / mi
+          </div>
+          <button class="btn">${t.save}</button>
+        </div>
+      `,
+      analytics: () => `
+        ${statusBar()}
+        ${hdr(t.analytics, t.analyticsSub, true)}
+        <div class="body" style="padding-bottom:24px">
+          <div class="grid2">
+            <div class="tile"><div class="k">${t.loads}</div><div class="v">18</div></div>
+            <div class="tile"><div class="k">RPM</div><div class="v">$2.54</div></div>
+          </div>
+          <div class="card">
+            <div class="section" style="margin-top:0">${t.money}</div>
+            <div class="grid2" style="margin:0">
+              <div><div class="k">${t.pay}</div><div class="v" style="color:#1A7A68">$9,840</div></div>
+              <div><div class="k">${t.diesel}</div><div class="v" style="color:#C4395A">$3,210</div></div>
+            </div>
+            <div class="grid2" style="margin-top:10px;margin-bottom:0">
+              <div><div class="k">${t.gal}</div><div class="v">842</div></div>
+              <div><div class="k">${t.avgGal}</div><div class="v">$3.81</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section" style="margin-top:0">${t.weeks}</div>
+            <div class="chart">
+              <i style="height:42%"></i>
+              <i style="height:58%"></i>
+              <i class="alt" style="height:71%"></i>
+              <i style="height:64%"></i>
+              <i style="height:88%"></i>
+              <i class="alt" style="height:76%"></i>
+              <i style="height:93%"></i>
+            </div>
+          </div>
+        </div>
+      `,
+      diesel: () => `
+        ${statusBar()}
+        ${hdr(t.dieselTitle, t.dieselSub, true)}
+        <div class="body">
+          <div class="hero">
+            <div class="kicker">${t.weekShort}</div>
+            <div class="amt">$1,248</div>
+            <div class="meta">326 gal · $3.83 / gal</div>
+          </div>
+          <button class="btn">+ ${t.addFill}</button>
+          <article class="card">
+            <div class="row"><span class="id">Love's · Amarillo, TX</span><span class="date">$487.20</span></div>
+            <div class="stats">21 Jul · 126 gal · $3.87/gal</div>
+          </article>
+          <article class="card">
+            <div class="row"><span class="id">Pilot · Tulsa, OK</span><span class="date">$412.60</span></div>
+            <div class="stats">20 Jul · 108 gal · $3.82/gal</div>
+          </article>
+          <article class="card">
+            <div class="row"><span class="id">TA · Joplin, MO</span><span class="date">$348.40</span></div>
+            <div class="stats">19 Jul · 92 gal · $3.79/gal</div>
+          </article>
+        </div>
+      `,
+      profile: () => `
+        ${statusBar()}
+        ${hdr(t.profile, t.driver)}
+        <div class="body">
+          <div class="avatar">A</div>
+          <h3 class="pname">Alex M.</h3>
+          <p class="pmeta">${t.truckMeta}</p>
+          <div class="grid2">
+            <div class="tile"><div class="k">${t.loads}</div><div class="v">186</div></div>
+            <div class="tile"><div class="k">RPM</div><div class="v">$2.61</div></div>
+          </div>
+          <div class="list"><span class="mark">⚙</span><span>${t.settings}</span><span class="chev">›</span></div>
+          <div class="list"><span class="mark">☁</span><span>${t.drive}</span><span class="chev">›</span></div>
+          <div class="list"><span class="mark">▣</span><span>${t.reports}</span><span class="chev">›</span></div>
+          <div class="list"><span class="mark">◌</span><span>${t.bio}</span><span class="chev">›</span></div>
+        </div>
+        ${nav("profile")}
+      `,
+      telegram: () => `
+        ${statusBar()}
+        ${hdr(t.tgTitle, t.tgSub, true)}
+        <div class="body" style="padding-bottom:24px">
+          <div class="hero">
+            <div class="kicker">Telegram</div>
+            <div class="amt" style="font-size:28px">${t.tgTitle}</div>
+            <div class="meta" style="margin-top:12px"><span class="badge">● ${t.tgActive}</span></div>
+          </div>
+          <div class="list"><span class="mark">🔑</span><div><div>${t.tgToken}</div><div class="ok">•••• •••• ••••</div></div></div>
+          <button class="btn">${t.tgTest}</button>
+          <button class="btn ghost">${t.tgChange}</button>
+          <div class="card" style="font-size:14px;color:var(--muted);line-height:1.45">
+            Trip ID: T-116KYL6KW<br>
+            Total Rate: 2500.00<br>
+            Pu-address: SWF2, Garner, NC
+          </div>
+        </div>
+      `,
+      login: () => `
+        ${statusBar()}
+        <div class="body" style="padding-bottom:28px">
+          <div class="login-hero">
+            <img src="../assets/ic_launcher_image.png" alt="TruckoRig" />
+            <h3>TruckoRig</h3>
+            <p>${t.loginSub}</p>
+          </div>
+          <button class="gbtn">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 35.1 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.2-3.5 5.7-6.6 7.1l.1.1 6.3 5.3C36.7 39.1 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+            ${t.google}
+          </button>
+          <button class="btn ghost">${t.email}</button>
+          <button class="btn ghost">${t.offline}</button>
+        </div>
+      `,
+    };
+
+    const CAPTIONS = {
+      journal: [t.journalH, t.journalP],
+      weekly_goal: [t.goalH, t.goalP],
+      add_load: [t.addH, t.addP],
+      analytics: [t.analyticsH, t.analyticsP],
+      diesel: [t.dieselH, t.dieselP],
+      profile: [t.profileH, t.profileP],
+      telegram: [t.telegramH, t.telegramP],
+      login: [t.loginH, t.loginP],
+    };
+
+    function phoneCanvas(id) {
+      const [h, p] = CAPTIONS[id];
+      return `<div class="canvas">
+        <div class="caption"><h1>${h}</h1><p>${p}</p></div>
+        <div class="device"><div class="phone">${SCREENS[id]()}</div></div>
+      </div>`;
+    }
+
+    function tabletCanvas() {
+      return `<div class="canvas tablet">
+        <div class="caption"><h1>${t.tabletH}</h1><p>${t.tabletP}</p></div>
+        <div class="device"><div class="phone" style="flex-direction:row">
+          <div class="rail">
+            <div class="rbtn on">${ICO.truck}</div>
+            <div class="rbtn">${ICO.flag}</div>
+            <div class="rbtn">${ICO.person}</div>
+          </div>
+          <div class="tablet-main">
+            <div class="tablet-col">
+              ${hdr("TruckoRig", t.hello)}
+              <div style="padding:8px 4px 0">
+                <button class="btn">+ ${t.addLoad}</button>
+                <article class="card">
+                  <div class="row"><span class="id">114RS221Y</span><span class="date">21 Jul</span></div>
+                  <div class="route">AURORA, CO → ARLINGTON, WA</div>
+                  <div class="stats">1,369 mi · <b>$3,815.90</b> · $2.79/mi</div>
+                </article>
+                <article class="card">
+                  <div class="row"><span class="id">T-116KYL6KW</span><span class="date">19 Jul</span></div>
+                  <div class="route">GARNER, NC → DALLAS, TX</div>
+                  <div class="stats">850 mi · <b>$2,500.00</b> · $2.94/mi</div>
+                </article>
+              </div>
+            </div>
+            <div class="tablet-col side">
+              <div class="hero">
+                <div class="kicker">${t.week}</div>
+                <div class="amt">$12,315</div>
+                <div class="meta">4,617 mi · $2.67 / mi</div>
+                ${weekDots()}
+              </div>
+              <div class="grid2">
+                <div class="tile"><div class="k">${t.loads}</div><div class="v">4</div></div>
+                <div class="tile"><div class="k">RPM</div><div class="v">$2.67</div></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>`;
+    }
+
+    function featureCanvas() {
+      return `<div class="canvas feature">
+        <div class="feature-inner">
+          <img src="../assets/ic_launcher_image.png" alt="TruckoRig" />
+          <div>
+            <h1>TruckoRig</h1>
+            <p>${t.featureP}</p>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    const root = document.getElementById("root");
+    if (kind === "feature") root.innerHTML = featureCanvas();
+    else if (kind === "tablet") root.innerHTML = tabletCanvas();
+    else root.innerHTML = phoneCanvas(slide in SCREENS ? slide : "journal");
+    const canvas = document.querySelector(".canvas");
+    if (canvas) {
+      const w = getComputedStyle(canvas).width;
+      const h = getComputedStyle(canvas).height;
+      document.body.style.margin = "0";
+      document.body.style.width = w;
+      document.body.style.height = h;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    }
+  </script>
+</body>
+</html>
