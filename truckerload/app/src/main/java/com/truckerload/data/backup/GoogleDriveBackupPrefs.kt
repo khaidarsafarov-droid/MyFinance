@@ -74,6 +74,7 @@ class GoogleDriveBackupPrefs(
         private const val KEY_LAST_ERROR_AT = "last_sync_error_at"
 
         const val BACKUP_FILE_NAME = "truckerload_backup.tlb"
+        /** Hidden appDataFolder only — not full Drive, not `drive.file` (My Drive files). */
         const val DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
         private const val META_PREFS = "truckerload_account_meta"
         private const val KEY_LEGACY_MIGRATED = "legacy_drive_backup_migrated"

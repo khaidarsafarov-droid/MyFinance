@@ -46,7 +46,6 @@ import com.truckerload.BuildConfig
 import com.truckerload.presentation.components.AppBrandLogo
 import com.truckerload.presentation.components.FillViewportScrollColumn
 import com.truckerload.presentation.components.GoogleSignInButton
-import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.screens.auth.AuthUiEvent
 import com.truckerload.presentation.screens.auth.AuthViewModel
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
@@ -177,7 +176,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     if (!uiState.showEmailFields) {
-                        Button(
+                        OutlinedButton(
                             onClick = { viewModel.showEmailFields() },
                             modifier = Modifier
                                 .fillMaxWidth()

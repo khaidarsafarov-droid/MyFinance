@@ -20,10 +20,21 @@ import kotlinx.coroutines.tasks.await
  */
 object GoogleSignInClients {
 
+    /**
+     * Login / sign-up consent: identity (email, profile, optional ID token) **and**
+     * Drive app-data so Settings backup can reuse this account without a second picker.
+     *
+     * Scope is [GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE] (hidden `appDataFolder`,
+     * files created by this app only). That matches [com.truckerload.data.backup.GoogleDriveApiClient].
+     * We do not request `drive.file` or full Drive: `drive.file` cannot read appDataFolder
+     * and would orphan existing backups; both restricted scopes are app-only, not the
+     * user's My Drive.
+     */
     fun loginOptions(requestIdToken: Boolean): GoogleSignInOptions {
         val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestProfile()
+            .requestScopes(Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE))
         if (requestIdToken && BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
             builder.requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
         }

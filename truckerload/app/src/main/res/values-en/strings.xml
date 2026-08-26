@@ -72,8 +72,8 @@
     <string name="login_or_divider">or</string>
     <string name="login_continue_offline">Continue offline</string>
     <string name="login_continue_offline_hint">Journal stays on this device — no Google or cloud sign-in.</string>
-    <string name="login_google_sync_hint">Sync your journal with your Google account (Drive in Settings).</string>
-    <string name="login_google_drive_cta">Signed in with Google. Open Settings → Google Drive to enable backup sync.</string>
+    <string name="login_google_sync_hint">Signing in with Google also lets you back up to your Google Drive.</string>
+    <string name="login_google_drive_cta">Signed in with Google, but Drive access was not granted. Open Settings → Google Drive to connect backup.</string>
     <string name="login_checking">Checking account…</string>
 
     <string name="home_brand_title">TruckoRig</string>
@@ -128,6 +128,7 @@
 
     <string name="signup_title">Sign Up</string>
     <string name="signup_subtitle">Create an account to track loads and finances</string>
+    <string name="signup_email_alternative">Or sign up with email</string>
     <string name="signup_button">Sign Up</string>
     <string name="signup_loading">Signing up…</string>
     <string name="auth_full_name_hint">Full name</string>
@@ -949,6 +950,11 @@
     <string name="settings_backup_share_title">Share backup</string>
     <string name="drive_sync_title">Google Drive</string>
     <string name="drive_sync_desc">Data stays in Room on the phone. Cloud copy goes to your Google account (hidden app folder). iCloud is not available on Android.</string>
+    <string name="drive_sync_google_user_hint">You signed in with Google — Drive access was requested at login. You do not need to authorize again if you already granted it.</string>
+    <string name="drive_sync_google_linked_hint">Backup uses the same Google account you signed in with. No separate Drive login is needed.</string>
+    <string name="drive_sync_email_user_hint">You signed in with email. Connect Google Drive separately (app-folder access only — this does not create a new TruckerLoad account), or use the file backup in “Export and backup” above.</string>
+    <string name="drive_sync_local_user_hint">Offline mode: you can connect Google Drive separately (this does not create a TruckerLoad account) or save a file backup in “Export and backup” above.</string>
+    <string name="drive_sync_email_linked_hint">Google Drive is connected for backup only and does not change how you sign in.</string>
     <string name="drive_sync_status_off">Not connected</string>
     <string name="drive_sync_status_on">Connected: %1$s</string>
     <string name="drive_sync_last">Last sync: %1$s</string>

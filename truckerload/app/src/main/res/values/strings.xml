@@ -72,8 +72,8 @@
     <string name="login_or_divider">или</string>
     <string name="login_continue_offline">Продолжить офлайн</string>
     <string name="login_continue_offline_hint">Журнал только на этом устройстве — без Google и облака.</string>
-    <string name="login_google_sync_hint">Синхронизация журнала через ваш Google-аккаунт (Drive в Настройках).</string>
-    <string name="login_google_drive_cta">Вход через Google выполнен. Откройте Настройки → Google Drive, чтобы включить синхронизацию бэкапа.</string>
+    <string name="login_google_sync_hint">Вход через Google также позволит делать резервные копии в ваш Google Drive.</string>
+    <string name="login_google_drive_cta">Вход через Google выполнен, но доступ к Drive не выдан. Откройте Настройки → Google Drive, чтобы подключить бэкап.</string>
     <string name="login_checking">Проверка аккаунта…</string>
 
     <string name="home_brand_title">TruckoRig</string>
@@ -128,6 +128,7 @@
 
     <string name="signup_title">Регистрация</string>
     <string name="signup_subtitle">Создайте аккаунт для учёта грузов и финансов</string>
+    <string name="signup_email_alternative">Или зарегистрируйтесь через почту</string>
     <string name="signup_button">Зарегистрироваться</string>
     <string name="signup_loading">Регистрация…</string>
     <string name="auth_full_name_hint">Имя и Фамилия</string>
@@ -949,6 +950,11 @@
     <string name="settings_backup_share_title">Поделиться бэкапом</string>
     <string name="drive_sync_title">Google Drive</string>
     <string name="drive_sync_desc">Данные остаются в Room на телефоне. Облачная копия — в вашем Google-аккаунте (скрытая папка приложения). iCloud на Android недоступен.</string>
+    <string name="drive_sync_google_user_hint">Вы вошли через Google — доступ к Drive уже запрошен при входе. Повторная авторизация не нужна, если вы её подтвердили.</string>
+    <string name="drive_sync_google_linked_hint">Бэкап идёт в тот же Google-аккаунт, через который вы вошли. Отдельный вход в Drive не нужен.</string>
+    <string name="drive_sync_email_user_hint">Вы вошли через почту. Drive можно подключить отдельно (только доступ к папке приложения — новый аккаунт TruckerLoad не создаётся). Либо сохраните копию файлом в разделе «Экспорт и копии» выше.</string>
+    <string name="drive_sync_local_user_hint">Офлайн-режим: Google Drive можно подключить отдельно (без создания аккаунта) или сохранить копию файлом в разделе «Экспорт и копии» выше.</string>
+    <string name="drive_sync_email_linked_hint">Google Drive подключён только для бэкапа и не меняет способ входа в приложение.</string>
     <string name="drive_sync_status_off">Не подключено</string>
     <string name="drive_sync_status_on">Подключено: %1$s</string>
     <string name="drive_sync_last">Последняя синхронизация: %1$s</string>

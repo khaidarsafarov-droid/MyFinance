@@ -71,4 +71,15 @@ class GoogleSignInClientsTest {
             gso.scopes.any { it.scopeUri == GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE },
         )
     }
+
+    @Test
+    fun loginOptions_requestsAppDataScopeForBackupAtSignIn() {
+        val gso = GoogleSignInClients.loginOptions(requestIdToken = false)
+        assertTrue(
+            gso.scopes.any { it.scopeUri == GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE },
+        )
+        assertFalse(
+            gso.scopes.any { it.scopeUri.contains("drive.file") && !it.scopeUri.contains("appdata") },
+        )
+    }
 }

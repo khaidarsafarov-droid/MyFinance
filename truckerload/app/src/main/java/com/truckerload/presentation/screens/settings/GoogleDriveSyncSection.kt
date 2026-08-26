@@ -34,10 +34,12 @@ import com.truckerload.R
 import com.truckerload.data.backup.BackupRestoreErrors
 import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.GoogleDriveBackupService
+import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
+import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.TruckColorPalette
@@ -54,6 +56,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val context = LocalContext.current
     val activity = context.findActivity()
     val scope = rememberCoroutineScope()
+    val authProvider = LocalAuthStore.current.authProvider()
     val prefs = remember { GoogleDriveBackupService.prefs(context) }
     val connectivity by ConnectivityObserver.observe(context)
         .collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
@@ -158,6 +161,27 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         )
         Text(
             text = stringResource(
+                when {
+                    !linkedEmail.isNullOrBlank() && authProvider == AuthProvider.GOOGLE ->
+                        R.string.drive_sync_google_linked_hint
+                    linkedEmail.isNullOrBlank() && authProvider == AuthProvider.GOOGLE ->
+                        R.string.drive_sync_google_user_hint
+                    linkedEmail.isNullOrBlank() && authProvider == AuthProvider.LOCAL ->
+                        R.string.drive_sync_local_user_hint
+                    linkedEmail.isNullOrBlank() -> R.string.drive_sync_email_user_hint
+                    else -> R.string.drive_sync_email_linked_hint
+                },
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = tc.TextSecondary,
+        )
+        Text(
+            text = stringResource(R.string.drive_sync_desc),
+            style = MaterialTheme.typography.labelSmall,
+            color = tc.TextSecondary,
+        )
+        Text(
+            text = stringResource(
                 R.string.drive_sync_last,
                 if (lastSyncAt > 0L) dateFormat.format(Date(lastSyncAt))
                 else stringResource(R.string.drive_sync_last_never),
@@ -200,9 +224,17 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(AppIcons.Cloud, contentDescription = stringResource(R.string.drive_sync_now))
+                    val connectLabel = if (
+                        authProvider == AuthProvider.GOOGLE &&
+                        GoogleDriveBackupService.isDriveScopeGranted(context)
+                    ) {
+                        R.string.drive_sync_now
+                    } else {
+                        R.string.drive_sync_connect
+                    }
+                    Icon(AppIcons.Cloud, contentDescription = stringResource(connectLabel))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.drive_sync_now))
+                    Text(stringResource(connectLabel))
                 }
             }
         } else {

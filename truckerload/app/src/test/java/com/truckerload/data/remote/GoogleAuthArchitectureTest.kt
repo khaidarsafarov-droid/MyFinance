@@ -41,7 +41,7 @@ class GoogleAuthArchitectureTest {
         assertFalse(source.contains("context as? Activity"))
         assertTrue(source.contains("linkedAccountEmail"))
         assertTrue(source.contains("startDriveSync"))
-        assertTrue(source.contains("drive_sync_now"))
+        assertTrue(source.contains("drive_sync_now") || source.contains("drive_sync_connect"))
     }
 
     @Test
@@ -58,6 +58,78 @@ class GoogleAuthArchitectureTest {
         )
         assertTrue(source.contains("launchLegacyGoogleSignIn"))
         assertTrue(source.contains("shouldRetryWithoutIdToken"))
+    }
+
+    @Test
+    fun loginAndSignUp_shareLoginOptionsWithDriveAppDataScope() {
+        val support = readMainSource("com/truckerload/presentation/auth/GoogleSignInSupport.kt")
+        assertTrue(support.contains("GoogleSignInClients.loginOptions"))
+        assertFalse(support.contains("GoogleSignInOptions.Builder"))
+
+        val clients = readMainSource("com/truckerload/data/remote/GoogleSignInClients.kt")
+        val start = clients.indexOf("fun loginOptions")
+        val end = clients.indexOf("fun loginIntent")
+        assertTrue(start >= 0 && end > start)
+        val method = clients.substring(start, end)
+        assertTrue(method.contains("DRIVE_APPDATA_SCOPE"))
+        assertFalse(method.contains("drive.file"))
+    }
+
+    @Test
+    fun googleLogin_linksDriveAccountWithoutSecondPicker() {
+        val vm = readMainSource("com/truckerload/presentation/screens/auth/AuthViewModel.kt")
+        assertTrue(vm.contains("GoogleDriveBackupService.syncLinkedAccountFromGoogle"))
+        assertTrue(vm.contains("isDriveScopeGranted"))
+        val complete = vm.substring(
+            vm.indexOf("private suspend fun completeGoogle"),
+            vm.indexOf("private suspend fun applySuccess"),
+        )
+        assertTrue(complete.contains("login_google_drive_cta"))
+        assertTrue(complete.contains("isDriveScopeGranted"))
+
+        val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
+        assertTrue(launcher.contains("GoogleDriveBackupService.syncLinkedAccountFromGoogle"))
+    }
+
+    @Test
+    fun settingsDrive_separatesGoogleLoginFromEmailOauth() {
+        val source = readMainSource(
+            "com/truckerload/presentation/screens/settings/GoogleDriveSyncSection.kt",
+        )
+        assertTrue(source.contains("authProvider()"))
+        assertTrue(source.contains("AuthProvider.GOOGLE"))
+        assertTrue(source.contains("drive_sync_email_user_hint"))
+        assertTrue(source.contains("drive_sync_google_user_hint"))
+        assertTrue(source.contains("drive_sync_local_user_hint"))
+        assertTrue(source.contains("drive_sync_connect"))
+        assertTrue(source.contains("startDriveSync"))
+        assertTrue(source.contains("isDriveScopeGranted"))
+    }
+
+    @Test
+    fun loginScreen_googlePrimaryEmailOutlined() {
+        val login = readMainSource("com/truckerload/presentation/screens/login/LoginScreen.kt")
+        val googleIdx = login.indexOf("GoogleSignInButton(")
+        val emailIdx = login.indexOf("login_with_email")
+        assertTrue(googleIdx >= 0 && emailIdx > googleIdx)
+        assertTrue(login.contains("OutlinedButton"))
+        val emailBlockStart = login.lastIndexOf("if (!uiState.showEmailFields)")
+        val emailBlock = login.substring(emailBlockStart)
+        assertTrue(emailBlock.contains("OutlinedButton"))
+        assertFalse(emailBlock.substring(0, emailBlock.indexOf("LoginEmailFields")).contains("TlButton"))
+    }
+
+    @Test
+    fun signUpScreen_googleFirstWithoutConsentGate() {
+        val signUp = readMainSource("com/truckerload/presentation/screens/auth/SignUpScreen.kt")
+        val googleIdx = signUp.indexOf("GoogleSignInButton(")
+        val emailFieldIdx = signUp.indexOf("auth_email_hint")
+        assertTrue(googleIdx >= 0 && emailFieldIdx > googleIdx)
+        assertTrue(signUp.contains("googleSignIn.launch()"))
+        val googleBlock = signUp.substring(googleIdx, emailFieldIdx)
+        assertFalse(googleBlock.contains("signup_error_age_required"))
+        assertFalse(googleBlock.contains("signup_error_tos_required"))
+        assertTrue(signUp.contains("signup_email_alternative"))
     }
 
     @Test

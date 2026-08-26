@@ -9,8 +9,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.truckerload.BuildConfig
 import com.truckerload.R
+import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.utils.InstalledSigningSha1
 
 /** Shared Google Sign-In helpers for Login + SignUp paths. */
@@ -25,15 +25,8 @@ object GoogleSignInSupport {
         return current as? Activity
     }
 
-    fun buildSignInOptions(): GoogleSignInOptions {
-        val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestProfile()
-        if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-            builder.requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-        }
-        return builder.build()
-    }
+    fun buildSignInOptions(): GoogleSignInOptions =
+        GoogleSignInClients.loginOptions(requestIdToken = true)
 
     fun client(context: Context): GoogleSignInClient =
         GoogleSignIn.getClient(context, buildSignInOptions())

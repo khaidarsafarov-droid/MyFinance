@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.backup.DriveSyncEligibility
 import com.truckerload.data.backup.DriveSyncWorker
+import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.repository.auth.AuthRepository
 import com.truckerload.data.repository.auth.AuthSignInResult
 import com.truckerload.data.repository.auth.GoogleAuthCredential
@@ -160,15 +161,16 @@ class AuthViewModel @Inject constructor(
         val result = authRepository.signInWithGoogle(credential)
         result.fold(
             onSuccess = { signIn ->
+                GoogleDriveBackupService.syncLinkedAccountFromGoogle(appContext)
                 if (DriveSyncEligibility.shouldEnqueuePeriodic(signIn.user.userId)) {
                     DriveSyncWorker.enqueuePeriodic(appContext)
                 }
-                applySuccess(
-                    signIn.copy(
-                        toastMessages = signIn.toastMessages +
-                            appContext.getString(R.string.login_google_drive_cta),
-                    ),
-                )
+                val toasts = if (GoogleDriveBackupService.isDriveScopeGranted(appContext)) {
+                    signIn.toastMessages
+                } else {
+                    signIn.toastMessages + appContext.getString(R.string.login_google_drive_cta)
+                }
+                applySuccess(signIn.copy(toastMessages = toasts))
             },
             onFailure = { err ->
                 _events.emit(
