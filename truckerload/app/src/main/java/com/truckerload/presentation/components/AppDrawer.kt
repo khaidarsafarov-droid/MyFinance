@@ -74,6 +74,11 @@ fun AppDrawerContent(
                 .fillMaxHeight()
                 .padding(vertical = 24.dp),
         ) {
+            AppBrandLogo(
+                size = 56.dp,
+                cornerRadius = 14.dp,
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 4.dp),
+            )
             Text(
                 text = stringResource(R.string.home_brand_title),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
