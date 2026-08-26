@@ -10,10 +10,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -83,21 +85,32 @@ fun navForwardExit(reduceMotion: Boolean = false): ExitTransition {
     ) + fadeOut(animationSpec = tween(180, easing = EaseOutCubic))
 }
 
-/** Shared-axis X reverse for [popBackStack]. */
+/**
+ * Predictive-back-friendly pop enter: the destination under the top screen
+ * subtly scales up as the gesture seeks (Navigation Compose seeks these specs).
+ */
 fun navPopEnter(reduceMotion: Boolean = false): EnterTransition {
     if (reduceMotion) return fadeIn(animationSpec = tween(0))
-    return slideInHorizontally(
-        animationSpec = tween(280, easing = EaseOutCubic),
-        initialOffsetX = { fullWidth -> -fullWidth / 10 },
-    ) + fadeIn(animationSpec = tween(220, easing = EaseOutCubic))
+    return fadeIn(animationSpec = tween(220, easing = EaseOutCubic)) +
+        scaleIn(
+            animationSpec = tween(280, easing = EaseOutCubic),
+            initialScale = 0.92f,
+            transformOrigin = TransformOrigin.Center,
+        )
 }
 
+/**
+ * Predictive-back-friendly pop exit: top screen scales down + fades so the
+ * system back gesture can scrub a Material-style peek of the previous route.
+ */
 fun navPopExit(reduceMotion: Boolean = false): ExitTransition {
     if (reduceMotion) return fadeOut(animationSpec = tween(0))
-    return slideOutHorizontally(
-        animationSpec = tween(280, easing = EaseOutCubic),
-        targetOffsetX = { fullWidth -> fullWidth / 4 },
-    ) + fadeOut(animationSpec = tween(180, easing = EaseOutCubic))
+    return fadeOut(animationSpec = tween(180, easing = EaseOutCubic)) +
+        scaleOut(
+            animationSpec = tween(280, easing = EaseOutCubic),
+            targetScale = 0.90f,
+            transformOrigin = TransformOrigin.Center,
+        )
 }
 
 /** Modal / immersive: camera, scanner, galleries, attach picker. */
@@ -122,28 +135,38 @@ fun navModalPopExit(reduceMotion: Boolean = false): ExitTransition {
     return slideOutVertically(
         animationSpec = tween(240, easing = EaseOutCubic),
         targetOffsetY = { fullHeight -> fullHeight / 5 },
-    ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
+    ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic)) +
+        scaleOut(
+            animationSpec = tween(240, easing = EaseOutCubic),
+            targetScale = 0.94f,
+            transformOrigin = TransformOrigin.Center,
+        )
 }
 
 /**
  * Fade-through for shared-element destinations (list ↔ load detail).
  * Shared bounds morph the card; non-shared chrome fades instead of sliding.
  */
-fun navSharedElementEnter(reduceMotion: Boolean = false): EnterTransition =
-    fadeIn(
-        animationSpec = tween(
-            motionDurationMs(reduceMotion, 220),
-            easing = EaseOutCubic,
-        ),
-    )
+fun navSharedElementEnter(reduceMotion: Boolean = false): EnterTransition {
+    if (reduceMotion) return fadeIn(animationSpec = tween(0))
+    return fadeIn(animationSpec = tween(220, easing = EaseOutCubic)) +
+        scaleIn(
+            animationSpec = tween(280, easing = EaseOutCubic),
+            initialScale = 0.96f,
+            transformOrigin = TransformOrigin.Center,
+        )
+}
 
-fun navSharedElementExit(reduceMotion: Boolean = false): ExitTransition =
-    fadeOut(
-        animationSpec = tween(
-            motionDurationMs(reduceMotion, 180),
-            easing = EaseOutCubic,
-        ),
-    )
+/** Shared-bounds destinations: light scale so predictive back can seek the peek. */
+fun navSharedElementExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return fadeOut(animationSpec = tween(180, easing = EaseOutCubic)) +
+        scaleOut(
+            animationSpec = tween(280, easing = EaseOutCubic),
+            targetScale = 0.94f,
+            transformOrigin = TransformOrigin.Center,
+        )
+}
 
 fun screenEnterAnimation(reduceMotion: Boolean = false) =
     fadeIn(
