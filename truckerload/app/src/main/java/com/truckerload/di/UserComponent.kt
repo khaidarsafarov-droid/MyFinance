@@ -103,7 +103,7 @@ class UserComponent private constructor(
                 aiRepository = AiRepository(),
                 maintenanceRepository = MaintenanceRepository(db),
                 perDiemOverrideRepository = PerDiemOverrideRepository(db),
-                miscExpenseRepository = MiscExpenseRepository(db),
+                miscExpenseRepository = MiscExpenseRepository(db, context.applicationContext),
                 registrationService = account.registration,
                 driverProfessionalRepository = account.professional,
                 accountDeletionService = account.deletion,

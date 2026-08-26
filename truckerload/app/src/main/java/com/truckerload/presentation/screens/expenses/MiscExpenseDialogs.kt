@@ -87,6 +87,14 @@ fun MiscExpenseEditorDialog(
                     maxLines = 5,
                     colors = fieldColors,
                 )
+                MiscExpenseReceiptAttachSection(
+                    receiptPhotoPath = editor.receiptPhotoPath,
+                    initialReceiptPhotoPath = editor.initialReceiptPhotoPath,
+                    enabled = !isSaving,
+                    onReceiptPathChange = { path ->
+                        onChange { it.copy(receiptPhotoPath = path) }
+                    },
+                )
                 OutlinedTextField(
                     value = isoToDisplayDate(editor.dateIso),
                     onValueChange = {},

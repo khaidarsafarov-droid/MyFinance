@@ -11,4 +11,5 @@
     <files-path name="avatars" path="avatars/" />
     <files-path name="chat_attachments" path="chat_attachments/" />
     <files-path name="statuses" path="statuses/" />
+    <files-path name="misc_receipts" path="misc_receipts/" />
 </paths>
