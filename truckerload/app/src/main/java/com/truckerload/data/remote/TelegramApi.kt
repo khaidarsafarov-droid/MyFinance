@@ -46,6 +46,37 @@ class TelegramApi(private val token: String) {
         JSONObject().put("menu_button", JSONObject().put("type", "commands"))
     )
 
+    /**
+     * Uploads a new static JPG as the bot profile photo ([setMyProfilePhoto]).
+     * Telegram rejects reused file_ids; the bytes must be sent as multipart.
+     */
+    suspend fun setMyProfilePhoto(jpegBytes: ByteArray): Result<Unit> = withContext(Dispatchers.IO) {
+        if (token.isBlank()) return@withContext Result.failure(IllegalStateException("Bot token not set"))
+        if (jpegBytes.isEmpty()) return@withContext Result.failure(IllegalStateException("empty_photo"))
+        val body = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("photo", profilePhotoStaticAttachJson())
+            .addFormDataPart(
+                "logo",
+                "logo.jpg",
+                jpegBytes.toRequestBody("image/jpeg".toMediaType()),
+            )
+            .build()
+        val request = Request.Builder()
+            .url("$baseUrl/setMyProfilePhoto")
+            .post(body)
+            .build()
+        runCatching {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw Exception(
+                        "setMyProfilePhoto failed: ${response.code} ${response.body?.string()}",
+                    )
+                }
+            }
+        }
+    }
+
     suspend fun sendMessage(
         chatId: String,
         text: String,
@@ -337,6 +368,12 @@ class TelegramApi(private val token: String) {
     companion object {
         /** Hard cap for Telegram file downloads to avoid OOM kills in the background bot service. */
         const val MAX_DOWNLOAD_BYTES = 20L * 1024 * 1024
+
+        internal fun profilePhotoStaticAttachJson(): String =
+            JSONObject()
+                .put("type", "static")
+                .put("photo", "attach://logo")
+                .toString()
 
         private val sharedClient: OkHttpClient = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)

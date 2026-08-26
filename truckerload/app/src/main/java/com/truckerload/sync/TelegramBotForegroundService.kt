@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
@@ -19,6 +20,8 @@ import com.truckerload.R
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramApi
+import com.truckerload.data.remote.TelegramBotLogoJpeg
+import com.truckerload.data.remote.TelegramBotTokenFingerprint
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.LogRedactor
 import kotlinx.coroutines.CoroutineScope
@@ -129,15 +132,38 @@ class TelegramBotForegroundService : Service() {
 
     private fun setupBotFeaturesOnce(token: String) {
         val prefs = getSharedPreferences(TelegramSyncWorker.PREFS_NAME, MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_BOT_FEATURES_SETUP, false)) return
+        val tokenFp = TelegramBotTokenFingerprint.of(token)
+        val featuresDone = prefs.getBoolean(KEY_BOT_FEATURES_SETUP, false)
+        val photoDone = prefs.getString(KEY_BOT_PROFILE_PHOTO_FP, "") == tokenFp
+        if (featuresDone && photoDone) return
         scope.launch {
             val api = TelegramApi(token)
-            api.deleteWebhook().onFailure { e -> Log.w(TAG, "deleteWebhook: ${LogRedactor.redact(e.message)}") }
-            api.setMyCommands().onSuccess {
-                prefs.edit { putBoolean(KEY_BOT_FEATURES_SETUP, true) }
-            }.onFailure { e -> Log.w(TAG, "setMyCommands: ${LogRedactor.redact(e.message)}") }
-            api.setChatMenuButton().onFailure { e -> Log.w(TAG, "setChatMenuButton: ${LogRedactor.redact(e.message)}") }
+            if (!featuresDone) {
+                api.deleteWebhook().onFailure { e ->
+                    Log.w(TAG, "deleteWebhook: ${LogRedactor.redact(e.message)}")
+                }
+                api.setMyCommands().onSuccess {
+                    prefs.edit { putBoolean(KEY_BOT_FEATURES_SETUP, true) }
+                }.onFailure { e -> Log.w(TAG, "setMyCommands: ${LogRedactor.redact(e.message)}") }
+                api.setChatMenuButton().onFailure { e ->
+                    Log.w(TAG, "setChatMenuButton: ${LogRedactor.redact(e.message)}")
+                }
+            }
+            if (!photoDone) {
+                applyBrandProfilePhoto(api, tokenFp, prefs)
+            }
         }
+    }
+
+    private suspend fun applyBrandProfilePhoto(
+        api: TelegramApi,
+        tokenFp: String,
+        prefs: SharedPreferences,
+    ) {
+        val jpeg = TelegramBotLogoJpeg.encode(applicationContext) ?: return
+        api.setMyProfilePhoto(jpeg)
+            .onSuccess { prefs.edit { putString(KEY_BOT_PROFILE_PHOTO_FP, tokenFp) } }
+            .onFailure { e -> Log.w(TAG, "setMyProfilePhoto: ${LogRedactor.redact(e.message)}") }
     }
 
     private suspend fun pollLoop(token: String, expectedUserId: String) {
@@ -235,6 +261,7 @@ class TelegramBotForegroundService : Service() {
         private const val LEGACY_CHANNEL_ID = "telegram_bot_sync"
         private const val NOTIFICATION_ID = 4101
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v3"
+        private const val KEY_BOT_PROFILE_PHOTO_FP = "bot_profile_photo_fp"
 
         private val isRunningFlag = AtomicBoolean(false)
         private val startRequested = AtomicBoolean(false)
