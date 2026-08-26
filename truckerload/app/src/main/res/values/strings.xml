@@ -690,6 +690,10 @@
     <string name="diesel_import_replaced">Неделя заменена: %1$d заправок из файла</string>
     <string name="diesel_import_tap_to_edit">Нажмите, чтобы изменить</string>
     <string name="edit_diesel_title">Изменить заправку</string>
+    <string name="diesel_delete_title">Удалить заправку?</string>
+    <string name="diesel_delete_message">Запись будет удалена без возможности восстановления.</string>
+    <string name="paycheck_delete_title">Удалить зарплату?</string>
+    <string name="paycheck_delete_message">Запись будет удалена без возможности восстановления.</string>
     <string name="paycheck_empty_week">Нет зарплаты на этой неделе</string>
     <string name="paycheck_empty_all">Пока нет зарплат</string>
     <string name="paycheck_empty_search">Ничего не нашлось</string>

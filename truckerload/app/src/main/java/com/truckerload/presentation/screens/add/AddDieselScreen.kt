@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,12 +47,20 @@ fun AddDieselScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var datePickerThenTime by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     DieselLocationPermissionEffect(onGranted = viewModel::ensureLocation)
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {
             viewModel.clearSaved()
+            onSaved()
+        }
+    }
+
+    LaunchedEffect(uiState.deleted) {
+        if (uiState.deleted) {
+            viewModel.clearDeleted()
             onSaved()
         }
     }
@@ -111,6 +121,31 @@ fun AddDieselScreen(
         }
     }
 
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.diesel_delete_title)) },
+            text = { Text(stringResource(R.string.diesel_delete_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        viewModel.delete()
+                    },
+                    enabled = !uiState.isSaving,
+                ) {
+                    Text(stringResource(R.string.common_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
     JournalEntryScaffold(
         title = stringResource(
             if (uiState.editingId != null) R.string.edit_diesel_title else R.string.add_diesel_title,
@@ -119,6 +154,11 @@ fun AddDieselScreen(
         onSave = viewModel::openSaveDialog,
         saveEnabled = !uiState.isSaving,
         errorMessage = uiState.error?.takeIf { !uiState.showSaveDialog },
+        onDelete = if (uiState.editingId != null) {
+            { showDeleteConfirm = true }
+        } else {
+            null
+        },
     ) {
         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
             Column(
