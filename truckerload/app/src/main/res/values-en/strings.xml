@@ -1676,8 +1676,12 @@
     <string name="settings_backup_working">Creating backup…</string>
     <string name="settings_backup_restoring">Restoring data…</string>
     <string name="settings_share_app_title">Share the app</string>
-    <string name="settings_share_app_body">Send a friend the install APK or a build link. Their data stays on their phone — no server needed.</string>
-    <string name="settings_share_app_button">Share APK</string>
-    <string name="settings_share_app_unavailable">Could not find this app APK on the device</string>
+    <string name="settings_share_app_body">Send a friend a link: Google Play for Android, App Store for iPhone. Their data stays on their phone.</string>
+    <string name="settings_share_app_body_play_only">Send a friend the Google Play link. The App Store link for iPhone will be added automatically when the store account is ready.</string>
+    <string name="settings_share_app_button">Share link</string>
+    <string name="settings_share_app_unavailable">Could not open the share menu</string>
     <string name="settings_share_app_chooser">Share TruckoRig</string>
+    <string name="settings_share_app_message_intro">TruckoRig — a logbook for drivers</string>
+    <string name="settings_share_app_android_label">Android (Google Play):</string>
+    <string name="settings_share_app_ios_label">iPhone (App Store):</string>
 </resources>
