@@ -290,6 +290,7 @@ fun HomeScreen(
                         onOpenProfile = onSettings,
                         periodTotals = totals,
                         onOpenPrivacy = onOpenPrivacy,
+                        modifier = Modifier.weight(1f),
                     )
                 }
                 if (HomeRefreshPolicy.shouldShowInitialOverlay(isInitialLoading, isRefreshing)) {
