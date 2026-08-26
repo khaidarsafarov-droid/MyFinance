@@ -24,6 +24,9 @@
 *.keystore
 **/google-services.json
 
-# Logs / temp
-*.log
-.tmp_frames/
+# Local distribution drops
+/dist/
+/app/release/
+
+# Xcode
+**/xcuserdata/
