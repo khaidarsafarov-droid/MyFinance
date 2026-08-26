@@ -1,6 +1,8 @@
 package com.truckerload.widget.glance
 
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.truckerload.widget.WidgetSizeMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -38,8 +40,29 @@ class CabinLayoutTest {
         val layout = cabinLayoutFor(CabinSize4x2)
         assertFalse(layout.showDayCaptions)
         assertFalse(layout.showDivider)
-        assertTrue(layout.showActionLabels)
+        assertFalse(layout.showActionLabels)
         assertFalse(layout.showRing)
+    }
+
+    @Test
+    fun squeezedFourByTwo_hidesRing() {
+        listOf(
+            DpSize(250.dp, 110.dp),
+            DpSize(250.dp, 140.dp),
+            DpSize(320.dp, 160.dp),
+            DpSize(360.dp, 179.dp),
+        ).forEach { size ->
+            val layout = cabinLayoutFor(size)
+            assertFalse("$size should hide the ring", layout.showRing)
+            assertEquals(CabinBucket.COMPACT, cabinBucket(size))
+        }
+    }
+
+    @Test
+    fun smallPref_hidesRingEvenWhenTall() {
+        val layout = cabinLayoutFor(CabinSize4x4, WidgetSizeMode.SMALL)
+        assertFalse(layout.showRing)
+        assertEquals(CabinBucket.COMPACT, cabinBucket(CabinSize4x4, WidgetSizeMode.SMALL))
     }
 
     @Test

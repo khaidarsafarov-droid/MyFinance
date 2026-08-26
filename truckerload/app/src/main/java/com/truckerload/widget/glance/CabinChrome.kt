@@ -10,8 +10,11 @@ import androidx.glance.background
 import androidx.glance.unit.ColorProvider
 import com.truckerload.widget.WidgetCabinColors
 import com.truckerload.widget.WidgetCabinPalette
+import com.truckerload.widget.WidgetSizeMode
 
 internal val LocalCabinColors = staticCompositionLocalOf { WidgetCabinColors.Forest }
+
+internal val LocalWidgetSizeMode = staticCompositionLocalOf { WidgetSizeMode.AUTO }
 
 @Composable
 internal fun cabinColor(argb: Int): ColorProvider = ColorProvider(Color(argb))

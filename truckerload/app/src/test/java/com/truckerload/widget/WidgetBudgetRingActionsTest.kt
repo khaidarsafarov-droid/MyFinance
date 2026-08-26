@@ -36,7 +36,18 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("showRing"))
         assertTrue(core.contains("cabinActionFill"))
         assertTrue(core.contains("CabinSize4x4"))
-        assertTrue(core.contains("CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4"))
+        assertTrue(core.contains("SizeMode.Exact"))
+        assertTrue(core.contains("SizeMode.Responsive"))
+        assertTrue(core.contains("LocalWidgetSizeMode"))
+        assertTrue(core.contains("WidgetPrefsStore.load"))
+    }
+
+    @Test
+    fun wideWidgetXml_allowsTwoRowResize() {
+        val xml = readRes("xml/truckerload_widget_glance_4x2_info.xml")
+        assertTrue(xml.contains("minHeight=\"110dp\""))
+        assertTrue(xml.contains("minResizeHeight=\"110dp\""))
+        assertTrue(!xml.contains("minHeight=\"180dp\""))
     }
 
     @Test
