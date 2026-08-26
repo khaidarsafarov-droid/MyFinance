@@ -582,6 +582,219 @@
       line-height: 1.3;
     }
 
+    .src {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: var(--sage);
+      color: var(--kit);
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .src.alt { background: #D4F5EE; color: var(--success); }
+
+    .homescreen {
+      flex: 1;
+      background:
+        radial-gradient(ellipse at 30% 0%, #7a74f0 0%, transparent 55%),
+        linear-gradient(180deg, #3F3AB8 0%, #16141F 100%);
+      color: #fff;
+      padding: 6px 16px 18px;
+      display: flex;
+      flex-direction: column;
+    }
+    .hs-clock {
+      font-size: 68px;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 20px;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .hs-date {
+      text-align: center;
+      color: var(--soft);
+      font-weight: 500;
+      font-size: 16px;
+      margin: 8px 0 22px;
+    }
+    .wid {
+      background: #F8F9FE;
+      color: var(--text);
+      border-radius: 20px;
+      padding: 14px 16px 12px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.28);
+    }
+    .wid-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .wid-brand { font-weight: 700; color: var(--kit); font-size: 15px; }
+    .wid-week { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .wid-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #EEEDFF;
+      overflow: hidden;
+      margin: 10px 0 12px;
+    }
+    .wid-bar > i {
+      display: block;
+      height: 100%;
+      width: 72%;
+      background: linear-gradient(90deg, #5B54E6, #48C9B0);
+    }
+    .wid-rev .k { font-size: 11px; color: var(--muted); }
+    .wid-rev .v { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .wid-metrics { font-size: 13px; font-weight: 600; }
+    .wid-metrics .row { display: flex; justify-content: space-between; margin-top: 4px; }
+    .wid-metrics .k { color: var(--muted); font-weight: 500; }
+    .wid-days {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+    .wid-days span {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      border: 1px solid #D4D2E8;
+    }
+    .wid-days span.on { background: var(--kit); color: #fff; border-color: var(--kit); }
+    .wid-days span.filled { background: #EEEDFF; color: var(--kit); border-color: transparent; }
+    .wid-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .wid-act {
+      flex: 1;
+      background: #EEEDFF;
+      border-radius: 14px;
+      padding: 10px 4px 8px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5C5C5C;
+    }
+    .wid-act .bub {
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: var(--kit);
+      color: #fff;
+      display: grid; place-items: center;
+      margin: 0 auto 6px;
+    }
+    .wid-act .bub svg { width: 18px; height: 18px; fill: currentColor; }
+    .hs-dock {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-around;
+      background: rgba(255,255,255,0.14);
+      border-radius: 28px;
+      padding: 12px 8px;
+    }
+    .hs-app { text-align: center; font-size: 11px; color: rgba(255,255,255,0.9); }
+    .hs-app img, .hs-app .app-dot {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: block;
+      margin: 0 auto 6px;
+    }
+    .hs-app .app-dot { background: rgba(255,255,255,0.2); }
+
+    .cam-stage {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #1a202c;
+    }
+    .cam-sky {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(180deg, #5b6d8a 0%, #7d8ea3 38%, #c4b49a 62%, #8a7a62 100%);
+    }
+    .cam-road {
+      position: absolute;
+      left: 50%; bottom: 0;
+      transform: translateX(-50%);
+      width: 70%; height: 48%;
+      background: #3a3f48;
+      clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+    }
+    .cam-dash {
+      position: absolute;
+      left: 50%; bottom: 0;
+      transform: translateX(-50%);
+      width: 6px; height: 48%;
+      background: repeating-linear-gradient(#fff 0 18px, transparent 18px 36px);
+      opacity: 0.55;
+    }
+    .gps-chip {
+      position: absolute; top: 14px; left: 14px; right: 14px;
+      background: rgba(22, 20, 31, 0.78);
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 2;
+    }
+    .gps-chip .live {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #48C9B0;
+      box-shadow: 0 0 0 4px rgba(72, 201, 176, 0.28);
+    }
+    .watermark {
+      position: absolute; left: 14px; right: 14px; bottom: 112px;
+      background: rgba(0, 0, 0, 0.58);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      z-index: 2;
+    }
+    .watermark b { display: block; font-size: 13px; margin-bottom: 2px; }
+    .shutter {
+      position: absolute;
+      bottom: 26px; left: 50%;
+      transform: translateX(-50%);
+      width: 76px; height: 76px;
+      border-radius: 50%;
+      border: 6px solid rgba(255,255,255,0.38);
+      background: #fff;
+      z-index: 2;
+    }
+
+    .doc-sheet {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 16px 12px;
+      min-height: 150px;
+      box-shadow: 0 8px 20px rgba(91,84,230,0.08);
+      margin-bottom: 12px;
+    }
+    .doc-sheet .line {
+      height: 8px;
+      border-radius: 4px;
+      background: #EEEDFF;
+      margin-bottom: 8px;
+    }
+    .doc-sheet .line.w2 { width: 72%; }
+    .doc-sheet .line.w3 { width: 54%; }
+    .doc-sheet .stamp {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--kit);
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -594,27 +807,30 @@
       truck: `<svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9 1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`,
       flag: `<svg viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>`,
       person: `<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V22h19.2v-2.8c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`,
+      camera: `<svg viewBox="0 0 24 24"><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>`,
+      scan: `<svg viewBox="0 0 24 24"><path d="M7 3H4v3h2V5h1V3zm13 0h-3v2h1v1h2V3zM7 21H4v-3h2v1h1V21zm13 0h-3v-2h1v-1h2V21zM17 6H7C5.9 6 5 6.9 5 8v8c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 10H9v-2h6v2zm0-3H9v-2h6v2zm0-3H9V8h6v2z"/></svg>`,
+      diesel: `<svg viewBox="0 0 24 24"><path d="M5 3h8c1.1 0 2 .9 2 2v7h1.5c.83 0 1.5.67 1.5 1.5V18c0 .55.45 1 1 1s1-.45 1-1V9.83c0-.26-.11-.52-.29-.71l-1.7-1.7 1.06-1.06 2.12 2.12c.21.22.32.78.32 1.35V18c0 1.66-1.34 3-3 3s-3-1.34-3-3v-3.5H15V21H5V5c0-1.1.9-2 2-2h0zM7 5v6h6V5H7z"/></svg>`,
       search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>`,
     };
 
     const COPY = {
       ru: {
-        journalH: "Журнал Amazon Relay",
-        journalP: "Ставка, мили и RPM — сразу после вставки лоуда",
-        goalH: "Цель недели под контролем",
-        goalP: "Сколько осталось и какой темп нужен каждый день",
-        addH: "Вставьте лоуд из Relay",
-        addP: "Парсер сам разберёт Trip ID, ставку и адреса",
-        analyticsH: "Мои цифры без сюрпризов",
-        analyticsP: "Зарплата, дизель и маршруты рядом — без скрытых вычетов",
-        dieselH: "Учёт заправок",
-        dieselP: "Галлоны, цена и скидки с чеков",
-        profileH: "Кабинет водителя",
-        profileP: "Имя, техника и синхронизация в одном месте",
-        telegramH: "Бот в Telegram",
-        telegramP: "Перешлите лоуд — он попадёт в журнал даже с закрытым приложением",
-        loginH: "Работает офлайн",
-        loginP: "Журнал на телефоне. Google и Drive — по желанию",
+        journalH: "Все данные всегда под рукой",
+        journalP: "Журнал, цель и цифры — на телефоне, даже без сети",
+        widgetH: "Виджет на рабочем столе",
+        widgetP: "Гросс, цель, камера, сканер и дизель — в одно касание",
+        goalH: "Цель недели всегда рядом",
+        goalP: "Сколько осталось и какой темп нужен сегодня",
+        addH: "Любые лоуды, не только Relay",
+        addP: "Вставка, ручная форма или фото накладной — как удобно",
+        cameraH: "Камера с геолокацией",
+        cameraP: "Фото рейса сразу с городом и координатами",
+        scannerH: "Сканер файлов и документов",
+        scannerP: "PDF, фото, чек — поля заполнятся сами",
+        analyticsH: "Все цифры в одном месте",
+        analyticsP: "Грузы, зарплата и дизель — без сюрпризов",
+        dieselH: "Дизель за секунды",
+        dieselP: "С виджета: локация по GPS, галлоны и сумма",
         navLoads: "Грузы",
         navGoal: "Цель",
         navProfile: "Профиль",
@@ -635,7 +851,7 @@
         perDay: "$/день",
         editGoal: "Изменить цель",
         addTitle: "Добавить груз",
-        addSub: "Вставьте Relay / Telegram",
+        addSub: "Вставка, форма или фото — любой лоуд",
         how: "Как добавить груз",
         paste: "Вставить",
         manual: "Вручную",
@@ -652,46 +868,57 @@
         avgGal: "Средняя цена",
         weeks: "Деньги по неделям",
         dieselTitle: "Дизель",
-        dieselSub: "Чеки и галлоны",
+        dieselSub: "С виджета · GPS подставит локацию",
         addFill: "Добавить заправку",
-        profile: "Профиль",
-        driver: "Водитель",
-        truckMeta: "Volvo VNL · 8 лет стажа",
-        settings: "Настройки",
-        drive: "Google Drive backup",
-        reports: "Отчёты и аналитика",
-        bio: "Биометрия",
-        tgTitle: "Telegram бот",
-        tgSub: "Синхронизация лоудов",
-        tgActive: "Бот отслеживает сообщения",
-        tgToken: "Токен настроен (скрыт)",
-        tgTest: "Проверить",
-        tgChange: "Изменить",
-        loginSub: "Журнал грузов · offline-first",
-        google: "Войти через Google",
-        email: "Войти через почту",
-        offline: "Продолжить офлайн",
-        featureP: "Журнал грузов Amazon Relay · цель недели · дизель",
-        tabletH: "Журнал на планшете",
-        tabletP: "Список грузов и цифры недели — на одном экране",
+        gpsOn: "GPS · Amarillo, TX",
+        gpsHint: "Локация подставится сама, если доступен GPS",
+        gallons: "Галлоны",
+        priceGal: "Цена за галлон",
+        discount: "Цена со скидкой",
+        paid: "К оплате",
+        saved: "Сэкономили",
+        receipt: "Сфотографировать чек",
+        takePhoto: "Сделать фото",
+        scanTitle: "Результат скана",
+        scanSub: "PDF · rate confirmation",
+        scanSave: "Сохранить в груз",
+        scanAgain: "Сканировать ещё",
+        ocrLabel: "Распознанный текст",
+        widgetWeek: "Неделя 34",
+        revenue: "Гросс",
+        goalMetric: "Цель",
+        camShort: "Камера",
+        scanShort: "Сканер",
+        dieselShort: "Дизель",
+        hsDate: "среда, 26 августа",
+        typeRelay: "Relay",
+        typeManual: "Вручную",
+        typeBroker: "Брокер",
+        pickup: "Погрузка",
+        drop: "Выгрузка",
+        rate: "Ставка ($)",
+        location: "Локация",
+        featureP: "Данные всегда под рукой · любые лоуды · виджет",
+        tabletH: "Всё на одном экране",
+        tabletP: "Журнал любых грузов и цифры недели — всегда под рукой",
       },
       en: {
-        journalH: "Amazon Relay journal",
-        journalP: "Rate, miles and RPM the moment you paste a load",
+        journalH: "All your data, always on hand",
+        journalP: "Journal, goal and numbers stay on the phone — even offline",
+        widgetH: "Home-screen widget",
+        widgetP: "Gross, goal, camera, scanner and diesel — one tap away",
         goalH: "Weekly goal, always in view",
         goalP: "See remaining gross and the daily pace you need",
-        addH: "Paste a Relay load",
-        addP: "We parse Trip ID, rate and addresses for you",
-        analyticsH: "Your numbers, no surprises",
-        analyticsP: "Paychecks, diesel and routes side by side — no hidden math",
-        dieselH: "Diesel, tracked",
-        dieselP: "Gallons, price and discounts from receipts",
-        profileH: "Driver cabin",
-        profileP: "Name, truck and sync in one place",
-        telegramH: "Telegram bot",
-        telegramP: "Forward a load — it lands in the journal even if the app is closed",
-        loginH: "Works offline",
-        loginP: "The journal stays on your phone. Google and Drive are optional",
+        addH: "Any load — not only Relay",
+        addP: "Paste, type it in, or snap the paperwork — your choice",
+        cameraH: "Camera with location",
+        cameraP: "Trip photos get city and GPS the moment you shoot",
+        scannerH: "File and document scanner",
+        scannerP: "PDF, photo or receipt — fields fill in for you",
+        analyticsH: "Every number in one place",
+        analyticsP: "Loads, paychecks and diesel — no surprises",
+        dieselH: "Diesel in seconds",
+        dieselP: "From the widget: GPS fills the stop, you tap save",
         navLoads: "Loads",
         navGoal: "Goal",
         navProfile: "Profile",
@@ -712,7 +939,7 @@
         perDay: "$/day",
         editGoal: "Edit goal",
         addTitle: "Add load",
-        addSub: "Paste Relay / Telegram",
+        addSub: "Paste, form or photo — any load",
         how: "How to add a load",
         paste: "Paste",
         manual: "Manual",
@@ -729,28 +956,39 @@
         avgGal: "Avg $/gal",
         weeks: "Money by week",
         dieselTitle: "Diesel",
-        dieselSub: "Receipts and gallons",
+        dieselSub: "From the widget · GPS fills the stop",
         addFill: "Add fill-up",
-        profile: "Profile",
-        driver: "Driver",
-        truckMeta: "Volvo VNL · 8 years",
-        settings: "Settings",
-        drive: "Google Drive backup",
-        reports: "Reports and analytics",
-        bio: "Biometrics",
-        tgTitle: "Telegram bot",
-        tgSub: "Load sync",
-        tgActive: "Bot is listening for messages",
-        tgToken: "Token configured (hidden)",
-        tgTest: "Test",
-        tgChange: "Change",
-        loginSub: "Load journal · offline-first",
-        google: "Continue with Google",
-        email: "Sign in with email",
-        offline: "Continue offline",
-        featureP: "Amazon Relay journal · weekly goal · diesel",
-        tabletH: "Journal on tablet",
-        tabletP: "Load list and weekly numbers on one screen",
+        gpsOn: "GPS · Amarillo, TX",
+        gpsHint: "Location fills in automatically when GPS is on",
+        gallons: "Gallons",
+        priceGal: "Price per gallon",
+        discount: "Discount price",
+        paid: "Due",
+        saved: "You saved",
+        receipt: "Snap the receipt",
+        takePhoto: "Take photo",
+        scanTitle: "Scan result",
+        scanSub: "PDF · rate confirmation",
+        scanSave: "Save to load",
+        scanAgain: "Scan another",
+        ocrLabel: "Recognized text",
+        widgetWeek: "Week 34",
+        revenue: "Total revenue",
+        goalMetric: "Goal",
+        camShort: "Camera",
+        scanShort: "Scanner",
+        dieselShort: "Diesel",
+        hsDate: "Wednesday, Aug 26",
+        typeRelay: "Relay",
+        typeManual: "Manual",
+        typeBroker: "Broker",
+        pickup: "Pickup",
+        drop: "Delivery",
+        rate: "Rate ($)",
+        location: "Location",
+        featureP: "Your data, always on hand · any load · widget",
+        tabletH: "Everything on one screen",
+        tabletP: "Any load in the journal, weekly numbers always at hand",
       },
     };
 
@@ -804,19 +1042,139 @@
           <button class="btn">+ ${t.addLoad}</button>
           <h3 class="section">${t.recent}</h3>
           <article class="card">
-            <div class="row"><span class="id">114RS221Y</span><span class="date">21 Jul</span></div>
+            <div class="row"><span class="id">114RS221Y <span class="src">${t.typeRelay}</span></span><span class="date">21 Jul</span></div>
             <div class="route">AURORA, CO → ARLINGTON, WA</div>
             <div class="stats">2 stops · 1,369 mi · <b>$3,815.90</b></div>
             <span class="rpm">$2.79 / mi</span>
           </article>
           <article class="card">
-            <div class="row"><span class="id">112VW8VQZ</span><span class="date">20 Jul</span></div>
-            <div class="route">WOODBURY, MN → DENVER, CO</div>
-            <div class="stats">2 stops · 924 mi · <b>$1,806.90</b></div>
-            <span class="rpm warn">$1.96 / mi</span>
+            <div class="row"><span class="id">M-0826-CHI <span class="src alt">${t.typeManual}</span></span><span class="date">20 Jul</span></div>
+            <div class="route">CHICAGO, IL → ATLANTA, GA</div>
+            <div class="stats">720 mi · <b>$2,400.00</b></div>
+            <span class="rpm">$3.33 / mi</span>
+          </article>
+          <article class="card">
+            <div class="row"><span class="id">KC-PHX-19 <span class="src">${t.typeBroker}</span></span><span class="date">19 Jul</span></div>
+            <div class="route">KANSAS CITY, MO → PHOENIX, AZ</div>
+            <div class="stats">1,180 mi · <b>$2,890.00</b></div>
+            <span class="rpm warn">$2.45 / mi</span>
           </article>
         </div>
         ${nav("home")}
+      `,
+      widget: () => `
+        ${statusBar()}
+        <div class="homescreen">
+          <div class="hs-clock">9:41</div>
+          <div class="hs-date">${t.hsDate}</div>
+          <div class="wid">
+            <div class="wid-top"><span class="wid-brand">TruckoRig</span><span class="wid-week">${t.widgetWeek}</span></div>
+            <div class="wid-bar"><i></i></div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div class="wid-rev" style="flex:1">
+                <div class="k">${t.revenue}</div>
+                <div class="v">$12,315</div>
+              </div>
+              <div class="wid-metrics" style="flex:1">
+                <div class="row"><span class="k">${t.goalMetric}</span><span>$17,000</span></div>
+                <div class="row"><span class="k">RPM</span><span style="color:var(--kit)">$2.67</span></div>
+              </div>
+            </div>
+            <div class="wid-days">
+              <span class="filled">S</span><span class="filled">M</span><span class="on">T</span>
+              <span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+            <div class="wid-actions">
+              <div class="wid-act"><div class="bub">${ICO.camera}</div>${t.camShort}</div>
+              <div class="wid-act"><div class="bub">${ICO.scan}</div>${t.scanShort}</div>
+              <div class="wid-act"><div class="bub">${ICO.diesel}</div>${t.dieselShort}</div>
+            </div>
+          </div>
+          <div class="hs-dock">
+            <div class="hs-app"><div class="app-dot" style="background:#5B54E6"></div>TruckoRig</div>
+            <div class="hs-app"><div class="app-dot"></div></div>
+            <div class="hs-app"><div class="app-dot"></div></div>
+            <div class="hs-app"><div class="app-dot"></div></div>
+          </div>
+        </div>
+      `,
+      add_load: () => `
+        ${statusBar()}
+        ${hdr(t.addTitle, t.addSub, true)}
+        <div class="body" style="padding-bottom:24px">
+          <div class="section">${t.how}</div>
+          <div class="chips">
+            <div class="chip">${t.paste}</div>
+            <div class="chip on">${t.manual}</div>
+            <div class="chip">${t.photo}</div>
+          </div>
+          <div class="field"><label>${t.pickup}</label><div class="box">Chicago, IL</div></div>
+          <div class="field"><label>${t.drop}</label><div class="box">Atlanta, GA</div></div>
+          <div class="grid2">
+            <div class="field" style="margin:0"><label>${t.rate}</label><div class="box">2400.00</div></div>
+            <div class="field" style="margin:0"><label>${t.miles}</label><div class="box">720</div></div>
+          </div>
+          <div class="preview" style="margin-top:12px">
+            <b>$2,400.00 · 720 mi</b>
+            Chicago, IL → Atlanta, GA · $3.33 / mi
+          </div>
+          <button class="btn">${t.save}</button>
+        </div>
+      `,
+      camera: () => `
+        ${statusBar()}
+        ${hdr(t.takePhoto, t.gpsOn, true)}
+        <div class="cam-stage">
+          <div class="cam-sky"></div>
+          <div class="cam-road"></div>
+          <div class="cam-dash"></div>
+          <div class="gps-chip"><span class="live"></span>${t.gpsOn} · 35.22, −101.83</div>
+          <div class="watermark">
+            <b>TruckoRig</b>
+            Amarillo, TX 79101<br>
+            35.221997, −101.831297
+          </div>
+          <div class="shutter"></div>
+        </div>
+      `,
+      scanner: () => `
+        ${statusBar()}
+        ${hdr(t.scanTitle, t.scanSub, true)}
+        <div class="body" style="padding-bottom:24px">
+          <div class="doc-sheet">
+            <div class="line"></div>
+            <div class="line w2"></div>
+            <div class="line w3"></div>
+            <div class="stamp">RATE CONFIRMATION · PDF</div>
+          </div>
+          <div class="preview">
+            <b>$2,500.00 · 850 mi</b>
+            ${t.ocrLabel}: Garner, NC → Dallas, TX · $2.94 / mi
+          </div>
+          <button class="btn">${t.scanSave}</button>
+          <button class="btn ghost">${t.scanAgain}</button>
+        </div>
+      `,
+      diesel: () => `
+        ${statusBar()}
+        ${hdr(t.dieselTitle, t.dieselSub, true)}
+        <div class="body" style="padding-bottom:24px">
+          <div class="gps-chip" style="position:static;margin-bottom:12px">
+            <span class="live"></span>${t.gpsHint}
+          </div>
+          <div class="field"><label>${t.location}</label><div class="box">Love's · Amarillo, TX</div></div>
+          <div class="grid2">
+            <div class="field" style="margin:0"><label>${t.gallons}</label><div class="box">126.00</div></div>
+            <div class="field" style="margin:0"><label>${t.priceGal}</label><div class="box">3.87</div></div>
+          </div>
+          <div class="field" style="margin-top:12px"><label>${t.discount}</label><div class="box">3.79</div></div>
+          <div class="preview">
+            <b>${t.paid} $477.54</b>
+            ${t.saved} $10.08
+          </div>
+          <button class="btn ghost">${t.receipt}</button>
+          <button class="btn">${t.save}</button>
+        </div>
       `,
       weekly_goal: () => `
         ${statusBar()}
@@ -839,31 +1197,6 @@
           <button class="btn">${t.editGoal}</button>
         </div>
         ${nav("goal")}
-      `,
-      add_load: () => `
-        ${statusBar()}
-        ${hdr(t.addTitle, t.addSub, true)}
-        <div class="body" style="padding-bottom:24px">
-          <div class="section">${t.how}</div>
-          <div class="chips">
-            <div class="chip on">${t.paste}</div>
-            <div class="chip">${t.manual}</div>
-            <div class="chip">${t.photo}</div>
-          </div>
-          <div class="field">
-            <label>${t.msg}</label>
-            <textarea>Trip ID: T-116KYL6KW
-Total Rate: 2500.00
-Total Loaded Miles: 850 mi
-Pu-address: SWF2, Garner, NC
-Del-address: DFW7, Dallas, TX</textarea>
-          </div>
-          <div class="preview">
-            <b>$2,500.00 · 850 mi</b>
-            ${t.parsed}: Garner, NC → Dallas, TX · $2.94 / mi
-          </div>
-          <button class="btn">${t.save}</button>
-        </div>
       `,
       analytics: () => `
         ${statusBar()}
@@ -898,94 +1231,17 @@ Del-address: DFW7, Dallas, TX</textarea>
           </div>
         </div>
       `,
-      diesel: () => `
-        ${statusBar()}
-        ${hdr(t.dieselTitle, t.dieselSub, true)}
-        <div class="body">
-          <div class="hero">
-            <div class="kicker">${t.weekShort}</div>
-            <div class="amt">$1,248</div>
-            <div class="meta">326 gal · $3.83 / gal</div>
-          </div>
-          <button class="btn">+ ${t.addFill}</button>
-          <article class="card">
-            <div class="row"><span class="id">Love's · Amarillo, TX</span><span class="date">$487.20</span></div>
-            <div class="stats">21 Jul · 126 gal · $3.87/gal</div>
-          </article>
-          <article class="card">
-            <div class="row"><span class="id">Pilot · Tulsa, OK</span><span class="date">$412.60</span></div>
-            <div class="stats">20 Jul · 108 gal · $3.82/gal</div>
-          </article>
-          <article class="card">
-            <div class="row"><span class="id">TA · Joplin, MO</span><span class="date">$348.40</span></div>
-            <div class="stats">19 Jul · 92 gal · $3.79/gal</div>
-          </article>
-        </div>
-      `,
-      profile: () => `
-        ${statusBar()}
-        ${hdr(t.profile, t.driver)}
-        <div class="body">
-          <div class="avatar">A</div>
-          <h3 class="pname">Alex M.</h3>
-          <p class="pmeta">${t.truckMeta}</p>
-          <div class="grid2">
-            <div class="tile"><div class="k">${t.loads}</div><div class="v">186</div></div>
-            <div class="tile"><div class="k">RPM</div><div class="v">$2.61</div></div>
-          </div>
-          <div class="list"><span class="mark">⚙</span><span>${t.settings}</span><span class="chev">›</span></div>
-          <div class="list"><span class="mark">☁</span><span>${t.drive}</span><span class="chev">›</span></div>
-          <div class="list"><span class="mark">▣</span><span>${t.reports}</span><span class="chev">›</span></div>
-          <div class="list"><span class="mark">◌</span><span>${t.bio}</span><span class="chev">›</span></div>
-        </div>
-        ${nav("profile")}
-      `,
-      telegram: () => `
-        ${statusBar()}
-        ${hdr(t.tgTitle, t.tgSub, true)}
-        <div class="body" style="padding-bottom:24px">
-          <div class="hero">
-            <div class="kicker">Telegram</div>
-            <div class="amt" style="font-size:28px">${t.tgTitle}</div>
-            <div class="meta" style="margin-top:12px"><span class="badge">● ${t.tgActive}</span></div>
-          </div>
-          <div class="list"><span class="mark">🔑</span><div><div>${t.tgToken}</div><div class="ok">•••• •••• ••••</div></div></div>
-          <button class="btn">${t.tgTest}</button>
-          <button class="btn ghost">${t.tgChange}</button>
-          <div class="card" style="font-size:14px;color:var(--muted);line-height:1.45">
-            Trip ID: T-116KYL6KW<br>
-            Total Rate: 2500.00<br>
-            Pu-address: SWF2, Garner, NC
-          </div>
-        </div>
-      `,
-      login: () => `
-        ${statusBar()}
-        <div class="body" style="padding-bottom:28px">
-          <div class="login-hero">
-            <img src="../assets/ic_launcher_image.png" alt="TruckoRig" />
-            <h3>TruckoRig</h3>
-            <p>${t.loginSub}</p>
-          </div>
-          <button class="gbtn">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.3 35.1 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.2-3.5 5.7-6.6 7.1l.1.1 6.3 5.3C36.7 39.1 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
-            ${t.google}
-          </button>
-          <button class="btn ghost">${t.email}</button>
-          <button class="btn ghost">${t.offline}</button>
-        </div>
-      `,
     };
 
     const CAPTIONS = {
       journal: [t.journalH, t.journalP],
-      weekly_goal: [t.goalH, t.goalP],
+      widget: [t.widgetH, t.widgetP],
       add_load: [t.addH, t.addP],
-      analytics: [t.analyticsH, t.analyticsP],
+      camera: [t.cameraH, t.cameraP],
+      scanner: [t.scannerH, t.scannerP],
       diesel: [t.dieselH, t.dieselP],
-      profile: [t.profileH, t.profileP],
-      telegram: [t.telegramH, t.telegramP],
-      login: [t.loginH, t.loginP],
+      weekly_goal: [t.goalH, t.goalP],
+      analytics: [t.analyticsH, t.analyticsP],
     };
 
     function phoneCanvas(id) {
@@ -1016,9 +1272,9 @@ Del-address: DFW7, Dallas, TX</textarea>
                   <div class="stats">1,369 mi · <b>$3,815.90</b> · $2.79/mi</div>
                 </article>
                 <article class="card">
-                  <div class="row"><span class="id">T-116KYL6KW</span><span class="date">19 Jul</span></div>
-                  <div class="route">GARNER, NC → DALLAS, TX</div>
-                  <div class="stats">850 mi · <b>$2,500.00</b> · $2.94/mi</div>
+                  <div class="row"><span class="id">M-0826-CHI <span class="src alt">${t.typeManual}</span></span><span class="date">20 Jul</span></div>
+                  <div class="route">CHICAGO, IL → ATLANTA, GA</div>
+                  <div class="stats">720 mi · <b>$2,400.00</b> · $3.33/mi</div>
                 </article>
               </div>
             </div>

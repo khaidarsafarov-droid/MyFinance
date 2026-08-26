@@ -30,13 +30,13 @@ CHROME = next((p for p in CHROME_CANDIDATES if p and Path(p).exists()), None)
 
 PHONE_SLIDES = [
     "journal",
-    "weekly_goal",
+    "widget",
     "add_load",
-    "analytics",
+    "camera",
+    "scanner",
     "diesel",
-    "profile",
-    "telegram",
-    "login",
+    "weekly_goal",
+    "analytics",
 ]
 PHONE_SIZE = (1080, 1920)
 TABLET_SIZE = (1920, 1200)
