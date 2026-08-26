@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +67,8 @@ import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.StopTimeline
+import com.truckerload.presentation.components.LoadDetailSkeleton
+import com.truckerload.presentation.theme.focusAfterNavigate
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
@@ -132,6 +133,10 @@ fun LoadDetailScreen(
                     Column {
                         Text(
                             uiState.load?.tripId ?: stringResource(R.string.load_detail_title),
+                            modifier = Modifier.focusAfterNavigate(
+                                key = loadId,
+                                enabled = !uiState.isLoading && uiState.load != null,
+                            ),
                             color = tc.TextPrimary,
                         )
                         PrivacyTrustBadge(onClick = onOpenPrivacy)
@@ -182,12 +187,11 @@ fun LoadDetailScreen(
             ) {
                 Text(uiState.loadError ?: stringResource(R.string.load_error_generic), color = tc.TextPrimary)
             }
-            uiState.isLoading || uiState.load == null -> Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(color = tc.AccentPrimary)
-            }
+            uiState.isLoading || uiState.load == null -> LoadDetailSkeleton(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            )
             else -> {
                 val raw = uiState.load ?: return@Scaffold
                 // Live recompute so duration/pace always reflect actualFinishDate + stops.

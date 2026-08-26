@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +43,8 @@ import com.truckerload.presentation.components.BentoGrid
 import com.truckerload.presentation.components.BentoItem
 import com.truckerload.presentation.components.LoadCard
 import com.truckerload.presentation.components.RpmColorLegend
+import com.truckerload.presentation.components.AnalyticsSkeleton
+import com.truckerload.presentation.theme.focusAfterNavigate
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.AppFilterChipDefaults
@@ -152,14 +153,16 @@ private fun AnalyticsScreenBody(
                 .padding(padding),
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = tc.AccentPrimary,
+                AnalyticsSkeleton(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center),
                 )
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .focusAfterNavigate(key = "analytics", enabled = !uiState.isLoading)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
                         .navigationBarsPadding(),
