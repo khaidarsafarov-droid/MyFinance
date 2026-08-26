@@ -50,7 +50,7 @@ data class PaycheckJournalUiState(
 @HiltViewModel
 class PaycheckJournalViewModel @Inject constructor(
     private val paycheckRepository: PaycheckRepository,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     private val initialWeek = getCurrentWeekNumberAndYear()
