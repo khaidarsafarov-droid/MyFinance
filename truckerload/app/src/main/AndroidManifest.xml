@@ -47,6 +47,7 @@
         android:anyDensity="true"
         android:resizeable="true" />
 
+    <!-- Predictive Back (Android 14+): Navigation Compose seeks popEnter/popExit transitions. -->
     <application
         android:name=".TruckerLoadApp"
         android:enableOnBackInvokedCallback="true"

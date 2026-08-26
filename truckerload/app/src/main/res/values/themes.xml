@@ -4,6 +4,8 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <!-- Solid surface behind predictive back-to-home / cross-activity scrub. -->
+        <item name="android:windowBackground">?attr/colorSurface</item>
     </style>
 
     <style name="Theme.TruckerLoad.Widget" parent="Theme.Material3.DayNight" />
