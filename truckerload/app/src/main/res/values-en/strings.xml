@@ -933,6 +933,7 @@
     <string name="drive_sync_status_on">Connected: %1$s</string>
     <string name="drive_sync_last">Last sync: %1$s</string>
     <string name="drive_sync_last_never">never</string>
+    <string name="drive_sync_last_error">Last Drive error: %1$s</string>
     <string name="drive_sync_connect">Connect Google Drive</string>
     <string name="drive_sync_now">Sync with Google Drive</string>
     <string name="drive_sync_disconnect">Disconnect</string>
@@ -1648,4 +1649,11 @@
     <string name="drawer_section_finance">Finance</string>
     <string name="drawer_section_data_entry">Data entry</string>
     <string name="drawer_section_maintenance">Maintenance</string>
+    <string name="settings_backup_working">Creating backup…</string>
+    <string name="settings_backup_restoring">Restoring data…</string>
+    <string name="settings_share_app_title">Share the app</string>
+    <string name="settings_share_app_body">Send a friend the install APK or a build link. Their data stays on their phone — no server needed.</string>
+    <string name="settings_share_app_button">Share APK</string>
+    <string name="settings_share_app_unavailable">Could not find this app APK on the device</string>
+    <string name="settings_share_app_chooser">Share TruckoRig</string>
 </resources>

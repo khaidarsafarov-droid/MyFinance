@@ -18,7 +18,6 @@ import com.truckerload.domain.model.Load
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
-import com.truckerload.utils.LoadDateIndex
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
@@ -77,30 +76,33 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    /** Room subscription scoped by filter — week filters use reporting weekNumber/year. */
+    /**
+     * Room subscription scoped by filter.
+     * Week / ALL / DISPUTE journals use [roomPagedLoads] + SQL totals — avoid dual hydrate.
+     * THIS_MONTH loads only the current month prefix (not the whole fleet).
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val loadsFromDb: StateFlow<List<Load>> = _uiState
         .map { Triple(it.filter, it.selectedWeekStart, it.selectedWeekEnd) }
         .distinctUntilChanged()
         .flatMapLatest { (filter, weekStart, _) ->
             when (filter) {
-                LoadFilter.THIS_WEEK -> {
-                    val (w, y) = getCurrentWeekNumberAndYear()
-                    loadRepository.getLoadsByWeek(w, y)
+                // List comes from Room paging; header totals from [pagedFilterTotals].
+                LoadFilter.THIS_WEEK,
+                LoadFilter.LAST_WEEK,
+                LoadFilter.CALENDAR_WEEK,
+                LoadFilter.DISPUTE,
+                LoadFilter.ALL,
+                -> flowOf(emptyList())
+                LoadFilter.THIS_MONTH -> {
+                    val cal = java.util.Calendar.getInstance()
+                    val prefix = "%04d-%02d".format(
+                        cal.get(java.util.Calendar.YEAR),
+                        cal.get(java.util.Calendar.MONTH) + 1,
+                    )
+                    loadRepository.getLoadsByMonth("$prefix%")
                 }
-                LoadFilter.LAST_WEEK -> {
-                    val (w, y) = getPreviousWeekNumberAndYear()
-                    loadRepository.getLoadsByWeek(w, y)
-                }
-                LoadFilter.CALENDAR_WEEK -> {
-                    if (!weekStart.isNullOrBlank()) {
-                        val (w, y) = getWeekNumberAndYearFromDate(weekStart)
-                        loadRepository.getLoadsByWeek(w, y)
-                    } else {
-                        loadRepository.watchLoads()
-                    }
-                }
-                LoadFilter.ALL -> flowOf(emptyList())
+                // YESTERDAY / CALENDAR_DATE need active trip-day ranges via stops.
                 else -> loadRepository.watchLoads()
             }
         }
@@ -131,12 +133,6 @@ class HomeViewModel @Inject constructor(
             started = homeSharing,
             initialValue = emptyList(),
         )
-
-    /**
-     * Full journal for calendar dots — subscribed only while the calendar dialog is open
-     * (see [calendarDatesWithLoads]), so Home does not load every load on cold start.
-     */
-    private val allLoadsForCalendar: Flow<List<Load>> = loadRepository.watchLoads()
 
     private val _initialLoadDone = MutableStateFlow(false)
 
@@ -218,16 +214,37 @@ class HomeViewModel @Inject constructor(
             initialValue = null,
         )
 
+    /**
+     * SQL totals for Room-paged journals (week / dispute) — avoids dual hydrate
+     * while keeping header numbers accurate.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val pagedFilterTotals: StateFlow<LoadFilterUseCase.Totals?> = filterState
+        .flatMapLatest { state -> HomePagedFilterTotals.observe(state, loadRepository) }
+        .stateIn(
+            scope = viewModelScope,
+            started = homeSharing,
+            initialValue = null,
+        )
+
     private val _archiveYears = MutableStateFlow<List<Int>>(emptyList())
 
     /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
-        displayedLoadsFromDb,
-        _optimisticOverlay,
-        _pendingDeleteIds,
-        filterState,
-        allFilterTotals,
-    ) { loads, overlay, pendingDeletes, filter, sqlTotals ->
+        combine(
+            displayedLoadsFromDb,
+            _optimisticOverlay,
+            _pendingDeleteIds,
+            filterState,
+            allFilterTotals,
+        ) { loads, overlay, pendingDeletes, filter, sqlTotals ->
+            Triple(loads to overlay, pendingDeletes to filter, sqlTotals)
+        },
+        pagedFilterTotals,
+    ) { packed, pagedTotals ->
+        val (loadsOverlay, pendingFilter, sqlTotals) = packed
+        val (loads, overlay) = loadsOverlay
+        val (pendingDeletes, filter) = pendingFilter
         val merged = mergeLoadsWithOptimisticOverlay(loads, overlay, pendingDeletes)
         val filtered = filterUseCase.filterLoads(
             loads = merged,
@@ -239,13 +256,16 @@ class HomeViewModel @Inject constructor(
             selectedYear = filter.selectedYear,
             dateIndex = null,
         )
-        val totals = if (filter.filter == LoadFilter.ALL && sqlTotals != null) {
-            sqlTotals
-        } else {
-            filterUseCase.calculateTotals(filtered)
+        val totals = when {
+            filter.filter == LoadFilter.ALL && sqlTotals != null -> sqlTotals
+            pagedTotals != null -> pagedTotals
+            else -> filterUseCase.calculateTotals(filtered)
         }
+        val hideInMemoryList =
+            HomeRoomPagingPolicy.usesRoomPaging(filter.filter, filter.selectedYear) &&
+                filter.searchQuery.isBlank()
         FilteredResult(
-            loads = if (filter.filter == LoadFilter.ALL) emptyList() else filtered,
+            loads = if (hideInMemoryList) emptyList() else filtered,
             totals = totals,
         )
     }
@@ -260,29 +280,29 @@ class HomeViewModel @Inject constructor(
      * Dates that have loads — collected only while the calendar dialog is composed so
      * opening Home does not hydrate the full journal into memory.
      */
-    val calendarDatesWithLoads: StateFlow<Set<String>> = combine(
-        allLoadsForCalendar,
-        _optimisticOverlay,
-        _pendingDeleteIds,
-    ) { allLoads, overlay, pendingDeletes ->
-        val calendarMerged = mergeLoadsWithOptimisticOverlay(allLoads, overlay, pendingDeletes)
-        LoadDateIndex.build(calendarMerged).keys.toSet()
-    }
+    val calendarDatesWithLoads: StateFlow<Set<String>> = loadRepository.watchLoadDateSpans()
+        .map { HomeCalendarDateSpans.toDateKeys(it) }
         .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptySet(),
         )
+
     /**
      * True Room SQL paging for week / dispute journal filters.
-     * Day/month filters stay in-memory so they use [getLoadDateRange] (active trip days),
+     * Day/month filters stay in-memory so they use active trip-day ranges,
      * matching header totals and calendar day selection.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val roomPagedLoads: Flow<PagingData<Load>> = filterState
         .flatMapLatest { filter ->
             val trimmed = filter.searchQuery.trim()
+            if (trimmed.isEmpty() &&
+                !HomeRoomPagingPolicy.usesRoomPaging(filter.filter, filter.selectedYear)
+            ) {
+                return@flatMapLatest flowOf(PagingData.empty())
+            }
             when {
                 trimmed.isNotEmpty() -> loadRepository.pagingLoads(searchQuery = trimmed)
                 filter.filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(disputesOnly = true)
@@ -305,22 +325,8 @@ class HomeViewModel @Inject constructor(
         }
         .cachedIn(viewModelScope)
 
-    /**
-     * Room paging for week/dispute/archive ALL filters.
-     * THIS_MONTH / YESTERDAY / CALENDAR_DATE need active-date-range logic in memory.
-     */
-    fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean {
-        if (filter == LoadFilter.ALL) return true
-        if (selectedYear != null) return false
-        return when (filter) {
-            LoadFilter.THIS_WEEK,
-            LoadFilter.LAST_WEEK,
-            LoadFilter.CALENDAR_WEEK,
-            LoadFilter.DISPUTE,
-            -> true
-            else -> false
-        }
-    }
+    fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean =
+        HomeRoomPagingPolicy.usesRoomPaging(filter, selectedYear)
     init {
         viewModelScope.launch {
             runCatching { _archiveYears.value = loadRepository.getDistinctLoadYears() }

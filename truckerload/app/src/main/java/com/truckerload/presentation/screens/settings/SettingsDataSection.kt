@@ -55,15 +55,19 @@ fun SettingsDataSection(
     var exportedFile by remember { mutableStateOf<File?>(null) }
     var showExportActions by remember { mutableStateOf(false) }
     var showRestoreConfirm by remember { mutableStateOf(false) }
+    var backupBusy by remember { mutableStateOf(false) }
+    var restoreBusy by remember { mutableStateOf(false) }
 
     val restoreLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         scope.launch {
+            restoreBusy = true
             val result = withContext(Dispatchers.IO) {
                 BackupService.restoreFromUri(context, uri)
             }
+            restoreBusy = false
             val message = result.fold(
                 onSuccess = { it },
                 onFailure = { BackupRestoreErrors.userMessage(context, it) },
@@ -108,9 +112,21 @@ fun SettingsDataSection(
                 color = tc.TextSecondary,
             )
         }
+        if (backupBusy || restoreBusy) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            Text(
+                text = stringResource(
+                    if (restoreBusy) R.string.settings_backup_restoring
+                    else R.string.settings_backup_working,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.TextSecondary,
+            )
+        }
         Button(
             onClick = { settingsViewModel.exportCsv() },
-            enabled = exportState !is SettingsViewModel.ExportState.Loading,
+            enabled = exportState !is SettingsViewModel.ExportState.Loading &&
+                !backupBusy && !restoreBusy,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
@@ -127,10 +143,13 @@ fun SettingsDataSection(
         }
         Button(
             onClick = {
+                if (backupBusy || restoreBusy) return@Button
                 scope.launch {
+                    backupBusy = true
                     val result = withContext(Dispatchers.IO) {
                         BackupService.createManualBackup(context)
                     }
+                    backupBusy = false
                     result?.let {
                         Toast.makeText(
                             context,
@@ -145,10 +164,12 @@ fun SettingsDataSection(
                     } ?: Toast.makeText(
                         context,
                         context.getString(R.string.settings_backup_error),
-                        Toast.LENGTH_SHORT,
+                        Toast.LENGTH_LONG,
                     ).show()
                 }
             },
+            enabled = !backupBusy && !restoreBusy &&
+                exportState !is SettingsViewModel.ExportState.Loading,
             modifier = Modifier.fillMaxWidth().height(52.dp),
         ) {
             Row(
@@ -162,10 +183,16 @@ fun SettingsDataSection(
         }
         OutlinedButton(
             onClick = { showRestoreConfirm = true },
+            enabled = !backupBusy && !restoreBusy,
             modifier = Modifier.fillMaxWidth().height(48.dp),
         ) {
             Text(stringResource(R.string.settings_backup_restore))
         }
+        Text(
+            text = stringResource(R.string.settings_backup_restore_hint),
+            style = MaterialTheme.typography.labelSmall,
+            color = tc.TextSecondary,
+        )
     }
 
     if (showRestoreConfirm) {
