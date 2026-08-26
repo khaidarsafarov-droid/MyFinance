@@ -15,6 +15,7 @@ import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -219,7 +220,8 @@ class HomeViewModel @Inject constructor(
      * while keeping header numbers accurate.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val pagedFilterTotals: StateFlow<LoadFilterUseCase.Totals?> = filterState
+    private val pagedFilterTotals: StateFlow<LoadFilterUseCase.Totals?> =
+        combine(filterState, WeekStartRuntime.revision) { state, _ -> state }
         .flatMapLatest { state -> HomePagedFilterTotals.observe(state, loadRepository) }
         .stateIn(
             scope = viewModelScope,
@@ -295,7 +297,8 @@ class HomeViewModel @Inject constructor(
      * matching header totals and calendar day selection.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val roomPagedLoads: Flow<PagingData<Load>> = filterState
+    val roomPagedLoads: Flow<PagingData<Load>> =
+        combine(filterState, WeekStartRuntime.revision) { filter, _ -> filter }
         .flatMapLatest { filter ->
             val trimmed = filter.searchQuery.trim()
             if (trimmed.isEmpty() &&

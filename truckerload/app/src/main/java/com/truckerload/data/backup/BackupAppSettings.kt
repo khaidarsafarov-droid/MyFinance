@@ -25,4 +25,6 @@ data class BackupAppSettings(
     val rpmMinProfit: Double? = null,
     val rpmTargetProfit: Double? = null,
     val telegramChatId: Long? = null,
+    val loadWeekStartDay: Int? = null,
+    val dieselWeekStartDay: Int? = null,
 )

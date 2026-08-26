@@ -870,6 +870,10 @@
     <string name="settings_language_desc">Язык интерфейса приложения и виджета</string>
     <string name="settings_language_ru">Русский</string>
     <string name="settings_language_en">English</string>
+    <string name="settings_week_start_title">Начало недели</string>
+    <string name="settings_week_start_desc">Журналы, отчёты, цель недели и виджет считают неделю с выбранного дня. Существующие записи будут переназначены. Расчётки используют неделю грузов.</string>
+    <string name="settings_week_start_loads">Грузы и расчётки</string>
+    <string name="settings_week_start_diesel">Дизель</string>
     <string name="rpm_legend_red">Слабо: меньше \$%1$.2f за милю</string>
     <string name="rpm_legend_yellow">Норма: \$%1$.2f–\$%2$.2f за милю</string>
     <string name="rpm_legend_green">Хорошо: больше \$%1$.2f за милю</string>

@@ -24,7 +24,7 @@ object WidgetDayProjection {
 
     fun todayOffset(
         today: LocalDate = LocalDate.now(),
-        weekStart: LocalDate = WidgetWeekDayHelper.sundayOfWeek(today),
+        weekStart: LocalDate = WidgetWeekDayHelper.startOfWeek(today),
     ): Int = ChronoUnit.DAYS.between(weekStart, today).toInt().coerceIn(0, 6)
 
     fun clampSelection(selectedOffset: Int?, todayOffset: Int): Int {

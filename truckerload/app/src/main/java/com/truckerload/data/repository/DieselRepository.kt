@@ -66,6 +66,12 @@ class DieselRepository(private val db: AppDatabase) {
 
     suspend fun getAllDieselOnce(): List<Diesel> = getAllDiesel().first()
 
+    /** Overwrites week fields in place without bumping [Diesel.addedAt] or enqueueing sync. */
+    suspend fun replaceReportingWeeks(updated: List<Diesel>) {
+        if (updated.isEmpty()) return
+        dao.insertAll(updated.map { it.toEntity() })
+    }
+
     private fun scheduleAutoBackup() {
         AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
     }

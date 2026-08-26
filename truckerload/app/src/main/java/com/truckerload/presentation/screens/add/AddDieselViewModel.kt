@@ -18,6 +18,7 @@ import com.truckerload.utils.applyUtcDatePickerDay
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.widget.WidgetDataUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +71,7 @@ class AddDieselViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
-    private val initialWeekAndYear = getCurrentWeekNumberAndYear()
+    private val initialWeekAndYear = getCurrentWeekNumberAndYear(WeekStartRuntime.diesel)
     private val editDieselId: Int = savedStateHandle.get<Int>("dieselId")?.takeIf { it > 0 } ?: -1
 
     private val _uiState = MutableStateFlow(
@@ -230,7 +231,7 @@ class AddDieselViewModel @Inject constructor(
 
         val weekNumber = state.weekNumber
         val year = state.year
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
+        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
         val diesel = Diesel(
             id = state.editingId ?: 0,
             weekNumber = weekNumber,
@@ -351,7 +352,7 @@ class AddDieselViewModel @Inject constructor(
     }
 
     private fun setRecordedAtMillis(value: Long) {
-        val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(value)
+        val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(value, WeekStartRuntime.diesel)
         savedStateHandle[KEY_RECORDED_AT_MILLIS] = value
         savedStateHandle[KEY_WEEK_NUMBER] = weekNumber
         savedStateHandle[KEY_YEAR] = year

@@ -37,6 +37,7 @@ import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.data.preferences.StartupRepairStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.preferences.UserProfileStore
@@ -146,6 +147,10 @@ class MainActivity : AppCompatActivity() {
                             sessionReady = false
                         }
                         val deps = withContext(Dispatchers.IO) {
+                            WeekStartRuntime.install(
+                                settingsDataStore.getLoadWeekStartDayOnce(),
+                                settingsDataStore.getDieselWeekStartDayOnce(),
+                            )
                             userComponentManager.startSession(activeUserId)
                         }
                         session = deps

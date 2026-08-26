@@ -2,16 +2,14 @@ package com.truckerload.utils
 
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
-import java.text.DateFormatSymbols
+import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.domain.week.WeekStartRuntime
 import java.util.Calendar
 import java.util.Locale
 
-/** Неделя водителя: воскресенье — первый день (Sun–Sat). */
-internal fun truckingWeekCalendar(): Calendar =
-    Calendar.getInstance(Locale.US).apply {
-        firstDayOfWeek = Calendar.SUNDAY
-        minimalDaysInFirstWeek = 1
-    }
+/** Reporting-week calendar. Default is the loads week start from Settings. */
+internal fun truckingWeekCalendar(firstDay: WeekStartDay = WeekStartRuntime.loads): Calendar =
+    weekCalendar(firstDay)
 
 private fun weekSortKey(weekNumber: Int, year: Int): Long = year * 100L + weekNumber
 
@@ -26,109 +24,81 @@ private fun isWeekAfter(a: Pair<Int, Int>, b: Pair<Int, Int>): Boolean =
 internal fun Calendar.truckingWeekYear(): Int = getWeekYear()
 
 /** Get (weekNumber, weekYear) from timestamp (millis) in device default timezone. */
-fun getWeekNumberAndYearFromTimestamp(millis: Long): Pair<Int, Int> {
-    val cal = truckingWeekCalendar().apply { timeInMillis = millis }
-    // FIX: use week-year — calendar YEAR splits Dec 28–31 week-1 across two years
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
-}
+fun getWeekNumberAndYearFromTimestamp(
+    millis: Long,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<Int, Int> = WeekCalendarMath.numberAndYearFromTimestamp(millis, firstDay)
 
 /**
- * Returns (weekStartDate "yyyy-MM-dd", weekEndDate "yyyy-MM-dd", weekLabel "Sun DD – Sat DD, YYYY") for the given week number and year.
+ * Returns (weekStartDate "yyyy-MM-dd", weekEndDate "yyyy-MM-dd", weekLabel) for the given week.
  */
-fun getWeekRange(weekNumber: Int, year: Int): Triple<String, String, String> {
-    val cal = truckingWeekCalendar()
-    cal.clear()
-    // FIX: setWeekDate anchors by week-year so week 1 of 2026 starts on 2025-12-28
-    cal.setWeekDate(year, weekNumber, Calendar.SUNDAY)
-    val startYear = cal.get(Calendar.YEAR)
-    val startMonth = cal.get(Calendar.MONTH) + 1
-    val startDay = cal.get(Calendar.DAY_OF_MONTH)
-    val startStr = String.format(Locale.US, "%04d-%02d-%02d", startYear, startMonth, startDay)
-    cal.add(Calendar.DAY_OF_YEAR, 6)
-    val endYear = cal.get(Calendar.YEAR)
-    val endMonth = cal.get(Calendar.MONTH) + 1
-    val endDay = cal.get(Calendar.DAY_OF_MONTH)
-    val endStr = String.format(Locale.US, "%04d-%02d-%02d", endYear, endMonth, endDay)
-    val shortMonths = DateFormatSymbols(Locale.getDefault()).shortMonths
-    val startMonthLabel = shortMonths.getOrNull((startMonth - 1).coerceIn(0, 11)).orEmpty().replace(".", "")
-    val endMonthLabel = shortMonths.getOrNull((endMonth - 1).coerceIn(0, 11)).orEmpty().replace(".", "")
-    val label = "$startMonthLabel $startDay – $endMonthLabel $endDay, $startYear"
-    return Triple(startStr, endStr, label)
-}
+fun getWeekRange(
+    weekNumber: Int,
+    year: Int,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Triple<String, String, String> = WeekCalendarMath.range(weekNumber, year, firstDay)
 
-fun getCurrentWeekNumberAndYear(): Pair<Int, Int> {
-    val cal = truckingWeekCalendar()
-    // FIX: week-year so late-December "this week" matches stored load keys
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
-}
+fun getCurrentWeekNumberAndYear(
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<Int, Int> = WeekCalendarMath.current(firstDay)
 
-/** Shift trucking week by [deltaWeeks] (negative = previous). */
-/** Noon (local) on Sunday of the trucking week — keeps week chips aligned with save(). */
-fun getMillisForWeek(weekNumber: Int, year: Int): Long {
-    val cal = truckingWeekCalendar()
-    cal.clear()
-    cal.setWeekDate(year, weekNumber, Calendar.SUNDAY)
-    cal.set(Calendar.HOUR_OF_DAY, 12)
-    cal.set(Calendar.MINUTE, 0)
-    cal.set(Calendar.SECOND, 0)
-    cal.set(Calendar.MILLISECOND, 0)
-    return cal.timeInMillis
-}
+/** Noon (local) on the first day of the reporting week — keeps week chips aligned with save(). */
+fun getMillisForWeek(
+    weekNumber: Int,
+    year: Int,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Long = WeekCalendarMath.millisForWeek(weekNumber, year, firstDay)
 
-fun shiftWeekNumberAndYear(weekNumber: Int, year: Int, deltaWeeks: Int): Pair<Int, Int> {
-    val cal = truckingWeekCalendar()
-    cal.clear()
-    // FIX: shift from week-year identity, not calendar YEAR
-    cal.setWeekDate(year, weekNumber, Calendar.SUNDAY)
-    cal.add(Calendar.WEEK_OF_YEAR, deltaWeeks)
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
-}
+fun shiftWeekNumberAndYear(
+    weekNumber: Int,
+    year: Int,
+    deltaWeeks: Int,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<Int, Int> = WeekCalendarMath.shift(weekNumber, year, deltaWeeks, firstDay)
 
-fun getPreviousWeekNumberAndYear(): Pair<Int, Int> {
-    val cal = truckingWeekCalendar()
-    cal.add(Calendar.WEEK_OF_YEAR, -1)
-    // FIX: week-year for previous-week filters/goals at year boundary
-    return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
-}
+fun getPreviousWeekNumberAndYear(
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<Int, Int> = WeekCalendarMath.previous(firstDay)
 
 /** Current calendar week start and end as "YYYY-MM-DD" (device local). Use for filtering loads by date. */
-fun getCurrentWeekStartAndEnd(): Pair<String, String> {
-    val (week, year) = getCurrentWeekNumberAndYear()
-    val (start, end, _) = getWeekRange(week, year)
+fun getCurrentWeekStartAndEnd(
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<String, String> {
+    val (week, year) = getCurrentWeekNumberAndYear(firstDay)
+    val (start, end, _) = getWeekRange(week, year, firstDay)
     return Pair(start, end)
 }
 
-/** Days elapsed in current trucking week (Sun=1 … today). */
-fun getDaysElapsedInCurrentWeek(): Int {
-    val cal = truckingWeekCalendar()
-    return cal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY + 1
-}
+/** Days elapsed in current reporting week (first day = 1 … today). */
+fun getDaysElapsedInCurrentWeek(
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Int = WeekCalendarMath.daysElapsed(firstDay)
 
-/** Days remaining in current trucking week including today (today … Sat). */
-fun getDaysRemainingInCurrentWeek(): Int {
-    val cal = truckingWeekCalendar()
-    return Calendar.SATURDAY - cal.get(Calendar.DAY_OF_WEEK) + 1
-}
+/** Days remaining in current reporting week including today. */
+fun getDaysRemainingInCurrentWeek(
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Int = WeekCalendarMath.daysRemaining(firstDay)
 
 /** Alias for widget / UI copy. */
-fun getDaysLeftInWeek(): Int = getDaysRemainingInCurrentWeek()
+fun getDaysLeftInWeek(firstDay: WeekStartDay = WeekStartRuntime.loads): Int =
+    getDaysRemainingInCurrentWeek(firstDay)
 
-/** Total days in trucking week (always 7). */
+/** Total days in a reporting week (always 7). */
 fun getDaysInTruckingWeek(): Int = 7
 
-/** Days active in week (Sun…today inclusive), min 1. Past weeks → 7. */
-fun getDaysActiveForWeek(weekNumber: Int, year: Int): Int {
-    val (currentWeek, currentYear) = getCurrentWeekNumberAndYear()
-    if (weekNumber != currentWeek || year != currentYear) return getDaysInTruckingWeek()
-    return getDaysElapsedInCurrentWeek().coerceAtLeast(1)
-}
+/** Days active in week (start…today inclusive), min 1. Past weeks → 7. */
+fun getDaysActiveForWeek(
+    weekNumber: Int,
+    year: Int,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Int = WeekCalendarMath.daysActiveForWeek(weekNumber, year, firstDay)
 
-/** Days remaining in week (today…Sat inclusive), min 1 for math. Past weeks → 1. */
-fun getDaysRemainingForWeek(weekNumber: Int, year: Int): Int {
-    val (currentWeek, currentYear) = getCurrentWeekNumberAndYear()
-    if (weekNumber != currentWeek || year != currentYear) return 1
-    return getDaysRemainingInCurrentWeek().coerceAtLeast(1)
-}
+/** Days remaining in week (today…end inclusive), min 1 for math. Past weeks → 1. */
+fun getDaysRemainingForWeek(
+    weekNumber: Int,
+    year: Int,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Int = WeekCalendarMath.daysRemainingForWeek(weekNumber, year, firstDay)
 
 /** Вчера в формате YYYY-MM-DD. */
 fun getYesterdayDate(): String {
@@ -138,9 +108,11 @@ fun getYesterdayDate(): String {
 }
 
 /** Прошлая неделя: (startDate, endDate) в формате YYYY-MM-DD. */
-fun getLastWeekStartAndEnd(): Pair<String, String> {
-    val (week, year) = getPreviousWeekNumberAndYear()
-    val (start, end, _) = getWeekRange(week, year)
+fun getLastWeekStartAndEnd(
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<String, String> {
+    val (week, year) = getPreviousWeekNumberAndYear(firstDay)
+    val (start, end, _) = getWeekRange(week, year, firstDay)
     return Pair(start, end)
 }
 
@@ -164,15 +136,16 @@ fun getDeliveryDate(load: Load): String? {
 }
 
 /**
- * Неделя отчёта для груза: по дате PU (воскресенье = новая неделя).
+ * Неделя отчёта для груза: по дате PU (начало недели из настроек грузов).
  * Если доставка попадает в более позднюю неделю (напр. PU суббота, DEL воскресенье) — неделя доставки.
  */
 fun getLoadReportingWeek(load: Load): Pair<Int, Int> {
+    val start = WeekStartRuntime.loads
     val puDate = getPickUpDate(load)
     val delDate = getDeliveryDate(load)
-    val puWeek = getWeekNumberAndYearFromDate(puDate)
+    val puWeek = getWeekNumberAndYearFromDate(puDate, start)
     if (delDate == null) return puWeek
-    val delWeek = getWeekNumberAndYearFromDate(delDate)
+    val delWeek = getWeekNumberAndYearFromDate(delDate, start)
     return if (isWeekAfter(delWeek, puWeek)) delWeek else puWeek
 }
 
@@ -265,19 +238,7 @@ fun getLoadDateRange(load: Load): Set<String> {
 /**
  * Parse "YYYY-MM-DD" to (weekNumber, weekYear). On error returns current week/year.
  */
-fun getWeekNumberAndYearFromDate(dateStr: String?): Pair<Int, Int> {
-    if (dateStr.isNullOrBlank() || dateStr.length < 10) return getCurrentWeekNumberAndYear()
-    return try {
-        val parts = dateStr.split("-")
-        if (parts.size != 3) return getCurrentWeekNumberAndYear()
-        val y = parts[0].toIntOrNull() ?: return getCurrentWeekNumberAndYear()
-        val m = parts[1].toIntOrNull()?.minus(1) ?: return getCurrentWeekNumberAndYear()
-        val d = parts[2].toIntOrNull() ?: return getCurrentWeekNumberAndYear()
-        val cal = truckingWeekCalendar()
-        cal.set(y, m, d)
-        // FIX: week-year — Dec 28 2025 is week 1 of 2026, not (1, 2025)
-        Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.truckingWeekYear())
-    } catch (e: Exception) {
-        getCurrentWeekNumberAndYear()
-    }
-}
+fun getWeekNumberAndYearFromDate(
+    dateStr: String?,
+    firstDay: WeekStartDay = WeekStartRuntime.loads,
+): Pair<Int, Int> = WeekCalendarMath.numberAndYearFromDate(dateStr, firstDay)

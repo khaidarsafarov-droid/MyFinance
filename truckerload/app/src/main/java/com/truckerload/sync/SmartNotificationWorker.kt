@@ -13,6 +13,7 @@ import com.truckerload.R
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.di.UserComponentManager
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.domain.notifications.QuietHours
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import dagger.assisted.Assisted
@@ -68,13 +69,20 @@ class SmartNotificationWorker @AssistedInject constructor(
         cancelLegacyPerTaskMaintenanceAlerts()
         val (currentWeek, year) = getCurrentWeekNumberAndYear()
         val (lastWeek, lastYear) = shiftWeekNumberAndYear(currentWeek, year, -1)
+        val (dieselCurrentWeek, dieselCurrentYear) = getCurrentWeekNumberAndYear(WeekStartRuntime.diesel)
+        val (lastDieselWeek, lastDieselYear) = shiftWeekNumberAndYear(
+            dieselCurrentWeek,
+            dieselCurrentYear,
+            -1,
+            WeekStartRuntime.diesel,
+        )
         val weekKey = "$lastYear-W$lastWeek"
         val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val alreadyNotifiedMissing = prefs.getString(KEY_MISSING_WEEK, null) == weekKey
 
         return try {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
-            val diesel = dieselRepo.getDieselForWeek(lastWeek, lastYear).first()
+            val diesel = dieselRepo.getDieselForWeek(lastDieselWeek, lastDieselYear).first()
             val dueMaintenance = if (allowMaintenance) {
                 maintenanceRepo.getDueProgressForNotifications()
             } else {
@@ -101,7 +109,7 @@ class SmartNotificationWorker @AssistedInject constructor(
                     ID_DIESEL,
                     CHANNEL_MISSING,
                     applicationContext.getString(R.string.notify_add_diesel_title),
-                    applicationContext.getString(R.string.notify_missing_week_body, lastWeek)
+                    applicationContext.getString(R.string.notify_missing_week_body, lastDieselWeek)
                 )
             }
             if (allowMissingWeek && (plan.notifyMissingPaycheck || plan.notifyMissingDiesel)) {

@@ -4,6 +4,8 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
@@ -40,11 +42,11 @@ class TelegramJournalIngest(
         addedAt: Long = System.currentTimeMillis(),
     ): PaycheckOutcome {
         if (netAmount <= 0) return PaycheckOutcome.InvalidAmount
-        val (weekNumber, year) = resolveWeek(weekStartDateHint, messageDateSeconds)
+        val (weekNumber, year) = resolveWeek(weekStartDateHint, messageDateSeconds, WeekStartRuntime.loads)
         if (paycheckRepository.getPaycheckForWeek(weekNumber, year) != null) {
             return PaycheckOutcome.AlreadyExists(weekNumber, year)
         }
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
+        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year, WeekStartRuntime.loads)
         paycheckRepository.insertPaycheck(
             Paycheck(
                 id = 0,
@@ -84,8 +86,8 @@ class TelegramJournalIngest(
         }
         if (duplicate) return DieselOutcome.Duplicate
 
-        val (weekNumber, year) = resolveWeek(dateHint, messageDateSeconds)
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year)
+        val (weekNumber, year) = resolveWeek(dateHint, messageDateSeconds, WeekStartRuntime.diesel)
+        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
         dieselRepository.insertDiesel(
             Diesel(
                 id = 0,
@@ -106,12 +108,16 @@ class TelegramJournalIngest(
         return DieselOutcome.Inserted(weekNumber, year, totalAmount)
     }
 
-    private fun resolveWeek(dateHint: String?, messageDateSeconds: Long?): Pair<Int, Int> {
+    private fun resolveWeek(
+        dateHint: String?,
+        messageDateSeconds: Long?,
+        firstDay: WeekStartDay,
+    ): Pair<Int, Int> {
         val dateForWeek = when {
             !dateHint.isNullOrBlank() -> dateHint
             messageDateSeconds != null -> formatDateFromUnixSeconds(messageDateSeconds)
             else -> null
         }
-        return getWeekNumberAndYearFromDate(dateForWeek)
+        return getWeekNumberAndYearFromDate(dateForWeek, firstDay)
     }
 }

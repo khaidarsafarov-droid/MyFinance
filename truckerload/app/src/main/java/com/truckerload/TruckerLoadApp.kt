@@ -21,6 +21,7 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
 import com.truckerload.data.sync.cloud.SyncModeStore
@@ -78,6 +79,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         // FIX: hydrate durable dataSync FGS pause before watchdog/boot can restart the bot
         com.truckerload.sync.TelegramFgsQuota.init(this)
         appScope.launch(Dispatchers.IO) {
+            WeekStartRuntime.install(
+                settingsDataStore.getLoadWeekStartDayOnce(),
+                settingsDataStore.getDieselWeekStartDayOnce(),
+            )
             val language = settingsDataStore.getLanguageOnce()
             SettingsDataStore.mirrorLanguageTag(this@TruckerLoadApp, language.tag)
             val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
@@ -190,6 +195,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
      */
     private fun refreshLoadReportingWeeks() {
         appScope.launch(Dispatchers.IO) {
+            WeekStartRuntime.install(
+                settingsDataStore.getLoadWeekStartDayOnce(),
+                settingsDataStore.getDieselWeekStartDayOnce(),
+            )
             val userId = authStore.currentUserIdOrNull() ?: return@launch
             val repo = userComponentManager.startSession(userId).loadRepository
             val repairStore = StartupRepairStore(this@TruckerLoadApp)

@@ -64,6 +64,8 @@ object BackupSnapshotBuilder {
             notifyMaintenance = settings.getNotifyMaintenanceOnce(),
             lastEquipmentType = settings.getLastEquipmentTypeOnce()?.name,
             telegramChatId = settings.getTelegramChatIdOnce(),
+            loadWeekStartDay = settings.getLoadWeekStartDayOnce().calendarDay,
+            dieselWeekStartDay = settings.getDieselWeekStartDayOnce().calendarDay,
         )
         val goals = WeeklyProfitGoalStore(context, userId)
         val rpm = RpmThresholdsStore(context, userId).thresholds.value
@@ -85,6 +87,8 @@ object BackupSnapshotBuilder {
             rpmMinProfit = rpm.minProfit,
             rpmTargetProfit = rpm.targetProfit,
             telegramChatId = settings.getTelegramChatIdOnce(),
+            loadWeekStartDay = settings.getLoadWeekStartDayOnce().calendarDay,
+            dieselWeekStartDay = settings.getDieselWeekStartDayOnce().calendarDay,
         )
     }
 
