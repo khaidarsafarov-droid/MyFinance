@@ -6,23 +6,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * Shared soft-UI color tokens for the app's forest palette and legacy palette aliases.
+ * Daily Task Tracker kit palette with WCAG AA body text.
+ *
+ * Kit fills (#5B54E6, #48C9B0, #FFB74D, #FF708D) are chrome and charts.
+ * Body copy stays near-black / dark gray so 14sp labels stay readable.
+ * Token names stay Forest* so existing call sites pick up the new look.
  */
 object SoftUiColors {
-    val ForestPrimary = Color(0xFF2F4F3E)
-    val ForestAccent = Color(0xFF4A7C59)
-    val ForestMuted = Color(0xFF557A64)
-    val ForestSoft = Color(0xFFC9DBC8)
-    val Sage = Color(0xFFE6EDE9)
-    val SageHover = Color(0xFFD2E0D7)
-    val SageBorder = Color(0xFFD2E0D7)
-    val SageBorderStrong = Color(0xFFC5D3C9)
-    val CardBorder = Color(0xFFE1EAE4)
-    val ContentBg = Color(0xFFF6F6F6)
-    val ShellBg = Color(0xFFEEEEEE)
-    val OuterBg = Color(0xFFE4E4E4)
+    /** Primary chrome / buttons / logo plate — darkened kit purple for white-on-fill AA. */
+    val ForestPrimary = Color(0xFF5B54E6)
+    val ForestAccent = Color(0xFF5B54E6)
+    /** Decorative lavender — not body text (fails AA on the light canvas by design). */
+    val ForestMuted = Color(0xFFA29BFE)
+    val ForestSoft = Color(0xFFD4D0FF)
+    val Sage = Color(0xFFEEEDFF)
+    val SageHover = Color(0xFFE0DEFF)
+    val SageBorder = Color(0xFFD4D2E8)
+    val SageBorderStrong = Color(0xFFC4C1E0)
+    val CardBorder = Color(0xFFE8E7F4)
+    val ContentBg = Color(0xFFF8F9FE)
+    val ShellBg = Color(0xFFF0F1FA)
+    val OuterBg = Color(0xFFE4E4F0)
 
-    /** Legacy names kept as aliases so existing call sites pick up the forest theme. */
+    /** Legacy names kept as aliases so existing call sites pick up the kit theme. */
     val PurpleStart = ForestAccent
     val PurpleEnd = ForestPrimary
     val SkyBlueEnd = ForestMuted
@@ -33,13 +39,13 @@ object SoftUiColors {
     val SurfaceLight = Color(0xFFFFFFFF)
     val SurfaceMuted = ShellBg
 
-    /** Dedicated dark cabin tokens (graphite-green, not inverted light). */
-    val BackgroundDark = Color(0xFF1A2420)
-    val SurfaceDark = Color(0xFF24302A)
-    val SurfaceMutedDark = Color(0xFF2E3C35)
+    /** Dedicated dark cabin tokens (indigo, not inverted light). */
+    val BackgroundDark = Color(0xFF16141F)
+    val SurfaceDark = Color(0xFF1E1B2C)
+    val SurfaceMutedDark = Color(0xFF2A2640)
     /** Bright enough for primary actions on dark backgrounds (AA). */
-    val ForestAccentDark = Color(0xFF8ED4A4)
-    val OnForestAccentDark = Color(0xFF0F1A14)
+    val ForestAccentDark = Color(0xFFB4AFFF)
+    val OnForestAccentDark = Color(0xFF1A1628)
 
     /** True-black OLED tokens — saves power on AMOLED and reduces night glare. */
     val BackgroundOled = Color(0xFF000000)
@@ -49,12 +55,12 @@ object SoftUiColors {
     val VoiceSuccess = Color(0xFF34C759)
     val VoiceDanger = Color(0xFFFF3B30)
 
-    val TextPrimaryLight = ForestPrimary
-    val TextSecondaryLight = Color(0xFF3A5748)
-    val TextPrimaryDark = Color(0xFFF2F7F4)
-    val TextSecondaryDark = Color(0xFFE0EBE4)
+    val TextPrimaryLight = Color(0xFF1A1A1A)
+    val TextSecondaryLight = Color(0xFF5C5C5C)
+    val TextPrimaryDark = Color(0xFFF4F3FA)
+    val TextSecondaryDark = Color(0xFFC8C6D8)
 
-    val ShadowTint = Color(0x142F4F3E)
+    val ShadowTint = Color(0x145B54E6)
     val ShadowNeutral = Color(0x0D000000)
 }
 

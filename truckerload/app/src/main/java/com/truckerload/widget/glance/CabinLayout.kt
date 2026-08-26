@@ -27,6 +27,8 @@ internal data class CabinLayout(
     val actionIconDp: Dp,
     val actionLabelSp: TextUnit,
     val showActionLabels: Boolean,
+    /** Circle only when the plate is tall enough; compact sizes use two text lines. */
+    val showRing: Boolean,
 )
 
 internal fun cabinLayoutFor(size: DpSize): CabinLayout {
@@ -54,6 +56,7 @@ internal fun cabinLayoutFor(size: DpSize): CabinLayout {
             actionIconDp = 16.dp,
             actionLabelSp = 10.sp,
             showActionLabels = false,
+            showRing = false,
         )
     }
     if (full) {
@@ -77,6 +80,7 @@ internal fun cabinLayoutFor(size: DpSize): CabinLayout {
             actionIconDp = 20.dp,
             actionLabelSp = 11.sp,
             showActionLabels = true,
+            showRing = true,
         )
     }
     if (tall) {
@@ -100,6 +104,7 @@ internal fun cabinLayoutFor(size: DpSize): CabinLayout {
             actionIconDp = 18.dp,
             actionLabelSp = 10.sp,
             showActionLabels = true,
+            showRing = true,
         )
     }
     return CabinLayout(
@@ -122,5 +127,6 @@ internal fun cabinLayoutFor(size: DpSize): CabinLayout {
         actionIconDp = 16.dp,
         actionLabelSp = 10.sp,
         showActionLabels = true,
+        showRing = false,
     )
 }

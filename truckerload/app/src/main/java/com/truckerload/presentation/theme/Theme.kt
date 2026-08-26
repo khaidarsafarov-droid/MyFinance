@@ -19,33 +19,33 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.truckerload.data.preferences.AppThemeMode
 
-/** Mindwell Forest light scheme — dedicated tokens, not an invert of dark. */
+/** Kit light scheme — purple chrome, near-black body text for AA. */
 internal fun forestLightColorScheme(): ColorScheme = lightColorScheme(
     primary = SoftUiColors.ForestPrimary,
     onPrimary = Color.White,
     primaryContainer = SoftUiColors.Sage,
-    onPrimaryContainer = SoftUiColors.ForestPrimary,
+    onPrimaryContainer = SoftUiColors.TextPrimaryLight,
     secondary = SoftUiColors.ForestAccent,
     onSecondary = Color.White,
     secondaryContainer = SoftUiColors.ShellBg,
-    onSecondaryContainer = SoftUiColors.ForestPrimary,
+    onSecondaryContainer = SoftUiColors.TextPrimaryLight,
     tertiary = SemanticColors.Light.success,
     onTertiary = Color.White,
     tertiaryContainer = SemanticColors.Light.successContainer,
-    onTertiaryContainer = SoftUiColors.ForestPrimary,
+    onTertiaryContainer = SoftUiColors.TextPrimaryLight,
     error = SemanticColors.Light.danger,
     onError = Color.White,
     background = SoftUiColors.ContentBg,
-    onBackground = SoftUiColors.ForestPrimary,
+    onBackground = SoftUiColors.TextPrimaryLight,
     surface = SoftUiColors.SurfaceLight,
-    onSurface = SoftUiColors.ForestPrimary,
+    onSurface = SoftUiColors.TextPrimaryLight,
     surfaceVariant = SoftUiColors.ShellBg,
     onSurfaceVariant = SoftUiColors.TextSecondaryLight,
     outline = SoftUiColors.CardBorder,
     outlineVariant = SoftUiColors.SageBorder,
 )
 
-/** Dedicated dark-cabin scheme — graphite-green, not a programmatic invert. */
+/** Dedicated dark-cabin scheme — indigo, not a programmatic invert. */
 internal fun forestDarkColorScheme(): ColorScheme {
     val background = SoftUiColors.BackgroundDark
     val surface = SoftUiColors.SurfaceDark
@@ -54,18 +54,18 @@ internal fun forestDarkColorScheme(): ColorScheme {
     return darkColorScheme(
         primary = SoftUiColors.ForestAccentDark,
         onPrimary = SoftUiColors.OnForestAccentDark,
-        primaryContainer = Color(0xFF244A36),
-        onPrimaryContainer = SoftUiColors.Sage,
+        primaryContainer = surfaceVariant,
+        onPrimaryContainer = SoftUiColors.ForestSoft,
         secondary = SoftUiColors.ForestSoft,
         onSecondary = background,
         secondaryContainer = surfaceVariant,
-        onSecondaryContainer = SoftUiColors.Sage,
+        onSecondaryContainer = SoftUiColors.ForestSoft,
         tertiary = semantic.success,
         onTertiary = background,
         tertiaryContainer = semantic.successContainer,
-        onTertiaryContainer = SoftUiColors.Sage,
+        onTertiaryContainer = SoftUiColors.ForestSoft,
         error = semantic.danger,
-        onError = Color(0xFF3D1A18),
+        onError = Color(0xFF3D1520),
         background = background,
         onBackground = SoftUiColors.TextPrimaryDark,
         surface = surface,

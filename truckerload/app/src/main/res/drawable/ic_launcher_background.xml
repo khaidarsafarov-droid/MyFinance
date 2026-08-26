@@ -4,8 +4,8 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Mindwell Forest primary — matches SoftUiColors.ForestPrimary -->
+    <!-- Kit primary — matches SoftUiColors.ForestPrimary -->
     <path
-        android:fillColor="#FF2F4F3E"
+        android:fillColor="#FF5B54E6"
         android:pathData="M0,0h108v108h-108z" />
 </vector>

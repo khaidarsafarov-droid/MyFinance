@@ -41,12 +41,18 @@ class SemanticContrastTest {
     }
 
     @Test
-    fun mutedForestGreenOnLightBackgroundFailsAa_regression() {
+    fun mutedLavenderOnLightBackgroundFailsAa_regression() {
         assertTrue(
             ContrastRatios.contrast(SoftUiColors.ForestMuted, contentBg) < ContrastRatios.AA_NORMAL,
         )
         assertTrue(
             ContrastRatios.passesAa(SoftUiColors.TextSecondaryLight, contentBg),
+        )
+        assertTrue(
+            ContrastRatios.passesAa(SoftUiColors.TextPrimaryLight, contentBg),
+        )
+        assertTrue(
+            ContrastRatios.passesAa(white, SoftUiColors.ForestPrimary),
         )
     }
 

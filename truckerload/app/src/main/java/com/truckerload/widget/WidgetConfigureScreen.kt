@@ -73,12 +73,12 @@ fun WidgetConfigureScreen(
             Text(
                 text = stringResource(R.string.widget_configure_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = SoftUiColors.ForestPrimary,
+                color = SoftUiColors.TextPrimaryLight,
             )
             Text(
                 text = stringResource(R.string.widget_configure_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
-                color = SoftUiColors.ForestMuted,
+                color = SoftUiColors.TextSecondaryLight,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
             )
 
@@ -175,7 +175,7 @@ private fun PreviewPane(
         Text(
             text = stringResource(R.string.widget_configure_preview),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = SoftUiColors.ForestMuted,
+            color = SoftUiColors.TextSecondaryLight,
             modifier = Modifier.padding(bottom = 12.dp),
         )
         Box(
@@ -308,7 +308,7 @@ private fun SectionLabel(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-        color = SoftUiColors.ForestPrimary,
+        color = SoftUiColors.TextPrimaryLight,
         modifier = Modifier.padding(bottom = 4.dp),
     )
 }
@@ -398,7 +398,7 @@ private fun ChoiceTile(
 ) {
     val bg = if (selected) SoftUiColors.Sage else SoftUiColors.ContentBg
     val border = if (selected) SoftUiColors.ForestAccent else SoftUiColors.SageBorder
-    val titleColor = if (selected) SoftUiColors.ForestPrimary else SoftUiColors.ForestMuted
+    val titleColor = if (selected) SoftUiColors.ForestPrimary else SoftUiColors.TextSecondaryLight
     Column(
         modifier = modifier
             .heightIn(min = minHeight)
@@ -420,7 +420,7 @@ private fun ChoiceTile(
             Text(
                 text = hint,
                 style = MaterialTheme.typography.labelSmall,
-                color = SoftUiColors.ForestMuted,
+                color = SoftUiColors.TextSecondaryLight,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 2.dp),
@@ -446,7 +446,7 @@ private fun MetricToggleRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = SoftUiColors.ForestPrimary,
+            color = SoftUiColors.TextPrimaryLight,
             modifier = Modifier.weight(1f),
         )
         Switch(

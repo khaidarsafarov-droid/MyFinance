@@ -8,11 +8,12 @@ import androidx.compose.ui.graphics.luminance
 import com.truckerload.domain.goal.PaceStatus
 
 /**
- * Cabin-readable semantic tokens for Mindwell Forest.
+ * Cabin-readable semantic tokens for the kit palette.
  *
  * Success / Warning / Danger / Neutral are the only status hues used in the UI.
  * Values are chosen so **text on the matching surface** meets WCAG AA, and
  * [hero] on [SoftUiColors.SurfaceLight] / dark background meets AAA.
+ * Kit fills (teal / orange / pink) stay on charts; these are the text hues.
  */
 data class SemanticPalette(
     val success: Color,
@@ -29,27 +30,27 @@ data class SemanticPalette(
 object SemanticColors {
     /** Light cabin / daylight. */
     val Light = SemanticPalette(
-        success = Color(0xFF176B3A),
-        warning = Color(0xFF8A5800),
-        danger = Color(0xFFB42318),
-        neutral = Color(0xFF3A5748),
-        successContainer = Color(0xFFD8F3E4),
-        warningContainer = Color(0xFFFFF0CC),
-        dangerContainer = Color(0xFFFDECEC),
-        neutralContainer = Color(0xFFE6EDE9),
-        hero = SoftUiColors.ForestPrimary,
+        success = Color(0xFF1A7A68),
+        warning = Color(0xFF9A6400),
+        danger = Color(0xFFC4395A),
+        neutral = Color(0xFF5C5C5C),
+        successContainer = Color(0xFFD4F5EE),
+        warningContainer = Color(0xFFFFF3D6),
+        dangerContainer = Color(0xFFFFE4EA),
+        neutralContainer = Color(0xFFEEEDFF),
+        hero = SoftUiColors.TextPrimaryLight,
     )
 
     /** Dedicated dark tokens — not an invert of Light. */
     val Dark = SemanticPalette(
-        success = Color(0xFF5EE0A0),
-        warning = Color(0xFFF5C84C),
-        danger = Color(0xFFFF8B80),
-        neutral = Color(0xFFC5D3C9),
-        successContainer = Color(0xFF1B3D2C),
+        success = Color(0xFF5EE0C8),
+        warning = Color(0xFFFFB74D),
+        danger = Color(0xFFFF8BA0),
+        neutral = Color(0xFFC8C6D8),
+        successContainer = Color(0xFF1A3D38),
         warningContainer = Color(0xFF3D3210),
-        dangerContainer = Color(0xFF3D1A18),
-        neutralContainer = Color(0xFF2E3C35),
+        dangerContainer = Color(0xFF3D1520),
+        neutralContainer = Color(0xFF2A2640),
         hero = SoftUiColors.TextPrimaryDark,
     )
 

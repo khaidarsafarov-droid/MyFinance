@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -28,6 +29,7 @@ import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.ThemeManager
+import com.truckerload.widget.WidgetRefresh
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -41,6 +43,7 @@ fun ThemeSettingsSection(
     val tc = LocalTruckColors.current
     val settingsDataStore = LocalSettingsDataStore.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val darkActive = selected == AppThemeMode.DARK || selected == AppThemeMode.SYSTEM
     val showDynamicColor = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
 
@@ -59,6 +62,7 @@ fun ThemeSettingsSection(
                         scope.launch {
                             settingsDataStore.saveThemeMode(mode)
                             ThemeManager.apply(mode)
+                            WidgetRefresh.refreshAndUpdateAsync(context)
                         }
                     },
                     modifier = AppFilterChipDefaults.target(),
@@ -106,7 +110,10 @@ fun ThemeSettingsSection(
                 Switch(
                     checked = dynamicColor,
                     onCheckedChange = { enabled ->
-                        scope.launch { settingsDataStore.saveDynamicColor(enabled) }
+                        scope.launch {
+                            settingsDataStore.saveDynamicColor(enabled)
+                            WidgetRefresh.refreshAndUpdateAsync(context)
+                        }
                     },
                     colors = AppSwitchDefaults.colors(),
                 )
