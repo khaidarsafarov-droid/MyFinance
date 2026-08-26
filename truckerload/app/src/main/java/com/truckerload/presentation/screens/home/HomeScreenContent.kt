@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,7 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -83,6 +84,7 @@ internal fun HomeScreenContent(
     onOpenProfile: () -> Unit = {},
     periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
     onOpenPrivacy: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
     val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
@@ -141,51 +143,67 @@ internal fun HomeScreenContent(
     if (tabletChrome) {
         val totals = periodTotals ?: periodSummary?.totals
             ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, 0.0, 0.0)
-        BentoGlassScreenBackground {
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = { onRefresh() },
-                modifier = Modifier.fillMaxSize(),
-                state = rememberPullToRefreshState(),
+        BentoGlassScreenBackground(modifier = modifier) {
+            val tabletPullState = rememberPullToRefreshState()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pullToRefresh(
+                        isRefreshing = isRefreshing,
+                        state = tabletPullState,
+                        onRefresh = { onRefresh() },
+                    ),
             ) {
-            TabletHomeDashboard(
-                paddingValues = paddingValues,
-                uiState = uiState,
-                searchQuery = searchQuery,
-                periodSummary = periodSummary,
-                totals = totals,
-                recentLoads = filteredLoads,
-                viewModel = viewModel,
-                onLoadClick = onLoadClick,
-                onAddLoad = onAddLoad,
-                onOpenWeeklyGoal = onOpenWeeklyGoal,
-                onOpenCalendar = onOpenCalendar,
-                onOpenArchive = { openArchive() },
-            )
+                TabletHomeDashboard(
+                    paddingValues = paddingValues,
+                    uiState = uiState,
+                    searchQuery = searchQuery,
+                    periodSummary = periodSummary,
+                    totals = totals,
+                    recentLoads = filteredLoads,
+                    viewModel = viewModel,
+                    onLoadClick = onLoadClick,
+                    onAddLoad = onAddLoad,
+                    onOpenWeeklyGoal = onOpenWeeklyGoal,
+                    onOpenCalendar = onOpenCalendar,
+                    onOpenArchive = { openArchive() },
+                )
+                PullToRefreshDefaults.Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = isRefreshing,
+                    state = tabletPullState,
+                )
             }
         }
         return
     }
 
     val pullRefreshState = rememberPullToRefreshState()
+    val listState = rememberLazyListState()
+    // Only accept pull-to-refresh at the absolute top. Otherwise residual fling
+    // velocity near the top is eaten by PTR and the list "spins" before settling.
+    val pullToRefreshEnabled = !listState.canScrollBackward
     val loadColumns = adaptiveLoadColumns()
     val gridRows = remember(listItems, loadColumns) {
         buildHomeGridRows(listItems, loadColumns)
     }
 
-    BentoGlassScreenBackground {
-        Box(modifier = Modifier.fillMaxSize()) {
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = { onRefresh() },
-            modifier = Modifier.fillMaxSize(),
-            state = pullRefreshState,
-        ) {
-        LazyColumn(
+    BentoGlassScreenBackground(modifier = modifier) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .navigationBarsPadding(),
+                .pullToRefresh(
+                    isRefreshing = isRefreshing,
+                    state = pullRefreshState,
+                    enabled = pullToRefreshEnabled,
+                    onRefresh = { onRefresh() },
+                ),
+        ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
             contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -294,11 +312,9 @@ internal fun HomeScreenContent(
                 val rowCount = pagedLoadRowCount(pagedLoads.itemCount, loadColumns)
                 items(
                     count = rowCount,
-                    key = { rowIndex ->
-                        val start = rowIndex * loadColumns
-                        val first = pagedLoads.peek(start)
-                        "page_row_${first?.id ?: rowIndex}"
-                    },
+                    // Stable row keys only — flipping null→id mid-fling makes
+                    // LazyColumn jump/spin while restoring scroll position.
+                    key = { rowIndex -> "page_row_$rowIndex" },
                 ) { rowIndex ->
                     val start = rowIndex * loadColumns
                     val rowLoads = (0 until loadColumns).mapNotNull { offset ->
@@ -363,7 +379,11 @@ internal fun HomeScreenContent(
                 }
             }
         }
-        }
+        PullToRefreshDefaults.Indicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            isRefreshing = isRefreshing,
+            state = pullRefreshState,
+        )
         }
     }
 }
