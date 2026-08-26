@@ -1035,7 +1035,10 @@
     <string name="widget_scanner_short">Сканер</string>
     <string name="widget_diesel">Добавить дизель</string>
     <string name="widget_diesel_short">Дизель</string>
+    <string name="widget_fuel_short">Топливо</string>
+    <string name="widget_quick_actions">Быстрые действия</string>
     <string name="widget_metric_goal">Цель</string>
+    <string name="widget_metric_revenue">Выручка</string>
     <string name="widget_metric_rpm">RPM</string>
     <string name="widget_metric_trips">Рейсов</string>
     <string name="widget_day_today">сегодня</string>

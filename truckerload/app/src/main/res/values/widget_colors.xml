@@ -19,6 +19,7 @@
     <color name="widget_metric_cell_bg">#FFEEEDFF</color>
     <color name="widget_divider">#FFE8E7F4</color>
     <color name="widget_progress_track">#FFEEEDFF</color>
+    <color name="widget_progress_end">#FF48C9B0</color>
     <color name="widget_progress_fill">#FF5B54E6</color>
     <color name="widget_success">#FF1A7A68</color>
     <color name="widget_rpm_good">#FF1A7A68</color>

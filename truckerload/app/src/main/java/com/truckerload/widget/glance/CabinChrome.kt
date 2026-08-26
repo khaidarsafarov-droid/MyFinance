@@ -26,4 +26,4 @@ internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors): GlanceModifie
 
 internal fun GlanceModifier.cabinActionFill(colors: WidgetCabinColors): GlanceModifier =
     background(ColorProvider(Color(colors.actionBg)))
-        .cornerRadius(50.dp)
+        .cornerRadius(14.dp)

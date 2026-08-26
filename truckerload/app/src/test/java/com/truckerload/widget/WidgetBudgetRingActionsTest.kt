@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Guards the kit widget mockup: ring hole, side metrics, day captions, actions.
+ * Guards the mockup-style cabin widget: progress bar, stats row, day chips, actions.
  */
 class WidgetBudgetRingActionsTest {
 
@@ -19,9 +19,10 @@ class WidgetBudgetRingActionsTest {
         assertTrue(chrome.contains("colors.bg"))
         assertTrue(chrome.contains("cornerRadius"))
         assertTrue(core.contains("cabinPlate"))
-        assertTrue(core.contains("BudgetRing"))
-        assertTrue(core.contains("formatGrossUsd"))
-        assertTrue(core.contains("formatRingPercent"))
+        assertTrue(wide.contains("WidgetTruckProgressBitmap"))
+        assertTrue(wide.contains("MockupStatsRow"))
+        assertTrue(wide.contains("widget_metric_revenue"))
+        assertTrue(core.contains("WidgetTruckProgressBitmap"))
         assertTrue(core.contains("WidgetCabinColors.resolve"))
         assertTrue(core.contains("LocalCabinColors"))
         assertTrue(!core.contains("R.string.widget_goal_out_of"))
@@ -30,10 +31,8 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("SelectWidgetDayAction"))
         assertTrue(wide.contains("widget_metric_goal"))
         assertTrue(wide.contains("widget_metric_rpm"))
-        assertTrue(wide.contains("widget_metric_trips"))
+        assertTrue(wide.contains("widget_quick_actions"))
         assertTrue(wide.contains("WidgetDayCaption"))
-        assertTrue(wide.contains("CompactFinanceBlock"))
-        assertTrue(wide.contains("showRing"))
         assertTrue(core.contains("cabinActionFill"))
         assertTrue(core.contains("CabinSize4x4"))
         assertTrue(core.contains("SizeMode.Exact"))
@@ -43,10 +42,11 @@ class WidgetBudgetRingActionsTest {
     }
 
     @Test
-    fun wideWidgetXml_allowsTwoRowResize() {
+    fun wideWidgetXml_defaultsToThreeRows() {
         val xml = readRes("xml/truckerload_widget_glance_4x2_info.xml")
         assertTrue(xml.contains("minHeight=\"110dp\""))
         assertTrue(xml.contains("minResizeHeight=\"110dp\""))
+        assertTrue(xml.contains("targetCellHeight=\"3\""))
         assertTrue(!xml.contains("minHeight=\"180dp\""))
     }
 

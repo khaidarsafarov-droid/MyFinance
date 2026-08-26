@@ -14,19 +14,16 @@ import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
-import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -37,6 +34,7 @@ import com.truckerload.widget.WidgetDayCaption
 import com.truckerload.widget.WidgetDeepLink
 import com.truckerload.widget.WidgetStats
 import com.truckerload.widget.WidgetStatsFormatter
+import com.truckerload.widget.WidgetTruckProgressBitmap
 import com.truckerload.widget.WidgetWeekDayHelper
 import com.truckerload.widget.WidgetWeekDaysBitmap
 
@@ -51,11 +49,6 @@ internal fun WideBudgetContent(
     val progress = shown.goalProgressPercent.coerceIn(0f, 100f)
     val goalSet = shown.weeklyProfitGoal > 0
     val colors = LocalCabinColors.current
-    val ring = if (layout.showRing) {
-        buildRingBitmap(context, shown, layout.ringDp, colors)
-    } else {
-        null
-    }
 
     Column(
         modifier = GlanceModifier
@@ -65,46 +58,24 @@ internal fun WideBudgetContent(
     ) {
         CabinHeader(context, shown.weekLabel, layout.headerSp, layout.dateSp)
         Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-        Row(
-            modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (layout.showRing) {
-                BudgetRing(
-                    context = context,
-                    ring = ring,
-                    stats = shown,
-                    progress = progress,
-                    goalSet = goalSet,
-                    ringDp = layout.ringDp,
-                    amountSp = layout.amountSp,
-                    percentSp = layout.percentSp,
-                    modifier = GlanceModifier.clickable(
-                        actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL)),
-                    ),
-                )
-                Spacer(modifier = GlanceModifier.width(layout.financeGap))
-                MetricStack(
-                    context = context,
-                    shown = shown,
-                    metricSp = layout.metricSp,
-                    metricGap = layout.metricGap,
-                    modifier = GlanceModifier.defaultWeight().fillMaxHeight(),
-                )
-            } else {
-                CompactFinanceBlock(
-                    context = context,
-                    shown = shown,
-                    progress = progress,
-                    goalSet = goalSet,
-                    amountSp = layout.amountSp,
-                    percentSp = layout.percentSp,
-                    metricSp = layout.metricSp,
-                    metricGap = layout.metricGap,
-                    modifier = GlanceModifier.defaultWeight().fillMaxWidth(),
-                )
-            }
-        }
+        TruckProgressBar(
+            context = context,
+            progress = progress,
+            goalSet = goalSet,
+            barDp = layout.progressBarDp,
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
+        )
+        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        MockupStatsRow(
+            context = context,
+            shown = shown,
+            revenueLabelSp = layout.revenueLabelSp,
+            amountSp = layout.amountSp,
+            metricSp = layout.metricSp,
+            metricGap = layout.metricGap,
+        )
         Spacer(modifier = GlanceModifier.height(layout.sectionGap))
         WeekDaySelector(
             context = context,
@@ -114,19 +85,55 @@ internal fun WideBudgetContent(
             captionSp = layout.dayCaptionSp,
             showCaptions = layout.showDayCaptions,
         )
-        if (layout.showDivider) {
+        if (layout.showQuickActions) {
             Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(cabinColor(LocalCabinColors.current.divider)),
-            ) {}
-            Spacer(modifier = GlanceModifier.height(14.dp))
-        } else {
-            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+            if (layout.showQuickActionsTitle) {
+                Text(
+                    text = context.getString(R.string.widget_quick_actions),
+                    style = TextStyle(
+                        color = cabinColor(colors.text),
+                        fontSize = layout.metricSp,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                    maxLines = 1,
+                )
+                Spacer(modifier = GlanceModifier.height(6.dp))
+            }
+            ActionRow(context, layout)
         }
-        ActionRow(context, layout)
+    }
+}
+
+@Composable
+private fun TruckProgressBar(
+    context: Context,
+    progress: Float,
+    goalSet: Boolean,
+    barDp: Dp,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    val colors = LocalCabinColors.current
+    val density = context.resources.displayMetrics.density
+    val widthPx = (LocalSize.current.width.value * density).toInt().coerceAtLeast(120)
+    val heightPx = (barDp.value * density).toInt().coerceAtLeast(8)
+    val bitmap = runCatching {
+        WidgetTruckProgressBitmap.create(
+            context = context,
+            progressPercent = progress,
+            goalSet = goalSet,
+            widthPx = widthPx,
+            heightPx = heightPx,
+            colors = colors,
+        )
+    }.getOrNull()
+    if (bitmap != null) {
+        Image(
+            provider = ImageProvider(bitmap),
+            contentDescription = context.getString(R.string.widget_weekly_summary),
+            modifier = modifier.height(barDp),
+        )
+    } else {
+        Spacer(modifier = modifier.height(barDp))
     }
 }
 
@@ -137,6 +144,7 @@ private fun CabinHeader(
     headerSp: TextUnit,
     dateSp: TextUnit,
 ) {
+    val colors = LocalCabinColors.current
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -146,9 +154,9 @@ private fun CabinHeader(
         Text(
             text = context.getString(R.string.widget_brand_title_plain),
             style = TextStyle(
-                color = cabinColor(LocalCabinColors.current.text),
+                color = cabinColor(colors.brand),
                 fontSize = headerSp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Bold,
             ),
             maxLines = 1,
             modifier = GlanceModifier.defaultWeight(),
@@ -157,7 +165,7 @@ private fun CabinHeader(
             Text(
                 text = weekLabel,
                 style = TextStyle(
-                    color = cabinColor(LocalCabinColors.current.muted),
+                    color = cabinColor(colors.muted),
                     fontSize = dateSp,
                     fontWeight = FontWeight.Normal,
                 ),
@@ -168,43 +176,66 @@ private fun CabinHeader(
 }
 
 @Composable
-private fun MetricStack(
+private fun MockupStatsRow(
     context: Context,
     shown: WidgetStats,
+    revenueLabelSp: TextUnit,
+    amountSp: TextUnit,
     metricSp: TextUnit,
     metricGap: Dp,
     modifier: GlanceModifier = GlanceModifier,
 ) {
-    Column(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+    val colors = LocalCabinColors.current
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
     ) {
-        MetricRow(
-            label = context.getString(R.string.widget_metric_goal),
-            value = if (shown.weeklyProfitGoal > 0) {
-                WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
-            } else {
-                context.getString(R.string.widget_goal_not_set)
-            },
-            valueColor = Color(LocalCabinColors.current.text),
-            fontSize = metricSp,
-        )
-        Spacer(modifier = GlanceModifier.height(metricGap))
-        MetricRow(
-            label = context.getString(R.string.widget_metric_rpm),
-            value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
-            valueColor = Color(LocalCabinColors.current.accent),
-            fontSize = metricSp,
-            onClickRoute = WidgetDeepLink.ROUTE_STATS,
-            context = context,
-        )
-        Spacer(modifier = GlanceModifier.height(metricGap))
-        MetricRow(
-            label = context.getString(R.string.widget_metric_trips),
-            value = shown.loadsCount.toString(),
-            valueColor = Color(LocalCabinColors.current.text),
-            fontSize = metricSp,
-        )
+        Column(
+            modifier = GlanceModifier
+                .defaultWeight()
+                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME))),
+        ) {
+            Text(
+                text = context.getString(R.string.widget_metric_revenue),
+                style = TextStyle(
+                    color = cabinColor(colors.muted),
+                    fontSize = revenueLabelSp,
+                ),
+                maxLines = 1,
+            )
+            Text(
+                text = WidgetStatsFormatter.formatGrossUsd(shown.totalLoadRate),
+                style = TextStyle(
+                    color = cabinColor(colors.text),
+                    fontSize = amountSp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                maxLines = 1,
+            )
+        }
+        Column(modifier = GlanceModifier.defaultWeight()) {
+            MetricRow(
+                label = context.getString(R.string.widget_metric_goal),
+                value = if (shown.weeklyProfitGoal > 0) {
+                    WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
+                } else {
+                    context.getString(R.string.widget_goal_not_set)
+                },
+                valueColor = Color(colors.text),
+                fontSize = metricSp,
+                context = context,
+                onClickRoute = WidgetDeepLink.ROUTE_WEEKLY_GOAL,
+            )
+            Spacer(modifier = GlanceModifier.height(metricGap))
+            MetricRow(
+                label = context.getString(R.string.widget_metric_rpm),
+                value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
+                valueColor = Color(colors.accent),
+                fontSize = metricSp,
+                onClickRoute = WidgetDeepLink.ROUTE_STATS,
+                context = context,
+            )
+        }
     }
 }
 
@@ -220,60 +251,15 @@ internal fun CompactFinanceBlock(
     metricGap: Dp,
     modifier: GlanceModifier = GlanceModifier,
 ) {
-    val colors = LocalCabinColors.current
-    Row(
+    MockupStatsRow(
+        context = context,
+        shown = shown,
+        revenueLabelSp = percentSp,
+        amountSp = amountSp,
+        metricSp = metricSp,
+        metricGap = metricGap,
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = GlanceModifier.defaultWeight().clickable(
-                actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL)),
-            ),
-        ) {
-            Text(
-                text = WidgetStatsFormatter.formatGrossUsd(shown.totalLoadRate),
-                style = TextStyle(
-                    color = cabinColor(colors.text),
-                    fontSize = amountSp,
-                    fontWeight = FontWeight.Medium,
-                ),
-                maxLines = 1,
-            )
-            Text(
-                text = if (goalSet) {
-                    WidgetStatsFormatter.formatRingPercent(progress)
-                } else {
-                    context.getString(R.string.widget_goal_not_set)
-                },
-                style = TextStyle(
-                    color = cabinColor(colors.muted),
-                    fontSize = percentSp,
-                ),
-                maxLines = 1,
-            )
-        }
-        Column(modifier = GlanceModifier.defaultWeight()) {
-            MetricRow(
-                label = context.getString(R.string.widget_metric_goal),
-                value = if (shown.weeklyProfitGoal > 0) {
-                    WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
-                } else {
-                    context.getString(R.string.widget_goal_not_set)
-                },
-                valueColor = Color(colors.text),
-                fontSize = metricSp,
-            )
-            Spacer(modifier = GlanceModifier.height(metricGap))
-            MetricRow(
-                label = context.getString(R.string.widget_metric_rpm),
-                value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
-                valueColor = Color(colors.accent),
-                fontSize = metricSp,
-                onClickRoute = WidgetDeepLink.ROUTE_STATS,
-                context = context,
-            )
-        }
-    }
+    )
 }
 
 @Composable
@@ -428,7 +414,7 @@ private fun ActionRow(context: Context, layout: CabinLayout) {
         QuickAction(
             context = context,
             iconRes = R.drawable.ic_widget_diesel,
-            label = context.getString(R.string.widget_diesel_short),
+            label = context.getString(R.string.widget_fuel_short),
             launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
             showLabel = layout.showActionLabels,
             btnDp = layout.actionBtnDp,

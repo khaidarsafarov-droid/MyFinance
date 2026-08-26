@@ -1035,7 +1035,10 @@
     <string name="widget_scanner_short">Scanner</string>
     <string name="widget_diesel">Add diesel</string>
     <string name="widget_diesel_short">Diesel</string>
+    <string name="widget_fuel_short">Fuel Pump</string>
+    <string name="widget_quick_actions">Quick Actions</string>
     <string name="widget_metric_goal">Goal</string>
+    <string name="widget_metric_revenue">Total Revenue</string>
     <string name="widget_metric_rpm">RPM</string>
     <string name="widget_metric_trips">Loads</string>
     <string name="widget_day_today">today</string>

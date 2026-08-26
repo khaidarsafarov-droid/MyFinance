@@ -13,7 +13,12 @@ object WidgetCabinPalette {
     const val ACCENT = 0xFF5B54E6.toInt()
     const val RING = 0xFF5B54E6.toInt()
     const val RING_TRACK = 0xFFEEEDFF.toInt()
-    const val ACTION_BG = 0xFF5B54E6.toInt()
+    /** Progress bar gradient end — kit mint / cyan. */
+    const val PROGRESS_END = 0xFF48C9B0.toInt()
+    /** Brand title on mockup plate. */
+    const val BRAND = 0xFF5B54E6.toInt()
+    const val ACTION_BG = 0x265B54E6.toInt()
+    const val ACTION_STROKE = 0x405B54E6.toInt()
     const val ACTION_LABEL = 0xFFFFFFFF.toInt()
     const val DIVIDER = 0xFFE8E7F4.toInt()
     const val DAY_FILLED = 0xFF5B54E6.toInt()
@@ -24,13 +29,17 @@ object WidgetCabinPalette {
     const val ON_FILLED = 0xFFFFFFFF.toInt()
 
     object Dark {
-        const val BG = 0xFF16141F.toInt()
+        /** Navy cabin plate from home-screen mockup. */
+        const val BG = 0xFF1E2238.toInt()
         const val TEXT = 0xFFF4F3FA.toInt()
-        const val MUTED = 0xFFC8C6D8.toInt()
+        const val MUTED = 0xFF9BA3C7.toInt()
         const val ACCENT = 0xFFB4AFFF.toInt()
-        const val RING = 0xFFB4AFFF.toInt()
-        const val RING_TRACK = 0xFF2A2640.toInt()
-        const val ACTION_BG = 0xFF2A2640.toInt()
+        const val BRAND = 0xFFA29BFE.toInt()
+        const val RING = 0xFF5B54E6.toInt()
+        const val RING_TRACK = 0xFF2A3050.toInt()
+        const val PROGRESS_END = 0xFF48C9B0.toInt()
+        const val ACTION_BG = 0x332A3050.toInt()
+        const val ACTION_STROKE = 0x55A29BFE.toInt()
         const val ACTION_LABEL = 0xFFD4D0FF.toInt()
         const val DIVIDER = 0xFF353148.toInt()
         const val DAY_FILLED = 0xFF5B54E6.toInt()
