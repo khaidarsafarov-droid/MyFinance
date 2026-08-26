@@ -5,8 +5,9 @@ import com.truckerload.domain.model.PaycheckParseResult
 object PaycheckTextParser {
 
     private val netPatterns = listOf(
-        Regex("""(?:Grand\s*Total|Зарплата|Net\s*Pay)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE),
-        Regex("""(?:Settlement\s*Total|Driver\s*Pay)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE)
+        Regex("""(?:Net\s*Pay|Зарплата)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE),
+        Regex("""(?:Settlement\s*Total|Driver\s*Pay)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE),
+        Regex("""Grand\s*Total\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE),
     )
     private val grossPattern = Regex("""Gross\s*Pay(?:\s*Total)?\s*[:\s]*\$?\s*([\d,]+\.?\d*)""", RegexOption.IGNORE_CASE)
     private val driverPattern = Regex("""Driver\s*[:\s]+([A-Za-z .'-]+)""", RegexOption.IGNORE_CASE)

@@ -177,10 +177,6 @@ fun getLoadReportingWeek(load: Load): Pair<Int, Int> {
 }
 
 fun isLoadInWeek(load: Load, weekNumber: Int, year: Int): Boolean {
-    // Prefer persisted reporting week (matches Room SQL / Stats). Recompute only when unset.
-    if (load.weekNumber > 0 && load.year > 0) {
-        return load.weekNumber == weekNumber && load.year == year
-    }
     val (w, y) = getLoadReportingWeek(load)
     return w == weekNumber && y == year
 }

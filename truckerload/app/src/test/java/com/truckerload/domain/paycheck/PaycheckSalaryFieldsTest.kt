@@ -15,6 +15,12 @@ class PaycheckSalaryFieldsTest {
     }
 
     @Test
+    fun parseAmountAllowingZero_keepsZeroAndUsThousands() {
+        assertEquals(0.0, PaycheckSalaryFields.parseAmountAllowingZero("0")!!, 0.0)
+        assertEquals(2500.0, PaycheckSalaryFields.parseAmountAllowingZero("2,500")!!, 0.001)
+    }
+
+    @Test
     fun validate_requiresPositiveNet() {
         assertEquals(PaycheckSalaryFields.Error.NET, PaycheckSalaryFields.validate(""))
         assertEquals(PaycheckSalaryFields.Error.NET, PaycheckSalaryFields.validate("0"))

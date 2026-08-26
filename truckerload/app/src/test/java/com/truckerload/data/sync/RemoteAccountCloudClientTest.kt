@@ -143,6 +143,7 @@ class RemoteAccountCloudClientTest {
         val hybrid = HybridAccountCloudBackend(cached, remoteRead)
 
         assertEquals(20L, hybrid.read("account-1")?.updatedAt)
+        assertTrue(!hybrid.lastReadUsedStaleMirror)
         assertEquals(20L, cached.snapshot?.updatedAt)
 
         remoteRead.failWrites = true
@@ -159,7 +160,9 @@ class RemoteAccountCloudClientTest {
         val local = FakeBackend(snapshot = localSnapshot)
         val remote = FakeBackend(snapshot = null, failReads = true)
 
-        assertEquals(localSnapshot, HybridAccountCloudBackend(local, remote).read("account-1"))
+        val hybrid = HybridAccountCloudBackend(local, remote)
+        assertEquals(localSnapshot, hybrid.read("account-1"))
+        assertTrue(hybrid.lastReadUsedStaleMirror)
     }
 
     private fun client() = RemoteAccountCloudClient(

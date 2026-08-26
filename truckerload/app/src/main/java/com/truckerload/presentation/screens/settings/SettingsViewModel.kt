@@ -12,10 +12,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -34,10 +36,11 @@ class SettingsViewModel @Inject constructor(
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
 
     fun exportCsv() {
+        if (_exportState.value is ExportState.Loading) return
         viewModelScope.launch {
             _exportState.value = ExportState.Loading
             try {
-                val loads = loadRepository.getAll()
+                val loads = withContext(Dispatchers.IO) { loadRepository.getAll() }
                 if (loads.isEmpty()) {
                     _exportState.value = ExportState.Error(ERROR_NO_LOADS)
                     return@launch

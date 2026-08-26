@@ -33,6 +33,22 @@ class AuthRepositoryArchitectureTest {
     }
 
     @Test
+    fun emailOfflineFallback_reusesBoundUserId() {
+        val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
+        assertTrue(auth.contains("boundUserIdFor"))
+        assertTrue(auth.contains("saveBoundUserId"))
+        val store = readMainSource("com/truckerload/data/preferences/AuthStore.kt")
+        assertTrue(store.contains("EmailAccountUnifier.relocateLocalEmailJournal"))
+        val diesel = readMainSource("com/truckerload/presentation/screens/add/AddDieselViewModel.kt")
+        assertTrue(diesel.contains("applyUtcDatePickerDay"))
+        val paycheck = readMainSource("com/truckerload/presentation/screens/add/AddPaycheckViewModel.kt")
+        assertTrue(paycheck.contains("applyUtcDatePickerDay"))
+        assertTrue(paycheck.contains("getPaycheckForWeek"))
+        assertTrue(auth.contains("isOfflineAuthFailure"))
+        assertTrue(auth.contains("IOException"))
+    }
+
+    @Test
     fun googleSignIn_passesIdTokenThroughCompleteLogin() {
         val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
         assertTrue(auth.contains("googleIdToken = idToken"))

@@ -13,6 +13,7 @@ import com.truckerload.domain.parser.PaycheckTextParser
 import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.LoadDocumentTextExtractor
 import com.truckerload.utils.PaycheckSourceFiles
+import com.truckerload.utils.applyUtcDatePickerDay
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getMillisForWeek
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -207,14 +208,8 @@ class AddPaycheckViewModel @Inject constructor(
     }
 
     fun setRecordedDate(selectedDateMillis: Long) {
-        val current = Calendar.getInstance().apply {
-            timeInMillis = _uiState.value.recordedAtMillis
-        }
-        val selected = Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
-        current.set(Calendar.YEAR, selected.get(Calendar.YEAR))
-        current.set(Calendar.MONTH, selected.get(Calendar.MONTH))
-        current.set(Calendar.DAY_OF_MONTH, selected.get(Calendar.DAY_OF_MONTH))
-        setRecordedAtMillis(current.timeInMillis)
+        // FIX: DatePicker millis are UTC midnight — local Calendar shifted US timezones back a day
+        setRecordedAtMillis(applyUtcDatePickerDay(selectedDateMillis, _uiState.value.recordedAtMillis))
     }
 
     fun setRecordedTime(hour: Int, minute: Int) {
@@ -265,8 +260,11 @@ class AddPaycheckViewModel @Inject constructor(
                     }
                     return@launch
                 }
+                val existing = withContext(Dispatchers.IO) {
+                    paycheckRepository.getPaycheckForWeek(weekNumber, year)
+                }
                 val paycheck = Paycheck(
-                    id = 0,
+                    id = existing?.id ?: 0,
                     weekNumber = weekNumber,
                     year = year,
                     weekLabel = weekLabel,
@@ -278,10 +276,15 @@ class AddPaycheckViewModel @Inject constructor(
                     rawExtractedText = state.rawExtractedText,
                     sourceFileName = state.sourceFileName,
                     addedAt = state.recordedAtMillis,
-                    sourceFilePath = copiedPath,
+                    sourceFilePath = copiedPath ?: existing?.sourceFilePath,
                 )
                 withContext(Dispatchers.IO) {
-                    paycheckRepository.insertPaycheck(paycheck)
+                    // FIX: UI save had no one-paycheck-per-week guard (Telegram ingest did)
+                    if (existing != null) {
+                        paycheckRepository.updatePaycheck(paycheck)
+                    } else {
+                        paycheckRepository.insertPaycheck(paycheck)
+                    }
                 }
                 pendingSourceUri = null
                 lastUsedDefaultsStore.savePaycheckAmount(amount)

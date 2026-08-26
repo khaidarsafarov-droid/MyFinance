@@ -297,21 +297,36 @@ object BackupService {
         val dir = companionBackupDir(context, userId).apply { mkdirs() }
         val companion = File(dir, BackupNoteFormatter.companionFileName(txtFileName))
         companion.writeText(json, Charsets.UTF_8)
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit {
-                putString(txtFileName, companion.absolutePath)
-            }
+        // FIX: companion map was global — account B could restore A's path by display name
+        companionPrefs(context, userId).edit {
+            putString(txtFileName, companion.absolutePath)
+        }
     }
 
     private fun readCompanionJson(context: Context, txtFileName: String?): String? {
         if (txtFileName.isNullOrBlank()) return null
-        val path = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(txtFileName, null)
-            ?: return null
+        val userId = AuthStore(context).currentUserIdOrNull() ?: return null
+        val dir = companionBackupDir(context, userId)
+        val path = companionPrefs(context, userId).getString(txtFileName, null) ?: return null
         val file = File(path)
-        if (!file.exists()) return null
+        if (!file.exists() || !file.isFile) return null
+        // FIX: never follow a prefs path outside this account's companion directory
+        if (!isUnderDirectory(file, dir)) return null
         return BackupDataCodec.stripBom(file.readText(Charsets.UTF_8)).trim()
             .takeIf { it.startsWith("{") }
+    }
+
+    private fun companionPrefs(context: Context, userId: String) =
+        context.getSharedPreferences(
+            "${PREFS}_${AccountIds.sanitizeFilePart(userId)}",
+            Context.MODE_PRIVATE,
+        )
+
+    private fun isUnderDirectory(file: File, dir: File): Boolean {
+        val canonical = runCatching { file.canonicalFile }.getOrElse { return false }
+        val base = runCatching { dir.canonicalFile }.getOrElse { return false }
+        val prefix = base.path + File.separator
+        return canonical.path == base.path || canonical.path.startsWith(prefix)
     }
 
     private fun queryDisplayName(context: Context, uri: Uri): String? =

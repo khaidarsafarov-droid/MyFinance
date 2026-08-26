@@ -14,6 +14,7 @@ import com.truckerload.domain.parser.DieselReceiptExtractor
 import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.OCRService
+import com.truckerload.utils.applyUtcDatePickerDay
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
@@ -200,14 +201,8 @@ class AddDieselViewModel @Inject constructor(
     }
 
     fun setRecordedDate(selectedDateMillis: Long) {
-        val current = Calendar.getInstance().apply {
-            timeInMillis = _uiState.value.recordedAtMillis
-        }
-        val selected = Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
-        current.set(Calendar.YEAR, selected.get(Calendar.YEAR))
-        current.set(Calendar.MONTH, selected.get(Calendar.MONTH))
-        current.set(Calendar.DAY_OF_MONTH, selected.get(Calendar.DAY_OF_MONTH))
-        setRecordedAtMillis(current.timeInMillis)
+        // FIX: DatePicker millis are UTC midnight — local Calendar shifted US timezones back a day
+        setRecordedAtMillis(applyUtcDatePickerDay(selectedDateMillis, _uiState.value.recordedAtMillis))
     }
 
     fun setRecordedTime(hour: Int, minute: Int) {

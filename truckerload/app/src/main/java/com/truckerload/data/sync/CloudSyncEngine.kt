@@ -77,8 +77,10 @@ object CloudSyncEngine {
 
         val localLoads = LoadRepository(db).getAllLoadsOnce()
         val remote = backend.read(userId)
-
-        val remoteSnapshot = remote
+        val staleMirror = backend.lastReadUsedStaleMirror
+        // A failed remote read must not be treated as a cloud snapshot (would hydrate/merge
+        // the local mirror as if it were authoritative).
+        val remoteSnapshot = remote.takeUnless { staleMirror }
         if (remoteSnapshot != null && CloudSyncPolicy.needsFullHydration(
                 lastSyncedAt = cursor.lastSyncedAt(userId),
                 localEntityCount = localLoads.size,
@@ -96,21 +98,23 @@ object CloudSyncEngine {
                 hydrated = true,
                 loadsApplied = applied,
                 message = "restored_from_cloud",
-                retryableFailure = backend.remoteConfigured && !pushed,
+                retryableFailure = backend.remoteConfigured && (!pushed || staleMirror),
             )
         }
 
         var loadsApplied = 0
         var pulled = false
-        if (remote != null && CloudSyncPolicy.shouldPullIncremental(cursor.lastSyncedAt(userId), remote.updatedAt)) {
-            loadsApplied = mergeSnapshotIntoRoom(db, remote)
+        if (remoteSnapshot != null &&
+            CloudSyncPolicy.shouldPullIncremental(cursor.lastSyncedAt(userId), remoteSnapshot.updatedAt)
+        ) {
+            loadsApplied = mergeSnapshotIntoRoom(db, remoteSnapshot)
             pulled = true
-            applyDriverProfileIfPresent(db, remote)
-            BackupPrefsApplier.apply(app, remote.backup.appSettings)
+            applyDriverProfileIfPresent(db, remoteSnapshot)
+            BackupPrefsApplier.apply(app, remoteSnapshot.backup.appSettings)
         }
 
         val pushed = pushLocalSnapshot(userId, db, backend)
-        if (pushed) {
+        if (pulled || pushed) {
             cursor.markSynced(userId)
         }
         if (pulled) WidgetDataUpdater.updateWidgetData(app)
@@ -125,7 +129,7 @@ object CloudSyncEngine {
             pushed = pushed,
             pulled = pulled,
             loadsApplied = loadsApplied,
-            retryableFailure = backend.remoteConfigured && !pushed,
+            retryableFailure = backend.remoteConfigured && (!pushed || staleMirror),
         )
     }
 

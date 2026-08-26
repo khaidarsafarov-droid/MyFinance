@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.presentation.utils.MoneyFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -73,7 +74,7 @@ object LoadExporter {
         loads.forEachIndexed { index, load ->
             val date = formatDisplayDate(load.date)
             val route = "${load.pointA} → ${load.pointB}"
-            val miles = formatMiles(load.totalMiles)
+            val miles = formatMiles(ParseUtils.sanitizeLoadedMiles(load.totalMiles, load.totalRate))
             val income = formatMoney(load.totalRate)
             appendLine("${index + 1}. $date | $route | $miles | $income")
         }
@@ -82,7 +83,7 @@ object LoadExporter {
     private fun formatStatistics(loads: List<Load>): String {
         val count = loads.size
         val totalIncome = loads.sumOf { it.totalRate }
-        val totalMiles = loads.sumOf { it.totalMiles }
+        val totalMiles = loads.sumOf { ParseUtils.sanitizeLoadedMiles(it.totalMiles, it.totalRate) }
         val avgIncome = if (count > 0) totalIncome / count else 0.0
         val avgRpm = if (totalMiles > 0) totalIncome / totalMiles else 0.0
         return buildString {

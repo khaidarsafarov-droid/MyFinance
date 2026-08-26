@@ -32,6 +32,10 @@ data class AccountCloudWriteResult(
 interface AccountCloudBackend {
     val remoteConfigured: Boolean
 
+    /** True when [read] returned the local mirror because the remote call failed. */
+    val lastReadUsedStaleMirror: Boolean
+        get() = false
+
     suspend fun read(accountId: String): AccountCloudSnapshot?
     suspend fun write(snapshot: AccountCloudSnapshot): AccountCloudWriteResult
 }
@@ -59,12 +63,22 @@ class HybridAccountCloudBackend(
 ) : AccountCloudBackend {
     override val remoteConfigured: Boolean = true
 
+    @Volatile
+    override var lastReadUsedStaleMirror: Boolean = false
+        private set
+
     override suspend fun read(accountId: String): AccountCloudSnapshot? {
-        val remoteSnapshot = runCatching { remote.read(accountId) }.getOrNull()
-        if (remoteSnapshot != null) {
-            local.write(remoteSnapshot)
-            return remoteSnapshot
+        lastReadUsedStaleMirror = false
+        val remoteResult = runCatching { remote.read(accountId) }
+        if (remoteResult.isSuccess) {
+            val remoteSnapshot = remoteResult.getOrNull()
+            if (remoteSnapshot != null) {
+                local.write(remoteSnapshot)
+                return remoteSnapshot
+            }
+            return local.read(accountId)
         }
+        lastReadUsedStaleMirror = true
         return local.read(accountId)
     }
 

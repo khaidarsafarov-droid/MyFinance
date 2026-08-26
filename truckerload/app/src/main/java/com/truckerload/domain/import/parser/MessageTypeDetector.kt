@@ -11,9 +11,9 @@ object MessageTypeDetector {
         return when {
             TelegramHtmlExportParser.isTelegramExport(trimmed) -> ImportMessageType.TELEGRAM_HTML
             TelegramJsonExportParser.isTelegramJsonExport(trimmed) -> ImportMessageType.TELEGRAM_JSON
+            isCsv(trimmed) -> ImportMessageType.CSV
             isHtml(trimmed) -> ImportMessageType.HTML
             isExportFormat(trimmed) -> ImportMessageType.EXPORT_TEXT
-            isCsv(trimmed) -> ImportMessageType.CSV
             isRelayFormat(trimmed) -> ImportMessageType.RELAY_TEXT
             MessageClassifier.isLoadLike(trimmed) -> ImportMessageType.RELAY_TEXT
             else -> ImportMessageType.PLAIN_TEXT
@@ -22,9 +22,7 @@ object MessageTypeDetector {
 
     private fun isHtml(text: String): Boolean =
         text.contains("<html", ignoreCase = true) ||
-            text.contains("<!DOCTYPE", ignoreCase = true) ||
-            text.contains("<table", ignoreCase = true) ||
-            text.contains("<div", ignoreCase = true)
+            text.contains("<!DOCTYPE", ignoreCase = true)
 
     private fun isRelayFormat(text: String): Boolean {
         val relayMarkers = listOf(
@@ -37,8 +35,11 @@ object MessageTypeDetector {
     private fun isCsv(text: String): Boolean {
         val firstLine = text.lineSequence().firstOrNull()?.trim().orEmpty()
         if (!firstLine.contains(",")) return false
-        val cols = firstLine.split(",")
-        return cols.size >= 5 && cols.any { it.contains("trip", ignoreCase = true) || it.contains("rate", ignoreCase = true) }
+        val cols = CsvLoadParser.splitCsvLine(firstLine).map { it.trim().lowercase() }
+        if (cols.size < 4) return false
+        val hasTrip = cols.any { CsvLoadParser.headerHasToken(it, setOf("trip", "tripid")) }
+        val hasRate = cols.any { CsvLoadParser.headerHasToken(it, setOf("rate")) }
+        return hasTrip && hasRate
     }
 
     private fun isExportFormat(text: String): Boolean {

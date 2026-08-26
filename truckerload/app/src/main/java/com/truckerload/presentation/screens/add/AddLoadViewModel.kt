@@ -17,8 +17,10 @@ import com.truckerload.domain.parser.PasteParseGap
 import com.truckerload.domain.parser.PasteParseHint
 import com.truckerload.sync.LoadAlarmPlanner
 import com.truckerload.sync.LoadAlarmScheduler
+import com.truckerload.utils.LoadDateRepair
 import com.truckerload.utils.LoadDocumentTextExtractor
 import com.truckerload.utils.getFirstPickUpMillis
+import com.truckerload.utils.withReportingWeek
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -81,6 +83,7 @@ class AddLoadViewModel @Inject constructor(
     val uiState: StateFlow<AddLoadUiState> = _uiState.asStateFlow()
 
     private var previewJob: Job? = null
+    private var previewGeneration = 0
 
     init {
         val initial = _uiState.value.rawText
@@ -265,16 +268,20 @@ class AddLoadViewModel @Inject constructor(
             _uiState.update { it.copy(previewLoad = null, isParsingPreview = false, previewHint = null) }
             return
         }
+        val generation = ++previewGeneration
         previewJob = viewModelScope.launch {
             delay(PREVIEW_DEBOUNCE_MS)
+            if (generation != previewGeneration || _uiState.value.rawText != value) return@launch
             _uiState.update { it.copy(isParsingPreview = true, previewHint = null) }
             aiRepository.parseLoadFromUserInput(value)
                 .onSuccess { load ->
+                    if (generation != previewGeneration || _uiState.value.rawText != value) return@launch
                     _uiState.update {
                         it.copy(previewLoad = load, isParsingPreview = false, previewHint = null)
                     }
                 }
                 .onFailure {
+                    if (generation != previewGeneration || _uiState.value.rawText != value) return@launch
                     _uiState.update {
                         it.copy(
                             previewLoad = null,
@@ -398,7 +405,9 @@ class AddLoadViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val typed = load.copy(equipmentType = load.equipmentType ?: _uiState.value.equipmentType)
+                val typed = LoadDateRepair.ensureDate(
+                    load.copy(equipmentType = load.equipmentType ?: _uiState.value.equipmentType),
+                ).withReportingWeek()
                 // FIX: same Trip ID must update (unique tripId) instead of crashing / orphaning stops
                 val tripId = typed.tripId.trim()
                 val existing = if (tripId.isNotBlank()) {

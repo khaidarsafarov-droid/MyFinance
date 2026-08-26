@@ -145,7 +145,14 @@ fun GoogleMapsHeatmapCard(
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
-                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                        // FIX: leaving the Map screen while Activity lives never fired ON_DESTROY
+                        mapView?.onPause()
+                        mapView?.onStop()
+                        mapView?.onDestroy()
+                        mapView = null
+                    }
                 }
 
                 AndroidView(

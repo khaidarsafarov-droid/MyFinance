@@ -108,6 +108,14 @@ class LoadFilterPeriodLogicTest {
     }
 
     @Test
+    fun isLoadInWeek_recomputesFromStopsWhenPersistedWeekIsStale() {
+        val load = overnightWeekendLoad().copy(weekNumber = 1, year = 2020)
+        val delWeek = getWeekNumberAndYearFromDate("2025-07-06")
+        assertTrue(isLoadInWeek(load, delWeek.first, delWeek.second))
+        assertFalse(isLoadInWeek(load, 1, 2020))
+    }
+
+    @Test
     fun calendarWeekFilter_usesReportingWeek_notLoadDateRange() {
         val load = overnightWeekendLoad()
         val delWeek = getWeekNumberAndYearFromDate("2025-07-06")

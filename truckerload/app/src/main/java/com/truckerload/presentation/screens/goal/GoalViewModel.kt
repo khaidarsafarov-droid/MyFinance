@@ -55,7 +55,7 @@ class GoalViewModel @Inject constructor(
         loadRepository.watchCurrentWeekYieldSnapshot()
     ) { loads, goal, sqlYield ->
         WeeklyGoalCalculator.calculateCurrentWeek(goal, loads, sqlYield)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** Текущий гросс за неделю из Room. */
     val currentGross: StateFlow<Double> = progressFlow

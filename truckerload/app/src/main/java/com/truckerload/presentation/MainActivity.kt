@@ -189,7 +189,10 @@ class MainActivity : AppCompatActivity() {
                                 if (syncResult?.mode ==
                                     com.truckerload.data.sync.CloudSyncEngine.SyncResult.Mode.DEVICE_SLOT_DENIED
                                 ) {
-                                    authStore.logout()
+                                    // FIX: logout() skipped FGS/Google teardown; SessionTeardown is the single path
+                                    SessionTeardown.signOut(applicationContext, authStore) {
+                                        userComponentManager.endSession()
+                                    }
                                     return@withContext
                                 }
                                 com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)

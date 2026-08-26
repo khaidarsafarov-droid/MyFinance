@@ -70,7 +70,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
         val paycheckTotal = paycheckDao.getPaychecksSince(minDate, maxDate)
             .groupBy { it.weekNumber to it.year }
             .values
-            .sumOf { rows -> rows.first().netAmount }
+            .sumOf { rows -> rows.maxBy { it.addedAt }.netAmount }
         val diesel = dieselDao.getDieselSince(minDate, maxDate)
         return PeriodFinance(
             paycheckTotal = paycheckTotal,

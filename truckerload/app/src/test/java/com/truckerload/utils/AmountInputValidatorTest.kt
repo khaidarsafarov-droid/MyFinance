@@ -15,6 +15,13 @@ class AmountInputValidatorTest {
     }
 
     @Test
+    fun parsePositiveAmount_acceptsCommaDecimalAndThousands() {
+        assertEquals(2750.25, AmountInputValidator.parsePositiveAmount("2 750,25")!!, 0.001)
+        assertEquals(2500.5, AmountInputValidator.parsePositiveAmount("2,500.50")!!, 0.001)
+        assertTrue(AmountInputValidator.isValidPositiveAmount("1.234,56"))
+    }
+
+    @Test
     fun parsePositiveAmount_rejectsBlankZeroNegativeNonNumeric() {
         assertNull(AmountInputValidator.parsePositiveAmount(""))
         assertNull(AmountInputValidator.parsePositiveAmount("   "))

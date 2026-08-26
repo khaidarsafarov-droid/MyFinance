@@ -21,5 +21,6 @@ class GoalMoneyMathTest {
     fun `expectedGrossByNow is linear across a seven day week`() {
         assertEquals(100.0, GoalMoneyMath.expectedGrossByNow(goal = 700.0, daysActive = 1))
         assertEquals(700.0, GoalMoneyMath.expectedGrossByNow(goal = 700.0, daysActive = 7))
+        assertEquals(0.0, GoalMoneyMath.expectedGrossByNow(goal = 700.0, daysActive = 0))
     }
 }

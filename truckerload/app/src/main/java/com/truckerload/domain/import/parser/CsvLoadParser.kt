@@ -16,11 +16,21 @@ class CsvLoadParser : LoadParser {
 
         // FIX: quote-aware split so "SWF2, Garner, NC" stays one column
         val headers = splitCsvLine(lines.first()).map { it.trim().lowercase(Locale.US) }
-        val tripIdx = headers.indexOfFirst { it.contains("trip") }
-        val rateIdx = headers.indexOfFirst { it.contains("rate") }
-        val milesIdx = headers.indexOfFirst { it.contains("mile") }
-        val originIdx = headers.indexOfFirst { it.contains("origin") || it.contains("pickup") || it == "from" }
-        val destIdx = headers.indexOfFirst { it.contains("dest") || it.contains("delivery") || it == "to" }
+        val tripIdx = indexOfHeader(headers, "trip", "tripid")
+        val rateIdx = indexOfHeader(headers, "rate")
+        val milesIdx = indexOfHeader(headers, "mile", "miles", "mileage")
+        val originIdx = indexOfHeader(headers, "origin", "from").let { idx ->
+            if (idx != -1) idx
+            else headers.indexOfFirst {
+                headerHasToken(it, setOf("pickup")) && !headerHasToken(it, setOf("date"))
+            }
+        }
+        val destIdx = indexOfHeader(headers, "dest", "destination", "to").let { idx ->
+            if (idx != -1) idx
+            else headers.indexOfFirst {
+                headerHasToken(it, setOf("delivery")) && !headerHasToken(it, setOf("date"))
+            }
+        }
         val dateIdx = headers.indexOfFirst {
             it == "date" ||
                 it.contains("pickup_date") ||
@@ -107,6 +117,18 @@ class CsvLoadParser : LoadParser {
     }
 
     companion object {
+        fun indexOfHeader(headers: List<String>, vararg tokens: String): Int =
+            headers.indexOfFirst { headerHasToken(it, tokens.toSet()) }
+
+        fun headerHasToken(header: String, tokens: Set<String>): Boolean {
+            val parts = header.lowercase(Locale.US)
+                .split(Regex("[^a-z0-9]+"))
+                .filter { it.isNotEmpty() }
+            if (parts.any { it in tokens }) return true
+            val compact = parts.joinToString("")
+            return tokens.any { it.replace(" ", "") == compact }
+        }
+
         /**
          * RFC 4180-ish field split: commas inside `"..."` do not delimit columns;
          * `""` inside quotes is an escaped quote.
