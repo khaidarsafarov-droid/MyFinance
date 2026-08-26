@@ -67,10 +67,17 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     }
     var autoSync by remember { mutableStateOf(prefs.autoSyncEnabled) }
     var lastSyncAt by remember { mutableStateOf(prefs.lastSyncAt) }
+    var lastSyncError by remember { mutableStateOf(prefs.lastSyncError) }
     var busy by remember { mutableStateOf(false) }
     var showRestoreConfirm by remember { mutableStateOf(false) }
     var restoreConflict by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
+
+    fun refreshSyncStatus() {
+        lastSyncAt = prefs.lastSyncAt
+        lastSyncError = prefs.lastSyncError
+        linkedEmail = GoogleDriveBackupService.linkedAccountEmail(context) ?: prefs.accountEmail
+    }
 
     fun toastResult(result: Result<String>) {
         result.fold(
@@ -97,8 +104,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         val result = withContext(Dispatchers.IO) {
             GoogleDriveBackupService.backupNow(context)
         }
-        lastSyncAt = prefs.lastSyncAt
-        linkedEmail = GoogleDriveBackupService.linkedAccountEmail(context) ?: prefs.accountEmail
+        refreshSyncStatus()
         busy = false
         toastResult(result)
     }
@@ -159,6 +165,14 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             style = MaterialTheme.typography.labelSmall,
             color = tc.TextSecondary,
         )
+        val syncError = lastSyncError
+        if (!syncError.isNullOrBlank()) {
+            Text(
+                text = stringResource(R.string.drive_sync_last_error, syncError),
+                style = MaterialTheme.typography.labelSmall,
+                color = tc.AccentExpense,
+            )
+        }
         if (connectivity == ConnectivityStatus.Offline) {
             Text(
                 text = stringResource(R.string.connectivity_offline_banner),
@@ -257,6 +271,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                         }
                         linkedEmail = null
                         lastSyncAt = 0L
+                        lastSyncError = null
                         busy = false
                     }
                 },
@@ -270,7 +285,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
 
     if (showRestoreConfirm) {
         AlertDialog(
-            onDismissRequest = { showRestoreConfirm = false },
+            onDismissRequest = { if (!busy) showRestoreConfirm = false },
             title = { Text(stringResource(R.string.drive_sync_restore_confirm_title)) },
             text = {
                 Text(
@@ -292,7 +307,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                             val result = withContext(Dispatchers.IO) {
                                 GoogleDriveBackupService.restoreNow(context)
                             }
-                            lastSyncAt = prefs.lastSyncAt
+                            refreshSyncStatus()
                             busy = false
                             toastResult(result)
                         }

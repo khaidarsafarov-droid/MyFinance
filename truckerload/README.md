@@ -10,14 +10,18 @@ The repository contains:
 
 - `app/` — Android app, including on-device Telegram fallback, OCR/scanner, media,
   analytics, and widgets;
+- `ios/` — SwiftUI iOS client that links the KMP umbrella framework `TruckerLoadShared`
+  (`:shared`). Requires Xcode on macOS; see [ios/README.md](ios/README.md);
+- `shared/` — umbrella KMP module exported to iOS as `TruckerLoadShared.framework`;
 - `shared/contract/` — KMP API contracts (JVM always; iOS targets on macOS);
 - `shared/domain/` — KMP portable domain (goal math today; parsers later);
 - `backend/server/` — Ktor API for PostgreSQL snapshots, Telegram inbox, S3 media
   metadata, FCM wake-ups, health, and Prometheus metrics;
 - `deploy/digitalocean/` — the single-cloud App Platform target and recovery runbooks.
 
-There is no iOS or web/Expo client yet. The Telegram bot runs in the Android
-foreground service in device mode or through the Ktor webhook in server mode.
+There is no web/Expo client. The Telegram bot runs in the Android foreground service
+in device mode or through the Ktor webhook in server mode. iOS does not run a device
+Telegram long-poll; use server sync when that client is built.
 iOS sharing plan: [docs/KMP_IOS_ROADMAP.md](docs/KMP_IOS_ROADMAP.md).
 
 Send this one file to Cloud Code / Claude Code for product context:
@@ -33,7 +37,8 @@ backup. See [docs/FRIENDS_SHARE.md](docs/FRIENDS_SHARE.md) and
 JDK 21 and Android SDK 34 are required.
 
 ```bash
-sh ./gradlew :shared:contract:jvmTest \
+sh ./gradlew :shared:jvmTest \
+  :shared:contract:jvmTest \
   :shared:domain:jvmTest \
   :backend:server:test \
   :app:testDebugUnitTest \
@@ -68,7 +73,7 @@ docker compose up --build
 ## Configuration and operations
 
 - [Target architecture](docs/TARGET_ARCHITECTURE.md)
-- [KMP / future iOS](docs/KMP_IOS_ROADMAP.md)
+- [KMP / iOS client](docs/KMP_IOS_ROADMAP.md)
 - [Backend local/production setup](docs/BACKEND_SETUP.md)
 - [Cloud sync behavior](docs/CLOUD_DATA_SYNC.md)
 - [Phased migration and rollback](docs/MIGRATION_ROLLOUT.md)

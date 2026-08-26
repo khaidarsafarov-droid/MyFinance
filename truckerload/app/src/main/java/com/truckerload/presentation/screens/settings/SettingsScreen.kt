@@ -185,6 +185,8 @@ fun SettingsScreen(
 
             GoogleDriveSyncSection(tc = tc)
 
+            SettingsShareAppSection()
+
             DeleteAccountSection()
 
             BentoGlassSection(

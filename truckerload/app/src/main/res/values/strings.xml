@@ -933,6 +933,7 @@
     <string name="drive_sync_status_on">Подключено: %1$s</string>
     <string name="drive_sync_last">Последняя синхронизация: %1$s</string>
     <string name="drive_sync_last_never">ещё не было</string>
+    <string name="drive_sync_last_error">Последняя ошибка Drive: %1$s</string>
     <string name="drive_sync_connect">Подключить Google Drive</string>
     <string name="drive_sync_now">Синхронизировать с Google Drive</string>
     <string name="drive_sync_disconnect">Отключить</string>
@@ -1650,4 +1651,11 @@
     <string name="drawer_section_finance">Финансы</string>
     <string name="drawer_section_data_entry">Ввод данных</string>
     <string name="drawer_section_maintenance">Обслуживание</string>
+    <string name="settings_backup_working">Создаём резервную копию…</string>
+    <string name="settings_backup_restoring">Восстанавливаем данные…</string>
+    <string name="settings_share_app_title">Поделиться приложением</string>
+    <string name="settings_share_app_body">Отправьте другу установочный APK или ссылку на сборку. Данные остаются только на его телефоне — сервер не нужен.</string>
+    <string name="settings_share_app_button">Поделиться APK</string>
+    <string name="settings_share_app_unavailable">Не удалось найти APK этого приложения на устройстве</string>
+    <string name="settings_share_app_chooser">Поделиться TruckoRig</string>
 </resources>

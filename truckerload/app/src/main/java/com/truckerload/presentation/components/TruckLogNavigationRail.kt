@@ -115,6 +115,8 @@ fun TruckLogNavigationRail(
             )
             return@Column
         }
+        AppBrandLogo(size = 48.dp, cornerRadius = 12.dp)
+        Spacer(Modifier.height(12.dp))
         Text(
             text = stringResource(R.string.home_brand_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),

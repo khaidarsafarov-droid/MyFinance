@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.truckerload.data.local.entities.LoadDateSpan
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.WeekYieldAgg
@@ -341,6 +342,27 @@ interface LoadDao {
         """
     )
     fun watchWeeklyLoadStats(weekNumber: Int, year: Int): Flow<WeeklyLoadStatsAgg>
+
+    @Query(
+        """
+        SELECT date AS startDate, actualFinishDate AS endDate
+        FROM loads
+        WHERE length(date) >= 10
+        """
+    )
+    fun watchLoadDateSpans(): Flow<List<LoadDateSpan>>
+
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS loadCount,
+            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalRate), 0.0) AS totalRevenue
+        FROM loads
+        WHERE isDispute = 1
+        """
+    )
+    fun watchDisputeLoadStats(): Flow<WeeklyLoadStatsAgg>
 
     @Query(
         """

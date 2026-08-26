@@ -34,3 +34,7 @@ signing/*.p12
 # Local distribution drops
 /dist/
 /app/release/
+
+# Xcode
+**/xcuserdata/
+

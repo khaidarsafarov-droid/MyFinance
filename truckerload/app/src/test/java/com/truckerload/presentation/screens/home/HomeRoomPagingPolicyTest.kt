@@ -9,26 +9,15 @@ class HomeRoomPagingPolicyTest {
 
     @Test
     fun usesRoomPaging_trueForAllAndWeekFilters() {
-        // Policy mirrors HomeViewModel.usesRoomPaging without constructing a VM.
-        fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean {
-            if (filter == LoadFilter.ALL) return true
-            if (selectedYear != null) return false
-            return when (filter) {
-                LoadFilter.THIS_WEEK,
-                LoadFilter.LAST_WEEK,
-                LoadFilter.CALENDAR_WEEK,
-                LoadFilter.DISPUTE,
-                -> true
-                else -> false
-            }
-        }
-
-        assertTrue(usesRoomPaging(LoadFilter.ALL, null))
-        assertTrue(usesRoomPaging(LoadFilter.ALL, 2026))
-        assertTrue(usesRoomPaging(LoadFilter.THIS_WEEK, null))
-        assertTrue(usesRoomPaging(LoadFilter.LAST_WEEK, null))
-        assertTrue(usesRoomPaging(LoadFilter.DISPUTE, null))
-        assertFalse(usesRoomPaging(LoadFilter.THIS_MONTH, null))
-        assertFalse(usesRoomPaging(LoadFilter.THIS_WEEK, 2026))
+        assertTrue(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.ALL, null))
+        assertTrue(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.ALL, 2026))
+        assertTrue(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.THIS_WEEK, null))
+        assertTrue(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.LAST_WEEK, null))
+        assertTrue(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.CALENDAR_WEEK, null))
+        assertTrue(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.DISPUTE, null))
+        assertFalse(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.THIS_MONTH, null))
+        assertFalse(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.CALENDAR_DATE, null))
+        assertFalse(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.YESTERDAY, null))
+        assertFalse(HomeRoomPagingPolicy.usesRoomPaging(LoadFilter.THIS_WEEK, 2026))
     }
 }

@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.BuildConfig
+import com.truckerload.presentation.components.AppBrandLogo
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.screens.auth.AuthUiEvent
@@ -86,7 +87,9 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Spacer(modifier = Modifier.height(48.dp))
+                    Spacer(modifier = Modifier.height(36.dp))
+                    AppBrandLogo(size = 112.dp)
+                    Spacer(modifier = Modifier.height(20.dp))
                     Text(
                         text = stringResource(R.string.login_title),
                         style = MaterialTheme.typography.headlineLarge,
