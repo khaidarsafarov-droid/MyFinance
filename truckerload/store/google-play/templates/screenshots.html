@@ -795,6 +795,101 @@
       color: var(--kit);
     }
 
+    .tg-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #dde5ee;
+      min-height: 0;
+    }
+    .tg-head {
+      background: #fff;
+      padding: 8px 16px 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #d5dde6;
+      flex-shrink: 0;
+    }
+    .tg-ava {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--kit);
+      color: #fff;
+      display: grid; place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .tg-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    .tg-head p { margin: 2px 0 0; font-size: 12px; color: #1A7A68; font-weight: 600; }
+    .tg-cmds {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px 0;
+      flex-shrink: 0;
+    }
+    .tg-cmd {
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--kit);
+    }
+    .tg-feed {
+      flex: 1;
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .bub {
+      max-width: 84%;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+    .bub.me {
+      align-self: flex-end;
+      background: var(--kit);
+      color: #fff;
+      border-radius: 16px 16px 4px 16px;
+    }
+    .bub.bot {
+      align-self: flex-start;
+      background: #fff;
+      color: var(--text);
+      border-radius: 16px 16px 16px 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .bub .meta { font-size: 11px; opacity: 0.8; margin-top: 4px; }
+    .bub .ok { color: var(--success); font-weight: 700; }
+    .file {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .file.light {
+      background: var(--sage);
+      color: var(--kit);
+    }
+    .tg-input {
+      background: #fff;
+      margin: 0 10px 12px;
+      border-radius: 22px;
+      padding: 10px 16px;
+      color: var(--muted);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -822,13 +917,13 @@
         goalH: "Цель недели всегда рядом",
         goalP: "Сколько осталось и какой темп нужен сегодня",
         addH: "Любые лоуды, не только Relay",
-        addP: "Вставка, ручная форма или фото накладной — как удобно",
+        addP: "Вставка, Telegram-бот, форма или фото накладной",
         cameraH: "Камера с геолокацией",
         cameraP: "Фото рейса сразу с городом и координатами",
         scannerH: "Сканер файлов и документов",
         scannerP: "PDF, фото, чек — поля заполнятся сами",
-        analyticsH: "Все цифры в одном месте",
-        analyticsP: "Грузы, зарплата и дизель — без сюрпризов",
+        telegramH: "Из Telegram — сразу в журнал",
+        telegramP: "Перешлите лоуд боту. Экспорт HTML или текста вернёт всю историю",
         dieselH: "Дизель за секунды",
         dieselP: "С виджета: локация по GPS, галлоны и сумма",
         navLoads: "Грузы",
@@ -898,7 +993,20 @@
         drop: "Выгрузка",
         rate: "Ставка ($)",
         location: "Локация",
-        featureP: "Данные всегда под рукой · любые лоуды · виджет",
+        tgName: "TruckoRig",
+        tgOnline: "бот в сети",
+        tgFwd: "Переслано",
+        tgLoad: "Trip ID: T-116KYL6KW\nTotal Rate: 2500.00\nGarner, NC → Dallas, TX",
+        tgSaved: "Груз записан в приложение",
+        tgSavedMeta: "$2,500 · 850 mi · сразу в журнале",
+        tgFile: "messages.html",
+        tgFileMeta: "Экспорт чата · HTML / текст",
+        tgImported: "История лоудов восстановлена",
+        tgImportedMeta: "18 грузов из текстового экспорта",
+        tgHint: "Перешлите лоуд, HTML-экспорт или .txt",
+        cmdImport: "/import",
+        cmdRestore: "восстанови",
+        featureP: "Данные всегда под рукой · Telegram-бот · виджет",
         tabletH: "Всё на одном экране",
         tabletP: "Журнал любых грузов и цифры недели — всегда под рукой",
       },
@@ -910,13 +1018,13 @@
         goalH: "Weekly goal, always in view",
         goalP: "See remaining gross and the daily pace you need",
         addH: "Any load — not only Relay",
-        addP: "Paste, type it in, or snap the paperwork — your choice",
+        addP: "Paste, Telegram bot, form, or a photo of the paperwork",
         cameraH: "Camera with location",
         cameraP: "Trip photos get city and GPS the moment you shoot",
         scannerH: "File and document scanner",
         scannerP: "PDF, photo or receipt — fields fill in for you",
-        analyticsH: "Every number in one place",
-        analyticsP: "Loads, paychecks and diesel — no surprises",
+        telegramH: "Telegram in — journal out",
+        telegramP: "Forward a load to the bot. Import HTML or text to restore your history",
         dieselH: "Diesel in seconds",
         dieselP: "From the widget: GPS fills the stop, you tap save",
         navLoads: "Loads",
@@ -986,7 +1094,20 @@
         drop: "Delivery",
         rate: "Rate ($)",
         location: "Location",
-        featureP: "Your data, always on hand · any load · widget",
+        tgName: "TruckoRig",
+        tgOnline: "bot is online",
+        tgFwd: "Forwarded",
+        tgLoad: "Trip ID: T-116KYL6KW\nTotal Rate: 2500.00\nGarner, NC → Dallas, TX",
+        tgSaved: "Load saved to the app",
+        tgSavedMeta: "$2,500 · 850 mi · already in the journal",
+        tgFile: "messages.html",
+        tgFileMeta: "Chat export · HTML / text",
+        tgImported: "Load history restored",
+        tgImportedMeta: "18 loads from the text export",
+        tgHint: "Forward a load, HTML export, or .txt",
+        cmdImport: "/import",
+        cmdRestore: "restore",
+        featureP: "Your data, always on hand · Telegram bot · widget",
         tabletH: "Everything on one screen",
         tabletP: "Any load in the journal, weekly numbers always at hand",
       },
@@ -1198,37 +1319,37 @@
         </div>
         ${nav("goal")}
       `,
-      analytics: () => `
+      telegram: () => `
         ${statusBar()}
-        ${hdr(t.analytics, t.analyticsSub, true)}
-        <div class="body" style="padding-bottom:24px">
-          <div class="grid2">
-            <div class="tile"><div class="k">${t.loads}</div><div class="v">18</div></div>
-            <div class="tile"><div class="k">RPM</div><div class="v">$2.54</div></div>
+        <div class="tg-wrap">
+          <div class="tg-head">
+            <div class="tg-ava">TR</div>
+            <div><h2>${t.tgName}</h2><p>${t.tgOnline}</p></div>
           </div>
-          <div class="card">
-            <div class="section" style="margin-top:0">${t.money}</div>
-            <div class="grid2" style="margin:0">
-              <div><div class="k">${t.pay}</div><div class="v" style="color:#1A7A68">$9,840</div></div>
-              <div><div class="k">${t.diesel}</div><div class="v" style="color:#C4395A">$3,210</div></div>
+          <div class="tg-cmds">
+            <span class="tg-cmd">${t.cmdImport}</span>
+            <span class="tg-cmd">${t.cmdRestore}</span>
+            <span class="tg-cmd">/status</span>
+          </div>
+          <div class="tg-feed">
+            <div class="bub me">
+              <div class="meta">${t.tgFwd}</div>
+              ${t.tgLoad.replace(/\n/g, "<br>")}
             </div>
-            <div class="grid2" style="margin-top:10px;margin-bottom:0">
-              <div><div class="k">${t.gal}</div><div class="v">842</div></div>
-              <div><div class="k">${t.avgGal}</div><div class="v">$3.81</div></div>
+            <div class="bub bot">
+              <div class="ok">✓ ${t.tgSaved}</div>
+              <div class="meta">${t.tgSavedMeta}</div>
+            </div>
+            <div class="bub me">
+              <div class="file">📄 ${t.tgFile}</div>
+              ${t.tgFileMeta}
+            </div>
+            <div class="bub bot">
+              <div class="ok">✓ ${t.tgImported}</div>
+              <div class="meta">${t.tgImportedMeta}</div>
             </div>
           </div>
-          <div class="card">
-            <div class="section" style="margin-top:0">${t.weeks}</div>
-            <div class="chart">
-              <i style="height:42%"></i>
-              <i style="height:58%"></i>
-              <i class="alt" style="height:71%"></i>
-              <i style="height:64%"></i>
-              <i style="height:88%"></i>
-              <i class="alt" style="height:76%"></i>
-              <i style="height:93%"></i>
-            </div>
-          </div>
+          <div class="tg-input">${t.tgHint}</div>
         </div>
       `,
     };
@@ -1241,7 +1362,7 @@
       scanner: [t.scannerH, t.scannerP],
       diesel: [t.dieselH, t.dieselP],
       weekly_goal: [t.goalH, t.goalP],
-      analytics: [t.analyticsH, t.analyticsP],
+      telegram: [t.telegramH, t.telegramP],
     };
 
     function phoneCanvas(id) {

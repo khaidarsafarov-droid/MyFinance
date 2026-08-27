@@ -36,7 +36,7 @@ PHONE_SLIDES = [
     "scanner",
     "diesel",
     "weekly_goal",
-    "analytics",
+    "telegram",
 ]
 PHONE_SIZE = (1080, 1920)
 TABLET_SIZE = (1920, 1200)
