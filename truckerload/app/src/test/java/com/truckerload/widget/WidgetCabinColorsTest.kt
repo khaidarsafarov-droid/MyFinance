@@ -22,6 +22,14 @@ class WidgetCabinColorsTest {
     fun forestDarkPlate_usesNavyMockup() {
         assertEquals(WidgetCabinPalette.Dark.BG, WidgetCabinColors.ForestDark.bg)
         assertEquals(WidgetCabinPalette.Dark.PROGRESS_END, WidgetCabinColors.ForestDark.progressEnd)
+        assertEquals(WidgetCabinPalette.Dark.PROGRESS_START, WidgetCabinColors.ForestDark.progressStart)
+        assertEquals(WidgetCabinPalette.Dark.PROGRESS_LABEL, WidgetCabinColors.ForestDark.progressLabel)
+    }
+
+    @Test
+    fun forestLight_actionsUseBrandPurpleFill() {
+        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.actionBg)
+        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.ring)
     }
 
     @Test

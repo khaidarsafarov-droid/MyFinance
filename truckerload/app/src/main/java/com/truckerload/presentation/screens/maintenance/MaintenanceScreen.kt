@@ -126,8 +126,8 @@ fun MaintenanceScreen(onBack: () -> Unit) {
             MaintenanceArchiveSection(
                 archive = uiState.archive,
                 isProcessingPhoto = uiState.isProcessingPhoto,
-                onAddArchive = viewModel::openReceiptSourcePicker,
-                onDeleteArchive = viewModel::deleteArchive,
+                onAddArchive = viewModel::openAddArchive,
+                onDeleteVisit = viewModel::deleteVisit,
                 onOpenPhoto = viewModel::openReceiptViewer,
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -161,7 +161,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
             onDismiss = viewModel::dismissAddArchive,
             onChange = viewModel::updateArchiveDraft,
             onSave = viewModel::saveArchive,
-            onRetakePhoto = viewModel::openReceiptSourcePicker,
+            onScanPhoto = viewModel::openReceiptSourcePicker,
         )
     }
 

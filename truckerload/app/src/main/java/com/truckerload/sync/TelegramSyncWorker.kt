@@ -12,6 +12,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
+import com.truckerload.data.remote.TelegramBotBranding
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
@@ -68,6 +69,7 @@ class TelegramSyncWorker @AssistedInject constructor(
             Log.w("TelegramSync", "No bot token — skip background poll")
             return Result.success()
         }
+        runCatching { TelegramBotBranding.apply(applicationContext, token) }
         if (TelegramBotForegroundService.isRunning()) {
             Log.d("TelegramSync", "FGS is active (app in foreground) — skip background poll")
             return Result.success()

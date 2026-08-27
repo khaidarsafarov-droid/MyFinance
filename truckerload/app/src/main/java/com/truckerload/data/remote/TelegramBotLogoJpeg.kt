@@ -14,7 +14,7 @@ object TelegramBotLogoJpeg {
 
     const val SIZE_PX = 640
     const val JPEG_QUALITY = 90
-    private val navy = Color.parseColor("#143882")
+    private val plate = Color.parseColor("#5B54E6")
 
     fun encode(context: Context): ByteArray? {
         val src = loadLogoBitmap(context) ?: return null
@@ -29,7 +29,7 @@ object TelegramBotLogoJpeg {
         val dest = Bitmap.createBitmap(SIZE_PX, SIZE_PX, Bitmap.Config.ARGB_8888)
         try {
             val canvas = Canvas(dest)
-            canvas.drawColor(navy)
+            canvas.drawColor(plate)
             val scaled = Bitmap.createScaledBitmap(src, SIZE_PX, SIZE_PX, true)
             canvas.drawBitmap(scaled, 0f, 0f, null)
             if (scaled !== src && !scaled.isRecycled) scaled.recycle()
@@ -55,7 +55,7 @@ object TelegramBotLogoJpeg {
             ?: return null
         val bmp = Bitmap.createBitmap(SIZE_PX, SIZE_PX, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
-        canvas.drawColor(navy)
+        canvas.drawColor(plate)
         drawable.setBounds(0, 0, SIZE_PX, SIZE_PX)
         drawable.draw(canvas)
         return bmp

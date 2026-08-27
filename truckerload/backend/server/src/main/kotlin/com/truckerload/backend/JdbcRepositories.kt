@@ -689,6 +689,29 @@ private class JdbcAccountDeviceRepository(private val dataSource: DataSource) : 
             }
         }
 
+    override suspend fun deleteByFormFactor(
+        userId: UUID,
+        formFactor: String,
+        excludingDeviceId: String?,
+    ): Boolean = dataSource.query { connection ->
+        val sql = if (excludingDeviceId.isNullOrBlank()) {
+            "DELETE FROM account_devices WHERE user_id = ? AND form_factor = ?"
+        } else {
+            """
+            DELETE FROM account_devices
+            WHERE user_id = ? AND form_factor = ? AND device_id <> ?
+            """.trimIndent()
+        }
+        connection.prepareStatement(sql).use { statement ->
+            statement.setObject(1, userId)
+            statement.setString(2, formFactor)
+            if (!excludingDeviceId.isNullOrBlank()) {
+                statement.setString(3, excludingDeviceId)
+            }
+            statement.executeUpdate() > 0
+        }
+    }
+
     private fun Connection.selectDevice(
         userId: UUID,
         deviceId: String? = null,

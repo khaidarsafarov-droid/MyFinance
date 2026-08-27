@@ -440,6 +440,35 @@ class ApplicationTest {
     }
 
     @Test
+    fun `device registration replace evicts previous tablet slot`() = testApplication {
+        val backend = InMemoryBackend()
+        application {
+            configureApplication(AppConfig.test(), AppDependencies(backend.repositories, FakeObjectStorage()))
+        }
+        val client = jsonClient()
+        client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("tablet-a", DeviceSlotPolicy.TABLET))
+        }
+        val blocked = client.post("/v1/devices/register") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("tablet-b", DeviceSlotPolicy.TABLET))
+        }
+        assertEquals(HttpStatusCode.Conflict, blocked.status)
+
+        val replaced = client.post("/v1/devices/register?replace=true") {
+            bearerAuth(token(userOne))
+            contentType(ContentType.Application.Json)
+            setBody(DeviceRegisterRequest("tablet-b", DeviceSlotPolicy.TABLET))
+        }
+        assertEquals(HttpStatusCode.OK, replaced.status)
+        assertFalse(backend.accountDevices.containsKey(userOne to "tablet-a"))
+        assertTrue(backend.accountDevices.containsKey(userOne to "tablet-b"))
+    }
+
+    @Test
     fun `device registration rejects invalid form factor`() = testApplication {
         val backend = InMemoryBackend()
         application {

@@ -26,7 +26,9 @@ class AuthRepositoryArchitectureTest {
     @Test
     fun cloudLogin_registersDeviceSlotBeforeKeepingSession() {
         val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(auth.contains("DeviceSlotLogin.afterSessionPersisted"))
+        assertTrue(auth.contains("DeviceSlotLogin.beforeSessionPersisted"))
+        val binder = readMainSource("com/truckerload/data/sync/DeviceSlotBinder.kt")
+        assertTrue(binder.contains("registerWithAccessToken"))
         val engine = readMainSource("com/truckerload/data/sync/CloudSyncEngine.kt")
         assertTrue(engine.contains("DEVICE_SLOT_DENIED"))
         assertTrue(engine.contains("registerCurrentDevice"))

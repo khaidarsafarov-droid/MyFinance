@@ -83,10 +83,23 @@ class MaintenanceRepository(
         return id
     }
 
+    suspend fun insertArchives(entries: List<MaintenanceArchiveEntry>) {
+        if (entries.isEmpty()) return
+        dao.insertArchives(entries.map { it.copy(id = 0).toEntity() })
+        scheduleAutoBackup()
+    }
+
     suspend fun deleteArchive(id: Long) {
-        val photoPath = dao.getArchiveById(id)?.photoPath
-        dao.deleteArchive(id)
-        photoPath?.takeIf { it.isNotBlank() }?.let { path ->
+        deleteArchives(listOf(id))
+    }
+
+    suspend fun deleteArchives(ids: List<Long>) {
+        if (ids.isEmpty()) return
+        val photoPaths = ids.mapNotNull { id ->
+            dao.getArchiveById(id)?.photoPath?.takeIf { it.isNotBlank() }
+        }.distinct()
+        ids.forEach { dao.deleteArchive(it) }
+        photoPaths.forEach { path ->
             runCatching { java.io.File(path).delete() }
         }
         scheduleAutoBackup()

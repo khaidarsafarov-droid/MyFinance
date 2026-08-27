@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -48,6 +50,8 @@ import com.truckerload.presentation.components.FillViewportScrollColumn
 import com.truckerload.presentation.components.GoogleSignInButton
 import com.truckerload.presentation.screens.auth.AuthUiEvent
 import com.truckerload.presentation.screens.auth.AuthViewModel
+import com.truckerload.presentation.screens.auth.deviceSlotReplaceBodyRes
+import com.truckerload.presentation.screens.auth.deviceSlotReplaceTitleRes
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalTruckColors
 
@@ -241,6 +245,31 @@ fun LoginScreen(
                     Toast.LENGTH_SHORT,
                 ).show()
                 showBiometricOffer = false
+            },
+        )
+    }
+    uiState.deviceSlotReplacePrompt?.let { prompt ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeviceSlotReplacePrompt() },
+            title = {
+                Text(stringResource(deviceSlotReplaceTitleRes(prompt.formFactor)))
+            },
+            text = {
+                Text(
+                    prompt.message.ifBlank {
+                        stringResource(deviceSlotReplaceBodyRes(prompt.formFactor))
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmDeviceSlotReplace() }) {
+                    Text(stringResource(R.string.auth_device_replace_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDeviceSlotReplacePrompt() }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
             },
         )
     }

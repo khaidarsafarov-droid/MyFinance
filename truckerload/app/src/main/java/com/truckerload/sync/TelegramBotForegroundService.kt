@@ -20,7 +20,7 @@ import com.truckerload.R
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramApi
-import com.truckerload.data.remote.TelegramBotLogoJpeg
+import com.truckerload.data.remote.TelegramBotBranding
 import com.truckerload.data.remote.TelegramBotTokenFingerprint
 import com.truckerload.presentation.MainActivity
 import com.truckerload.utils.LogRedactor
@@ -134,8 +134,10 @@ class TelegramBotForegroundService : Service() {
         val prefs = getSharedPreferences(TelegramSyncWorker.PREFS_NAME, MODE_PRIVATE)
         val tokenFp = TelegramBotTokenFingerprint.of(token)
         val featuresDone = storedTokenFingerprint(prefs, KEY_BOT_FEATURES_SETUP) == tokenFp
-        val photoDone = storedTokenFingerprint(prefs, KEY_BOT_PROFILE_PHOTO_FP) == tokenFp
-        if (featuresDone && photoDone) return
+        if (featuresDone &&
+            TelegramBotBranding.isNameApplied(prefs, token) &&
+            TelegramBotBranding.isPhotoApplied(prefs, token)
+        ) return
         scope.launch {
             val api = TelegramApi(token)
             if (!featuresDone) {
@@ -150,26 +152,13 @@ class TelegramBotForegroundService : Service() {
                     Log.w(TAG, "setChatMenuButton: ${LogRedactor.redact(e.message)}")
                 }
             }
-            if (!photoDone) {
-                applyBrandProfilePhoto(api, tokenFp, prefs)
-            }
+            TelegramBotBranding.apply(applicationContext, token)
         }
     }
 
     /** Legacy builds stored a Boolean for features-setup; reading it as String crashes. */
     private fun storedTokenFingerprint(prefs: SharedPreferences, key: String): String =
         prefs.all[key] as? String ?: ""
-
-    private suspend fun applyBrandProfilePhoto(
-        api: TelegramApi,
-        tokenFp: String,
-        prefs: SharedPreferences,
-    ) {
-        val jpeg = TelegramBotLogoJpeg.encode(applicationContext) ?: return
-        api.setMyProfilePhoto(jpeg)
-            .onSuccess { prefs.edit { putString(KEY_BOT_PROFILE_PHOTO_FP, tokenFp) } }
-            .onFailure { e -> Log.w(TAG, "setMyProfilePhoto: ${LogRedactor.redact(e.message)}") }
-    }
 
     private suspend fun pollLoop(token: String, expectedUserId: String) {
         val engine = TelegramBotSyncEngine(applicationContext)
@@ -266,7 +255,6 @@ class TelegramBotForegroundService : Service() {
         private const val LEGACY_CHANNEL_ID = "telegram_bot_sync"
         private const val NOTIFICATION_ID = 4101
         private const val KEY_BOT_FEATURES_SETUP = "bot_features_setup_v4"
-        private const val KEY_BOT_PROFILE_PHOTO_FP = "bot_profile_photo_fp"
 
         private val isRunningFlag = AtomicBoolean(false)
         private val startRequested = AtomicBoolean(false)

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
@@ -36,51 +37,84 @@ fun AdaptiveScaffold(
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val drawerState = rememberDrawerState(initialValue = androidx.compose.material3.DrawerValue.Closed)
+    val tabletChrome = useNavigationRail()
+    val useDrawer = shouldEnableModalNavigationDrawer(
+        showMainNavigation = showMainNavigation,
+        tabletChrome = tabletChrome,
+    )
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val sizeClass = rememberWindowSizeClass()
-    val openDrawer: () -> Unit = {
-        scope.launch { drawerState.open() }
+    val body: @Composable () -> Unit = {
+        AdaptiveScaffoldBody(
+            modifier = modifier,
+            showMainNavigation = showMainNavigation,
+            tabletChrome = tabletChrome,
+            currentRoute = currentRoute,
+            onNavigate = onNavigate,
+            onDrawerNavigate = onDrawerNavigate,
+            content = content,
+        )
     }
 
-    CompositionLocalProvider(LocalOpenDrawer provides openDrawer) {
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            // Edge-swipe opens the tools drawer when main chrome is visible.
-            gesturesEnabled = showMainNavigation,
-            drawerContent = {
-                AppDrawerContent(
-                    onNavigate = onDrawerNavigate,
-                    onClose = { scope.launch { drawerState.close() } },
-                )
-            },
+    if (useDrawer) {
+        CompositionLocalProvider(
+            LocalOpenDrawer provides { scope.launch { drawerState.open() } },
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(BentoGlassTheme.ScreenBackground),
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                gesturesEnabled = true,
+                drawerContent = {
+                    AppDrawerContent(
+                        onNavigate = onDrawerNavigate,
+                        onClose = { scope.launch { drawerState.close() } },
+                    )
+                },
             ) {
-                when {
-                    useNavigationRail() && showMainNavigation -> {
-                        TabletScaffold(
-                            modifier = modifier,
-                            sizeClass = sizeClass,
-                            currentRoute = currentRoute,
-                            onNavigate = onNavigate,
-                            onDrawerNavigate = onDrawerNavigate,
-                            content = content,
-                        )
-                    }
-                    else -> {
-                        PhoneScaffold(
-                            modifier = modifier,
-                            showBottomBar = showMainNavigation && !useNavigationRail(),
-                            currentRoute = currentRoute,
-                            onNavigate = onNavigate,
-                            content = content,
-                        )
-                    }
-                }
+                body()
+            }
+        }
+    } else {
+        CompositionLocalProvider(LocalOpenDrawer provides {}) {
+            body()
+        }
+    }
+}
+
+@Composable
+private fun AdaptiveScaffoldBody(
+    showMainNavigation: Boolean,
+    tabletChrome: Boolean,
+    currentRoute: String?,
+    onNavigate: (String) -> Unit,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (PaddingValues) -> Unit,
+) {
+    val sizeClass = rememberWindowSizeClass()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BentoGlassTheme.ScreenBackground),
+    ) {
+        when {
+            tabletChrome && showMainNavigation -> {
+                TabletScaffold(
+                    modifier = modifier,
+                    sizeClass = sizeClass,
+                    currentRoute = currentRoute,
+                    onNavigate = onNavigate,
+                    onDrawerNavigate = onDrawerNavigate,
+                    content = content,
+                )
+            }
+            else -> {
+                PhoneScaffold(
+                    modifier = modifier,
+                    showBottomBar = showMainNavigation && !tabletChrome,
+                    currentRoute = currentRoute,
+                    onNavigate = onNavigate,
+                    content = content,
+                )
             }
         }
     }

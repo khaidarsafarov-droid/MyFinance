@@ -46,6 +46,12 @@ class TelegramApi(private val token: String) {
         JSONObject().put("menu_button", JSONObject().put("type", "commands"))
     )
 
+    /** Display name shown in Telegram chats (not the @username). */
+    suspend fun setMyName(name: String): Result<Unit> = postJson(
+        "setMyName",
+        JSONObject(setMyNamePayload(name)),
+    )
+
     /**
      * Uploads a new static JPG as the bot profile photo ([setMyProfilePhoto]).
      * Telegram rejects reused file_ids; the bytes must be sent as multipart.
@@ -68,11 +74,11 @@ class TelegramApi(private val token: String) {
             .build()
         runCatching {
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw Exception(
-                        "setMyProfilePhoto failed: ${response.code} ${response.body?.string()}",
-                    )
-                }
+                requireTelegramOk(
+                    "setMyProfilePhoto",
+                    response.code,
+                    response.body?.string().orEmpty(),
+                )
             }
         }
     }
@@ -312,9 +318,7 @@ class TelegramApi(private val token: String) {
             .build()
         runCatching {
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw Exception("$method failed: ${response.code} ${response.body?.string()}")
-                }
+                requireTelegramOk(method, response.code, response.body?.string().orEmpty())
             }
         }
     }
@@ -374,6 +378,19 @@ class TelegramApi(private val token: String) {
                 .put("type", "static")
                 .put("photo", "attach://logo")
                 .toString()
+
+        internal fun setMyNamePayload(name: String): String =
+            JSONObject().put("name", name).toString()
+
+        internal fun requireTelegramOk(method: String, httpCode: Int, body: String) {
+            if (httpCode !in 200..299) {
+                throw Exception("$method failed: $httpCode $body")
+            }
+            val json = JSONObject(body.ifBlank { "{}" })
+            if (json.has("ok") && !json.optBoolean("ok")) {
+                throw Exception("$method failed: ${json.optString("description", body)}")
+            }
+        }
 
         private val sharedClient: OkHttpClient = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)

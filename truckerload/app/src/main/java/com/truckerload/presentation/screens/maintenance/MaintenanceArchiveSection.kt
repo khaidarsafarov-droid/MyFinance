@@ -32,6 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.truckerload.R
+import com.truckerload.domain.maintenance.MaintenanceVisit
+import com.truckerload.domain.maintenance.MaintenanceVisits
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -43,15 +45,15 @@ fun MaintenanceArchiveSection(
     archive: List<MaintenanceArchiveEntry>,
     isProcessingPhoto: Boolean,
     onAddArchive: () -> Unit,
-    onDeleteArchive: (Long) -> Unit,
+    onDeleteVisit: (List<Long>) -> Unit,
     onOpenPhoto: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val visits = remember(archive) { MaintenanceVisits.group(archive) }
 
     SectionHeader(
         title = stringResource(R.string.maintenance_archive_section),
         onAdd = onAddArchive,
-        addIcon = AppIcons.CameraAlt,
     )
     Text(
         text = stringResource(R.string.maintenance_archive_hint),
@@ -66,13 +68,13 @@ fun MaintenanceArchiveSection(
             color = tc.TextSecondary,
         )
     }
-    if (archive.isEmpty()) {
+    if (visits.isEmpty()) {
         EmptyHint(stringResource(R.string.maintenance_empty_archive))
     } else {
-        archive.forEach { entry ->
-            ArchiveCard(
-                entry = entry,
-                onDelete = { onDeleteArchive(entry.id) },
+        visits.forEach { visit ->
+            VisitCard(
+                visit = visit,
+                onDelete = { onDeleteVisit(visit.ids) },
                 onOpenPhoto = onOpenPhoto,
             )
         }
@@ -80,23 +82,21 @@ fun MaintenanceArchiveSection(
 }
 
 @Composable
-private fun ArchiveCard(
-    entry: MaintenanceArchiveEntry,
+private fun VisitCard(
+    visit: MaintenanceVisit,
     onDelete: () -> Unit,
     onOpenPhoto: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val hasReceipt = !entry.photoPath.isNullOrBlank()
-    // FIX: avoid !! on photoPath — capture non-null path once when hasReceipt is true
-    val receiptPath = entry.photoPath?.takeIf { it.isNotBlank() }
+    val receiptPath = visit.photoPath?.takeIf { it.isNotBlank() }
     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
-            if (hasReceipt && receiptPath != null) {
+            if (receiptPath != null) {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -121,40 +121,55 @@ private fun ArchiveCard(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
             }
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    if (entry.serviceName.isNotBlank()) {
+                    val title = visit.shopName.ifBlank {
+                        visit.lines.firstOrNull()?.description.orEmpty()
+                    }
+                    if (title.isNotBlank()) {
                         Text(
-                            entry.serviceName,
+                            title,
                             color = tc.TextPrimary,
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.weight(1f, fill = false),
                         )
                     }
-                    if (hasReceipt && receiptPath != null) {
+                    if (receiptPath != null) {
                         ReceiptAttachedBadge(onClick = { onOpenPhoto(receiptPath) })
                     }
                 }
+                Text(visit.serviceDate, style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
+                val showLineBreakdown = visit.lines.size > 1 || visit.shopName.isNotBlank()
+                if (showLineBreakdown) {
+                    visit.lines.forEach { line ->
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = line.description.ifBlank { stringResource(R.string.maintenance_line_name) },
+                                color = tc.TextSecondary,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                text = "$${String.format(Locale.US, "%,.2f", line.amount)}",
+                                color = tc.TextSecondary,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
                 Text(
-                    entry.description,
-                    color = if (entry.serviceName.isBlank()) tc.TextPrimary else tc.TextSecondary,
-                    style = if (entry.serviceName.isBlank()) {
-                        MaterialTheme.typography.titleSmall
-                    } else {
-                        MaterialTheme.typography.bodySmall
-                    },
-                )
-                Text(entry.serviceDate, style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
-                Text(
-                    "$${String.format(Locale.US, "%,.2f", entry.amount)}",
+                    stringResource(
+                        R.string.maintenance_lines_total,
+                        String.format(Locale.US, "%,.2f", visit.total),
+                    ),
                     color = tc.AccentExpense,
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            if (hasReceipt && receiptPath != null) {
+            if (receiptPath != null) {
                 IconButton(onClick = { onOpenPhoto(receiptPath) }) {
                     Icon(
                         AppIcons.Photo,

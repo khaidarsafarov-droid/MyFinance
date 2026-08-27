@@ -21,6 +21,15 @@ class CameraEntryPointsTest {
     }
 
     @Test
+    fun tabletRail_exposesCameraAndScanner() {
+        val src = read("presentation/components/TabletSidebarDestinations.kt")
+        assertTrue(src.contains("DrawerDestination.CAMERA"))
+        assertTrue(src.contains("DrawerDestination.SCANNER"))
+        assertTrue(src.contains("R.string.camera"))
+        assertTrue(src.contains("R.string.scanner"))
+    }
+
+    @Test
     fun navGraph_routesDrawerCameraToCameraScreen() {
         val src = read("presentation/navigation/NavGraph.kt")
         assertTrue(src.contains("DrawerDestination.CAMERA -> navController.navigate(Routes.CAMERA)"))
