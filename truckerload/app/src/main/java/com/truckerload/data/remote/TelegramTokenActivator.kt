@@ -37,6 +37,8 @@ object TelegramTokenActivator {
         }
         return runCatching {
             TelegramTokenStore(context).setToken(token)
+            // Name + logo must not depend on the foreground poller starting.
+            runCatching { TelegramBotBranding.apply(context, token, forceName = true) }
             TelegramBotForegroundService.stop(context)
             TelegramBotForegroundService.start(context)
             health.username.orEmpty()
