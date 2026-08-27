@@ -13,6 +13,8 @@ object WidgetCabinPalette {
     const val ACCENT = 0xFF5B54E6.toInt()
     const val RING = 0xFF5B54E6.toInt()
     const val RING_TRACK = 0xFFEEEDFF.toInt()
+    /** Progress bar gradient start — soft lavender (mockup fill left). */
+    const val PROGRESS_START = 0xFFB8AEFF.toInt()
     /** Progress bar gradient end — kit mint / cyan. */
     const val PROGRESS_END = 0xFF48C9B0.toInt()
     /** Brand title on mockup plate. */
@@ -27,6 +29,7 @@ object WidgetCabinPalette {
     const val DAY_FUTURE_LETTER = 0xFF5C5C5C.toInt()
     const val DAY_EMPTY_CAPTION = 0xFF5C5C5C.toInt()
     const val ON_FILLED = 0xFFFFFFFF.toInt()
+    const val PROGRESS_LABEL = 0xFF252347.toInt()
 
     object Dark {
         /** Navy cabin plate from home-screen mockup. */
@@ -38,6 +41,7 @@ object WidgetCabinPalette {
         const val RING = 0xFF5B54E6.toInt()
         const val RING_TRACK = 0xFF2A3050.toInt()
         const val PROGRESS_END = 0xFF48C9B0.toInt()
+        const val PROGRESS_START = 0xFFC4B5FD.toInt()
         const val ACTION_BG = 0xFF5B54E6.toInt()
         const val ACTION_STROKE = 0xFF4844C4.toInt()
         const val ACTION_LABEL = 0xFFC8C6D8.toInt()
@@ -48,6 +52,7 @@ object WidgetCabinPalette {
         const val DAY_FUTURE_LETTER = 0xFFC8C6D8.toInt()
         const val DAY_EMPTY_CAPTION = 0xFF4A4660.toInt()
         const val ON_FILLED = 0xFFFFFFFF.toInt()
+        const val PROGRESS_LABEL = 0xFF1E2238.toInt()
     }
 
     /** Mockup ring is 6px on a 92px circle. */
