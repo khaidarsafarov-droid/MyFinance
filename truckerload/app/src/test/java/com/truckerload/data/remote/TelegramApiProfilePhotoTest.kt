@@ -12,4 +12,10 @@ class TelegramApiProfilePhotoTest {
         assertEquals("static", obj.getString("type"))
         assertEquals("attach://logo", obj.getString("photo"))
     }
+
+    @Test
+    fun setMyNamePayload_matchesBrand() {
+        val obj = JSONObject(TelegramApi.setMyNamePayload("TruckoRig"))
+        assertEquals("TruckoRig", obj.getString("name"))
+    }
 }

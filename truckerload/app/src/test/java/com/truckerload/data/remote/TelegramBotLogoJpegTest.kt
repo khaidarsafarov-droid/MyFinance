@@ -2,6 +2,7 @@ package com.truckerload.data.remote
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,5 +27,15 @@ class TelegramBotLogoJpegTest {
     fun isJpeg_rejectsNonJpeg() {
         assertTrue(!TelegramBotLogoJpeg.isJpeg(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)))
         assertTrue(!TelegramBotLogoJpeg.isJpeg(byteArrayOf(1, 2)))
+    }
+
+    @Test
+    fun plateFill_isKitPurpleNotLegacyNavy() {
+        val src = File("src/main/java/com/truckerload/data/remote/TelegramBotLogoJpeg.kt").takeIf { it.isFile }
+            ?: File("app/src/main/java/com/truckerload/data/remote/TelegramBotLogoJpeg.kt").takeIf { it.isFile }
+            ?: File("../app/src/main/java/com/truckerload/data/remote/TelegramBotLogoJpeg.kt")
+        val text = src.readText()
+        assertTrue(text.contains("#5B54E6"))
+        assertTrue(!text.contains("#143882"))
     }
 }
