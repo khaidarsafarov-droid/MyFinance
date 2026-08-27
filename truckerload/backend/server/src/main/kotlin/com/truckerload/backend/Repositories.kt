@@ -161,6 +161,12 @@ interface PushTokenRepository {
 interface AccountDeviceRepository {
     suspend fun claim(userId: UUID, deviceId: String, formFactor: String): DeviceClaimResult
     suspend fun delete(userId: UUID, deviceId: String): Boolean
+    /** Removes the registered device for [formFactor], optionally keeping [excludingDeviceId]. */
+    suspend fun deleteByFormFactor(
+        userId: UUID,
+        formFactor: String,
+        excludingDeviceId: String? = null,
+    ): Boolean
 }
 
 interface DatabaseHealth {

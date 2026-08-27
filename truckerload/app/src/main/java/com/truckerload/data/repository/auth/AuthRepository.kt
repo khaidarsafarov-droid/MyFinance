@@ -41,9 +41,16 @@ interface AuthRepository {
      * Completes Google sign-in with an ID token and/or legacy account fields.
      * Tries Supabase when configured; falls back to local identity (same as LoginScreen).
      */
-    suspend fun signInWithGoogle(credential: GoogleAuthCredential): Result<AuthSignInResult>
+    suspend fun signInWithGoogle(
+        credential: GoogleAuthCredential,
+        replaceOccupant: Boolean = false,
+    ): Result<AuthSignInResult>
 
-    suspend fun signInWithEmail(email: String, password: String): Result<AuthSignInResult>
+    suspend fun signInWithEmail(
+        email: String,
+        password: String,
+        replaceOccupant: Boolean = false,
+    ): Result<AuthSignInResult>
 
     /** Offline / LOCAL_ONLY local_dev session. */
     suspend fun signInAnonymously(): Result<AuthSignInResult>

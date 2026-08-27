@@ -204,11 +204,17 @@ class RemoteAccountCloudClient(
         }
     }
 
-    suspend fun registerDevice(deviceId: String, formFactor: String) = withContext(Dispatchers.IO) {
+    suspend fun registerDevice(deviceId: String, formFactor: String, replaceOccupant: Boolean = false) =
+        withContext(Dispatchers.IO) {
         val request = DeviceRegisterRequest(deviceId = deviceId, formFactor = formFactor)
         val body = AccountCloudSnapshotCodec.gson.toJson(request).toRequestBody(JSON)
+        val url = endpoint("v1", "devices", "register").newBuilder().apply {
+            if (replaceOccupant) {
+                addQueryParameter("replace", "true")
+            }
+        }.build()
         val response = client.newCall(
-            authorizedRequest(endpoint("v1", "devices", "register"))
+            authorizedRequest(url)
                 .post(body)
                 .build(),
         ).execute()

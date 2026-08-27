@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.contract.DeviceSlotPolicy
 import com.truckerload.data.backup.DriveSyncEligibility
 import com.truckerload.data.backup.DriveSyncWorker
 import com.truckerload.data.backup.GoogleDriveBackupService
@@ -12,6 +13,7 @@ import com.truckerload.data.repository.auth.AuthSignInResult
 import com.truckerload.data.repository.auth.GoogleAuthCredential
 import com.truckerload.data.repository.auth.GoogleTokenRequestResult
 import com.truckerload.data.sync.DeviceSlotDenialStore
+import com.truckerload.data.sync.DeviceSlotTakenException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -31,6 +33,12 @@ data class AuthUiState(
     val email: String = "",
     val password: String = "",
     val errorMessage: String? = null,
+    val deviceSlotReplacePrompt: DeviceSlotReplacePrompt? = null,
+)
+
+data class DeviceSlotReplacePrompt(
+    val formFactor: String,
+    val message: String,
 )
 
 sealed interface AuthUiEvent {
@@ -50,6 +58,9 @@ class AuthViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<AuthUiEvent>(extraBufferCapacity = 8)
     val events: SharedFlow<AuthUiEvent> = _events.asSharedFlow()
+
+    private var pendingGoogleCredential: GoogleAuthCredential? = null
+    private var pendingEmailLogin: Pair<String, String>? = null
 
     fun consumeDeviceSlotDenial(context: Context) {
         val message = DeviceSlotDenialStore(context).consume() ?: return
@@ -71,9 +82,42 @@ class AuthViewModel @Inject constructor(
         _uiState.update { it.copy(password = value, errorMessage = null) }
     }
 
+    fun dismissDeviceSlotReplacePrompt() {
+        pendingGoogleCredential = null
+        pendingEmailLogin = null
+        _uiState.update {
+            it.copy(
+                deviceSlotReplacePrompt = null,
+                isLoading = false,
+            )
+        }
+    }
+
+    fun confirmDeviceSlotReplace() {
+        val google = pendingGoogleCredential
+        val emailLogin = pendingEmailLogin
+        pendingGoogleCredential = null
+        pendingEmailLogin = null
+        _uiState.update { it.copy(deviceSlotReplacePrompt = null, isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            when {
+                google != null -> completeGoogle(google, replaceOccupant = true)
+                emailLogin != null -> {
+                    val (email, password) = emailLogin
+                    authRepository.signInWithEmail(email, password, replaceOccupant = true).fold(
+                        onSuccess = { applySuccess(it) },
+                        onFailure = { err -> handleSignInFailure(err, appContext) },
+                    )
+                }
+            }
+        }
+    }
+
     fun onGoogleSignInClick(activityContext: Context) {
         if (_uiState.value.isLoading) return
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        pendingGoogleCredential = null
+        pendingEmailLogin = null
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, deviceSlotReplacePrompt = null) }
         viewModelScope.launch {
             try {
                 when (val tokenResult = authRepository.requestGoogleIdToken(activityContext)) {
@@ -130,20 +174,14 @@ class AuthViewModel @Inject constructor(
     fun onEmailSubmit(context: Context) {
         if (_uiState.value.isLoading) return
         val state = _uiState.value
+        pendingGoogleCredential = null
+        pendingEmailLogin = null
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, deviceSlotReplacePrompt = null) }
             val result = authRepository.signInWithEmail(state.email, state.password)
             result.fold(
                 onSuccess = { applySuccess(it) },
-                onFailure = { err ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = err.message
-                                ?: context.getString(R.string.auth_error_login_invalid),
-                        )
-                    }
-                },
+                onFailure = { err -> handleSignInFailure(err, context) },
             )
         }
     }
@@ -163,8 +201,8 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private suspend fun completeGoogle(credential: GoogleAuthCredential) {
-        val result = authRepository.signInWithGoogle(credential)
+    private suspend fun completeGoogle(credential: GoogleAuthCredential, replaceOccupant: Boolean = false) {
+        val result = authRepository.signInWithGoogle(credential, replaceOccupant)
         result.fold(
             onSuccess = { signIn ->
                 GoogleDriveBackupService.syncLinkedAccountFromGoogle(appContext)
@@ -178,15 +216,47 @@ class AuthViewModel @Inject constructor(
                 }
                 applySuccess(signIn.copy(toastMessages = toasts))
             },
-            onFailure = { err ->
-                _events.emit(
-                    AuthUiEvent.ShowToast(
-                        err.message ?: "Google sign-in failed",
+            onFailure = { err -> handleSignInFailure(err, appContext, credential) },
+        )
+    }
+
+    private suspend fun handleSignInFailure(
+        err: Throwable,
+        context: Context,
+        googleCredential: GoogleAuthCredential? = null,
+    ) {
+        val slotTaken = err as? DeviceSlotTakenException
+        if (slotTaken != null) {
+            if (googleCredential != null) {
+                pendingGoogleCredential = googleCredential
+                pendingEmailLogin = null
+            } else {
+                pendingEmailLogin = _uiState.value.email to _uiState.value.password
+                pendingGoogleCredential = null
+            }
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    errorMessage = null,
+                    deviceSlotReplacePrompt = DeviceSlotReplacePrompt(
+                        formFactor = slotTaken.formFactor,
+                        message = slotTaken.message.orEmpty(),
                     ),
                 )
-                _uiState.update { it.copy(isLoading = false) }
-            },
+            }
+            return
+        }
+        _events.emit(
+            AuthUiEvent.ShowToast(
+                err.message ?: context.getString(R.string.auth_error_login_invalid),
+            ),
         )
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = err.message ?: context.getString(R.string.auth_error_login_invalid),
+            )
+        }
     }
 
     private suspend fun applySuccess(result: AuthSignInResult) {
@@ -194,10 +264,32 @@ class AuthViewModel @Inject constructor(
         if (result.biometricEnabled) {
             _events.emit(AuthUiEvent.ShowBiometricOfferDialog)
         }
-        _uiState.update { it.copy(isLoading = false, errorMessage = null) }
+        pendingGoogleCredential = null
+        pendingEmailLogin = null
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = null,
+                deviceSlotReplacePrompt = null,
+            )
+        }
     }
 
     companion object {
         private const val LEGACY_GOOGLE_LOADING_TIMEOUT_MS = 30_000L
     }
 }
+
+fun deviceSlotReplaceTitleRes(formFactor: String): Int =
+    if (formFactor == DeviceSlotPolicy.TABLET) {
+        R.string.auth_device_replace_title_tablet
+    } else {
+        R.string.auth_device_replace_title_phone
+    }
+
+fun deviceSlotReplaceBodyRes(formFactor: String): Int =
+    if (formFactor == DeviceSlotPolicy.TABLET) {
+        R.string.auth_device_replace_body_tablet
+    } else {
+        R.string.auth_device_replace_body_phone
+    }

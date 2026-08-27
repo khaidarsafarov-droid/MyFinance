@@ -226,6 +226,20 @@ class InMemoryBackend {
                 synchronized(accountDevices) {
                     accountDevices.remove(userId to deviceId) != null
                 }
+
+            override suspend fun deleteByFormFactor(
+                userId: UUID,
+                formFactor: String,
+                excludingDeviceId: String?,
+            ): Boolean = synchronized(accountDevices) {
+                val keys = accountDevices.filter { (key, record) ->
+                    record.userId == userId &&
+                        record.formFactor == formFactor &&
+                        (excludingDeviceId.isNullOrBlank() || key.second != excludingDeviceId)
+                }.keys
+                keys.forEach { accountDevices.remove(it) }
+                keys.isNotEmpty()
+            }
         },
         health = object : DatabaseHealth {
             override suspend fun isReady(): Boolean = true

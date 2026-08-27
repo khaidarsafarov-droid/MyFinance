@@ -155,6 +155,11 @@
     <string name="auth_error_device_slot_phone">Этот аккаунт уже используется на другом телефоне. Можно войти ещё на одном планшете, но не на втором телефоне.</string>
     <string name="auth_error_device_slot_tablet">Этот аккаунт уже используется на другом планшете. Можно войти ещё на одном телефоне, но не на втором планшете.</string>
     <string name="auth_error_device_slot_unavailable">Не удалось проверить это устройство. Проверьте интернет и попробуйте снова.</string>
+    <string name="auth_device_replace_title_tablet">Заменить планшет?</string>
+    <string name="auth_device_replace_title_phone">Заменить телефон?</string>
+    <string name="auth_device_replace_body_tablet">Этот аккаунт уже привязан к другому планшету. Войти здесь и отвязать прежний планшет?</string>
+    <string name="auth_device_replace_body_phone">Этот аккаунт уже привязан к другому телефону. Войти здесь и отвязать прежний телефон?</string>
+    <string name="auth_device_replace_confirm">Войти на этом устройстве</string>
     <string name="auth_device_limit_hint">Аккаунт можно использовать на одном телефоне и одном планшете. Данные синхронизируются между ними.</string>
     <string name="auth_error_no_network">Нет соединения с сетью</string>
     <string name="auth_remember_me">Запомнить меня</string>
