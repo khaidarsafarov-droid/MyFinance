@@ -89,6 +89,7 @@ object ServiceReceiptTextParser {
         val date: String?,
         val serviceName: String?,
         val descriptionHint: String?,
+        val lineItems: List<ServiceReceiptLineItems.LineItem> = emptyList(),
     )
 
     /**
@@ -99,7 +100,7 @@ object ServiceReceiptTextParser {
         defaultDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
     ): ParseResult {
         if (text.isBlank()) {
-            return ParseResult(null, defaultDate, null, null)
+            return ParseResult(null, defaultDate, null, null, emptyList())
         }
 
         val lines = text.lineSequence()
@@ -111,12 +112,17 @@ object ServiceReceiptTextParser {
         val date = extractDate(text) ?: defaultDate
         val serviceName = extractServiceName(text, lines)
         val descriptionHint = extractDescription(lines, serviceName)
+        val lineItems = ServiceReceiptLineItems.extract(lines)
+            .filterNot { item ->
+                !serviceName.isNullOrBlank() && item.description.equals(serviceName, ignoreCase = true)
+            }
 
         return ParseResult(
             amount = amount,
             date = date,
             serviceName = serviceName,
             descriptionHint = descriptionHint,
+            lineItems = lineItems,
         )
     }
 

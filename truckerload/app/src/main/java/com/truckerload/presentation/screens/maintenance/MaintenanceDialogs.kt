@@ -162,5 +162,6 @@ internal fun errorText(key: String): String = when (key) {
     "invalid_due_date" -> stringResource(R.string.maintenance_error_due_date)
     "empty_description" -> stringResource(R.string.maintenance_error_description)
     "invalid_amount" -> stringResource(R.string.maintenance_error_amount)
+    "empty_lines" -> stringResource(R.string.maintenance_error_empty_lines)
     else -> stringResource(R.string.common_save_failed)
 }

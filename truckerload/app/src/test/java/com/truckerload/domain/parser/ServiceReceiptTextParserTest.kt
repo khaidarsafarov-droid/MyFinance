@@ -109,5 +109,53 @@ class ServiceReceiptTextParserTest {
         assertEquals("2026-07-26", result.date)
         assertNull(result.serviceName)
         assertNull(result.descriptionHint)
+        assertTrue(result.lineItems.isEmpty())
+    }
+
+    @Test
+    fun parse_invoiceTable_extractsEachServiceAndKeepsGrandTotal() {
+        val text = """
+            Invoice Date: 08/25/2026
+            Due Date: 08/25/2026
+            Item Description Unit Price Quantity Tax Amount
+            VALVE ADJUSTMENT 500.00 1.00 500.00
+            OIL FILTER 43.12 1.00 43.12
+            FUEL FILTER 92.31 1.00 92.31
+            OIL 15.40 198.21 1.00 198.21
+            PM IOL CHANGE 180.00 1.00 180.00
+            FILTER AIR MOUNT 24.11 2.00 48.22
+            SHOP SUPLIES 23.00 1.00 23.00
+            Subtotal 1084.86
+            Total 1084.86
+            Amount Paid 0.00
+            Balance Due 1084.86
+        """.trimIndent()
+
+        val result = ServiceReceiptTextParser.parse(text)
+        assertEquals(1084.86, result.amount!!, 0.01)
+        assertEquals("2026-08-25", result.date)
+        val lines = result.lineItems
+        assertEquals(7, lines.size)
+        assertEquals("VALVE ADJUSTMENT", lines[0].description)
+        assertEquals(500.00, lines[0].amount, 0.01)
+        assertEquals("OIL 15.40", lines[3].description)
+        assertEquals(198.21, lines[3].amount, 0.01)
+        assertEquals("FILTER AIR MOUNT", lines[5].description)
+        assertEquals(48.22, lines[5].amount, 0.01)
+        assertEquals(1084.86, lines.sumOf { it.amount }, 0.01)
+    }
+
+    @Test
+    fun parse_lineItemOnFollowingLine() {
+        val text = """
+            Speedco
+            Brake pads
+            350.50
+            TOTAL 350.50
+        """.trimIndent()
+        val result = ServiceReceiptTextParser.parse(text)
+        assertEquals(1, result.lineItems.size)
+        assertEquals("Brake pads", result.lineItems[0].description)
+        assertEquals(350.50, result.lineItems[0].amount, 0.01)
     }
 }
