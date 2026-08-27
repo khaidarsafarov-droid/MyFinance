@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
@@ -13,7 +12,6 @@ import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceProgress
 import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.domain.model.MaintenanceTask
-import com.truckerload.domain.model.ReceiptData
 import com.truckerload.domain.parser.ServiceReceiptTextParser
 import com.truckerload.utils.OCRService
 import kotlinx.coroutines.Dispatchers
@@ -28,8 +26,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 data class MaintenanceUiState(
     val activeProgress: List<MaintenanceProgress> = emptyList(),
@@ -45,34 +41,6 @@ data class MaintenanceUiState(
     val isProcessingPhoto: Boolean = false,
     val errorMessage: String? = null,
 )
-
-data class TaskDraft(
-    val title: String = "",
-    val startDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
-    val reminderType: MaintenanceReminderType = MaintenanceReminderType.MILES,
-    val intervalMiles: String = "",
-    val odometerAtStart: String = "",
-    val dueDate: String = LocalDate.now().plusMonths(1).format(DateTimeFormatter.ISO_LOCAL_DATE),
-)
-
-data class ArchiveDraft(
-    val serviceName: String = "",
-    val serviceDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
-    val description: String = "",
-    val amount: String = "",
-    val photoPath: String? = null,
-    val ocrText: String? = null,
-) {
-    fun toReceiptData(): ReceiptData =
-        ReceiptData(
-            imageUri = photoPath.orEmpty(),
-            serviceName = serviceName,
-            date = ReceiptData.isoDateToEpochMillis(serviceDate),
-            totalAmount = amount.replace(',', '.').toDoubleOrNull() ?: 0.0,
-            description = description,
-            rawText = ocrText,
-        )
-}
 
 @HiltViewModel
 class MaintenanceViewModel @Inject constructor(
@@ -255,18 +223,7 @@ class MaintenanceViewModel @Inject constructor(
                     )
                     val rawText = ocr.text
                     val parsed = ServiceReceiptTextParser.parse(rawText)
-                    val receipt = ReceiptData(
-                        imageUri = saved.absolutePath,
-                        serviceName = parsed.serviceName.orEmpty(),
-                        date = ReceiptData.isoDateToEpochMillis(
-                            parsed.date ?: java.time.LocalDate.now()
-                                .format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE),
-                        ),
-                        totalAmount = parsed.amount ?: 0.0,
-                        description = parsed.descriptionHint.orEmpty(),
-                        rawText = rawText,
-                    )
-                    receipt
+                    Triple(saved.absolutePath, rawText, parsed)
                 }.also { outcome ->
                     if (outcome.isFailure) {
                         deleteAfterCopy?.delete()
@@ -274,22 +231,19 @@ class MaintenanceViewModel @Inject constructor(
                 }
             }
             result
-                .onSuccess { receipt ->
+                .onSuccess { (photoPath, rawText, parsed) ->
                     _formState.update { state ->
                         state.copy(
                             isProcessingPhoto = false,
                             showAddArchive = true,
                             archiveDraft = ArchiveDraft(
-                                serviceName = receipt.serviceName,
-                                serviceDate = ReceiptData.epochMillisToIsoDate(receipt.date),
-                                description = receipt.description,
-                                amount = if (receipt.totalAmount > 0) {
-                                    "%.2f".format(receipt.totalAmount)
-                                } else {
-                                    ""
-                                },
-                                photoPath = receipt.imageUri,
-                                ocrText = receipt.rawText,
+                                serviceName = parsed.serviceName.orEmpty(),
+                                serviceDate = parsed.date
+                                    ?: java.time.LocalDate.now()
+                                        .format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE),
+                                lines = linesFromParse(parsed),
+                                photoPath = photoPath,
+                                ocrText = rawText,
                             ),
                         )
                     }
@@ -307,23 +261,19 @@ class MaintenanceViewModel @Inject constructor(
 
     fun saveArchive() {
         val draft = _formState.value.archiveDraft
-        val receipt = draft.toReceiptData()
-        val description = receipt.description.trim().ifBlank { receipt.serviceName.trim() }
-        if (description.isBlank()) {
-            _formState.update { it.copy(errorMessage = "empty_description") }
+        val error = draft.validationError()
+        if (error != null) {
+            _formState.update { it.copy(errorMessage = error) }
             return
         }
-        if (receipt.totalAmount < 0 || draft.amount.isBlank()) {
-            _formState.update { it.copy(errorMessage = "invalid_amount") }
+        val entries = draft.toEntries()
+        if (entries.isEmpty()) {
+            _formState.update { it.copy(errorMessage = "empty_lines") }
             return
         }
         viewModelScope.launch {
             _formState.update { it.copy(isSaving = true) }
-            runCatching {
-                repository.insertArchive(
-                    receipt.copy(description = description).toArchiveEntry(),
-                )
-            }
+            runCatching { repository.insertArchives(entries) }
                 .onSuccess {
                     _formState.update {
                         it.copy(isSaving = false, showAddArchive = false, archiveDraft = ArchiveDraft())
@@ -339,6 +289,30 @@ class MaintenanceViewModel @Inject constructor(
 
     fun deleteArchive(id: Long) {
         viewModelScope.launch { repository.deleteArchive(id) }
+    }
+
+    fun deleteVisit(ids: List<Long>) {
+        viewModelScope.launch { repository.deleteArchives(ids) }
+    }
+
+    private fun linesFromParse(
+        parsed: ServiceReceiptTextParser.ParseResult,
+    ): List<ArchiveLineDraft> {
+        val items = parsed.lineItems
+        if (items.isNotEmpty()) {
+            return items.map { item ->
+                ArchiveLineDraft(
+                    description = item.description,
+                    amount = ArchiveDraft.formatAmount(item.amount),
+                )
+            }
+        }
+        return listOf(
+            ArchiveLineDraft(
+                description = parsed.descriptionHint.orEmpty(),
+                amount = ArchiveDraft.formatAmount(parsed.amount ?: 0.0),
+            ),
+        )
     }
 
     /** Saves receipt photo under [Application.getFilesDir]/receipts — app-private storage. */
