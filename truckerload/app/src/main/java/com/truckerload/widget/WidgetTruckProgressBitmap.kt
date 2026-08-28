@@ -19,6 +19,9 @@ import kotlin.math.roundToInt
  *
  * Bitmap height is exactly [barHeightPx] + [headroomPx] so Glance shows it 1:1
  * (no vertical squash that tears body from wheels).
+ *
+ * The truck is one filled silhouette (van ∪ tires) so wheels cannot float
+ * under a detached chassis line.
  */
 object WidgetTruckProgressBitmap {
 
@@ -33,6 +36,7 @@ object WidgetTruckProgressBitmap {
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val trackHeight = barHeightPx.coerceAtLeast(10)
+        // Never invent extra headroom — Glance Image height must match this bitmap.
         val headroom = headroomPx.coerceAtLeast(trackHeight)
         val safeHeight = trackHeight + headroom
         val bitmap = createBitmap(safeWidth, safeHeight)
@@ -102,7 +106,7 @@ object WidgetTruckProgressBitmap {
                 truckHeight = truckHeight.toFloat(),
                 bodyColor = truckBodyColor(colors),
                 strokeColor = truckStrokeColor(colors),
-                wheelColor = 0xFFFFFFFF.toInt(),
+                hubColor = 0xFFFFFFFF.toInt(),
             )
         }
         return bitmap
@@ -151,7 +155,7 @@ object WidgetTruckProgressBitmap {
         truckHeight: Float,
         bodyColor: Int,
         strokeColor: Int,
-        wheelColor: Int,
+        hubColor: Int,
     ) {
         val geom = TruckGeom(truckWidth, truckHeight)
         canvas.withSave {
@@ -168,44 +172,64 @@ object WidgetTruckProgressBitmap {
                 strokeJoin = Paint.Join.ROUND
                 strokeCap = Paint.Cap.ROUND
             }
-            val wheelFill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = wheelColor
+            val hubFill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = hubColor
                 style = Paint.Style.FILL
             }
-            val wheelStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            val tireStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = strokeColor
                 style = Paint.Style.STROKE
                 strokeWidth = geom.stroke
             }
 
-            drawWheels(this, geom, wheelFill, wheelStroke)
-            val trailer = buildTrailerPath(geom)
-            val hitch = buildHitchPath(geom)
-            val cab = buildCabPath(geom)
-            drawPath(trailer, body)
-            drawPath(hitch, body)
-            drawPath(cab, body)
-            // Outline without the floor edge — a bottom stroke across the tires
-            // is what made the wheels look cut off from the van.
-            drawPath(buildTrailerOutline(geom), stroke)
-            drawPath(buildCabOutline(geom), stroke)
-            drawPath(hitch, stroke)
-            drawFenderCaps(this, geom, body)
-            drawWheelBottoms(this, geom, wheelFill, wheelStroke)
+            // One silhouette: van body ∪ tire disks — no gap possible.
+            drawPath(buildTruckSilhouette(geom), body)
+            drawPath(buildTruckOutline(geom), stroke)
+            drawHubs(this, geom, hubFill, tireStroke)
+            drawCabGlass(this, geom)
         }
     }
 
     /**
-     * Wheel outer bottoms land on local y = h (= barTop).
-     * Deck overlaps upper tires so van + wheels read as one truck.
+     * Wheel outer bottoms land on local y = h (= barTop after translate).
+     * Tire disks are unioned into the body so the chassis never floats.
      */
     private data class TruckGeom(val w: Float, val h: Float) {
         val stroke: Float = (h * 0.045f).coerceAtLeast(1.4f)
-        val wheelRadius: Float = h * 0.175f
-        val wheelCy: Float = h - wheelRadius - stroke * 0.5f
-        val deck: Float = wheelCy - wheelRadius * 0.65f
-        val roof: Float = h * 0.05f
-        val wheelXs: FloatArray = floatArrayOf(w * 0.17f, w * 0.31f, w * 0.82f)
+        val wheelRadius: Float = h * 0.20f
+        /**
+         * Outer tire stroke sits fully on/above local y = h (= barTop).
+         * Using a full stroke clearance avoids AA bleeding into the track.
+         */
+        val wheelCy: Float = h - wheelRadius - stroke
+        /** Chassis cuts through the hubs so van and tires read as one piece. */
+        val deck: Float = wheelCy + wheelRadius * 0.28f
+        val roof: Float = h * 0.06f
+        val hubRadius: Float = wheelRadius * 0.36f
+        /** Side outlines stop above the tires so no deck stroke cuts through wheels. */
+        val sideStop: Float = wheelCy - wheelRadius * 0.85f
+        val wheelXs: FloatArray = floatArrayOf(w * 0.17f, w * 0.32f, w * 0.82f)
+    }
+
+    private fun buildTruckSilhouette(geom: TruckGeom): Path {
+        val p = Path().apply { fillType = Path.FillType.WINDING }
+        p.addPath(buildTrailerPath(geom))
+        p.addPath(buildHitchPath(geom))
+        p.addPath(buildCabPath(geom))
+        // Union tire disks into the same fill — wheels are part of the truck.
+        geom.wheelXs.forEach { cx ->
+            p.addCircle(cx, geom.wheelCy, geom.wheelRadius, Path.Direction.CW)
+        }
+        // Continuous chassis skirt through the axles (kills any body↔tire gap).
+        val skirtTop = geom.deck - geom.wheelRadius * 0.55f
+        val skirtBottom = (geom.wheelCy + geom.wheelRadius * 0.15f).coerceAtMost(geom.h - geom.stroke)
+        p.addRoundRect(
+            RectF(geom.w * 0.08f, skirtTop, geom.w * 0.92f, skirtBottom),
+            geom.wheelRadius * 0.35f,
+            geom.wheelRadius * 0.35f,
+            Path.Direction.CW,
+        )
+        return p
     }
 
     private fun buildTrailerPath(geom: TruckGeom): Path {
@@ -222,23 +246,6 @@ object WidgetTruckProgressBitmap {
         p.quadTo(right, top, right, top + rx)
         p.lineTo(right, deck)
         p.close()
-        return p
-    }
-
-    /** Trailer outline: sides + roof only (no floor line over the tires). */
-    private fun buildTrailerOutline(geom: TruckGeom): Path {
-        val p = Path()
-        val left = geom.w * 0.02f
-        val right = geom.w * 0.52f
-        val top = geom.roof
-        val deck = geom.deck
-        val rx = geom.w * 0.05f
-        p.moveTo(left, deck)
-        p.lineTo(left, top + rx)
-        p.quadTo(left, top, left + rx, top)
-        p.lineTo(right - rx, top)
-        p.quadTo(right, top, right, top + rx)
-        p.lineTo(right, deck)
         return p
     }
 
@@ -266,64 +273,77 @@ object WidgetTruckProgressBitmap {
         p.lineTo(w * 0.70f, roof)
         p.lineTo(w * 0.78f, h * 0.26f)
         p.lineTo(w * 0.90f, h * 0.26f)
-        p.lineTo(w * 0.97f, deck * 0.82f)
+        p.lineTo(w * 0.97f, deck * 0.88f)
         p.lineTo(w * 0.97f, deck)
         p.close()
         return p
     }
 
-    /** Cab outline without the floor segment over the drive tire. */
-    private fun buildCabOutline(geom: TruckGeom): Path {
+    /**
+     * Van outline only above the tires. A deck-level stroke through the wheel
+     * disks is what made the body look sliced off from the wheels.
+     */
+    private fun buildTruckOutline(geom: TruckGeom): Path {
         val p = Path()
+        val left = geom.w * 0.02f
+        val right = geom.w * 0.52f
+        val top = geom.roof
+        val stop = geom.sideStop
+        val rx = geom.w * 0.05f
+        p.moveTo(left, stop)
+        p.lineTo(left, top + rx)
+        p.quadTo(left, top, left + rx, top)
+        p.lineTo(right - rx, top)
+        p.quadTo(right, top, right, top + rx)
+        p.lineTo(right, stop)
+
+        // Hitch: top edge only (no verticals down into the tire zone).
+        val hitchTop = (geom.deck - geom.h * 0.14f).coerceAtMost(stop)
+        p.moveTo(geom.w * 0.50f, hitchTop)
+        p.lineTo(geom.w * 0.58f, hitchTop)
+
         val w = geom.w
         val h = geom.h
-        val deck = geom.deck
         val roof = geom.roof
         val sleeperLeft = w * 0.575f
-        p.moveTo(sleeperLeft, deck)
+        p.moveTo(sleeperLeft, stop)
         p.lineTo(sleeperLeft, roof + h * 0.05f)
         p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.035f, roof)
         p.lineTo(w * 0.70f, roof)
         p.lineTo(w * 0.78f, h * 0.26f)
         p.lineTo(w * 0.90f, h * 0.26f)
-        p.lineTo(w * 0.97f, deck * 0.82f)
-        p.lineTo(w * 0.97f, deck)
+        p.lineTo(w * 0.97f, stop)
         return p
     }
 
-    private fun drawFenderCaps(canvas: Canvas, geom: TruckGeom, body: Paint) {
-        // Tall enough to swallow the deck edge and upper tire so they merge.
-        val drop = geom.wheelRadius * 0.75f
-        val halfW = geom.wheelRadius * 1.35f
+    private fun drawHubs(canvas: Canvas, geom: TruckGeom, hubFill: Paint, tireStroke: Paint) {
         geom.wheelXs.forEach { cx ->
-            canvas.drawRoundRect(
-                RectF(cx - halfW, geom.deck - geom.h * 0.02f, cx + halfW, geom.deck + drop),
-                geom.wheelRadius * 0.35f,
-                geom.wheelRadius * 0.35f,
-                body,
-            )
-        }
-    }
-
-    private fun drawWheels(canvas: Canvas, geom: TruckGeom, fill: Paint, stroke: Paint) {
-        geom.wheelXs.forEach { cx ->
-            canvas.drawCircle(cx, geom.wheelCy, geom.wheelRadius, fill)
-            canvas.drawCircle(cx, geom.wheelCy, geom.wheelRadius, stroke)
-        }
-    }
-
-    private fun drawWheelBottoms(canvas: Canvas, geom: TruckGeom, fill: Paint, stroke: Paint) {
-        geom.wheelXs.forEach { cx ->
+            // Hub only in the lower part of the tire so the upper half stays
+            // body-colored — reads as a wheel tucked under the chassis.
             canvas.withSave {
                 clipRect(
-                    cx - geom.wheelRadius - geom.stroke,
-                    geom.wheelCy - geom.wheelRadius * 0.05f,
-                    cx + geom.wheelRadius + geom.stroke,
+                    cx - geom.hubRadius - geom.stroke,
+                    geom.wheelCy - geom.hubRadius * 0.15f,
+                    cx + geom.hubRadius + geom.stroke,
                     geom.h + geom.stroke,
                 )
-                drawCircle(cx, geom.wheelCy, geom.wheelRadius, fill)
-                drawCircle(cx, geom.wheelCy, geom.wheelRadius, stroke)
+                drawCircle(cx, geom.wheelCy, geom.hubRadius, hubFill)
+                drawCircle(cx, geom.wheelCy, geom.hubRadius, tireStroke)
             }
+            canvas.drawCircle(cx, geom.wheelCy, geom.wheelRadius, tireStroke)
         }
+    }
+
+    private fun drawCabGlass(canvas: Canvas, geom: TruckGeom) {
+        val glass = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0x66FFFFFF
+            style = Paint.Style.FILL
+        }
+        canvas.drawRoundRect(
+            RectF(geom.w * 0.80f, geom.h * 0.30f, geom.w * 0.90f, geom.deck - geom.h * 0.08f),
+            geom.w * 0.02f,
+            geom.w * 0.02f,
+            glass,
+        )
     }
 }

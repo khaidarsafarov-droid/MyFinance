@@ -19,20 +19,20 @@ import org.robolectric.annotation.GraphicsMode
 class WidgetTruckProgressBitmapTest {
 
     @Test
-    fun flatTruck_ridesOnBarTop_connectedBodyAndExactBitmapHeight() {
+    fun flatTruck_ridesOnBarTop_unifiedSilhouette() {
         val src = readSource("widget/WidgetTruckProgressBitmap.kt")
         assertTrue(src.contains("progressStart"))
         assertTrue(src.contains("progressEnd"))
         assertTrue(src.contains("progressLabel"))
         assertTrue(src.contains("headroomPx"))
-        assertTrue(src.contains("h * 0.175f"))
-        assertTrue(src.contains("wheelRadius * 0.65f"))
+        assertTrue(src.contains("h * 0.20f"))
+        assertTrue(src.contains("buildTruckSilhouette"))
+        assertTrue(src.contains("addCircle"))
+        assertTrue(src.contains("addRoundRect"))
+        assertTrue(src.contains("wheelRadius * 0.28f"))
         assertTrue(src.contains("barTop - truckHeight"))
         assertTrue(src.contains("drawFlatTruck"))
-        assertTrue(src.contains("buildTrailerOutline"))
-        assertTrue(src.contains("buildCabOutline"))
-        assertTrue(src.contains("drawFenderCaps"))
-        assertTrue(src.contains("drawWheelBottoms"))
+        assertTrue(src.contains("drawHubs"))
         assertTrue(src.contains("drawSpeedLines"))
         assertTrue(src.contains("buildTrailerPath"))
         assertTrue(src.contains("buildCabPath"))
@@ -41,6 +41,8 @@ class WidgetTruckProgressBitmapTest {
         assertTrue(src.contains("Style.FILL"))
         assertTrue(!src.contains("buildTruckBodyPath"))
         assertTrue(!src.contains("drawMockupTruck"))
+        assertTrue(!src.contains("drawWheelBottoms"))
+        assertTrue(!src.contains("drawFenderCaps"))
     }
 
     @Test
@@ -75,6 +77,33 @@ class WidgetTruckProgressBitmapTest {
             assertTrue(plate.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         assertTrue(out.length() > 200)
+
+        val truckH = (headroomPx * 0.92f).toInt()
+        val truckW = (truckH * 1.55f).toInt()
+        val fillX = (900 * 0.38f).toInt()
+        val left = fillX - truckW
+        val wheelX = left + (truckW * 0.17f).toInt()
+        val barTop = headroomPx
+        val stroke = maxOf(truckH * 0.045f, 1.4f)
+        val wheelR = truckH * 0.20f
+        val wheelCy = (barTop - truckH) + truckH - wheelR - stroke
+        // Outer tire ring (below hub) must stay body-colored — silhouette union.
+        val tireRingY = (wheelCy + wheelR * 0.52f + 1.5f).toInt()
+        val bodyPx = plate.getPixel(wheelX, tireRingY.coerceAtMost(barTop - 2))
+        assertTrue(
+            "tire ring must be body-colored, got #${Integer.toHexString(bodyPx)} at y=$tireRingY",
+            Color.red(bodyPx) in 70..140 && Color.blue(bodyPx) > 150,
+        )
+        val hubPx = plate.getPixel(wheelX, (wheelCy + wheelR * 0.12f).toInt())
+        assertTrue(
+            "lower hub must be white-ish, got #${Integer.toHexString(hubPx)}",
+            Color.red(hubPx) > 200 && Color.green(hubPx) > 200 && Color.blue(hubPx) > 200,
+        )
+        val upperTirePx = plate.getPixel(wheelX, (wheelCy - wheelR * 0.35f).toInt())
+        assertTrue(
+            "upper tire must stay body-colored, got #${Integer.toHexString(upperTirePx)}",
+            Color.red(upperTirePx) in 70..140 && Color.blue(upperTirePx) > 150,
+        )
     }
 
     private fun readSource(relativePath: String): String {

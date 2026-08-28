@@ -40,7 +40,7 @@ class WidgetBudgetRingActionsTest {
         assertTrue(readSource("widget/WidgetTruckProgressBitmap.kt").contains("drawSpeedLines"))
         assertTrue(readSource("widget/WidgetTruckProgressBitmap.kt").contains("headroomPx"))
         assertTrue(readSource("widget/WidgetTruckProgressBitmap.kt").contains("barTop - truckHeight"))
-        assertTrue(readSource("widget/WidgetTruckProgressBitmap.kt").contains("drawFenderCaps"))
+        assertTrue(readSource("widget/WidgetTruckProgressBitmap.kt").contains("buildTruckSilhouette"))
         assertTrue(wide.contains("WidgetDayCaption"))
         assertTrue(core.contains("cabinActionFill"))
         assertTrue(core.contains("CabinSize4x4"))
