@@ -87,7 +87,9 @@ internal fun isDrawerDestinationSelected(
     if (currentRoute == null) return false
     return when (destination) {
         DrawerDestination.SETTINGS ->
-            currentRoute == Routes.SETTINGS || currentRoute == Routes.PRIVACY_SETTINGS
+            currentRoute == Routes.SETTINGS ||
+                currentRoute == Routes.PRIVACY_SETTINGS ||
+                currentRoute == Routes.LANGUAGE_SETTINGS
         DrawerDestination.REPORTS -> currentRoute == Routes.ANALYTICS
         DrawerDestination.MAP -> currentRoute == Routes.MAP
         DrawerDestination.DOCUMENTS ->

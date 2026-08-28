@@ -22,6 +22,7 @@ import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
+import com.truckerload.presentation.screens.settings.LanguageSelectionScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
 import com.truckerload.presentation.theme.ProvideLoadSharedElementScopes
@@ -109,6 +110,19 @@ fun NavGraphBuilder.toolsNavGraph(
             onBack = { navController.popBackStack() },
             showBack = !tablet,
             onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+            onOpenLanguage = { navController.navigate(Routes.LANGUAGE_SETTINGS) },
+        )
+    }
+    composable(
+        route = Routes.LANGUAGE_SETTINGS,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
+        LanguageSelectionScreen(
+            onBack = { navController.popBackStack() },
+            showBack = !tablet,
         )
     }
     composable(

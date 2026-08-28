@@ -30,6 +30,7 @@ class MainTabNavigationTest {
     fun keepsBottomBarOnSettingsAndPrivacy() {
         assertTrue(shouldShowPhoneBottomBar(Routes.SETTINGS))
         assertTrue(shouldShowPhoneBottomBar(Routes.PRIVACY_SETTINGS))
+        assertTrue(shouldShowPhoneBottomBar(Routes.LANGUAGE_SETTINGS))
         assertTrue(shouldShowPhoneBottomBar(Routes.ABOUT))
         assertNull(phoneTabForRoute(Routes.SETTINGS))
     }
@@ -48,6 +49,14 @@ class MainTabNavigationTest {
             MainTabClickAction.SWITCH_TAB,
             resolveMainTabClick(
                 currentRoute = Routes.PRIVACY_SETTINGS,
+                targetTab = Routes.PROFILE,
+                tabRootInBackStack = true,
+            ),
+        )
+        assertEquals(
+            MainTabClickAction.SWITCH_TAB,
+            resolveMainTabClick(
+                currentRoute = Routes.LANGUAGE_SETTINGS,
                 targetTab = Routes.PROFILE,
                 tabRootInBackStack = true,
             ),

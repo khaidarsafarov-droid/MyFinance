@@ -61,6 +61,7 @@ class TabletSidebarDestinationsTest {
     @Test
     fun settingsIncludesPrivacyAndCameraIncludesLoadCapture() {
         assertTrue(isDrawerDestinationSelected(Routes.PRIVACY_SETTINGS, DrawerDestination.SETTINGS))
+        assertTrue(isDrawerDestinationSelected(Routes.LANGUAGE_SETTINGS, DrawerDestination.SETTINGS))
         assertTrue(isDrawerDestinationSelected("camera_load/1/t/2026-01-01", DrawerDestination.CAMERA))
         assertTrue(isRailDestinationSelected(Routes.ADD_LOAD, Routes.HOME))
         val settings = tabletRailToolItems.first { it.drawer == DrawerDestination.SETTINGS }

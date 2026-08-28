@@ -36,6 +36,18 @@ class SettingsDataStoreThemeTest {
     }
 
     @Test
+    fun language_roundTripsIncludingSpanishAndUnsetIsExplicitNull() = runBlocking {
+        assertEquals(null, store.getExplicitLanguageOnce())
+
+        store.saveLanguage(AppLanguage.ES)
+        assertEquals(AppLanguage.ES, store.getLanguageOnce())
+        assertEquals(AppLanguage.ES, store.getExplicitLanguageOnce())
+
+        store.saveLanguage(AppLanguage.EN)
+        assertEquals(AppLanguage.EN, store.getExplicitLanguageOnce())
+    }
+
+    @Test
     fun uxPreferences_roundTrip() = runBlocking {
         store.saveReduceMotion(true)
         store.saveOledDark(true)

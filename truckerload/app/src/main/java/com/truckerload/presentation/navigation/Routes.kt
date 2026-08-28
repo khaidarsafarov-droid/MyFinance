@@ -26,6 +26,7 @@ object Routes {
     const val TAX_TRACKER = "tax_tracker"
     const val SETTINGS = "settings"
     const val PRIVACY_SETTINGS = "privacy_settings"
+    const val LANGUAGE_SETTINGS = "language_settings"
     const val ABOUT = "about"
     const val IMPROVE = "improve"
     const val CAMERA = "camera"

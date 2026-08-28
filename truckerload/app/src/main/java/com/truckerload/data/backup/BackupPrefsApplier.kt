@@ -13,6 +13,7 @@ import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.domain.week.WeekStartRebinder
 import com.truckerload.domain.week.WeekStartRuntime
+import com.truckerload.utils.AppLanguageManager
 
 /** Restores portable prefs from [BackupAppSettings] into the active account. */
 object BackupPrefsApplier {
@@ -25,7 +26,9 @@ object BackupPrefsApplier {
             store.saveThemeMode(AppThemeMode.fromOrdinal(it))
         }
         settings.languageOrdinal?.let {
-            store.saveLanguage(AppLanguage.fromOrdinal(it))
+            val language = AppLanguage.fromOrdinal(it)
+            store.saveLanguage(language)
+            AppLanguageManager.setLanguage(language.tag)
         }
         settings.reduceMotion?.let { store.saveReduceMotion(it) }
         settings.oledDark?.let { store.saveOledDark(it) }
