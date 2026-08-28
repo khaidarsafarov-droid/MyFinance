@@ -27,7 +27,7 @@ object WidgetTruckProgressBitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val trackHeight = barHeightPx.coerceAtLeast(10)
         val truckHeight = (trackHeight * 2.85f).roundToInt().coerceIn(28, 72)
-        val truckWidth = (truckHeight * 1.55f).roundToInt()
+        val truckWidth = (truckHeight * 1.92f).roundToInt()
         val headroom = (truckHeight - trackHeight).coerceAtLeast(8)
         val safeHeight = trackHeight + headroom
         val bitmap = createBitmap(safeWidth, safeHeight)
@@ -97,6 +97,7 @@ object WidgetTruckProgressBitmap {
                 barBottom = barBottom,
                 truckWidth = truckWidth.toFloat(),
                 truckHeight = truckHeight.toFloat(),
+                trackHeight = trackHeight.toFloat(),
                 progressStart = progressStart,
                 progressEnd = progressEnd,
                 outlineColor = colors.progressLabel,
@@ -132,8 +133,8 @@ object WidgetTruckProgressBitmap {
     }
 
     /**
-     * Side-profile semi-truck: lavender→teal body, dark outline, three wheels.
-     * [leadingX] is the front (cab) x; wheels sit on [barBottom].
+     * Conventional US semi (trailer + sleeper + hood), facing right.
+     * [leadingX] is the bumper; wheels rest on the progress track.
      */
     private fun drawMockupTruck(
         canvas: Canvas,
@@ -141,13 +142,13 @@ object WidgetTruckProgressBitmap {
         barBottom: Float,
         truckWidth: Float,
         truckHeight: Float,
+        trackHeight: Float,
         progressStart: Int,
         progressEnd: Int,
         outlineColor: Int,
     ) {
         val left = leadingX - truckWidth
         val top = barBottom - truckHeight
-        val body = buildTruckBodyPath(truckWidth, truckHeight)
         canvas.withSave {
             translate(left, top)
             val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -155,56 +156,74 @@ object WidgetTruckProgressBitmap {
                     0f,
                     0f,
                     truckWidth,
-                    truckHeight,
+                    0f,
                     progressStart,
                     progressEnd,
                     Shader.TileMode.CLAMP,
                 )
             }
-            drawPath(body, fillPaint)
             val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = outlineColor
                 style = Paint.Style.STROKE
-                strokeWidth = (truckHeight * 0.045f).coerceAtLeast(1.4f)
+                strokeWidth = (truckHeight * 0.032f).coerceAtLeast(1.15f)
                 strokeJoin = Paint.Join.ROUND
+                strokeCap = Paint.Cap.ROUND
             }
-            drawPath(body, strokePaint)
+            val trailer = buildTrailerPath(truckWidth, truckHeight)
+            val tractor = buildTractorPath(truckWidth, truckHeight)
+            val hitch = RectF(
+                truckWidth * 0.48f,
+                truckHeight * 0.50f,
+                truckWidth * 0.58f,
+                truckHeight * 0.56f,
+            )
+            drawPath(trailer, fillPaint)
+            drawRoundRect(hitch, truckWidth * 0.02f, truckWidth * 0.02f, fillPaint)
+            drawPath(tractor, fillPaint)
+            drawPath(trailer, strokePaint)
+            drawRoundRect(hitch, truckWidth * 0.02f, truckWidth * 0.02f, strokePaint)
+            drawPath(tractor, strokePaint)
             drawCabWindow(
                 canvas = this,
                 truckWidth = truckWidth,
                 truckHeight = truckHeight,
-                outlineColor = outlineColor,
             )
+            drawHeadlight(this, truckWidth, truckHeight)
             drawTruckWheels(
                 canvas = this,
                 truckWidth = truckWidth,
                 truckHeight = truckHeight,
+                trackHeight = trackHeight,
                 outlineColor = outlineColor,
             )
         }
     }
 
-    private fun buildTruckBodyPath(width: Float, height: Float): Path {
+    /** Dry van sitting on the fifth-wheel, rounded box. */
+    private fun buildTrailerPath(width: Float, height: Float): Path {
+        val p = Path()
+        val box = RectF(width * 0.03f, height * 0.14f, width * 0.50f, height * 0.56f)
+        val rx = width * 0.045f
+        p.addRoundRect(box, rx, rx, Path.Direction.CW)
+        return p
+    }
+
+    /** Sleeper + cab + sloped hood (conventional tractor). */
+    private fun buildTractorPath(width: Float, height: Float): Path {
         val p = Path()
         val w = width
         val h = height
-        val cargoLeft = w * 0.04f
-        val cargoRight = w * 0.58f
-        val cargoTop = h * 0.18f
-        val cargoBottom = h * 0.72f
-        val cabRight = w * 0.98f
-        val cabTop = h * 0.22f
-        val hoodTop = h * 0.30f
-
-        p.moveTo(cargoLeft, cargoTop)
-        p.lineTo(cargoRight, cargoTop)
-        p.lineTo(cargoRight, cargoBottom)
-        p.lineTo(w * 0.62f, cargoBottom)
-        p.lineTo(w * 0.62f, hoodTop)
-        p.lineTo(w * 0.78f, cabTop)
-        p.lineTo(cabRight, cabTop)
-        p.lineTo(cabRight, cargoBottom)
-        p.lineTo(cargoLeft, cargoBottom)
+        val deck = h * 0.56f
+        val sleeperLeft = w * 0.56f
+        val roof = h * 0.12f
+        p.moveTo(sleeperLeft, deck)
+        p.lineTo(sleeperLeft, roof + h * 0.05f)
+        p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.04f, roof)
+        p.lineTo(w * 0.70f, roof)
+        p.lineTo(w * 0.73f, h * 0.20f)
+        p.lineTo(w * 0.82f, h * 0.20f)
+        p.lineTo(w * 0.93f, h * 0.34f)
+        p.quadTo(w * 0.98f, h * 0.38f, w * 0.98f, deck)
         p.close()
         return p
     }
@@ -213,40 +232,52 @@ object WidgetTruckProgressBitmap {
         canvas: Canvas,
         truckWidth: Float,
         truckHeight: Float,
-        outlineColor: Int,
     ) {
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0xE6FFFFFF.toInt()
-            style = Paint.Style.STROKE
-            strokeWidth = (truckHeight * 0.028f).coerceAtLeast(1f)
-            strokeCap = Paint.Cap.ROUND
+        val glass = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xF2FFFFFF.toInt()
+            style = Paint.Style.FILL
         }
-        val x1 = truckWidth * 0.66f
-        val y1 = truckHeight * 0.24f
-        val x2 = truckWidth * 0.94f
-        val y2 = truckHeight * 0.42f
-        canvas.drawLine(x1, y1, x2, y2, paint)
-        canvas.drawLine(x1, y2, x2, y2, paint)
+        val path = Path()
+        path.moveTo(truckWidth * 0.735f, truckHeight * 0.23f)
+        path.lineTo(truckWidth * 0.82f, truckHeight * 0.23f)
+        path.lineTo(truckWidth * 0.90f, truckHeight * 0.35f)
+        path.lineTo(truckWidth * 0.735f, truckHeight * 0.35f)
+        path.close()
+        canvas.drawPath(path, glass)
+    }
+
+    private fun drawHeadlight(canvas: Canvas, truckWidth: Float, truckHeight: Float) {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFFFFF4C2.toInt()
+            style = Paint.Style.FILL
+        }
+        canvas.drawOval(
+            RectF(
+                truckWidth * 0.925f,
+                truckHeight * 0.40f,
+                truckWidth * 0.975f,
+                truckHeight * 0.49f,
+            ),
+            paint,
+        )
     }
 
     private fun drawTruckWheels(
         canvas: Canvas,
         truckWidth: Float,
         truckHeight: Float,
+        trackHeight: Float,
         outlineColor: Int,
     ) {
-        val radius = truckHeight * 0.095f
-        val cy = truckHeight * 0.76f
-        val wheelXs = floatArrayOf(truckWidth * 0.22f, truckWidth * 0.42f, truckWidth * 0.82f)
-        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt() }
-        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = outlineColor
-            style = Paint.Style.STROKE
-            strokeWidth = (truckHeight * 0.035f).coerceAtLeast(1.1f)
-        }
+        val radius = truckHeight * 0.11f
+        val restY = truckHeight - trackHeight
+        val cy = restY - radius * 0.18f
+        val wheelXs = floatArrayOf(truckWidth * 0.16f, truckWidth * 0.32f, truckWidth * 0.80f)
+        val tire = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = outlineColor }
+        val hub = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt() }
         wheelXs.forEach { cx ->
-            canvas.drawCircle(cx, cy, radius, fillPaint)
-            canvas.drawCircle(cx, cy, radius, strokePaint)
+            canvas.drawCircle(cx, cy, radius, tire)
+            canvas.drawCircle(cx, cy, radius * 0.42f, hub)
         }
     }
 }
