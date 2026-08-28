@@ -147,9 +147,7 @@ data class AppConfig(
                 firebaseProjectId = env["FIREBASE_PROJECT_ID"]?.takeIf { it.isNotBlank() },
                 firebaseCredentialsJson = env["FIREBASE_CREDENTIALS_JSON"]?.takeIf { it.isNotBlank() },
                 metricsBearerToken = env["METRICS_BEARER_TOKEN"]?.takeIf { it.isNotBlank() },
-                googleWebClientId = env["GOOGLE_WEB_CLIENT_ID"]?.trim().orEmpty().ifBlank {
-                    "842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com"
-                },
+                googleWebClientId = env["GOOGLE_WEB_CLIENT_ID"]?.trim().orEmpty(),
             )
         }
 
@@ -182,6 +180,7 @@ data class AppConfig(
             firebaseProjectId = null,
             firebaseCredentialsJson = null,
             metricsBearerToken = null,
+            googleWebClientId = "test-google-client.apps.googleusercontent.com",
         )
 
         private fun isHttpUrl(value: String): Boolean {

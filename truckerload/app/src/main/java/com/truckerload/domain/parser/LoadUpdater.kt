@@ -23,6 +23,7 @@ class LoadUpdater(
         // Синхронизируем маршрут/даты из новых стопов, затем пересчитываем метрики —
         // иначе карточки в журнале показывают устаревший маршрут после Telegram-обновления.
         val updatedLoad = oldLoad.copy(
+            tripId = newData.tripId,
             date = newData.date,
             totalRate = newData.totalRate,
             totalMiles = newData.totalMiles,

@@ -25,6 +25,7 @@ import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.StopsHasher
 import com.truckerload.utils.dateStringToEndOfDayMillis
 import com.truckerload.utils.dateStringToStartOfDayMillis
+import com.truckerload.utils.TruckingWeekTicker
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
@@ -38,12 +39,9 @@ import com.truckerload.utils.LoadDateRepair
 import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -115,13 +113,7 @@ class LoadRepository(
 
     /** SQL «двигатель эффективности» — пересчитывает неделю при смене календарной недели. */
     fun watchCurrentWeekYieldSnapshot(): Flow<WeekYieldSnapshot> =
-        flow {
-            while (true) {
-                emit(getCurrentWeekNumberAndYear())
-                delay(60_000L)
-            }
-        }
-            .distinctUntilChanged()
+        TruckingWeekTicker.currentWeek
             .flatMapLatest { (weekNumber, year) -> loadDao.watchWeekYieldAgg(weekNumber, year) }
             .map { it.toSnapshot() }
             .flowOn(Dispatchers.IO)
