@@ -185,10 +185,11 @@ object WidgetTruckProgressBitmap {
             drawPath(trailer, body)
             drawPath(hitch, body)
             drawPath(cab, body)
-            drawFenderCaps(this, geom, body)
-            drawPath(trailer, stroke)
+            // Outline without the floor edge — a bottom stroke across the tires
+            // is what made the wheels look cut off from the van.
+            drawPath(buildTrailerOutline(geom), stroke)
+            drawPath(buildCabOutline(geom), stroke)
             drawPath(hitch, stroke)
-            drawPath(cab, stroke)
             drawFenderCaps(this, geom, body)
             drawWheelBottoms(this, geom, wheelFill, wheelStroke)
         }
@@ -202,7 +203,7 @@ object WidgetTruckProgressBitmap {
         val stroke: Float = (h * 0.045f).coerceAtLeast(1.4f)
         val wheelRadius: Float = h * 0.175f
         val wheelCy: Float = h - wheelRadius - stroke * 0.5f
-        val deck: Float = wheelCy - wheelRadius * 0.55f
+        val deck: Float = wheelCy - wheelRadius * 0.65f
         val roof: Float = h * 0.05f
         val wheelXs: FloatArray = floatArrayOf(w * 0.17f, w * 0.31f, w * 0.82f)
     }
@@ -221,6 +222,23 @@ object WidgetTruckProgressBitmap {
         p.quadTo(right, top, right, top + rx)
         p.lineTo(right, deck)
         p.close()
+        return p
+    }
+
+    /** Trailer outline: sides + roof only (no floor line over the tires). */
+    private fun buildTrailerOutline(geom: TruckGeom): Path {
+        val p = Path()
+        val left = geom.w * 0.02f
+        val right = geom.w * 0.52f
+        val top = geom.roof
+        val deck = geom.deck
+        val rx = geom.w * 0.05f
+        p.moveTo(left, deck)
+        p.lineTo(left, top + rx)
+        p.quadTo(left, top, left + rx, top)
+        p.lineTo(right - rx, top)
+        p.quadTo(right, top, right, top + rx)
+        p.lineTo(right, deck)
         return p
     }
 
@@ -254,12 +272,34 @@ object WidgetTruckProgressBitmap {
         return p
     }
 
+    /** Cab outline without the floor segment over the drive tire. */
+    private fun buildCabOutline(geom: TruckGeom): Path {
+        val p = Path()
+        val w = geom.w
+        val h = geom.h
+        val deck = geom.deck
+        val roof = geom.roof
+        val sleeperLeft = w * 0.575f
+        p.moveTo(sleeperLeft, deck)
+        p.lineTo(sleeperLeft, roof + h * 0.05f)
+        p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.035f, roof)
+        p.lineTo(w * 0.70f, roof)
+        p.lineTo(w * 0.78f, h * 0.26f)
+        p.lineTo(w * 0.90f, h * 0.26f)
+        p.lineTo(w * 0.97f, deck * 0.82f)
+        p.lineTo(w * 0.97f, deck)
+        return p
+    }
+
     private fun drawFenderCaps(canvas: Canvas, geom: TruckGeom, body: Paint) {
-        val drop = geom.wheelRadius * 0.55f
-        val halfW = geom.wheelRadius * 1.25f
+        // Tall enough to swallow the deck edge and upper tire so they merge.
+        val drop = geom.wheelRadius * 0.75f
+        val halfW = geom.wheelRadius * 1.35f
         geom.wheelXs.forEach { cx ->
-            canvas.drawOval(
-                RectF(cx - halfW, geom.deck - drop * 0.15f, cx + halfW, geom.deck + drop),
+            canvas.drawRoundRect(
+                RectF(cx - halfW, geom.deck - geom.h * 0.02f, cx + halfW, geom.deck + drop),
+                geom.wheelRadius * 0.35f,
+                geom.wheelRadius * 0.35f,
                 body,
             )
         }
