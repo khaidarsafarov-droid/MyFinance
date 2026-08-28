@@ -33,7 +33,7 @@ import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
-import com.truckerload.widget.WidgetStatsLoader
+import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.widget.WidgetRefresh
 import com.truckerload.widget.WidgetUpdateWorker
 import com.truckerload.utils.AppLanguageManager
@@ -128,15 +128,11 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                         }
                     }
                 }
-                // Widget refresh is periodic — avoid Room+bitmap work on every resume.
+                WidgetDataUpdater.updateWidgetData(this@TruckerLoadApp)
             }
 
             override fun onStop(owner: LifecycleOwner) {
-                WidgetRefresh.paintCached(this@TruckerLoadApp)
-                appScope.launch(Dispatchers.IO) {
-                    runCatching { WidgetStatsLoader.refresh(this@TruckerLoadApp) }
-                        .onFailure { e -> Log.e(TAG, "Widget stats flush failed", e) }
-                }
+                WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })
     }
