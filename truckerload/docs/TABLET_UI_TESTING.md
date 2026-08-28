@@ -31,7 +31,7 @@ emulator -avd tl_test -no-accel -no-snapshot -no-window -no-audio \
 After install, AOT-compile for responsiveness on software GPU:
 
 ```bash
-adb shell cmd package compile -m speed -f com.truckerload
+adb shell cmd package compile -m speed -f com.truckorig
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0

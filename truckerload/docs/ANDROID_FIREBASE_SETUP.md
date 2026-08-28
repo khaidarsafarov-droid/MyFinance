@@ -5,7 +5,7 @@ default build must remain usable without Firebase credentials.
 
 ## Enable a credentialed build
 
-1. Register Android application `com.truckerload` in the Firebase project.
+1. Register Android application `com.truckorig` in the Firebase project.
 2. Download its `google-services.json` into `app/google-services.json`. The path is
    gitignored; store the file only in the protected build environment.
 3. Build normally:
