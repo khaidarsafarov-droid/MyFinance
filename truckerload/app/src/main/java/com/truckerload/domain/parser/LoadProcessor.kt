@@ -6,7 +6,6 @@ import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.utils.LoadDateRepair
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.withReportingWeek
-import java.time.LocalDate
 
 data class ParserConfig(
     val autoUpdate: Boolean = true,
@@ -37,11 +36,8 @@ class LoadProcessor(
         val existingLoad = loadRepository.getByTripId(incoming.tripId)
             ?: when (val duplicate = duplicateChecker.checkDuplicate(incoming)) {
                 is DuplicateResult.Found -> duplicate.load
-                is DuplicateResult.Suspicious -> {
-                    return ProcessingResult.Skipped(
-                        "Duplicate (${duplicate.reason}): ${duplicate.load.tripId}",
-                    )
-                }
+                // FIX: route/stops match with same rate — update existing row, not silent skip
+                is DuplicateResult.Suspicious -> duplicate.load
                 DuplicateResult.NotFound -> null
             }
 
@@ -65,32 +61,7 @@ class LoadProcessor(
         }
 
         val changes = changeDetector.detectChanges(existingLoad, incoming)
-
-        return when {
-            comparison.hasMinorChanges() -> {
-                loadUpdater.updateLoad(existingLoad, incoming, changes)
-                ProcessingResult.Updated(changes)
-            }
-            comparison.hasMajorChanges() -> {
-                val preserved = incoming.copy(
-                    id = existingLoad.id,
-                    parsedAt = existingLoad.parsedAt,
-                    isDispute = existingLoad.isDispute,
-                    disputeResponseDate = existingLoad.disputeResponseDate,
-                    disputeCompleted = existingLoad.disputeCompleted,
-                    disputeAmount = existingLoad.disputeAmount,
-                    disputeApplyToLoad = existingLoad.disputeApplyToLoad,
-                    disputeAmountApplied = existingLoad.disputeAmountApplied,
-                    actualFinishDate = existingLoad.actualFinishDate,
-                )
-                loadUpdater.updateLoad(existingLoad, preserved, changes)
-                ProcessingResult.Updated(changes)
-            }
-            else -> {
-                loadUpdater.updateLoad(existingLoad, incoming, changes)
-                ProcessingResult.Updated(changes)
-            }
-        }
+        return applyUpdate(existingLoad, incoming, changes, comparison)
     }
 
     suspend fun processLoads(
@@ -109,6 +80,32 @@ class LoadProcessor(
                 )
             }
         }
+
+    private suspend fun applyUpdate(
+        existingLoad: Load,
+        incoming: Load,
+        changes: List<String>,
+        comparison: LoadComparison,
+    ): ProcessingResult {
+        val merged = incoming.copy(
+            id = existingLoad.id,
+            parsedAt = existingLoad.parsedAt,
+            isDispute = existingLoad.isDispute,
+            disputeResponseDate = existingLoad.disputeResponseDate,
+            disputeCompleted = existingLoad.disputeCompleted,
+            disputeAmount = existingLoad.disputeAmount,
+            disputeApplyToLoad = existingLoad.disputeApplyToLoad,
+            disputeAmountApplied = existingLoad.disputeAmountApplied,
+            actualFinishDate = existingLoad.actualFinishDate,
+        )
+        loadUpdater.updateLoad(existingLoad, merged, changes)
+        // FIX: Relay resend under a new trip id on the same lane → Replaced, not silent duplicate
+        return if (!comparison.tripIdMatch) {
+            ProcessingResult.Replaced("tripId: ${existingLoad.tripId} → ${incoming.tripId}")
+        } else {
+            ProcessingResult.Updated(changes)
+        }
+    }
 
     private fun normalizeIncoming(parsedLoad: Load, messageDateSeconds: Long?): Load {
         val now = System.currentTimeMillis()

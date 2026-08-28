@@ -25,6 +25,12 @@ class SyncConflictResolver @Inject constructor() {
         remoteEntityCount: Int,
     ): Boolean = CloudSyncPolicy.needsFullHydration(lastSyncedAt, localEntityCount, remoteEntityCount)
 
+    fun needsInitialMerge(
+        lastSyncedAt: Long,
+        localEntityCount: Int,
+        remoteEntityCount: Int,
+    ): Boolean = CloudSyncPolicy.needsInitialMerge(lastSyncedAt, localEntityCount, remoteEntityCount)
+
     fun shouldPullIncremental(lastSyncedAt: Long, remoteUpdatedAt: Long): Boolean =
         CloudSyncPolicy.shouldPullIncremental(lastSyncedAt, remoteUpdatedAt)
 }

@@ -30,7 +30,11 @@ object BackupRoomApplier {
         db.withTransaction {
             dieselDao.deleteAll()
             paycheckDao.deleteAll()
-            db.loadHistoryDao().deleteAll()
+            val existingLoadIds = loadDao.getAllLoadsOnce().map { it.id }.toSet()
+            val newLoadIds = backup.loads.map { it.id }.toSet()
+            // FIX: preserve audit history for loads that survive restore; drop only removed ids
+            val removedLoadIds = existingLoadIds - newLoadIds
+            removedLoadIds.forEach { db.loadHistoryDao().deleteByLoadId(it) }
             loadDao.deleteAll()
             if (replaceMaintenance) {
                 maintenanceDao.deleteAllTasks()

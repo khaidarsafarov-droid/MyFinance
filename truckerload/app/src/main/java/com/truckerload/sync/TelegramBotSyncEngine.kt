@@ -2,12 +2,9 @@ package com.truckerload.sync
 
 import android.content.Context
 import android.util.Log
-import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.di.userComponentManager
 import com.truckerload.sync.telegram.TelegramApiClient
 import com.truckerload.sync.telegram.TelegramMessageParser
 import com.truckerload.sync.telegram.TelegramStateMachine
@@ -32,10 +29,20 @@ class TelegramBotSyncEngine(private val context: Context) {
         if (token.isBlank()) {
             return SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 60)
         }
-        val result = TelegramPollCoordinator.withPollLock {
+        val lockResult = TelegramPollCoordinator.withPollLock {
             runOnceLocked(token, expectedUserId)
         }
-        return result ?: SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 15)
+        return when (lockResult) {
+            is TelegramPollCoordinator.PollLockResult.Contention ->
+                SyncRunResult(
+                    skipped = true,
+                    processedUpdates = 0,
+                    nextDelaySeconds = 5,
+                    pollLockContention = true,
+                )
+            is TelegramPollCoordinator.PollLockResult.Acquired ->
+                lockResult.value ?: SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 15)
+        }
     }
 
     private suspend fun runOnceLocked(token: String, expectedUserId: String?): SyncRunResult {
@@ -58,10 +65,12 @@ class TelegramBotSyncEngine(private val context: Context) {
         val dispatcher = TelegramUpdateDispatcher(context, apiClient, messageParser)
         val stateMachine = TelegramStateMachine(prefs)
 
-        val db = AppDatabase.getInstance(context, userId)
-        val loadRepository = LoadRepository(db)
-        val paycheckRepository = PaycheckRepository(db)
-        val dieselRepository = DieselRepository(db)
+        // FIX: use session-scoped graph — same DB as ViewModels, survives account binding correctly
+        val userComponent = context.userComponentManager().startSession(userId)
+        val db = userComponent.database
+        val loadRepository = userComponent.loadRepository
+        val paycheckRepository = userComponent.paycheckRepository
+        val dieselRepository = userComponent.dieselRepository
         val chatRestore = TelegramChatRestore(db.telegramInboxDao(), TelegramMessageArchive(context, userId))
 
         val result = apiClient.getUpdates(
@@ -121,9 +130,13 @@ class TelegramBotSyncEngine(private val context: Context) {
             }
         }
 
-        if (!stoppedOnFailure && result.nextOffset > nextRequestOffset) {
-            nextRequestOffset = result.nextOffset
-            syncScheduler.persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
+        if (!stoppedOnFailure) {
+            for (skippedId in result.unparsedUpdateIds.sorted()) {
+                if (skippedId + 1 <= nextRequestOffset) continue
+                Log.d(TAG, "⏭️ Advancing past unhandled updateId=$skippedId")
+                nextRequestOffset = skippedId + 1
+                syncScheduler.persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
+            }
         }
 
         val nextDelay = syncScheduler.nextDelaySeconds(processed, result.updates.isNotEmpty())
@@ -136,6 +149,7 @@ class TelegramBotSyncEngine(private val context: Context) {
         val processedUpdates: Int,
         val nextDelaySeconds: Long,
         val error: String? = null,
+        val pollLockContention: Boolean = false,
     )
 
     private fun TelegramSyncRunResult.toPublic() = SyncRunResult(

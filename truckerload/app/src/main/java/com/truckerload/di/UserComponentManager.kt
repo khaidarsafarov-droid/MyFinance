@@ -22,47 +22,42 @@ class UserComponentManager @Inject constructor(
     private val httpClientProvider: HttpClientProvider,
 ) {
     private val active = AtomicReference<UserComponent?>(null)
+    private val sessionLock = Any()
 
+    @Synchronized
     fun currentOrNull(): UserComponent? = active.get()
 
+    @Synchronized
     fun currentUserIdOrNull(): String? = active.get()?.userId
 
+    @Synchronized
     fun require(): UserComponent =
         active.get()
             ?: error("No active UserComponent — call startSession(userId) after login")
 
     /**
      * Ensures a graph for [userId]. No-op when already bound to the same user.
-     * Switches close the previous Room connection first.
+     * Switches atomically so [require] never sees a torn-down graph mid-switch.
      */
-    @Synchronized
-    fun startSession(userId: String): UserComponent {
+    fun startSession(userId: String): UserComponent = synchronized(sessionLock) {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
-        val existing = active.get()
-        if (existing != null && existing.userId == id) return existing
-        if (existing != null) {
+        active.get()?.let { existing ->
+            if (existing.userId == id) return existing
             Log.i(TAG, "Switching UserComponent ${existing.userId} → $id")
-            destroySessionLocked()
-        } else {
-            Log.i(TAG, "Starting UserComponent for $id")
-        }
+            userProfileStore.unbind()
+        } ?: Log.i(TAG, "Starting UserComponent for $id")
+        // FIX: create + swap before clearing active — no null window for concurrent readers
         val created = UserComponent.create(context, id, userProfileStore, httpClientProvider)
         active.set(created)
         return created
     }
 
     /** Logout / guest: drop graph, close Room, unbind profile. */
-    @Synchronized
-    fun endSession() {
-        if (active.get() == null) return
+    fun endSession() = synchronized(sessionLock) {
+        val previous = active.getAndSet(null) ?: return
         Log.i(TAG, "Ending UserComponent")
-        destroySessionLocked()
-    }
-
-    private fun destroySessionLocked() {
-        active.set(null)
-        AppDatabase.closeCurrent()
+        AppDatabase.closeIfCurrentUser(previous.userId)
         userProfileStore.unbind()
     }
 

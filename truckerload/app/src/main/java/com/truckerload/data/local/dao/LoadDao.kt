@@ -30,6 +30,10 @@ interface LoadDao {
         WHERE firstPuCityState = :origin
           AND lastDelCityState = :destination
           AND date = :date
+        ORDER BY
+          CASE WHEN ABS(totalRate - :rate) < 0.01 THEN 0 ELSE 1 END,
+          ABS(totalRate - :rate) ASC,
+          parsedAt DESC
         LIMIT 1
         """
     )
@@ -37,6 +41,7 @@ interface LoadDao {
         origin: String,
         destination: String,
         date: String,
+        rate: Double,
     ): LoadEntity?
 
     @Query("SELECT * FROM loads WHERE date = :loadDate")

@@ -11,7 +11,7 @@ class SyncConflictResolverTest {
     @Test
     fun remoteWins_onNewerTimestamp() {
         assertTrue(resolver.remoteWins(localUpdatedAt = 10L, remoteUpdatedAt = 20L))
-        assertFalse(resolver.remoteWins(localUpdatedAt = 20L, remoteUpdatedAt = 20L))
+        assertTrue(resolver.remoteWins(localUpdatedAt = 20L, remoteUpdatedAt = 20L))
         assertTrue(resolver.remoteWins(localUpdatedAt = null, remoteUpdatedAt = 1L))
     }
 

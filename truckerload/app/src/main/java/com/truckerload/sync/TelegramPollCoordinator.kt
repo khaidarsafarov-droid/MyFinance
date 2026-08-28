@@ -19,13 +19,18 @@ object TelegramPollCoordinator {
 
     fun isForegroundPolling(): Boolean = foregroundPolling
 
-    suspend fun <T> withPollLock(block: suspend () -> T): T? {
+    sealed class PollLockResult<out T> {
+        data class Acquired<T>(val value: T) : PollLockResult<T>()
+        data object Contention : PollLockResult<Nothing>()
+    }
+
+    suspend fun <T> withPollLock(block: suspend () -> T): PollLockResult<T> {
         if (!mutex.tryLock()) {
             Log.d(TAG, "skip: another poll in progress")
-            return null
+            return PollLockResult.Contention
         }
         return try {
-            block()
+            PollLockResult.Acquired(block())
         } finally {
             mutex.unlock()
         }

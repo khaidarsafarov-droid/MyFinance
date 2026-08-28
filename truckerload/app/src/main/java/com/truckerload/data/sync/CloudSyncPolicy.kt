@@ -8,16 +8,24 @@ object CloudSyncPolicy {
     const val DEFAULT_SKEW_MS = 0L
 
     /**
-     * Returns true when [remoteUpdatedAt] should replace the local record.
-     * Equal timestamps keep local (stable; avoids thrashing).
+     * Returns true when [remoteUpdatedAt] should replace the local record on pull.
+     * When timestamps tie, [preferRemoteOnTie] picks cloud (default) so devices converge.
      */
     fun remoteWins(
         localUpdatedAt: Long?,
         remoteUpdatedAt: Long,
         skewMs: Long = DEFAULT_SKEW_MS,
+        preferRemoteOnTie: Boolean = true,
     ): Boolean {
         if (localUpdatedAt == null || localUpdatedAt <= 0L) return true
-        return remoteUpdatedAt > localUpdatedAt + skewMs
+        val remoteAhead = remoteUpdatedAt > localUpdatedAt + skewMs
+        val localAhead = localUpdatedAt > remoteUpdatedAt + skewMs
+        return when {
+            remoteAhead -> true
+            localAhead -> false
+            preferRemoteOnTie -> true
+            else -> false
+        }
     }
 
     /**
@@ -58,9 +66,43 @@ object CloudSyncPolicy {
     fun orphanLocalIds(localIds: Set<String>, remoteIds: Set<String>): Set<String> =
         localIds - remoteIds
 
+    /**
+     * Safe orphan set for incremental pull: never delete local-only rows that were created or
+     * edited after [lastSyncedAt] (not yet published to cloud). Prevents pull-before-push data loss.
+     */
+    fun orphanLocalIdsForPull(
+        localIds: Set<String>,
+        remoteIds: Set<String>,
+        localUpdatedAt: (String) -> Long,
+        lastSyncedAt: Long,
+    ): Set<String> {
+        // FIX: first sync / never acked — remote snapshot may omit unpushed local rows
+        if (lastSyncedAt <= 0L) return emptySet()
+        return (localIds - remoteIds).filter { id ->
+            val updated = localUpdatedAt(id)
+            updated > 0L && updated <= lastSyncedAt
+        }.toSet()
+    }
+
     /** Int-keyed variant for paycheck / diesel rows. */
     fun orphanLocalIntIds(localIds: Set<Int>, remoteIds: Set<Int>): Set<Int> =
         localIds - remoteIds
+
+    /**
+     * Safe orphan set for diesel/paycheck incremental pull (version field = [addedAt]).
+     */
+    fun orphanLocalIntIdsForPull(
+        localIds: Set<Int>,
+        remoteIds: Set<Int>,
+        localAddedAt: (Int) -> Long,
+        lastSyncedAt: Long,
+    ): Set<Int> {
+        if (lastSyncedAt <= 0L) return emptySet()
+        return (localIds - remoteIds).filter { id ->
+            val added = localAddedAt(id)
+            added > 0L && added <= lastSyncedAt
+        }.toSet()
+    }
 
     /**
      * Ids from [remoteById] that should be upserted on incremental pull:
@@ -86,6 +128,13 @@ object CloudSyncPolicy {
     /** True when device has never completed a cloud pull/push for this account. */
     fun needsFullHydration(lastSyncedAt: Long, localEntityCount: Int, remoteEntityCount: Int): Boolean =
         lastSyncedAt <= 0L && localEntityCount == 0 && remoteEntityCount > 0
+
+    /**
+     * First cloud login on a device that already has a local journal (restore / offline use).
+     * Requires LWW merge from remote without deleting unpushed local rows.
+     */
+    fun needsInitialMerge(lastSyncedAt: Long, localEntityCount: Int, remoteEntityCount: Int): Boolean =
+        lastSyncedAt <= 0L && localEntityCount > 0 && remoteEntityCount > 0
 
     /** Incremental pull is useful when we already have a cursor and remote may have newer rows. */
     fun shouldPullIncremental(lastSyncedAt: Long, remoteUpdatedAt: Long): Boolean =

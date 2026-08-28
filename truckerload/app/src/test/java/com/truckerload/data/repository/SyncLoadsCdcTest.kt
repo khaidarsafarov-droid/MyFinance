@@ -60,6 +60,15 @@ class SyncLoadsCdcTest {
     }
 
     @Test
+    fun cdc_updatesExistingLoadWhenRateChanges() = runBlocking {
+        val repo = repo()
+        repo.syncLoadsCdc(listOf(sample("t-abc", rate = 1000.0)), null, playFeedback = false)
+        val result = repo.syncLoadsCdc(listOf(sample("t-abc", rate = 1200.0)), null, playFeedback = false)
+        assertEquals(SyncStatus.UPDATED, result.status)
+        assertEquals(1200.0, repo.getByTripId("t-abc")?.totalRate ?: 0.0, 0.01)
+    }
+
+    @Test
     fun cdc_emptyWhenInvalid() = runBlocking {
         val repo = repo()
         val bad = sample("T-UNKNOWN", rate = 0.0)

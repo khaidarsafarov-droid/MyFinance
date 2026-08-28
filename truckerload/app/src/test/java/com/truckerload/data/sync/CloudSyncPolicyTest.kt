@@ -12,9 +12,20 @@ class CloudSyncPolicyTest {
     @Test
     fun remoteWins_whenNewer() {
         assertTrue(CloudSyncPolicy.remoteWins(localUpdatedAt = 100L, remoteUpdatedAt = 200L))
-        assertFalse(CloudSyncPolicy.remoteWins(localUpdatedAt = 200L, remoteUpdatedAt = 200L))
+        assertTrue(CloudSyncPolicy.remoteWins(localUpdatedAt = 200L, remoteUpdatedAt = 200L))
         assertFalse(CloudSyncPolicy.remoteWins(localUpdatedAt = 300L, remoteUpdatedAt = 200L))
         assertTrue(CloudSyncPolicy.remoteWins(localUpdatedAt = null, remoteUpdatedAt = 1L))
+    }
+
+    @Test
+    fun remoteWins_tieCanKeepLocalWhenConfigured() {
+        assertFalse(
+            CloudSyncPolicy.remoteWins(
+                localUpdatedAt = 200L,
+                remoteUpdatedAt = 200L,
+                preferRemoteOnTie = false,
+            ),
+        )
     }
 
     @Test
@@ -60,6 +71,56 @@ class CloudSyncPolicyTest {
         val pushed = CloudSyncPolicy.localSnapshotForPush(local)
         assertEquals(setOf("keep"), pushed.keys)
         assertEquals("local", pushed["keep"]?.value)
+    }
+
+    @Test
+    fun needsInitialMerge_whenLocalAndRemoteBothHaveData() {
+        assertTrue(CloudSyncPolicy.needsInitialMerge(0L, localEntityCount = 3, remoteEntityCount = 5))
+        assertTrue(CloudSyncPolicy.needsInitialMerge(-1L, localEntityCount = 1, remoteEntityCount = 1))
+        assertFalse(CloudSyncPolicy.needsInitialMerge(0L, localEntityCount = 0, remoteEntityCount = 5))
+        assertFalse(CloudSyncPolicy.needsInitialMerge(100L, localEntityCount = 3, remoteEntityCount = 5))
+        assertFalse(CloudSyncPolicy.needsInitialMerge(0L, localEntityCount = 3, remoteEntityCount = 0))
+    }
+
+    @Test
+    fun orphanLocalIdsForPull_skipsNeverSyncedAndDirtyRows() {
+        val orphans = CloudSyncPolicy.orphanLocalIdsForPull(
+            localIds = setOf("a", "b", "c", "d"),
+            remoteIds = setOf("a", "c"),
+            localUpdatedAt = { id ->
+                when (id) {
+                    "a" -> 50L
+                    "b" -> 200L // dirty after last sync
+                    "c" -> 80L
+                    "d" -> 0L // unset timestamp
+                    else -> 0L
+                }
+            },
+            lastSyncedAt = 100L,
+        )
+        assertEquals(setOf("a"), orphans)
+    }
+
+    @Test
+    fun orphanLocalIdsForPull_emptyWhenNeverSynced() {
+        val orphans = CloudSyncPolicy.orphanLocalIdsForPull(
+            localIds = setOf("a", "b"),
+            remoteIds = setOf("a"),
+            localUpdatedAt = { 50L },
+            lastSyncedAt = 0L,
+        )
+        assertTrue(orphans.isEmpty())
+    }
+
+    @Test
+    fun orphanLocalIntIdsForPull_respectsAddedAt() {
+        val orphans = CloudSyncPolicy.orphanLocalIntIdsForPull(
+            localIds = setOf(1, 2),
+            remoteIds = setOf(1),
+            localAddedAt = { id -> if (id == 2) 200L else 50L },
+            lastSyncedAt = 100L,
+        )
+        assertTrue(orphans.isEmpty())
     }
 
     @Test

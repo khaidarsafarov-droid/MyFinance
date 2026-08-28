@@ -17,7 +17,11 @@ internal suspend fun persistRepairedLoadDates(db: AppDatabase): Int {
     if (entities.isEmpty()) return 0
     val now = System.currentTimeMillis()
     val updates = hydrateLoadEntities(entities, stopDao, penaltyDao).mapNotNull { load ->
-        val repaired = LoadDateRepair.repair(load)
+        // FIX: anchor repair to parsedAt (Telegram/message time), not wall clock at session start
+        val repaired = LoadDateRepair.repair(
+            load = load,
+            referenceMillis = load.parsedAt.takeIf { it >= LoadDateRepair.MIN_SANE_REFERENCE_MS },
+        )
         repaired.takeIf {
             it.date != load.date ||
                 it.weekNumber != load.weekNumber ||

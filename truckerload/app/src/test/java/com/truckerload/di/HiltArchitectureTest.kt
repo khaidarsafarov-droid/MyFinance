@@ -59,7 +59,7 @@ class HiltArchitectureTest {
 
         assertTrue(source.contains("fun startSession"))
         assertTrue(source.contains("fun endSession"))
-        assertTrue(source.contains("AppDatabase.closeCurrent()"))
+        assertTrue(source.contains("AppDatabase.closeIfCurrentUser"))
         assertTrue(source.contains("userProfileStore.unbind()"))
     }
 

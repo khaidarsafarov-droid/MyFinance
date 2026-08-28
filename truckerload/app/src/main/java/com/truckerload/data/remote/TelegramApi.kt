@@ -219,20 +219,34 @@ class TelegramApi(private val token: String) {
                         val arr = json.optJSONArray("result")
                             ?: return@runCatching TelegramGetUpdatesResult(emptyList(), offset ?: 0L)
                         var rawMaxUpdateId = 0L
+                        var parsedMaxUpdateId = 0L
+                        val unparsedUpdateIds = mutableListOf<Long>()
                         val updates = buildList {
                             for (i in 0 until arr.length()) {
                                 val obj = arr.getJSONObject(i)
                                 val updateId = obj.optLong("update_id")
                                 if (updateId > rawMaxUpdateId) rawMaxUpdateId = updateId
-                                parseUpdate(obj)?.let { add(it) }
+                                val parsed = parseUpdate(obj)
+                                if (parsed != null) {
+                                    add(parsed)
+                                    if (updateId > parsedMaxUpdateId) parsedMaxUpdateId = updateId
+                                } else if (updateId > 0L) {
+                                    unparsedUpdateIds.add(updateId)
+                                }
                             }
                         }
                         val nextOffset = when {
-                            rawMaxUpdateId > 0L -> rawMaxUpdateId + 1L
+                            parsedMaxUpdateId > 0L -> parsedMaxUpdateId + 1L
+                            unparsedUpdateIds.isNotEmpty() -> unparsedUpdateIds.max() + 1L
                             offset != null && offset > 0L -> offset
                             else -> 0L
                         }
-                        TelegramGetUpdatesResult(updates, nextOffset, rawMaxUpdateId)
+                        TelegramGetUpdatesResult(
+                            updates = updates,
+                            nextOffset = nextOffset,
+                            rawMaxUpdateId = rawMaxUpdateId,
+                            unparsedUpdateIds = unparsedUpdateIds,
+                        )
                     }
                 }
             } finally {
@@ -419,5 +433,7 @@ data class TelegramGetUpdatesResult(
     val updates: List<TelegramUpdate>,
     /** Pass this value as offset on the next getUpdates call. */
     val nextOffset: Long,
-    val rawMaxUpdateId: Long = 0L
+    val rawMaxUpdateId: Long = 0L,
+    /** Update ids in the batch that could not be parsed — advance past individually. */
+    val unparsedUpdateIds: List<Long> = emptyList(),
 )
