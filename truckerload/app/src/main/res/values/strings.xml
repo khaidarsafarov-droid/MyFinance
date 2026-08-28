@@ -755,6 +755,8 @@
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Photo / PDF</string>
     <string name="add_load_hint_paste">Paste a Relay, Telegram, or email message. The app reads rate, miles, and addresses for you.</string>
+    <string name="add_load_history_tip_title">Past loads from a Telegram group</string>
+    <string name="add_load_history_tip_body">In Telegram Desktop: chat menu → Export chat history → HTML or JSON. Send those files to your TruckoRig bot with /import — it parses every load. You can also paste the text here or pick the file under Photo / PDF.</string>
     <string name="add_load_hint_manual">Enter the rate and at least one address. Trip ID can stay empty — the app will create one.</string>
     <string name="add_load_hint_document">Photograph a document or pick any file (PDF, photo, TXT, JSON, CSV, DOCX) — the fields fill in automatically. Check them, edit if needed, and save.</string>
     <string name="add_load_manual_hint">Type the load details. Rate and a pickup or delivery point are required.</string>
