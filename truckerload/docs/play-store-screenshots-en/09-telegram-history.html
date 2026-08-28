@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>09 Telegram bot + chat history</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .steps { display: flex; flex-direction: column; gap: 12px; margin: 12px 0 16px; }
+    .step {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 16px 18px;
+    }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+      background: var(--purple); color: #fff; font-weight: 800;
+      display: grid; place-items: center; font-size: 18px;
+    }
+    .step h3 { font-size: 18px; margin-bottom: 4px; }
+    .step p { color: var(--muted); font-size: 15px; line-height: 1.4; }
+    .step.highlight {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 2px rgba(91,84,230,0.18);
+      background: var(--lavender);
+    }
+    .code {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      background: #fff; border-radius: 8px; padding: 2px 8px;
+      color: var(--purple); font-weight: 700; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shot">
+    <div class="overlay">
+      <h1>Your Telegram bot. Your history.</h1>
+      <p>Create a bot, connect it, export chat history — TruckoRig saves every load</p>
+    </div>
+    <div class="app tight">
+      <div class="topbar">
+        <div class="brand">Telegram Bot</div>
+        <div class="status-pill">Active</div>
+      </div>
+      <div class="content">
+        <div class="subtitle" style="margin-top:0;">
+          Get a token from @BotFather and tap Add bot. The on-device bot reads messages and adds loads, paychecks, and diesel to the journal.
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <h3>Create your bot</h3>
+              <p>Open <span class="code">@BotFather</span> → /newbot → copy the token</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <h3>Connect in TruckoRig</h3>
+              <p>Settings → Telegram Bot → Add bot. Token is stored securely (hidden).</p>
+            </div>
+          </div>
+          <div class="step highlight">
+            <div class="step-num">3</div>
+            <div>
+              <h3>Export chat history</h3>
+              <p>Telegram Desktop: chat menu → Export chat history → HTML or JSON. Send the file to your bot with <span class="code">/import</span> — it parses every load automatically.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="position:relative;">
+          <div class="callout" style="top:-28px;right:12px;font-size:15px;">Auto-saved</div>
+          <div style="font-weight:800;font-size:20px;margin-bottom:8px;">Imported from chat history</div>
+          <div class="meta">Bot is listening for messages</div>
+          <div style="margin-top:12px;">
+            <div class="row" style="margin-bottom:10px;">
+              <div class="trip">T-116KYL6KW</div>
+              <div class="date">Aug 27</div>
+            </div>
+            <div class="route" style="font-size:18px;">Garner, NC → Dallas, TX</div>
+            <div class="meta">2 stops • 850 mi • $2,500.00</div>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <div class="row">
+              <div class="trip">T-22MPL9QX</div>
+              <div class="date">Aug 26</div>
+            </div>
+            <div class="route" style="font-size:18px;">Charlotte, NC → Atlanta, GA</div>
+            <div class="meta">2 stops • 420 mi • $1,180.00</div>
+          </div>
+          <div style="margin-top:14px;color:var(--green);font-weight:700;font-size:16px;">
+            ✓ Saved to journal — open Loads to review
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
