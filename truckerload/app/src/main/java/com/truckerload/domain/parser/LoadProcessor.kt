@@ -52,7 +52,7 @@ class LoadProcessor(
             priceThresholdPercent = config.priceThresholdPercent,
         )
 
-        if (comparison.isIdentical()) {
+        if (comparison.isIdentical() && comparison.tripIdMatch) {
             return ProcessingResult.Skipped("No changes")
         }
 

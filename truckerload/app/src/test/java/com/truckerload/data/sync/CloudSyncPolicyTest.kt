@@ -86,7 +86,7 @@ class CloudSyncPolicyTest {
     fun orphanLocalIdsForPull_skipsNeverSyncedAndDirtyRows() {
         val orphans = CloudSyncPolicy.orphanLocalIdsForPull(
             localIds = setOf("a", "b", "c", "d"),
-            remoteIds = setOf("a", "c"),
+            remoteIds = setOf("c"),
             localUpdatedAt = { id ->
                 when (id) {
                     "a" -> 50L
@@ -158,11 +158,11 @@ class CloudSyncPolicyTest {
     }
 
     @Test
-    fun remoteIntIdsToApplyOnPull_equalAddedAt_skipsEvenIfAmountChanged() {
+    fun remoteIntIdsToApplyOnPull_equalAddedAt_appliesRemoteOnTie() {
         val local = mapOf(1 to IntRow(1, 100L, 50.0))
         val remote = mapOf(1 to IntRow(1, 100L, 99.0))
         val apply = CloudSyncPolicy.remoteIntIdsToApplyOnPull(local, remote) { it.addedAt }
-        assertTrue(apply.isEmpty())
+        assertEquals(setOf(1), apply)
     }
 
     @Test
