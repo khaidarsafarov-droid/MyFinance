@@ -76,6 +76,7 @@ import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.widget.WidgetDeepLink
+import com.truckerload.widget.WidgetRefresh
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -310,10 +311,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Paint while still foreground — Samsung/OEM launchers often queue Glance
+        // updates until the next widget tap once the activity is stopped.
+        WidgetRefresh.flushForHomeScreen(applicationContext)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIncomingIntent(intent)
+        WidgetDataUpdater.updateWidgetData(applicationContext)
     }
 
     private fun handleIncomingIntent(intent: Intent?) {

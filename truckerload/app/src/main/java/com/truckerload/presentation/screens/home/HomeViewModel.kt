@@ -329,12 +329,6 @@ class HomeViewModel @Inject constructor(
                 _pendingDeleteIds.update { pending -> pending.filter { it !in ids }.toSet() }
             }
         }
-        // Виджет обновляем с debounce — не на каждый символ поиска / оптимистичный оверлей.
-        viewModelScope.launch {
-            loadsFromDb
-                .debounce(400)
-                .collect { runCatching { WidgetDataUpdater.updateWidgetData(app) } }
-        }
         viewModelScope.launch {
             runCatching {
                 val store = TelegramTokenStore(app)

@@ -31,6 +31,7 @@ class DieselRepository(private val db: AppDatabase) {
     suspend fun insertDiesel(diesel: Diesel) {
         dao.insert(diesel.copy(addedAt = JournalSyncClock.bump(diesel.addedAt)).toEntity())
         scheduleAutoBackup()
+        notifyWidgetDataChanged()
         AppDatabase.applicationContext()?.let { ctx ->
             runCatching {
                 com.truckerload.sync.OutboundSyncQueue.enqueueDieselUpsert(
@@ -48,6 +49,7 @@ class DieselRepository(private val db: AppDatabase) {
     suspend fun deleteDiesel(id: Int) {
         dao.deleteById(id)
         scheduleAutoBackup()
+        notifyWidgetDataChanged()
     }
 
     /** Deletes all fills for the trucking week, then inserts [fills]. */
@@ -59,6 +61,7 @@ class DieselRepository(private val db: AppDatabase) {
 
     suspend fun deleteAllDiesel() {
         dao.deleteAll()
+        notifyWidgetDataChanged()
     }
 
     suspend fun getDieselForYear(year: Int): List<Diesel> =
@@ -74,5 +77,11 @@ class DieselRepository(private val db: AppDatabase) {
 
     private fun scheduleAutoBackup() {
         AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
+    }
+
+    private fun notifyWidgetDataChanged() {
+        AppDatabase.applicationContext()?.let {
+            com.truckerload.widget.WidgetDataUpdater.updateWidgetData(it)
+        }
     }
 }

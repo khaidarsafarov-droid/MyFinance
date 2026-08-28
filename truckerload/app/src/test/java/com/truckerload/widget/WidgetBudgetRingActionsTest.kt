@@ -82,6 +82,30 @@ class WidgetBudgetRingActionsTest {
     }
 
     @Test
+    fun widgetRefresh_appliesGlanceOnMainAndFlushesOnLeave() {
+        val refresh = readSource("widget/WidgetRefresh.kt")
+        assertTrue(refresh.contains("Dispatchers.Main.immediate"))
+        assertTrue(refresh.contains("OneUiGlanceWidgets.updateAll"))
+        assertTrue(refresh.contains("flushForHomeScreen"))
+        assertTrue(refresh.contains("postAtFrontOfQueue"))
+        assertTrue(refresh.contains("WidgetDataProvider.refresh"))
+        val activity = readSource("presentation/MainActivity.kt")
+        assertTrue(activity.contains("override fun onPause()"))
+        assertTrue(activity.contains("WidgetRefresh.flushForHomeScreen"))
+        assertTrue(activity.contains("onNewIntent"))
+        val app = readSource("TruckerLoadApp.kt")
+        assertTrue(app.contains("flushForHomeScreen"))
+        assertTrue(app.contains("WidgetDataUpdater.updateWidgetData"))
+        assertTrue(!app.contains("avoid Room+bitmap"))
+        val home = readSource("presentation/screens/home/HomeViewModel.kt")
+        assertTrue(!home.contains("debounce(400)"))
+        val diesel = readSource("data/repository/DieselRepository.kt")
+        assertTrue(diesel.contains("notifyWidgetDataChanged"))
+        val paycheck = readSource("data/repository/PaycheckRepository.kt")
+        assertTrue(paycheck.contains("notifyWidgetDataChanged"))
+    }
+
+    @Test
     fun cabinPlateDrawable_usesKitBackgroundToken() {
         val xml = readRes("drawable/widget_cabin_plate.xml")
         assertTrue(xml.contains("@color/widget_bg"))

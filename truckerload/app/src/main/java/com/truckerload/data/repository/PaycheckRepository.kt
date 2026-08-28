@@ -31,11 +31,13 @@ class PaycheckRepository(private val db: AppDatabase) {
         val resolved = existing?.let { paycheck.copy(id = it.id) } ?: paycheck
         dao.insert(resolved.withSyncTimestamp().toEntity())
         scheduleAutoBackup()
+        notifyWidgetDataChanged()
     }
 
     suspend fun updatePaycheck(paycheck: Paycheck) {
         dao.update(paycheck.withSyncTimestamp().toEntity())
         scheduleAutoBackup()
+        notifyWidgetDataChanged()
     }
 
     private fun Paycheck.withSyncTimestamp(): Paycheck =
@@ -50,10 +52,12 @@ class PaycheckRepository(private val db: AppDatabase) {
             }
         }
         scheduleAutoBackup()
+        notifyWidgetDataChanged()
     }
 
     suspend fun deleteAllPaychecks() {
         dao.deleteAll()
+        notifyWidgetDataChanged()
     }
 
     suspend fun getPaychecksForYear(year: Int): List<Paycheck> =
@@ -69,5 +73,11 @@ class PaycheckRepository(private val db: AppDatabase) {
 
     private fun scheduleAutoBackup() {
         AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
+    }
+
+    private fun notifyWidgetDataChanged() {
+        AppDatabase.applicationContext()?.let {
+            com.truckerload.widget.WidgetDataUpdater.updateWidgetData(it)
+        }
     }
 }
