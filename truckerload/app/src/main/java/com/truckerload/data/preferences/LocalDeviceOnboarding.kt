@@ -1,7 +1,8 @@
 package com.truckerload.data.preferences
 
 /**
- * First-launch local identity: first + last name, no Google/email account.
+ * First-launch local identity. Name is optional — skip and fill it later
+ * (profile, or before sharing a My numbers file).
  * Room and prefs stay keyed by [AccountIds.LOCAL_DEV] on this device.
  */
 object LocalDeviceOnboarding {
@@ -13,12 +14,12 @@ object LocalDeviceOnboarding {
     fun complete(
         authStore: AuthStore,
         userProfileStore: UserProfileStore,
-        givenName: String,
-        familyName: String,
+        givenName: String = "",
+        familyName: String = "",
     ) {
         val given = givenName.trim()
         val family = familyName.trim()
-        require(namesAreValid(given, family)) { "NAME_REQUIRED" }
+        val named = given.isNotBlank() || family.isNotBlank()
         AuthLogin.completeLogin(
             authStore = authStore,
             userProfileStore = userProfileStore,
@@ -28,7 +29,7 @@ object LocalDeviceOnboarding {
                 givenName = given,
                 familyName = family,
                 photoUrl = null,
-                customDisplayName = true,
+                customDisplayName = named,
             ),
             rememberMe = true,
             provider = AuthProvider.LOCAL,

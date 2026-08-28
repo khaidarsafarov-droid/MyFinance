@@ -43,13 +43,23 @@ class FirstRunViewModel @Inject constructor(
             _uiState.update { it.copy(errorMessageRes = R.string.first_run_name_required) }
             return
         }
+        finish(state.givenName, state.familyName)
+    }
+
+    fun onSkip() {
+        val state = _uiState.value
+        if (state.isSaving) return
+        finish(givenName = "", familyName = "")
+    }
+
+    private fun finish(givenName: String, familyName: String) {
         _uiState.update { it.copy(isSaving = true, errorMessageRes = null) }
         runCatching {
             LocalDeviceOnboarding.complete(
                 authStore = authStore,
                 userProfileStore = userProfileStore,
-                givenName = state.givenName,
-                familyName = state.familyName,
+                givenName = givenName,
+                familyName = familyName,
             )
         }.onFailure {
             _uiState.update {

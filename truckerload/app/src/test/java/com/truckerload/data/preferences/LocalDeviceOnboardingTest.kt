@@ -66,9 +66,20 @@ class LocalDeviceOnboardingTest {
         assertEquals(AuthProvider.LOCAL, restored.authProvider())
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun complete_rejectsBlankNames() {
+    @Test
+    fun complete_allowsSkipWithoutNames() {
         val context = RuntimeEnvironment.getApplication()
-        LocalDeviceOnboarding.complete(AuthStore(context), UserProfileStore(context), " ", "Иванов")
+        val auth = AuthStore(context)
+        val profile = UserProfileStore(context)
+
+        LocalDeviceOnboarding.complete(auth, profile)
+
+        assertTrue(auth.isLoggedIn.value)
+        assertEquals(AccountIds.LOCAL_DEV, auth.currentUserIdOrNull())
+        assertEquals(AuthProvider.LOCAL, auth.authProvider())
+        assertEquals("", profile.profile.value?.givenName)
+        assertEquals("", profile.profile.value?.familyName)
+        assertTrue(profile.setupComplete.value)
+        assertFalse(profile.profile.value?.customDisplayName == true)
     }
 }
