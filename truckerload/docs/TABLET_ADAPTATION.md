@@ -48,7 +48,7 @@ Android Studio **Layout Validation** or a tablet AVD:
 
 ### Manual steps
 
-1. Install debug APK, AOT optional: `adb shell cmd package compile -m speed -f com.truckerload`
+1. Install debug APK, AOT optional: `adb shell cmd package compile -m speed -f com.truckorig`
 2. Disable animations (recommended on slow emulators).
 3. Open **Logbook**:
    - Portrait tablet: rail visible; tapping a load opens full-screen detail (stack).

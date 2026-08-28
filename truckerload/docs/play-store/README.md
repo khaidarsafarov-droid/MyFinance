@@ -81,14 +81,14 @@ adb shell am broadcast -a com.android.systemui.demo -e command notifications -e 
 
 Данные на скриншотах — демонстрационные: 12 отчётных недель (48 грузов, зарплаты,
 дизель и разные расходы) залиты напрямую в Room-базу офлайн-аккаунта
-`/data/data/com.truckerload/databases/truckerload_local_dev`. Генератор SQL —
+`/data/data/com.truckorig/databases/truckerload_local_dev`. Генератор SQL —
 `scripts/seed_play_store_demo_data.py`:
 
 ```bash
 python3 scripts/seed_play_store_demo_data.py > demo.sql
-adb shell am force-stop com.truckerload
+adb shell am force-stop com.truckorig
 adb push demo.sql /data/local/tmp/demo.sql
-adb shell "cat /data/local/tmp/demo.sql | run-as com.truckerload sqlite3 databases/truckerload_local_dev"
+adb shell "cat /data/local/tmp/demo.sql | run-as com.truckorig sqlite3 databases/truckerload_local_dev"
 ```
 
 Даты в генераторе привязаны к неделе съёмки (23–29 августа 2026). Если скриншоты

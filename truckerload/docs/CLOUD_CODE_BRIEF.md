@@ -24,7 +24,8 @@
 `TruckerLoadShared`. Telegram-бот — не отдельный сервис: либо foreground-сервис на
 Android, либо webhook на Ktor.
 
-Версия приложения: `1.5.6` (`versionCode` 11), package `com.truckerload`, `minSdk` 24, `compileSdk`/`targetSdk` 35.
+Версия приложения: `1.5.7` (`versionCode` 12), **applicationId** `com.truckorig`
+(Kotlin namespace `com.truckerload`), `minSdk` 24, `compileSdk`/`targetSdk` 35.
 
 ---
 
@@ -190,7 +191,7 @@ Del-address: TOL3, Perrysburg, OH
 
 ---
 
-## 7. Пакеты Android (`com.truckerload`)
+## 7. Пакеты Android (`com.truckorig` / namespace `com.truckerload`)
 
 ```
 app/src/main/java/com/truckerload/

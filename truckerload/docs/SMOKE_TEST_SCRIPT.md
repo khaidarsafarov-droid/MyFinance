@@ -131,7 +131,7 @@ Expected:
 On the **software-GPU emulator** (no KVM), the Compose Home screen’s animations keep the main thread busy and can look like freezes/ANRs. For smoke runs:
 
 1. Disable animator scales: `adb shell settings put global window_animation_scale 0`, `transition_animation_scale 0`, `animator_duration_scale 0`.
-2. After install, AOT-compile once: `adb shell cmd package compile -m speed -f com.truckerload`.
+2. After install, AOT-compile once: `adb shell cmd package compile -m speed -f com.truckorig`.
 
 Do not treat Home animation jank on the unaccelerated emulator as a product regression if the same build is smooth on a real device / KVM AVD.
 
