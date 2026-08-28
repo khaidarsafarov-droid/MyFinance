@@ -1,45 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Semi with dark underbody joining van to tires. -->
+<!-- Flat semi for the widget progress marker: rides on top of the track. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="40dp"
     android:height="22dp"
     android:viewportWidth="128"
     android:viewportHeight="64">
-    <path android:fillColor="#44000000"
-        android:pathData="M10,58 a50,4 0 1,0 100,0 a50,4 0 1,0 -100,0" />
-    <!-- Wheels under body -->
-    <path android:fillColor="#FF252347"
-        android:pathData="M22,52 m-8.5,0 a8.5,8.5 0 1,1 17,0 a8.5,8.5 0 1,1 -17,0" />
-    <path android:fillColor="#FF252347"
-        android:pathData="M38,52 m-8.5,0 a8.5,8.5 0 1,1 17,0 a8.5,8.5 0 1,1 -17,0" />
-    <path android:fillColor="#FF252347"
-        android:pathData="M104,52 m-8.5,0 a8.5,8.5 0 1,1 17,0 a8.5,8.5 0 1,1 -17,0" />
-    <path android:fillColor="#FFE8E4F8"
-        android:pathData="M22,52 m-4.5,0 a4.5,4.5 0 1,1 9,0 a4.5,4.5 0 1,1 -9,0" />
-    <path android:fillColor="#FFE8E4F8"
-        android:pathData="M38,52 m-4.5,0 a4.5,4.5 0 1,1 9,0 a4.5,4.5 0 1,1 -9,0" />
-    <path android:fillColor="#FFE8E4F8"
-        android:pathData="M104,52 m-4.5,0 a4.5,4.5 0 1,1 9,0 a4.5,4.5 0 1,1 -9,0" />
-    <!-- Dark underbody covering upper tires -->
-    <path android:fillColor="#FF252347"
-        android:pathData="M6,40 h116 a4,4 0 0 1 4,4 v12 a4,4 0 0 1 -4,4 h-116 a4,4 0 0 1 -4,-4 v-12 a4,4 0 0 1 4,-4 z" />
     <!-- Trailer -->
-    <path android:fillColor="@color/widget_accent"
-        android:pathData="M4,6 h58 a5,5 0 0 1 5,5 v29 a5,5 0 0 1 -5,5 h-58 a5,5 0 0 1 -5,-5 v-29 a5,5 0 0 1 5,-5 z" />
-    <path android:strokeWidth="1.2" android:strokeColor="#40252347"
-        android:pathData="M20,12 v24 M36,12 v24 M52,12 v24" />
-    <path android:fillColor="@color/widget_accent"
-        android:pathData="M64,36 h10 a2,2 0 0 1 2,2 v4 a2,2 0 0 1 -2,2 h-10 a2,2 0 0 1 -2,-2 v-4 a2,2 0 0 1 2,-2 z" />
-    <path android:fillColor="@color/widget_accent"
-        android:pathData="M70,44 L70,10 Q70,6 74,6 L88,6 L94,14 L106,14 L120,28 Q126,32 126,44 Z" />
-    <path android:fillColor="#E8FFFFFF"
-        android:pathData="M76,12 h12 a2,2 0 0 1 2,2 v8 a2,2 0 0 1 -2,2 h-12 a2,2 0 0 1 -2,-2 v-8 a2,2 0 0 1 2,-2 z" />
-    <path android:fillColor="#E8FFFFFF"
-        android:pathData="M96,14 L106,14 L116,28 L96,28 Z" />
-    <path android:strokeWidth="1.1" android:strokeColor="#80252347"
-        android:pathData="M110,32 h10 M110,36 h10 M110,40 h10" />
-    <path android:fillColor="#FFFFF4C2"
-        android:pathData="M122,34 a3.5,2.5 0 1,0 0.1,0 z" />
-    <path android:fillColor="#A0252347"
-        android:pathData="M124,40 h3 a1,1 0 0 1 1,1 v4 a1,1 0 0 1 -1,1 h-3 z" />
+    <path
+        android:fillColor="#FFE6E1F2"
+        android:pathData="M4,8 h60 a6,6 0 0 1 6,6 v28 h-66 a0,0 0 0 1 0,0 v-28 a6,6 0 0 1 6,-6 z" />
+    <!-- Hitch bridge -->
+    <path
+        android:fillColor="#FFE6E1F2"
+        android:pathData="M66,34 h10 v8 h-10 z" />
+    <!-- Cab + raked windshield -->
+    <path
+        android:fillColor="#FFE6E1F2"
+        android:pathData="M74,42 L74,10 Q74,6 78,6 L92,6 L102,20 L118,20 L124,34 L124,42 Z" />
+    <!-- Wheels (bottoms sit on y=56 — the progress-bar top in the marker bitmap) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M24,48 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M42,48 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M104,48 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
+    <!-- Speed lines -->
+    <path
+        android:strokeWidth="2"
+        android:strokeColor="#66E8E4FF"
+        android:pathData="M0,22 h18 M0,28 h24 M0,34 h16" />
 </vector>

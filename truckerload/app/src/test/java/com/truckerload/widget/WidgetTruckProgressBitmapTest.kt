@@ -18,32 +18,25 @@ import org.robolectric.annotation.GraphicsMode
 class WidgetTruckProgressBitmapTest {
 
     @Test
-    fun mockupStyle_usesLavenderTealGradientAndDarkPercentLabel() {
+    fun flatTruck_ridesOnBarTopWithWheelBottomsTouching() {
         val src = readSource("widget/WidgetTruckProgressBitmap.kt")
         assertTrue(src.contains("progressStart"))
         assertTrue(src.contains("progressEnd"))
         assertTrue(src.contains("progressLabel"))
-        assertTrue(src.contains("truckHeight * 1.72f"))
-        assertTrue(src.contains("trackHeight * 0.42f"))
+        assertTrue(src.contains("truckHeight * 1.58f"))
+        assertTrue(src.contains("h * 0.155f"))
         assertTrue(src.contains("h - wheelRadius"))
-        assertTrue(src.contains("barTop + trackHeight * 0.18f"))
-        assertTrue(src.contains("drawChassis"))
-        assertTrue(src.contains("drawFenderSkirts"))
-        assertTrue(src.contains("TruckGeom"))
-        assertTrue(src.contains("skirtBottom"))
-        assertTrue(src.contains("drawTruckWheelBottoms"))
+        assertTrue(src.contains("barTop - truckHeight"))
+        assertTrue(src.contains("drawFlatTruck"))
         assertTrue(src.contains("drawSpeedLines"))
-        assertTrue(src.contains("drawMockupTruck"))
         assertTrue(src.contains("drawTruckWheels"))
         assertTrue(src.contains("buildTrailerPath"))
-        assertTrue(src.contains("buildTractorPath"))
-        assertTrue(src.contains("drawHeadlight"))
+        assertTrue(src.contains("buildCabPath"))
+        assertTrue(src.contains("buildHitchPath"))
+        assertTrue(src.contains("TruckGeom"))
         assertTrue(src.contains("Style.FILL"))
-        assertTrue(src.contains("hitch"))
-        assertTrue(src.contains("drawTrailerRibs"))
-        assertTrue(src.contains("drawCabWindow"))
-        assertTrue(src.contains("drawGrilleAndBumper"))
         assertTrue(!src.contains("buildTruckBodyPath"))
+        assertTrue(!src.contains("drawMockupTruck"))
     }
 
     @Test
@@ -53,14 +46,14 @@ class WidgetTruckProgressBitmapTest {
     }
 
     @Test
-    fun create_rendersSemiOnTheProgressTrack() {
+    fun create_rendersSemiRidingOnProgressTrack() {
         val bmp = WidgetTruckProgressBitmap.create(
             context = RuntimeEnvironment.getApplication(),
             progressPercent = 38f,
             goalSet = true,
             widthPx = 900,
             barHeightPx = 28,
-            colors = WidgetCabinColors.ForestLight,
+            colors = WidgetCabinColors.ForestDark,
         )
         assertTrue(bmp.width >= 900)
         assertTrue(bmp.height > 28)
@@ -78,7 +71,7 @@ class WidgetTruckProgressBitmapTest {
         val out = File("/tmp/truckorig_progress_truck.png")
         val plate = Bitmap.createBitmap(bmp.width, bmp.height, Bitmap.Config.ARGB_8888)
         android.graphics.Canvas(plate).apply {
-            drawColor(0xFF1E2238.toInt())
+            drawColor(0xFF1A1530.toInt())
             drawBitmap(bmp, 0f, 0f, null)
         }
         FileOutputStream(out).use { stream ->
