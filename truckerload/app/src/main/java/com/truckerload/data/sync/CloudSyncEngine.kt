@@ -102,15 +102,40 @@ object CloudSyncEngine {
             )
         }
 
+        val lastSyncedAt = cursor.lastSyncedAt(userId)
         var loadsApplied = 0
         var pulled = false
-        if (remoteSnapshot != null &&
-            CloudSyncPolicy.shouldPullIncremental(cursor.lastSyncedAt(userId), remoteSnapshot.updatedAt)
-        ) {
-            loadsApplied = mergeSnapshotIntoRoom(db, remoteSnapshot)
-            pulled = true
-            applyDriverProfileIfPresent(db, remoteSnapshot)
-            BackupPrefsApplier.apply(app, remoteSnapshot.backup.appSettings)
+        when {
+            remoteSnapshot != null &&
+                CloudSyncPolicy.needsInitialMerge(
+                    lastSyncedAt = lastSyncedAt,
+                    localEntityCount = localLoads.size,
+                    remoteEntityCount = remoteSnapshot.entityCount,
+                ) -> {
+                // FIX: non-empty local + cloud data on first sync — LWW merge, keep unpushed locals
+                loadsApplied = mergeSnapshotIntoRoom(
+                    db = db,
+                    snapshot = remoteSnapshot,
+                    lastSyncedAt = lastSyncedAt,
+                    deleteOrphans = false,
+                )
+                pulled = true
+                applyDriverProfileIfPresent(db, remoteSnapshot)
+                BackupPrefsApplier.apply(app, remoteSnapshot.backup.appSettings)
+                Log.i(TAG, "Initial merge for $userId: $loadsApplied rows touched")
+            }
+            remoteSnapshot != null &&
+                CloudSyncPolicy.shouldPullIncremental(lastSyncedAt, remoteSnapshot.updatedAt) -> {
+                loadsApplied = mergeSnapshotIntoRoom(
+                    db = db,
+                    snapshot = remoteSnapshot,
+                    lastSyncedAt = lastSyncedAt,
+                    deleteOrphans = true,
+                )
+                pulled = true
+                applyDriverProfileIfPresent(db, remoteSnapshot)
+                BackupPrefsApplier.apply(app, remoteSnapshot.backup.appSettings)
+            }
         }
 
         val pushed = pushLocalSnapshot(userId, db, backend)
@@ -199,11 +224,26 @@ object CloudSyncEngine {
         return backup.loads.size
     }
 
-    private suspend fun mergeSnapshotIntoRoom(db: AppDatabase, snapshot: AccountCloudSnapshot): Int {
+    private suspend fun mergeSnapshotIntoRoom(
+        db: AppDatabase,
+        snapshot: AccountCloudSnapshot,
+        lastSyncedAt: Long = 0L,
+        deleteOrphans: Boolean = true,
+    ): Int {
         val backup = snapshot.backup
         val existing = db.loadDao().getAllLoadsOnce().associateBy { it.id }
         val remoteLoadIds = backup.loads.map { it.id }.toSet()
-        val orphanLoadIds = CloudSyncPolicy.orphanLocalIds(existing.keys, remoteLoadIds)
+        // FIX: only propagate cross-device deletions for rows last acked at sync time
+        val orphanLoadIds = if (deleteOrphans) {
+            CloudSyncPolicy.orphanLocalIdsForPull(
+                localIds = existing.keys,
+                remoteIds = remoteLoadIds,
+                localUpdatedAt = { id -> existing[id]?.updatedAt ?: 0L },
+                lastSyncedAt = lastSyncedAt,
+            )
+        } else {
+            emptySet()
+        }
         var applied = 0
         db.withTransaction {
             for (orphanId in orphanLoadIds) {
@@ -232,7 +272,17 @@ object CloudSyncEngine {
             val localDiesel = DieselRepository(db).getAllDieselOnce()
             val localDieselById = localDiesel.associateBy { it.id }
             val remoteDieselIds = backup.diesel.map { it.id }.toSet()
-            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localDieselById.keys, remoteDieselIds)) {
+            val dieselOrphans = if (deleteOrphans) {
+                CloudSyncPolicy.orphanLocalIntIdsForPull(
+                    localIds = localDieselById.keys,
+                    remoteIds = remoteDieselIds,
+                    localAddedAt = { id -> localDieselById[id]?.addedAt ?: 0L },
+                    lastSyncedAt = lastSyncedAt,
+                )
+            } else {
+                emptySet()
+            }
+            for (orphanId in dieselOrphans) {
                 db.dieselDao().deleteById(orphanId)
                 applied++
             }
@@ -249,7 +299,17 @@ object CloudSyncEngine {
             val localPay = PaycheckRepository(db).getAllPaychecksOnce()
             val localPayById = localPay.associateBy { it.id }
             val remotePayIds = backup.paychecks.map { it.id }.toSet()
-            for (orphanId in CloudSyncPolicy.orphanLocalIntIds(localPayById.keys, remotePayIds)) {
+            val payOrphans = if (deleteOrphans) {
+                CloudSyncPolicy.orphanLocalIntIdsForPull(
+                    localIds = localPayById.keys,
+                    remoteIds = remotePayIds,
+                    localAddedAt = { id -> localPayById[id]?.addedAt ?: 0L },
+                    lastSyncedAt = lastSyncedAt,
+                )
+            } else {
+                emptySet()
+            }
+            for (orphanId in payOrphans) {
                 db.paycheckDao().deleteById(orphanId)
                 applied++
             }

@@ -74,17 +74,43 @@ class LoadUpdater(
             )
         }
         changes.filter { it.startsWith("stop") }.forEach { change ->
+            val field = change.substringBefore(":")
+            val (oldValue, newValue) = when {
+                "→" in change -> {
+                    val detail = change.substringAfter(":", missingDelimiterValue = change)
+                    detail.substringBefore("→").trim() to
+                        detail.substringAfter("→", missingDelimiterValue = detail).trim()
+                }
+                field == "stopCount" ->
+                    oldLoad.stopCount.toString() to newData.stopCount.toString()
+                field == "stopAddress" ->
+                    summarizeStops(oldLoad) to summarizeStops(newData)
+                field == "stopStatus" ->
+                    summarizeStopStatus(oldLoad) to summarizeStopStatus(newData)
+                else -> change to change
+            }
             loadRepository.addChangeHistory(
                 LoadHistory(
                     loadId = oldLoad.id,
-                    field = change.substringBefore(":"),
-                    oldValue = oldLoad.stopCount.toString(),
-                    newValue = newData.stopCount.toString(),
+                    field = field,
+                    oldValue = oldValue,
+                    newValue = newValue,
                     timestamp = timestamp,
-                )
+                ),
             )
         }
     }
+
+    private fun summarizeStops(load: Load): String =
+        load.stops.joinToString(" | ") { stop ->
+            stop.fullAddress.ifBlank { "${stop.city}, ${stop.state}".trim(',', ' ') }
+        }
+
+    private fun summarizeStopStatus(load: Load): String =
+        load.stops.joinToString(" | ") { stop ->
+            val note = stop.note.orEmpty()
+            if (note.contains("CANCEL", ignoreCase = true)) "CANCELLED" else "ACTIVE"
+        }
 
     companion object {
         private const val TAG = "LoadUpdater"

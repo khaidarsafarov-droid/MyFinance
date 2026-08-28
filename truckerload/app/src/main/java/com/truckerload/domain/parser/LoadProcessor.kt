@@ -37,11 +37,8 @@ class LoadProcessor(
         val existingLoad = loadRepository.getByTripId(incoming.tripId)
             ?: when (val duplicate = duplicateChecker.checkDuplicate(incoming)) {
                 is DuplicateResult.Found -> duplicate.load
-                is DuplicateResult.Suspicious -> {
-                    return ProcessingResult.Skipped(
-                        "Duplicate (${duplicate.reason}): ${duplicate.load.tripId}",
-                    )
-                }
+                // FIX: route/stops match with same rate — update existing row, not silent skip
+                is DuplicateResult.Suspicious -> duplicate.load
                 DuplicateResult.NotFound -> null
             }
 
