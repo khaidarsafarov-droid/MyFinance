@@ -146,14 +146,14 @@
             android:name=".sync.TelegramServiceRestartReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.truckerload.action.RESTART_TELEGRAM_BOT" />
+                <action android:name="com.truckorig.action.RESTART_TELEGRAM_BOT" />
             </intent-filter>
         </receiver>
         <receiver
             android:name=".sync.LoadAlarmReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.truckerload.action.LOAD_PICKUP_ALARM" />
+                <action android:name="com.truckorig.action.LOAD_PICKUP_ALARM" />
             </intent-filter>
         </receiver>
         <receiver

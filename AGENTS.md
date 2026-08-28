@@ -42,7 +42,7 @@ the "Telegram bot" runs inside the app as a foreground service. General project 
   Boot to `sys.boot_completed=1` takes several minutes; poll it.
 - The app's animation-heavy Compose home screen keeps the main thread busy (~66% CPU idle) on the
   software GPU, which starves input and can trigger ANRs. To make it usable:
-  - **AOT-compile the app once** after install: `adb shell cmd package compile -m speed -f com.truckerload`
+  - **AOT-compile the app once** after install: `adb shell cmd package compile -m speed -f com.truckorig`
     — this removes the startup class-verification CPU spike and keeps the process alive/responsive.
   - Disable animations: `adb shell settings put global {window,transition}_animation_scale 0` and
     `animator_duration_scale 0`.

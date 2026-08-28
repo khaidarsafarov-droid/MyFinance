@@ -11,8 +11,8 @@ class StoreListingsTest {
     @Test
     fun playStoreHttpsUrl_usesPackageName() {
         assertEquals(
-            "https://play.google.com/store/apps/details?id=com.truckerload",
-            StoreListings.playStoreHttpsUrl("com.truckerload"),
+            "https://play.google.com/store/apps/details?id=com.truckorig",
+            StoreListings.playStoreHttpsUrl("com.truckorig"),
         )
     }
 
@@ -37,17 +37,17 @@ class StoreListingsTest {
             intro = "TruckoRig",
             androidLabel = "Android:",
             iosLabel = "iPhone:",
-            playUrl = "https://play.google.com/store/apps/details?id=com.truckerload",
+            playUrl = "https://play.google.com/store/apps/details?id=com.truckorig",
             appStoreUrl = null,
         )
-        assertTrue(playOnly.contains("https://play.google.com/store/apps/details?id=com.truckerload"))
+        assertTrue(playOnly.contains("https://play.google.com/store/apps/details?id=com.truckorig"))
         assertFalse(playOnly.contains("iPhone:"))
 
         val both = StoreListings.shareText(
             intro = "TruckoRig",
             androidLabel = "Android:",
             iosLabel = "iPhone:",
-            playUrl = "https://play.google.com/store/apps/details?id=com.truckerload",
+            playUrl = "https://play.google.com/store/apps/details?id=com.truckorig",
             appStoreUrl = "https://apps.apple.com/app/id1234567890",
         )
         assertTrue(both.contains("iPhone:"))

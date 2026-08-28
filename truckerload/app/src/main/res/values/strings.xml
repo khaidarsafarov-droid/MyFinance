@@ -122,8 +122,8 @@
     <string name="analytics_share_name_hint">Имя и фамилия из профиля попадут в файл. Можно поправить перед отправкой.</string>
     <string name="social_chat_name_hint">Название чата</string>
     <string name="social_chat_create_error">Не удалось создать чат: %1$s</string>
-    <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckerload, SHA-1).</string>
-    <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте этот SHA-1 в Google Cloud Console для com.truckerload: %1$s</string>
+    <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckorig, SHA-1).</string>
+    <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте этот SHA-1 в Google Cloud Console для com.truckorig: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
     <string name="login_google_fallback">Supabase временно недоступен (%1$s). Вход выполнен локально.</string>
     <string name="login_google_cancelled">Вход отменён</string>
