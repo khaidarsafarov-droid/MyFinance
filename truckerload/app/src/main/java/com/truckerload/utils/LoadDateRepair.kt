@@ -14,7 +14,7 @@ import kotlin.math.abs
 object LoadDateRepair {
 
     /** Epoch before this is treated as unset/sentinel (tests often use `1L`). */
-    private const val MIN_SANE_REFERENCE_MS = 946_684_800_000L // 2000-01-01 UTC
+    const val MIN_SANE_REFERENCE_MS = 946_684_800_000L // 2000-01-01 UTC
 
     /**
      * Prefer [anchorYearHint] / sane [Load.parsedAt] (Telegram message time) over a stored

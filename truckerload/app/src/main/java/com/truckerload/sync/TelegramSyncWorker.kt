@@ -76,7 +76,11 @@ class TelegramSyncWorker @AssistedInject constructor(
         }
         try {
             val engine = TelegramBotSyncEngine(applicationContext)
-            engine.runOnce(token, expectedUserId = userId)
+            val result = engine.runOnce(token, expectedUserId = userId)
+            if (result.pollLockContention) {
+                Log.d("TelegramSync", "Poll lock contention — retry background poll")
+                return Result.retry()
+            }
             Log.d("TelegramSync", "Background poll completed")
         } catch (e: Exception) {
             Log.w("TelegramSync", "Background poll failed", e)

@@ -12,9 +12,20 @@ class CloudSyncPolicyTest {
     @Test
     fun remoteWins_whenNewer() {
         assertTrue(CloudSyncPolicy.remoteWins(localUpdatedAt = 100L, remoteUpdatedAt = 200L))
-        assertFalse(CloudSyncPolicy.remoteWins(localUpdatedAt = 200L, remoteUpdatedAt = 200L))
+        assertTrue(CloudSyncPolicy.remoteWins(localUpdatedAt = 200L, remoteUpdatedAt = 200L))
         assertFalse(CloudSyncPolicy.remoteWins(localUpdatedAt = 300L, remoteUpdatedAt = 200L))
         assertTrue(CloudSyncPolicy.remoteWins(localUpdatedAt = null, remoteUpdatedAt = 1L))
+    }
+
+    @Test
+    fun remoteWins_tieCanKeepLocalWhenConfigured() {
+        assertFalse(
+            CloudSyncPolicy.remoteWins(
+                localUpdatedAt = 200L,
+                remoteUpdatedAt = 200L,
+                preferRemoteOnTie = false,
+            ),
+        )
     }
 
     @Test

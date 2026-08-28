@@ -15,9 +15,10 @@ class TelegramSyncModeTest {
     }
 
     @Test
-    fun `server inbox deterministically ignores commands but processes ordinary text`() {
-        assertTrue(ServerTelegramMessageProcessor.shouldIgnore("/status"))
-        assertTrue(ServerTelegramMessageProcessor.shouldIgnore("  /start token"))
+    fun `server inbox shouldIgnore only blank text`() {
+        assertFalse(ServerTelegramMessageProcessor.shouldIgnore("/status"))
+        assertFalse(ServerTelegramMessageProcessor.shouldIgnore("  /start token"))
+        assertTrue(ServerTelegramMessageProcessor.shouldIgnore("   "))
         assertFalse(ServerTelegramMessageProcessor.shouldIgnore("Trip ID: T-123"))
     }
 }

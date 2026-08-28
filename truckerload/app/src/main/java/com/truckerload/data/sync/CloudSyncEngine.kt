@@ -138,7 +138,13 @@ object CloudSyncEngine {
             }
         }
 
-        val pushed = pushLocalSnapshot(userId, db, backend)
+        // FIX: stale remote read — skip push so local cannot overwrite newer cloud snapshot
+        val pushed = if (staleMirror && backend.remoteConfigured) {
+            Log.w(TAG, "Skipping push — remote read failed (stale mirror)")
+            false
+        } else {
+            pushLocalSnapshot(userId, db, backend)
+        }
         if (pulled || pushed) {
             cursor.markSynced(userId)
         }

@@ -8,16 +8,24 @@ object CloudSyncPolicy {
     const val DEFAULT_SKEW_MS = 0L
 
     /**
-     * Returns true when [remoteUpdatedAt] should replace the local record.
-     * Equal timestamps keep local (stable; avoids thrashing).
+     * Returns true when [remoteUpdatedAt] should replace the local record on pull.
+     * When timestamps tie, [preferRemoteOnTie] picks cloud (default) so devices converge.
      */
     fun remoteWins(
         localUpdatedAt: Long?,
         remoteUpdatedAt: Long,
         skewMs: Long = DEFAULT_SKEW_MS,
+        preferRemoteOnTie: Boolean = true,
     ): Boolean {
         if (localUpdatedAt == null || localUpdatedAt <= 0L) return true
-        return remoteUpdatedAt > localUpdatedAt + skewMs
+        val remoteAhead = remoteUpdatedAt > localUpdatedAt + skewMs
+        val localAhead = localUpdatedAt > remoteUpdatedAt + skewMs
+        return when {
+            remoteAhead -> true
+            localAhead -> false
+            preferRemoteOnTie -> true
+            else -> false
+        }
     }
 
     /**

@@ -2,12 +2,11 @@ package com.truckerload.data.repository
 
 import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.local.toEntity
-import com.truckerload.data.local.entities.LoadEntity
-import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.domain.parser.LoadProcessor
+import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.LoadDateRepair
 import com.truckerload.utils.formatDateFromUnixSeconds
@@ -19,7 +18,7 @@ data class SyncLoadsResult(
     val status: SyncStatus,
 )
 
-enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY }
+enum class SyncStatus { SUCCESS, DUPLICATE, EMPTY, UPDATED }
 
 internal suspend fun importLoadsIfNotDuplicateImpl(
     loadDao: com.truckerload.data.local.dao.LoadDao,
@@ -73,51 +72,69 @@ internal suspend fun syncLoadsCdcImpl(
         return SyncLoadsResult(0, "", SyncStatus.EMPTY)
     }
 
-    val tripIds = validLoads.map { normalizeTripId(it.tripId) }
-    var result = SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
+    val loadRepository = LoadRepository(db)
+    val processor = LoadProcessor(loadRepository)
+    var addedCount = 0
+    var updatedCount = 0
+    var lastText = ""
 
     db.withTransaction {
-        val existingIds = loadDao.getExistingTripIds(tripIds).map { normalizeTripId(it) }.toSet()
-        val toInsert = validLoads.filter { normalizeTripId(it.tripId) !in existingIds }
-        if (toInsert.isEmpty()) return@withTransaction
-
-        val now = System.currentTimeMillis()
-        val parsedAt = messageDateSeconds?.times(1000) ?: now
-        val messageYear = messageDateSeconds
-            ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
-        val loadEntities = mutableListOf<LoadEntity>()
-        val stopEntities = mutableListOf<StopEntity>()
-
-        for (load in toInsert) {
-            val normalized = load.copy(tripId = normalizeTripId(load.tripId), parsedAt = parsedAt)
-            val repaired = LoadDateRepair.repair(normalized, messageYear, parsedAt)
+        for (load in validLoads) {
+            val normalizedTripId = normalizeTripId(load.tripId)
+            val now = System.currentTimeMillis()
+            val parsedAt = messageDateSeconds?.times(1000) ?: load.parsedAt.takeIf { it > 0L } ?: now
+            val messageYear = messageDateSeconds
+                ?.let { formatDateFromUnixSeconds(it).take(4).toIntOrNull() }
+            val prepared = load.copy(tripId = normalizedTripId, parsedAt = parsedAt)
+            val repaired = LoadDateRepair.repair(prepared, messageYear, parsedAt)
             val dated = when {
                 repaired.date.isBlank() && messageDateSeconds != null ->
                     repaired.copy(date = formatDateFromUnixSeconds(messageDateSeconds))
                 else -> repaired
             }
-            val loadWithWeek = dated.withReportingWeek().withRouteMetrics().copy(
+            val normalized = dated.withReportingWeek().withRouteMetrics().copy(
                 parsedAt = parsedAt,
                 updatedAt = now,
             )
-            loadEntities.add(loadWithWeek.toEntity())
-            stopEntities.addAll(loadWithWeek.stops.map { it.toEntity(loadWithWeek.id) })
+
+            when (
+                val outcome = processor.processLoad(
+                    parsedLoad = normalized,
+                    messageDateSeconds = messageDateSeconds,
+                    playFeedback = false,
+                )
+            ) {
+                ProcessingResult.Added -> {
+                    addedCount++
+                    lastText = formatLoadSummary(normalized)
+                }
+                is ProcessingResult.Updated -> {
+                    updatedCount++
+                    lastText = formatLoadSummary(normalized)
+                }
+                is ProcessingResult.Replaced -> {
+                    updatedCount++
+                    lastText = formatLoadSummary(normalized)
+                }
+                is ProcessingResult.Skipped -> Unit
+            }
         }
-
-        loadDao.insertAll(loadEntities)
-        if (stopEntities.isNotEmpty()) stopDao.insertAll(stopEntities)
-
-        val lastAdded = toInsert.last()
-        val lastAddedText =
-            "${lastAdded.tripId} — ${lastAdded.pointA} → ${lastAdded.pointB}, $${String.format("%,.2f", lastAdded.totalRate)}"
-        result = SyncLoadsResult(toInsert.size, lastAddedText, SyncStatus.SUCCESS)
     }
 
-    if (result.status == SyncStatus.SUCCESS) {
-        onPersisted()
-        if (playFeedback) {
-            FeedbackManager.onLoadAdded()
-        }
+    val total = addedCount + updatedCount
+    if (total == 0) {
+        return SyncLoadsResult(0, "", SyncStatus.DUPLICATE)
     }
-    return result
+    if (playFeedback && addedCount > 0) {
+        FeedbackManager.onLoadAdded()
+    }
+    onPersisted()
+    return SyncLoadsResult(
+        addedCount = total,
+        lastAddedText = lastText,
+        status = if (updatedCount > 0 && addedCount == 0) SyncStatus.UPDATED else SyncStatus.SUCCESS,
+    )
 }
+
+private fun formatLoadSummary(load: Load): String =
+    "${load.tripId} — ${load.pointA} → ${load.pointB}, $${String.format("%,.2f", load.totalRate)}"
