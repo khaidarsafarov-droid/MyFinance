@@ -106,6 +106,7 @@ private fun TruckProgressBar(
     val density = context.resources.displayMetrics.density
     val widthPx = (LocalSize.current.width.value * density).toInt().coerceAtLeast(120)
     val barHeightPx = (barDp.value * density).toInt().coerceAtLeast(8)
+    val headroomPx = (headroomDp.value * density).toInt().coerceAtLeast(barHeightPx)
     val bitmap = runCatching {
         WidgetTruckProgressBitmap.create(
             context = context,
@@ -113,6 +114,7 @@ private fun TruckProgressBar(
             goalSet = goalSet,
             widthPx = widthPx,
             barHeightPx = barHeightPx,
+            headroomPx = headroomPx,
             colors = colors,
         )
     }.getOrNull()
@@ -121,7 +123,7 @@ private fun TruckProgressBar(
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = context.getString(R.string.widget_weekly_summary),
-            modifier = modifier.height(totalHeight),
+            modifier = modifier.fillMaxWidth().height(totalHeight),
         )
     } else {
         Spacer(modifier = modifier.height(totalHeight))
