@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>02 Paste parse</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shot">
+    <div class="overlay">
+      <h1>A load from a message in seconds</h1>
+      <p>Paste Relay or Telegram text — rate, miles, and address fill in</p>
+    </div>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">Add load</div>
+        <div class="icon-btn">✕</div>
+      </div>
+      <div class="content">
+        <div class="section-title" style="font-size:22px;color:var(--muted);font-weight:600;">How to add a load</div>
+        <div class="subtitle">Pick the option that fits — bot, paste, form, or a photo.</div>
+        <div class="modes">
+          <div class="mode on">Paste</div>
+          <div class="mode">Manual</div>
+          <div class="mode">Photo / PDF</div>
+        </div>
+        <div class="card" style="padding:16px;">
+          <div style="color:var(--muted);font-size:15px;margin-bottom:8px;">Paste a Telegram message or enter load details…</div>
+          <div class="paste-box">Trip ID: T-116KYL6KW
+Total Rate: 2500.00
+Total Loaded Miles: 850 mi
+Pu-address: SWF2, Garner, NC
+Del-address: DFW7, Dallas, TX</div>
+        </div>
+        <div class="preview" style="position:relative;">
+          <div class="callout" style="top:-18px;right:8px;">Auto-parsed ✓
+            <span style="position:absolute;display:none;"></span>
+          </div>
+          <h3>Load preview</h3>
+          <div class="line"><strong>Trip:</strong> T-116KYL6KW</div>
+          <div class="line"><strong>Route:</strong> Garner, NC → Dallas, TX</div>
+          <div class="line"><strong>Rate:</strong> $2,500.00 · <strong>Miles:</strong> 850</div>
+          <div class="line"><strong>RPM:</strong> $2.94 / mi</div>
+          <div style="margin-top:8px;color:var(--green);font-weight:700;font-size:16px;">All fields recognized — ready to save.</div>
+        </div>
+        <div class="btn-primary">Save $2,500 · 850 mi</div>
+        <div style="margin-top:12px;text-align:center;color:var(--muted);font-size:16px;">Save in app (offline)</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

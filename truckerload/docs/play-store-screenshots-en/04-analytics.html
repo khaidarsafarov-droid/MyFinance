@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>04 Analytics</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shot">
+    <div class="overlay">
+      <h1>RPM and earnings without a calculator</h1>
+      <p>Weekly charts, average RPM, and routes at a glance</p>
+    </div>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">My numbers</div>
+        <div class="icon-btn">⇪</div>
+      </div>
+      <div class="content">
+        <div class="subtitle">Paycheck, diesel, and routes — side by side, no subtraction</div>
+        <div class="filter">Period · <strong>Last 12 weeks</strong> ▾</div>
+        <div class="metric-grid">
+          <div class="metric"><div class="label">Loads</div><div class="value">48</div></div>
+          <div class="metric"><div class="label">Earned from loads</div><div class="value">$72.4k</div></div>
+          <div class="metric"><div class="label">Miles driven</div><div class="value">24.1k</div></div>
+          <div class="metric" style="position:relative;border-color:var(--purple);box-shadow:0 0 0 2px rgba(91,84,230,0.2);">
+            <div class="callout" style="top:-42px;left:8px;font-size:15px;">Avg RPM</div>
+            <div class="label">Average per mile</div>
+            <div class="value">$2.96</div>
+          </div>
+        </div>
+        <div style="font-weight:700;font-size:20px;margin-top:8px;">Money by week</div>
+        <div class="chart">
+          <svg viewBox="0 0 400 180" preserveAspectRatio="none">
+            <polyline fill="rgba(91,84,230,0.2)" stroke="#5B54E6" stroke-width="4"
+              points="20,140 70,110 120,125 170,90 220,100 270,70 320,85 370,55 370,180 20,180" />
+            <circle cx="370" cy="55" r="7" fill="#5B54E6" />
+          </svg>
+        </div>
+        <div class="card">
+          <div style="font-weight:700;">Best-paying routes</div>
+          <div class="meta" style="margin-top:10px;">Garner NC → Dallas TX · $2.94/mi</div>
+          <div class="meta">Memphis TN → Chicago IL · $2.69/mi</div>
+          <div class="meta">Charlotte NC → Atlanta GA · $2.81/mi</div>
+        </div>
+        <div style="color:var(--muted);font-size:15px;margin-top:8px;">Load color = how much you get paid per mile.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
