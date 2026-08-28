@@ -1705,8 +1705,6 @@
     <string name="settings_backup_working">Creating backup…</string>
     <string name="settings_backup_restoring">Restoring data…</string>
     <string name="settings_share_app_title">Share the app</string>
-    <string name="settings_share_app_body">Send a friend a link: Google Play for Android, or the App Store for iPhone.</string>
-    <string name="settings_share_app_body_play_only">Send a friend a link so they can get the app on Google Play.</string>
     <string name="settings_share_app_button">Share link</string>
     <string name="settings_share_app_unavailable">Could not open the share menu</string>
     <string name="settings_share_app_chooser">Share TruckoRig</string>

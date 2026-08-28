@@ -1707,8 +1707,6 @@
     <string name="settings_backup_working">Создаём резервную копию…</string>
     <string name="settings_backup_restoring">Восстанавливаем данные…</string>
     <string name="settings_share_app_title">Поделиться приложением</string>
-    <string name="settings_share_app_body">Отправьте другу ссылку: Google Play для Android или App Store для iPhone.</string>
-    <string name="settings_share_app_body_play_only">Отправьте другу ссылку — он скачает приложение из Google Play.</string>
     <string name="settings_share_app_button">Поделиться ссылкой</string>
     <string name="settings_share_app_unavailable">Не удалось открыть меню «Поделиться»</string>
     <string name="settings_share_app_chooser">Поделиться TruckoRig</string>

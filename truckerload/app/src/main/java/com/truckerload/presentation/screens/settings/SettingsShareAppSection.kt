@@ -13,21 +13,13 @@ import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.utils.AppStoreLinkShare
-import com.truckerload.utils.StoreListings
 
 @Composable
 internal fun SettingsShareAppSection() {
     val context = LocalContext.current
-    val hasIosListing = StoreListings.appStoreHttpsUrl() != null
-    val bodyRes = if (hasIosListing) {
-        R.string.settings_share_app_body
-    } else {
-        R.string.settings_share_app_body_play_only
-    }
 
     BentoGlassSection(
         title = stringResource(R.string.settings_share_app_title),
-        subtitle = stringResource(bodyRes),
     ) {
         OutlinedButton(
             onClick = {
