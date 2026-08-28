@@ -1,6 +1,16 @@
 # TruckerLoad Release Packet Index
 
-Single entry point for release readiness artifacts related to the Premium UI & Date Engine update.
+Single entry point for release readiness artifacts.
+
+## Google Play (production)
+
+- [Play Console release runbook](../store/google-play/PLAY_CONSOLE_RELEASE.md) — AAB, listing, Data safety
+- [Store listing copy EN/RU](../store/google-play/listing/)
+- [Privacy policy draft](../store/google-play/PRIVACY_POLICY.md)
+- [Data safety draft](../store/google-play/DATA_SAFETY.md)
+- [Release notes 1.5.7](../store/google-play/RELEASE_NOTES_1.5.7.md)
+- [Listing images README](../store/google-play/README.md)
+- [Google Sign-In / upload SHA-1](./GOOGLE_SIGNIN_SETUP.md)
 
 ## Core Documents
 
@@ -19,7 +29,7 @@ Single entry point for release readiness artifacts related to the Premium UI & D
 
 ## Suggested Execution Order
 
-1. Read release scope and impact in `RELEASE_NOTES_PREMIUM_UI_2026.md`.
+1. Follow `store/google-play/PLAY_CONSOLE_RELEASE.md` for AAB + Console forms.
 2. Run quick regression with `SMOKE_TEST_SCRIPT.md`.
 3. Execute full validation using `RELEASE_CHECKLIST.md`.
 4. Complete sign-off and decision in `UAT_SIGNOFF_TEMPLATE.md`.
@@ -32,8 +42,7 @@ Single entry point for release readiness artifacts related to the Premium UI & D
 
 ## Release Decision Snapshot
 
-- Build/version:
+- Build/version: **1.5.7 (12)**
 - Candidate date:
 - Decision: [ ] GO   [ ] NO-GO
 - Final approver:
-
