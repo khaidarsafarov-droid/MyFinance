@@ -15,12 +15,18 @@ class AuthRepositoryArchitectureTest {
     }
 
     @Test
-    fun loginScreen_delegatesToAuthViewModel() {
-        val source = readMainSource("com/truckerload/presentation/screens/login/LoginScreen.kt")
-        assertTrue(source.contains("AuthViewModel"))
+    fun firstRunScreen_delegatesToFirstRunViewModel() {
+        val source = readMainSource("com/truckerload/presentation/screens/auth/FirstRunNameScreen.kt")
+        assertTrue(source.contains("FirstRunViewModel"))
         assertTrue(source.contains("hiltViewModel"))
         assertTrue(!source.contains("SupabaseAuthService"))
-        assertTrue(!source.contains("saveProfileAndLogin"))
+        assertTrue(!source.contains("GoogleSignInButton"))
+        assertTrue(source.contains("first_run_title"))
+        assertTrue(source.contains("common_save"))
+        val host = readMainSource("com/truckerload/presentation/navigation/AuthNavHost.kt")
+        assertTrue(host.contains("FirstRunNameScreen"))
+        assertTrue(!host.contains("LoginScreen"))
+        assertTrue(!host.contains("SignUpScreen"))
     }
 
     @Test

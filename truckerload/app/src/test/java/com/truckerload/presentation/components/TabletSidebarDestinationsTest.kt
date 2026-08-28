@@ -17,10 +17,10 @@ class TabletSidebarDestinationsTest {
     }
 
     @Test
-    fun railIncludesEveryDrawerDestinationAndLogout() {
+    fun railIncludesEveryDrawerDestination() {
         val inRail = tabletRailToolItems.mapNotNull { it.drawer }.toSet()
         assertEquals(DrawerDestination.entries.toSet(), inRail)
-        assertTrue(tabletRailToolItems.any { it.isLogout })
+        assertFalse(tabletRailToolItems.any { it.isLogout })
         assertEquals(
             listOf(Routes.HOME, Routes.STATS, Routes.PROFILE),
             tabletRailPrimaryItems.map { it.route },
@@ -63,8 +63,8 @@ class TabletSidebarDestinationsTest {
         assertTrue(isDrawerDestinationSelected(Routes.PRIVACY_SETTINGS, DrawerDestination.SETTINGS))
         assertTrue(isDrawerDestinationSelected("camera_load/1/t/2026-01-01", DrawerDestination.CAMERA))
         assertTrue(isRailDestinationSelected(Routes.ADD_LOAD, Routes.HOME))
-        val logout = tabletRailToolItems.first { it.isLogout }
-        assertFalse(isTabletRailItemSelected(Routes.HOME, logout))
+        val settings = tabletRailToolItems.first { it.drawer == DrawerDestination.SETTINGS }
+        assertFalse(isTabletRailItemSelected(Routes.HOME, settings))
     }
 
     @Test
@@ -81,7 +81,7 @@ class TabletSidebarDestinationsTest {
         val src = readSource("presentation/components/TruckLogNavigationRail.kt")
         assertTrue(src.contains("tabletRailPrimaryItems"))
         assertTrue(src.contains("tabletRailToolItems"))
-        assertTrue(src.contains("LogoutConfirmDialog"))
+        assertFalse(src.contains("LogoutConfirmDialog"))
         DrawerDestination.entries.forEach { dest ->
             assertTrue(
                 "rail icon mapping missing $dest",

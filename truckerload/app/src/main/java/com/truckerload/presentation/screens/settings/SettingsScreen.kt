@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.settings
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,14 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import com.truckerload.presentation.components.TlButton as Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.AlertDialog
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,16 +21,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.screens.settings.ThemeSettingsSection
 import com.truckerload.presentation.screens.settings.LanguageSettingsSection
@@ -50,8 +41,6 @@ import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
-import com.truckerload.di.userComponentManager
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,16 +67,13 @@ fun SettingsScreen(
         initialValue = com.truckerload.domain.week.WeekStartDay.DEFAULT,
     )
     val tc = LocalTruckColors.current
-    val authStore = LocalAuthStore.current
     val store = LocalRpmThresholdsStore.current
     val context = LocalContext.current
     val settingsViewModel: SettingsViewModel = hiltViewModel()
-    val scope = rememberCoroutineScope()
     val thresholds by store.thresholds.collectAsStateWithLifecycle()
     var minInput by remember(thresholds) { mutableStateOf(thresholds.minProfit.toString()) }
     var targetInput by remember(thresholds) { mutableStateOf(thresholds.targetProfit.toString()) }
     var error by remember { mutableStateOf<String?>(null) }
-    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     val tabletChrome = useNavigationRail()
     SoftAppPageScaffold(
@@ -198,20 +184,6 @@ fun SettingsScreen(
 
             DeleteAccountSection()
 
-            BentoGlassSection(
-                title = stringResource(R.string.settings_logout_title),
-            ) {
-                OutlinedButton(
-                    onClick = { showLogoutConfirm = true },
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(AppIcons.Logout, contentDescription = stringResource(R.string.settings_logout_button))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.settings_logout_button))
-                    }
-                }
-            }
             Text(
                 text = stringResource(R.string.settings_app_version, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.labelSmall,
@@ -222,34 +194,5 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-    }
-    if (showLogoutConfirm) {
-        AlertDialog(
-            onDismissRequest = { showLogoutConfirm = false },
-            title = { Text(stringResource(R.string.settings_logout_confirm_title), color = tc.TextPrimary) },
-            text = { Text(stringResource(R.string.settings_logout_confirm_message), color = tc.TextSecondary) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            com.truckerload.sync.SessionTeardown.signOut(
-                                context = context,
-                                authStore = authStore,
-                                endSession = { context.userComponentManager().endSession() },
-                            )
-                            showLogoutConfirm = false
-                            android.widget.Toast.makeText(context, context.getString(R.string.settings_logout_success), android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                ) {
-                    Text(stringResource(R.string.settings_logout_button))
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showLogoutConfirm = false }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            }
-        )
     }
 }

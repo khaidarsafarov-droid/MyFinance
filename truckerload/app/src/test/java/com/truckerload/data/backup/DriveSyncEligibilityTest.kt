@@ -6,14 +6,15 @@ import org.junit.Test
 
 class DriveSyncEligibilityTest {
     @Test
-    fun rejectsGuestAndBlank() {
+    fun rejectsBlank() {
         assertFalse(DriveSyncEligibility.shouldEnqueuePeriodic(null))
         assertFalse(DriveSyncEligibility.shouldEnqueuePeriodic(""))
-        assertFalse(DriveSyncEligibility.shouldEnqueuePeriodic("local_dev"))
+        assertFalse(DriveSyncEligibility.shouldEnqueuePeriodic("   "))
     }
 
     @Test
-    fun acceptsGoogleAndEmailAccounts() {
+    fun acceptsLocalAndCloudAccounts() {
+        assertTrue(DriveSyncEligibility.shouldEnqueuePeriodic("local_dev"))
         assertTrue(DriveSyncEligibility.shouldEnqueuePeriodic("google_abc123"))
         assertTrue(DriveSyncEligibility.shouldEnqueuePeriodic("local_email_hash"))
         assertTrue(DriveSyncEligibility.shouldEnqueuePeriodic("uuid-from-supabase"))

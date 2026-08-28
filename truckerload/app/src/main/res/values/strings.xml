@@ -60,6 +60,9 @@
     <string name="analytics_chart_week_detail">%1$s: %2$s · %3$d грузов</string>
     <string name="analytics_chart_empty">Пока нет данных за этот период</string>
 
+    <string name="first_run_title">Как вас зовут?</string>
+    <string name="first_run_subtitle">Имя и фамилия останутся на этом устройстве. Аккаунт в облаке не нужен.</string>
+    <string name="first_run_name_required">Введите имя и фамилию</string>
     <string name="login_title">Вход</string>
     <string name="login_subtitle">Войдите один раз — дальше приложение откроется само</string>
     <string name="login_auth_only_hint">Google или email. На iPhone позже — Apple ID.</string>
@@ -961,7 +964,7 @@
     <string name="drive_sync_google_user_hint">Вы вошли через Google — доступ к Drive уже запрошен при входе. Повторная авторизация не нужна, если вы её подтвердили.</string>
     <string name="drive_sync_google_linked_hint">Бэкап идёт в тот же Google-аккаунт, через который вы вошли. Отдельный вход в Drive не нужен.</string>
     <string name="drive_sync_email_user_hint">Вы вошли через почту. Drive можно подключить отдельно (только доступ к папке приложения — новый аккаунт TruckerLoad не создаётся). Либо сохраните копию файлом в разделе «Экспорт и копии» выше.</string>
-    <string name="drive_sync_local_user_hint">Офлайн-режим: Google Drive можно подключить отдельно (без создания аккаунта) или сохранить копию файлом в разделе «Экспорт и копии» выше.</string>
+    <string name="drive_sync_local_user_hint">Резервная копия пишется в скрытую папку приложения на вашем Google Диске. Личные файлы приложение не видит.</string>
     <string name="drive_sync_email_linked_hint">Google Drive подключён только для бэкапа и не меняет способ входа в приложение.</string>
     <string name="drive_sync_status_off">Не подключено</string>
     <string name="drive_sync_status_on">Подключено: %1$s</string>
@@ -969,7 +972,7 @@
     <string name="drive_sync_last_never">ещё не было</string>
     <string name="drive_sync_last_error">Последняя ошибка Drive: %1$s</string>
     <string name="drive_sync_connect">Подключить Google Drive</string>
-    <string name="drive_sync_now">Синхронизировать с Google Drive</string>
+    <string name="drive_sync_now">Синхронизировать с Google Диском</string>
     <string name="drive_sync_disconnect">Отключить</string>
     <string name="drive_sync_backup_now">Сохранить в Drive</string>
     <string name="drive_sync_restore_now">Восстановить из Drive</string>

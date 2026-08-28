@@ -27,9 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,13 +78,11 @@ fun TruckLogNavigationRail(
         providerPhotoUrl = userProfile?.photoUrl,
         customPhoto = userProfile?.customPhoto == true,
     )
-    var showLogoutConfirm by remember { mutableStateOf(false) }
     val onItemClick: (TabletRailSpec) -> Unit = { item ->
         activateTabletRailItem(
             item = item,
             onNavigate = onNavigate,
             onDrawerNavigate = onDrawerNavigate,
-            onLogout = { showLogoutConfirm = true },
         )
     }
 
@@ -114,10 +110,6 @@ fun TruckLogNavigationRail(
                 onOpenSettings = { onDrawerNavigate(DrawerDestination.SETTINGS) },
             )
         }
-    }
-
-    if (showLogoutConfirm) {
-        LogoutConfirmDialog(onDismiss = { showLogoutConfirm = false })
     }
 }
 
@@ -403,10 +395,8 @@ private fun activateTabletRailItem(
     item: TabletRailSpec,
     onNavigate: (String) -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
-    onLogout: () -> Unit,
 ) {
     when {
-        item.isLogout -> onLogout()
         item.route != null -> onNavigate(item.route)
         item.drawer != null -> onDrawerNavigate(item.drawer)
     }

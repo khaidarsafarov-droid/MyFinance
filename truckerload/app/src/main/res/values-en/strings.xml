@@ -60,6 +60,9 @@
     <string name="analytics_chart_week_detail">%1$s: %2$s · %3$d loads</string>
     <string name="analytics_chart_empty">No data for this period yet</string>
 
+    <string name="first_run_title">What’s your name?</string>
+    <string name="first_run_subtitle">First and last name stay on this device. No cloud account is required.</string>
+    <string name="first_run_name_required">Enter first and last name</string>
     <string name="login_title">Sign In</string>
     <string name="login_subtitle">Sign in once — we keep you signed in</string>
     <string name="login_auth_only_hint">Google or email. Apple ID coming on iPhone.</string>
@@ -961,7 +964,7 @@
     <string name="drive_sync_google_user_hint">You signed in with Google — Drive access was requested at login. You do not need to authorize again if you already granted it.</string>
     <string name="drive_sync_google_linked_hint">Backup uses the same Google account you signed in with. No separate Drive login is needed.</string>
     <string name="drive_sync_email_user_hint">You signed in with email. Connect Google Drive separately (app-folder access only — this does not create a new TruckerLoad account), or use the file backup in “Export and backup” above.</string>
-    <string name="drive_sync_local_user_hint">Offline mode: you can connect Google Drive separately (this does not create a TruckerLoad account) or save a file backup in “Export and backup” above.</string>
+    <string name="drive_sync_local_user_hint">Backups go into this app’s hidden Google Drive folder. The app cannot see your personal files.</string>
     <string name="drive_sync_email_linked_hint">Google Drive is connected for backup only and does not change how you sign in.</string>
     <string name="drive_sync_status_off">Not connected</string>
     <string name="drive_sync_status_on">Connected: %1$s</string>

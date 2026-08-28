@@ -224,13 +224,12 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    val connectLabel = if (
+                    val connectLabel = when {
+                        authProvider == AuthProvider.LOCAL -> R.string.drive_sync_now
                         authProvider == AuthProvider.GOOGLE &&
-                        GoogleDriveBackupService.isDriveScopeGranted(context)
-                    ) {
-                        R.string.drive_sync_now
-                    } else {
-                        R.string.drive_sync_connect
+                            GoogleDriveBackupService.isDriveScopeGranted(context) ->
+                            R.string.drive_sync_now
+                        else -> R.string.drive_sync_connect
                     }
                     Icon(AppIcons.Cloud, contentDescription = stringResource(connectLabel))
                     Spacer(modifier = Modifier.width(8.dp))
