@@ -27,12 +27,17 @@ iOS sharing plan: [docs/KMP_IOS_ROADMAP.md](docs/KMP_IOS_ROADMAP.md).
 Send this one file to Cloud Code / Claude Code for product context:
 [docs/CLOUD_CODE_BRIEF.md](docs/CLOUD_CODE_BRIEF.md).
 
-## Share with friends (no server)
+## Google Play release
 
-Local-first APK for friends: data stays on the phone; optional file / Google Drive
-backup. See [docs/FRIENDS_SHARE.md](docs/FRIENDS_SHARE.md) and
-`scripts/build-friends-apk.sh`.
+Publish a signed Android App Bundle (not a sideloaded friends APK):
 
+```bash
+cd truckerload
+sh ./gradlew :app:bundleRelease
+```
+
+The AAB is written under `app/build/outputs/bundle/release/`. Upload that file in
+Play Console. Installs come from Google Play; in-app share sends the store link.
 
 JDK 21 and Android SDK 34 are required.
 

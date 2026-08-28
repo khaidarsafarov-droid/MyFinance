@@ -29,7 +29,7 @@ android {
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
             localProps.load(stream)
         }
-        // Stage3: never bake bot secrets into APKs by default (including debug/friends).
+        // Stage3: never bake bot secrets into APKs by default (including debug/release).
         // Opt-in for local device debugging only: ./gradlew … -PallowDebugSecrets=true
         val allowDebugSecrets = project.hasProperty("allowDebugSecrets")
         val telegramToken = if (allowDebugSecrets) {
@@ -39,7 +39,7 @@ android {
         }
         buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"$telegramToken\"")
         // Non-secret Web OAuth client — required for Google ID tokens. Fall back to the
-        // project default so friends/CI builds still get Sign-In when local.properties omits it.
+        // project default so CI/release builds still get Drive OAuth when local.properties omits it.
         val defaultGoogleWebClientId =
             "842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com"
         val googleWebClientId = localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")
@@ -83,19 +83,13 @@ android {
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_DIRECTIONS_API_KEY", "\"$googleDirectionsApiKey\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
-        // Phone APKs: drop x86/x86_64 emulator ABIs (halves APK size for friends share).
-        // Pass -PfriendsPhoneApk=true or -PabiFilters=arm64-v8a,armeabi-v7a
+        // Optional NDK ABI filter, e.g. -PabiFilters=arm64-v8a,armeabi-v7a
         val abiFiltersProp = (project.findProperty("abiFilters") as? String)
             ?.split(',')
             ?.map { it.trim() }
             ?.filter { it.isNotEmpty() }
             .orEmpty()
-        val friendsPhone = project.hasProperty("friendsPhoneApk")
-        val selectedAbis = when {
-            abiFiltersProp.isNotEmpty() -> abiFiltersProp
-            friendsPhone -> listOf("arm64-v8a", "armeabi-v7a")
-            else -> emptyList()
-        }
+        val selectedAbis = abiFiltersProp
         if (selectedAbis.isNotEmpty()) {
             ndk {
                 abiFilters.clear()
@@ -104,8 +98,8 @@ android {
         }
     }
 
-    // Optional friends/production signing. Create keystore.properties (gitignored) —
-    // see docs/FRIENDS_SHARE.md. Without it, release stays unsigned (CI can still compile).
+    // Optional Play Store / production signing. Create keystore.properties (gitignored).
+    // Without it, release stays unsigned (CI can still compile).
     // Optional permanent debug keystore: debug-keystore.properties (also gitignored).
     val keystorePropertiesFile = rootProject.file("keystore.properties")
     val keystoreProperties = Properties()
@@ -132,7 +126,7 @@ android {
         getByName("debug") {
             when {
                 debugKeystorePropertiesFile.exists() -> applyKeystore(debugKeystoreProperties)
-                // Same SHA-1 as friends/release so Google Sign-In matches Track Load.
+                // Same SHA-1 as Play upload key so Google Drive OAuth matches.
                 keystorePropertiesFile.exists() -> applyKeystore(keystoreProperties)
             }
         }
@@ -145,7 +139,7 @@ android {
     buildTypes {
         debug {
             // Dev-only secrets may come from local.properties via defaultConfig.
-            // Uses friends/release keystore when debug-keystore.properties is absent.
+            // Uses the Play upload keystore when debug-keystore.properties is absent.
         }
         release {
             isMinifyEnabled = true
