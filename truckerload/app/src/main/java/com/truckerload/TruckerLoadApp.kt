@@ -36,6 +36,7 @@ import com.truckerload.utils.CrashReporting
 import com.truckerload.widget.WidgetStatsLoader
 import com.truckerload.widget.WidgetRefresh
 import com.truckerload.widget.WidgetUpdateWorker
+import com.truckerload.utils.AppLanguageManager
 import com.truckerload.utils.AppLocale
 import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
@@ -83,12 +84,12 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 settingsDataStore.getLoadWeekStartDayOnce(),
                 settingsDataStore.getDieselWeekStartDayOnce(),
             )
-            val language = settingsDataStore.getLanguageOnce()
-            SettingsDataStore.mirrorLanguageTag(this@TruckerLoadApp, language.tag)
+            val explicitLanguage = settingsDataStore.getExplicitLanguageOnce()
+            val legacyTag = SettingsDataStore.readLegacyLanguageTag(this@TruckerLoadApp)
             val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
                 .getOrDefault(AppThemeMode.SYSTEM)
             withContext(Dispatchers.Main) {
-                AppLocale.apply(this@TruckerLoadApp, language)
+                AppLanguageManager.migrateLegacyIfNeeded(explicitLanguage?.tag ?: legacyTag)
                 ThemeManager.apply(themeMode)
             }
         }

@@ -1,29 +1,16 @@
 package com.truckerload.utils
 
 import android.content.Context
-import android.os.Build
-import android.os.LocaleList
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import androidx.core.os.LocaleListCompat
 import com.truckerload.data.preferences.AppLanguage
-import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.widget.WidgetRefresh
 
-/** App UI locale; defaults to Russian unless user picks English in settings. */
+/** Locale-aware context wrapper; language changes go through [AppLanguageManager]. */
 object AppLocale {
 
     fun apply(context: Context, language: AppLanguage) {
-        val current = AppCompatDelegate.getApplicationLocales()
-        if (!current.isEmpty && current[0]?.language == language.tag) return
-
-        val locales = LocaleListCompat.forLanguageTags(language.tag)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.applicationContext
-                .getSystemService(android.app.LocaleManager::class.java)
-                ?.applicationLocales = LocaleList.forLanguageTags(language.tag)
-        }
-        AppCompatDelegate.setApplicationLocales(locales)
-        SettingsDataStore.mirrorLanguageTag(context.applicationContext, language.tag)
+        AppLanguageManager.setLanguage(language.tag)
+        WidgetRefresh.refreshAndUpdateAsync(context)
     }
 
     /** Apply locale; AppCompat recreates the activity when the locale actually changes. */
@@ -32,7 +19,7 @@ object AppLocale {
     }
 
     fun applyStored(context: Context) {
-        apply(context, SettingsDataStore.readStoredLanguage(context.applicationContext))
+        AppLanguageManager.setLanguage(AppLanguageManager.getCurrentLanguageCode())
     }
 
     /** Locale-aware context; use instead of manual Configuration overrides. */

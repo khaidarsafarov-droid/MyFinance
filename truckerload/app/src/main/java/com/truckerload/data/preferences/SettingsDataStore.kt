@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.utils.AppLanguageManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -47,19 +48,19 @@ class SettingsDataStore(context: Context) {
         private const val SYNC_PREFS_NAME = "truckerload_settings_sync"
         private const val KEY_LANGUAGE_TAG = "app_language_tag"
 
-        fun mirrorLanguageTag(context: Context, tag: String) {
-            context.applicationContext
+        fun readLegacyLanguageTag(context: Context): String? {
+            return context.applicationContext
                 .getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putString(KEY_LANGUAGE_TAG, tag)
-                .apply()
+                .getString(KEY_LANGUAGE_TAG, null)
         }
 
         fun readStoredLanguage(context: Context): AppLanguage {
-            val tag = context.applicationContext
-                .getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_LANGUAGE_TAG, null)
-            return AppLanguage.entries.firstOrNull { it.tag == tag } ?: AppLanguage.RU
+            val tag = readLegacyLanguageTag(context)
+            return if (tag.isNullOrBlank()) {
+                AppLanguage.fromTag(AppLanguageManager.getCurrentLanguageCode())
+            } else {
+                AppLanguage.fromTag(tag)
+            }
         }
     }
 
@@ -89,7 +90,8 @@ class SettingsDataStore(context: Context) {
     }
 
     val language: Flow<AppLanguage> = appContext.settingsDataStore.data.map { prefs ->
-        AppLanguage.fromOrdinal(prefs[KEY_LANGUAGE] ?: AppLanguage.RU.ordinal)
+        prefs[KEY_LANGUAGE]?.let { AppLanguage.fromOrdinal(it) }
+            ?: AppLanguage.fromTag(AppLanguageManager.getCurrentLanguageCode())
     }
 
     val reduceMotion: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
@@ -251,13 +253,19 @@ class SettingsDataStore(context: Context) {
 
     suspend fun getThemeModeOnce(): AppThemeMode = themeMode.first()
 
-    suspend fun getLanguageOnce(): AppLanguage = language.first()
+    suspend fun getLanguageOnce(): AppLanguage =
+        getExplicitLanguageOnce()
+            ?: AppLanguage.fromTag(AppLanguageManager.getCurrentLanguageCode())
+
+    suspend fun getExplicitLanguageOnce(): AppLanguage? {
+        val ordinal = appContext.settingsDataStore.data.first()[KEY_LANGUAGE] ?: return null
+        return AppLanguage.fromOrdinal(ordinal)
+    }
 
     suspend fun saveLanguage(language: AppLanguage) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_LANGUAGE] = language.ordinal
         }
-        mirrorLanguageTag(appContext, language.tag)
     }
 
     suspend fun saveThemeMode(mode: AppThemeMode) {

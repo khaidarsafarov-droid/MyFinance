@@ -104,6 +104,7 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
 internal fun isPhoneChromeToolRoute(route: String): Boolean =
     route == Routes.SETTINGS ||
         route == Routes.PRIVACY_SETTINGS ||
+        route == Routes.LANGUAGE_SETTINGS ||
         route == Routes.ABOUT ||
         route == Routes.IMPROVE ||
         route == Routes.MAINTENANCE ||

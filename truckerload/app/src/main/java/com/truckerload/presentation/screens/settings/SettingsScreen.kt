@@ -29,8 +29,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.presentation.screens.settings.ThemeSettingsSection
-import com.truckerload.presentation.screens.settings.LanguageSettingsSection
 import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -48,6 +46,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     showBack: Boolean = false,
     onOpenPrivacy: () -> Unit = {},
+    onOpenLanguage: () -> Unit = {},
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
     val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
@@ -59,7 +58,6 @@ fun SettingsScreen(
     val quietHoursEnd by settingsDataStore.quietHoursEnd.collectAsStateWithLifecycle(initialValue = 7)
     val notifyMissingWeek by settingsDataStore.notifyMissingWeek.collectAsStateWithLifecycle(initialValue = true)
     val notifyMaintenance by settingsDataStore.notifyMaintenance.collectAsStateWithLifecycle(initialValue = true)
-    val appLanguage by settingsDataStore.language.collectAsStateWithLifecycle(initialValue = com.truckerload.data.preferences.AppLanguage.RU)
     val loadWeekStartDay by settingsDataStore.loadWeekStartDay.collectAsStateWithLifecycle(
         initialValue = com.truckerload.domain.week.WeekStartDay.DEFAULT,
     )
@@ -98,7 +96,7 @@ fun SettingsScreen(
                             dynamicColor = dynamicColor,
                         )
                         AccessibilitySettingsSection(reduceMotion = reduceMotion)
-                        LanguageSettingsSection(selected = appLanguage)
+                        LanguageSettingsSection(onOpenLanguage = onOpenLanguage)
                         WeekStartSettingsSection(
                             loadsStart = loadWeekStartDay,
                             dieselStart = dieselWeekStartDay,

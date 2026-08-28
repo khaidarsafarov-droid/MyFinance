@@ -51,7 +51,7 @@ object BackupSnapshotBuilder {
         val settings = SettingsDataStore(context)
         val userId = accountId ?: return BackupAppSettings(
             themeModeOrdinal = settings.getThemeModeOnce().ordinal,
-            languageOrdinal = settings.getLanguageOnce().ordinal,
+            languageOrdinal = settings.getExplicitLanguageOnce()?.ordinal,
             reduceMotion = settings.getReduceMotionOnce(),
             oledDark = settings.getOledDarkOnce(),
             dynamicColor = settings.getDynamicColorOnce(),
@@ -71,7 +71,7 @@ object BackupSnapshotBuilder {
         val rpm = RpmThresholdsStore(context, userId).thresholds.value
         return BackupAppSettings(
             themeModeOrdinal = settings.getThemeModeOnce().ordinal,
-            languageOrdinal = settings.getLanguageOnce().ordinal,
+            languageOrdinal = settings.getExplicitLanguageOnce()?.ordinal,
             reduceMotion = settings.getReduceMotionOnce(),
             oledDark = settings.getOledDarkOnce(),
             dynamicColor = settings.getDynamicColorOnce(),

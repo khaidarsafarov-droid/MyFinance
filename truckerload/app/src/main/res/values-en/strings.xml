@@ -877,6 +877,7 @@
     <string name="settings_language_desc">App and widget interface language</string>
     <string name="settings_language_ru">Русский</string>
     <string name="settings_language_en">English</string>
+    <string name="settings_language_es">Español</string>
     <string name="settings_week_start_title">Week starts on</string>
     <string name="settings_week_start_desc">Journals, reports, the weekly goal, and the widget count the week from the day you pick. Existing rows are reassigned. Paychecks follow the loads week.</string>
     <string name="settings_week_start_loads">Loads and paychecks</string>
