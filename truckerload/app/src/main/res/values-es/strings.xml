@@ -1705,8 +1705,6 @@
     <string name="settings_backup_working">Creando respaldo…</string>
     <string name="settings_backup_restoring">Restaurando datos…</string>
     <string name="settings_share_app_title">Compartir la app</string>
-    <string name="settings_share_app_body">Envía a un amigo un enlace: Google Play para Android o App Store para iPhone.</string>
-    <string name="settings_share_app_body_play_only">Envía a un amigo un enlace para que descargue la app en Google Play.</string>
     <string name="settings_share_app_button">Compartir enlace</string>
     <string name="settings_share_app_unavailable">No se pudo abrir el menú de compartir</string>
     <string name="settings_share_app_chooser">Compartir TruckoRig</string>

@@ -85,7 +85,15 @@ class StoreListingsTest {
                 assertFalse("$folder still contains “$phrase”", xml.contains(phrase))
             }
             assertTrue(
-                "$folder is missing share play-only copy",
+                "$folder is missing share app title",
+                xml.contains("name=\"settings_share_app_title\""),
+            )
+            assertFalse(
+                "$folder still has removed share body copy",
+                xml.contains("name=\"settings_share_app_body\""),
+            )
+            assertFalse(
+                "$folder still has removed share play-only copy",
                 xml.contains("name=\"settings_share_app_body_play_only\""),
             )
         }
