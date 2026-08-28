@@ -3,6 +3,7 @@ package com.truckerload.widget
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
@@ -13,7 +14,10 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withSave
 import kotlin.math.roundToInt
 
-/** Horizontal goal progress bar with mockup-style truck marker (lavender → teal). */
+/**
+ * Goal progress bar with a flat semi-truck marker that rides on the **top**
+ * edge of the track (wheel bottoms touch [barTop], like the TruckoRig reference).
+ */
 object WidgetTruckProgressBitmap {
 
     fun create(
@@ -26,9 +30,11 @@ object WidgetTruckProgressBitmap {
     ): Bitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val trackHeight = barHeightPx.coerceAtLeast(10)
-        val truckHeight = (trackHeight * 2.85f).roundToInt().coerceIn(28, 72)
-        val truckWidth = (truckHeight * 1.92f).roundToInt()
-        val headroom = (truckHeight - trackHeight).coerceAtLeast(8)
+        // Compact flat silhouette that sits above the bar (wheel bottoms on barTop).
+        // Height ≈ 1.45× track so Glance headroomDp (~1.4–1.6× bar) keeps proportions.
+        val truckHeight = (trackHeight * 1.45f).roundToInt().coerceIn(22, 48)
+        val truckWidth = (truckHeight * 1.58f).roundToInt()
+        val headroom = truckHeight
         val safeHeight = trackHeight + headroom
         val bitmap = createBitmap(safeWidth, safeHeight)
         val canvas = Canvas(bitmap)
@@ -82,202 +88,175 @@ object WidgetTruckProgressBitmap {
         if (goalSet && progress > 0f) {
             val truckLeadingX = fillWidth.coerceIn(
                 truckWidth * 0.55f,
-                safeWidth - truckWidth * 0.08f,
+                safeWidth - truckWidth * 0.04f,
             )
             drawSpeedLines(
                 canvas = canvas,
                 truckLeadingX = truckLeadingX,
                 truckWidth = truckWidth.toFloat(),
-                barCenterY = (barTop + barBottom) / 2f,
-                trackHeight = trackHeight.toFloat(),
+                barTop = barTop,
+                truckHeight = truckHeight.toFloat(),
             )
-            drawMockupTruck(
+            drawFlatTruck(
                 canvas = canvas,
                 leadingX = truckLeadingX,
-                barBottom = barBottom,
+                barTop = barTop,
                 truckWidth = truckWidth.toFloat(),
                 truckHeight = truckHeight.toFloat(),
-                trackHeight = trackHeight.toFloat(),
-                progressStart = progressStart,
-                progressEnd = progressEnd,
-                outlineColor = colors.progressLabel,
+                bodyColor = truckBodyColor(colors),
+                wheelColor = truckWheelColor(colors),
             )
         }
 
         return bitmap
     }
 
-    /** Three white motion dashes trailing behind the cargo box (mockup). */
+    /** Light truck on dark plates, dark truck on light plates (matches reference). */
+    private fun truckBodyColor(colors: WidgetCabinColors): Int {
+        val lum = Color.luminance(colors.bg)
+        return if (lum < 0.45f) 0xFFE6E1F2.toInt() else 0xFF4F2E8D.toInt()
+    }
+
+    private fun truckWheelColor(colors: WidgetCabinColors): Int {
+        val lum = Color.luminance(colors.bg)
+        return if (lum < 0.45f) 0xFFFFFFFF.toInt() else 0xFFF5F3FA.toInt()
+    }
+
+    /** Quiet motion dashes trailing the trailer, level with the body. */
     private fun drawSpeedLines(
         canvas: Canvas,
         truckLeadingX: Float,
         truckWidth: Float,
-        barCenterY: Float,
-        trackHeight: Float,
+        barTop: Float,
+        truckHeight: Float,
     ) {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = 0xFFE8E4FF.toInt()
-            alpha = 220
-            strokeWidth = (trackHeight * 0.08f).coerceAtLeast(1.1f)
             strokeCap = Paint.Cap.ROUND
         }
-        val cargoLeft = truckLeadingX - truckWidth * 0.92f
-        val lineLengths = floatArrayOf(0.28f, 0.38f, 0.22f)
-        val yOffsets = floatArrayOf(-0.14f, 0f, 0.14f)
-        lineLengths.indices.forEach { index ->
-            val y = barCenterY + yOffsets[index] * trackHeight
-            val length = truckWidth * lineLengths[index]
-            val startX = (cargoLeft - truckWidth * 0.34f).coerceAtLeast(0f)
+        val cargoLeft = truckLeadingX - truckWidth * 0.96f
+        val bodyMidY = barTop - truckHeight * 0.42f
+        val specs = listOf(
+            Triple(-0.10f, 0.16f, 120),
+            Triple(0.00f, 0.22f, 150),
+            Triple(0.10f, 0.14f, 110),
+        )
+        specs.forEach { (yOff, lengthFrac, alpha) ->
+            paint.alpha = alpha
+            paint.strokeWidth = (truckHeight * 0.035f).coerceAtLeast(1f)
+            val y = bodyMidY + yOff * truckHeight
+            val length = truckWidth * lengthFrac
+            val startX = (cargoLeft - truckWidth * 0.18f).coerceAtLeast(0f)
             canvas.drawLine(startX, y, startX + length, y, paint)
         }
     }
 
     /**
-     * Conventional US semi (trailer + sleeper + hood), facing right.
-     * [leadingX] is the bumper; wheels rest on the progress track.
+     * Flat side-view semi. Local origin at the truck's top-left; wheel bottoms
+     * land exactly on [barTop] so the marker rides the progress track.
      */
-    private fun drawMockupTruck(
+    private fun drawFlatTruck(
         canvas: Canvas,
         leadingX: Float,
-        barBottom: Float,
+        barTop: Float,
         truckWidth: Float,
         truckHeight: Float,
-        trackHeight: Float,
-        progressStart: Int,
-        progressEnd: Int,
-        outlineColor: Int,
+        bodyColor: Int,
+        wheelColor: Int,
     ) {
         val left = leadingX - truckWidth
-        val top = barBottom - truckHeight
+        // Wheel bottoms = barTop  →  top of truck bitmap region = barTop - truckHeight
+        val top = barTop - truckHeight
+        val geom = TruckGeom(truckWidth, truckHeight)
         canvas.withSave {
             translate(left, top)
-            val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = LinearGradient(
-                    0f,
-                    0f,
-                    truckWidth,
-                    0f,
-                    progressStart,
-                    progressEnd,
-                    Shader.TileMode.CLAMP,
-                )
+
+            val body = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = bodyColor
+                style = Paint.Style.FILL
             }
-            val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = outlineColor
-                style = Paint.Style.STROKE
-                strokeWidth = (truckHeight * 0.032f).coerceAtLeast(1.15f)
-                strokeJoin = Paint.Join.ROUND
-                strokeCap = Paint.Cap.ROUND
+            val wheels = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = wheelColor
+                style = Paint.Style.FILL
             }
-            val trailer = buildTrailerPath(truckWidth, truckHeight)
-            val tractor = buildTractorPath(truckWidth, truckHeight)
-            val hitch = RectF(
-                truckWidth * 0.48f,
-                truckHeight * 0.50f,
-                truckWidth * 0.58f,
-                truckHeight * 0.56f,
-            )
-            drawPath(trailer, fillPaint)
-            drawRoundRect(hitch, truckWidth * 0.02f, truckWidth * 0.02f, fillPaint)
-            drawPath(tractor, fillPaint)
-            drawPath(trailer, strokePaint)
-            drawRoundRect(hitch, truckWidth * 0.02f, truckWidth * 0.02f, strokePaint)
-            drawPath(tractor, strokePaint)
-            drawCabWindow(
-                canvas = this,
-                truckWidth = truckWidth,
-                truckHeight = truckHeight,
-            )
-            drawHeadlight(this, truckWidth, truckHeight)
-            drawTruckWheels(
-                canvas = this,
-                truckWidth = truckWidth,
-                truckHeight = truckHeight,
-                trackHeight = trackHeight,
-                outlineColor = outlineColor,
-            )
+
+            // Body first (trailer + hitch gap + cab), then wheels on the baseline.
+            drawPath(buildTrailerPath(geom), body)
+            drawPath(buildHitchPath(geom), body)
+            drawPath(buildCabPath(geom), body)
+            drawTruckWheels(this, geom, wheels)
         }
     }
 
-    /** Dry van sitting on the fifth-wheel, rounded box. */
-    private fun buildTrailerPath(width: Float, height: Float): Path {
-        val p = Path()
-        val box = RectF(width * 0.03f, height * 0.14f, width * 0.50f, height * 0.56f)
-        val rx = width * 0.045f
-        p.addRoundRect(box, rx, rx, Path.Direction.CW)
-        return p
+    /**
+     * Side-view proportions for a compact Class-8 silhouette.
+     * [wheelCy] + [wheelRadius] == [h] so bottoms sit on local y = h (= barTop).
+     */
+    private data class TruckGeom(val w: Float, val h: Float) {
+        val wheelRadius: Float = h * 0.155f
+        val wheelCy: Float = h - wheelRadius
+        /** Floor of van / cab, just above the tire tops. */
+        val deck: Float = wheelCy - wheelRadius * 0.12f
+        val roof: Float = h * 0.08f
+        val wheelXs: FloatArray = floatArrayOf(w * 0.18f, w * 0.32f, w * 0.82f)
     }
 
-    /** Sleeper + cab + sloped hood (conventional tractor). */
-    private fun buildTractorPath(width: Float, height: Float): Path {
+    /** Dry van with rounded top corners and a flat floor above the tires. */
+    private fun buildTrailerPath(geom: TruckGeom): Path {
         val p = Path()
-        val w = width
-        val h = height
-        val deck = h * 0.56f
-        val sleeperLeft = w * 0.56f
-        val roof = h * 0.12f
-        p.moveTo(sleeperLeft, deck)
-        p.lineTo(sleeperLeft, roof + h * 0.05f)
-        p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.04f, roof)
-        p.lineTo(w * 0.70f, roof)
-        p.lineTo(w * 0.73f, h * 0.20f)
-        p.lineTo(w * 0.82f, h * 0.20f)
-        p.lineTo(w * 0.93f, h * 0.34f)
-        p.quadTo(w * 0.98f, h * 0.38f, w * 0.98f, deck)
+        val left = geom.w * 0.02f
+        val right = geom.w * 0.52f
+        val top = geom.roof
+        val deck = geom.deck
+        val rx = geom.w * 0.045f
+        p.moveTo(left, deck)
+        p.lineTo(left, top + rx)
+        p.quadTo(left, top, left + rx, top)
+        p.lineTo(right - rx, top)
+        p.quadTo(right, top, right, top + rx)
+        p.lineTo(right, deck)
         p.close()
         return p
     }
 
-    private fun drawCabWindow(
-        canvas: Canvas,
-        truckWidth: Float,
-        truckHeight: Float,
-    ) {
-        val glass = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0xF2FFFFFF.toInt()
-            style = Paint.Style.FILL
-        }
-        val path = Path()
-        path.moveTo(truckWidth * 0.735f, truckHeight * 0.23f)
-        path.lineTo(truckWidth * 0.82f, truckHeight * 0.23f)
-        path.lineTo(truckWidth * 0.90f, truckHeight * 0.35f)
-        path.lineTo(truckWidth * 0.735f, truckHeight * 0.35f)
-        path.close()
-        canvas.drawPath(path, glass)
-    }
-
-    private fun drawHeadlight(canvas: Canvas, truckWidth: Float, truckHeight: Float) {
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0xFFFFF4C2.toInt()
-            style = Paint.Style.FILL
-        }
-        canvas.drawOval(
-            RectF(
-                truckWidth * 0.925f,
-                truckHeight * 0.40f,
-                truckWidth * 0.975f,
-                truckHeight * 0.49f,
-            ),
-            paint,
+    /** Narrow fifth-wheel bridge between trailer and cab (visible hitch gap). */
+    private fun buildHitchPath(geom: TruckGeom): Path {
+        val p = Path()
+        val box = RectF(
+            geom.w * 0.50f,
+            geom.deck - geom.h * 0.12f,
+            geom.w * 0.58f,
+            geom.deck,
         )
+        p.addRoundRect(box, geom.w * 0.012f, geom.w * 0.012f, Path.Direction.CW)
+        return p
     }
 
-    private fun drawTruckWheels(
-        canvas: Canvas,
-        truckWidth: Float,
-        truckHeight: Float,
-        trackHeight: Float,
-        outlineColor: Int,
-    ) {
-        val radius = truckHeight * 0.11f
-        val restY = truckHeight - trackHeight
-        val cy = restY - radius * 0.18f
-        val wheelXs = floatArrayOf(truckWidth * 0.16f, truckWidth * 0.32f, truckWidth * 0.80f)
-        val tire = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = outlineColor }
-        val hub = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt() }
-        wheelXs.forEach { cx ->
-            canvas.drawCircle(cx, cy, radius, tire)
-            canvas.drawCircle(cx, cy, radius * 0.42f, hub)
+    /** Cab-over tractor: sleeper block + raked windshield + short bumper nose. */
+    private fun buildCabPath(geom: TruckGeom): Path {
+        val p = Path()
+        val w = geom.w
+        val h = geom.h
+        val deck = geom.deck
+        val roof = geom.roof
+        val sleeperLeft = w * 0.575f
+        p.moveTo(sleeperLeft, deck)
+        p.lineTo(sleeperLeft, roof + h * 0.06f)
+        p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.04f, roof)
+        p.lineTo(w * 0.72f, roof)
+        // Windshield rake
+        p.lineTo(w * 0.80f, h * 0.28f)
+        p.lineTo(w * 0.92f, h * 0.28f)
+        // Nose / bumper down to deck
+        p.lineTo(w * 0.98f, deck * 0.78f)
+        p.lineTo(w * 0.98f, deck)
+        p.close()
+        return p
+    }
+
+    private fun drawTruckWheels(canvas: Canvas, geom: TruckGeom, wheelPaint: Paint) {
+        geom.wheelXs.forEach { cx ->
+            canvas.drawCircle(cx, geom.wheelCy, geom.wheelRadius, wheelPaint)
         }
     }
 }

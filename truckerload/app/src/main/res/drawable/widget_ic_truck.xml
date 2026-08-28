@@ -1,43 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Conventional semi: dry van + sleeper + sloped hood, facing right. -->
+<!-- Flat semi for the widget progress marker: rides on top of the track. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="36dp"
-    android:height="18dp"
-    android:viewportWidth="120"
-    android:viewportHeight="56">
+    android:width="40dp"
+    android:height="22dp"
+    android:viewportWidth="128"
+    android:viewportHeight="64">
     <!-- Trailer -->
     <path
-        android:fillColor="@color/widget_accent"
-        android:pathData="M6,10 h54 a4,4 0 0 1 4,4 v18 a4,4 0 0 1 -4,4 h-54 a4,4 0 0 1 -4,-4 v-18 a4,4 0 0 1 4,-4 z" />
-    <!-- Tractor (sleeper + cab + hood) -->
+        android:fillColor="#FFE6E1F2"
+        android:pathData="M4,8 h60 a6,6 0 0 1 6,6 v28 h-66 a0,0 0 0 1 0,0 v-28 a6,6 0 0 1 6,-6 z" />
+    <!-- Hitch bridge -->
     <path
-        android:fillColor="@color/widget_accent"
-        android:pathData="M62,36 L62,14 Q62,10 66,10 L84,10 L88,16 L98,16 L112,26 Q118,28 118,36 Z" />
-    <!-- Windshield -->
+        android:fillColor="#FFE6E1F2"
+        android:pathData="M66,34 h10 v8 h-10 z" />
+    <!-- Cab + raked windshield -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M88,17 L98,17 L108,26 L88,26 Z" />
-    <!-- Headlight -->
-    <path
-        android:fillColor="#FFFFF4C2"
-        android:pathData="M111,28 a3,2 0 1,0 0.1,0 z" />
-    <!-- Wheels -->
-    <path
-        android:fillColor="#FF252347"
-        android:pathData="M22,40 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
-    <path
-        android:fillColor="#FF252347"
-        android:pathData="M40,40 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
-    <path
-        android:fillColor="#FF252347"
-        android:pathData="M96,40 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
+        android:fillColor="#FFE6E1F2"
+        android:pathData="M74,42 L74,10 Q74,6 78,6 L92,6 L102,20 L118,20 L124,34 L124,42 Z" />
+    <!-- Wheels (bottoms sit on y=56 — the progress-bar top in the marker bitmap) -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M22,40 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:pathData="M24,48 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M40,40 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:pathData="M42,48 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M96,40 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:pathData="M104,48 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0" />
+    <!-- Speed lines -->
+    <path
+        android:strokeWidth="2"
+        android:strokeColor="#66E8E4FF"
+        android:pathData="M0,22 h18 M0,28 h24 M0,34 h16" />
 </vector>
