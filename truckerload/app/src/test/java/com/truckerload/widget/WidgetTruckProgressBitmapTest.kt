@@ -31,6 +31,9 @@ class WidgetTruckProgressBitmapTest {
         assertTrue(src.contains("drawHeadlight"))
         assertTrue(src.contains("Style.FILL"))
         assertTrue(src.contains("hitch"))
+        assertTrue(src.contains("drawTrailerRibs"))
+        assertTrue(src.contains("drawCabWindow"))
+        assertTrue(src.contains("drawGrilleAndBumper"))
         assertTrue(!src.contains("buildTruckBodyPath"))
     }
 
@@ -66,7 +69,7 @@ class WidgetTruckProgressBitmapTest {
         val out = File("/tmp/truckorig_progress_truck.png")
         val plate = Bitmap.createBitmap(bmp.width, bmp.height, Bitmap.Config.ARGB_8888)
         android.graphics.Canvas(plate).apply {
-            drawColor(android.graphics.Color.WHITE)
+            drawColor(0xFF1E2238.toInt())
             drawBitmap(bmp, 0f, 0f, null)
         }
         FileOutputStream(out).use { stream ->

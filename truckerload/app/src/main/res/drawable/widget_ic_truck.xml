@@ -1,43 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Conventional semi: dry van + sleeper + sloped hood, facing right. -->
+<!-- Conventional US semi for the widget progress marker: dry van + sleeper + hood. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="36dp"
-    android:height="18dp"
-    android:viewportWidth="120"
-    android:viewportHeight="56">
-    <!-- Trailer -->
+    android:width="40dp"
+    android:height="20dp"
+    android:viewportWidth="128"
+    android:viewportHeight="60">
+    <!-- Soft ground shadow -->
+    <path
+        android:fillColor="#44000000"
+        android:pathData="M10,50 a50,6 0 1,0 100,0 a50,6 0 1,0 -100,0" />
+    <!-- Trailer van -->
     <path
         android:fillColor="@color/widget_accent"
-        android:pathData="M6,10 h54 a4,4 0 0 1 4,4 v18 a4,4 0 0 1 -4,4 h-54 a4,4 0 0 1 -4,-4 v-18 a4,4 0 0 1 4,-4 z" />
-    <!-- Tractor (sleeper + cab + hood) -->
+        android:pathData="M4,8 h58 a5,5 0 0 1 5,5 v20 a5,5 0 0 1 -5,5 h-58 a5,5 0 0 1 -5,-5 v-20 a5,5 0 0 1 5,-5 z" />
+    <!-- Trailer ribs (subtle) -->
+    <path
+        android:strokeWidth="1.2"
+        android:strokeColor="#40252347"
+        android:pathData="M20,12 v18 M36,12 v18 M52,12 v18" />
+    <!-- Fifth-wheel hitch -->
     <path
         android:fillColor="@color/widget_accent"
-        android:pathData="M62,36 L62,14 Q62,10 66,10 L84,10 L88,16 L98,16 L112,26 Q118,28 118,36 Z" />
+        android:pathData="M64,30 h10 a2,2 0 0 1 2,2 v2 a2,2 0 0 1 -2,2 h-10 a2,2 0 0 1 -2,-2 v-2 a2,2 0 0 1 2,-2 z" />
+    <!-- Tractor: sleeper + cab + hood -->
+    <path
+        android:fillColor="@color/widget_accent"
+        android:pathData="M70,36 L70,12 Q70,8 74,8 L90,8 L94,14 L106,14 L120,24 Q126,28 126,36 Z" />
+    <!-- Sleeper side window -->
+    <path
+        android:fillColor="#E8FFFFFF"
+        android:pathData="M76,14 h12 a2,2 0 0 1 2,2 v8 a2,2 0 0 1 -2,2 h-12 a2,2 0 0 1 -2,-2 v-8 a2,2 0 0 1 2,-2 z" />
     <!-- Windshield -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M88,17 L98,17 L108,26 L88,26 Z" />
+        android:fillColor="#E8FFFFFF"
+        android:pathData="M96,15 L106,15 L116,26 L96,26 Z" />
+    <!-- Grille lines -->
+    <path
+        android:strokeWidth="1.1"
+        android:strokeColor="#80252347"
+        android:pathData="M110,28 h10 M110,31 h10 M110,34 h10" />
     <!-- Headlight -->
     <path
         android:fillColor="#FFFFF4C2"
-        android:pathData="M111,28 a3,2 0 1,0 0.1,0 z" />
-    <!-- Wheels -->
+        android:pathData="M122,30 a3.5,2.5 0 1,0 0.1,0 z" />
+    <!-- Bumper -->
+    <path
+        android:fillColor="#A0252347"
+        android:pathData="M124,34 h3 a1,1 0 0 1 1,1 v3 a1,1 0 0 1 -1,1 h-3 z" />
+    <!-- Wheels: trailer tandem + drive -->
     <path
         android:fillColor="#FF252347"
-        android:pathData="M22,40 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
+        android:pathData="M22,42 m-6.5,0 a6.5,6.5 0 1,1 13,0 a6.5,6.5 0 1,1 -13,0" />
     <path
         android:fillColor="#FF252347"
-        android:pathData="M40,40 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
+        android:pathData="M38,42 m-6.5,0 a6.5,6.5 0 1,1 13,0 a6.5,6.5 0 1,1 -13,0" />
     <path
         android:fillColor="#FF252347"
-        android:pathData="M96,40 m-6,0 a6,6 0 1,1 12,0 a6,6 0 1,1 -12,0" />
+        android:pathData="M104,42 m-6.5,0 a6.5,6.5 0 1,1 13,0 a6.5,6.5 0 1,1 -13,0" />
+    <!-- Rims -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M22,40 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:fillColor="#FFE8E4F8"
+        android:pathData="M22,42 m-3.4,0 a3.4,3.4 0 1,1 6.8,0 a3.4,3.4 0 1,1 -6.8,0" />
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M40,40 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:fillColor="#FFE8E4F8"
+        android:pathData="M38,42 m-3.4,0 a3.4,3.4 0 1,1 6.8,0 a3.4,3.4 0 1,1 -6.8,0" />
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M96,40 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+        android:fillColor="#FFE8E4F8"
+        android:pathData="M104,42 m-3.4,0 a3.4,3.4 0 1,1 6.8,0 a3.4,3.4 0 1,1 -6.8,0" />
+    <!-- Hubs -->
+    <path
+        android:fillColor="#FF252347"
+        android:pathData="M22,42 m-1.4,0 a1.4,1.4 0 1,1 2.8,0 a1.4,1.4 0 1,1 -2.8,0" />
+    <path
+        android:fillColor="#FF252347"
+        android:pathData="M38,42 m-1.4,0 a1.4,1.4 0 1,1 2.8,0 a1.4,1.4 0 1,1 -2.8,0" />
+    <path
+        android:fillColor="#FF252347"
+        android:pathData="M104,42 m-1.4,0 a1.4,1.4 0 1,1 2.8,0 a1.4,1.4 0 1,1 -2.8,0" />
 </vector>
