@@ -61,7 +61,7 @@
     <string name="analytics_chart_empty">No data for this period yet</string>
 
     <string name="first_run_title">What’s your name?</string>
-    <string name="first_run_subtitle">First and last name stay on this device. No cloud account is required.</string>
+    <string name="first_run_skip">Skip</string>
     <string name="first_run_name_required">Enter first and last name</string>
     <string name="login_title">Sign In</string>
     <string name="login_subtitle">Sign in once — we keep you signed in</string>

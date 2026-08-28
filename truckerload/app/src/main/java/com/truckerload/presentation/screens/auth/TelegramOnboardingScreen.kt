@@ -37,7 +37,6 @@ import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import kotlinx.coroutines.launch
@@ -89,38 +88,31 @@ fun TelegramOnboardingScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 color = tc.TextSecondary,
             )
-            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.telegram_onboarding_steps_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = tc.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.telegram_onboarding_step_1),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.telegram_onboarding_step_2),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.telegram_onboarding_step_3),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.telegram_onboarding_step_4),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = tc.TextPrimary,
-                    )
-                }
-            }
+            Text(
+                text = stringResource(R.string.telegram_onboarding_steps_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = tc.TextPrimary,
+            )
+            Text(
+                text = stringResource(R.string.telegram_onboarding_step_1),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextPrimary,
+            )
+            Text(
+                text = stringResource(R.string.telegram_onboarding_step_2),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextPrimary,
+            )
+            Text(
+                text = stringResource(R.string.telegram_onboarding_step_3),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextPrimary,
+            )
+            Text(
+                text = stringResource(R.string.telegram_onboarding_step_4),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextPrimary,
+            )
             OutlinedButton(
                 onClick = { BotFatherLinks.open(context) },
                 modifier = Modifier.fillMaxWidth().height(48.dp),

@@ -5,7 +5,7 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.presentation.screens.auth.FirstRunNameScreen
 
 /**
- * First launch gate: local first + last name. No Google/email account.
+ * First launch gate: optional first + last name. Skip is allowed.
  * Google Drive backup is connected later from Settings.
  */
 @Composable

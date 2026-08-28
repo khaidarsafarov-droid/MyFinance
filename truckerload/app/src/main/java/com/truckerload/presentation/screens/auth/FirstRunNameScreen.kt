@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -58,13 +59,6 @@ fun FirstRunNameScreen(
                     text = stringResource(R.string.first_run_title),
                     style = MaterialTheme.typography.headlineLarge,
                     color = tc.TextPrimary,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.first_run_subtitle),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = tc.TextSecondary,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(32.dp))
@@ -122,6 +116,16 @@ fun FirstRunNameScreen(
                         .height(52.dp),
                 ) {
                     Text(stringResource(R.string.common_save))
+                }
+                TextButton(
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.onSkip()
+                    },
+                    enabled = !uiState.isSaving,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.first_run_skip), color = tc.TextSecondary)
                 }
             }
         }
