@@ -266,6 +266,7 @@ private fun TruckProgressBarSquare(
     val density = context.resources.displayMetrics.density
     val widthPx = (LocalSize.current.width.value * density).toInt().coerceAtLeast(80)
     val barHeightPx = (barDp.value * density).toInt().coerceAtLeast(6)
+    val headroomPx = (headroomDp.value * density).toInt().coerceAtLeast(barHeightPx)
     val bitmap = runCatching {
         WidgetTruckProgressBitmap.create(
             context = context,
@@ -273,6 +274,7 @@ private fun TruckProgressBarSquare(
             goalSet = goalSet,
             widthPx = widthPx,
             barHeightPx = barHeightPx,
+            headroomPx = headroomPx,
             colors = colors,
         )
     }.getOrNull()
