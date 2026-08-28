@@ -1,7 +1,7 @@
 package com.truckerload.data.preferences
 
-/** Gate for guest [AccountIds.LOCAL_DEV] sessions (allowed in LOCAL_ONLY builds). */
+/** Guest [AccountIds.LOCAL_DEV] is the on-device journal. Never force-logout. */
 object LocalDevSessionPolicy {
-    fun shouldRejectLocalDevSession(userId: String?, localOnlyMode: Boolean): Boolean =
-        userId == AccountIds.LOCAL_DEV && !localOnlyMode
+    @Suppress("UNUSED_PARAMETER")
+    fun shouldRejectLocalDevSession(userId: String?, localOnlyMode: Boolean): Boolean = false
 }

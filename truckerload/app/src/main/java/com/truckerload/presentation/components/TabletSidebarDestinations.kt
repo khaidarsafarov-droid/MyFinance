@@ -47,7 +47,6 @@ internal val tabletRailToolItems: List<TabletRailSpec> = listOf(
     TabletRailSpec(drawer = DrawerDestination.DOCUMENTS, labelRes = R.string.drawer_documents),
     TabletRailSpec(drawer = DrawerDestination.IMPROVE, labelRes = R.string.drawer_improve),
     TabletRailSpec(drawer = DrawerDestination.ABOUT, labelRes = R.string.drawer_about),
-    TabletRailSpec(isLogout = true, labelRes = R.string.drawer_logout),
 )
 
 /** Phone swipe-from-edge tools drawer. Off on tablet because the rail holds every destination. */

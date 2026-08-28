@@ -18,10 +18,6 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,7 +49,6 @@ fun AppDrawerContent(
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
-    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     ModalDrawerSheet(
         modifier = modifier,
@@ -157,27 +152,7 @@ fun AppDrawerContent(
                 onClick = { onNavigate(DrawerDestination.ABOUT); onClose() },
             )
             }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                color = BentoGlassTheme.CardBorderMuted,
-            )
-            drawerItem(
-                icon = AppIcons.Logout,
-                label = stringResource(R.string.drawer_logout),
-                onClick = {
-                    onClose()
-                    showLogoutConfirm = true
-                },
-            )
         }
-    }
-
-    if (showLogoutConfirm) {
-        LogoutConfirmDialog(
-            onDismiss = { showLogoutConfirm = false },
-            onSignedOut = onClose,
-        )
     }
 }
 

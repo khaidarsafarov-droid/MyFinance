@@ -115,35 +115,25 @@ class GoogleAuthArchitectureTest {
     }
 
     @Test
-    fun loginScreen_googlePrimaryEmailOutlined() {
-        val login = readMainSource("com/truckerload/presentation/screens/login/LoginScreen.kt")
-        val googleIdx = login.indexOf("GoogleSignInButton(")
-        val emailIdx = login.indexOf("login_with_email")
-        assertTrue(googleIdx >= 0 && emailIdx > googleIdx)
-        assertTrue(login.contains("OutlinedButton"))
-        val emailBlockStart = login.lastIndexOf("if (!uiState.showEmailFields)")
-        val emailBlock = login.substring(emailBlockStart)
-        assertTrue(emailBlock.contains("OutlinedButton"))
-        assertFalse(emailBlock.substring(0, emailBlock.indexOf("LoginEmailFields")).contains("TlButton"))
+    fun firstRunScreen_hasNameFieldsWithoutGoogleLogin() {
+        val firstRun = readMainSource(
+            "com/truckerload/presentation/screens/auth/FirstRunNameScreen.kt",
+        )
+        assertTrue(firstRun.contains("analytics_share_given_name"))
+        assertTrue(firstRun.contains("analytics_share_family_name"))
+        assertTrue(firstRun.contains("common_save"))
+        assertFalse(firstRun.contains("GoogleSignInButton("))
+        assertFalse(firstRun.contains("login_with_email"))
+        assertFalse(firstRun.contains("onGoogleSignInClick"))
     }
 
     @Test
-    fun signUpScreen_emailPasswordWithoutPhoneOrConsents() {
-        val signUp = readMainSource("com/truckerload/presentation/screens/auth/SignUpScreen.kt")
-        val googleIdx = signUp.indexOf("GoogleSignInButton(")
-        val emailFieldIdx = signUp.indexOf("auth_email_hint")
-        assertTrue(googleIdx >= 0 && emailFieldIdx > googleIdx)
-        assertTrue(signUp.contains("googleSignIn.launch()"))
-        assertTrue(signUp.contains("signup_email_alternative"))
-        assertTrue(signUp.contains("auth_full_name_hint"))
-        assertTrue(signUp.contains("auth_confirm_password_hint"))
-        assertTrue(signUp.contains("SignUpFormValidation.errorResId"))
-        assertFalse(signUp.contains("PhoneWithCountryField"))
-        assertFalse(signUp.contains("RegistrationConsentSection"))
-        assertFalse(signUp.contains("signup_age_confirm"))
-        assertFalse(signUp.contains("signup_tos_confirm"))
-        assertFalse(signUp.contains("signup_analytics_confirm"))
-        assertFalse(signUp.contains("auth_phone_hint"))
+    fun authNavHost_isFirstRunOnly() {
+        val host = readMainSource("com/truckerload/presentation/navigation/AuthNavHost.kt")
+        assertTrue(host.contains("FirstRunNameScreen"))
+        assertFalse(host.contains("LoginScreen"))
+        assertFalse(host.contains("SignUpScreen"))
+        assertFalse(host.contains("GoogleSignInButton"))
     }
 
     @Test

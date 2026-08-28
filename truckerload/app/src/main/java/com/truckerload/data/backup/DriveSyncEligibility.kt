@@ -1,14 +1,10 @@
 package com.truckerload.data.backup
 
-import com.truckerload.data.preferences.AccountIds
-
 /**
- * Google Drive backup is independent of Ktor/Supabase cloud sync.
- * Enqueue whenever the user has a real account (not guest [AccountIds.LOCAL_DEV]).
+ * Google Drive App Folder backup is independent of Ktor/Supabase cloud sync.
+ * Any saved local session (including [com.truckerload.data.preferences.AccountIds.LOCAL_DEV])
+ * can opt in from Settings.
  */
 object DriveSyncEligibility {
-    fun shouldEnqueuePeriodic(userId: String?): Boolean {
-        val id = userId?.trim().orEmpty()
-        return id.isNotEmpty() && id != AccountIds.LOCAL_DEV
-    }
+    fun shouldEnqueuePeriodic(userId: String?): Boolean = !userId.isNullOrBlank()
 }
