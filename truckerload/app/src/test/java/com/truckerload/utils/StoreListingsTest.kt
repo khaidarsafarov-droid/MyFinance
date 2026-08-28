@@ -70,6 +70,12 @@ class StoreListingsTest {
             "iCloud is not available",
             "iCloud на Android",
             "iCloud no está disponible",
+            "журнал грузов Amazon Relay",
+            "Amazon Relay journal",
+            "diario de Amazon Relay",
+            "Вставить из Relay",
+            "Paste from Relay",
+            "Pegar desde Relay",
         )
         folders.forEach { folder ->
             val file = java.io.File("src/main/res/$folder/strings.xml").takeIf { it.isFile }

@@ -229,9 +229,9 @@
 
     <string name="about_app_title">Acerca de la app</string>
     <string name="about_app_version">Versión %1$s (%2$d)</string>
-    <string name="about_app_intro">Cómo usar TruckoRig: diario de Amazon Relay, reclamos, meta semanal, diésel, pagos, impuestos, mapa, informes, Telegram, widget y respaldos.</string>
+    <string name="about_app_intro">Cómo usar TruckoRig: diario de cargas, reclamos, meta semanal, diésel, pagos, impuestos, mapa, informes, Telegram, widget y respaldos.</string>
     <string name="about_guide_loads_title">1. Agregar una carga</string>
-    <string name="about_guide_loads_body">En Inicio toca Agregar carga y elige un método: pega un mensaje de Relay, Telegram o correo, llena el formulario o sube una foto/PDF. Necesitas una tarifa mayor que cero y una dirección de pickup o entrega. Guarda: la carga aparece en el diario con millas y RPM. Si el viaje aún no empieza, puedes poner una alarma de inicio.</string>
+    <string name="about_guide_loads_body">En Inicio toca Agregar carga y elige un método: pega un mensaje, llena el formulario o sube cualquier archivo — foto, PDF u otro documento. Necesitas una tarifa mayor que cero y una dirección de pickup o entrega. Guarda: la carga aparece en el diario con millas y RPM. Si el viaje aún no empieza, puedes poner una alarma de inicio.</string>
     <string name="about_guide_home_title">2. Diario de inicio</string>
     <string name="about_guide_home_body">La pestaña Cargas lista el período elegido: esta o la semana pasada, ayer, este mes, calendario o archivo por año. Busca por Trip ID, ciudad o fecha. El encabezado muestra cantidad, total, millas y RPM promedio. Abre una tarjeta para editar, marcar el fin o adjuntar fotos y escaneos.</string>
     <string name="about_guide_dispute_title">3. Reclamo</string>
@@ -443,9 +443,9 @@
     <string name="home_empty_last_week">Nada la semana pasada</string>
     <string name="home_empty_this_month">Nada este mes</string>
     <string name="home_empty_dispute">Sin reclamos</string>
-    <string name="home_empty_all_body">Pega un mensaje de Relay: verás tarifa, millas y RPM antes de guardar.</string>
+    <string name="home_empty_all_body">Agrega una carga: texto, formulario o archivo. Verás tarifa, millas y RPM antes de guardar.</string>
     <string name="home_empty_filtered_body">Elige otro período o agrega una carga.</string>
-    <string name="home_empty_cta">Pegar desde Relay</string>
+    <string name="home_empty_cta">Agregar carga</string>
     <string name="home_stats_header">%1$d cargas en total  •  $%2$.0f  •  %3$.0f mi  •  %4$s RPM prom.</string>
     <string name="home_period_avg_rpm">%1$s RPM prom.</string>
     <string name="home_period_avg_rpm_label">RPM prom.</string>
@@ -754,7 +754,7 @@
     <string name="add_load_mode_paste">Pegar</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Foto / PDF</string>
-    <string name="add_load_hint_paste">Pega un mensaje de Relay, Telegram o correo. La app lee tarifa, millas y direcciones por ti.</string>
+    <string name="add_load_hint_paste">Pega un mensaje o sube un archivo. La app lee tarifa, millas y direcciones por ti.</string>
     <string name="add_load_hint_manual">Ingresa la tarifa y al menos una dirección. Trip ID puede quedar vacío: la app creará uno.</string>
     <string name="add_load_hint_document">Fotografía un documento o elige cualquier archivo (PDF, foto, TXT, JSON, CSV, DOCX): los campos se llenan solos. Revísalos, edita si hace falta y guarda.</string>
     <string name="add_load_manual_hint">Escribe los datos de la carga. Se requieren tarifa y un punto de pickup o entrega.</string>
@@ -1677,7 +1677,7 @@
     <string name="ux_activation_step_diesel">Diésel registrado</string>
     <string name="ux_loss_goal_behind">%1$s para la meta · quedan %2$d días</string>
     <string name="ux_loss_goal_unset">%1$s esta semana. Puedes fijar una meta si quieres.</string>
-    <string name="ux_loss_no_loads">La semana está vacía. Pega un mensaje de Relay cuando tengas una carga.</string>
+    <string name="ux_loss_no_loads">La semana está vacía. Agrega una carga cuando la tengas.</string>
     <string name="ux_loss_goal_behind_title">Hacia la meta</string>
     <string name="ux_loss_goal_behind_body">Quedan %1$s · %2$d días · %3$s/día</string>
     <string name="ux_next_set_goal">Fijar una meta semanal</string>
@@ -1687,7 +1687,7 @@
     <string name="ux_goal_suggested_label">Elige tu meta</string>
     <string name="ux_goal_ownership_hint">Una meta semanal para que Inicio muestre cuánto ya está adentro</string>
     <string name="ux_profile_setup_progress">Avance de la configuración: %1$d%%</string>
-    <string name="ux_home_empty_reciprocity">Pega un mensaje de Relay: ve tarifa, millas y RPM antes de guardar</string>
+    <string name="ux_home_empty_reciprocity">Agrega una carga: ve tarifa, millas y RPM antes de guardar</string>
     <string name="add_load_preview_title">Vista previa de la carga</string>
     <string name="add_load_preview_gift">Ruta, tarifa y RPM: listo para guardar</string>
     <string name="add_load_preview_parsing">Leyendo mensaje…</string>

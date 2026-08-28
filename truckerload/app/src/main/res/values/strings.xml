@@ -229,9 +229,9 @@
 
     <string name="about_app_title">About the app</string>
     <string name="about_app_version">Version %1$s (%2$d)</string>
-    <string name="about_app_intro">How to use TruckoRig: Amazon Relay journal, disputes, weekly goal, diesel, paychecks, taxes, map, reports, Telegram, widget, and backups.</string>
+    <string name="about_app_intro">How to use TruckoRig: load journal, disputes, weekly goal, diesel, paychecks, taxes, map, reports, Telegram, widget, and backups.</string>
     <string name="about_guide_loads_title">1. Add a load</string>
-    <string name="about_guide_loads_body">On Home tap Add load and pick a method: paste a Relay, Telegram, or email message, fill in the form, or upload a photo/PDF. You need a rate above zero and a pickup or delivery address. Save — the load appears in the journal with miles and RPM. If the trip has not started yet, you can set a start alarm.</string>
+    <string name="about_guide_loads_body">On Home tap Add load and pick a method: paste a message, fill in the form, or upload any file — photo, PDF, or other document. You need a rate above zero and a pickup or delivery address. Save — the load appears in the journal with miles and RPM. If the trip has not started yet, you can set a start alarm.</string>
     <string name="about_guide_home_title">2. Home journal</string>
     <string name="about_guide_home_body">The Loads tab lists the selected period: this or last week, yesterday, this month, calendar, or archive by year. Search by Trip ID, city, or date. The header shows count, total, miles, and average RPM. Open a card to edit, mark finish, or attach photos and scans.</string>
     <string name="about_guide_dispute_title">3. Dispute</string>
@@ -443,9 +443,9 @@
     <string name="home_empty_last_week">Nothing last week</string>
     <string name="home_empty_this_month">Nothing this month</string>
     <string name="home_empty_dispute">No disputes</string>
-    <string name="home_empty_all_body">Paste a Relay message — you’ll see rate, miles, and RPM before you save.</string>
+    <string name="home_empty_all_body">Add a load — as text, a form, or a file. You’ll see rate, miles, and RPM before you save.</string>
     <string name="home_empty_filtered_body">Pick another period or add a load.</string>
-    <string name="home_empty_cta">Paste from Relay</string>
+    <string name="home_empty_cta">Add a load</string>
     <string name="home_stats_header">%1$d loads total  •  $%2$.0f  •  %3$.0f mi  •  %4$s avg RPM</string>
     <string name="home_period_avg_rpm">%1$s avg RPM</string>
     <string name="home_period_avg_rpm_label">avg RPM</string>
@@ -754,7 +754,7 @@
     <string name="add_load_mode_paste">Paste</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Photo / PDF</string>
-    <string name="add_load_hint_paste">Paste a Relay, Telegram, or email message. The app reads rate, miles, and addresses for you.</string>
+    <string name="add_load_hint_paste">Paste a message or upload a file. The app reads rate, miles, and addresses for you.</string>
     <string name="add_load_hint_manual">Enter the rate and at least one address. Trip ID can stay empty — the app will create one.</string>
     <string name="add_load_hint_document">Photograph a document or pick any file (PDF, photo, TXT, JSON, CSV, DOCX) — the fields fill in automatically. Check them, edit if needed, and save.</string>
     <string name="add_load_manual_hint">Type the load details. Rate and a pickup or delivery point are required.</string>
@@ -1677,7 +1677,7 @@
     <string name="ux_activation_step_diesel">Diesel logged</string>
     <string name="ux_loss_goal_behind">%1$s to goal · %2$d days left</string>
     <string name="ux_loss_goal_unset">%1$s this week. You can set a target if you want.</string>
-    <string name="ux_loss_no_loads">Week is empty. Paste a Relay message when you have a load.</string>
+    <string name="ux_loss_no_loads">Week is empty. Add a load when you have one.</string>
     <string name="ux_loss_goal_behind_title">Toward the goal</string>
     <string name="ux_loss_goal_behind_body">%1$s left · %2$d days · %3$s/day</string>
     <string name="ux_next_set_goal">Set a weekly goal</string>
@@ -1687,7 +1687,7 @@
     <string name="ux_goal_suggested_label">Pick your goal</string>
     <string name="ux_goal_ownership_hint">A weekly target so Home can show how much is already in</string>
     <string name="ux_profile_setup_progress">Setup progress: %1$d%%</string>
-    <string name="ux_home_empty_reciprocity">Paste a Relay message — see rate, miles, and RPM before you save</string>
+    <string name="ux_home_empty_reciprocity">Add a load — see rate, miles, and RPM before you save</string>
     <string name="add_load_preview_title">Load preview</string>
     <string name="add_load_preview_gift">Route, rate, and RPM — ready to save</string>
     <string name="add_load_preview_parsing">Reading message…</string>

@@ -229,9 +229,9 @@
 
     <string name="about_app_title">О приложении</string>
     <string name="about_app_version">Версия %1$s (%2$d)</string>
-    <string name="about_app_intro">Как пользоваться TruckoRig: журнал грузов Amazon Relay, диспут, цель недели, дизель, зарплата, налоги, карта, отчёты, Telegram, виджет и бэкап.</string>
+    <string name="about_app_intro">Как пользоваться TruckoRig: журнал грузов, диспут, цель недели, дизель, зарплата, налоги, карта, отчёты, Telegram, виджет и бэкап.</string>
     <string name="about_guide_loads_title">1. Добавить груз</string>
-    <string name="about_guide_loads_body">На главном экране нажмите «Добавить груз» и выберите способ: вставить сообщение Relay, Telegram или почты, заполнить форму или загрузить фото/PDF. Нужны ставка больше нуля и адрес погрузки или выгрузки. Сохраните — груз появится в журнале с милями и RPM. Если рейс ещё не начался, можно поставить будильник на старт.</string>
+    <string name="about_guide_loads_body">На главном экране нажмите «Добавить груз» и выберите способ: вставить текст сообщения, заполнить форму или загрузить любой файл — фото, PDF и другие документы. Нужны ставка больше нуля и адрес погрузки или выгрузки. Сохраните — груз появится в журнале с милями и RPM. Если рейс ещё не начался, можно поставить будильник на старт.</string>
     <string name="about_guide_home_title">2. Журнал на главной</string>
     <string name="about_guide_home_body">Вкладка «Грузы» показывает список за период: эта или прошлая неделя, вчера, месяц, календарь, архив по годам. Поиск — по Trip ID, городу или дате. Сверху — число грузов, сумма, мили и средний RPM. Откройте карточку, чтобы править данные, отметить финиш или прикрепить фото и сканы.</string>
     <string name="about_guide_dispute_title">3. Диспют</string>
@@ -443,9 +443,9 @@
     <string name="home_empty_last_week">За прошлую неделю записей нет</string>
     <string name="home_empty_this_month">За этот месяц записей нет</string>
     <string name="home_empty_dispute">Диспютов нет</string>
-    <string name="home_empty_all_body">Вставьте сообщение Relay — увидите сумму, мили и RPM до сохранения.</string>
+    <string name="home_empty_all_body">Добавьте груз — текстом, формой или файлом. Сумма, мили и RPM появятся до сохранения.</string>
     <string name="home_empty_filtered_body">Можно сменить период или добавить груз.</string>
-    <string name="home_empty_cta">Вставить из Relay</string>
+    <string name="home_empty_cta">Добавить груз</string>
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
     <string name="home_period_avg_rpm">%1$s ср. RPM</string>
     <string name="home_period_avg_rpm_label">ср. RPM</string>
@@ -754,7 +754,7 @@
     <string name="add_load_mode_paste">Вставить</string>
     <string name="add_load_mode_manual">Вручную</string>
     <string name="add_load_mode_document">Фото / PDF</string>
-    <string name="add_load_hint_paste">Вставьте сообщение из Relay, Telegram или почты. Приложение само разберёт ставку, мили и адреса.</string>
+    <string name="add_load_hint_paste">Вставьте текст сообщения или загрузите файл. Приложение само разберёт ставку, мили и адреса.</string>
     <string name="add_load_hint_manual">Заполните ставку и хотя бы один адрес. Trip ID можно оставить пустым — приложение создаст его само.</string>
     <string name="add_load_hint_document">Сфотографируйте документ или выберите любой файл (PDF, фото, TXT, JSON, CSV, DOCX) — поля заполнятся сами. Проверьте, поправьте и сохраните.</string>
     <string name="add_load_manual_hint">Введите данные груза. Обязательны ставка и пункт погрузки или выгрузки.</string>
@@ -1679,7 +1679,7 @@
     <string name="ux_activation_step_diesel">Дизель учтён</string>
     <string name="ux_loss_goal_behind">До цели %1$s · ещё %2$d дн.</string>
     <string name="ux_loss_goal_unset">За неделю %1$s. Можно задать цель — по желанию.</string>
-    <string name="ux_loss_no_loads">Неделя пустая. Вставьте сообщение Relay, когда будет груз.</string>
+    <string name="ux_loss_no_loads">Неделя пустая. Добавьте груз, когда он появится.</string>
     <string name="ux_loss_goal_behind_title">До цели</string>
     <string name="ux_loss_goal_behind_body">Осталось %1$s · %2$d дн. · %3$s/день</string>
     <string name="ux_next_set_goal">Задать цель недели</string>
@@ -1689,7 +1689,7 @@
     <string name="ux_goal_suggested_label">Выберите свою цель</string>
     <string name="ux_goal_ownership_hint">Цель недели — чтобы на главном сразу видеть, сколько уже есть</string>
     <string name="ux_profile_setup_progress">Прогресс настройки: %1$d%%</string>
-    <string name="ux_home_empty_reciprocity">Вставьте сообщение Relay — сразу увидите сумму, мили и RPM, ещё до сохранения</string>
+    <string name="ux_home_empty_reciprocity">Добавьте груз — сразу увидите сумму, мили и RPM, ещё до сохранения</string>
     <string name="add_load_preview_title">Предпросмотр груза</string>
     <string name="add_load_preview_gift">Маршрут, ставка и RPM — можно сохранять</string>
     <string name="add_load_preview_parsing">Читаем сообщение…</string>
