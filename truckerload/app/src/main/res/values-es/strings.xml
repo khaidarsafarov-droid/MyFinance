@@ -76,7 +76,7 @@
     <string name="login_continue_offline">Continuar sin conexión</string>
     <string name="login_continue_offline_hint">El diario se queda en este dispositivo: sin Google ni nube.</string>
     <string name="login_google_sync_hint">Iniciar sesión con Google también te permite respaldar en tu Google Drive.</string>
-    <string name="login_google_drive_cta">Sesión iniciada con Google, pero no se otorgó acceso a Drive. Abre Ajustes → Google Drive para conectar el respaldo.</string>
+    <string name="login_google_drive_cta">Google Drive aún no está conectado. Abre Ajustes → Google Drive para guardar una copia.</string>
     <string name="login_checking">Verificando cuenta…</string>
 
     <string name="home_brand_title">TruckoRig</string>
@@ -122,8 +122,8 @@
     <string name="analytics_share_name_hint">El nombre y apellido de tu perfil van al archivo. Puedes editarlos antes de enviar.</string>
     <string name="social_chat_name_hint">Nombre del chat</string>
     <string name="social_chat_create_error">No se pudo crear el chat: %1$s</string>
-    <string name="login_google_error">Error de inicio de sesión con Google: %1$s. Configura OAuth en Google Cloud Console (paquete: com.truckorig, SHA-1).</string>
-    <string name="login_google_developer_error">SHA-1 / cliente OAuth incorrecto (código 10). Agrega el SHA-1 de firma de este APK en Google Cloud Console para com.truckorig: %1$s</string>
+    <string name="login_google_error">No se pudo conectar con Google. Inténtalo de nuevo.</string>
+    <string name="login_google_developer_error">No se pudo conectar con Google. Inténtalo de nuevo.</string>
     <string name="login_google_play_services_error">Google Play Services no está instalado o está desactualizado en este dispositivo.</string>
     <string name="login_google_fallback">Supabase no está disponible por ahora (%1$s). Sesión iniciada en local.</string>
     <string name="login_google_cancelled">Inicio de sesión cancelado</string>
@@ -961,12 +961,12 @@
     <string name="settings_backup_restore_hint">Archivo .json / .tlb de Downloads/TruckoRig (el Loads_….txt antiguo sigue funcionando si contiene JSON)</string>
     <string name="settings_backup_share_title">Compartir respaldo</string>
     <string name="drive_sync_title">Google Drive</string>
-    <string name="drive_sync_desc">Los datos se quedan en Room en el teléfono. La copia en la nube va a tu cuenta de Google (carpeta oculta de la app). iCloud no está disponible en Android.</string>
-    <string name="drive_sync_google_user_hint">Iniciaste sesión con Google: el acceso a Drive se pidió al entrar. No hace falta autorizar de nuevo si ya lo otorgaste.</string>
-    <string name="drive_sync_google_linked_hint">El respaldo usa la misma cuenta de Google con la que iniciaste sesión. No hace falta un inicio de sesión aparte de Drive.</string>
-    <string name="drive_sync_email_user_hint">Iniciaste sesión con correo. Conecta Google Drive por separado (solo acceso a la carpeta de la app: esto no crea una cuenta nueva de TruckerLoad), o usa el respaldo de archivo en “Exportar y respaldar” arriba.</string>
-    <string name="drive_sync_local_user_hint">Los respaldos van a la carpeta oculta de Google Drive de esta app. La app no puede ver tus archivos personales.</string>
-    <string name="drive_sync_email_linked_hint">Google Drive está conectado solo para respaldo y no cambia cómo inicias sesión.</string>
+    <string name="drive_sync_desc">Tu registro se queda en este teléfono. Puedes guardar una copia en Google Drive: la app solo usa su propia carpeta, no tus archivos personales.</string>
+    <string name="drive_sync_google_user_hint">Conecta Google Drive para guardar una copia de tu registro.</string>
+    <string name="drive_sync_google_linked_hint">La copia de tu registro se guarda en esta cuenta de Google.</string>
+    <string name="drive_sync_email_user_hint">Conecta Google Drive para una copia en la nube, o guarda un archivo en “Exportar y respaldar” arriba.</string>
+    <string name="drive_sync_local_user_hint">Conecta Google Drive para guardar una copia de tu registro. La app no puede ver tus archivos personales.</string>
+    <string name="drive_sync_email_linked_hint">Google Drive está conectado para una copia de seguridad de tu registro.</string>
     <string name="drive_sync_status_off">No conectado</string>
     <string name="drive_sync_status_on">Conectado: %1$s</string>
     <string name="drive_sync_last">Última sincronización: %1$s</string>
@@ -1703,8 +1703,8 @@
     <string name="settings_backup_working">Creando respaldo…</string>
     <string name="settings_backup_restoring">Restaurando datos…</string>
     <string name="settings_share_app_title">Compartir la app</string>
-    <string name="settings_share_app_body">Envía a un amigo un enlace: Google Play para Android, App Store para iPhone. Sus datos se quedan en su teléfono.</string>
-    <string name="settings_share_app_body_play_only">Envía a un amigo el enlace de Google Play. El enlace de App Store para iPhone se agregará solo cuando la cuenta de la tienda esté lista.</string>
+    <string name="settings_share_app_body">Envía a un amigo un enlace: Google Play para Android o App Store para iPhone.</string>
+    <string name="settings_share_app_body_play_only">Envía a un amigo un enlace para que descargue la app en Google Play.</string>
     <string name="settings_share_app_button">Compartir enlace</string>
     <string name="settings_share_app_unavailable">No se pudo abrir el menú de compartir</string>
     <string name="settings_share_app_chooser">Compartir TruckoRig</string>

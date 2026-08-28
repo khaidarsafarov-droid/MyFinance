@@ -76,7 +76,7 @@
     <string name="login_continue_offline">Continue offline</string>
     <string name="login_continue_offline_hint">Journal stays on this device — no Google or cloud sign-in.</string>
     <string name="login_google_sync_hint">Signing in with Google also lets you back up to your Google Drive.</string>
-    <string name="login_google_drive_cta">Signed in with Google, but Drive access was not granted. Open Settings → Google Drive to connect backup.</string>
+    <string name="login_google_drive_cta">Google Drive isn’t connected yet. Open Settings → Google Drive to save a backup.</string>
     <string name="login_checking">Checking account…</string>
 
     <string name="home_brand_title">TruckoRig</string>
@@ -122,8 +122,8 @@
     <string name="analytics_share_name_hint">Your profile first and last name go into the file. You can edit them before sending.</string>
     <string name="social_chat_name_hint">Chat name</string>
     <string name="social_chat_create_error">Could not create chat: %1$s</string>
-    <string name="login_google_error">Google sign-in error: %1$s. Configure OAuth in Google Cloud Console (package: com.truckorig, SHA-1).</string>
-    <string name="login_google_developer_error">wrong SHA-1 / OAuth client (code 10). Add this APK signing SHA-1 in Google Cloud Console for com.truckorig: %1$s</string>
+    <string name="login_google_error">Couldn’t connect to Google. Please try again.</string>
+    <string name="login_google_developer_error">Couldn’t connect to Google. Please try again.</string>
     <string name="login_google_play_services_error">Google Play Services are missing or outdated on this device.</string>
     <string name="login_google_fallback">Supabase temporarily unavailable (%1$s). Signed in locally.</string>
     <string name="login_google_cancelled">Sign-in cancelled</string>
@@ -961,12 +961,12 @@
     <string name="settings_backup_restore_hint">.json / .tlb file from Downloads/TruckoRig (legacy Loads_….txt still works if it contains JSON)</string>
     <string name="settings_backup_share_title">Share backup</string>
     <string name="drive_sync_title">Google Drive</string>
-    <string name="drive_sync_desc">Data stays in Room on the phone. Cloud copy goes to your Google account (hidden app folder). iCloud is not available on Android.</string>
-    <string name="drive_sync_google_user_hint">You signed in with Google — Drive access was requested at login. You do not need to authorize again if you already granted it.</string>
-    <string name="drive_sync_google_linked_hint">Backup uses the same Google account you signed in with. No separate Drive login is needed.</string>
-    <string name="drive_sync_email_user_hint">You signed in with email. Connect Google Drive separately (app-folder access only — this does not create a new TruckerLoad account), or use the file backup in “Export and backup” above.</string>
-    <string name="drive_sync_local_user_hint">Backups go into this app’s hidden Google Drive folder. The app cannot see your personal files.</string>
-    <string name="drive_sync_email_linked_hint">Google Drive is connected for backup only and does not change how you sign in.</string>
+    <string name="drive_sync_desc">Your log stays on this phone. You can save a copy to Google Drive — the app only uses its own folder, not your personal files.</string>
+    <string name="drive_sync_google_user_hint">Connect Google Drive to save a copy of your log.</string>
+    <string name="drive_sync_google_linked_hint">Your log copy is saved to this Google account.</string>
+    <string name="drive_sync_email_user_hint">Connect Google Drive for a cloud copy, or save a file in “Export and backup” above.</string>
+    <string name="drive_sync_local_user_hint">Connect Google Drive to save a copy of your log. The app cannot see your personal files.</string>
+    <string name="drive_sync_email_linked_hint">Google Drive is connected for a backup of your log.</string>
     <string name="drive_sync_status_off">Not connected</string>
     <string name="drive_sync_status_on">Connected: %1$s</string>
     <string name="drive_sync_last">Last sync: %1$s</string>
@@ -1703,8 +1703,8 @@
     <string name="settings_backup_working">Creating backup…</string>
     <string name="settings_backup_restoring">Restoring data…</string>
     <string name="settings_share_app_title">Share the app</string>
-    <string name="settings_share_app_body">Send a friend a link: Google Play for Android, App Store for iPhone. Their data stays on their phone.</string>
-    <string name="settings_share_app_body_play_only">Send a friend the Google Play link. The App Store link for iPhone will be added automatically when the store account is ready.</string>
+    <string name="settings_share_app_body">Send a friend a link: Google Play for Android, or the App Store for iPhone.</string>
+    <string name="settings_share_app_body_play_only">Send a friend a link so they can get the app on Google Play.</string>
     <string name="settings_share_app_button">Share link</string>
     <string name="settings_share_app_unavailable">Could not open the share menu</string>
     <string name="settings_share_app_chooser">Share TruckoRig</string>

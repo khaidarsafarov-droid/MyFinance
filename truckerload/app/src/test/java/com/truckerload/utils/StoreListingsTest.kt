@@ -53,4 +53,35 @@ class StoreListingsTest {
         assertTrue(both.contains("iPhone:"))
         assertTrue(both.contains("https://apps.apple.com/app/id1234567890"))
     }
+
+    @Test
+    fun shareAndDriveCopy_staysUserFacingInAllLocales() {
+        val folders = listOf("values", "values-en", "values-ru", "values-es")
+        val banned = listOf(
+            "store account is ready",
+            "аккаунт в магазине",
+            "cuenta de la tienda",
+            "will be added automatically",
+            "подставится сама",
+            "se agregará solo",
+            "stays in Room",
+            "остаются в Room",
+            "se quedan en Room",
+            "iCloud is not available",
+            "iCloud на Android",
+            "iCloud no está disponible",
+        )
+        folders.forEach { folder ->
+            val file = java.io.File("src/main/res/$folder/strings.xml").takeIf { it.isFile }
+                ?: java.io.File("app/src/main/res/$folder/strings.xml")
+            val xml = file.readText()
+            banned.forEach { phrase ->
+                assertFalse("$folder still contains “$phrase”", xml.contains(phrase))
+            }
+            assertTrue(
+                "$folder is missing share play-only copy",
+                xml.contains("name=\"settings_share_app_body_play_only\""),
+            )
+        }
+    }
 }

@@ -22,12 +22,14 @@ class GoogleSignInSupportTest {
     }
 
     @Test
-    fun developerErrorString_includesShaPlaceholder() {
+    fun developerErrorString_isUserFacing() {
         val values = File("src/main/res/values/strings.xml").takeIf { it.isFile }
             ?: File("app/src/main/res/values/strings.xml")
         val xml = values.readText()
         val line = xml.lineSequence().first { it.contains("name=\"login_google_developer_error\"") }
-        assertTrue(line.contains("%1\$s"))
+        assertTrue(line.contains("Please try again"))
+        assertTrue(!line.contains("Cloud Console"))
+        assertTrue(!line.contains("SHA-1"))
     }
 
     private fun readMainSource(relativePath: String): String {
