@@ -27,7 +27,8 @@ object WidgetTruckProgressBitmap {
         val safeWidth = widthPx.coerceAtLeast(48)
         val trackHeight = barHeightPx.coerceAtLeast(10)
         val truckHeight = (trackHeight * 2.95f).roundToInt().coerceIn(30, 76)
-        val truckWidth = (truckHeight * 2.05f).roundToInt()
+        // Slightly shorter nose-to-tail so the marker reads cleaner on narrow widgets.
+        val truckWidth = (truckHeight * 1.72f).roundToInt()
         val headroom = (truckHeight - trackHeight).coerceAtLeast(10)
         val safeHeight = trackHeight + headroom
         val bitmap = createBitmap(safeWidth, safeHeight)
@@ -155,13 +156,13 @@ object WidgetTruckProgressBitmap {
         canvas.withSave {
             translate(left, top)
 
-            // Soft contact shadow along the track (keeps the marker grounded).
+            // Soft contact shadow on the progress baseline (under the tires).
             val shadow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = 0x3A000000
                 style = Paint.Style.FILL
             }
             drawOval(
-                RectF(truckWidth * 0.08f, truckHeight * 0.88f, truckWidth * 0.94f, truckHeight * 0.98f),
+                RectF(truckWidth * 0.10f, truckHeight * 0.90f, truckWidth * 0.92f, truckHeight * 0.995f),
                 shadow,
             )
 
@@ -201,9 +202,9 @@ object WidgetTruckProgressBitmap {
             val tractor = buildTractorPath(truckWidth, truckHeight)
             val hitch = RectF(
                 truckWidth * 0.485f,
-                truckHeight * 0.48f,
+                truckHeight * 0.50f,
                 truckWidth * 0.575f,
-                truckHeight * 0.56f,
+                truckHeight * 0.58f,
             )
 
             drawPath(trailer, bodyFill)
@@ -233,7 +234,7 @@ object WidgetTruckProgressBitmap {
     /** Dry van with rounded corners. */
     private fun buildTrailerPath(width: Float, height: Float): Path {
         val p = Path()
-        val box = RectF(width * 0.02f, height * 0.12f, width * 0.50f, height * 0.56f)
+        val box = RectF(width * 0.02f, height * 0.10f, width * 0.50f, height * 0.58f)
         val rx = width * 0.038f
         p.addRoundRect(box, rx, rx, Path.Direction.CW)
         return p
@@ -244,19 +245,19 @@ object WidgetTruckProgressBitmap {
         val p = Path()
         val w = width
         val h = height
-        val deck = h * 0.56f
+        val deck = h * 0.58f
         val sleeperLeft = w * 0.555f
-        val roof = h * 0.11f
+        val roof = h * 0.09f
         p.moveTo(sleeperLeft, deck)
         p.lineTo(sleeperLeft, roof + h * 0.04f)
         p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.035f, roof)
         p.lineTo(w * 0.695f, roof)
         // Windshield rake
-        p.lineTo(w * 0.735f, h * 0.19f)
-        p.lineTo(w * 0.825f, h * 0.19f)
+        p.lineTo(w * 0.735f, h * 0.18f)
+        p.lineTo(w * 0.825f, h * 0.18f)
         // Hood slope to bumper
-        p.lineTo(w * 0.935f, h * 0.33f)
-        p.quadTo(w * 0.99f, h * 0.37f, w * 0.99f, deck)
+        p.lineTo(w * 0.935f, h * 0.32f)
+        p.quadTo(w * 0.99f, h * 0.36f, w * 0.99f, deck)
         p.close()
         return p
     }
@@ -390,14 +391,15 @@ object WidgetTruckProgressBitmap {
         trackHeight: Float,
         outlineColor: Int,
     ) {
-        val radius = truckHeight * 0.105f
-        val restY = truckHeight - trackHeight
-        val cy = restY - radius * 0.12f
-        // Trailer tandem + drive axle
+        // Larger tires; bottom of each tire sits exactly on the progress-bar baseline
+        // (local y = truckHeight maps to barBottom in create()).
+        val radius = truckHeight * 0.138f
+        val cy = truckHeight - radius
+        // Trailer tandem + drive axle (tighter spacing for the shorter body).
         val wheelXs = floatArrayOf(
-            truckWidth * 0.15f,
-            truckWidth * 0.27f,
-            truckWidth * 0.82f,
+            truckWidth * 0.16f,
+            truckWidth * 0.30f,
+            truckWidth * 0.84f,
         )
         val tire = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = outlineColor
