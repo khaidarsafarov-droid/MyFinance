@@ -10,8 +10,10 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34])
 class WidgetTruckProgressBitmapTest {
 
@@ -28,6 +30,7 @@ class WidgetTruckProgressBitmapTest {
         assertTrue(src.contains("buildTractorPath"))
         assertTrue(src.contains("drawHeadlight"))
         assertTrue(src.contains("Style.FILL"))
+        assertTrue(src.contains("hitch"))
         assertTrue(!src.contains("buildTruckBodyPath"))
     }
 
@@ -61,8 +64,13 @@ class WidgetTruckProgressBitmapTest {
         }
         assertTrue("expected truck + bar pixels, got $opaque", opaque > 80)
         val out = File("/tmp/truckorig_progress_truck.png")
+        val plate = Bitmap.createBitmap(bmp.width, bmp.height, Bitmap.Config.ARGB_8888)
+        android.graphics.Canvas(plate).apply {
+            drawColor(android.graphics.Color.WHITE)
+            drawBitmap(bmp, 0f, 0f, null)
+        }
         FileOutputStream(out).use { stream ->
-            assertTrue(bmp.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            assertTrue(plate.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         assertTrue(out.length() > 200)
     }

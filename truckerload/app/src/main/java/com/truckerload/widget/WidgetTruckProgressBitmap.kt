@@ -171,9 +171,17 @@ object WidgetTruckProgressBitmap {
             }
             val trailer = buildTrailerPath(truckWidth, truckHeight)
             val tractor = buildTractorPath(truckWidth, truckHeight)
+            val hitch = RectF(
+                truckWidth * 0.48f,
+                truckHeight * 0.50f,
+                truckWidth * 0.58f,
+                truckHeight * 0.56f,
+            )
             drawPath(trailer, fillPaint)
+            drawRoundRect(hitch, truckWidth * 0.02f, truckWidth * 0.02f, fillPaint)
             drawPath(tractor, fillPaint)
             drawPath(trailer, strokePaint)
+            drawRoundRect(hitch, truckWidth * 0.02f, truckWidth * 0.02f, strokePaint)
             drawPath(tractor, strokePaint)
             drawCabWindow(
                 canvas = this,
@@ -194,7 +202,7 @@ object WidgetTruckProgressBitmap {
     /** Dry van sitting on the fifth-wheel, rounded box. */
     private fun buildTrailerPath(width: Float, height: Float): Path {
         val p = Path()
-        val box = RectF(width * 0.03f, height * 0.14f, width * 0.54f, height * 0.56f)
+        val box = RectF(width * 0.03f, height * 0.14f, width * 0.50f, height * 0.56f)
         val rx = width * 0.045f
         p.addRoundRect(box, rx, rx, Path.Direction.CW)
         return p
@@ -206,7 +214,7 @@ object WidgetTruckProgressBitmap {
         val w = width
         val h = height
         val deck = h * 0.56f
-        val sleeperLeft = w * 0.52f
+        val sleeperLeft = w * 0.56f
         val roof = h * 0.12f
         p.moveTo(sleeperLeft, deck)
         p.lineTo(sleeperLeft, roof + h * 0.05f)
