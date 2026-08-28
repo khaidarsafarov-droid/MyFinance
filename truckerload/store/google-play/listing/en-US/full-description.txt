@@ -1,0 +1,25 @@
+TruckoRig is a local-first logbook for truck drivers. Keep loads, paychecks, diesel, and weekly goals on your phone — with optional Telegram import and Google Drive backup.
+
+WHAT YOU CAN DO
+• Paste or forward Amazon Relay / broker load messages and save them to your journal
+• Track paychecks and diesel receipts in one place
+• Set a weekly profit goal and see pace at a glance
+• Scan documents and attach photos to loads
+• Home-screen widgets for quick diesel / camera / scan actions
+• Optional Telegram bot on the device to import chat history
+• Optional Google Sign-In + Drive backup (you stay in control)
+
+PRIVACY BY DESIGN
+• Journal data lives in an on-device database (Room)
+• Cloud sync and Drive are optional — turn them on only if you need them
+• Camera and location are used only when you take geotagged photos or enable map features
+• No ads. No selling of load data
+
+GETTING STARTED
+1. Sign in with Google or continue with email
+2. Add your first load (paste a Relay message or enter manually)
+3. Optionally link Telegram or Google Drive in Settings
+
+Support: use in-app Settings → About / feedback, or the contact email listed on this Play Store page.
+
+Package: com.truckorig
