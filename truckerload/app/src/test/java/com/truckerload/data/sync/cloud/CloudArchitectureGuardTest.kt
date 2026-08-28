@@ -76,7 +76,7 @@ class CloudArchitectureGuardTest {
         val diesel = readMain("com/truckerload/data/repository/DieselRepository.kt")
         assertTrue(diesel.contains("JournalSyncClock.bump"))
         val cdc = readMain("com/truckerload/data/repository/LoadRepositorySync.kt")
-        assertTrue(cdc.indexOf("db.withTransaction") < cdc.indexOf("getExistingTripIds(tripIds)"))
+        assertTrue(cdc.indexOf("db.withTransaction") < cdc.indexOf("processor.processLoad"))
         val telegramWorker = readMain("com/truckerload/sync/TelegramSyncWorker.kt")
         assertFalse(telegramWorker.contains("TelegramPollCoordinator.withPollLock"))
         val driveWorker = readMain("com/truckerload/data/backup/DriveSyncWorker.kt")
