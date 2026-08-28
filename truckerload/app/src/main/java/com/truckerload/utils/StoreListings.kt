@@ -11,7 +11,7 @@ package com.truckerload.utils
  * text — no other UI change needed.
  */
 object StoreListings {
-    const val ANDROID_PACKAGE = "com.truckerload"
+    const val ANDROID_PACKAGE = "com.truckorig"
 
     /** Numeric App Store Connect ID. Blank until the iOS listing is live. */
     const val APP_STORE_ID = ""

@@ -8,7 +8,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:data="truckerload://app/add_load"
-            android:targetPackage="com.truckerload"
+            android:targetPackage="com.truckorig"
             android:targetClass="com.truckerload.presentation.MainActivity" />
     </shortcut>
 
@@ -19,7 +19,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:data="truckerload://app/add_diesel"
-            android:targetPackage="com.truckerload"
+            android:targetPackage="com.truckorig"
             android:targetClass="com.truckerload.presentation.MainActivity" />
     </shortcut>
 
@@ -30,7 +30,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:data="truckerload://app/add_paycheck"
-            android:targetPackage="com.truckerload"
+            android:targetPackage="com.truckorig"
             android:targetClass="com.truckerload.presentation.MainActivity" />
     </shortcut>
 
@@ -41,7 +41,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:data="truckerload://app/stats"
-            android:targetPackage="com.truckerload"
+            android:targetPackage="com.truckorig"
             android:targetClass="com.truckerload.presentation.MainActivity" />
     </shortcut>
 </shortcuts>

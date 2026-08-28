@@ -19,7 +19,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.truckerload"
+        applicationId = "com.truckorig"
         minSdk = 24
         targetSdk = 35
         versionCode = 11

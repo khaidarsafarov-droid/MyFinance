@@ -10,7 +10,7 @@ import android.util.Log
 /** Schedules exact alarms that fire [LoadAlarmReceiver] for upcoming load pickups. */
 object LoadAlarmScheduler {
 
-    const val ACTION_LOAD_ALARM = "com.truckerload.action.LOAD_PICKUP_ALARM"
+    const val ACTION_LOAD_ALARM = "com.truckorig.action.LOAD_PICKUP_ALARM"
     const val EXTRA_LOAD_ID = "load_id"
     const val EXTRA_TRIP_ID = "trip_id"
     const val EXTRA_PICKUP_MILLIS = "pickup_millis"
