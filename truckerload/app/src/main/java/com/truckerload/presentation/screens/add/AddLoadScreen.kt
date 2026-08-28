@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.add
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +29,6 @@ import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
@@ -138,6 +138,7 @@ fun AddLoadScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(BentoGlassTheme.ScreenBackground)
                 .padding(padding)
                 .verticalContentScroll()
                 .padding(horizontal = 24.dp, vertical = 8.dp),
@@ -220,20 +221,17 @@ fun AddLoadScreen(
 
 @Composable
 private fun PasteLoadCard(rawText: String, onRawText: (String) -> Unit) {
-    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = rawText,
-            onValueChange = onRawText,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .padding(12.dp),
-            label = { Text(stringResource(R.string.add_load_input_label)) },
-            placeholder = { Text(stringResource(R.string.add_load_input_placeholder)) },
-            shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
-            colors = AppTextFieldDefaults.outlined(),
-        )
-    }
+    OutlinedTextField(
+        value = rawText,
+        onValueChange = onRawText,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        label = { Text(stringResource(R.string.add_load_input_label)) },
+        placeholder = { Text(stringResource(R.string.add_load_input_placeholder)) },
+        shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
+        colors = AppTextFieldDefaults.outlined(),
+    )
 }
 
 @Composable
