@@ -23,6 +23,20 @@ object StopsHasher {
         return sha256(normalized)
     }
 
+    /**
+     * Route identity without [Stop.scheduledTime] — used for duplicate ingest when
+     * Relay resends the same lane with rescheduled PU/DEL times.
+     */
+    fun calculateRouteFingerprint(stops: List<Stop>): String {
+        val normalized = stops
+            .sortedBy { it.stopNumber }
+            .joinToString("|") { stop ->
+                "${stop.stopNumber}|${stop.type}|${stop.city}|${stop.state}|" +
+                    stop.facilityCode.orEmpty()
+            }
+        return sha256(normalized)
+    }
+
     private fun sha256(input: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
         return bytes.joinToString("") { "%02x".format(it) }

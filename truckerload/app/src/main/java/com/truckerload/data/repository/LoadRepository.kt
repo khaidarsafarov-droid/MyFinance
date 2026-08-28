@@ -307,9 +307,14 @@ class LoadRepository(
         return entity.toDomain(stopsFor(entity.id), penaltiesFor(entity.id))
     }
 
-    suspend fun getByRouteAndDate(origin: String, destination: String, date: String): Load? {
+    suspend fun getByRouteAndDate(
+        origin: String,
+        destination: String,
+        date: String,
+        rate: Double,
+    ): Load? {
         if (origin.isBlank() || destination.isBlank() || date.isBlank()) return null
-        val entity = loadDao.getByRouteAndDate(origin, destination, date) ?: return null
+        val entity = loadDao.getByRouteAndDate(origin, destination, date, rate) ?: return null
         return entity.toDomain(stopsFor(entity.id), penaltiesFor(entity.id))
     }
 

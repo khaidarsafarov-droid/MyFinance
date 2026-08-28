@@ -165,6 +165,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Closes the singleton only when it still belongs to [userId] (safe during account switch). */
+        fun closeIfCurrentUser(userId: String) {
+            val id = userId.trim()
+            if (id.isBlank()) return
+            synchronized(this) {
+                if (currentUserId == id) {
+                    INSTANCE?.close()
+                    INSTANCE = null
+                    currentUserId = null
+                }
+            }
+        }
+
         fun currentUserIdOrNull(): String? = currentUserId
 
         fun databaseNameFor(userId: String): String =

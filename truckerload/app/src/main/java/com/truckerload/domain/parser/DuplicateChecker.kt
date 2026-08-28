@@ -29,6 +29,7 @@ class DuplicateChecker(
             origin = parsedLoad.firstPuCityState.ifBlank { parsedLoad.pointA },
             destination = parsedLoad.lastDelCityState.ifBlank { parsedLoad.pointB },
             date = parsedLoad.date,
+            rate = parsedLoad.totalRate,
         )
         if (byRouteAndDate != null && isLikelySameLoad(byRouteAndDate, parsedLoad)) {
             return DuplicateResult.Suspicious(
@@ -59,8 +60,11 @@ class DuplicateChecker(
         if (existing.tripId.equals(incoming.tripId, ignoreCase = true)) return true
         val comparison = compareLoads(old = existing, new = incoming)
         if (comparison.isIdentical()) return true
+        val routeMatch = StopsHasher.calculateRouteFingerprint(existing.stops) ==
+            StopsHasher.calculateRouteFingerprint(incoming.stops)
+        // FIX: same lane/day/rate with rescheduled times → update, not second insert
         return existing.date == incoming.date &&
-            comparison.stopsHashMatch &&
-            comparison.totalRateMatch
+            comparison.totalRateMatch &&
+            (comparison.stopsHashMatch || routeMatch)
     }
 }

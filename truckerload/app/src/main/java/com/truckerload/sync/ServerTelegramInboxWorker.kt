@@ -55,6 +55,8 @@ class ServerTelegramInboxWorker @AssistedInject constructor(
             return Result.retry()
         }
         for (item in inbox.items.sortedBy { it.updateId }) {
+            val lastCursor = cursor(userId)
+            if (item.updateId <= lastCursor) continue
             val processed = runCatching {
                 processor.process(item.text, item.receivedAt)
             }.getOrElse {
@@ -62,14 +64,16 @@ class ServerTelegramInboxWorker @AssistedInject constructor(
                 return Result.retry()
             }
             if (processed !in ACKNOWLEDGEABLE_RESULTS) return Result.retry()
+            // FIX: persist cursor before server ack — crash after ack won't reprocess
+            markCursor(userId, item.updateId)
             val acknowledged = runCatching {
                 client.acknowledgeTelegramInbox(item.updateId)
             }.isSuccess
             if (!acknowledged) {
                 Log.w(TAG, "Server Telegram inbox acknowledgement failed")
+                markCursor(userId, lastCursor)
                 return Result.retry()
             }
-            markCursor(userId, item.updateId)
         }
         return Result.success()
     }

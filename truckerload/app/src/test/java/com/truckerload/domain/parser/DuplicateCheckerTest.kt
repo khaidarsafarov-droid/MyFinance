@@ -4,6 +4,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,7 +35,28 @@ class DuplicateCheckerTest {
         assertTrue(checker.isLikelySameLoad(existing, incoming))
     }
 
-    private fun sampleLoad(tripId: String, rate: Double): Load {
+    @Test
+    fun sameRouteAndDate_rescheduledTimes_isSameLoad() {
+        val existing = sampleLoad(tripId = "T-1", rate = 1500.0, puTime = "2026-08-01 08:00")
+        val incoming = sampleLoad(tripId = "T-2", rate = 1500.0, puTime = "2026-08-01 10:30")
+        assertTrue(checker.isLikelySameLoad(existing, incoming))
+    }
+
+    @Test
+    fun routeFingerprint_ignoresScheduledTime() {
+        val stopsA = sampleLoad("T-1", 1500.0, "2026-08-01 08:00").stops
+        val stopsB = sampleLoad("T-2", 1500.0, "2026-08-01 12:00").stops
+        assertEquals(
+            StopsHasher.calculateRouteFingerprint(stopsA),
+            StopsHasher.calculateRouteFingerprint(stopsB),
+        )
+        assertFalse(
+            StopsHasher.calculateStopsHash(stopsA) ==
+                StopsHasher.calculateStopsHash(stopsB),
+        )
+    }
+
+    private fun sampleLoad(tripId: String, rate: Double, puTime: String = "2026-08-01 08:00"): Load {
         val stops = listOf(
             Stop(
                 id = 1,
@@ -43,7 +65,7 @@ class DuplicateCheckerTest {
                 type = StopType.PU,
                 puNumber = null,
                 note = null,
-                scheduledTime = "2026-08-01 08:00",
+                scheduledTime = puTime,
                 timezone = "America/New_York",
                 facilityCode = "SWF2",
                 fullAddress = "SWF2, Garner, NC",

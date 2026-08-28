@@ -2,12 +2,9 @@ package com.truckerload.sync
 
 import android.content.Context
 import android.util.Log
-import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.di.userComponentManager
 import com.truckerload.sync.telegram.TelegramApiClient
 import com.truckerload.sync.telegram.TelegramMessageParser
 import com.truckerload.sync.telegram.TelegramStateMachine
@@ -58,10 +55,12 @@ class TelegramBotSyncEngine(private val context: Context) {
         val dispatcher = TelegramUpdateDispatcher(context, apiClient, messageParser)
         val stateMachine = TelegramStateMachine(prefs)
 
-        val db = AppDatabase.getInstance(context, userId)
-        val loadRepository = LoadRepository(db)
-        val paycheckRepository = PaycheckRepository(db)
-        val dieselRepository = DieselRepository(db)
+        // FIX: use session-scoped graph — same DB as ViewModels, survives account binding correctly
+        val userComponent = context.userComponentManager().startSession(userId)
+        val db = userComponent.database
+        val loadRepository = userComponent.loadRepository
+        val paycheckRepository = userComponent.paycheckRepository
+        val dieselRepository = userComponent.dieselRepository
         val chatRestore = TelegramChatRestore(db.telegramInboxDao(), TelegramMessageArchive(context, userId))
 
         val result = apiClient.getUpdates(
