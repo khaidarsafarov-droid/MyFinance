@@ -21,7 +21,7 @@ TruckerLoad — зрелое **local-first Android** приложение (Kotli
 
 Lint «зелёный» только с baseline (**261** issues suppressed). Документация (AGENTS.md «38 tests») устарела.
 
-**Общая оценка:** **local-only / friends APK — готов** с известными UX gaps. **Multi-device cloud** — после fix S-01-R + SEC-01 + тестов merge path.
+**Общая оценка:** **local-only / Play Store AAB — готов** с известными UX gaps. **Multi-device cloud** — после fix S-01-R + SEC-01 + тестов merge path.
 
 ---
 

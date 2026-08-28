@@ -11,7 +11,7 @@ GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 TELEGRAM_BOT_TOKEN=
 
 # Cloud snapshot/inbox API. Production URLs must use HTTPS.
-# Blank = no Ktor (local-first / friends APK). Example droplet:
+# Blank = no Ktor (local-first). Example droplet:
 # SYNC_BACKEND_URL=https://107.170.0.183.sslip.io
 SYNC_BACKEND_URL=
 # Durable photo/scan upload and cross-device hydration. Disabled unless explicitly true;

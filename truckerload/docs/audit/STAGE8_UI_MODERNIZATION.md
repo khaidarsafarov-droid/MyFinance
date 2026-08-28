@@ -28,7 +28,7 @@ UI построен на **едином BentoGlass / Material3** стеке (~35
 | `camera-camera2` ×3 | CameraX | **Medium** | Route-scoped; OK |
 | `vico` compose charts | Analytics | **Low–Medium** | Load only on Analytics route ✅ |
 | **Retrofit + gson + logging-interceptor** | Unused | **Low** | **Remove** (0 imports) |
-| `abiFilters` / `friendsPhoneApk` | APK split | **High for friends** | Already supports arm-only APK ✅ |
+| `abiFilters` | APK ABI filter | Optional for local debug | Play Store ships AAB; no sideload APK ✅ |
 | Release `isMinifyEnabled` + `shrinkResources` | R8 | ✅ | Good |
 
 **APK size measurement:** not run in VM (Gradle JDK path). Recommend `:app:assembleRelease` + `bundletool` / Android Studio APK Analyzer on dev machine.

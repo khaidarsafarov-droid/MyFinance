@@ -26,11 +26,11 @@ prop() {
   awk -F= -v k="$key" '$1==k {sub(/^[^=]+=/,""); print; exit}' "$file"
 }
 
-echo "Package: com.truckerload"
+echo "Package: com.truckorig"
 echo
 
 if [ -f keystore.properties ]; then
-  echo "keystore.properties (release/friends; also used for debug if no debug-keystore.properties):"
+  echo "keystore.properties (Play upload / release; also used for debug if no debug-keystore.properties):"
   sha_from_keystore \
     "$(prop keystore.properties storeFile)" \
     "$(prop keystore.properties keyAlias)" \

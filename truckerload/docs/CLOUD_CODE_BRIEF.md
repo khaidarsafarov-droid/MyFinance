@@ -301,7 +301,7 @@ Room `AppDatabase` version **30**, `exportSchema = true` (JSON в `app/schemas/`
 | `SUPABASE_URL` / `SUPABASE_ANON_KEY` | identity |
 | `TELEGRAM_BOT_TOKEN` | **не** в APK, кроме `-PallowDebugSecrets=true` |
 
-Друзьям собирают APK скриптом `scripts/build-friends-apk.sh` (без своего сервера, бэкап файл/Drive). См. `docs/FRIENDS_SHARE.md`.
+Друзьям отдают ссылку на Google Play (в приложении: Настройки → Поделиться приложением). Sideload friends APK больше не собирается.
 
 ---
 
@@ -366,7 +366,7 @@ sh ./gradlew :app:checkKotlinFileSize
 - `docs/CLOUD_DATA_SYNC.md` — sync
 - `docs/PROJECT_OVERVIEW.md` — короткий обзор
 - `docs/RELAY_PARSE_EXAMPLES.md` — примеры сообщений
-- `docs/FRIENDS_SHARE.md` — APK без сервера
+- `docs/GOOGLE_SIGNIN_SETUP.md` — OAuth / Drive SHA-1
 - `docs/KMP_IOS_ROADMAP.md` — будущего iOS пока нет
 
 ---
