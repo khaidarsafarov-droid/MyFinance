@@ -206,8 +206,6 @@ object WidgetTruckProgressBitmap {
         val deck: Float = wheelCy + wheelRadius * 0.28f
         val roof: Float = h * 0.06f
         val hubRadius: Float = wheelRadius * 0.36f
-        /** Side outlines stop above the tires so no deck stroke cuts through wheels. */
-        val sideStop: Float = wheelCy - wheelRadius * 0.85f
         val wheelXs: FloatArray = floatArrayOf(w * 0.17f, w * 0.32f, w * 0.82f)
     }
 
@@ -280,39 +278,28 @@ object WidgetTruckProgressBitmap {
     }
 
     /**
-     * Van outline only above the tires. A deck-level stroke through the wheel
-     * disks is what made the body look sliced off from the wheels.
+     * Roof/nose outline only — no verticals down to the tires.
+     * Side strokes ending at deck/sideStop read as a floor that severs the wheels.
      */
     private fun buildTruckOutline(geom: TruckGeom): Path {
         val p = Path()
         val left = geom.w * 0.02f
         val right = geom.w * 0.52f
         val top = geom.roof
-        val stop = geom.sideStop
         val rx = geom.w * 0.05f
-        p.moveTo(left, stop)
-        p.lineTo(left, top + rx)
-        p.quadTo(left, top, left + rx, top)
+        // Trailer roof only.
+        p.moveTo(left + rx, top)
         p.lineTo(right - rx, top)
-        p.quadTo(right, top, right, top + rx)
-        p.lineTo(right, stop)
-
-        // Hitch: top edge only (no verticals down into the tire zone).
-        val hitchTop = (geom.deck - geom.h * 0.14f).coerceAtMost(stop)
-        p.moveTo(geom.w * 0.50f, hitchTop)
-        p.lineTo(geom.w * 0.58f, hitchTop)
 
         val w = geom.w
         val h = geom.h
         val roof = geom.roof
         val sleeperLeft = w * 0.575f
-        p.moveTo(sleeperLeft, stop)
-        p.lineTo(sleeperLeft, roof + h * 0.05f)
-        p.quadTo(sleeperLeft, roof, sleeperLeft + w * 0.035f, roof)
+        // Cab roof + windshield profile (no drop to the deck).
+        p.moveTo(sleeperLeft + w * 0.035f, roof)
         p.lineTo(w * 0.70f, roof)
         p.lineTo(w * 0.78f, h * 0.26f)
         p.lineTo(w * 0.90f, h * 0.26f)
-        p.lineTo(w * 0.97f, stop)
         return p
     }
 
@@ -330,7 +317,16 @@ object WidgetTruckProgressBitmap {
                 drawCircle(cx, geom.wheelCy, geom.hubRadius, hubFill)
                 drawCircle(cx, geom.wheelCy, geom.hubRadius, tireStroke)
             }
-            canvas.drawCircle(cx, geom.wheelCy, geom.wheelRadius, tireStroke)
+            // Tire outline only below the deck — a full ring would cut the body in half.
+            canvas.withSave {
+                clipRect(
+                    cx - geom.wheelRadius - geom.stroke,
+                    geom.deck,
+                    cx + geom.wheelRadius + geom.stroke,
+                    geom.h + geom.stroke,
+                )
+                drawCircle(cx, geom.wheelCy, geom.wheelRadius, tireStroke)
+            }
         }
     }
 
