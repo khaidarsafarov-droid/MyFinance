@@ -755,6 +755,8 @@
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Foto / PDF</string>
     <string name="add_load_hint_paste">Pega un mensaje de Relay, Telegram o correo. La app lee tarifa, millas y direcciones por ti.</string>
+    <string name="add_load_history_tip_title">Cargas antiguas de un grupo de Telegram</string>
+    <string name="add_load_history_tip_body">En Telegram Desktop: menú del chat → Exportar historial → HTML o JSON. Envía esos archivos a tu bot TruckoRig con /import: él analiza cada carga. También puedes pegar el texto aquí o elegir el archivo en Foto / PDF.</string>
     <string name="add_load_hint_manual">Ingresa la tarifa y al menos una dirección. Trip ID puede quedar vacío: la app creará uno.</string>
     <string name="add_load_hint_document">Fotografía un documento o elige cualquier archivo (PDF, foto, TXT, JSON, CSV, DOCX): los campos se llenan solos. Revísalos, edita si hace falta y guarda.</string>
     <string name="add_load_manual_hint">Escribe los datos de la carga. Se requieren tarifa y un punto de pickup o entrega.</string>

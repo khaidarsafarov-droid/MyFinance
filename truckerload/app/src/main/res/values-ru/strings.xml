@@ -755,6 +755,8 @@
     <string name="add_load_mode_manual">Вручную</string>
     <string name="add_load_mode_document">Фото / PDF</string>
     <string name="add_load_hint_paste">Вставьте сообщение из Relay, Telegram или почты. Приложение само разберёт ставку, мили и адреса.</string>
+    <string name="add_load_history_tip_title">Старые грузы из группы Telegram</string>
+    <string name="add_load_history_tip_body">В Telegram Desktop: меню чата → Экспорт истории → HTML или JSON. Отправьте файлы боту TruckoRig командой /import — он сам разберёт все грузы. Или вставьте текст сюда / выберите файл во вкладке «Фото / PDF».</string>
     <string name="add_load_hint_manual">Заполните ставку и хотя бы один адрес. Trip ID можно оставить пустым — приложение создаст его само.</string>
     <string name="add_load_hint_document">Сфотографируйте документ или выберите любой файл (PDF, фото, TXT, JSON, CSV, DOCX) — поля заполнятся сами. Проверьте, поправьте и сохраните.</string>
     <string name="add_load_manual_hint">Введите данные груза. Обязательны ставка и пункт погрузки или выгрузки.</string>

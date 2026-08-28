@@ -200,6 +200,9 @@ fun AddLoadScreen(
                     parseHint = uiState.previewHint,
                 )
             }
+            if (shouldShowAddLoadHistoryTip(uiState.mode, uiState.rawText, uiState.isExtractingDocument)) {
+                AddLoadHistoryTip()
+            }
             Text(
                 stringResource(
                     when (uiState.mode) {
