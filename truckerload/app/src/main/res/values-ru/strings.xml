@@ -76,7 +76,7 @@
     <string name="login_continue_offline">Продолжить офлайн</string>
     <string name="login_continue_offline_hint">Журнал только на этом устройстве — без Google и облака.</string>
     <string name="login_google_sync_hint">Вход через Google также позволит делать резервные копии в ваш Google Drive.</string>
-    <string name="login_google_drive_cta">Вход через Google выполнен, но доступ к Drive не выдан. Откройте Настройки → Google Drive, чтобы подключить бэкап.</string>
+    <string name="login_google_drive_cta">Google Диск ещё не подключён. Откройте Настройки → Google Drive, чтобы сохранить копию.</string>
     <string name="login_checking">Проверка аккаунта…</string>
 
     <string name="home_brand_title">TruckoRig</string>
@@ -122,8 +122,8 @@
     <string name="analytics_share_name_hint">Имя и фамилия из профиля попадут в файл. Можно поправить перед отправкой.</string>
     <string name="social_chat_name_hint">Название чата</string>
     <string name="social_chat_create_error">Не удалось создать чат: %1$s</string>
-    <string name="login_google_error">Ошибка входа через Google: %1$s. Настройте OAuth в Google Cloud Console (package: com.truckorig, SHA-1).</string>
-    <string name="login_google_developer_error">неверный SHA-1 / OAuth client (код 10). Добавьте этот SHA-1 в Google Cloud Console для com.truckorig: %1$s</string>
+    <string name="login_google_error">Не удалось подключиться к Google. Попробуйте ещё раз.</string>
+    <string name="login_google_developer_error">Не удалось подключиться к Google. Попробуйте ещё раз.</string>
     <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
     <string name="login_google_fallback">Supabase временно недоступен (%1$s). Вход выполнен локально.</string>
     <string name="login_google_cancelled">Вход отменён</string>
@@ -229,9 +229,9 @@
 
     <string name="about_app_title">О приложении</string>
     <string name="about_app_version">Версия %1$s (%2$d)</string>
-    <string name="about_app_intro">Как пользоваться TruckoRig: журнал грузов Amazon Relay, диспут, цель недели, дизель, зарплата, налоги, карта, отчёты, Telegram, виджет и бэкап.</string>
+    <string name="about_app_intro">Как пользоваться TruckoRig: журнал грузов, диспут, цель недели, дизель, зарплата, налоги, карта, отчёты, Telegram, виджет и бэкап.</string>
     <string name="about_guide_loads_title">1. Добавить груз</string>
-    <string name="about_guide_loads_body">На главном экране нажмите «Добавить груз» и выберите способ: вставить сообщение Relay, Telegram или почты, заполнить форму или загрузить фото/PDF. Нужны ставка больше нуля и адрес погрузки или выгрузки. Сохраните — груз появится в журнале с милями и RPM. Если рейс ещё не начался, можно поставить будильник на старт.</string>
+    <string name="about_guide_loads_body">На главном экране нажмите «Добавить груз» и выберите способ: вставить текст сообщения, заполнить форму или загрузить любой файл — фото, PDF и другие документы. Нужны ставка больше нуля и адрес погрузки или выгрузки. Сохраните — груз появится в журнале с милями и RPM. Если рейс ещё не начался, можно поставить будильник на старт.</string>
     <string name="about_guide_home_title">2. Журнал на главной</string>
     <string name="about_guide_home_body">Вкладка «Грузы» показывает список за период: эта или прошлая неделя, вчера, месяц, календарь, архив по годам. Поиск — по Trip ID, городу или дате. Сверху — число грузов, сумма, мили и средний RPM. Откройте карточку, чтобы править данные, отметить финиш или прикрепить фото и сканы.</string>
     <string name="about_guide_dispute_title">3. Диспют</string>
@@ -443,9 +443,9 @@
     <string name="home_empty_last_week">За прошлую неделю записей нет</string>
     <string name="home_empty_this_month">За этот месяц записей нет</string>
     <string name="home_empty_dispute">Диспютов нет</string>
-    <string name="home_empty_all_body">Вставьте сообщение Relay — увидите сумму, мили и RPM до сохранения.</string>
+    <string name="home_empty_all_body">Добавьте груз — текстом, формой или файлом. Сумма, мили и RPM появятся до сохранения.</string>
     <string name="home_empty_filtered_body">Можно сменить период или добавить груз.</string>
-    <string name="home_empty_cta">Вставить из Relay</string>
+    <string name="home_empty_cta">Добавить груз</string>
     <string name="home_stats_header">Всего %1$d грузов  •  $%2$.0f  •  %3$.0f mi  •  %4$s ср. RPM</string>
     <string name="home_period_avg_rpm">%1$s ср. RPM</string>
     <string name="home_period_avg_rpm_label">ср. RPM</string>
@@ -754,7 +754,7 @@
     <string name="add_load_mode_paste">Вставить</string>
     <string name="add_load_mode_manual">Вручную</string>
     <string name="add_load_mode_document">Фото / PDF</string>
-    <string name="add_load_hint_paste">Вставьте сообщение из Relay, Telegram или почты. Приложение само разберёт ставку, мили и адреса.</string>
+    <string name="add_load_hint_paste">Вставьте текст сообщения или загрузите файл. Приложение само разберёт ставку, мили и адреса.</string>
     <string name="add_load_history_tip_title">Старые грузы из группы Telegram</string>
     <string name="add_load_history_tip_body">В Telegram Desktop: меню чата → Экспорт истории → HTML или JSON. Отправьте файлы боту TruckoRig командой /import — он сам разберёт все грузы. Или вставьте текст сюда / выберите файл во вкладке «Фото / PDF».</string>
     <string name="add_load_hint_manual">Заполните ставку и хотя бы один адрес. Trip ID можно оставить пустым — приложение создаст его само.</string>
@@ -963,12 +963,12 @@
     <string name="settings_backup_restore_hint">Файл .json / .tlb из Загрузки/TruckoRig (старые Loads_….txt тоже читаются, если внутри есть JSON)</string>
     <string name="settings_backup_share_title">Поделиться бэкапом</string>
     <string name="drive_sync_title">Google Drive</string>
-    <string name="drive_sync_desc">Данные остаются в Room на телефоне. Облачная копия — в вашем Google-аккаунте (скрытая папка приложения). iCloud на Android недоступен.</string>
-    <string name="drive_sync_google_user_hint">Вы вошли через Google — доступ к Drive уже запрошен при входе. Повторная авторизация не нужна, если вы её подтвердили.</string>
-    <string name="drive_sync_google_linked_hint">Бэкап идёт в тот же Google-аккаунт, через который вы вошли. Отдельный вход в Drive не нужен.</string>
-    <string name="drive_sync_email_user_hint">Вы вошли через почту. Drive можно подключить отдельно (только доступ к папке приложения — новый аккаунт TruckerLoad не создаётся). Либо сохраните копию файлом в разделе «Экспорт и копии» выше.</string>
-    <string name="drive_sync_local_user_hint">Резервная копия пишется в скрытую папку приложения на вашем Google Диске. Личные файлы приложение не видит.</string>
-    <string name="drive_sync_email_linked_hint">Google Drive подключён только для бэкапа и не меняет способ входа в приложение.</string>
+    <string name="drive_sync_desc">Журнал хранится на этом телефоне. Копию можно сохранить на Google Диск — приложение видит только свою папку, не ваши личные файлы.</string>
+    <string name="drive_sync_google_user_hint">Подключите Google Диск, чтобы сохранить копию журнала.</string>
+    <string name="drive_sync_google_linked_hint">Копия журнала сохраняется в этот аккаунт Google.</string>
+    <string name="drive_sync_email_user_hint">Подключите Google Диск для облачной копии или сохраните файл в разделе «Экспорт и копии».</string>
+    <string name="drive_sync_local_user_hint">Подключите Google Диск, чтобы сохранить копию журнала. Личные файлы приложение не видит.</string>
+    <string name="drive_sync_email_linked_hint">Google Диск подключён для резервной копии журнала.</string>
     <string name="drive_sync_status_off">Не подключено</string>
     <string name="drive_sync_status_on">Подключено: %1$s</string>
     <string name="drive_sync_last">Последняя синхронизация: %1$s</string>
@@ -1681,7 +1681,7 @@
     <string name="ux_activation_step_diesel">Дизель учтён</string>
     <string name="ux_loss_goal_behind">До цели %1$s · ещё %2$d дн.</string>
     <string name="ux_loss_goal_unset">За неделю %1$s. Можно задать цель — по желанию.</string>
-    <string name="ux_loss_no_loads">Неделя пустая. Вставьте сообщение Relay, когда будет груз.</string>
+    <string name="ux_loss_no_loads">Неделя пустая. Добавьте груз, когда он появится.</string>
     <string name="ux_loss_goal_behind_title">До цели</string>
     <string name="ux_loss_goal_behind_body">Осталось %1$s · %2$d дн. · %3$s/день</string>
     <string name="ux_next_set_goal">Задать цель недели</string>
@@ -1691,7 +1691,7 @@
     <string name="ux_goal_suggested_label">Выберите свою цель</string>
     <string name="ux_goal_ownership_hint">Цель недели — чтобы на главном сразу видеть, сколько уже есть</string>
     <string name="ux_profile_setup_progress">Прогресс настройки: %1$d%%</string>
-    <string name="ux_home_empty_reciprocity">Вставьте сообщение Relay — сразу увидите сумму, мили и RPM, ещё до сохранения</string>
+    <string name="ux_home_empty_reciprocity">Добавьте груз — сразу увидите сумму, мили и RPM, ещё до сохранения</string>
     <string name="add_load_preview_title">Предпросмотр груза</string>
     <string name="add_load_preview_gift">Маршрут, ставка и RPM — можно сохранять</string>
     <string name="add_load_preview_parsing">Читаем сообщение…</string>
@@ -1707,8 +1707,8 @@
     <string name="settings_backup_working">Создаём резервную копию…</string>
     <string name="settings_backup_restoring">Восстанавливаем данные…</string>
     <string name="settings_share_app_title">Поделиться приложением</string>
-    <string name="settings_share_app_body">Отправьте другу ссылку: Google Play для Android, App Store для iPhone. Данные остаются на его телефоне.</string>
-    <string name="settings_share_app_body_play_only">Отправьте другу ссылку на Google Play. Ссылка на App Store для iPhone подставится сама, когда аккаунт в магазине будет готов.</string>
+    <string name="settings_share_app_body">Отправьте другу ссылку: Google Play для Android или App Store для iPhone.</string>
+    <string name="settings_share_app_body_play_only">Отправьте другу ссылку — он скачает приложение из Google Play.</string>
     <string name="settings_share_app_button">Поделиться ссылкой</string>
     <string name="settings_share_app_unavailable">Не удалось открыть меню «Поделиться»</string>
     <string name="settings_share_app_chooser">Поделиться TruckoRig</string>

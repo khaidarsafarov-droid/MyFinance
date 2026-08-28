@@ -76,7 +76,7 @@
     <string name="login_continue_offline">Continuar sin conexión</string>
     <string name="login_continue_offline_hint">El diario se queda en este dispositivo: sin Google ni nube.</string>
     <string name="login_google_sync_hint">Iniciar sesión con Google también te permite respaldar en tu Google Drive.</string>
-    <string name="login_google_drive_cta">Sesión iniciada con Google, pero no se otorgó acceso a Drive. Abre Ajustes → Google Drive para conectar el respaldo.</string>
+    <string name="login_google_drive_cta">Google Drive aún no está conectado. Abre Ajustes → Google Drive para guardar una copia.</string>
     <string name="login_checking">Verificando cuenta…</string>
 
     <string name="home_brand_title">TruckoRig</string>
@@ -122,8 +122,8 @@
     <string name="analytics_share_name_hint">El nombre y apellido de tu perfil van al archivo. Puedes editarlos antes de enviar.</string>
     <string name="social_chat_name_hint">Nombre del chat</string>
     <string name="social_chat_create_error">No se pudo crear el chat: %1$s</string>
-    <string name="login_google_error">Error de inicio de sesión con Google: %1$s. Configura OAuth en Google Cloud Console (paquete: com.truckorig, SHA-1).</string>
-    <string name="login_google_developer_error">SHA-1 / cliente OAuth incorrecto (código 10). Agrega el SHA-1 de firma de este APK en Google Cloud Console para com.truckorig: %1$s</string>
+    <string name="login_google_error">No se pudo conectar con Google. Inténtalo de nuevo.</string>
+    <string name="login_google_developer_error">No se pudo conectar con Google. Inténtalo de nuevo.</string>
     <string name="login_google_play_services_error">Google Play Services no está instalado o está desactualizado en este dispositivo.</string>
     <string name="login_google_fallback">Supabase no está disponible por ahora (%1$s). Sesión iniciada en local.</string>
     <string name="login_google_cancelled">Inicio de sesión cancelado</string>
@@ -229,9 +229,9 @@
 
     <string name="about_app_title">Acerca de la app</string>
     <string name="about_app_version">Versión %1$s (%2$d)</string>
-    <string name="about_app_intro">Cómo usar TruckoRig: diario de Amazon Relay, reclamos, meta semanal, diésel, pagos, impuestos, mapa, informes, Telegram, widget y respaldos.</string>
+    <string name="about_app_intro">Cómo usar TruckoRig: diario de cargas, reclamos, meta semanal, diésel, pagos, impuestos, mapa, informes, Telegram, widget y respaldos.</string>
     <string name="about_guide_loads_title">1. Agregar una carga</string>
-    <string name="about_guide_loads_body">En Inicio toca Agregar carga y elige un método: pega un mensaje de Relay, Telegram o correo, llena el formulario o sube una foto/PDF. Necesitas una tarifa mayor que cero y una dirección de pickup o entrega. Guarda: la carga aparece en el diario con millas y RPM. Si el viaje aún no empieza, puedes poner una alarma de inicio.</string>
+    <string name="about_guide_loads_body">En Inicio toca Agregar carga y elige un método: pega un mensaje, llena el formulario o sube cualquier archivo — foto, PDF u otro documento. Necesitas una tarifa mayor que cero y una dirección de pickup o entrega. Guarda: la carga aparece en el diario con millas y RPM. Si el viaje aún no empieza, puedes poner una alarma de inicio.</string>
     <string name="about_guide_home_title">2. Diario de inicio</string>
     <string name="about_guide_home_body">La pestaña Cargas lista el período elegido: esta o la semana pasada, ayer, este mes, calendario o archivo por año. Busca por Trip ID, ciudad o fecha. El encabezado muestra cantidad, total, millas y RPM promedio. Abre una tarjeta para editar, marcar el fin o adjuntar fotos y escaneos.</string>
     <string name="about_guide_dispute_title">3. Reclamo</string>
@@ -443,9 +443,9 @@
     <string name="home_empty_last_week">Nada la semana pasada</string>
     <string name="home_empty_this_month">Nada este mes</string>
     <string name="home_empty_dispute">Sin reclamos</string>
-    <string name="home_empty_all_body">Pega un mensaje de Relay: verás tarifa, millas y RPM antes de guardar.</string>
+    <string name="home_empty_all_body">Agrega una carga: texto, formulario o archivo. Verás tarifa, millas y RPM antes de guardar.</string>
     <string name="home_empty_filtered_body">Elige otro período o agrega una carga.</string>
-    <string name="home_empty_cta">Pegar desde Relay</string>
+    <string name="home_empty_cta">Agregar carga</string>
     <string name="home_stats_header">%1$d cargas en total  •  $%2$.0f  •  %3$.0f mi  •  %4$s RPM prom.</string>
     <string name="home_period_avg_rpm">%1$s RPM prom.</string>
     <string name="home_period_avg_rpm_label">RPM prom.</string>
@@ -754,7 +754,7 @@
     <string name="add_load_mode_paste">Pegar</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Foto / PDF</string>
-    <string name="add_load_hint_paste">Pega un mensaje de Relay, Telegram o correo. La app lee tarifa, millas y direcciones por ti.</string>
+    <string name="add_load_hint_paste">Pega un mensaje o sube un archivo. La app lee tarifa, millas y direcciones por ti.</string>
     <string name="add_load_history_tip_title">Cargas antiguas de un grupo de Telegram</string>
     <string name="add_load_history_tip_body">En Telegram Desktop: menú del chat → Exportar historial → HTML o JSON. Envía esos archivos a tu bot TruckoRig con /import: él analiza cada carga. También puedes pegar el texto aquí o elegir el archivo en Foto / PDF.</string>
     <string name="add_load_hint_manual">Ingresa la tarifa y al menos una dirección. Trip ID puede quedar vacío: la app creará uno.</string>
@@ -963,12 +963,12 @@
     <string name="settings_backup_restore_hint">Archivo .json / .tlb de Downloads/TruckoRig (el Loads_….txt antiguo sigue funcionando si contiene JSON)</string>
     <string name="settings_backup_share_title">Compartir respaldo</string>
     <string name="drive_sync_title">Google Drive</string>
-    <string name="drive_sync_desc">Los datos se quedan en Room en el teléfono. La copia en la nube va a tu cuenta de Google (carpeta oculta de la app). iCloud no está disponible en Android.</string>
-    <string name="drive_sync_google_user_hint">Iniciaste sesión con Google: el acceso a Drive se pidió al entrar. No hace falta autorizar de nuevo si ya lo otorgaste.</string>
-    <string name="drive_sync_google_linked_hint">El respaldo usa la misma cuenta de Google con la que iniciaste sesión. No hace falta un inicio de sesión aparte de Drive.</string>
-    <string name="drive_sync_email_user_hint">Iniciaste sesión con correo. Conecta Google Drive por separado (solo acceso a la carpeta de la app: esto no crea una cuenta nueva de TruckerLoad), o usa el respaldo de archivo en “Exportar y respaldar” arriba.</string>
-    <string name="drive_sync_local_user_hint">Los respaldos van a la carpeta oculta de Google Drive de esta app. La app no puede ver tus archivos personales.</string>
-    <string name="drive_sync_email_linked_hint">Google Drive está conectado solo para respaldo y no cambia cómo inicias sesión.</string>
+    <string name="drive_sync_desc">Tu registro se queda en este teléfono. Puedes guardar una copia en Google Drive: la app solo usa su propia carpeta, no tus archivos personales.</string>
+    <string name="drive_sync_google_user_hint">Conecta Google Drive para guardar una copia de tu registro.</string>
+    <string name="drive_sync_google_linked_hint">La copia de tu registro se guarda en esta cuenta de Google.</string>
+    <string name="drive_sync_email_user_hint">Conecta Google Drive para una copia en la nube, o guarda un archivo en “Exportar y respaldar” arriba.</string>
+    <string name="drive_sync_local_user_hint">Conecta Google Drive para guardar una copia de tu registro. La app no puede ver tus archivos personales.</string>
+    <string name="drive_sync_email_linked_hint">Google Drive está conectado para una copia de seguridad de tu registro.</string>
     <string name="drive_sync_status_off">No conectado</string>
     <string name="drive_sync_status_on">Conectado: %1$s</string>
     <string name="drive_sync_last">Última sincronización: %1$s</string>
@@ -1679,7 +1679,7 @@
     <string name="ux_activation_step_diesel">Diésel registrado</string>
     <string name="ux_loss_goal_behind">%1$s para la meta · quedan %2$d días</string>
     <string name="ux_loss_goal_unset">%1$s esta semana. Puedes fijar una meta si quieres.</string>
-    <string name="ux_loss_no_loads">La semana está vacía. Pega un mensaje de Relay cuando tengas una carga.</string>
+    <string name="ux_loss_no_loads">La semana está vacía. Agrega una carga cuando la tengas.</string>
     <string name="ux_loss_goal_behind_title">Hacia la meta</string>
     <string name="ux_loss_goal_behind_body">Quedan %1$s · %2$d días · %3$s/día</string>
     <string name="ux_next_set_goal">Fijar una meta semanal</string>
@@ -1689,7 +1689,7 @@
     <string name="ux_goal_suggested_label">Elige tu meta</string>
     <string name="ux_goal_ownership_hint">Una meta semanal para que Inicio muestre cuánto ya está adentro</string>
     <string name="ux_profile_setup_progress">Avance de la configuración: %1$d%%</string>
-    <string name="ux_home_empty_reciprocity">Pega un mensaje de Relay: ve tarifa, millas y RPM antes de guardar</string>
+    <string name="ux_home_empty_reciprocity">Agrega una carga: ve tarifa, millas y RPM antes de guardar</string>
     <string name="add_load_preview_title">Vista previa de la carga</string>
     <string name="add_load_preview_gift">Ruta, tarifa y RPM: listo para guardar</string>
     <string name="add_load_preview_parsing">Leyendo mensaje…</string>
@@ -1705,8 +1705,8 @@
     <string name="settings_backup_working">Creando respaldo…</string>
     <string name="settings_backup_restoring">Restaurando datos…</string>
     <string name="settings_share_app_title">Compartir la app</string>
-    <string name="settings_share_app_body">Envía a un amigo un enlace: Google Play para Android, App Store para iPhone. Sus datos se quedan en su teléfono.</string>
-    <string name="settings_share_app_body_play_only">Envía a un amigo el enlace de Google Play. El enlace de App Store para iPhone se agregará solo cuando la cuenta de la tienda esté lista.</string>
+    <string name="settings_share_app_body">Envía a un amigo un enlace: Google Play para Android o App Store para iPhone.</string>
+    <string name="settings_share_app_body_play_only">Envía a un amigo un enlace para que descargue la app en Google Play.</string>
     <string name="settings_share_app_button">Compartir enlace</string>
     <string name="settings_share_app_unavailable">No se pudo abrir el menú de compartir</string>
     <string name="settings_share_app_chooser">Compartir TruckoRig</string>
