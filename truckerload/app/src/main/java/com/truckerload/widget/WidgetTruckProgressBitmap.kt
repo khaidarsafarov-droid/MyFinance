@@ -201,11 +201,11 @@ object WidgetTruckProgressBitmap {
          * Outer tire stroke sits fully on/above local y = h (= barTop).
          * Using a full stroke clearance avoids AA bleeding into the track.
          */
-        val wheelCy: Float = h - wheelRadius - stroke
+        val wheelCy: Float = h - wheelRadius - stroke * 0.5f
         /** Chassis cuts through the hubs so van and tires read as one piece. */
-        val deck: Float = wheelCy + wheelRadius * 0.28f
+        val deck: Float = wheelCy + wheelRadius * 0.35f
         val roof: Float = h * 0.06f
-        val hubRadius: Float = wheelRadius * 0.36f
+        val hubRadius: Float = wheelRadius * 0.30f
         val wheelXs: FloatArray = floatArrayOf(w * 0.17f, w * 0.32f, w * 0.82f)
     }
 
@@ -310,7 +310,7 @@ object WidgetTruckProgressBitmap {
             canvas.withSave {
                 clipRect(
                     cx - geom.hubRadius - geom.stroke,
-                    geom.wheelCy - geom.hubRadius * 0.15f,
+                    geom.wheelCy + geom.hubRadius * 0.05f,
                     cx + geom.hubRadius + geom.stroke,
                     geom.h + geom.stroke,
                 )

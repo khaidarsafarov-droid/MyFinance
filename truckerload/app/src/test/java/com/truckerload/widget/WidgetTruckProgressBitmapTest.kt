@@ -29,7 +29,7 @@ class WidgetTruckProgressBitmapTest {
         assertTrue(src.contains("buildTruckSilhouette"))
         assertTrue(src.contains("addCircle"))
         assertTrue(src.contains("addRoundRect"))
-        assertTrue(src.contains("wheelRadius * 0.28f"))
+        assertTrue(src.contains("wheelRadius * 0.35f"))
         assertTrue(src.contains("barTop - truckHeight"))
         assertTrue(src.contains("drawFlatTruck"))
         assertTrue(src.contains("drawHubs"))
@@ -86,7 +86,7 @@ class WidgetTruckProgressBitmapTest {
         val barTop = headroomPx
         val stroke = maxOf(truckH * 0.045f, 1.4f)
         val wheelR = truckH * 0.20f
-        val wheelCy = (barTop - truckH) + truckH - wheelR - stroke
+        val wheelCy = (barTop - truckH) + truckH - wheelR - stroke * 0.5f
         // Outer tire ring (below hub) must stay body-colored — silhouette union.
         val tireRingY = (wheelCy + wheelR * 0.52f + 1.5f).toInt()
         val bodyPx = plate.getPixel(wheelX, tireRingY.coerceAtMost(barTop - 2))
@@ -94,7 +94,7 @@ class WidgetTruckProgressBitmapTest {
             "tire ring must be body-colored, got #${Integer.toHexString(bodyPx)} at y=$tireRingY",
             Color.red(bodyPx) in 70..140 && Color.blue(bodyPx) > 150,
         )
-        val hubPx = plate.getPixel(wheelX, (wheelCy + wheelR * 0.12f).toInt())
+        val hubPx = plate.getPixel(wheelX, wheelCy.toInt())
         assertTrue(
             "lower hub must be white-ish, got #${Integer.toHexString(hubPx)}",
             Color.red(hubPx) > 200 && Color.green(hubPx) > 200 && Color.blue(hubPx) > 200,
