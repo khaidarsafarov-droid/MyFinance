@@ -100,6 +100,31 @@ class GoogleAuthArchitectureTest {
     }
 
     @Test
+    fun settingsDrive_twoStepIdentityThenConsent() {
+        val clients = readMainSource("com/truckerload/data/remote/GoogleSignInClients.kt")
+        assertTrue(clients.contains("fun identitySignInIntent"))
+        assertTrue(clients.contains("fun driveConsentIntent"))
+        val identityStart = clients.indexOf("fun identityOptions")
+        val identityEnd = clients.indexOf("fun identitySignInIntent")
+        assertTrue(identityStart >= 0 && identityEnd > identityStart)
+        val identity = clients.substring(identityStart, identityEnd)
+        assertFalse(identity.contains("DRIVE_APPDATA_SCOPE"))
+        assertFalse(identity.contains("requestScopes"))
+
+        val service = readMainSource("com/truckerload/data/backup/GoogleDriveBackupService.kt")
+        assertTrue(service.contains("fun parseSignInIntent"))
+        assertTrue(service.contains("fun connectStartsAtDriveConsent"))
+
+        val section = readMainSource(
+            "com/truckerload/presentation/screens/settings/GoogleDriveSyncSection.kt",
+        )
+        assertTrue(section.contains("DriveConnectInterpreter"))
+        assertTrue(section.contains("driveConsentIntent"))
+        assertTrue(section.contains("drive_sync_connect_cancelled"))
+        assertFalse(section.contains("return@rememberLauncherForActivityResult"))
+    }
+
+    @Test
     fun settingsDrive_separatesGoogleLoginFromEmailOauth() {
         val source = readMainSource(
             "com/truckerload/presentation/screens/settings/GoogleDriveSyncSection.kt",

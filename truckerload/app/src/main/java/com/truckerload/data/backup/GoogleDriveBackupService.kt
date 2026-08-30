@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.truckerload.R
 import com.truckerload.data.remote.GoogleSignInClients
@@ -35,10 +37,49 @@ object GoogleDriveBackupService {
 
     fun isDriveScopeGranted(context: Context): Boolean {
         val account = GoogleSignIn.getLastSignedInAccount(context) ?: return false
-        return GoogleSignIn.hasPermissions(
+        return hasDriveScope(account)
+    }
+
+    fun hasDriveScope(account: GoogleSignInAccount): Boolean =
+        GoogleSignIn.hasPermissions(
             account,
             Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE),
         )
+
+    fun connectStartsAtDriveConsent(activity: Activity): Boolean =
+        !GoogleSignIn.getLastSignedInAccount(activity)?.email.isNullOrBlank()
+
+    data class ParsedSignIn(
+        val email: String?,
+        val grantedDriveScope: Boolean,
+        val error: Throwable?,
+    )
+
+    fun parseSignInIntent(data: Intent?): ParsedSignIn {
+        return try {
+            val account = GoogleSignIn.getSignedInAccountFromIntent(data)
+                .getResult(ApiException::class.java)
+            ParsedSignIn(
+                email = account?.email,
+                grantedDriveScope = account != null && hasDriveScope(account),
+                error = null,
+            )
+        } catch (e: Exception) {
+            if (!DriveConnectInterpreter.isUserCancel(e)) {
+                Log.w(TAG, "parseSignInIntent failed", e)
+            }
+            ParsedSignIn(email = null, grantedDriveScope = false, error = e)
+        }
+    }
+
+    fun linkAccountEmail(context: Context, email: String) {
+        prefs(context).accountEmail = email
+    }
+
+    fun consentIntent(error: Throwable): Intent? {
+        val consent = error as? GoogleDriveApiClient.DriveError.NeedsUserConsent
+            ?: (error.cause as? GoogleDriveApiClient.DriveError.NeedsUserConsent)
+        return consent?.intent
     }
 
     fun syncLinkedAccountFromGoogle(context: Context) {
@@ -199,32 +240,17 @@ object GoogleDriveBackupService {
 
     /** После успешного Activity Result от Google Sign-In. */
     fun onSignInResult(context: Context, data: Intent?): Boolean {
-        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-        return try {
-            val account = task.result
-            if (account != null && GoogleSignIn.hasPermissions(
-                    account,
-                    Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE),
-                )
-            ) {
-                prefs(context).accountEmail = account.email
-                true
-            } else {
-                false
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "onSignInResult failed", e)
-            false
-        }
-    }
-
-    fun launchConsentIfNeeded(activity: Activity, error: Throwable): Boolean {
-        val consent = error as? GoogleDriveApiClient.DriveError.NeedsUserConsent
-            ?: (error.cause as? GoogleDriveApiClient.DriveError.NeedsUserConsent)
-        if (consent?.intent != null) {
-            activity.startActivity(consent.intent)
+        val parsed = parseSignInIntent(data)
+        if (parsed.grantedDriveScope && !parsed.email.isNullOrBlank()) {
+            linkAccountEmail(context, parsed.email)
             return true
         }
         return false
+    }
+
+    fun launchConsentIfNeeded(activity: Activity, error: Throwable): Boolean {
+        val intent = consentIntent(error) ?: return false
+        activity.startActivity(intent)
+        return true
     }
 }

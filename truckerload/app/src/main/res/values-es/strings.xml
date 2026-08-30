@@ -986,6 +986,7 @@
     <string name="drive_sync_backup_ok">Guardado en Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive conectado</string>
     <string name="drive_sync_connect_failed">No se pudo conectar Google Drive</string>
+    <string name="drive_sync_connect_cancelled">Se canceló la conexión a Google Drive</string>
     <string name="drive_sync_need_activity">No se pudo abrir Google Drive. Abre Ajustes de nuevo e inténtalo.</string>
     <string name="drive_sync_api_error">Error de Drive: %1$s</string>
     <string name="drive_sync_busy">Sincronizando…</string>

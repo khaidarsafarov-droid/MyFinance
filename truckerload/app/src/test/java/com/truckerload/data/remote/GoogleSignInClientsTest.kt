@@ -5,6 +5,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Status
 import com.truckerload.BuildConfig
 import com.truckerload.data.backup.GoogleDriveBackupPrefs
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -70,6 +71,21 @@ class GoogleSignInClientsTest {
         assertTrue(
             gso.scopes.any { it.scopeUri == GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE },
         )
+    }
+
+    @Test
+    fun identityOptions_doesNotRequestDriveScope() {
+        val gso = GoogleSignInClients.identityOptions()
+        assertFalse(
+            gso.scopes.any { it.scopeUri == GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE },
+        )
+        assertTrue(gso.isEmailRequested)
+    }
+
+    @Test
+    fun driveOptions_setsAccountNameForConsent() {
+        val gso = GoogleSignInClients.driveOptions("driver@example.com")
+        assertEquals("driver@example.com", gso.account?.name)
     }
 
     @Test
