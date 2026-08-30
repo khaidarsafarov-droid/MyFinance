@@ -8,9 +8,25 @@ object TelegramReceiptKeyboard {
     const val DIESEL = "rc:diesel"
     const val DEF = "rc:def"
     const val PAYCHECK = "rc:pay"
+    const val CONFIRM = "rc:ok"
     const val CANCEL = "rc:cancel"
 
     fun isReceiptCallback(data: String): Boolean = data.startsWith("rc:")
+
+    fun confirm(yes: String, no: String): JSONObject =
+        JSONObject().apply {
+            put(
+                "inline_keyboard",
+                JSONArray().apply {
+                    put(
+                        JSONArray().apply {
+                            put(button(yes, CONFIRM))
+                            put(button(no, CANCEL))
+                        },
+                    )
+                },
+            )
+        }
 
     fun inline(
         load: String,

@@ -94,4 +94,62 @@ class DieselPaycheckTextParserTest {
     fun paycheck_looksLikePaycheck_acceptsSettlementTotalMarker() {
         assertTrue(PaycheckTextParser.looksLikePaycheck("Settlement Total: ${'$'}950.00"))
     }
+
+    @Test
+    fun paycheck_primexDriverSettlement_usesGrandTotalNotLineNetPay() {
+        val text = """
+            PRIMEX GROUP LOGISTICS LLC
+            3601 Algonquin Rd Ste 214
+            Driver Settlement
+            Payee ID: 268709
+            Settlement Date: 08/26/26
+            KHAIDAR SAFAROV
+            Load # Origin Destn Ship Date Delv Date Gross Method Net Pay
+            T-113RD815D Indianapolis, IN Brookshire, TX 08/17/26 08/19/26 ${'$'}3,725.57 88% ${'$'}3,278.50
+            T-114LZPHKC Kyle, TX Hebron, KY ${'$'}3,390.27 88% ${'$'}2,983.44
+            111B78L1H Hebron, KY Charlotte, NC ${'$'}1,338.74 88% ${'$'}1,178.09
+            Total ${'$'}7,440.03
+            IFTA ${'$'}50.00
+            FUEL SAMEDAY ${'$'}2,944.73
+            Total Deductions ${'$'}3,399.73
+            Grand Total ${'$'}4,040.30
+            Settlement Summary
+            Loads Total: 3
+            Gross Pay Total: ${'$'}8,454.58
+            Miles Total: 2662.019
+        """.trimIndent()
+
+        val parsed = PaycheckTextParser.parse(
+            text,
+            fileName = "Settlement 08.17-08.23 Khaidar Safarov.pdf",
+        )!!
+        assertEquals(4040.30, parsed.netAmount, 0.01)
+        assertEquals(8454.58, parsed.grossAmount!!, 0.01)
+        assertEquals("2026-08-26", parsed.weekStartDate)
+        assertTrue(PaycheckTextParser.isDriverStatement(text))
+        assertEquals(
+            ReceiptKind.PAYCHECK,
+            com.truckerload.domain.ingest.ReceiptKindClassifier.classify(
+                text,
+                "Settlement 08.17-08.23 Khaidar Safarov.pdf",
+            ),
+        )
+        val preview = com.truckerload.domain.ingest.ReceiptFieldExtractor.extract(
+            text,
+            fileName = "Settlement 08.17-08.23 Khaidar Safarov.pdf",
+        )
+        assertEquals(4040.30, preview.amount!!, 0.01)
+    }
+
+    @Test
+    fun paycheck_grandTotalOnNextLine() {
+        val parsed = PaycheckTextParser.parse(
+            """
+            Driver Settlement
+            Grand Total
+            ${'$'}4,040.30
+            """.trimIndent(),
+        )
+        assertEquals(4040.30, parsed!!.netAmount, 0.01)
+    }
 }

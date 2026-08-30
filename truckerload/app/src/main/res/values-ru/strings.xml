@@ -1229,6 +1229,10 @@
     <string name="sync_receipt_guess_load">Распознал: груз</string>
     <string name="sync_receipt_guess_unknown">Распознал текст из файла</string>
     <string name="sync_receipt_ask_type">Это груз, дизель, DEF или зарплата?</string>
+    <string name="sync_paycheck_confirm_ask">Зарплата $%1$s — это верная сумма? Сохраню только после подтверждения.</string>
+    <string name="sync_paycheck_confirm_yes">Да, сохранить</string>
+    <string name="sync_paycheck_confirm_no">Нет</string>
+    <string name="sync_paycheck_amount_missing">Похоже на стейтмент, но сумму на руки не нашёл. Пришлите PDF с текстом или напишите Grand Total.</string>
     <string name="sync_receipt_btn_load">Груз</string>
     <string name="sync_receipt_btn_diesel">Дизель</string>
     <string name="sync_receipt_btn_def">DEF</string>

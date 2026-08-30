@@ -137,7 +137,7 @@ class AddPaycheckViewModel @Inject constructor(
     }
 
     private fun applyParsedFile(text: String, fileName: String, sourceFilePath: String?) {
-        val parsed = PaycheckTextParser.parse(text)
+        val parsed = PaycheckTextParser.parse(text, fileName)
         if (parsed == null) {
             _uiState.update {
                 it.copy(

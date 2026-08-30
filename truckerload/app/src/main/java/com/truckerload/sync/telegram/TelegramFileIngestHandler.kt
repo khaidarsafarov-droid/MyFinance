@@ -19,6 +19,7 @@ import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.utils.LogRedactor
 import com.truckerload.utils.PaycheckSourceFiles
+import java.util.Locale
 
 class TelegramFileIngestHandler(
     private val context: Context,
@@ -156,10 +157,18 @@ class TelegramFileIngestHandler(
             TelegramReceiptKeyboard.LOAD -> ReceiptKind.LOAD
             TelegramReceiptKeyboard.DIESEL -> ReceiptKind.DIESEL
             TelegramReceiptKeyboard.DEF -> ReceiptKind.DEF
-            TelegramReceiptKeyboard.PAYCHECK -> ReceiptKind.PAYCHECK
+            TelegramReceiptKeyboard.PAYCHECK,
+            TelegramReceiptKeyboard.CONFIRM,
+            -> ReceiptKind.PAYCHECK
             else -> preview.kind
         }
         callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
+        if (kind == ReceiptKind.PAYCHECK && data != TelegramReceiptKeyboard.CONFIRM) {
+            val asPay = preview.copy(kind = ReceiptKind.PAYCHECK)
+            store.save(chatId, asPay)
+            askPaycheckConfirm(chatId, asPay, prefs)
+            return
+        }
         if (kind == ReceiptKind.LOAD) {
             val referenceMillis = preview.messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
             val loads = parseService.parseLoadsFromInboundText(
@@ -228,6 +237,10 @@ class TelegramFileIngestHandler(
         prefs: SharedPreferences,
     ) {
         TelegramReceiptConfirmStore(prefs, context).save(chatId, preview)
+        if (preview.kind == ReceiptKind.PAYCHECK) {
+            askPaycheckConfirm(chatId, preview, prefs)
+            return
+        }
         val guessed = when (preview.kind) {
             ReceiptKind.PAYCHECK -> context.getString(R.string.sync_receipt_guess_paycheck)
             ReceiptKind.DIESEL -> context.getString(R.string.sync_receipt_guess_diesel)
@@ -249,6 +262,33 @@ class TelegramFileIngestHandler(
                 def = context.getString(R.string.sync_receipt_btn_def),
                 paycheck = context.getString(R.string.sync_receipt_btn_paycheck),
                 cancel = context.getString(R.string.common_cancel),
+            ),
+        )
+    }
+
+    private suspend fun askPaycheckConfirm(
+        chatId: String,
+        preview: ReceiptPreview,
+        prefs: SharedPreferences,
+    ) {
+        val amount = preview.amount
+        if (amount == null || amount <= 0.0) {
+            TelegramReceiptConfirmStore(prefs, context).clear(chatId, discardFile = true)
+            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_paycheck_amount_missing))
+            return
+        }
+        val formatted = String.format(java.util.Locale.US, "%,.2f", amount)
+        val html = ReceiptPreviewFormatter.toHtml(
+            preview = preview,
+            guessedLabel = context.getString(R.string.sync_receipt_guess_paycheck),
+            askLabel = context.getString(R.string.sync_paycheck_confirm_ask, formatted),
+        )
+        apiClient.sendHtml(
+            chatId = chatId,
+            html = html,
+            replyMarkup = TelegramReceiptKeyboard.confirm(
+                yes = context.getString(R.string.sync_paycheck_confirm_yes),
+                no = context.getString(R.string.sync_paycheck_confirm_no),
             ),
         )
     }

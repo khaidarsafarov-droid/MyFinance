@@ -1229,6 +1229,10 @@
     <string name="sync_receipt_guess_load">Recognized: load</string>
     <string name="sync_receipt_guess_unknown">Read text from the file</string>
     <string name="sync_receipt_ask_type">Is this a load, diesel, DEF, or paycheck?</string>
+    <string name="sync_paycheck_confirm_ask">Is this paycheck total correct: $%1$s? It will be saved only if you confirm.</string>
+    <string name="sync_paycheck_confirm_yes">Yes, save</string>
+    <string name="sync_paycheck_confirm_no">No</string>
+    <string name="sync_paycheck_amount_missing">This looks like a settlement, but the take-home total was not found. Send a PDF with a text layer, or type Grand Total.</string>
     <string name="sync_receipt_btn_load">Load</string>
     <string name="sync_receipt_btn_diesel">Diesel</string>
     <string name="sync_receipt_btn_def">DEF</string>
