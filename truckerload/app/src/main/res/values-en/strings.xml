@@ -986,6 +986,7 @@
     <string name="drive_sync_backup_ok">Saved to Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive connected</string>
     <string name="drive_sync_connect_failed">Could not connect Google Drive</string>
+    <string name="drive_sync_connect_cancelled">Google Drive connect was cancelled</string>
     <string name="drive_sync_need_activity">Could not open Google Drive. Open Settings again and retry.</string>
     <string name="drive_sync_api_error">Drive error: %1$s</string>
     <string name="drive_sync_busy">Syncing…</string>

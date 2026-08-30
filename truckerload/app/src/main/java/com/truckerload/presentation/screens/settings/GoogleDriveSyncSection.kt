@@ -2,7 +2,8 @@ package com.truckerload.presentation.screens.settings
 
 import com.truckerload.presentation.icons.AppIcons
 
-import android.app.Activity
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,8 +34,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.backup.BackupRestoreErrors
 import com.truckerload.data.backup.BackupRestoreException
+import com.truckerload.data.backup.DriveConnectOutcome
+import com.truckerload.data.backup.DriveConnectPending
+import com.truckerload.data.backup.DriveConnectInterpreter
 import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthProvider
+import com.truckerload.data.remote.GoogleSignInClients
+import com.truckerload.presentation.auth.GoogleSignInSupport
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.connectivity.ConnectivityObserver
@@ -74,7 +80,13 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     var busy by remember { mutableStateOf(false) }
     var showRestoreConfirm by remember { mutableStateOf(false) }
     var restoreConflict by remember { mutableStateOf(false) }
+    var pendingConnect by remember { mutableStateOf(DriveConnectPending.None) }
+    var tokenConsentTried by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    val driveSignInLauncherRef = remember {
+        arrayOfNulls<androidx.activity.result.ActivityResultLauncher<android.content.Intent>>(1)
+    }
 
     fun refreshSyncStatus() {
         lastSyncAt = prefs.lastSyncAt
@@ -82,22 +94,47 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         linkedEmail = GoogleDriveBackupService.linkedAccountEmail(context) ?: prefs.accountEmail
     }
 
+    fun toastMessage(text: String, long: Boolean = true) {
+        Toast.makeText(context, text, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
+    }
+
+    fun launchGoogleIntent(intent: android.content.Intent) {
+        mainHandler.post {
+            val launcher = driveSignInLauncherRef[0]
+            if (launcher == null) {
+                pendingConnect = DriveConnectPending.None
+                toastMessage(context.getString(R.string.drive_sync_need_activity))
+                return@post
+            }
+            runCatching { launcher.launch(intent) }.onFailure {
+                pendingConnect = DriveConnectPending.None
+                toastMessage(context.getString(R.string.drive_sync_connect_failed))
+            }
+        }
+    }
+
     fun toastResult(result: Result<String>) {
         result.fold(
-            onSuccess = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() },
+            onSuccess = {
+                tokenConsentTried = false
+                toastMessage(it)
+            },
             onFailure = { err ->
-                if (activity != null && GoogleDriveBackupService.launchConsentIfNeeded(activity, err)) {
+                val host = activity ?: context.findActivity()
+                val consent = GoogleDriveBackupService.consentIntent(err)
+                if (host != null && consent != null && !tokenConsentTried) {
+                    tokenConsentTried = true
+                    pendingConnect = DriveConnectPending.TokenConsent
+                    launchGoogleIntent(consent)
                     return
                 }
-                Toast.makeText(
-                    context,
+                toastMessage(
                     if (err is BackupRestoreException) {
                         BackupRestoreErrors.userMessage(context, err)
                     } else {
                         err.message ?: context.getString(R.string.drive_sync_api_error, "")
                     },
-                    Toast.LENGTH_LONG
-                ).show()
+                )
             }
         )
     }
@@ -115,23 +152,62 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val driveSignInLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
-            return@rememberLauncherForActivityResult
-        }
-        val ok = GoogleDriveBackupService.onSignInResult(context, result.data)
-        if (ok) {
-            linkedEmail = prefs.accountEmail
-            Toast.makeText(context, context.getString(R.string.drive_sync_connected), Toast.LENGTH_SHORT).show()
-            scope.launch { pushToDrive() }
+        val parsed = if (pendingConnect == DriveConnectPending.TokenConsent) {
+            GoogleDriveBackupService.ParsedSignIn(null, false, null)
         } else {
-            Toast.makeText(context, context.getString(R.string.drive_sync_connect_failed), Toast.LENGTH_SHORT).show()
+            GoogleDriveBackupService.parseSignInIntent(result.data)
+        }
+        val outcome = DriveConnectInterpreter.next(
+            resultCode = result.resultCode,
+            accountEmail = parsed.email,
+            grantedDriveScope = parsed.grantedDriveScope,
+            error = parsed.error,
+            pending = pendingConnect,
+        )
+        when (outcome) {
+            DriveConnectOutcome.Granted -> {
+                val email = parsed.email.orEmpty()
+                GoogleDriveBackupService.linkAccountEmail(context, email)
+                pendingConnect = DriveConnectPending.None
+                linkedEmail = prefs.accountEmail
+                toastMessage(context.getString(R.string.drive_sync_connected), long = false)
+                scope.launch { pushToDrive() }
+            }
+            is DriveConnectOutcome.RequestDriveConsent -> {
+                val host = activity ?: context.findActivity()
+                if (host == null) {
+                    pendingConnect = DriveConnectPending.None
+                    toastMessage(context.getString(R.string.drive_sync_need_activity))
+                } else {
+                    pendingConnect = DriveConnectPending.DriveConsent
+                    launchGoogleIntent(
+                        GoogleSignInClients.driveConsentIntent(host, outcome.email),
+                    )
+                }
+            }
+            DriveConnectOutcome.RetryBackup -> {
+                pendingConnect = DriveConnectPending.None
+                scope.launch { pushToDrive() }
+            }
+            DriveConnectOutcome.Cancelled -> {
+                pendingConnect = DriveConnectPending.None
+                toastMessage(context.getString(R.string.drive_sync_connect_cancelled))
+            }
+            is DriveConnectOutcome.Failed -> {
+                pendingConnect = DriveConnectPending.None
+                toastMessage(
+                    outcome.error?.let { GoogleSignInSupport.formatError(context, it) }
+                        ?: context.getString(R.string.drive_sync_connect_failed),
+                )
+            }
         }
     }
+    driveSignInLauncherRef[0] = driveSignInLauncher
 
     fun startDriveSync() {
         val host = activity ?: context.findActivity()
         if (host == null) {
-            Toast.makeText(context, context.getString(R.string.drive_sync_need_activity), Toast.LENGTH_LONG).show()
+            toastMessage(context.getString(R.string.drive_sync_need_activity))
             return
         }
         GoogleDriveBackupService.syncLinkedAccountFromGoogle(host)
@@ -140,10 +216,16 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             scope.launch { pushToDrive() }
             return
         }
+        pendingConnect = if (GoogleDriveBackupService.connectStartsAtDriveConsent(host)) {
+            DriveConnectPending.DriveConsent
+        } else {
+            DriveConnectPending.AccountPicker
+        }
         runCatching {
             driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(host))
         }.onFailure {
-            Toast.makeText(context, context.getString(R.string.drive_sync_connect_failed), Toast.LENGTH_LONG).show()
+            pendingConnect = DriveConnectPending.None
+            toastMessage(context.getString(R.string.drive_sync_connect_failed))
         }
     }
 

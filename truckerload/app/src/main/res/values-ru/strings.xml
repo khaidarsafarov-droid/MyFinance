@@ -986,6 +986,7 @@
     <string name="drive_sync_backup_ok">Сохранено в Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive подключён</string>
     <string name="drive_sync_connect_failed">Не удалось подключить Google Drive</string>
+    <string name="drive_sync_connect_cancelled">Подключение Google Drive отменено</string>
     <string name="drive_sync_need_activity">Не удалось открыть Google Drive. Откройте Настройки ещё раз.</string>
     <string name="drive_sync_api_error">Ошибка Drive: %1$s</string>
     <string name="drive_sync_busy">Синхронизация…</string>

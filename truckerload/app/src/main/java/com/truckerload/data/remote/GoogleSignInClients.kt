@@ -52,15 +52,35 @@ object GoogleSignInClients {
         return builder.build()
     }
 
+    /** Account picker only — no Drive scope. Pair with [driveConsentIntent]. */
+    fun identityOptions(): GoogleSignInOptions =
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+
+    fun identitySignInIntent(activity: Activity): Intent =
+        GoogleSignIn.getClient(activity, identityOptions()).signInIntent
+
+    /** Drive app-data consent for a known account. Skips the multi-account picker. */
+    fun driveConsentIntent(activity: Activity, accountEmail: String): Intent =
+        GoogleSignIn.getClient(activity, driveOptions(accountEmail)).signInIntent
+
     /**
      * Opens Google account picker, or re-consents Drive app-data for the account
      * already signed in on the device (setAccountName). Using the last email is
      * required — a second sign-in without it often returns the old account and
      * skips the Drive permission screen.
+     *
+     * The picker itself must not request `drive.appdata`: Play Services then
+     * closes after the account tap and never shows Drive consent.
      */
     fun driveSignInIntent(activity: Activity): Intent {
         val email = GoogleSignIn.getLastSignedInAccount(activity)?.email
-        return GoogleSignIn.getClient(activity, driveOptions(email)).signInIntent
+        return if (email.isNullOrBlank()) {
+            identitySignInIntent(activity)
+        } else {
+            driveConsentIntent(activity, email)
+        }
     }
 
     fun isDeveloperError(error: Throwable): Boolean {
