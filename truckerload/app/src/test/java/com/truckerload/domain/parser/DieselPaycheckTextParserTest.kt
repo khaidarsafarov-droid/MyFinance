@@ -1,5 +1,9 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.ingest.InboundDocumentResolver
+import com.truckerload.domain.ingest.ReceiptFieldExtractor
+import com.truckerload.domain.ingest.ReceiptKind
+import com.truckerload.domain.ingest.ReceiptKindClassifier
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -129,16 +133,22 @@ class DieselPaycheckTextParserTest {
         assertTrue(PaycheckTextParser.isDriverStatement(text))
         assertEquals(
             ReceiptKind.PAYCHECK,
-            com.truckerload.domain.ingest.ReceiptKindClassifier.classify(
+            ReceiptKindClassifier.classify(
                 text,
                 "Settlement 08.17-08.23 Khaidar Safarov.pdf",
             ),
         )
-        val preview = com.truckerload.domain.ingest.ReceiptFieldExtractor.extract(
+        val preview = ReceiptFieldExtractor.extract(
             text,
             fileName = "Settlement 08.17-08.23 Khaidar Safarov.pdf",
         )
         assertEquals(4040.30, preview.amount!!, 0.01)
+        assertFalse(
+            InboundDocumentResolver.resolve(
+                text,
+                fileName = "Settlement 08.17-08.23 Khaidar Safarov.pdf",
+            ).autoSaveLoads,
+        )
     }
 
     @Test
@@ -151,5 +161,47 @@ class DieselPaycheckTextParserTest {
             """.trimIndent(),
         )
         assertEquals(4040.30, parsed!!.netAmount, 0.01)
+    }
+
+    @Test
+    fun paycheck_ocrSpacedGrandTotal() {
+        val parsed = PaycheckTextParser.parse(
+            """
+            Driver Settlement
+            Grand Tota1
+            4 040.30
+            """.trimIndent(),
+        )
+        assertEquals(4040.30, parsed!!.netAmount, 0.01)
+    }
+
+    @Test
+    fun paycheck_statementWithoutGrandTotal_usesLoadsMinusDeductions() {
+        val parsed = PaycheckTextParser.parse(
+            """
+            Driver Settlement
+            Payee ID: 268709
+            T-113RD815D Indianapolis IN 88% ${'$'}3,278.50
+            T-114LZPHKC Kyle TX 88% ${'$'}2,983.44
+            111B78L1H Hebron KY 88% ${'$'}1,178.09
+            Total ${'$'}7,440.03
+            Total Deductions ${'$'}3,399.73
+            """.trimIndent(),
+        )
+        assertEquals(4040.30, parsed!!.netAmount, 0.01)
+    }
+
+    @Test
+    fun paycheck_takeHomeAndCheckAmountLabels() {
+        assertEquals(
+            2100.0,
+            PaycheckTextParser.parse("Weekly Settlement\nTake Home: ${'$'}2,100.00")!!.netAmount,
+            0.01,
+        )
+        assertEquals(
+            990.5,
+            PaycheckTextParser.parse("Pay Statement\nCheck Amount ${'$'}990.50")!!.netAmount,
+            0.01,
+        )
     }
 }

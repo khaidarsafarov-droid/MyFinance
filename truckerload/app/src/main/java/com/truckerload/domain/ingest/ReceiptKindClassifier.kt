@@ -23,10 +23,17 @@ object ReceiptKindClassifier {
     )
 
     private val paycheckMarkers = listOf(
-        7 to Regex("""Driver\s*Settlement|Settlement\s*Summary|Payee\s*ID""", RegexOption.IGNORE_CASE),
+        7 to Regex(
+            """Driver\s*Sett+e?ment|Settlement\s*Summary|Payee\s*ID|""" +
+                """Driver\s*Statement|Weekly\s*Sett+e?ment|Owner\s*Operator\s*Sett+e?ment""",
+            RegexOption.IGNORE_CASE,
+        ),
         6 to Regex("""Net\s*Pay|Gross\s*Pay|Driver\s*Pay|зарплат""", RegexOption.IGNORE_CASE),
-        5 to Regex("""paycheck|pay\s*stub|settlement|оклад""", RegexOption.IGNORE_CASE),
-        4 to Regex("""Grand\s*Total|Settlement\s*Total|Cutoff\s*Date|Week\s*Start""", RegexOption.IGNORE_CASE),
+        5 to Regex("""paycheck|pay\s*stub|settlement|оклад|pay\s*statement""", RegexOption.IGNORE_CASE),
+        4 to Regex(
+            """Grand\s*Total|Settlement\s*Total|Take[\s-]*Home|Cutoff\s*Date|Week\s*Start""",
+            RegexOption.IGNORE_CASE,
+        ),
         2 to Regex("""YTD|year[\s-]*to[\s-]*date""", RegexOption.IGNORE_CASE),
     )
 

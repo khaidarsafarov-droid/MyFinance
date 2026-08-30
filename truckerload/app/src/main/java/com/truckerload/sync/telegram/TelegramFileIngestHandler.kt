@@ -277,7 +277,7 @@ class TelegramFileIngestHandler(
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_paycheck_amount_missing))
             return
         }
-        val formatted = String.format(java.util.Locale.US, "%,.2f", amount)
+        val formatted = String.format(Locale.US, "%,.2f", amount)
         val html = ReceiptPreviewFormatter.toHtml(
             preview = preview,
             guessedLabel = context.getString(R.string.sync_receipt_guess_paycheck),

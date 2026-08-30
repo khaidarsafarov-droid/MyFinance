@@ -1,16 +1,30 @@
 package com.truckerload.domain.parser
 
 import com.truckerload.domain.model.PaycheckParseResult
+import kotlin.math.roundToInt
 
 object PaycheckTextParser {
 
-    private val moneyCapture = """\$?\s*([\d]{1,3}(?:,\d{3})+(?:\.\d{2})?|[\d]+\.\d{2})"""
+    /**
+     * Dollars after a label: `$4,040.30`, `4 040.30`, OCR `4040 30`, `Grand Tota1`.
+     */
+    private val moneyNumber =
+        """([\d]{1,3}(?:,\d{3})+(?:\.\d{2}|\s+\d{2})?|""" +
+            """[\d]{1,3}(?:\s\d{3})+(?:\.\d{2}|\s+\d{2})|""" +
+            """[\d]+\.\d{2}|""" +
+            """[\d]{3,6}\s+\d{2})"""
+    private val moneyCapture = """[${'$'}S]?\s*$moneyNumber"""
     private val netPayLabel = """(?:Net\s*Pay|Зарплата)"""
-    private val grandLabel = """G[ra]{0,2}and\s*Tota[l1I]"""
-    private val settlementTotalLabel = """(?:Settlement\s*Total|Driver\s*Pay)"""
+    private val statementTakeHomeLabel =
+        """(?:G[ra]{0,2}and\s*Tota[l1I]|Settlement\s*(?:Total|Amount)|""" +
+            """Take[\s-]*Home|Check\s*(?:Amount|Total)|Net\s*Settlement)"""
+    private val simpleTakeHomeLabel =
+        """(?:$statementTakeHomeLabel|Driver\s*Pay|Net\s*(?:Check|Earnings)|""" +
+            """Amount\s*(?:to\s*)?Driver|Total\s*(?:Due\s*)?Driver)"""
     private val statementMarker = Regex(
-        """Driver\s*Settlement|Settlement\s*Summary|Settlement\s*Date|Payee\s*ID|""" +
-            """Total\s*Deductions|Sett+e?ment""",
+        """Driver\s*Sett+e?ment|Settlement\s*Summary|Settlement\s*Date|Payee\s*ID|""" +
+            """Total\s*Deductions|Owner\s*Operator\s*Sett+e?ment|""" +
+            """Weekly\s*Sett+e?ment|Pay\s*Statement|Driver\s*Statement|Sett+e?ment""",
         RegexOption.IGNORE_CASE,
     )
     private val grossPattern = Regex(
@@ -26,26 +40,36 @@ object PaycheckTextParser {
     private val fileWeekRange = Regex(
         """(\d{1,2}[./]\d{1,2})[-–](\d{1,2}[./]\d{1,2})""",
     )
+    private val methodNet = Regex(
+        """\d{1,3}\s*%[^\d$]{0,12}$moneyCapture""",
+        setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
+    )
+    private val totalLine = Regex(
+        """(?m)^[^\n]{0,48}\bTotal\b[^\n]{0,48}$moneyCapture""",
+        setOf(RegexOption.IGNORE_CASE),
+    )
 
     fun looksLikePaycheck(text: String, fileName: String? = null): Boolean {
         val hay = haystack(text, fileName)
-        return amountAfter(hay, netPayLabel) != null ||
-            amountAfter(hay, grandLabel) != null ||
-            amountAfter(hay, settlementTotalLabel) != null
+        return amountAfter(hay, simpleTakeHomeLabel) != null ||
+            amountAfter(hay, netPayLabel) != null ||
+            (isDriverStatement(hay) && computedTakeHome(hay) != null)
     }
 
     fun parse(text: String, fileName: String? = null): PaycheckParseResult? {
         val hay = haystack(text, fileName)
-        val grand = amountAfter(hay, grandLabel)
-        val netPays = amountsAfter(hay, netPayLabel)
-        val settlementTotal = amountAfter(hay, settlementTotalLabel)
         val statement = isDriverStatement(hay)
+        val takeHome = amountAfter(
+            hay,
+            if (statement) statementTakeHomeLabel else simpleTakeHomeLabel,
+        )
+        val netPays = amountsAfter(hay, netPayLabel)
+        val computed = if (statement) computedTakeHome(hay) else null
         val netAmount = when {
-            statement && grand != null -> grand
+            statement && takeHome != null -> takeHome
             !statement && netPays.isNotEmpty() -> netPays.first()
-            grand != null -> grand
-            settlementTotal != null -> settlementTotal
-            netPays.isNotEmpty() -> netPays.first()
+            takeHome != null -> takeHome
+            statement -> computed ?: return null
             else -> return null
         }
         if (netAmount <= 0) return null
@@ -79,6 +103,30 @@ object PaycheckTextParser {
     private fun haystack(text: String, fileName: String?): String =
         listOfNotNull(fileName?.replace('-', ' '), text).joinToString("\n")
 
+    private fun computedTakeHome(hay: String): Double? {
+        val deductions = amountAfter(hay, """Total\s*Deductions""") ?: return null
+        val loadsNet = statementLoadsNet(hay) ?: lineNetSum(hay) ?: return null
+        val net = ((loadsNet - deductions) * 100.0).roundToInt() / 100.0
+        return net.takeIf { it > 0 }
+    }
+
+    private fun statementLoadsNet(hay: String): Double? {
+        val amounts = totalLine.findAll(hay).mapNotNull { match ->
+            val line = match.value
+            if (DEDUCTION_OR_GROSS.containsMatchIn(line)) return@mapNotNull null
+            parsePayMoney(match.groupValues.getOrNull(1)).takeIf { it > 50 }
+        }.toList()
+        return amounts.firstOrNull()
+    }
+
+    private fun lineNetSum(hay: String): Double? {
+        val nets = methodNet.findAll(hay).mapNotNull { match ->
+            parsePayMoney(match.groupValues.getOrNull(1)).takeIf { it > 0 }
+        }.toList()
+        if (nets.size < 2) return null
+        return (nets.sum() * 100.0).roundToInt() / 100.0
+    }
+
     private fun amountAfter(text: String, label: String): Double? =
         amountsAfter(text, label).firstOrNull()
 
@@ -88,14 +136,34 @@ object PaycheckTextParser {
             setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
         )
         return rx.findAll(text).mapNotNull { match ->
-            ParseUtils.parseMoney(match.groupValues.getOrNull(1)).takeIf { it > 0 }
+            parsePayMoney(match.groupValues.getOrNull(1)).takeIf { it > 0 }
         }.toList()
     }
 
     private fun labeledMoney(text: String, pattern: Regex): Double? =
         pattern.find(text)?.groupValues?.getOrNull(1)
-            ?.let { ParseUtils.parseMoney(it) }
+            ?.let { parsePayMoney(it) }
             ?.takeIf { it > 0 }
+
+    /**
+     * `4040 30` / `4 040 30` → 4040.30. Otherwise [ParseUtils.parseMoney]
+     * (which already strips spaces around a real decimal).
+     */
+    private fun parsePayMoney(raw: String?): Double {
+        val trimmed = raw?.trim().orEmpty()
+        if (trimmed.isEmpty()) return 0.0
+        val parts = trimmed.split(Regex("""\s+"""))
+        val cents = parts.last()
+        if (parts.size >= 2 &&
+            cents.length == 2 &&
+            cents.all { it.isDigit() } &&
+            !trimmed.contains('.')
+        ) {
+            val dollars = parts.dropLast(1).joinToString("").replace(",", "").toDoubleOrNull()
+            if (dollars != null) return dollars + cents.toInt() / 100.0
+        }
+        return ParseUtils.parseMoney(trimmed)
+    }
 
     private fun weekFromFileName(fileName: String?): Pair<String, String>? {
         val match = fileWeekRange.find(fileName.orEmpty()) ?: return null
@@ -104,4 +172,9 @@ object PaycheckTextParser {
         if (start.isBlank() || end.isBlank()) return null
         return start to end
     }
+
+    private val DEDUCTION_OR_GROSS = Regex(
+        """deduct|gross|miles|load""",
+        RegexOption.IGNORE_CASE,
+    )
 }
