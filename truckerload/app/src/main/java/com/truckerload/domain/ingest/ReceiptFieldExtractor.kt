@@ -23,7 +23,7 @@ object ReceiptFieldExtractor {
         messageDateSeconds: Long? = null,
     ): ReceiptPreview {
         val kind = ReceiptKindClassifier.classify(text, fileName)
-        val paycheck = PaycheckTextParser.parse(text)
+        val paycheck = PaycheckTextParser.parse(text, fileName)
         val diesel = DieselTextParser.parse(text)
         val receipt = ServiceReceiptTextParser.parse(text)
         val loads = runCatching { LoadMessageParser.parseAll(text) }.getOrNull().orEmpty()

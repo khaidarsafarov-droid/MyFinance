@@ -1231,6 +1231,10 @@
     <string name="sync_receipt_guess_load">Reconocido: carga</string>
     <string name="sync_receipt_guess_unknown">Texto leído del archivo</string>
     <string name="sync_receipt_ask_type">¿Esto es una carga, diésel, DEF o pago?</string>
+    <string name="sync_paycheck_confirm_ask">¿El total de pago $%1$s es correcto? Solo se guarda si confirmas.</string>
+    <string name="sync_paycheck_confirm_yes">Sí, guardar</string>
+    <string name="sync_paycheck_confirm_no">No</string>
+    <string name="sync_paycheck_amount_missing">Parece una liquidación, pero no encontré el total neto. Envía un PDF con texto o escribe Grand Total.</string>
     <string name="sync_receipt_btn_load">Carga</string>
     <string name="sync_receipt_btn_diesel">Diésel</string>
     <string name="sync_receipt_btn_def">DEF</string>
