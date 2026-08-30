@@ -1,10 +1,13 @@
 package com.truckerload.widget.glance
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.compose.material3.ColorScheme
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.Dp
@@ -24,7 +27,11 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.getAppWidgetState
+import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -69,16 +76,54 @@ private val cabinSizeMode: SizeMode
         SizeMode.Responsive(CabinResponsiveSizes)
     }
 
+internal val WidgetGlanceRevisionKey = longPreferencesKey("widget_rev")
+
 object OneUiGlanceWidgets {
     suspend fun updateAll(context: Context) {
-        OneUiSquareGlanceWidget().updateAll(context)
-        OneUiWideGlanceWidget().updateAll(context)
+        val app = context.applicationContext
+        bumpRevision(app, OneUiSquareGlanceWidget())
+        bumpRevision(app, OneUiWideGlanceWidget())
+        OneUiSquareGlanceWidget().updateAll(app)
+        OneUiWideGlanceWidget().updateAll(app)
+        notifyLaunchers(app)
+    }
+
+    private suspend fun bumpRevision(context: Context, widget: GlanceAppWidget) {
+        val manager = GlanceAppWidgetManager(context)
+        val ids = runCatching { manager.getGlanceIds(widget.javaClass) }.getOrDefault(emptyList())
+        ids.forEach { glanceId ->
+            runCatching {
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[WidgetGlanceRevisionKey] = System.currentTimeMillis()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun notifyLaunchers(context: Context) {
+        val manager = AppWidgetManager.getInstance(context)
+        val ids = listOf(
+            OneUiSquareGlanceReceiver::class.java,
+            OneUiWideGlanceReceiver::class.java,
+        ).flatMap { receiver ->
+            manager.getAppWidgetIds(ComponentName(context, receiver)).toList()
+        }.toIntArray()
+        if (ids.isEmpty()) return
+        context.sendBroadcast(
+            Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+                `package` = context.packageName
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+            },
+        )
     }
 }
 
 internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
     /** Exact on API 31+ so shrinking to 2 rows switches layout; Responsive on older APIs. */
     override val sizeMode: SizeMode get() = cabinSizeMode
+    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -87,6 +132,7 @@ internal class OneUiSquareGlanceWidget : GlanceAppWidget() {
 
 internal class OneUiWideGlanceWidget : GlanceAppWidget() {
     override val sizeMode: SizeMode get() = cabinSizeMode
+    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideCabinGlance(context, id)
@@ -102,6 +148,9 @@ class OneUiWideGlanceReceiver : GlanceAppWidgetReceiver() {
 }
 
 private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: GlanceId) {
+    runCatching {
+        getAppWidgetState(context, PreferencesGlanceStateDefinition, id)[WidgetGlanceRevisionKey]
+    }
     val week = WidgetDataStore.load(context)
     val stored = WidgetDaySelectionStore.load(context, id)
     val todayOffset = WidgetDayProjection.todayOffset()

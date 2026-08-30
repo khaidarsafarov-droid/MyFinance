@@ -255,6 +255,8 @@ object BackupService {
         val appContext = context.applicationContext
         val db = AppDatabase.getInstanceForActiveUser(appContext) ?: return@withContext null
         if (db.loadDao().getAllLoadsOnce().isNotEmpty()) return@withContext null
+        // User deleted the last load — do not resurrect it from an older companion file.
+        if (com.truckerload.data.local.DeletedLoadLedger.hasAny(appContext)) return@withContext null
 
         val userId = AuthStore(appContext).currentUserIdOrNull() ?: return@withContext null
         // FIX: only scan this account's companion dir — shared pool restored wrong user's journal

@@ -6,6 +6,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map as mapPaging
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.local.entities.LoadDateSpan
@@ -343,6 +344,10 @@ class LoadRepository(
             referenceMillis = parsedAt,
         )
         val normalized = repaired.copy(tripId = normalizeTripId(repaired.tripId)).withReportingWeek().withRouteMetrics()
+        val blocked = AppDatabase.applicationContext()?.let { ctx ->
+            DeletedLoadLedger.isBlocked(ctx, normalized.id, normalized.tripId)
+        } == true
+        if (blocked) return
         db.withTransaction {
             // FIX: REPLACE on loads would orphan autogen stop/penalty rows
             stopDao.deleteByLoadId(normalized.id)
@@ -431,6 +436,10 @@ class LoadRepository(
     }
 
     suspend fun deleteLoad(loadId: String) {
+        val existing = runCatching { getLoadById(loadId) }.getOrNull()
+        AppDatabase.applicationContext()?.let { ctx ->
+            DeletedLoadLedger.markDeleted(ctx, loadId, existing?.tripId)
+        }
         val syncEnabled = mediaSync.enabled()
         var hadMedia = false
         db.withTransaction {
@@ -444,11 +453,18 @@ class LoadRepository(
             photoDao.deleteByLoadId(loadId)
             scanDao.deleteByLoadId(loadId)
             loadHistoryDao.deleteByLoadId(loadId)
+            stopDao.deleteByLoadId(loadId)
+            penaltyDao.deleteByLoadId(loadId)
             loadDao.deleteById(loadId)
             photos.forEach { runCatching { File(it.filePath).delete() } }
             scans.forEach { runCatching { File(it.filePath).delete() } }
         }
         if (syncEnabled && hadMedia) mediaSync.schedule()
+        AppDatabase.applicationContext()?.let { ctx ->
+            runCatching {
+                com.truckerload.sync.OutboundSyncQueue.enqueueLoadDelete(ctx, loadId)
+            }
+        }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
     }
@@ -472,6 +488,7 @@ class LoadRepository(
             scans.forEach { runCatching { File(it.filePath).delete() } }
         }
         if (syncEnabled && hadMedia) mediaSync.schedule()
+        notifyWidgetDataChanged()
     }
 
     suspend fun refreshReportingWeeks() {

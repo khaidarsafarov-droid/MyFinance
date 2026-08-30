@@ -1,5 +1,7 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
@@ -42,6 +44,10 @@ class LoadProcessor(
             }
 
         if (existingLoad == null) {
+            val ctx = AppDatabase.applicationContext()
+            if (ctx != null && DeletedLoadLedger.isBlocked(ctx, incoming.id, incoming.tripId)) {
+                return ProcessingResult.Skipped("Deleted")
+            }
             loadRepository.insertLoad(incoming, playFeedback = playFeedback)
             return ProcessingResult.Added
         }
