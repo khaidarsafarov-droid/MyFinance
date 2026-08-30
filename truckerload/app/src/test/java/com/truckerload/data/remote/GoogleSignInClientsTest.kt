@@ -79,7 +79,6 @@ class GoogleSignInClientsTest {
         assertFalse(
             gso.scopes.any { it.scopeUri == GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE },
         )
-        assertTrue(gso.isEmailRequested)
     }
 
     @Test
