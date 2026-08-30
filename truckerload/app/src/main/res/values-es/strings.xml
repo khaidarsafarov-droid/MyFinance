@@ -939,6 +939,7 @@
     <string name="export_loads_error">❌ Error de exportación: %s</string>
     <string name="no_loads_to_export">No hay cargas para exportar</string>
     <string name="open_folder">Abrir carpeta</string>
+    <string name="export_open_failed">No se pudo abrir el archivo. Búscalo en Archivos → TruckoRig o Android/data.</string>
     <string name="restore_loads">Restaurar cargas desde archivo</string>
     <string name="restore_loads_description">Cargar viajes desde un archivo de texto</string>
     <string name="restoring_loads">Restaurando cargas…</string>

@@ -1,8 +1,13 @@
 package com.truckerload.utils
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.core.content.FileProvider
+import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.presentation.utils.MoneyFormat
@@ -40,19 +45,62 @@ object LoadExporter {
         File(context.getExternalFilesDir(null), EXPORTS_SUBDIR)
 
     fun openExportsFolder(context: Context, file: File) {
-        val appContext = context.applicationContext
-        val uri = FileProvider.getUriForFile(
-            appContext,
-            "${appContext.packageName}.fileprovider",
-            file
-        )
-        val viewIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "text/plain")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        val host = context.findActivity() ?: context.applicationContext
+        if (!file.exists()) {
+            Toast.makeText(host, host.getString(R.string.export_open_failed), Toast.LENGTH_LONG).show()
+            return
         }
-        appContext.startActivity(
-            Intent.createChooser(viewIntent, appContext.getString(com.truckerload.R.string.open_folder))
-        )
+        val app = host.applicationContext
+        val uri = FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
+        val mime = mimeForExport(file)
+        val view = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mime)
+            clipData = ClipData.newUri(host.contentResolver, file.name, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            host.startActivity(chooserForExport(host, view))
+        } catch (_: ActivityNotFoundException) {
+            shareExportOrToast(host, uri, mime, file.name)
+        } catch (_: RuntimeException) {
+            shareExportOrToast(host, uri, mime, file.name)
+        }
+    }
+
+    internal fun mimeForExport(file: File): String = when (file.extension.lowercase(Locale.US)) {
+        "csv" -> "text/csv"
+        "txt" -> "text/plain"
+        "json", "tlb" -> "application/json"
+        else -> "application/octet-stream"
+    }
+
+    internal fun chooserForExport(host: Context, target: Intent): Intent {
+        return Intent.createChooser(target, host.getString(R.string.open_folder)).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            clipData = target.clipData
+            if (host !is Activity) {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        }
+    }
+
+    private fun shareExportOrToast(
+        host: Context,
+        uri: android.net.Uri,
+        mime: String,
+        title: String,
+    ) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = mime
+            putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newUri(host.contentResolver, title, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            host.startActivity(chooserForExport(host, send))
+        } catch (_: Exception) {
+            Toast.makeText(host, host.getString(R.string.export_open_failed), Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun sortKey(load: Load): String = load.date.ifBlank { "0000-00-00" }

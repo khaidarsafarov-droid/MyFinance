@@ -235,7 +235,7 @@ fun SettingsDataSection(
             confirmButton = {
                 Button(
                     onClick = {
-                        settingsViewModel.openExportsFolder(exportTarget)
+                        settingsViewModel.openExportsFolder(exportTarget, context)
                         showExportActions = false
                         exportedFile = null
                     },
