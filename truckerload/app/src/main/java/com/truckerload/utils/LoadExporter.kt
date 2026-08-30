@@ -59,7 +59,7 @@ object LoadExporter {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
-            host.startActivity(chooserForExport(host, view))
+            host.startActivity(chooserForExport(host, view, host.getString(R.string.open_folder)))
         } catch (_: ActivityNotFoundException) {
             shareExportOrToast(host, uri, mime, file.name)
         } catch (_: RuntimeException) {
@@ -74,8 +74,8 @@ object LoadExporter {
         else -> "application/octet-stream"
     }
 
-    internal fun chooserForExport(host: Context, target: Intent): Intent {
-        return Intent.createChooser(target, host.getString(R.string.open_folder)).apply {
+    internal fun chooserForExport(host: Context, target: Intent, title: String): Intent {
+        return Intent.createChooser(target, title).apply {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             clipData = target.clipData
             if (host !is Activity) {
@@ -97,7 +97,7 @@ object LoadExporter {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
-            host.startActivity(chooserForExport(host, send))
+            host.startActivity(chooserForExport(host, send, host.getString(R.string.open_folder)))
         } catch (_: Exception) {
             Toast.makeText(host, host.getString(R.string.export_open_failed), Toast.LENGTH_LONG).show()
         }
