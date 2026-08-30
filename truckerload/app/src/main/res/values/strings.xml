@@ -939,6 +939,7 @@
     <string name="export_loads_error">❌ Export error: %s</string>
     <string name="no_loads_to_export">No loads to export</string>
     <string name="open_folder">Open folder</string>
+    <string name="export_open_failed">Could not open the export. Open Files and look in TruckoRig / Android/data.</string>
     <string name="restore_loads">Restore loads from file</string>
     <string name="restore_loads_description">Load trips from a text file</string>
     <string name="restoring_loads">Restoring loads…</string>

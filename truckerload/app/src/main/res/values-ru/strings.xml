@@ -939,6 +939,7 @@
     <string name="export_loads_error">❌ Ошибка экспорта: %s</string>
     <string name="no_loads_to_export">Нет грузов для экспорта</string>
     <string name="open_folder">Открыть папку</string>
+    <string name="export_open_failed">Не удалось открыть файл. Найдите его в «Файлы» → TruckoRig или Android/data.</string>
     <string name="restore_loads">Восстановить грузы из файла</string>
     <string name="restore_loads_description">Загрузить рейсы из текстового файла</string>
     <string name="restoring_loads">Восстановление грузов…</string>

@@ -71,8 +71,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun openExportsFolder(file: File) {
-        LoadExporter.openExportsFolder(appContext, file)
+    fun openExportsFolder(file: File, host: Context = appContext) {
+        LoadExporter.openExportsFolder(host, file)
     }
 
     fun resetExportState() {
