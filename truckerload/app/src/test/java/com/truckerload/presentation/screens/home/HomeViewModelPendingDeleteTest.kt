@@ -128,4 +128,15 @@ class HomeViewModelPendingDeleteTest {
         assertEquals("db locked", viewModel.deleteError.value)
         assertTrue(viewModel.swipeSettleGeneration.value >= 1)
     }
+
+    @Test
+    fun leavingHome_commitsPendingDeleteSoItCannotReappear() = runTest(dispatcher) {
+        viewModel.requestDeleteLoad("load-1")
+        assertTrue(deletedIds.isEmpty())
+
+        viewModel.commitPendingDeletesNow()
+
+        assertEquals(listOf("load-1"), deletedIds)
+        assertNull(viewModel.undoDeleteLoadId.value)
+    }
 }

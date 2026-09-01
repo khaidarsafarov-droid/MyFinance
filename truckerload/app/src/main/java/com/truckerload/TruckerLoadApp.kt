@@ -16,6 +16,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.data.repository.LoadPendingDeleteApplier
 import com.truckerload.data.preferences.StartupRepairStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
@@ -199,6 +200,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             val userId = authStore.currentUserIdOrNull() ?: return@launch
             val repo = userComponentManager.startSession(userId).loadRepository
             val repairStore = StartupRepairStore(this@TruckerLoadApp)
+            runCatching { LoadPendingDeleteApplier.apply(repo) }
+                .onFailure { e -> Log.e(TAG, "Pending load deletes failed", e) }
             BackupService.restoreLatestCompanionBackupIfEmpty(this@TruckerLoadApp)
                 ?.onSuccess { message ->
                     withContext(Dispatchers.Main) {

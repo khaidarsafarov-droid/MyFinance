@@ -24,6 +24,16 @@ object OutboundSyncQueue {
         )
     }
 
+    suspend fun enqueueLoadDelete(context: Context, loadId: String) {
+        enqueue(
+            context = context,
+            entityType = SyncOutboxEntity.TYPE_LOAD,
+            entityId = loadId,
+            op = SyncOutboxEntity.OP_DELETE,
+            payloadJson = JSONObject().put("loadId", loadId).put("op", "delete").toString(),
+        )
+    }
+
     suspend fun enqueueDieselUpsert(context: Context, dieselId: String, summaryJson: JSONObject = JSONObject()) {
         enqueue(
             context = context,

@@ -7,6 +7,7 @@ import com.truckerload.data.backup.BackupPrefsApplier
 import com.truckerload.data.backup.BackupRoomApplier
 import com.truckerload.data.backup.BackupSnapshotBuilder
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.DriverProfileEntity
 import com.truckerload.data.local.toEntity
@@ -222,7 +223,11 @@ object CloudSyncEngine {
         db: AppDatabase,
         snapshot: AccountCloudSnapshot,
     ): Int {
-        val backup = snapshot.backup
+        val backup = snapshot.backup.copy(
+            loads = snapshot.backup.loads.filterNot { load ->
+                DeletedLoadLedger.isBlocked(context, load.id, load.tripId)
+            },
+        )
         BackupRoomApplier.applyFullReplace(db, backup)
         BackupRoomApplier.pruneOrphanMedia(db)
         applyDriverProfileIfPresent(db, snapshot)
@@ -259,6 +264,10 @@ object CloudSyncEngine {
                 applied++
             }
             for (load in backup.loads) {
+                val blocked = AppDatabase.applicationContext()?.let { ctx ->
+                    DeletedLoadLedger.isBlocked(ctx, load.id, load.tripId)
+                } == true
+                if (blocked) continue
                 val local = existing[load.id]
                 val localUpdated = local?.updatedAt
                 if (CloudSyncPolicy.remoteWins(localUpdated, load.updatedAt)) {

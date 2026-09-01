@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
@@ -369,9 +370,12 @@ class HomeViewModel @Inject constructor(
             commitPendingDelete(previous)
         }
         undoDeleteJob?.cancel()
+        val tripId = displayedLoadsFromDb.value.firstOrNull { it.id == loadId }?.tripId
+            ?: _optimisticOverlay.value[loadId]?.tripId
         _optimisticOverlay.update { it - loadId }
         _pendingDeleteIds.update { it + loadId }
         _undoDeleteLoadId.value = loadId
+        DeletedLoadLedger.markPending(app, loadId, tripId)
         undoDeleteJob = viewModelScope.launch {
             delay(UNDO_DELETE_WINDOW_MS)
             commitPendingDelete(loadId)
@@ -384,6 +388,7 @@ class HomeViewModel @Inject constructor(
         undoDeleteJob = null
         _undoDeleteLoadId.value = null
         _pendingDeleteIds.update { it - loadId }
+        DeletedLoadLedger.cancelPending(app, loadId)
         _swipeSettleGeneration.update { it + 1 }
     }
 
@@ -550,5 +555,27 @@ class HomeViewModel @Inject constructor(
     ): List<HomeListItem> {
         val state = _uiState.value
         return flattenedListItems(state.filter, state.selectedYear, filteredLoads)
+    }
+
+    /** Leaving Home / process death: hard-delete so the load cannot come back. */
+    fun commitPendingDeletesNow() {
+        val pending = (_pendingDeleteIds.value + listOfNotNull(_undoDeleteLoadId.value))
+            .filter { it.isNotBlank() }
+            .toSet()
+        if (pending.isEmpty()) return
+        undoDeleteJob?.cancel()
+        undoDeleteJob = null
+        _undoDeleteLoadId.value = null
+        kotlinx.coroutines.runBlocking {
+            pending.forEach { id ->
+                runCatching { loadRepository.deleteLoad(id) }
+            }
+        }
+        _pendingDeleteIds.update { it - pending }
+    }
+
+    override fun onCleared() {
+        commitPendingDeletesNow()
+        super.onCleared()
     }
 }
