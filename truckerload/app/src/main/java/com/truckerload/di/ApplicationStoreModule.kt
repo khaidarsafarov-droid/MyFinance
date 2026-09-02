@@ -3,7 +3,6 @@ package com.truckerload.di
 import android.content.Context
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
-import com.truckerload.data.preferences.PushTokenStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.UserProfileStore
 import dagger.Module
@@ -44,10 +43,4 @@ object ApplicationStoreModule {
     fun provideSettingsDataStore(
         @ApplicationContext context: Context,
     ): SettingsDataStore = SettingsDataStore(context)
-
-    @Provides
-    @Singleton
-    fun providePushTokenStore(
-        @ApplicationContext context: Context,
-    ): PushTokenStore = PushTokenStore(context)
 }

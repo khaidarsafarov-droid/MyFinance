@@ -27,6 +27,5 @@ Do **not** log Crowd RPM samples (same rule as JWT / local paths / OCR / signed 
 ## Storage of loads
 
 Journal rows live in the per-account Room file `truckerload_<userId>`.
-If `LOCAL_ONLY_MODE=true` or `SYNC_BACKEND_URL` is blank, they stay on-device
-only. Otherwise they may also sync to the user's cloud backup (`SyncModeStore.allowsCloudCalls()`).
-Cloud backup is never shown to other drivers.
+They stay on-device. Optional Google Drive backup is user-started and never
+shown to other drivers.

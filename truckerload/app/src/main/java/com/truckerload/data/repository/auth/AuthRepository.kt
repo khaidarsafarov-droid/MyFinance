@@ -39,17 +39,15 @@ sealed interface GoogleTokenRequestResult {
 interface AuthRepository {
     /**
      * Completes Google sign-in with an ID token and/or legacy account fields.
-     * Tries Supabase when configured; falls back to local identity (same as LoginScreen).
+     * Identity is stored on this device (Room + encrypted prefs). Drive backup is optional.
      */
     suspend fun signInWithGoogle(
         credential: GoogleAuthCredential,
-        replaceOccupant: Boolean = false,
     ): Result<AuthSignInResult>
 
     suspend fun signInWithEmail(
         email: String,
         password: String,
-        replaceOccupant: Boolean = false,
     ): Result<AuthSignInResult>
 
     /** Offline / LOCAL_ONLY local_dev session. */
@@ -63,6 +61,4 @@ interface AuthRepository {
     suspend fun requestGoogleIdToken(activityContext: Context): GoogleTokenRequestResult
 
     fun isGoogleCredentialManagerAvailable(): Boolean
-
-    fun isSupabaseConfigured(): Boolean
 }

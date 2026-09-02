@@ -49,5 +49,4 @@ Do not make `google-services.json`, mapping files, service-account JSON, or Fire
 CLI credentials workflow artifacts. Builds without Firebase skip mapping upload and
 remain green.
 
-Backend FCM is configured separately with encrypted `FIREBASE_PROJECT_ID` and
-`FIREBASE_CREDENTIALS_JSON`; no Firebase service account belongs in the Android app.
+There is no FCM or product backend. Firebase is Crashlytics only.

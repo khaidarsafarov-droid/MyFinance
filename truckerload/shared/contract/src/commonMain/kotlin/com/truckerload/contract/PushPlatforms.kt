@@ -1,10 +1,8 @@
 package com.truckerload.contract
 
 /**
- * Wire values for [DevicePushTokenRequest.platform].
- *
- * APNs delivery is not implemented yet — iOS tokens may be stored so a later
- * Apple client can register, but sync wake-ups currently go only to Android/FCM.
+ * Stable platform labels shared with the iOS façade.
+ * There is no product push backend; these strings are identifiers only.
  */
 object PushPlatforms {
     const val ANDROID = "android"

@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,8 +42,6 @@ import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.RegistrationBootstrap
 import com.truckerload.data.preferences.UserProfile
-import com.truckerload.data.remote.SupabaseAuthService
-import com.truckerload.data.sync.DeviceSlotLogin
 import com.truckerload.presentation.auth.BiometricOptInDialog
 import com.truckerload.presentation.auth.GoogleAuthCallbacks
 import com.truckerload.presentation.auth.enableBiometricUnlock
@@ -59,9 +56,6 @@ import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalTruckColors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,8 +68,6 @@ fun SignUpScreen(
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
     val credentialsStore = LocalAuthCredentialsStore.current
-    val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
-    val scope = rememberCoroutineScope()
 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -149,61 +141,6 @@ fun SignUpScreen(
         completeSignUp()
     }
 
-    fun finishCloudSignUp(
-        emailTrimmed: String,
-        passwordValue: String,
-        nameTrimmed: String,
-        userId: String,
-        accessToken: String,
-        refreshToken: String?,
-        profileWarning: Boolean,
-    ) {
-        val (given, family) = nameParts(nameTrimmed)
-        scope.launch {
-            val gate = withContext(Dispatchers.IO) {
-                DeviceSlotLogin.beforeSessionPersisted(context, accessToken)
-            }
-            isLoading = false
-            gate.fold(
-                onSuccess = {
-                    runCatching { credentialsStore.saveCredentials(emailTrimmed, passwordValue) }
-                    AuthLogin.completeLogin(
-                        authStore = authStore,
-                        userProfileStore = userProfileStore,
-                        userId = userId,
-                        profile = UserProfile(
-                            email = emailTrimmed,
-                            givenName = given,
-                            familyName = family,
-                            photoUrl = null,
-                            phoneNumber = null,
-                        ),
-                        accessToken = accessToken,
-                        refreshToken = refreshToken,
-                    )
-                    RegistrationBootstrap.afterCredentialsCreated(
-                        context = context,
-                        userId = userId,
-                        isVerified = false,
-                    )
-                    com.truckerload.data.preferences.EmailVerificationStore(context)
-                        .beginVerification(emailTrimmed)
-                    if (profileWarning) {
-                        android.widget.Toast.makeText(
-                            context,
-                            context.getString(R.string.signup_profile_sync_deferred),
-                            android.widget.Toast.LENGTH_LONG,
-                        ).show()
-                    }
-                    completeSignUp()
-                },
-                onFailure = { denied ->
-                    error = denied.message ?: context.getString(R.string.auth_error_device_slot_unavailable)
-                },
-            )
-        }
-    }
-
     fun performSignUp() {
         error = null
         val nameTrimmed = fullName.trim()
@@ -218,83 +155,12 @@ fun SignUpScreen(
             error = context.getString(formError)
             return
         }
-        if (!supabaseAuth.isConfigured()) {
-            finishLocalSignUp(
-                emailTrimmed,
-                password,
-                nameTrimmed,
-                R.string.supabase_not_configured_local,
-            )
-            return
-        }
-        isLoading = true
-        scope.launch {
-            val checkResult = supabaseAuth.checkRegistration(emailTrimmed, "")
-            val shouldProceed = checkResult.fold(
-                onSuccess = { (emailTaken, _) ->
-                    if (emailTaken) {
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                            error = context.getString(R.string.auth_error_user_exists)
-                        }
-                        false
-                    } else true
-                },
-                onFailure = { true },
-            )
-            if (!shouldProceed) return@launch
-            val signUpResult = supabaseAuth.signUp(emailTrimmed, password, nameTrimmed, "")
-            withContext(Dispatchers.Main) {
-                signUpResult.fold(
-                    onSuccess = { r ->
-                        if (r.accessToken.isNotBlank()) {
-                            scope.launch {
-                                val upsertResult = supabaseAuth.upsertProfile(
-                                    r.accessToken,
-                                    r.user.id,
-                                    nameTrimmed,
-                                    "",
-                                    r.user.email ?: emailTrimmed,
-                                )
-                                withContext(Dispatchers.Main) {
-                                    finishCloudSignUp(
-                                        emailTrimmed = r.user.email ?: emailTrimmed,
-                                        passwordValue = password,
-                                        nameTrimmed = nameTrimmed,
-                                        userId = r.user.id,
-                                        accessToken = r.accessToken,
-                                        refreshToken = r.refreshToken,
-                                        profileWarning = upsertResult.isFailure,
-                                    )
-                                }
-                            }
-                        } else {
-                            isLoading = false
-                            finishLocalSignUp(
-                                emailTrimmed,
-                                password,
-                                nameTrimmed,
-                                R.string.signup_success_confirm_email,
-                            )
-                        }
-                    },
-                    onFailure = { err ->
-                        isLoading = false
-                        if (SupabaseAuthService.isEmailSendRateLimited(err)) {
-                            finishLocalSignUp(
-                                emailTrimmed,
-                                password,
-                                nameTrimmed,
-                                R.string.auth_error_email_rate_limit,
-                            )
-                        } else {
-                            error = err.message
-                                ?: context.getString(R.string.signup_error_register)
-                        }
-                    },
-                )
-            }
-        }
+        finishLocalSignUp(
+            emailTrimmed,
+            password,
+            nameTrimmed,
+            R.string.signup_success,
+        )
     }
 
     Scaffold(

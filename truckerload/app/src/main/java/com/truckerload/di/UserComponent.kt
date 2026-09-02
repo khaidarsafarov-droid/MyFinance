@@ -7,7 +7,6 @@ import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SelectedStateStore
 import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
-import com.truckerload.data.remote.ktor.HttpClientProvider
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.AnalyticsRepository
 import com.truckerload.data.repository.DieselRepository
@@ -58,12 +57,10 @@ class UserComponent private constructor(
     val accountDeletionService: AccountDeletionService,
 ) {
     companion object {
-        @Suppress("UNUSED_PARAMETER")
         fun create(
             context: Context,
             userId: String,
             userProfileStore: UserProfileStore,
-            httpClientProvider: HttpClientProvider? = null,
         ): UserComponent {
             val id = userId.trim()
             require(id.isNotBlank()) { "userId required" }

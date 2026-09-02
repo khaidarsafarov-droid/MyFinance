@@ -17,7 +17,6 @@ class HiltArchitectureTest {
             "AuthCredentialsStore",
             "UserProfileStore",
             "SettingsDataStore",
-            "PushTokenStore",
         ).forEach { type ->
             assertTrue("$type must remain an application-scoped binding", source.contains("): $type ="))
         }

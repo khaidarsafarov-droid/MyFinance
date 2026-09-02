@@ -25,12 +25,8 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
-import com.truckerload.data.sync.cloud.SyncModeStore
 import com.truckerload.sync.TelegramBotForegroundService
-import com.truckerload.sync.ServerTelegramInboxWorker
-import com.truckerload.sync.PushTokenRegistrationWorker
 import com.truckerload.sync.TelegramSyncWorker
-import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
@@ -95,15 +91,11 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
+        cancelRetiredCloudWork()
         // Do not force SYSTEM here — that races the saved Light/Dark preference and can
         // recreate MainActivity in a loop with Compose's themeMode initialValue.
-        if (TelegramSyncMode.isServer()) {
-            ServerTelegramInboxWorker.enqueue(this)
-            ServerTelegramInboxWorker.enqueuePeriodic(this)
-        } else {
-            authStore.currentUserIdOrNull()?.let { userId ->
-                TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
-            }
+        authStore.currentUserIdOrNull()?.let { userId ->
+            TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
         }
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
@@ -116,17 +108,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             override fun onStart(owner: LifecycleOwner) {
                 val userId = authStore.currentUserIdOrNull()
                 if (userId != null) {
-                    if (SyncModeStore(this@TruckerLoadApp).allowsCloudCalls()) {
-                        PushTokenRegistrationWorker.enqueue(this@TruckerLoadApp)
-                    }
-                    if (TelegramSyncMode.isServer()) {
-                        ServerTelegramInboxWorker.enqueue(this@TruckerLoadApp)
-                    } else {
-                        TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
-                        // Ensure service once; start() is a no-op if already polling.
-                        if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
-                            TelegramBotForegroundService.start(this@TruckerLoadApp)
-                        }
+                    TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
+                    // Ensure service once; start() is a no-op if already polling.
+                    if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
+                        TelegramBotForegroundService.start(this@TruckerLoadApp)
                     }
                 }
                 WidgetDataUpdater.updateWidgetData(this@TruckerLoadApp)
@@ -143,7 +128,6 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         runCatching {
             FirebaseCrashlytics.getInstance().apply {
                 setCustomKey("app_version", BuildConfig.VERSION_NAME)
-                setCustomKey("sync_mode", BuildConfig.TELEGRAM_SYNC_MODE)
                 setCustomKey("local_only", BuildConfig.LOCAL_ONLY_MODE)
             }
         }.onFailure { error ->
@@ -152,18 +136,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     }
 
     private fun scheduleTelegramSync() {
-        if (TelegramSyncMode.isServer()) {
-            ServerTelegramInboxWorker.enqueue(this)
-        } else {
-            TelegramSyncWorker.enqueueEnsureService(this)
-        }
+        TelegramSyncWorker.enqueueEnsureService(this)
     }
 
     private fun scheduleTelegramWatchdog() {
-        if (TelegramSyncMode.isServer()) {
-            ServerTelegramInboxWorker.enqueuePeriodic(this)
-            return
-        }
         val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val request = PeriodicWorkRequestBuilder<TelegramSyncWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)
@@ -183,6 +159,26 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             ExistingPeriodicWorkPolicy.KEEP,
             request
         )
+    }
+
+    /**
+     * Drop leftover WorkManager jobs from the removed Ktor/Supabase cloud stack
+     * so upgrades do not keep retrying missing worker classes.
+     */
+    private fun cancelRetiredCloudWork() {
+        val wm = WorkManager.getInstance(this)
+        listOf(
+            "cloud_sync_oneshot",
+            "cloud_sync_periodic",
+            "outbound_sync_drain",
+            "media_cloud_sync_oneshot",
+            "media_cloud_sync_periodic",
+            "push_token_registration",
+            "server_telegram_inbox_oneshot",
+            "server_telegram_inbox_periodic",
+        ).forEach { name ->
+            wm.cancelUniqueWork(name)
+        }
     }
 
     /**

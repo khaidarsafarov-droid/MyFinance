@@ -28,8 +28,6 @@ cd truckerload
 # Production-oriented local.properties (gitignored):
 #   LOCAL_ONLY_MODE=false
 #   GOOGLE_MAPS_API_KEY=...   # optional but needed for maps
-#   SUPABASE_URL / SUPABASE_ANON_KEY  # only if cloud auth is live
-#   SYNC_BACKEND_URL=https://...     # only if Ktor sync is live
 # Never put TELEGRAM_BOT_TOKEN in release (forced empty).
 
 sh ./gradlew :app:bundleRelease

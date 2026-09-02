@@ -123,16 +123,6 @@ class ProfileRepositoryImpl(
                 lastActive = System.currentTimeMillis(),
             ),
         )
-        runCatching {
-            com.truckerload.sync.OutboundSyncQueue.enqueueProfileUpsert(
-                appContext,
-                existing.id,
-                org.json.JSONObject()
-                    .put("displayName", name)
-                    .put("homeHubCity", homeHubCity.trim())
-                    .put("licenseClass", licenseClass.trim()),
-            )
-        }
         val current = userProfileStore.profile.value
         val parts = name.split(" ", limit = 2)
         if (current != null) {

@@ -5,13 +5,11 @@ on:
     paths:
       - "truckerload/**"
       - ".github/workflows/truckerload-ci.yml"
-      - ".github/workflows/truckerload-deploy.yml"
   push:
     branches: [main]
     paths:
       - "truckerload/**"
       - ".github/workflows/truckerload-ci.yml"
-      - ".github/workflows/truckerload-deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -53,31 +51,6 @@ jobs:
             truckerload/shared/contract/build/test-results/
             truckerload/shared/domain/build/reports/tests/
             truckerload/shared/domain/build/test-results/
-          if-no-files-found: ignore
-          retention-days: 7
-
-  backend-tests:
-    name: Backend tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
-      - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :backend:server:test --no-daemon
-      - name: Upload backend test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-test-reports
-          path: |
-            truckerload/backend/server/build/reports/tests/
-            truckerload/backend/server/build/test-results/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -132,30 +105,3 @@ jobs:
           path: truckerload/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
-
-  validate-config:
-    name: Validate API and Compose configuration
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-      - name: Validate OpenAPI
-        run: npx --yes @redocly/cli@2.40.0 lint --extends=minimal backend/server/src/main/resources/openapi.yaml
-      - name: Validate Docker Compose
-        run: |
-          cp .env.example .env
-          docker compose config --quiet
-          rm -f .env
-
-  backend-image:
-    name: Build backend container
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [backend-tests, validate-config]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build without publishing
-        run: docker build --file backend/server/Dockerfile --tag truckerload-backend:ci .

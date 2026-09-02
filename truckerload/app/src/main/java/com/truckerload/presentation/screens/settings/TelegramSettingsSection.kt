@@ -38,7 +38,6 @@ import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.sync.TelegramBotForegroundService
-import com.truckerload.sync.TelegramSyncMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,11 +49,6 @@ import kotlinx.coroutines.withContext
  */
 @Composable
 fun TelegramSettingsSection() {
-    if (TelegramSyncMode.isServer()) {
-        TelegramServerModeSection()
-        return
-    }
-
     val context = LocalContext.current
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
@@ -312,20 +306,5 @@ fun TelegramSettingsSection() {
                 color = tc.TextSecondary,
             )
         }
-    }
-}
-
-@Composable
-private fun TelegramServerModeSection() {
-    val tc = LocalTruckColors.current
-    BentoGlassSection(
-        title = stringResource(R.string.settings_telegram_title),
-        subtitle = stringResource(R.string.settings_telegram_server_mode),
-    ) {
-        Text(
-            text = stringResource(R.string.settings_telegram_server_mode),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
-        )
     }
 }

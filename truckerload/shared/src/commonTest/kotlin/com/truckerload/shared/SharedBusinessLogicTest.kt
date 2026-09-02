@@ -21,7 +21,7 @@ class SharedBusinessLogicTest {
     }
 
     @Test
-    fun `iOS push platform is the contract token the backend already stores`() {
+    fun `iOS push platform label stays stable`() {
         assertEquals(PushPlatforms.IOS, SharedBusinessLogic.iosPushPlatform())
     }
 

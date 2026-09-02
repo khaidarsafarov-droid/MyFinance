@@ -180,19 +180,14 @@ class GoogleAuthArchitectureTest {
     }
 
     @Test
-    fun googleCloudLogin_persistsIdTokenAndKtorUsesSupabaseBearer() {
+    fun googleLogin_persistsIdTokenOnDevice() {
         val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
         assertTrue(launcher.contains("googleIdToken = idToken"))
         assertTrue(launcher.contains("googleIdToken = googleIdToken"))
 
         val repo = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(repo.contains("googleIdToken = idToken"))
         assertTrue(repo.contains("googleIdToken = credential.idToken"))
-
-        val interceptor = readMainSource("com/truckerload/data/remote/ktor/KtorAuthInterceptor.kt")
-        assertFalse(interceptor.contains("v1/voice/token"))
-        assertTrue(interceptor.contains("KtorBearerToken.select"))
-        assertTrue(interceptor.contains("request.headers.remove(HttpHeaders.Authorization)"))
+        assertTrue(!repo.contains("SupabaseAuthService"))
     }
 
     private fun readMainSource(relativePath: String): String {

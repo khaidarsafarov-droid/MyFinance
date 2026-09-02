@@ -46,31 +46,9 @@ android {
             .trim()
             .ifBlank { defaultGoogleWebClientId }
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
-        buildConfigField("String", "SUPABASE_URL", "\"${localProps.getProperty("SUPABASE_URL", "")}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
-        val syncBackendUrl = localProps.getProperty("SYNC_BACKEND_URL", "")
-            .trim()
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        buildConfigField("String", "SYNC_BACKEND_URL", "\"$syncBackendUrl\"")
-        val telegramSyncMode = localProps.getProperty("TELEGRAM_SYNC_MODE", "device")
-            .trim()
-            .lowercase()
-            .takeIf { it == "device" || it == "server" }
-            ?: "device"
-        buildConfigField("String", "TELEGRAM_SYNC_MODE", "\"$telegramSyncMode\"")
-        val telegramServerBotUsername = localProps.getProperty("TELEGRAM_SERVER_BOT_USERNAME", "")
-            .trim()
-            .removePrefix("@")
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        buildConfigField("String", "TELEGRAM_SERVER_BOT_USERNAME", "\"$telegramServerBotUsername\"")
         // Default false: app entry requires Google Auth (no silent local_dev login).
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "false").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
-        val cloudMediaEnabled = localProps.getProperty("CLOUD_MEDIA_ENABLED", "false")
-            .equals("true", ignoreCase = true)
-        buildConfigField("boolean", "CLOUD_MEDIA_ENABLED", cloudMediaEnabled.toString())
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
         val googleMapsApiKey = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
             .replace("\\", "\\\\")
@@ -144,8 +122,8 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            // Never bake server/bot secrets into release APKs.
-            // Public client IDs (Supabase anon, Google Web client) stay in defaultConfig.
+            // Never bake bot secrets into release APKs.
+            // Public client IDs (Google Web client) stay in defaultConfig.
             buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -231,24 +209,16 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
-    // Gson (backup codec + cloud snapshot — was transitive via Retrofit)
+    // Gson (backup codec)
     implementation("com.google.code.gson:gson:2.11.0")
 
-    // OkHttp (legacy remote clients — Telegram, Drive, Supabase auth, media presign)
+    // OkHttp (Telegram Bot API + Google Drive)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    // Ktor HTTP client (CIO engine — avoids OkHttp 4/5 clash with existing clients)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlinx.serialization.json)
 
-    // Firebase is inert without google-services.json; cloud builds still compile.
+    // Firebase is inert without google-services.json; Crashlytics only.
     implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
-    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-crashlytics")
 
     // DataStore + Encrypted

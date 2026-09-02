@@ -24,7 +24,6 @@
     <string name="common_loading">Cargando…</string>
     <string name="common_refresh">Actualizar</string>
 
-
     <string name="nav_community">Comunidad</string>
 
     <string name="analytics_title">Mis números</string>
@@ -155,20 +154,9 @@
     <string name="auth_error_user_exists">Ya existe un usuario con estas credenciales</string>
     <string name="auth_error_network">Sin conexión a internet. Revisa tu red.</string>
     <string name="auth_error_login_invalid">Error al iniciar sesión. Revisa tu correo o contraseña</string>
-    <string name="auth_error_device_slot_phone">Esta cuenta ya se usa en otro teléfono. También puedes usar una tablet, pero no un segundo teléfono.</string>
-    <string name="auth_error_device_slot_tablet">Esta cuenta ya se usa en otra tablet. También puedes usar un teléfono, pero no una segunda tablet.</string>
-    <string name="auth_error_device_slot_unavailable">No se pudo verificar este dispositivo. Revisa tu conexión e inténtalo de nuevo.</string>
-    <string name="auth_device_replace_title_tablet">¿Reemplazar tablet?</string>
-    <string name="auth_device_replace_title_phone">¿Reemplazar teléfono?</string>
-    <string name="auth_device_replace_body_tablet">Esta cuenta ya está vinculada a otra tablet. ¿Iniciar sesión aquí y desvincular la tablet anterior?</string>
-    <string name="auth_device_replace_body_phone">Esta cuenta ya está vinculada a otro teléfono. ¿Iniciar sesión aquí y desvincular el teléfono anterior?</string>
-    <string name="auth_device_replace_confirm">Iniciar sesión en este dispositivo</string>
-    <string name="auth_device_limit_hint">Puedes usar esta cuenta en un teléfono y una tablet. Tus datos se sincronizan entre ellos.</string>
     <string name="auth_error_no_network">Sin conexión de red</string>
     <string name="auth_remember_me">Recordarme</string>
     <string name="auth_error_email_invalid">Dirección de correo no válida</string>
-    <string name="auth_error_email_rate_limit">Demasiados correos de confirmación. Cuenta creada en local en este dispositivo: puedes seguir trabajando sin esperar el correo.</string>
-    <string name="auth_local_login_fallback">Sesión iniciada en local (nube no disponible por ahora)</string>
     <string name="auth_session_unconfirmed_banner">No se pudo verificar la sesión en línea. Trabajando en local</string>
     <string name="auth_session_offline_local_banner">Sin red: trabajando en local; sincronización en pausa</string>
     <string name="auth_secure_storage_fallback_banner">Almacenamiento seguro no disponible: los tokens del bot no se guardan; el inicio de sesión se guarda con menos protección</string>
@@ -177,18 +165,8 @@
     <string name="profile_last_drive_sync_never">Última sincronización de Drive: nunca</string>
     <string name="profile_google_linked">Google: %1$s</string>
     <string name="signup_error_profile_save">No se pudo guardar el perfil</string>
-    <string name="signup_profile_sync_deferred">Cuenta creada. El perfil en la nube se sincronizará después</string>
     <string name="signup_error_register">Error de registro</string>
-    <string name="signup_success_confirm_email">Registro correcto. Confirma tu correo con el enlace del mensaje y luego inicia sesión.</string>
-    <string name="supabase_not_configured">Supabase no está configurado.</string>
-    <string name="supabase_not_configured_local">Supabase no está configurado. Sesión iniciada en local.</string>
-    <string name="supabase_not_configured_props">Supabase no está configurado. Agrega SUPABASE_URL y SUPABASE_ANON_KEY a local.properties</string>
-    <string name="supabase_error">Error de Supabase: %1$s</string>
-    <string name="supabase_check_error">Error de verificación: %1$s</string>
-    <string name="supabase_profile_save_error">No se pudo guardar el perfil: %1$s</string>
-    <string name="supabase_profile_load_error">Error al cargar el perfil</string>
-    <string name="supabase_signup_no_user">No hay usuario en la respuesta. Supabase: Auth → Email → desactiva Confirm email para pruebas.</string>
-    <string name="supabase_no_tokens">No hay tokens en la respuesta</string>
+    <string name="signup_success">Cuenta creada</string>
     <string name="login_google_no_data">Sin datos</string>
     <string name="analytics_error_loading">Error al cargar</string>
     <string name="load_delete_failed">No se pudo eliminar la carga</string>
@@ -500,96 +478,6 @@
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d viaje(s)</string>
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <string name="calendar_prev_month_cd">Mes anterior</string>
     <string name="calendar_next_month_cd">Mes siguiente</string>
@@ -922,10 +810,6 @@
     <string name="settings_privacy_share_path_desc">Si está apagado, los amigos no pueden ver tu ruta en vivo en el mapa</string>
     
 
-
-
-
-
 <string name="settings_privacy_battery_saver">Ahorro de batería</string>
     <string name="settings_privacy_battery_saver_desc">Actualiza el GPS en el mapa cada 10 s en vez de 5 s (solo en primer plano)</string>
     <string name="settings_privacy_system_settings">Abrir ajustes del sistema de la app</string>
@@ -1123,7 +1007,6 @@
     <string name="push_notification_fallback_body">Hay una actualización nueva</string>
     
 
-
 <string name="settings_battery_title">Funcionamiento en segundo plano</string>
     <string name="settings_battery_desc">Para que el bot responda con la app cerrada, desactiva la optimización de batería para TruckoRig.</string>
     <string name="settings_battery_button">Desactivar optimización de batería</string>
@@ -1140,7 +1023,6 @@
     <string name="backup_restore_chart_note">Esto es una nota de gráfico de cargas, no un archivo de respaldo. Crea un respaldo nuevo en Ajustes.</string>
     <string name="backup_restore_schema_too_new">Este archivo lo creó una versión más nueva de la app. Actualiza TruckoRig.</string>
     <string name="backup_restore_success">Restaurado: %1$d cargas, %2$d pagos, %3$d registros de diésel</string>
-
 
     <string name="maintenance_title">Mantenimiento</string>
     <string name="maintenance_active_section">Recordatorios</string>
@@ -1382,11 +1264,7 @@
     <string name="privacy_settings_row_subtitle">Dónde se guardan tus cargas</string>
     <string name="privacy_card_loads_title">Tus cargas y tarifas</string>
     <string name="privacy_card_loads_body_device">Guardado solo en este dispositivo.</string>
-    <string name="privacy_card_loads_body_cloud">Guardado en este dispositivo y en tu respaldo en la nube.</string>
-    
-
 <string name="privacy_badge_device_only">Solo en este dispositivo</string>
-    <string name="privacy_badge_cloud_backup">En tu respaldo en la nube</string>
     <string name="home_delete_undo_message">Carga %1$s eliminada</string>
     <string name="home_country">País</string>
     <string name="phone_country_code">Código de país</string>
@@ -1624,12 +1502,6 @@
     <string name="social_challenge_king_miles_desc">Quién recorre más millas esta semana %1$d/%2$d</string>
     
 
-
-
-
-
-
-
 <string name="leaderboard_tab_overview">Resumen</string>
     <string name="leaderboard_tab_loads">Cargas</string>
     <string name="leaderboard_tab_revenue">Ingresos</string>
@@ -1644,9 +1516,6 @@
     <string name="trust_rating_value">Calificación de confianza %1$s</string>
     <string name="challenge_personal_progress">Tu avance esta semana: %1$s mi</string>
     <string name="challenge_ranked_position">Mi posición: #%1$d (%2$s mi)</string>
-
-
-
 
 <string name="load_alarm_ask_message">El pickup aún no ha empezado (%1$s). ¿Poner una alarma?</string>
 <string name="load_alarm_ask_no">No</string>

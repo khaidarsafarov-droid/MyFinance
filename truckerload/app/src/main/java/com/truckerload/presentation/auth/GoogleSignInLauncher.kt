@@ -23,8 +23,6 @@ import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthLogin
 import com.truckerload.data.preferences.UserProfile
 import com.truckerload.data.remote.GoogleSignInClients
-import com.truckerload.data.remote.SupabaseAuthService
-import com.truckerload.data.sync.DeviceSlotLogin
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.di.LocalUserProfileStore
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +49,6 @@ fun rememberGoogleSignInLauncher(
     val authStore = LocalAuthStore.current
     val userProfileStore = LocalUserProfileStore.current
     val scope = rememberCoroutineScope()
-    val supabaseAuth = remember(context) { SupabaseAuthService(context.applicationContext) }
     val callbacksState = rememberUpdatedState(callbacks)
     var omitIdToken by remember { mutableStateOf(false) }
     val legacyLauncherRef = remember {
@@ -92,7 +89,7 @@ fun rememberGoogleSignInLauncher(
                 if (!ok) {
                     Result.failure(IllegalStateException(context.getString(R.string.auth_error_email_required)))
                 } else {
-                    DeviceSlotLogin.afterSessionPersisted(context, authStore)
+                    Result.success(Unit)
                 }
             }
             callbacksState.value.onBusy(false)
@@ -137,73 +134,16 @@ fun rememberGoogleSignInLauncher(
         task.addOnSuccessListener { account ->
             try {
                 val idToken = account.idToken
-                fun finishLocal() {
-                    saveAndFinish(
-                        account.email.orEmpty(),
-                        account.givenName.orEmpty(),
-                        account.familyName.orEmpty(),
-                        resolveGooglePhotoUrl(null, idToken, account.photoUrl?.toString()),
-                        accessToken = idToken,
-                        googleId = account.id
-                            ?: idToken?.let { decodeGoogleIdToken(it)?.optString("sub") },
-                        googleIdToken = idToken,
-                    )
-                }
-                if (supabaseAuth.isConfigured() && !idToken.isNullOrBlank()) {
-                    scope.launch {
-                        try {
-                            val authResult = supabaseAuth.signInWithIdToken(idToken)
-                            withContext(Dispatchers.Main) {
-                                val signIn = authResult.getOrNull()
-                                val user = signIn?.user
-                                if (user != null) {
-                                    val parts = (user.fullName ?: account.email?.take(10) ?: "User")
-                                        .trim()
-                                        .split(" ")
-                                    saveAndFinish(
-                                        user.email ?: account.email.orEmpty(),
-                                        parts.firstOrNull() ?: account.givenName.orEmpty(),
-                                        parts.drop(1).joinToString(" ").ifBlank {
-                                            account.familyName.orEmpty()
-                                        },
-                                        resolveGooglePhotoUrl(
-                                            user.avatarUrl,
-                                            idToken,
-                                            account.photoUrl?.toString(),
-                                        ),
-                                        supabaseUserId = user.id,
-                                        accessToken = signIn.accessToken,
-                                        refreshToken = signIn.refreshToken,
-                                        googleId = account.id
-                                            ?: decodeGoogleIdToken(idToken)?.optString("sub"),
-                                        googleIdToken = idToken,
-                                    )
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(
-                                            R.string.login_google_fallback,
-                                            authResult.exceptionOrNull()?.message.orEmpty(),
-                                        ),
-                                        Toast.LENGTH_LONG,
-                                    ).show()
-                                    finishLocal()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.login_google_fallback, e.message.orEmpty()),
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                                finishLocal()
-                            }
-                        }
-                    }
-                } else {
-                    finishLocal()
-                }
+                saveAndFinish(
+                    account.email.orEmpty(),
+                    account.givenName.orEmpty(),
+                    account.familyName.orEmpty(),
+                    resolveGooglePhotoUrl(null, idToken, account.photoUrl?.toString()),
+                    accessToken = idToken,
+                    googleId = account.id
+                        ?: idToken?.let { decodeGoogleIdToken(it)?.optString("sub") },
+                    googleIdToken = idToken,
+                )
             } catch (e: Exception) {
                 Toast.makeText(
                     context,

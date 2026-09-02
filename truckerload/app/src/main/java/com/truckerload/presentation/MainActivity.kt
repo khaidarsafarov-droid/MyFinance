@@ -68,10 +68,7 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
 import com.truckerload.presentation.theme.TruckerLoadTheme
-import com.truckerload.sync.PushTokenRegistrationWorker
-import com.truckerload.sync.ServerTelegramInboxWorker
 import com.truckerload.sync.TelegramBotForegroundService
-import com.truckerload.sync.TelegramSyncMode
 import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.widget.WidgetDataUpdater
@@ -99,12 +96,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var userComponentManager: UserComponentManager
-
-    @Inject
-    lateinit var cloudSyncEngine: com.truckerload.data.sync.cloud.CloudSyncEngine
-
-    @Inject
-    lateinit var syncModeStore: com.truckerload.data.sync.cloud.SyncModeStore
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocale.wrap(base))
@@ -142,14 +133,11 @@ class MainActivity : AppCompatActivity() {
                             userComponentManager.startSession(activeUserId)
                         }
                         session = deps
-                        if (!TelegramSyncMode.isServer()) {
-                            // FIX: stop previous account's poller before starting the new session's bot
-                            TelegramBotForegroundService.stopForLogout(applicationContext)
-                            val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
-                            tokenStore.bootstrapFromBuildConfigIfEmpty()
-                            if (tokenStore.hasToken()) {
-                                TelegramBotForegroundService.start(applicationContext)
-                            }
+                        TelegramBotForegroundService.stopForLogout(applicationContext)
+                        val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
+                        tokenStore.bootstrapFromBuildConfigIfEmpty()
+                        if (tokenStore.hasToken()) {
+                            TelegramBotForegroundService.start(applicationContext)
                         }
                         sessionReady = true
                         withContext(Dispatchers.IO) {
@@ -163,7 +151,6 @@ class MainActivity : AppCompatActivity() {
                             }.onFailure { e ->
                                 android.util.Log.w("MainActivity", "Load repair failed", e)
                             }
-                            // Drive backup follows the Google account, not Ktor/Supabase.
                             if (com.truckerload.data.backup.DriveSyncEligibility
                                     .shouldEnqueuePeriodic(activeUserId)
                             ) {
@@ -172,29 +159,6 @@ class MainActivity : AppCompatActivity() {
                                     com.truckerload.data.backup.GoogleDriveBackupService
                                         .pushAutoBackupIfEnabled(applicationContext)
                                 }
-                            }
-                            if (syncModeStore.allowsCloudCalls()) {
-                                val syncResult = runCatching {
-                                    cloudSyncEngine.onSessionReady()
-                                }.onFailure { e ->
-                                    android.util.Log.w("MainActivity", "Cloud sync on session ready failed", e)
-                                }.getOrNull()
-                                if (syncResult?.mode ==
-                                    com.truckerload.data.sync.CloudSyncEngine.SyncResult.Mode.DEVICE_SLOT_DENIED
-                                ) {
-                                    // FIX: logout() skipped FGS/Google teardown; SessionTeardown is the single path
-                                    SessionTeardown.signOut(applicationContext, authStore) {
-                                        userComponentManager.endSession()
-                                    }
-                                    return@withContext
-                                }
-                                com.truckerload.sync.OutboundSyncWorker.enqueue(applicationContext)
-                                com.truckerload.sync.CloudSyncWorker.enqueuePeriodic(applicationContext)
-                                com.truckerload.sync.MediaSyncWorker.enqueue(applicationContext)
-                                com.truckerload.sync.MediaSyncWorker.enqueuePeriodic(applicationContext)
-                                ServerTelegramInboxWorker.enqueue(applicationContext)
-                                ServerTelegramInboxWorker.enqueuePeriodic(applicationContext)
-                                PushTokenRegistrationWorker.enqueue(applicationContext)
                             }
                         }
                     } else {

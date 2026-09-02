@@ -11,7 +11,7 @@ kotlin {
         compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
     }
     truckerloadIosTargets("TruckerLoadShared") {
-        // One framework for the Swift client: domain math + API contracts.
+        // One framework for the Swift client: domain math + shared identifiers.
         export(project(":shared:contract"))
         export(project(":shared:domain"))
     }

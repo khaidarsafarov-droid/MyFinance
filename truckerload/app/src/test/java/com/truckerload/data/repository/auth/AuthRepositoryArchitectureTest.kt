@@ -32,14 +32,11 @@ class AuthRepositoryArchitectureTest {
     }
 
     @Test
-    fun cloudLogin_registersDeviceSlotBeforeKeepingSession() {
+    fun login_doesNotRegisterCloudDeviceSlots() {
         val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(auth.contains("DeviceSlotLogin.beforeSessionPersisted"))
-        val binder = readMainSource("com/truckerload/data/sync/DeviceSlotBinder.kt")
-        assertTrue(binder.contains("registerWithAccessToken"))
-        val engine = readMainSource("com/truckerload/data/sync/CloudSyncEngine.kt")
-        assertTrue(engine.contains("DEVICE_SLOT_DENIED"))
-        assertTrue(engine.contains("registerCurrentDevice"))
+        assertTrue(!auth.contains("DeviceSlotLogin"))
+        assertTrue(!auth.contains("SupabaseAuthService"))
+        assertTrue(auth.contains("completeLocalGoogle"))
     }
 
     @Test
@@ -54,14 +51,13 @@ class AuthRepositoryArchitectureTest {
         val paycheck = readMainSource("com/truckerload/presentation/screens/add/AddPaycheckViewModel.kt")
         assertTrue(paycheck.contains("applyUtcDatePickerDay"))
         assertTrue(paycheck.contains("getPaycheckForWeek"))
-        assertTrue(auth.contains("isOfflineAuthFailure"))
-        assertTrue(auth.contains("IOException"))
+        assertTrue(auth.contains("boundUserIdFor"))
     }
 
     @Test
     fun googleSignIn_passesIdTokenThroughCompleteLogin() {
         val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(auth.contains("googleIdToken = idToken"))
+        assertTrue(auth.contains("googleIdToken = credential.idToken"))
         assertTrue(auth.contains("googleIdToken = googleIdToken"))
         val login = readMainSource("com/truckerload/data/preferences/AuthLogin.kt")
         assertTrue(login.contains("googleIdToken: String?"))

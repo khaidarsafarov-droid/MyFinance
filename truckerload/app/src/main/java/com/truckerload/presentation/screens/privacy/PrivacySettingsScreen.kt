@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,9 +22,7 @@ import com.truckerload.presentation.utils.useNavigationRail
 fun PrivacySettingsScreen(
     onBack: () -> Unit,
     showBack: Boolean = true,
-    viewModel: PrivacySettingsViewModel = hiltViewModel(),
 ) {
-    val cloudBackup by viewModel.cloudBackupEnabled.collectAsStateWithLifecycle()
     val tabletChrome = useNavigationRail()
 
     SoftAppPageScaffold(
@@ -47,10 +42,7 @@ fun PrivacySettingsScreen(
             PrivacyTrustCard(
                 icon = AppIcons.Lock,
                 title = stringResource(R.string.privacy_card_loads_title),
-                body = stringResource(
-                    if (cloudBackup) R.string.privacy_card_loads_body_cloud
-                    else R.string.privacy_card_loads_body_device,
-                ),
+                body = stringResource(R.string.privacy_card_loads_body_device),
             )
         }
     }

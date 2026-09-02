@@ -3,7 +3,6 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import com.truckerload.sync.TelegramSyncMode
 
 /**
  * Per-account flag: the first-login Telegram token wizard was finished or skipped.
@@ -29,7 +28,6 @@ class TelegramOnboardingStore(
      * stored or the app uses server-side Telegram sync.
      */
     fun shouldPrompt(context: Context): Boolean {
-        if (TelegramSyncMode.isServer()) return false
         if (isCompleted()) return false
         // FIX: check the same account and only a token the user actually saved
         if (TelegramTokenStore(context, resolvedUserId).hasPersistedToken()) {

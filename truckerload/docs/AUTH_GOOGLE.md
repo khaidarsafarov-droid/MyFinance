@@ -10,13 +10,13 @@ TruckoRig requires a signed-in session before the main UI. After the **first** s
 ## First launch
 
 1. User picks Google **or** creates/signs in with email + password.
-2. Identity (+ tokens when Supabase is configured) is written to encrypted prefs (`AuthStore`).
+2. Identity is written to encrypted prefs (`AuthStore`).
 3. Room DB is opened for that account id — local-first data stays on device.
 
 ## Later launches
 
 1. Cold start restores `is_logged_in` + `user_id` + provider from encrypted prefs → **no login UI**.
-2. `SilentAuthRestorer` refreshes tokens in the background when online (never shows Google sheet).
+2. `SilentAuthRestorer` confirms the on-device session (never shows Google sheet).
 3. Offline → soft banner, app keeps working on Room.
 
 ## Logout
@@ -28,12 +28,9 @@ Drawer / Settings → Logout clears the stored session; next open shows the logi
 ```
 LOCAL_ONLY_MODE=false
 GOOGLE_WEB_CLIENT_ID=<Web OAuth client>
-# optional cloud Auth:
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
 ```
 
-`LOCAL_ONLY_MODE=true` does **not** skip login; it only disables cloud workers / Supabase client.
+`LOCAL_ONLY_MODE=true` skips the Google/email login gate for local debugging.
 
 `GOOGLE_WEB_CLIENT_ID` falls back to the project Web client in `app/build.gradle.kts`
 when omitted from `local.properties`. Android OAuth client (package `com.truckorig` +
