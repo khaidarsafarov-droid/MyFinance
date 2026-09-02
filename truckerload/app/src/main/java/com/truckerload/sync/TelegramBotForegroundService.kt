@@ -60,11 +60,6 @@ class TelegramBotForegroundService : Service() {
         // Skipping it causes RemoteServiceException / "TruckoRig keeps stopping".
         startForegroundCompat()
 
-        if (TelegramSyncMode.isServer()) {
-            Log.i(TAG, "Server sync mode — stopping local bot FGS")
-            stopQuietly(restart = false)
-            return START_NOT_STICKY
-        }
         val userId = AuthStore(applicationContext).currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w(TAG, "No active user — stopping Telegram service")
@@ -265,7 +260,6 @@ class TelegramBotForegroundService : Service() {
 
         /** True when the bot FGS is allowed to run (logged in + token configured). */
         fun canStart(context: Context): Boolean {
-            if (TelegramSyncMode.isServer()) return false
             val userId = AuthStore(context).currentUserIdOrNull() ?: return false
             return TelegramTokenStore(context, userId).getToken().isNotBlank()
         }

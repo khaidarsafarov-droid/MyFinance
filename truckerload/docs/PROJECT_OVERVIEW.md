@@ -2,16 +2,17 @@
 
 Android-приложение для учёта лоудов (Amazon Relay), зарплат, дизеля и недельных целей.
 
-Полный бриф для другой нейросети (Cloud Code / Claude Code): **[CLOUD_CODE_BRIEF.md](CLOUD_CODE_BRIEF.md)** — один файл, его можно отправить целиком.
+Журнал, Telegram-бот и резервная копия Google Drive работают на устройстве.
+Отдельного сервера и Supabase в проекте нет.
 
 ## Структура
 
 ```
 truckerload/
 ├── app/                      # Android client
-├── shared/contract/          # KMP API contracts
+├── shared/contract/          # KMP identifiers shared with iOS
+
 ├── shared/domain/            # KMP portable domain
-├── backend/server/           # Ktor API
 ├── docs/
 └── gradle/
 ```
@@ -24,13 +25,13 @@ truckerload/
 
 ## Стек
 
-Kotlin, Jetpack Compose, Room v8, WorkManager, Telegram Bot API (long-poll на устройстве).
+Kotlin, Jetpack Compose, Room, WorkManager, Telegram Bot API (long-poll на устройстве).
 Общий код для будущего iOS — Kotlin Multiplatform (`shared/contract`, `shared/domain`).
 
 ## Ключевые пакеты
 
 - `sync/` — Telegram-бот, восстановление
-- `data/` — Room, репозитории
+- `data/` — Room, репозитории, Google Drive
 - `domain/` — парсеры, goal-математика
 - `presentation/` — UI
 - `widget/` — виджет рабочего стола

@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.data.remote.ktor.HttpClientProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
@@ -19,7 +18,6 @@ import javax.inject.Singleton
 class UserComponentManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userProfileStore: UserProfileStore,
-    private val httpClientProvider: HttpClientProvider,
 ) {
     private val active = AtomicReference<UserComponent?>(null)
     private val sessionLock = Any()
@@ -48,7 +46,7 @@ class UserComponentManager @Inject constructor(
             userProfileStore.unbind()
         } ?: Log.i(TAG, "Starting UserComponent for $id")
         // FIX: create + swap before clearing active — no null window for concurrent readers
-        val created = UserComponent.create(context, id, userProfileStore, httpClientProvider)
+        val created = UserComponent.create(context, id, userProfileStore)
         active.set(created)
         return created
     }

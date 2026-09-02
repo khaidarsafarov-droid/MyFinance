@@ -3,7 +3,6 @@ package com.truckerload.data.repository
 import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.PhotoEntity
-import com.truckerload.data.sync.MediaSyncEnqueuer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -12,7 +11,6 @@ import java.util.UUID
 
 class PhotoRepository(
     private val db: AppDatabase,
-    private val mediaSync: MediaSyncEnqueuer = MediaSyncEnqueuer.forDatabase(db),
 ) {
 
     private val photoDao = db.photoDao()
@@ -43,7 +41,6 @@ class PhotoRepository(
         timestamp: Long,
         loadId: String? = null,
     ): PhotoEntity {
-        val syncEnabled = mediaSync.enabled()
         val entity = PhotoEntity(
             id = UUID.randomUUID().toString(),
             fileName = fileName,
@@ -55,67 +52,39 @@ class PhotoRepository(
             zipCode = zipCode,
             timestamp = timestamp,
             loadId = loadId,
-            cloudSyncStatus = if (syncEnabled) PhotoEntity.CLOUD_PENDING else PhotoEntity.CLOUD_LOCAL,
+            cloudSyncStatus = PhotoEntity.CLOUD_LOCAL,
         )
-        db.withTransaction {
-            photoDao.insert(entity)
-            if (syncEnabled) mediaSync.enqueuePhotoUpsert(entity)
-        }
-        if (syncEnabled) mediaSync.schedule()
+        photoDao.insert(entity)
         return entity
     }
 
     suspend fun linkPhotoToLoad(photoId: String, loadId: String?) {
         val existing = photoDao.getById(photoId) ?: return
-        val syncEnabled = mediaSync.enabled()
-        val updated = existing.copy(
-            loadId = loadId,
-            cloudSyncStatus = if (syncEnabled) PhotoEntity.CLOUD_PENDING else existing.cloudSyncStatus,
-        )
-        db.withTransaction {
-            photoDao.insert(updated)
-            if (syncEnabled) mediaSync.enqueuePhotoUpsert(updated)
-        }
-        if (syncEnabled) mediaSync.schedule()
+        photoDao.insert(existing.copy(loadId = loadId))
     }
 
     /** Deletes DB row and the file on disk when present. */
     suspend fun deletePhoto(id: String) {
         val existing = photoDao.getById(id)
-        val syncEnabled = existing != null && mediaSync.enabled()
-        db.withTransaction {
-            if (syncEnabled) mediaSync.enqueuePhotoDelete(requireNotNull(existing))
-            photoDao.deleteById(id)
-        }
+        photoDao.deleteById(id)
         existing?.filePath?.takeIf { it.isNotBlank() }?.let { path ->
             runCatching { File(path).delete() }
         }
-        if (syncEnabled) mediaSync.schedule()
     }
 
     suspend fun deletePhotosForLoad(loadId: String) {
         val photos = photoDao.getPhotosByLoadIdOnce(loadId)
-        val syncEnabled = photos.isNotEmpty() && mediaSync.enabled()
-        db.withTransaction {
-            if (syncEnabled) photos.forEach { mediaSync.enqueuePhotoDelete(it) }
-            photoDao.deleteByLoadId(loadId)
-        }
+        photoDao.deleteByLoadId(loadId)
         photos.forEach { photo ->
             runCatching { File(photo.filePath).delete() }
         }
-        if (syncEnabled) mediaSync.schedule()
     }
 
     suspend fun deleteAllPhotosAndFiles() {
         val all = photoDao.getAllPhotosOnce()
-        val syncEnabled = all.isNotEmpty() && mediaSync.enabled()
-        db.withTransaction {
-            if (syncEnabled) all.forEach { mediaSync.enqueuePhotoDelete(it) }
-            photoDao.deleteAll()
-        }
+        photoDao.deleteAll()
         all.forEach { photo ->
             runCatching { File(photo.filePath).delete() }
         }
-        if (syncEnabled) mediaSync.schedule()
     }
 }

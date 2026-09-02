@@ -1,42 +1,38 @@
 # Auth entry & stay signed in
 
-TruckoRig requires a signed-in session before the main UI. After the **first** successful login, the session is stored on device and the next launches open the app **without** asking again (until the user taps Logout).
+TruckoRig runs locally. There is no Google Sign-In for the journal.
 
-| Platform | Providers |
-|----------|-----------|
-| Android (current) | **Google Sign-In** or **email + password** |
-| iOS (planned) | **Sign in with Apple** / iCloud |
+| Platform | Identity |
+|----------|----------|
+| Android (current) | **First-run name** (optional skip) → `local_dev` Room on this device |
+| iOS (planned) | Local journal; Sign in with Apple only if App Store requires it |
+
+Optional **Google Drive backup** is connected later from Settings. That OAuth is
+backup-only and does not become the app login.
 
 ## First launch
 
-1. User picks Google **or** creates/signs in with email + password.
-2. Identity (+ tokens when Supabase is configured) is written to encrypted prefs (`AuthStore`).
-3. Room DB is opened for that account id — local-first data stays on device.
+1. User enters first + last name, or skips.
+2. [LocalDeviceOnboarding](../app/src/main/java/com/truckerload/data/preferences/LocalDeviceOnboarding.kt)
+   writes `local_dev` to encrypted prefs (`AuthStore`).
+3. Room opens the on-device journal.
 
 ## Later launches
 
-1. Cold start restores `is_logged_in` + `user_id` + provider from encrypted prefs → **no login UI**.
-2. `SilentAuthRestorer` refreshes tokens in the background when online (never shows Google sheet).
-3. Offline → soft banner, app keeps working on Room.
+1. Cold start restores `is_logged_in` + `user_id` from encrypted prefs → **no login UI**.
+2. `SilentAuthRestorer` confirms the on-device session (never shows a Google sheet).
 
 ## Logout
 
-Drawer / Settings → Logout clears the stored session; next open shows the login screen again.
+Drawer / Settings → Logout clears the stored session; next open shows the first-run
+name screen again.
 
 ## Config
 
 ```
 LOCAL_ONLY_MODE=false
-GOOGLE_WEB_CLIENT_ID=<Web OAuth client>
-# optional cloud Auth:
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
 ```
 
-`LOCAL_ONLY_MODE=true` does **not** skip login; it only disables cloud workers / Supabase client.
+`LOCAL_ONLY_MODE=true` auto-opens `local_dev` for debugging (Diesel quick-add, etc.).
 
-`GOOGLE_WEB_CLIENT_ID` falls back to the project Web client in `app/build.gradle.kts`
-when omitted from `local.properties`. Android OAuth client (package `com.truckorig` +
-APK signing SHA-1) must still be registered in Google Cloud Console — ApiException **10**
-means the SHA-1 does not match. Exact fingerprints and Cloud Console steps:
-`docs/GOOGLE_SIGNIN_SETUP.md`.
+Drive OAuth SHA-1: [GOOGLE_SIGNIN_SETUP.md](GOOGLE_SIGNIN_SETUP.md).

@@ -17,6 +17,8 @@ class GoogleAuthArchitectureTest {
         val clients = readMainSource("com/truckerload/data/remote/GoogleSignInClients.kt")
         assertTrue(clients.contains("fun driveSignInIntent(activity: Activity)"))
         assertTrue(clients.contains("GoogleSignIn.getClient(activity"))
+        assertFalse(clients.contains("fun loginOptions"))
+        assertFalse(clients.contains("fun loginIntent"))
     }
 
     @Test
@@ -31,13 +33,6 @@ class GoogleAuthArchitectureTest {
     fun logout_signsOutGoogleAccount() {
         val source = readMainSource("com/truckerload/sync/SessionTeardown.kt")
         assertTrue(source.contains("GoogleSignInClients.signOutDevice"))
-    }
-
-    @Test
-    fun credentialManager_requiresActivity() {
-        val source = readMainSource("com/truckerload/data/remote/CredentialManagerGoogleSignIn.kt")
-        assertTrue(source.contains("resolveActivity(context)"))
-        assertTrue(source.contains("getCredentialAsync(activity"))
     }
 
     @Test
@@ -57,46 +52,6 @@ class GoogleAuthArchitectureTest {
         val clients = readMainSource("com/truckerload/data/remote/GoogleSignInClients.kt")
         assertTrue(clients.contains("setAccountName"))
         assertTrue(clients.contains("getLastSignedInAccount"))
-    }
-
-    @Test
-    fun legacyLogin_retriesDeveloperErrorWithoutIdToken() {
-        val source = readMainSource(
-            "com/truckerload/presentation/screens/login/LegacyGoogleSignInBridge.kt",
-        )
-        assertTrue(source.contains("launchLegacyGoogleSignIn"))
-        assertTrue(source.contains("shouldRetryWithoutIdToken"))
-    }
-
-    @Test
-    fun loginAndSignUp_shareLoginOptionsWithDriveAppDataScope() {
-        val support = readMainSource("com/truckerload/presentation/auth/GoogleSignInSupport.kt")
-        assertTrue(support.contains("GoogleSignInClients.loginOptions"))
-        assertFalse(support.contains("GoogleSignInOptions.Builder"))
-
-        val clients = readMainSource("com/truckerload/data/remote/GoogleSignInClients.kt")
-        val start = clients.indexOf("fun loginOptions")
-        val end = clients.indexOf("fun loginIntent")
-        assertTrue(start >= 0 && end > start)
-        val method = clients.substring(start, end)
-        assertTrue(method.contains("DRIVE_APPDATA_SCOPE"))
-        assertFalse(method.contains("drive.file"))
-    }
-
-    @Test
-    fun googleLogin_linksDriveAccountWithoutSecondPicker() {
-        val vm = readMainSource("com/truckerload/presentation/screens/auth/AuthViewModel.kt")
-        assertTrue(vm.contains("GoogleDriveBackupService.syncLinkedAccountFromGoogle"))
-        assertTrue(vm.contains("isDriveScopeGranted"))
-        val complete = vm.substring(
-            vm.indexOf("private suspend fun completeGoogle"),
-            vm.indexOf("private suspend fun applySuccess"),
-        )
-        assertTrue(complete.contains("login_google_drive_cta"))
-        assertTrue(complete.contains("isDriveScopeGranted"))
-
-        val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
-        assertTrue(launcher.contains("GoogleDriveBackupService.syncLinkedAccountFromGoogle"))
     }
 
     @Test
@@ -149,7 +104,6 @@ class GoogleAuthArchitectureTest {
         assertTrue(firstRun.contains("common_save"))
         assertTrue(firstRun.contains("first_run_skip"))
         assertTrue(firstRun.contains("onSkip"))
-        assertFalse(firstRun.contains("first_run_subtitle"))
         assertFalse(firstRun.contains("GoogleSignInButton("))
         assertFalse(firstRun.contains("login_with_email"))
         assertFalse(firstRun.contains("onGoogleSignInClick"))
@@ -162,37 +116,6 @@ class GoogleAuthArchitectureTest {
         assertFalse(host.contains("LoginScreen"))
         assertFalse(host.contains("SignUpScreen"))
         assertFalse(host.contains("GoogleSignInButton"))
-    }
-
-    @Test
-    fun login_skipsCredentialManagerHang() {
-        val repo = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        val start = repo.indexOf("fun requestGoogleIdToken")
-        val end = repo.indexOf("override suspend fun signInWithGoogle")
-        assertTrue(start >= 0 && end > start)
-        val method = repo.substring(start, end)
-        assertFalse(method.contains("getGoogleIdToken"))
-        assertTrue(method.contains("FallBackToLegacy"))
-
-        val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
-        assertTrue(launcher.contains("launchLegacy()"))
-        assertFalse(launcher.contains("CredentialManagerGoogleSignIn.getGoogleIdToken"))
-    }
-
-    @Test
-    fun googleCloudLogin_persistsIdTokenAndKtorUsesSupabaseBearer() {
-        val launcher = readMainSource("com/truckerload/presentation/auth/GoogleSignInLauncher.kt")
-        assertTrue(launcher.contains("googleIdToken = idToken"))
-        assertTrue(launcher.contains("googleIdToken = googleIdToken"))
-
-        val repo = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(repo.contains("googleIdToken = idToken"))
-        assertTrue(repo.contains("googleIdToken = credential.idToken"))
-
-        val interceptor = readMainSource("com/truckerload/data/remote/ktor/KtorAuthInterceptor.kt")
-        assertFalse(interceptor.contains("v1/voice/token"))
-        assertTrue(interceptor.contains("KtorBearerToken.select"))
-        assertTrue(interceptor.contains("request.headers.remove(HttpHeaders.Authorization)"))
     }
 
     private fun readMainSource(relativePath: String): String {

@@ -3,7 +3,6 @@ package com.truckerload.di
 import android.app.Application
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.data.remote.ktor.HttpClientProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -34,7 +33,7 @@ class UserComponentManagerTest {
         app = RuntimeEnvironment.getApplication()
         profileStore = mock()
         whenever(profileStore.setupComplete).thenReturn(MutableStateFlow(false))
-        manager = UserComponentManager(app, profileStore, mock<HttpClientProvider>())
+        manager = UserComponentManager(app, profileStore)
     }
 
     @After

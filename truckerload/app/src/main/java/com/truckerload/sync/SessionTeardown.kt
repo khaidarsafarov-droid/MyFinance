@@ -3,13 +3,11 @@ package com.truckerload.sync
 import android.content.Context
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.remote.GoogleSignInClients
-import com.truckerload.data.sync.DeviceSlotBinder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Stops account-bound foreground services and clears remote presence
- * **before** auth tokens are wiped on logout.
+ * Stops account-bound foreground services **before** auth tokens are wiped on logout.
  */
 object SessionTeardown {
 
@@ -18,7 +16,6 @@ object SessionTeardown {
      */
     suspend fun beforeLogout(context: Context) {
         val app = context.applicationContext
-        runCatching { DeviceSlotBinder(app).unregisterCurrentDevice() }
         TelegramBotForegroundService.stopForLogout(app)
         delay(300)
     }
@@ -35,8 +32,7 @@ object SessionTeardown {
         endSession()
         authStore.logout()
         // Play Services keeps the last Google account after app logout; clear it so
-        // the next "Sign in with Google" can pick a different account, and Drive
-        // does not keep a stale signed-in session.
+        // the next Drive connect can pick a different account.
         withTimeoutOrNull(5_000) {
             GoogleSignInClients.signOutDevice(context)
         }

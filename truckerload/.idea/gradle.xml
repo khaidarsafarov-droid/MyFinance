@@ -10,8 +10,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/backend" />
-            <option value="$PROJECT_DIR$/backend/server" />
             <option value="$PROJECT_DIR$/shared" />
             <option value="$PROJECT_DIR$/shared/contract" />
             <option value="$PROJECT_DIR$/shared/domain" />

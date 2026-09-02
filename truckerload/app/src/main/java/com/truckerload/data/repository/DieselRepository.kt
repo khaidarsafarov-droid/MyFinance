@@ -32,18 +32,6 @@ class DieselRepository(private val db: AppDatabase) {
         dao.insert(diesel.copy(addedAt = JournalSyncClock.bump(diesel.addedAt)).toEntity())
         scheduleAutoBackup()
         notifyWidgetDataChanged()
-        AppDatabase.applicationContext()?.let { ctx ->
-            runCatching {
-                com.truckerload.sync.OutboundSyncQueue.enqueueDieselUpsert(
-                    ctx,
-                    diesel.id.toString(),
-                    org.json.JSONObject()
-                        .put("totalAmount", diesel.totalAmount)
-                        .put("weekNumber", diesel.weekNumber)
-                        .put("year", diesel.year),
-                )
-            }
-        }
     }
 
     suspend fun deleteDiesel(id: Int) {

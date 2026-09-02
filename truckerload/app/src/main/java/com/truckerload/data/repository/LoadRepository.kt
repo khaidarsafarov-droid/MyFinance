@@ -16,7 +16,6 @@ import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.local.entities.StopEntity
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
-import com.truckerload.data.sync.MediaSyncEnqueuer
 import com.truckerload.domain.attach.AttachLoadSelection
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.goal.WeekYieldSnapshot
@@ -53,7 +52,6 @@ import java.util.concurrent.atomic.AtomicInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoadRepository(
     private val db: AppDatabase,
-    private val mediaSync: MediaSyncEnqueuer = MediaSyncEnqueuer.forDatabase(db),
 ) {
 
     private val loadDao = db.loadDao()
@@ -126,14 +124,12 @@ class LoadRepository(
     suspend fun cleanupOrphanAttachments(): Int {
         val loadIds = loadDao.getAllLoadsOnce().map { it.id }.toSet()
         var removed = 0
-        val syncEnabled = mediaSync.enabled()
         db.withTransaction {
             val orphanPhotos = photoDao.getAllPhotosOnce().filter { photo ->
                 val id = photo.loadId
                 !id.isNullOrBlank() && id !in loadIds
             }
             orphanPhotos.forEach { photo ->
-                if (syncEnabled) mediaSync.enqueuePhotoDelete(photo)
                 photoDao.deleteById(photo.id)
                 runCatching { File(photo.filePath).delete() }
                 removed++
@@ -143,13 +139,11 @@ class LoadRepository(
                 !id.isNullOrBlank() && id !in loadIds
             }
             orphanScans.forEach { scan ->
-                if (syncEnabled) mediaSync.enqueueScanDelete(scan)
                 scanDao.deleteById(scan.id)
                 runCatching { File(scan.filePath).delete() }
                 removed++
             }
         }
-        if (syncEnabled && removed > 0) mediaSync.schedule()
         return removed
     }
 
@@ -361,19 +355,6 @@ class LoadRepository(
         if (playFeedback) {
             FeedbackManager.onLoadAdded()
         }
-        AppDatabase.applicationContext()?.let { ctx ->
-            runCatching {
-                com.truckerload.sync.OutboundSyncQueue.enqueueLoadUpsert(
-                    ctx,
-                    normalized.id,
-                    org.json.JSONObject()
-                        .put("totalRate", normalized.totalRate)
-                        .put("totalMiles", normalized.totalMiles)
-                        .put("pointA", normalized.pointA)
-                        .put("pointB", normalized.pointB),
-                )
-            }
-        }
     }
 
     suspend fun updateLoad(load: Load) {
@@ -421,18 +402,6 @@ class LoadRepository(
         }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
-        AppDatabase.applicationContext()?.let { ctx ->
-            runCatching {
-                com.truckerload.sync.OutboundSyncQueue.enqueueLoadUpsert(
-                    ctx,
-                    normalized.id,
-                    org.json.JSONObject()
-                        .put("op", "update")
-                        .put("totalRate", normalized.totalRate)
-                        .put("totalMiles", normalized.totalMiles),
-                )
-            }
-        }
     }
 
     suspend fun deleteLoad(loadId: String) {
@@ -440,16 +409,9 @@ class LoadRepository(
         AppDatabase.applicationContext()?.let { ctx ->
             DeletedLoadLedger.markDeleted(ctx, loadId, existing?.tripId)
         }
-        val syncEnabled = mediaSync.enabled()
-        var hadMedia = false
         db.withTransaction {
             val photos = photoDao.getPhotosByLoadIdOnce(loadId)
             val scans = scanDao.getScansByLoadIdOnce(loadId)
-            hadMedia = photos.isNotEmpty() || scans.isNotEmpty()
-            if (syncEnabled) {
-                photos.forEach { mediaSync.enqueuePhotoDelete(it) }
-                scans.forEach { mediaSync.enqueueScanDelete(it) }
-            }
             photoDao.deleteByLoadId(loadId)
             scanDao.deleteByLoadId(loadId)
             loadHistoryDao.deleteByLoadId(loadId)
@@ -459,27 +421,14 @@ class LoadRepository(
             photos.forEach { runCatching { File(it.filePath).delete() } }
             scans.forEach { runCatching { File(it.filePath).delete() } }
         }
-        if (syncEnabled && hadMedia) mediaSync.schedule()
-        AppDatabase.applicationContext()?.let { ctx ->
-            runCatching {
-                com.truckerload.sync.OutboundSyncQueue.enqueueLoadDelete(ctx, loadId)
-            }
-        }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
     }
 
     suspend fun deleteAllLoads() {
-        val syncEnabled = mediaSync.enabled()
-        var hadMedia = false
         db.withTransaction {
             val photos = photoDao.getAllPhotosOnce()
             val scans = scanDao.getAllScansOnce()
-            hadMedia = photos.isNotEmpty() || scans.isNotEmpty()
-            if (syncEnabled) {
-                photos.forEach { mediaSync.enqueuePhotoDelete(it) }
-                scans.forEach { mediaSync.enqueueScanDelete(it) }
-            }
             photoDao.deleteAll()
             scanDao.deleteAll()
             loadHistoryDao.deleteAll()
@@ -487,7 +436,6 @@ class LoadRepository(
             photos.forEach { runCatching { File(it.filePath).delete() } }
             scans.forEach { runCatching { File(it.filePath).delete() } }
         }
-        if (syncEnabled && hadMedia) mediaSync.schedule()
         notifyWidgetDataChanged()
     }
 

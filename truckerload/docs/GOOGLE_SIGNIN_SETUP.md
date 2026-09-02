@@ -29,13 +29,10 @@ package `com.truckorig`. Старый debug-отпечаток вроде `F3:85
 - Клиенты: https://console.cloud.google.com/apis/credentials?project=842861516910
 - Новый Android-клиент: https://console.cloud.google.com/apis/credentials/oauthclient?project=842861516910
 
-Web client ID в `local.properties`:
-
-```
-GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
-```
-
 Включите **Google Drive API**. Если consent **Testing** — добавьте Gmail в Test users.
+
+Вход в приложение **не** использует Google Sign-In. Android OAuth client нужен
+только для резервной копии Drive в Настройках.
 
 После смены ключа: удалите приложение с телефона и поставьте сборку, подписанную
 этим keystore.

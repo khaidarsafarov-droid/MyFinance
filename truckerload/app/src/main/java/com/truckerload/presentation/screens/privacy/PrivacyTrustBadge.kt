@@ -12,9 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,14 +25,9 @@ import com.truckerload.presentation.theme.LocalTruckColors
 fun PrivacyTrustBadge(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PrivacySettingsViewModel = hiltViewModel(),
 ) {
-    val cloudBackupEnabled by viewModel.cloudBackupEnabled.collectAsStateWithLifecycle()
     val tc = LocalTruckColors.current
-    val label = stringResource(
-        if (cloudBackupEnabled) R.string.privacy_badge_cloud_backup
-        else R.string.privacy_badge_device_only,
-    )
+    val label = stringResource(R.string.privacy_badge_device_only)
     Surface(
         modifier = modifier.clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(20.dp),

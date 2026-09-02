@@ -24,7 +24,6 @@
     <string name="common_loading">Загрузка…</string>
     <string name="common_refresh">Обновить</string>
 
-
     <string name="nav_community">Сообщество</string>
 
     <string name="analytics_title">Мои цифры</string>
@@ -155,20 +154,9 @@
     <string name="auth_error_user_exists">Пользователь с такими данными уже существует</string>
     <string name="auth_error_network">Нет подключения к интернету. Проверьте сеть.</string>
     <string name="auth_error_login_invalid">Ошибка входа. Проверьте почту или пароль</string>
-    <string name="auth_error_device_slot_phone">Этот аккаунт уже используется на другом телефоне. Можно войти ещё на одном планшете, но не на втором телефоне.</string>
-    <string name="auth_error_device_slot_tablet">Этот аккаунт уже используется на другом планшете. Можно войти ещё на одном телефоне, но не на втором планшете.</string>
-    <string name="auth_error_device_slot_unavailable">Не удалось проверить это устройство. Проверьте интернет и попробуйте снова.</string>
-    <string name="auth_device_replace_title_tablet">Заменить планшет?</string>
-    <string name="auth_device_replace_title_phone">Заменить телефон?</string>
-    <string name="auth_device_replace_body_tablet">Этот аккаунт уже привязан к другому планшету. Войти здесь и отвязать прежний планшет?</string>
-    <string name="auth_device_replace_body_phone">Этот аккаунт уже привязан к другому телефону. Войти здесь и отвязать прежний телефон?</string>
-    <string name="auth_device_replace_confirm">Войти на этом устройстве</string>
-    <string name="auth_device_limit_hint">Аккаунт можно использовать на одном телефоне и одном планшете. Данные синхронизируются между ними.</string>
     <string name="auth_error_no_network">Нет соединения с сетью</string>
     <string name="auth_remember_me">Запомнить меня</string>
     <string name="auth_error_email_invalid">Некорректный адрес email</string>
-    <string name="auth_error_email_rate_limit">Слишком много писем подтверждения. Аккаунт создан локально на этом устройстве — можно работать без ожидания письма.</string>
-    <string name="auth_local_login_fallback">Вход выполнен локально (облако временно недоступно)</string>
     <string name="auth_session_unconfirmed_banner">Не удалось подтвердить сессию в сети. Работаем локально</string>
     <string name="auth_session_offline_local_banner">Нет сети — работаем локально, синхронизация отложена</string>
     <string name="auth_secure_storage_fallback_banner">Защищённое хранилище недоступно — токены бота не сохраняются; вход сохранён с пониженной защитой</string>
@@ -177,18 +165,8 @@
     <string name="profile_last_drive_sync_never">Последняя синхронизация Drive: ещё не было</string>
     <string name="profile_google_linked">Google: %1$s</string>
     <string name="signup_error_profile_save">Не удалось сохранить профиль</string>
-    <string name="signup_profile_sync_deferred">Аккаунт создан. Профиль в облаке синхронизируется позже</string>
     <string name="signup_error_register">Ошибка регистрации</string>
-    <string name="signup_success_confirm_email">Регистрация успешна. Подтвердите email по ссылке в письме, затем войдите.</string>
-    <string name="supabase_not_configured">Supabase не настроен.</string>
-    <string name="supabase_not_configured_local">Supabase не настроен. Вход выполнен локально.</string>
-    <string name="supabase_not_configured_props">Supabase не настроен. Добавьте SUPABASE_URL и SUPABASE_ANON_KEY в local.properties</string>
-    <string name="supabase_error">Ошибка Supabase: %1$s</string>
-    <string name="supabase_check_error">Ошибка проверки: %1$s</string>
-    <string name="supabase_profile_save_error">Не удалось сохранить профиль: %1$s</string>
-    <string name="supabase_profile_load_error">Ошибка загрузки профиля</string>
-    <string name="supabase_signup_no_user">Нет user в ответе. Supabase: Auth → Email → отключите Confirm email для теста.</string>
-    <string name="supabase_no_tokens">Нет токенов в ответе</string>
+    <string name="signup_success">Аккаунт создан</string>
     <string name="login_google_no_data">Нет данных</string>
     <string name="analytics_error_loading">Ошибка загрузки</string>
     <string name="load_delete_failed">Не удалось удалить груз</string>
@@ -500,96 +478,6 @@
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/миля · %4$d рейс(ов)</string>
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <string name="calendar_prev_month_cd">Предыдущий месяц</string>
     <string name="calendar_next_month_cd">Следующий месяц</string>
@@ -922,10 +810,6 @@
     <string name="settings_privacy_share_path_desc">Если выключено, друзья не видят ваш путь на карте</string>
     
 
-
-
-
-
 <string name="settings_privacy_battery_saver">Экономия батареи</string>
     <string name="settings_privacy_battery_saver_desc">Обновлять GPS на карте каждые 10 с вместо 5 с (только в открытом приложении)</string>
     <string name="settings_privacy_system_settings">Открыть системные настройки</string>
@@ -1123,7 +1007,6 @@
     <string name="push_notification_fallback_body">Доступно новое обновление</string>
     
 
-
 <string name="settings_battery_title">Фоновая работа</string>
     <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для TruckoRig.</string>
     <string name="settings_battery_button">Отключить оптимизацию батареи</string>
@@ -1140,7 +1023,6 @@
     <string name="backup_restore_chart_note">Это текстовая заметка со списком грузов, а не файл бэкапа. Создайте новый бэкап в Настройках.</string>
     <string name="backup_restore_schema_too_new">Файл создан более новой версией приложения. Обновите TruckoRig.</string>
     <string name="backup_restore_success">Восстановлено: %1$d грузов, %2$d зарплат, %3$d записей дизеля</string>
-
 
     <string name="maintenance_title">ТО</string>
     <string name="maintenance_active_section">Напоминания</string>
@@ -1382,11 +1264,7 @@
     <string name="privacy_settings_row_subtitle">Где хранятся грузы</string>
     <string name="privacy_card_loads_title">Ваши грузы и ставки</string>
     <string name="privacy_card_loads_body_device">Хранятся только на этом устройстве.</string>
-    <string name="privacy_card_loads_body_cloud">Хранятся на этом устройстве и в вашем облачном бэкапе.</string>
-    
-
 <string name="privacy_badge_device_only">Только на этом устройстве</string>
-    <string name="privacy_badge_cloud_backup">В вашем облачном бэкапе</string>
     <string name="home_delete_undo_message">Груз %1$s удалён</string>
     <string name="home_country">Страна</string>
     <string name="phone_country_code">Код страны</string>
@@ -1626,12 +1504,6 @@
     <string name="social_challenge_king_miles_desc">Кто проедет больше всех миль за неделю %1$d/%2$d</string>
     
 
-
-
-
-
-
-
 <string name="leaderboard_tab_overview">Обзор</string>
     <string name="leaderboard_tab_loads">Грузы</string>
     <string name="leaderboard_tab_revenue">Доход</string>
@@ -1646,9 +1518,6 @@
     <string name="trust_rating_value">Рейтинг доверия %1$s</string>
     <string name="challenge_personal_progress">Ваш прогресс за неделю: %1$s mi</string>
     <string name="challenge_ranked_position">Моя позиция: #%1$d (%2$s mi)</string>
-
-
-
 
 <string name="load_alarm_ask_message">Погрузка ещё не началась (%1$s). Поставить будильник?</string>
 <string name="load_alarm_ask_no">Нет</string>

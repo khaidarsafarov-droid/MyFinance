@@ -24,7 +24,6 @@
     <string name="common_loading">Loading…</string>
     <string name="common_refresh">Refresh</string>
 
-
     <string name="nav_community">Community</string>
 
     <string name="analytics_title">My numbers</string>
@@ -155,20 +154,9 @@
     <string name="auth_error_user_exists">A user with these credentials already exists</string>
     <string name="auth_error_network">No internet connection. Check your network.</string>
     <string name="auth_error_login_invalid">Sign-in error. Check your email or password</string>
-    <string name="auth_error_device_slot_phone">This account is already in use on another phone. You can also use one tablet, but not a second phone.</string>
-    <string name="auth_error_device_slot_tablet">This account is already in use on another tablet. You can also use one phone, but not a second tablet.</string>
-    <string name="auth_error_device_slot_unavailable">Couldn’t verify this device. Check your internet connection and try again.</string>
-    <string name="auth_device_replace_title_tablet">Replace tablet?</string>
-    <string name="auth_device_replace_title_phone">Replace phone?</string>
-    <string name="auth_device_replace_body_tablet">This account is already linked to another tablet. Sign in here and unlink the previous tablet?</string>
-    <string name="auth_device_replace_body_phone">This account is already linked to another phone. Sign in here and unlink the previous phone?</string>
-    <string name="auth_device_replace_confirm">Sign in on this device</string>
-    <string name="auth_device_limit_hint">You can use this account on one phone and one tablet. Your data syncs between them.</string>
     <string name="auth_error_no_network">No network connection</string>
     <string name="auth_remember_me">Remember me</string>
     <string name="auth_error_email_invalid">Invalid email address</string>
-    <string name="auth_error_email_rate_limit">Too many confirmation emails. Account created locally on this device — you can keep working without waiting for email.</string>
-    <string name="auth_local_login_fallback">Signed in locally (cloud temporarily unavailable)</string>
     <string name="auth_session_unconfirmed_banner">Couldn’t verify session online. Working locally</string>
     <string name="auth_session_offline_local_banner">No network — working locally; sync paused</string>
     <string name="auth_secure_storage_fallback_banner">Secure storage unavailable — bot tokens are not saved; login is stored with reduced protection</string>
@@ -177,18 +165,8 @@
     <string name="profile_last_drive_sync_never">Last Drive sync: never</string>
     <string name="profile_google_linked">Google: %1$s</string>
     <string name="signup_error_profile_save">Could not save profile</string>
-    <string name="signup_profile_sync_deferred">Account created. Cloud profile will sync later</string>
     <string name="signup_error_register">Registration error</string>
-    <string name="signup_success_confirm_email">Registration successful. Confirm your email via the link in the message, then sign in.</string>
-    <string name="supabase_not_configured">Supabase is not configured.</string>
-    <string name="supabase_not_configured_local">Supabase is not configured. Signed in locally.</string>
-    <string name="supabase_not_configured_props">Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to local.properties</string>
-    <string name="supabase_error">Supabase error: %1$s</string>
-    <string name="supabase_check_error">Verification error: %1$s</string>
-    <string name="supabase_profile_save_error">Could not save profile: %1$s</string>
-    <string name="supabase_profile_load_error">Error loading profile</string>
-    <string name="supabase_signup_no_user">No user in response. Supabase: Auth → Email → disable Confirm email for testing.</string>
-    <string name="supabase_no_tokens">No tokens in response</string>
+    <string name="signup_success">Account created</string>
     <string name="login_google_no_data">No data</string>
     <string name="analytics_error_loading">Loading error</string>
     <string name="load_delete_failed">Could not delete load</string>
@@ -500,96 +478,6 @@
     <string name="map_crowd_lane_row">%1$s → %2$s · $%3$s/mi · %4$d trip(s)</string>
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <string name="calendar_prev_month_cd">Previous month</string>
     <string name="calendar_next_month_cd">Next month</string>
@@ -922,10 +810,6 @@
     <string name="settings_privacy_share_path_desc">When off, friends cannot see your live path on the map</string>
     
 
-
-
-
-
 <string name="settings_privacy_battery_saver">Battery saver</string>
     <string name="settings_privacy_battery_saver_desc">Refresh GPS on the map every 10s instead of 5s (foreground only)</string>
     <string name="settings_privacy_system_settings">Open system app settings</string>
@@ -1123,7 +1007,6 @@
     <string name="push_notification_fallback_body">A new update is available</string>
     
 
-
 <string name="settings_battery_title">Background operation</string>
     <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for TruckoRig.</string>
     <string name="settings_battery_button">Disable battery optimization</string>
@@ -1140,7 +1023,6 @@
     <string name="backup_restore_chart_note">This is a load chart note, not a backup file. Create a new backup in Settings.</string>
     <string name="backup_restore_schema_too_new">This file was created by a newer app version. Please update TruckoRig.</string>
     <string name="backup_restore_success">Restored: %1$d loads, %2$d paychecks, %3$d diesel entries</string>
-
 
     <string name="maintenance_title">Maintenance</string>
     <string name="maintenance_active_section">Reminders</string>
@@ -1382,11 +1264,7 @@
     <string name="privacy_settings_row_subtitle">Where your loads are stored</string>
     <string name="privacy_card_loads_title">Your loads and rates</string>
     <string name="privacy_card_loads_body_device">Stored only on this device.</string>
-    <string name="privacy_card_loads_body_cloud">Stored on this device and in your cloud backup.</string>
-    
-
 <string name="privacy_badge_device_only">Only on this device</string>
-    <string name="privacy_badge_cloud_backup">In your cloud backup</string>
     <string name="home_delete_undo_message">Load %1$s deleted</string>
     <string name="home_country">Country</string>
     <string name="phone_country_code">Country code</string>
@@ -1624,12 +1502,6 @@
     <string name="social_challenge_king_miles_desc">Who drives the most miles this week %1$d/%2$d</string>
     
 
-
-
-
-
-
-
 <string name="leaderboard_tab_overview">Overview</string>
     <string name="leaderboard_tab_loads">Loads</string>
     <string name="leaderboard_tab_revenue">Revenue</string>
@@ -1644,9 +1516,6 @@
     <string name="trust_rating_value">Trust rating %1$s</string>
     <string name="challenge_personal_progress">Your progress this week: %1$s mi</string>
     <string name="challenge_ranked_position">My position: #%1$d (%2$s mi)</string>
-
-
-
 
 <string name="load_alarm_ask_message">Pickup has not started yet (%1$s). Set an alarm?</string>
 <string name="load_alarm_ask_no">No</string>

@@ -19,12 +19,10 @@ class AuthRepositoryArchitectureTest {
         val source = readMainSource("com/truckerload/presentation/screens/auth/FirstRunNameScreen.kt")
         assertTrue(source.contains("FirstRunViewModel"))
         assertTrue(source.contains("hiltViewModel"))
-        assertTrue(!source.contains("SupabaseAuthService"))
         assertTrue(!source.contains("GoogleSignInButton"))
         assertTrue(source.contains("first_run_title"))
         assertTrue(source.contains("first_run_skip"))
         assertTrue(source.contains("common_save"))
-        assertTrue(!source.contains("first_run_subtitle"))
         val host = readMainSource("com/truckerload/presentation/navigation/AuthNavHost.kt")
         assertTrue(host.contains("FirstRunNameScreen"))
         assertTrue(!host.contains("LoginScreen"))
@@ -32,21 +30,17 @@ class AuthRepositoryArchitectureTest {
     }
 
     @Test
-    fun cloudLogin_registersDeviceSlotBeforeKeepingSession() {
+    fun authRepository_hasNoGoogleOrCloudLogin() {
         val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(auth.contains("DeviceSlotLogin.beforeSessionPersisted"))
-        val binder = readMainSource("com/truckerload/data/sync/DeviceSlotBinder.kt")
-        assertTrue(binder.contains("registerWithAccessToken"))
-        val engine = readMainSource("com/truckerload/data/sync/CloudSyncEngine.kt")
-        assertTrue(engine.contains("DEVICE_SLOT_DENIED"))
-        assertTrue(engine.contains("registerCurrentDevice"))
+        assertTrue(!auth.contains("signInWithGoogle"))
+        assertTrue(!auth.contains("GoogleAuthCredential"))
+        assertTrue(!auth.contains("SupabaseAuthService"))
+        assertTrue(!auth.contains("DeviceSlotLogin"))
+        assertTrue(auth.contains("fun signOut"))
     }
 
     @Test
-    fun emailOfflineFallback_reusesBoundUserId() {
-        val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(auth.contains("boundUserIdFor"))
-        assertTrue(auth.contains("saveBoundUserId"))
+    fun emailJournalUnifier_stillRelocatesLocalEmailDb() {
         val store = readMainSource("com/truckerload/data/preferences/AuthStore.kt")
         assertTrue(store.contains("EmailAccountUnifier.relocateLocalEmailJournal"))
         val diesel = readMainSource("com/truckerload/presentation/screens/add/AddDieselViewModel.kt")
@@ -54,18 +48,6 @@ class AuthRepositoryArchitectureTest {
         val paycheck = readMainSource("com/truckerload/presentation/screens/add/AddPaycheckViewModel.kt")
         assertTrue(paycheck.contains("applyUtcDatePickerDay"))
         assertTrue(paycheck.contains("getPaycheckForWeek"))
-        assertTrue(auth.contains("isOfflineAuthFailure"))
-        assertTrue(auth.contains("IOException"))
-    }
-
-    @Test
-    fun googleSignIn_passesIdTokenThroughCompleteLogin() {
-        val auth = readMainSource("com/truckerload/data/repository/auth/AuthRepositoryImpl.kt")
-        assertTrue(auth.contains("googleIdToken = idToken"))
-        assertTrue(auth.contains("googleIdToken = googleIdToken"))
-        val login = readMainSource("com/truckerload/data/preferences/AuthLogin.kt")
-        assertTrue(login.contains("googleIdToken: String?"))
-        assertTrue(login.contains("googleIdToken = googleIdToken"))
     }
 
     private fun readMainSource(relativePath: String): String {
