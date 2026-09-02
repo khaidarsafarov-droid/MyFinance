@@ -10,8 +10,7 @@ import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.utils.FeedbackManager
-import com.truckerload.widget.WidgetDataUpdater
-import com.truckerload.widget.WidgetUpdateWorker
+import com.truckerload.widget.WidgetRefresh
 
 class TelegramLoadHandler(
     private val context: Context,
@@ -55,14 +54,12 @@ class TelegramLoadHandler(
     ): List<ProcessingResult> {
         if (loads.isEmpty()) return emptyList()
         val config = parserConfig()
-        val results = loads.map { load ->
-            loadProcessor.processLoad(
-                parsedLoad = load.copy(rawMessage = rawMessage),
-                config = config,
-                messageDateSeconds = messageDateSeconds,
-                playFeedback = false,
-            )
-        }
+        val results = loadProcessor.processLoads(
+            parsedLoads = loads.map { it.copy(rawMessage = rawMessage) },
+            config = config,
+            messageDateSeconds = messageDateSeconds,
+            playFeedback = false,
+        )
         notifyIfChanged(results, playFeedback)
         return results
     }
@@ -73,15 +70,15 @@ class TelegramLoadHandler(
             priceThresholdPercent = settingsDataStore.getParserPriceThresholdOnce(),
         )
 
-    private fun notifyIfChanged(results: List<ProcessingResult>, playFeedback: Boolean) {
+    private suspend fun notifyIfChanged(results: List<ProcessingResult>, playFeedback: Boolean) {
         val changed = results.any {
             it is ProcessingResult.Added ||
                 it is ProcessingResult.Updated ||
                 it is ProcessingResult.Replaced
         }
         if (!changed) return
-        WidgetDataUpdater.updateWidgetData(context)
-        WidgetUpdateWorker.refreshNow(context)
+        // Await Room→Glance so the home-screen widget paints before the bot replies.
+        WidgetRefresh.refreshAndUpdate(context)
         if (playFeedback) {
             FeedbackManager.onLoadAdded()
         }
