@@ -7,18 +7,12 @@ import org.junit.Test
 class GoogleSignInSupportTest {
 
     @Test
-    fun buildSignInOptions_delegatesToSharedLoginOptions() {
-        val source = readMainSource("com/truckerload/presentation/auth/GoogleSignInSupport.kt")
-        assertTrue(source.contains("fun buildSignInOptions"))
-        assertTrue(source.contains("GoogleSignInClients.loginOptions"))
-    }
-
-    @Test
     fun formatError_usesInstalledSha1ForDeveloperError() {
         val source = readMainSource("com/truckerload/presentation/auth/GoogleSignInSupport.kt")
         assertTrue(source.contains("InstalledSigningSha1.fingerprint"))
         assertTrue(source.contains("login_google_developer_error"))
-        assertTrue(source.contains("SIGN_OUT_TIMEOUT_MS"))
+        assertTrue(!source.contains("fun loginOptions"))
+        assertTrue(!source.contains("SIGN_OUT_TIMEOUT_MS"))
     }
 
     @Test

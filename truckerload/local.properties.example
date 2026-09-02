@@ -1,6 +1,5 @@
-# LOCAL_ONLY_MODE=true skips the Google/email login gate for local debugging
-# ("Continue offline" / local_dev). Google Sign-In + Google Drive still work
-# when this is false (production).
+# LOCAL_ONLY_MODE=true skips the first-run name screen for local debugging
+# (silent local_dev). Production still uses FirstRunNameScreen, then local_dev.
 LOCAL_ONLY_MODE=false
 
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
@@ -9,14 +8,9 @@ GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 # For on-device Telegram debugging only:  ./gradlew :app:assembleDebug -PallowDebugSecrets=true
 TELEGRAM_BOT_TOKEN=
 
-# Google OAuth — Web client for ID tokens; Android client registered in Cloud Console
-# (package com.truckorig + signing SHA-1). Required for "Sign in with Google".
-GOOGLE_WEB_CLIENT_ID=842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com
+# Optional Google Drive backup (Settings → Google Drive): enable Drive API and
+# register an Android OAuth client (package com.truckorig + signing SHA-1).
 GOOGLE_ANDROID_CLIENT_ID=842861516910-usd22msidljtngc00p2jeokn6qf5te94.apps.googleusercontent.com
-
-# Google Drive backup (Settings → Google Drive): enable Drive API in Google Cloud
-# for the same project as GOOGLE_WEB_CLIENT_ID / Android OAuth client.
-# After Google login, open Settings and link Drive (drive.appdata scope).
 
 # Do not run another long-poll/webhook with the same TELEGRAM_BOT_TOKEN —
 # Telegram delivers updates to only one client.

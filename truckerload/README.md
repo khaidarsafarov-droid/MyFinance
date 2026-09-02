@@ -57,14 +57,14 @@ which prevents one user's database from surviving into another user's session.
 - [Target architecture](docs/TARGET_ARCHITECTURE.md)
 - [KMP / iOS client](docs/KMP_IOS_ROADMAP.md)
 - [Optional Firebase/Crashlytics](docs/ANDROID_FIREBASE_SETUP.md)
-- [Google Sign-In](docs/AUTH_GOOGLE.md)
+- [Local auth / Drive backup](docs/AUTH_GOOGLE.md)
 
 ## Android capabilities
 
 - Local journal, diesel, paychecks, goals, and analytics
 - ML Kit document scanner and Latin OCR, with Tesseract `rus+eng`
 - Geotagged camera, gallery, PDFs, and load attachments
-- Google/email account flow with local-only development mode
+- Local first-run name screen (`local_dev` journal); optional Google Drive backup
 - On-device Telegram bot (foreground service)
 - Optional Google Drive backup of the local journal
 - Optional Crashlytics when `app/google-services.json` is present

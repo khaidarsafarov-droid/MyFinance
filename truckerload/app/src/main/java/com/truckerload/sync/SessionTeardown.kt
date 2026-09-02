@@ -32,8 +32,7 @@ object SessionTeardown {
         endSession()
         authStore.logout()
         // Play Services keeps the last Google account after app logout; clear it so
-        // the next "Sign in with Google" can pick a different account, and Drive
-        // does not keep a stale signed-in session.
+        // the next Drive connect can pick a different account.
         withTimeoutOrNull(5_000) {
             GoogleSignInClients.signOutDevice(context)
         }

@@ -3,46 +3,22 @@ package com.truckerload.data.remote
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CredentialManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Scope
-import com.truckerload.BuildConfig
 import com.truckerload.data.backup.GoogleDriveBackupPrefs
 import kotlinx.coroutines.tasks.await
 
 /**
- * Shared Google Sign-In clients. Sign-in intents must be built from an [Activity],
- * never [Context.getApplicationContext] — Play Services otherwise fails silently.
+ * Google Sign-In clients used only for optional Drive app-data backup.
+ * App identity is local ([com.truckerload.data.preferences.LocalDeviceOnboarding]).
+ *
+ * Sign-in intents must be built from an [Activity], never
+ * [Context.getApplicationContext] — Play Services otherwise fails silently.
  */
 object GoogleSignInClients {
-
-    /**
-     * Login / sign-up consent: identity (email, profile, optional ID token) **and**
-     * Drive app-data so Settings backup can reuse this account without a second picker.
-     *
-     * Scope is [GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE] (hidden `appDataFolder`,
-     * files created by this app only). That matches [com.truckerload.data.backup.GoogleDriveApiClient].
-     * We do not request `drive.file` or full Drive: `drive.file` cannot read appDataFolder
-     * and would orphan existing backups; both restricted scopes are app-only, not the
-     * user's My Drive.
-     */
-    fun loginOptions(requestIdToken: Boolean): GoogleSignInOptions {
-        val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestProfile()
-            .requestScopes(Scope(GoogleDriveBackupPrefs.DRIVE_APPDATA_SCOPE))
-        if (requestIdToken && BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
-            builder.requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-        }
-        return builder.build()
-    }
-
-    fun loginIntent(activity: Activity, requestIdToken: Boolean): Intent =
-        GoogleSignIn.getClient(activity, loginOptions(requestIdToken)).signInIntent
 
     fun driveOptions(accountEmail: String? = null): GoogleSignInOptions {
         val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -88,26 +64,14 @@ object GoogleSignInClients {
         return api?.statusCode == CommonStatusCodes.DEVELOPER_ERROR
     }
 
-    /**
-     * Status 10 (DEVELOPER_ERROR) with a wrong Web client ID still allows local
-     * Google login (email / `sub`) if we retry without [GoogleSignInOptions.Builder.requestIdToken].
-     */
-    fun shouldRetryWithoutIdToken(error: Throwable, alreadyOmittingIdToken: Boolean): Boolean =
-        !alreadyOmittingIdToken &&
-            BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank() &&
-            isDeveloperError(error)
-
-    /** Clears Play Services + Credential Manager so the next login can pick another account. */
+    /** Clears Play Services so the next Drive connect can pick another account. */
     suspend fun signOutDevice(context: Context) {
         val app = context.applicationContext
         runCatching {
             GoogleSignIn.getClient(app, driveOptions()).signOut().await()
         }
         runCatching {
-            GoogleSignIn.getClient(app, loginOptions(requestIdToken = false)).signOut().await()
-        }
-        runCatching {
-            CredentialManager.create(app).clearCredentialState(ClearCredentialStateRequest())
+            GoogleSignIn.getClient(app, identityOptions()).signOut().await()
         }
     }
 }

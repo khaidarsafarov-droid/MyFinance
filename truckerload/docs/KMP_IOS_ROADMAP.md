@@ -29,10 +29,10 @@ only pure Kotlin (no `android.*`, `java.time`, `org.json`).
 
 ## How to develop Android without breaking KMP
 
-1. UI, Room, WorkManager, camera, ML Kit, widgets, Google Sign-In — only `:app`.
+1. UI, Room, WorkManager, camera, ML Kit, widgets, Drive backup — only `:app`.
 2. Relay parsers, goal math, CSV — candidates for `:shared:domain` after `Calendar` /
    `Locale` / `java.time` are replaced (`PlatformTime` + kotlinx-datetime).
-3. Do not add Apple SDKs to the Android login flow “for later”.
+3. Do not add Apple SDKs to the Android first-run flow “for later”.
 
 ## Build the iPhone app (Mac)
 
@@ -40,7 +40,7 @@ only pure Kotlin (no `android.*`, `java.time`, `org.json`).
 2. Xcode runs `sh ./gradlew :shared:embedAndSignAppleFrameworkForXcode` (and domain/contract
    transitively) before Swift compile.
 3. Swift: `import TruckerLoadShared` then `SharedBusinessLogic.shared`.
-4. Later: Apple Developer Program, Sign in with Apple (required if Google Sign-In stays),
+4. Later: Apple Developer Program, Sign in with Apple if App Store requires it,
    APNs, TestFlight, App Store.
 
 Details: [ios/README.md](../ios/README.md), [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md).

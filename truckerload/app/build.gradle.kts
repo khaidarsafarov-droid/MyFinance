@@ -38,15 +38,7 @@ android {
             ""
         }
         buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"$telegramToken\"")
-        // Non-secret Web OAuth client — required for Google ID tokens. Fall back to the
-        // project default so CI/release builds still get Drive OAuth when local.properties omits it.
-        val defaultGoogleWebClientId =
-            "842861516910-gkhu4dh9tu5rc8re40rpe4583hvs4uhv.apps.googleusercontent.com"
-        val googleWebClientId = localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")
-            .trim()
-            .ifBlank { defaultGoogleWebClientId }
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
-        // Default false: app entry requires Google Auth (no silent local_dev login).
+        // Default false: first launch shows the local name screen, then local_dev.
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "false").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
@@ -231,13 +223,8 @@ dependencies {
     // Biometric unlock (email accounts)
     implementation("androidx.biometric:biometric:1.1.0")
 
-    // Google Sign-In (legacy fallback)
+    // Google Sign-In (Drive app-data backup only; app identity is local)
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-
-    // Credential Manager (One Tap replacement, modern Sign-in with Google)
-    implementation("androidx.credentials:credentials:1.2.2")
-    implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 
     // Google Maps (free-tier Maps SDK; friends map routes use OSRM, not Directions API)
     implementation("com.google.maps.android:maps-compose:4.3.0")

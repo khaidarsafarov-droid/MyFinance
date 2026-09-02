@@ -16,7 +16,6 @@ Ship checklist for version **1.5.7** (`versionCode` **12**).
 2. **Google Cloud / Play**
    - Android OAuth client: package **`com.truckorig`** + upload-key SHA-1  
    - After first Play upload: add **App signing certificate** SHA-1 as a second Android client  
-   - Web client ID already defaults in Gradle; override via `local.properties` if needed  
    - Restrict Maps API key (if used) to `com.truckorig` + signing certs
 
 3. **Privacy policy URL** — host `store/google-play/PRIVACY_POLICY.md` (or equivalent HTML) on HTTPS and paste the URL into Play Console.

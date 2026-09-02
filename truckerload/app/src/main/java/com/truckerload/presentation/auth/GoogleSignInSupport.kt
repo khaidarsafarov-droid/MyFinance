@@ -1,60 +1,12 @@
 package com.truckerload.presentation.auth
 
-import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
-import android.os.Handler
-import android.os.Looper
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.truckerload.R
-import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.utils.InstalledSigningSha1
 
-/** Shared Google Sign-In helpers for Login + SignUp paths. */
+/** User-facing Google Play Services errors for Drive OAuth. */
 object GoogleSignInSupport {
-
-    fun resolveActivity(context: Context): Activity? {
-        var current: Context? = context
-        while (current is ContextWrapper) {
-            if (current is Activity) return current
-            current = current.baseContext
-        }
-        return current as? Activity
-    }
-
-    fun buildSignInOptions(): GoogleSignInOptions =
-        GoogleSignInClients.loginOptions(requestIdToken = true)
-
-    fun client(context: Context): GoogleSignInClient =
-        GoogleSignIn.getClient(context, buildSignInOptions())
-
-    /**
-     * Clear a stale Google session, then run [onReady] so the account picker always
-     * appears (avoids silent failures with a previously selected account).
-     * Play Services can hang on signOut — [onReady] still runs after [SIGN_OUT_TIMEOUT_MS].
-     */
-    fun signOutThen(context: Context, onReady: () -> Unit) {
-        var finished = false
-        fun once() {
-            if (finished) return
-            finished = true
-            onReady()
-        }
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed({ once() }, SIGN_OUT_TIMEOUT_MS)
-        runCatching {
-            client(context).signOut().addOnCompleteListener {
-                handler.removeCallbacksAndMessages(null)
-                once()
-            }
-        }.onFailure {
-            handler.removeCallbacksAndMessages(null)
-            once()
-        }
-    }
 
     fun formatError(context: Context, error: Throwable?): String {
         val api = error as? ApiException
@@ -77,6 +29,4 @@ object GoogleSignInSupport {
             context.getString(R.string.login_google_error, detail)
         }
     }
-
-    private const val SIGN_OUT_TIMEOUT_MS = 2_500L
 }

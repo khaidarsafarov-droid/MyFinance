@@ -8,7 +8,7 @@ Start with:
 
 - [project README](truckerload/README.md)
 - [target architecture](truckerload/docs/TARGET_ARCHITECTURE.md)
-- [Google Sign-In](truckerload/docs/AUTH_GOOGLE.md)
+- [Local auth / Drive backup](truckerload/docs/AUTH_GOOGLE.md)
 
 From `truckerload/`, verify the repository with:
 

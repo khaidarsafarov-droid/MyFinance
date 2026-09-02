@@ -19,8 +19,9 @@ flowchart LR
   can share them.
 - There is no product backend, Supabase Auth, or Ktor sync server. Account identity,
   the journal, and the Telegram bot live on the device.
-- Google Sign-In identifies the driver on this phone. Optional Google Drive backup
-  copies the local journal to the user's own Drive App Data folder.
+- First-run name (optional skip) creates the on-device `local_dev` journal.
+  Optional Google Drive backup copies that journal to the user's own Drive
+  App Data folder. Google Sign-In is not an app login.
 - Room is the source of truth. Drive is an opt-in backup, not a multi-device live sync.
 - The Telegram bot runs in an Android foreground service (long poll). There is no
   server webhook mode.
