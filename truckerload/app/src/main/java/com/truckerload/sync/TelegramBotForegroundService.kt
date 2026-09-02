@@ -176,11 +176,12 @@ class TelegramBotForegroundService : Service() {
                     break
                 }
                 val result = engine.runOnce(token, expectedUserId = expectedUserId)
-                val delaySec = when {
-                    result.processedUpdates > 0 -> result.nextDelaySeconds.coerceIn(1, 60)
-                    else -> result.nextDelaySeconds.coerceIn(2, 60)
+                val delaySec = if (result.processedUpdates > 0) {
+                    result.nextDelaySeconds.coerceIn(0, 60)
+                } else {
+                    result.nextDelaySeconds.coerceIn(2, 60)
                 }
-                delay(delaySec * 1000)
+                if (delaySec > 0L) delay(delaySec * 1000)
             } catch (e: Exception) {
                 Log.e(TAG, "pollLoop error — retrying", e)
                 delay(5_000)

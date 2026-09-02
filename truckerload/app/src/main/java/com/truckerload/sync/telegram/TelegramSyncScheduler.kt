@@ -34,13 +34,17 @@ class TelegramSyncScheduler(
         settingsDataStore.saveLastUpdateOffset(offset)
     }
 
-    fun nextDelaySeconds(processed: Int, updatesNonEmpty: Boolean): Long = when {
-        processed > 0 -> 1L
-        updatesNonEmpty -> 1L
-        else -> 2L
-    }
+    fun nextDelaySeconds(processed: Int, updatesNonEmpty: Boolean): Long =
+        delayAfterPoll(processed, updatesNonEmpty)
 
     companion object {
+        /** After a saved load, poll again immediately so the next Telegram message is not queued. */
+        fun delayAfterPoll(processed: Int, updatesNonEmpty: Boolean): Long = when {
+            processed > 0 -> 0L
+            updatesNonEmpty -> 1L
+            else -> 2L
+        }
+
         fun telegramSyncPrefs(context: Context, userId: String): SharedPreferences {
             val name = "telegram_sync_${AccountIds.sanitizeFilePart(userId)}"
             val scoped = context.getSharedPreferences(name, Context.MODE_PRIVATE)
