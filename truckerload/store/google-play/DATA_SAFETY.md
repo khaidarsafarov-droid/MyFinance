@@ -12,7 +12,7 @@ the developer does **not** collect user data on developer servers and does
 | --- | --- |
 | Does your app collect or share any of the required user data types? | **No** — matches the Play listing preview |
 | Data shared with third parties? | **No** |
-| Privacy policy URL | Public HTTPS page at `docs/privacy/index.html` |
+| Privacy policy URL | https://rentry.co/truckorig-privacy-policy |
 
 Optional features (Drive backup, Telegram bot, Maps tiles) are **user-initiated**.
 They send data to the **user’s** Google Drive, the **user’s** Telegram bot, or

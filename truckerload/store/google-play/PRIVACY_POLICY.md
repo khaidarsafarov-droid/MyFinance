@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-03  
 **App:** TruckoRig (`com.truckorig`)  
-**Public URL:** host `docs/privacy/index.html` (this Markdown is the source text).
+**Public URL (paste into Play Console):** https://rentry.co/truckorig-privacy-policy
 
 This policy describes how TruckoRig handles data. The developer does **not** collect personal data on developer servers and does **not** share it with third parties.
 
