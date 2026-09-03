@@ -83,7 +83,7 @@ Confirm:
 | Item | Why |
 | --- | --- |
 | Signing keystore + passwords | Secret; not in git |
-| Public privacy-policy HTTPS URL | Needs your hosting |
+| Public privacy-policy HTTPS URL | https://rentry.co/truckorig-privacy-policy |
 | Play Console account / listing creation | Manual |
 | Production Maps / Supabase / backend URLs | Your infra |
 
