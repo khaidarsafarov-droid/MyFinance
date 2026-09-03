@@ -1,30 +1,47 @@
 # Play Console — Data safety (draft answers)
 
-Fill Play Console → **App content** → **Data safety** using this draft. Adjust if your production build enables Firebase / cloud sync differently.
+Fill Play Console → **App content** → **Data safety** using this draft.
 
-## Data collection overview
+Current production posture (after removing Ktor / Supabase / cloud sync):
+the developer does **not** collect user data on developer servers and does
+**not** share data with third parties. Core journal stays on-device.
+
+## Overview answers
+
+| Question | Answer |
+| --- | --- |
+| Does your app collect or share any of the required user data types? | **No** — matches the Play listing preview |
+| Data shared with third parties? | **No** |
+| Privacy policy URL | Public HTTPS page at `docs/privacy/index.html` |
+
+Optional features (Drive backup, Telegram bot, Maps tiles) are **user-initiated**.
+They send data to the **user’s** Google Drive, the **user’s** Telegram bot, or
+Google Maps — not to a TruckoRig backend. Do **not** add Crashlytics
+(`google-services.json`) to the Play AAB if you want to keep “no collection”.
+
+## If you later enable Firebase / a backend
 
 | Data type | Collected? | Shared? | Purpose | Optional? | Encrypted in transit? |
 | --- | --- | --- | --- | --- | --- |
-| Email address | Yes (Google / email auth) | With Google / Supabase if used | Account management | Account required for cloud; local journal usable offline after setup | Yes (HTTPS) |
-| User IDs | Yes | Same as above | Account management | Same | Yes |
-| App activity (loads etc.) | Stored on device | Only if user enables sync/Drive/export | App functionality | Core local; sync optional | Yes when syncing |
-| Photos / videos | Yes if user captures | Only if user enables media sync / shares | App functionality | Yes | Yes when syncing |
-| Location | Approximate/precise when permitted | Not sold; may tag local photos | App functionality | Yes | N/A local; HTTPS if ever uploaded |
-| Crash logs | Only if `google-services.json` present | Firebase | Analytics / stability | Build-dependent | Yes |
+| Crash logs | Only if `google-services.json` present | Firebase | Stability | Build-dependent | Yes |
+| App activity | Only if user enables Drive / Telegram / export | User’s Drive or Telegram | App functionality | Yes | Yes |
+| Photos / videos | On device; leave device only if user exports / Drive | Only if user chooses | App functionality | Yes | Yes |
+| Location | On device when permitted | Not sold | Photo geotag / map | Yes | N/A local |
 
-## Declarations
+## Other declarations
 
-- **Is all user data encrypted in transit?** Yes (HTTPS for network calls).  
-- **Can users request deletion?** Yes — in-app account deletion / clear local data (document the path you ship).  
-- **Committed to Play Families?** No (not designed for children).  
-- **Independent security review?** No (unless you commission one).
+- **Encrypted in transit?** Yes (HTTPS) for optional network calls.
+- **Users can delete data?** Yes — Android app storage / uninstall; Drive file in the user’s Drive.
+- **Play Families?** No (not designed for children).
+- **Independent security review?** No.
 
-## Sensitive permissions (App content → Sensitive permissions)
+## Sensitive permissions
 
-Declare **Camera**, **Location** (foreground), **Notifications**, and any **Foreground service** / **Alarms** as required by the current Play form. Use “App functionality” as the primary purpose.
+Declare **Camera**, **Location** (foreground), **Notifications**, and
+**Foreground service** as required by the current Play form.
+Use “App functionality” as the primary purpose.
 
 ## Ads / monetization
 
-- No ads SDK  
-- No in-app products required for core use (update if you add billing)
+- No ads SDK
+- No in-app products required for core use
