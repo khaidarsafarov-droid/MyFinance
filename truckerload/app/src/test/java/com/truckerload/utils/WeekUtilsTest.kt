@@ -49,6 +49,36 @@ class WeekUtilsTest {
     }
 
     @Test
+    fun `early actualFinishDate keeps Sunday-Del load in Saturday week`() {
+        // Scheduled DEL Sunday would be next week; finishing Saturday stays this week.
+        val load = sampleLoad(
+            date = "2025-07-05",
+            puTime = "07/05 18:00 EDT",
+            delTime = "07/06 00:01 EDT",
+        ).copy(actualFinishDate = "2025-07-05 20:00")
+
+        val saturdayWeek = getWeekNumberAndYearFromDate("2025-07-05")
+        val sundayWeek = getWeekNumberAndYearFromDate("2025-07-06")
+        assertTrue(weekSortKey(sundayWeek) > weekSortKey(saturdayWeek))
+        assertEquals("2025-07-06", getDeliveryDate(load))
+        assertEquals(saturdayWeek, getLoadReportingWeek(load))
+        assertEquals(saturdayWeek, load.withReportingWeek().let { it.weekNumber to it.year })
+    }
+
+    @Test
+    fun `clearing actualFinishDate restores Sunday-Del reporting week`() {
+        val early = sampleLoad(
+            date = "2025-07-05",
+            puTime = "07/05 18:00 EDT",
+            delTime = "07/06 00:01 EDT",
+        ).copy(actualFinishDate = "2025-07-05 20:00")
+        val cleared = early.copy(actualFinishDate = null)
+        val sundayWeek = getWeekNumberAndYearFromDate("2025-07-06")
+        assertEquals(getWeekNumberAndYearFromDate("2025-07-05"), getLoadReportingWeek(early))
+        assertEquals(sundayWeek, getLoadReportingWeek(cleared))
+    }
+
+    @Test
     fun `late December uses week-year of next calendar year`() {
         // Sun–Sat: 2025-12-28 … 2026-01-03 is week 1 of week-year 2026
         val dec28 = getWeekNumberAndYearFromDate("2025-12-28")
