@@ -2,6 +2,7 @@ package com.truckerload.utils
 
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.domain.week.WeekStartRuntime
 import java.util.Calendar
@@ -136,17 +137,19 @@ fun getDeliveryDate(load: Load): String? {
 }
 
 /**
- * Неделя отчёта для груза: по дате PU (начало недели из настроек грузов).
- * Если доставка попадает в более позднюю неделю (напр. PU суббота, DEL воскресенье) — неделя доставки.
+ * Reporting week for a load: PU week by default (loads week-start from Settings).
+ * If the effective finish (manual [Load.actualFinishDate], else last DEL) falls in a
+ * later week — e.g. PU Saturday, DEL Sunday — use that finish week. Setting an early
+ * finish on Saturday keeps the load in the Saturday week instead of the Sunday week.
  */
 fun getLoadReportingWeek(load: Load): Pair<Int, Int> {
     val start = WeekStartRuntime.loads
     val puDate = getPickUpDate(load)
-    val delDate = getDeliveryDate(load)
+    val endDate = load.effectiveFinishDate()
     val puWeek = getWeekNumberAndYearFromDate(puDate, start)
-    if (delDate == null) return puWeek
-    val delWeek = getWeekNumberAndYearFromDate(delDate, start)
-    return if (isWeekAfter(delWeek, puWeek)) delWeek else puWeek
+    if (endDate == null) return puWeek
+    val endWeek = getWeekNumberAndYearFromDate(endDate, start)
+    return if (isWeekAfter(endWeek, puWeek)) endWeek else puWeek
 }
 
 fun isLoadInWeek(load: Load, weekNumber: Int, year: Int): Boolean {

@@ -116,6 +116,30 @@ class LoadFilterPeriodLogicTest {
     }
 
     @Test
+    fun earlyFinish_movesOvernightLoadIntoPuWeekFilter() {
+        val scheduled = overnightWeekendLoad()
+        val early = scheduled.copy(actualFinishDate = "2025-07-05 20:00").withReportingWeek()
+        val puWeek = getWeekNumberAndYearFromDate("2025-07-05")
+        val delWeek = getWeekNumberAndYearFromDate("2025-07-06")
+        assertEquals(delWeek, getLoadReportingWeek(scheduled))
+        assertEquals(puWeek, getLoadReportingWeek(early))
+        assertTrue(isLoadInWeek(early, puWeek.first, puWeek.second))
+        assertFalse(isLoadInWeek(early, delWeek.first, delWeek.second))
+
+        val (puStart, _, _) = getWeekRange(puWeek.first, puWeek.second)
+        val filtered = useCase.filterLoads(
+            listOf(early),
+            LoadFilter.CALENDAR_WEEK,
+            "",
+            null,
+            puStart,
+            null,
+            null,
+        )
+        assertEquals(listOf("overnight"), filtered.map { it.id })
+    }
+
+    @Test
     fun calendarWeekFilter_usesReportingWeek_notLoadDateRange() {
         val load = overnightWeekendLoad()
         val delWeek = getWeekNumberAndYearFromDate("2025-07-06")
