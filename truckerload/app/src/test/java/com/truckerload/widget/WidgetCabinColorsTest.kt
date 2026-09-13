@@ -27,17 +27,26 @@ class WidgetCabinColorsTest {
     }
 
     @Test
-    fun forestLight_actionsUseBrandPurpleFill() {
-        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.actionBg)
-        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.ring)
+    fun forestLightPlate_usesDarkReadableText() {
+        assertEquals(WidgetCabinPalette.TEXT, WidgetCabinColors.Forest.text)
+        assertEquals(WidgetCabinPalette.MUTED, WidgetCabinColors.Forest.muted)
+        assertEquals(WidgetCabinPalette.BG, WidgetCabinColors.Forest.bg)
+        assertTrue(luminance(WidgetCabinColors.Forest.bg) > luminance(WidgetCabinColors.ForestDark.bg))
+        assertEquals(WidgetCabinPalette.Dark.TEXT, WidgetCabinColors.ForestDark.text)
     }
 
     @Test
-    fun forestLightPlate_usesDarkReadableText() {
-        assertEquals(0xFF1A1A1A.toInt(), WidgetCabinColors.Forest.text)
-        assertEquals(0xFF5C5C5C.toInt(), WidgetCabinColors.Forest.muted)
-        assertTrue(luminance(WidgetCabinColors.Forest.bg) > luminance(WidgetCabinColors.ForestDark.bg))
-        assertEquals(0xFFF4F3FA.toInt(), WidgetCabinColors.ForestDark.text)
+    fun forestLight_actionsUseBrandPurpleFill() {
+        assertEquals(WidgetCabinPalette.ACTION_BG, WidgetCabinColors.Forest.actionBg)
+        assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.ring)
+        assertEquals(0xFF5B54E6.toInt(), WidgetCabinColors.Forest.actionBg)
+    }
+
+    @Test
+    fun forestDark_actionsStaySolidBrandPurple() {
+        assertEquals(WidgetCabinPalette.Dark.ACTION_BG, WidgetCabinColors.ForestDark.actionBg)
+        assertEquals(0xFF5B54E6.toInt(), WidgetCabinColors.ForestDark.actionBg)
+        assertEquals(WidgetCabinPalette.ON_FILLED, WidgetCabinColors.ForestDark.onFilled)
     }
 
     @Test

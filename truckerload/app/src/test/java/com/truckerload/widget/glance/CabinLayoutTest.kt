@@ -14,10 +14,10 @@ class CabinLayoutTest {
     fun fullHeight_matchesMockupTokens() {
         val layout = cabinLayoutFor(CabinSize4x4)
         assertEquals(16.dp, layout.paddingH)
-        assertEquals(11.dp, layout.progressBarDp)
+        assertEquals(12.dp, layout.progressBarDp)
         assertTrue(layout.progressBarHeadroomDp >= 14.dp)
         assertEquals(28.dp, layout.dayChipDp)
-        assertEquals(42.dp, layout.actionBtnDp)
+        assertEquals(48.dp, layout.actionBtnDp)
         assertTrue(layout.showDayCaptions)
         assertTrue(layout.showActionLabels)
         assertTrue(layout.showQuickActions)

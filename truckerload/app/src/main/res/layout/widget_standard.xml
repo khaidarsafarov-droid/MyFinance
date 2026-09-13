@@ -25,7 +25,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/widget_brand_title_plain"
-            android:textColor="@color/widget_text_primary"
+            android:textColor="@color/widget_accent"
             android:textSize="12sp"
             android:textStyle="bold" />
 
