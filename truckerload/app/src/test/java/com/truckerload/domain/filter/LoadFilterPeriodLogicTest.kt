@@ -214,4 +214,35 @@ class LoadFilterPeriodLogicTest {
         assertFalse(usesRoomPaging(LoadFilter.YESTERDAY, null))
         assertFalse(usesRoomPaging(LoadFilter.THIS_WEEK, 2025))
     }
+
+    @Test
+    fun thisMonthFilter_usesSelectedMonthNotOnlyCurrentCalendarMonth() {
+        val load = crossMonthLoad()
+        // Cross-month load is active in both July and August 2025.
+        val july = useCase.filterLoads(
+            loads = listOf(load),
+            filter = LoadFilter.THIS_MONTH,
+            searchQuery = "",
+            selectedDate = null,
+            selectedWeekStart = null,
+            selectedWeekEnd = null,
+            selectedYear = null,
+            selectedMonthYear = 2025,
+            selectedMonth = 7,
+        )
+        val june = useCase.filterLoads(
+            loads = listOf(load),
+            filter = LoadFilter.THIS_MONTH,
+            searchQuery = "",
+            selectedDate = null,
+            selectedWeekStart = null,
+            selectedWeekEnd = null,
+            selectedYear = null,
+            selectedMonthYear = 2025,
+            selectedMonth = 6,
+        )
+        assertEquals(listOf("cross-month"), july.map { it.id })
+        assertTrue(june.isEmpty())
+    }
+
 }

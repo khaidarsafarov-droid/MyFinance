@@ -412,6 +412,12 @@
     <string name="home_filter_this_week">Esta semana</string>
     <string name="home_filter_last_week">Semana pasada</string>
     <string name="home_filter_this_month">Este mes</string>
+    <string name="home_filter_month">Mes</string>
+    <string name="home_month_picker_title">Elegir mes</string>
+    <string name="home_month_picker_months">Mes</string>
+    <string name="home_month_picker_weeks">Semana del mes</string>
+    <string name="home_month_whole">Mes completo</string>
+    <string name="home_month_week_n">Semana %1$d · %2$s</string>
     <string name="home_filter_dispute">Reclamo</string>
     <string name="home_empty_all_title">El diario está vacío</string>
     <string name="home_empty_calendar_week">Aún no hay nada en esta semana</string>

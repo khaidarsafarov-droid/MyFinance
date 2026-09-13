@@ -53,7 +53,7 @@ internal fun TabletHomeDashboard(
     onAddLoad: () -> Unit,
     onOpenWeeklyGoal: () -> Unit,
     onOpenCalendar: () -> Unit,
-    onOpenArchive: () -> Unit,
+    onOpenMonthPicker: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
     val goalStore = LocalWeeklyProfitGoalStore.current
@@ -139,9 +139,10 @@ internal fun TabletHomeDashboard(
                         selectedYear = uiState.selectedYear,
                         selectedDateLabel = uiState.selectedDateLabel,
                         selectedWeekLabel = uiState.selectedWeekLabel,
+                        selectedMonthLabel = uiState.selectedMonthLabel,
                         onFilterSelected = viewModel::setFilter,
                         onOpenCalendar = onOpenCalendar,
-                        onOpenArchive = onOpenArchive,
+                        onOpenMonthPicker = onOpenMonthPicker,
                         style = PeriodFilterStyle.HeroPill,
                     )
                 },

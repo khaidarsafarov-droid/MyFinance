@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -88,7 +87,7 @@ internal fun HomeScreenContent(
 ) {
     val tc = LocalTruckColors.current
     val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
-    var showYearSelector by remember { mutableStateOf(false) }
+    var showMonthPicker by remember { mutableStateOf(false) }
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
@@ -105,40 +104,26 @@ internal fun HomeScreenContent(
         viewModel.refreshHome()
     }
 
-    fun openArchive() {
-        viewModel.setFilter(LoadFilter.ALL)
-        showYearSelector = true
-    }
-
-    if (showYearSelector) {
-        AlertDialog(
-            onDismissRequest = { showYearSelector = false },
-            containerColor = tc.CardBackground,
-            titleContentColor = tc.TextPrimary,
-            textContentColor = tc.TextPrimary,
-            title = { Text(stringResource(R.string.home_archive_title), color = tc.TextPrimary) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = {
-                        viewModel.setSelectedYear(null)
-                        showYearSelector = false
-                    }) { Text(stringResource(R.string.home_all_years), color = tc.AccentPrimary) }
-                    viewModel.availableYears().forEach { year ->
-                        TextButton(onClick = {
-                            viewModel.setSelectedYear(year)
-                            showYearSelector = false
-                        }) {
-                            Text(
-                                stringResource(R.string.home_year_format, year),
-                                color = if (uiState.selectedYear == year) tc.AccentPrimary else tc.TextPrimary
-                            )
-                        }
-                    }
-                }
+    if (showMonthPicker) {
+        val cal = java.util.Calendar.getInstance()
+        val initialYear = uiState.selectedMonthYear
+            ?: cal.get(java.util.Calendar.YEAR)
+        val initialMonth = uiState.selectedMonth
+            ?: (cal.get(java.util.Calendar.MONTH) + 1)
+        HomeMonthWeekPickerDialog(
+            initialYear = initialYear,
+            initialMonth = initialMonth,
+            selectedWeekStart = uiState.selectedWeekStart.takeIf {
+                uiState.filter == LoadFilter.CALENDAR_WEEK && uiState.selectedMonth != null
             },
-            confirmButton = { TextButton(onClick = { showYearSelector = false }) { Text(stringResource(R.string.common_close), color = tc.AccentPrimary) } }
+            onSelectMonth = { year, month -> viewModel.selectMonth(year, month) },
+            onSelectWeek = { year, month, weekNumber, weekYear ->
+                viewModel.selectMonthWeek(year, month, weekNumber, weekYear)
+            },
+            onDismiss = { showMonthPicker = false },
         )
     }
+
 
     if (tabletChrome) {
         val totals = periodTotals ?: periodSummary?.totals
@@ -166,7 +151,7 @@ internal fun HomeScreenContent(
                     onAddLoad = onAddLoad,
                     onOpenWeeklyGoal = onOpenWeeklyGoal,
                     onOpenCalendar = onOpenCalendar,
-                    onOpenArchive = { openArchive() },
+                    onOpenMonthPicker = { showMonthPicker = true },
                 )
                 PullToRefreshDefaults.Indicator(
                     modifier = Modifier.align(Alignment.TopCenter),
@@ -234,12 +219,10 @@ internal fun HomeScreenContent(
                         selectedYear = uiState.selectedYear,
                         selectedDateLabel = uiState.selectedDateLabel,
                         selectedWeekLabel = uiState.selectedWeekLabel,
+                        selectedMonthLabel = uiState.selectedMonthLabel,
                         onFilterSelected = viewModel::setFilter,
                         onOpenCalendar = onOpenCalendar,
-                        onOpenArchive = {
-                            viewModel.setFilter(LoadFilter.ALL)
-                            showYearSelector = true
-                        },
+                        onOpenMonthPicker = { showMonthPicker = true },
                         weeklyGoal = weeklyGoal,
                         onOpenWeeklyGoal = onOpenWeeklyGoal,
                     )
@@ -262,12 +245,10 @@ internal fun HomeScreenContent(
                         selectedYear = uiState.selectedYear,
                         selectedDateLabel = uiState.selectedDateLabel,
                         selectedWeekLabel = uiState.selectedWeekLabel,
+                        selectedMonthLabel = uiState.selectedMonthLabel,
                         onFilterSelected = viewModel::setFilter,
                         onOpenCalendar = onOpenCalendar,
-                        onOpenArchive = {
-                            viewModel.setFilter(LoadFilter.ALL)
-                            showYearSelector = true
-                        },
+                        onOpenMonthPicker = { showMonthPicker = true },
                         modifier = Modifier.padding(bottom = 4.dp),
                     )
                 }

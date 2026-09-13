@@ -41,9 +41,10 @@ internal fun PeriodSummarySection(
     selectedYear: Int?,
     selectedDateLabel: String,
     selectedWeekLabel: String,
+    selectedMonthLabel: String = "",
     onFilterSelected: (LoadFilter) -> Unit,
     onOpenCalendar: () -> Unit,
-    onOpenArchive: () -> Unit,
+    onOpenMonthPicker: () -> Unit,
     weeklyGoal: Double = 0.0,
     onOpenWeeklyGoal: () -> Unit = {},
 ) {
@@ -146,9 +147,10 @@ internal fun PeriodSummarySection(
                 selectedYear = selectedYear,
                 selectedDateLabel = selectedDateLabel,
                 selectedWeekLabel = selectedWeekLabel,
+                selectedMonthLabel = selectedMonthLabel,
                 onFilterSelected = onFilterSelected,
                 onOpenCalendar = onOpenCalendar,
-                onOpenArchive = onOpenArchive,
+                onOpenMonthPicker = onOpenMonthPicker,
                 style = PeriodFilterStyle.HeroPill,
                 modifier = Modifier.padding(top = 8.dp),
             )

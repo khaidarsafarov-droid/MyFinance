@@ -14,6 +14,10 @@ data class HomeUiState(
     val selectedWeekLabel: String = "",
     val selectedDate: String? = null,
     val selectedDateLabel: String = "",
+    /** Calendar month (1–12) for [LoadFilter.THIS_MONTH] / month-week drill-down. */
+    val selectedMonthYear: Int? = null,
+    val selectedMonth: Int? = null,
+    val selectedMonthLabel: String = "",
     val isSearchExpanded: Boolean = false,
     val botStatusActive: Boolean = false,
     /** Surface non-fatal repository failures (delete/refresh). */
@@ -52,6 +56,9 @@ internal data class HomeFilterState(
     val selectedYear: Int? = null,
     val selectedDateLabel: String = "",
     val selectedWeekLabel: String = "",
+    val selectedMonthYear: Int? = null,
+    val selectedMonth: Int? = null,
+    val selectedMonthLabel: String = "",
 )
 
 /** Результат фильтрации: список, итоги (без полного journal для календаря). */
