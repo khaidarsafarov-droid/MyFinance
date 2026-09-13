@@ -1,6 +1,6 @@
 # Google Play release runbook — TruckoRig (`com.truckorig`)
 
-Ship checklist for version **1.5.7** (`versionCode` **12**).
+Ship checklist for version **1.5.8** (`versionCode` **13**).
 
 ## 0) Prerequisites (you must do once)
 
@@ -39,7 +39,7 @@ Confirm:
 
 - [ ] `verifyReleaseSecretsEmpty` passed (bot token empty)  
 - [ ] AAB is **signed** (keystore.properties present)  
-- [ ] `versionName=1.5.7`, `versionCode=12`
+- [ ] `versionName=1.5.8`, `versionCode=13`
 
 ## 2) Play Console — create / update listing
 
@@ -54,7 +54,7 @@ Confirm:
 | Feature graphic | `feature-graphic-en.png` / `feature-graphic-ru.png` |
 | Phone screenshots | `phone-en/` · `phone-ru/` (or SoftUI set in `docs/play-store-screenshots-en/`) |
 | Tablet | `tablet-10-en/` · `tablet-10-ru/` |
-| What’s new | `RELEASE_NOTES_1.5.7.md` (user-facing section) |
+| What’s new | `RELEASE_NOTES_1.5.8.md` (user-facing section) |
 
 ## 3) App content / policy forms
 
