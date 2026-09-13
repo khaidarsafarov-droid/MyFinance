@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Indigo cabin — Glance follows this when the system is in night mode. -->
-    <color name="widget_bg">#FF1E2238</color>
-    <color name="widget_bg_bottom">#FF1E2238</color>
-    <color name="widget_glass_fill">#1AFFFFFF</color>
-    <color name="widget_bg_stroke">#FF353148</color>
-    <color name="widget_loading_bg">#FF16141F</color>
+    <!-- SoftUI indigo cabin — solid brand-purple actions for visibility. -->
+    <color name="widget_bg">#FF1A1830</color>
+    <color name="widget_bg_bottom">#FF141228</color>
+    <color name="widget_glass_fill">#335B54E6</color>
+    <color name="widget_bg_stroke">#FF35314A</color>
+    <color name="widget_loading_bg">#FF141228</color>
     <color name="widget_loading_text">#FFF4F3FA</color>
-    <color name="widget_loading_text_secondary">#FFC8C6D8</color>
+    <color name="widget_loading_text_secondary">#FFB8B5D4</color>
     <color name="widget_text_primary">#FFF4F3FA</color>
-    <color name="widget_text_secondary">#FFC8C6D8</color>
+    <color name="widget_text_secondary">#FFB8B5D4</color>
     <color name="widget_accent">#FFB4AFFF</color>
     <color name="widget_primary">#FFB4AFFF</color>
     <color name="widget_secondary">#FF2A2640</color>
@@ -17,29 +17,29 @@
     <color name="widget_value_emerald">#FFB4AFFF</color>
     <color name="widget_value_gold">#FFF4F3FA</color>
     <color name="widget_metric_cell_bg">#FF2A2640</color>
-    <color name="widget_divider">#FF353148</color>
-    <color name="widget_progress_track">#FF2A3050</color>
+    <color name="widget_divider">#FF35314A</color>
+    <color name="widget_progress_track">#FF2A2748</color>
     <color name="widget_progress_end">#FF48C9B0</color>
-    <color name="widget_progress_fill">#FFB4AFFF</color>
+    <color name="widget_progress_fill">#FF5B54E6</color>
     <color name="widget_success">#FF5EE0C8</color>
     <color name="widget_rpm_good">#FF5EE0C8</color>
     <color name="widget_remaining_warning">#FFFFB74D</color>
     <color name="widget_day_past">#FF5B54E6</color>
     <color name="widget_day_today">#FF2A2640</color>
     <color name="widget_day_future">#FF4A4660</color>
-    <color name="widget_day_past_empty">#FF4A4660</color>
+    <color name="widget_day_past_empty">#FF6A6680</color>
     <color name="widget_day_future_stroke">#FF4A4660</color>
     <color name="widget_day_today_stroke">#FFF4F3FA</color>
-    <color name="widget_on_accent">#FF1A1628</color>
-    <color name="widget_action_fill">#FF2A2640</color>
-    <color name="widget_action_stroke">#FFB4AFFF</color>
-    <color name="widget_text_hint">#FFC8C6D8</color>
-    <color name="widget_surface">#0016141F</color>
+    <color name="widget_on_accent">#FFFFFFFF</color>
+    <color name="widget_action_fill">#FF5B54E6</color>
+    <color name="widget_action_stroke">#FF7B75F0</color>
+    <color name="widget_text_hint">#FFB8B5D4</color>
+    <color name="widget_surface">#00141228</color>
     <color name="widget_cyan">#FFB4AFFF</color>
     <color name="widget_rpm_warn">#FFFFB74D</color>
     <color name="widget_rpm_bad">#FFFF8BA0</color>
     <color name="widget_hero_number">#FFF4F3FA</color>
-    <color name="widget_hero_bg">#FF16141F</color>
-    <color name="widget_outline_variant">#FF353148</color>
+    <color name="widget_hero_bg">#FF141228</color>
+    <color name="widget_outline_variant">#FF35314A</color>
     <color name="widget_chip_bg">#FF2A2640</color>
 </resources>
