@@ -533,8 +533,7 @@
     .rail {
       width: 88px;
       flex-shrink: 0;
-      background: var(--sage);
-      border-right: 1px solid #D4D2E8;
+      background: var(--kit);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -545,9 +544,10 @@
       width: 56px; height: 56px;
       border-radius: 16px;
       display: grid; place-items: center;
-      color: var(--muted);
+      color: rgba(255,255,255,0.92);
     }
-    .rail .rbtn.on { background: var(--text); color: #fff; }
+    .rail .rbtn.on { background: var(--sage); color: var(--kit); }
+    .rail .rbtn svg { width: 26px; height: 26px; fill: currentColor; }
     .tablet-main { display: flex; flex: 1; min-width: 0; }
     .tablet-col { flex: 1; min-width: 0; padding: 8px 12px; }
     .tablet-col.side { max-width: 340px; }
@@ -623,9 +623,9 @@
       margin: 8px 0 22px;
     }
     .wid {
-      background: #F8F9FE;
-      color: var(--text);
-      border-radius: 20px;
+      background: #EEEDFF;
+      color: #12121A;
+      border-radius: 22px;
       padding: 14px 16px 12px;
       box-shadow: 0 16px 36px rgba(0,0,0,0.28);
     }
@@ -669,17 +669,17 @@
     .wid-actions { display: flex; gap: 8px; margin-top: 12px; }
     .wid-act {
       flex: 1;
-      background: #EEEDFF;
-      border-radius: 14px;
+      background: #DCD9FF;
+      border-radius: 16px;
       padding: 10px 4px 8px;
       text-align: center;
       font-size: 11px;
-      font-weight: 600;
-      color: #5C5C5C;
+      font-weight: 700;
+      color: #3F3AC0;
     }
     .wid-act .bub {
-      width: 36px; height: 36px;
-      border-radius: 12px;
+      width: 40px; height: 40px;
+      border-radius: 999px;
       background: var(--kit);
       color: #fff;
       display: grid; place-items: center;
@@ -899,9 +899,9 @@
     const ICO = {
       menu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>`,
       back: `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>`,
-      truck: `<svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9 1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`,
-      flag: `<svg viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>`,
-      person: `<svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V22h19.2v-2.8c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`,
+      truck: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9 1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`,
+      flag: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>`,
+      person: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V22h19.2v-2.8c0-3.2-6.4-4.8-9.6-4.8z"/></svg>`,
       camera: `<svg viewBox="0 0 24 24"><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>`,
       scan: `<svg viewBox="0 0 24 24"><path d="M7 3H4v3h2V5h1V3zm13 0h-3v2h1v1h2V3zM7 21H4v-3h2v1h1V21zm13 0h-3v-2h1v-1h2V21zM17 6H7C5.9 6 5 6.9 5 8v8c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 10H9v-2h6v2zm0-3H9v-2h6v2zm0-3H9V8h6v2z"/></svg>`,
       diesel: `<svg viewBox="0 0 24 24"><path d="M5 3h8c1.1 0 2 .9 2 2v7h1.5c.83 0 1.5.67 1.5 1.5V18c0 .55.45 1 1 1s1-.45 1-1V9.83c0-.26-.11-.52-.29-.71l-1.7-1.7 1.06-1.06 2.12 2.12c.21.22.32.78.32 1.35V18c0 1.66-1.34 3-3 3s-3-1.34-3-3v-3.5H15V21H5V5c0-1.1.9-2 2-2h0zM7 5v6h6V5H7z"/></svg>`,
@@ -1386,16 +1386,24 @@
             <div class="tablet-col">
               ${hdr("TruckoRig", t.hello)}
               <div style="padding:8px 4px 0">
-                <button class="btn">+ ${t.addLoad}</button>
+                <h3 class="section">${t.recent}</h3>
                 <article class="card">
-                  <div class="row"><span class="id">114RS221Y</span><span class="date">21 Jul</span></div>
+                  <div class="row"><span class="id">114RS221Y <span class="src">${t.typeRelay}</span></span><span class="date">21 Jul</span></div>
                   <div class="route">AURORA, CO → ARLINGTON, WA</div>
-                  <div class="stats">1,369 mi · <b>$3,815.90</b> · $2.79/mi</div>
+                  <div class="stats">2 stops · 1,369 mi · <b>$3,815.90</b></div>
+                  <span class="rpm">$2.79 / mi</span>
                 </article>
                 <article class="card">
                   <div class="row"><span class="id">M-0826-CHI <span class="src alt">${t.typeManual}</span></span><span class="date">20 Jul</span></div>
                   <div class="route">CHICAGO, IL → ATLANTA, GA</div>
-                  <div class="stats">720 mi · <b>$2,400.00</b> · $3.33/mi</div>
+                  <div class="stats">720 mi · <b>$2,400.00</b></div>
+                  <span class="rpm">$3.33 / mi</span>
+                </article>
+                <article class="card">
+                  <div class="row"><span class="id">KC-PHX-19 <span class="src">${t.typeBroker}</span></span><span class="date">19 Jul</span></div>
+                  <div class="route">KANSAS CITY, MO → PHOENIX, AZ</div>
+                  <div class="stats">1,180 mi · <b>$2,890.00</b></div>
+                  <span class="rpm warn">$2.45 / mi</span>
                 </article>
               </div>
             </div>
@@ -1406,6 +1414,7 @@
                 <div class="meta">4,617 mi · $2.67 / mi</div>
                 ${weekDots()}
               </div>
+              <button class="btn">+ ${t.addLoad}</button>
               <div class="grid2">
                 <div class="tile"><div class="k">${t.loads}</div><div class="v">4</div></div>
                 <div class="tile"><div class="k">RPM</div><div class="v">$2.67</div></div>

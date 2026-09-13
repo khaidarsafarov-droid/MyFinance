@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.home
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +30,7 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useWideTabletSidebar
 import java.util.Locale
 
@@ -74,11 +72,12 @@ internal fun TabletHomeDashboard(
         0f
     }
 
+    val pagePad = adaptiveHorizontalPadding()
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues),
-        contentPadding = PaddingValues(bottom = 32.dp),
+        contentPadding = PaddingValues(start = pagePad, end = pagePad, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = "tablet_header") {
@@ -126,13 +125,8 @@ internal fun TabletHomeDashboard(
             SoftHeroCard(
                 periodLabel = periodLabel,
                 gross = gross,
-                subtitle = stringResource(
-                    R.string.tablet_home_hero_subtitle,
-                    totals.loadCount,
-                    milesLabel,
-                    rpmLabel,
-                ),
-                onAddLoad = onAddLoad,
+                miles = milesLabel,
+                rpm = rpmLabel,
                 filterContent = {
                     HomePeriodFilterDropdown(
                         currentFilter = uiState.filter,
@@ -147,6 +141,10 @@ internal fun TabletHomeDashboard(
                     )
                 },
             )
+        }
+
+        item(key = "tablet_add_load") {
+            SoftAddLoadButton(onAddLoad = onAddLoad)
         }
 
         item(key = "tablet_stats") {
