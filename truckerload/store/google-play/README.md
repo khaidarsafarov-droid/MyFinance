@@ -11,7 +11,7 @@ python3 render_screenshots.py
 
 Requires Google Chrome (headless) and Pillow. Fonts and the launcher mark are copied from `app/src/main/res`.
 
-These are **marketing frames** around UI that matches the current kit palette (`SoftUiColors`, purple `#5B54E6`) and the real 3-tab phone nav (Loads / Goal / Profile). Demo numbers are illustrative, not a live device dump.
+These are **marketing frames** around UI that matches the current kit palette (`SoftUiColors`, purple `#5B54E6`), the real 3-tab phone nav (Loads / Goal / Profile), and the tablet rail + journal SoftUI. Demo numbers are illustrative, not a live device dump.
 
 ## Specs (Play Console)
 

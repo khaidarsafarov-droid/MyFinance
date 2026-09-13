@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,11 +27,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.formatLoadRoute
+import com.truckerload.presentation.components.computeRpm
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.SoftUiColors
@@ -44,67 +47,105 @@ import com.truckerload.presentation.utils.MoneyFormat
 internal fun SoftHeroCard(
     periodLabel: String,
     gross: String,
-    subtitle: String,
-    onAddLoad: () -> Unit,
+    miles: String,
+    rpm: String,
     filterContent: @Composable () -> Unit,
 ) {
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
+    val onPrimaryMuted = onPrimary.copy(alpha = 0.88f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(SoftUiShapes.Card)
-            .background(MaterialTheme.colorScheme.primary),
+            .background(SoftUiColors.ForestPrimary),
     ) {
         Icon(
             imageVector = AppIcons.LocalShipping,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.12f),
+            tint = onPrimary.copy(alpha = 0.10f),
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 12.dp)
-                .size(140.dp),
+                .align(Alignment.TopEnd)
+                .padding(top = 4.dp, end = 4.dp)
+                .size(112.dp),
         )
-        Column(modifier = Modifier.padding(22.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = periodLabel.uppercase(),
-                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
-            )
-            Text(
-                text = gross,
-                style = AppTypography.HeroNumberOnDark,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            Text(
-                text = subtitle,
-                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
-                modifier = Modifier.padding(top = 4.dp, bottom = 14.dp),
+                style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color.White)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onAddLoad,
-                        )
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                Text(
+                    text = gross,
+                    style = AppTypography.HeroNumberOnDark,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     Text(
-                        text = stringResource(R.string.home_add_load_button),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = SoftUiColors.ForestPrimary,
+                        text = miles,
+                        style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
+                        maxLines = 1,
                     )
-                }
-                Box(modifier = Modifier.weight(1f)) {
-                    filterContent()
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            text = rpm,
+                            style = AppTypography.HeroNumberCompact.copy(color = onPrimary),
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = stringResource(R.string.home_period_avg_rpm_label),
+                            style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
+            Box(modifier = Modifier.padding(top = 8.dp)) {
+                filterContent()
+            }
         }
+    }
+}
+
+@Composable
+internal fun SoftAddLoadButton(onAddLoad: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = SoftUiElevation.Button,
+                shape = SoftUiShapes.Button,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowTint,
+            )
+            .clip(SoftUiShapes.Button)
+            .background(SoftUiColors.ForestPrimary)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onAddLoad,
+            )
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.home_add_load_button),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = Color.White,
+        )
     }
 }
 
@@ -170,7 +211,7 @@ internal fun SoftRecentCard(
                 spotColor = SoftUiColors.ShadowNeutral,
             )
             .clip(SoftUiShapes.Card)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(SoftUiColors.Sage.copy(alpha = 0.45f))
             .padding(18.dp)
             .heightIn(min = 280.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -204,51 +245,82 @@ internal fun SoftRecentCard(
 @Composable
 internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
-    val route = listOf(load.pointA, load.pointB)
-        .map { it.trim() }
-        .filter { it.isNotBlank() }
-        .joinToString(" → ")
-        .ifBlank { load.tripId.ifBlank { "—" } }
-    Row(
+    val cs = MaterialTheme.colorScheme
+    val rpm = computeRpm(load.totalRate, load.totalMiles)
+    val stops = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(SoftUiColors.Sage.copy(alpha = 0.55f))
+            .shadow(
+                elevation = SoftUiElevation.Card,
+                shape = SoftUiShapes.Card,
+                ambientColor = SoftUiColors.ShadowTint,
+                spotColor = SoftUiColors.ShadowNeutral,
+            )
+            .clip(SoftUiShapes.Card)
+            .background(cs.surface)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
             )
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
             Text(
-                text = route,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = tc.TextPrimary,
+                text = load.tripId.ifBlank { "—" },
+                style = AppTypography.CardTitle.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp,
+                    color = tc.TextPrimary,
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
             Text(
-                text = "${MoneyFormat.formatCurrency(load.totalRate)} · ${MoneyFormat.formatNumber(load.totalMiles)} mi",
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
+                text = load.date.take(10),
+                style = AppTypography.CaptionMuted,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
-            text = load.date.take(10),
-            style = MaterialTheme.typography.labelMedium,
-            color = SoftUiColors.TextSecondaryLight,
+            text = formatLoadRoute(load),
+            style = AppTypography.CardRoute.copy(color = tc.TextPrimary),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
+        Text(
+            text = stringResource(
+                R.string.load_card_summary_line,
+                stops,
+                MoneyFormat.formatNumber(load.totalMiles),
+                MoneyFormat.formatCurrency(load.totalRate, decimals = 2),
+            ),
+            style = AppTypography.CaptionMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (rpm != null) {
+            Text(
+                text = MoneyFormat.formatRpm(rpm),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = SoftUiColors.ForestPrimary,
+                modifier = Modifier
+                    .clip(SoftUiShapes.Chip)
+                    .background(SoftUiColors.Sage)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+        }
     }
 }
 
 @Composable
-@Suppress("UNUSED_PARAMETER")
 internal fun SoftGoalCard(
     modifier: Modifier,
     weeklyGoal: Double,
@@ -288,17 +360,46 @@ internal fun SoftGoalCard(
                 color = tc.TextPrimary,
             )
         }
-        Text(
-            text = stringResource(if (weeklyGoal > 0) R.string.nav_weekly_goal else R.string.ux_next_set_goal),
-            style = MaterialTheme.typography.bodyMedium,
-            color = tc.TextSecondary,
-        )
-        // Detailed ring/amounts live on the Goal tab only.
-        Text(
-            text = stringResource(R.string.nav_weekly_goal),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = SoftUiColors.ForestAccent,
-        )
+        if (weeklyGoal > 0) {
+            Text(
+                text = MoneyFormat.formatCurrency(currentGross),
+                style = AppTypography.HeroNumberCompact,
+                color = tc.TextNumbers,
+            )
+            Text(
+                text = stringResource(
+                    R.string.tablet_home_goal_of,
+                    MoneyFormat.formatCurrency(weeklyGoal),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextSecondary,
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(10.dp)
+                    .clip(SoftUiShapes.Chip)
+                    .background(SoftUiColors.Sage),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .height(10.dp)
+                        .background(SoftUiColors.ForestPrimary),
+                )
+            }
+        } else {
+            Text(
+                text = stringResource(R.string.tablet_home_goal_set),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tc.TextSecondary,
+            )
+            Text(
+                text = stringResource(R.string.ux_next_set_goal),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = SoftUiColors.ForestAccent,
+            )
+        }
     }
 }
 
@@ -327,7 +428,7 @@ internal fun TabletStatsGrid(
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.LocalShipping,
-                    tint = Color(0xFFEEEDFF),
+                    tint = SoftUiColors.Sage,
                     label = stringResource(R.string.tablet_stat_loads),
                     value = loadCount,
                 )
@@ -351,7 +452,7 @@ internal fun TabletStatsGrid(
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.LocalGasStation,
-                    tint = Color(0xFFEEEDFF),
+                    tint = SoftUiColors.Sage,
                     label = stringResource(R.string.tablet_stat_gross),
                     value = gross,
                     hero = true,
@@ -363,7 +464,7 @@ internal fun TabletStatsGrid(
             SoftStatCard(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.LocalShipping,
-                tint = Color(0xFFEEEDFF),
+                tint = SoftUiColors.Sage,
                 label = stringResource(R.string.tablet_stat_loads),
                 value = loadCount,
             )
@@ -385,7 +486,7 @@ internal fun TabletStatsGrid(
             SoftStatCard(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.LocalGasStation,
-                tint = Color(0xFFEEEDFF),
+                tint = SoftUiColors.Sage,
                 label = stringResource(R.string.tablet_stat_gross),
                 value = gross,
                 hero = true,
