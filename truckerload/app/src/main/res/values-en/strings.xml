@@ -412,6 +412,12 @@
     <string name="home_filter_this_week">This week</string>
     <string name="home_filter_last_week">Last week</string>
     <string name="home_filter_this_month">This month</string>
+    <string name="home_filter_month">Month</string>
+    <string name="home_month_picker_title">Choose month</string>
+    <string name="home_month_picker_months">Month</string>
+    <string name="home_month_picker_weeks">Week in month</string>
+    <string name="home_month_whole">Whole month</string>
+    <string name="home_month_week_n">Week %1$d · %2$s</string>
     <string name="home_filter_dispute">Dispute</string>
     <string name="home_empty_all_title">Journal is empty</string>
     <string name="home_empty_calendar_week">Nothing on this week yet</string>

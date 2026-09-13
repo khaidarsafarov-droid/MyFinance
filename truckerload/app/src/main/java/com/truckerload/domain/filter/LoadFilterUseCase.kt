@@ -22,6 +22,8 @@ class LoadFilterUseCase {
         selectedWeekStart: String?,
         selectedWeekEnd: String?,
         selectedYear: Int?,
+        selectedMonthYear: Int? = null,
+        selectedMonth: Int? = null,
         dateIndex: Map<String, List<Load>>? = null,
     ): List<Load> {
         var list = loads
@@ -61,7 +63,9 @@ class LoadFilterUseCase {
             }
             LoadFilter.THIS_MONTH -> {
                 val cal = Calendar.getInstance()
-                val prefix = "%04d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
+                val year = selectedMonthYear ?: cal.get(Calendar.YEAR)
+                val month = selectedMonth ?: (cal.get(Calendar.MONTH) + 1)
+                val prefix = "%04d-%02d".format(year, month)
                 list.filter { load -> getLoadDateRange(load).any { it.startsWith(prefix) } }
             }
             LoadFilter.CALENDAR_WEEK -> {

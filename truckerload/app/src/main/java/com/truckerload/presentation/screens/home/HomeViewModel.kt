@@ -17,6 +17,7 @@ import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.week.WeekStartRuntime
+import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -85,10 +86,17 @@ class HomeViewModel @Inject constructor(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val loadsFromDb: StateFlow<List<Load>> = _uiState
-        .map { it.filter to it.selectedDate }
+        .map { Triple(it.filter, it.selectedDate, it.selectedMonthYear to it.selectedMonth) }
         .distinctUntilChanged()
-        .flatMapLatest { (filter, selectedDate) ->
-            HomeScopedLoadQuery.observe(filter, selectedDate, loadRepository)
+        .flatMapLatest { (filter, selectedDate, month) ->
+            val (monthYear, monthNum) = month
+            HomeScopedLoadQuery.observe(
+                filter = filter,
+                selectedDate = selectedDate,
+                selectedMonthYear = monthYear,
+                selectedMonth = monthNum,
+                loadRepository = loadRepository,
+            )
         }
         .conflate()
         .stateIn(
@@ -149,6 +157,9 @@ class HomeViewModel @Inject constructor(
                     selectedYear = state.selectedYear,
                     selectedDateLabel = state.selectedDateLabel,
                     selectedWeekLabel = state.selectedWeekLabel,
+                    selectedMonthYear = state.selectedMonthYear,
+                    selectedMonth = state.selectedMonth,
+                    selectedMonthLabel = state.selectedMonthLabel,
                 )
             }
             .distinctUntilChanged(),
@@ -239,6 +250,8 @@ class HomeViewModel @Inject constructor(
             selectedWeekStart = filter.selectedWeekStart,
             selectedWeekEnd = filter.selectedWeekEnd,
             selectedYear = filter.selectedYear,
+            selectedMonthYear = filter.selectedMonthYear,
+            selectedMonth = filter.selectedMonth,
             dateIndex = null,
         )
         val totals = when {
@@ -432,7 +445,7 @@ class HomeViewModel @Inject constructor(
 
     fun selectWeek(weekStart: String, weekEnd: String, label: String) {
         _uiState.update {
-            it.copy(
+            it.clearedMonthSelection().copy(
                 filter = LoadFilter.CALENDAR_WEEK,
                 selectedWeekStart = weekStart,
                 selectedWeekEnd = weekEnd,
@@ -483,10 +496,29 @@ class HomeViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 filter = filter,
-                selectedYear = if (filter != LoadFilter.ALL) null else it.selectedYear
+                selectedYear = if (filter != LoadFilter.ALL) null else it.selectedYear,
+                selectedMonthYear = null,
+                selectedMonth = null,
+                selectedMonthLabel = "",
+                selectedWeekStart = if (filter == LoadFilter.CALENDAR_WEEK) it.selectedWeekStart else null,
+                selectedWeekEnd = if (filter == LoadFilter.CALENDAR_WEEK) it.selectedWeekEnd else null,
+                selectedWeekLabel = if (filter == LoadFilter.CALENDAR_WEEK) it.selectedWeekLabel else "",
+                selectedDate = if (filter == LoadFilter.CALENDAR_DATE) it.selectedDate else null,
+                selectedDateLabel = if (filter == LoadFilter.CALENDAR_DATE) it.selectedDateLabel else "",
             )
         }
     }
+
+    /** Whole calendar month totals (any past/current month). */
+    fun selectMonth(year: Int, month: Int) {
+        _uiState.update { it.withWholeMonth(year, month) }
+    }
+
+    /** Trucking week inside a previously chosen calendar month. */
+    fun selectMonthWeek(year: Int, month: Int, weekNumber: Int, weekYear: Int) {
+        _uiState.update { it.withMonthWeek(year, month, weekNumber, weekYear) }
+    }
+
 
     fun setSelectedYear(year: Int?) {
         _uiState.update { it.copy(selectedYear = year, filter = LoadFilter.ALL) }
@@ -495,7 +527,7 @@ class HomeViewModel @Inject constructor(
     fun selectDate(date: String) {
         val label = formatDateLabel(date)
         _uiState.update {
-            it.copy(
+            it.clearedMonthSelection().copy(
                 filter = LoadFilter.CALENDAR_DATE,
                 selectedDate = date,
                 selectedDateLabel = label,
@@ -516,37 +548,8 @@ class HomeViewModel @Inject constructor(
         .ifEmpty { listOf(Calendar.getInstance().get(Calendar.YEAR)) }
 
     /** Заголовок с итогами выбранного периода — показывается над фильтром на главном экране. */
-    fun periodSummaryHeader(totals: LoadFilterUseCase.Totals): HomeListItem.FilteredSectionHeader? {
-        val state = _uiState.value
-        val label = when (state.filter) {
-            LoadFilter.CALENDAR_DATE -> if (state.selectedDateLabel.isNotBlank()) {
-                formatFilterLabel(app, state.selectedDateLabel, totals.loadCount)
-            } else {
-                null
-            }
-            LoadFilter.CALENDAR_WEEK -> if (state.selectedWeekLabel.isNotBlank()) {
-                formatFilterLabel(app, state.selectedWeekLabel, totals.loadCount)
-            } else {
-                null
-            }
-            LoadFilter.YESTERDAY -> formatFilterLabel(app, app.getString(R.string.home_filter_yesterday), totals.loadCount)
-            LoadFilter.THIS_WEEK -> formatFilterLabel(app, app.getString(R.string.home_filter_this_week), totals.loadCount)
-            LoadFilter.LAST_WEEK -> formatFilterLabel(app, app.getString(R.string.home_filter_last_week), totals.loadCount)
-            LoadFilter.THIS_MONTH -> formatFilterLabel(app, app.getString(R.string.home_filter_this_month), totals.loadCount)
-            LoadFilter.DISPUTE -> formatFilterLabel(app, app.getString(R.string.home_filter_dispute), totals.loadCount)
-            LoadFilter.ALL -> if (state.selectedYear != null) {
-                app.getString(
-                    R.string.home_year_selected_header,
-                    state.selectedYear ?: Calendar.getInstance().get(Calendar.YEAR),
-                    totals.loadCount,
-                    loadWord(app, totals.loadCount),
-                )
-            } else {
-                null
-            }
-        }
-        return label?.let { HomeListItem.FilteredSectionHeader(it, totals) }
-    }
+    fun periodSummaryHeader(totals: LoadFilterUseCase.Totals): HomeListItem.FilteredSectionHeader? =
+        buildPeriodSummaryHeader(_uiState.value, totals, app)
 
     /** Плоский список для LazyColumn. */
     fun flattenedListItems(

@@ -412,6 +412,12 @@
     <string name="home_filter_this_week">Эта неделя</string>
     <string name="home_filter_last_week">Прошлая неделя</string>
     <string name="home_filter_this_month">Этот месяц</string>
+    <string name="home_filter_month">Месяц</string>
+    <string name="home_month_picker_title">Выберите месяц</string>
+    <string name="home_month_picker_months">Месяц</string>
+    <string name="home_month_picker_weeks">Неделя в месяце</string>
+    <string name="home_month_whole">Весь месяц</string>
+    <string name="home_month_week_n">Неделя %1$d · %2$s</string>
     <string name="home_filter_dispute">Диспют</string>
     <string name="home_empty_all_title">Журнал пока пустой</string>
     <string name="home_empty_calendar_week">На этой неделе записей нет</string>

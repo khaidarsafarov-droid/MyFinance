@@ -39,7 +39,7 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.SoftUiColors
 
 enum class PeriodFilterStyle {
-    /** Standalone outlined field (archive / no hero). */
+    /** Standalone outlined field (field / no hero). */
     Field,
     /** Nested pill inside the forest hero card (Gemini canvas). */
     HeroPill,
@@ -52,9 +52,10 @@ fun HomePeriodFilterDropdown(
     selectedYear: Int?,
     selectedDateLabel: String,
     selectedWeekLabel: String,
+    selectedMonthLabel: String = "",
     onFilterSelected: (LoadFilter) -> Unit,
     onOpenCalendar: () -> Unit,
-    onOpenArchive: () -> Unit,
+    onOpenMonthPicker: () -> Unit,
     modifier: Modifier = Modifier,
     style: PeriodFilterStyle = PeriodFilterStyle.Field,
 ) {
@@ -63,6 +64,7 @@ fun HomePeriodFilterDropdown(
     val displayLabel = when {
         currentFilter == LoadFilter.CALENDAR_DATE && selectedDateLabel.isNotBlank() -> selectedDateLabel
         currentFilter == LoadFilter.CALENDAR_WEEK && selectedWeekLabel.isNotBlank() -> selectedWeekLabel
+        currentFilter == LoadFilter.THIS_MONTH && selectedMonthLabel.isNotBlank() -> selectedMonthLabel
         currentFilter == LoadFilter.ALL && selectedYear != null ->
             stringResource(R.string.home_year_format, selectedYear)
         else -> filterLabel(currentFilter)
@@ -119,9 +121,9 @@ fun HomePeriodFilterDropdown(
                             expanded = false
                             onOpenCalendar()
                         },
-                        onOpenArchive = {
+                        onOpenMonthPicker = {
                             expanded = false
-                            onOpenArchive()
+                            onOpenMonthPicker()
                         },
                     )
                 }
@@ -170,9 +172,9 @@ fun HomePeriodFilterDropdown(
                             expanded = false
                             onOpenCalendar()
                         },
-                        onOpenArchive = {
+                        onOpenMonthPicker = {
                             expanded = false
-                            onOpenArchive()
+                            onOpenMonthPicker()
                         },
                     )
                 }
@@ -185,30 +187,21 @@ fun HomePeriodFilterDropdown(
 private fun PeriodFilterMenuItems(
     onFilterSelected: (LoadFilter) -> Unit,
     onOpenCalendar: () -> Unit,
-    onOpenArchive: () -> Unit,
+    onOpenMonthPicker: () -> Unit,
 ) {
     periodMenuItem(R.string.home_filter_this_week, LoadFilter.THIS_WEEK) {
         onFilterSelected(LoadFilter.THIS_WEEK)
     }
-    periodMenuItem(R.string.home_filter_yesterday, LoadFilter.YESTERDAY) {
-        onFilterSelected(LoadFilter.YESTERDAY)
-    }
-    periodMenuItem(R.string.home_filter_last_week, LoadFilter.LAST_WEEK) {
-        onFilterSelected(LoadFilter.LAST_WEEK)
-    }
-    periodMenuItem(R.string.home_filter_this_month, LoadFilter.THIS_MONTH) {
-        onFilterSelected(LoadFilter.THIS_MONTH)
-    }
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.home_filter_month)) },
+        onClick = onOpenMonthPicker,
+    )
     periodMenuItem(R.string.home_filter_dispute, LoadFilter.DISPUTE) {
         onFilterSelected(LoadFilter.DISPUTE)
     }
     DropdownMenuItem(
         text = { Text(stringResource(R.string.home_filter_calendar)) },
         onClick = onOpenCalendar,
-    )
-    DropdownMenuItem(
-        text = { Text(stringResource(R.string.home_filter_archive)) },
-        onClick = onOpenArchive,
     )
 }
 
@@ -229,8 +222,8 @@ private fun filterLabel(filter: LoadFilter): String = when (filter) {
     LoadFilter.THIS_WEEK -> stringResource(R.string.home_filter_this_week)
     LoadFilter.YESTERDAY -> stringResource(R.string.home_filter_yesterday)
     LoadFilter.LAST_WEEK -> stringResource(R.string.home_filter_last_week)
-    LoadFilter.THIS_MONTH -> stringResource(R.string.home_filter_this_month)
+    LoadFilter.THIS_MONTH -> stringResource(R.string.home_filter_month)
     LoadFilter.DISPUTE -> stringResource(R.string.home_filter_dispute)
     LoadFilter.CALENDAR_WEEK, LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_filter_calendar)
-    LoadFilter.ALL -> stringResource(R.string.home_filter_archive)
+    LoadFilter.ALL -> stringResource(R.string.home_filter_month)
 }

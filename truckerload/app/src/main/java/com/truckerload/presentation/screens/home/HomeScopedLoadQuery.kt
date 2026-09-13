@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.home
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
+import com.truckerload.utils.getMonthRange
 import com.truckerload.utils.getYesterdayDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -19,6 +20,8 @@ internal object HomeScopedLoadQuery {
     fun observe(
         filter: LoadFilter,
         selectedDate: String?,
+        selectedMonthYear: Int?,
+        selectedMonth: Int?,
         loadRepository: LoadRepository,
     ): Flow<List<Load>> = when (filter) {
         LoadFilter.THIS_WEEK,
@@ -29,14 +32,9 @@ internal object HomeScopedLoadQuery {
         -> flowOf(emptyList())
         LoadFilter.THIS_MONTH -> {
             val cal = Calendar.getInstance()
-            val year = cal.get(Calendar.YEAR)
-            val month = cal.get(Calendar.MONTH) + 1
-            val start = "%04d-%02d-01".format(year, month)
-            val end = "%04d-%02d-%02d".format(
-                year,
-                month,
-                cal.getActualMaximum(Calendar.DAY_OF_MONTH),
-            )
+            val year = selectedMonthYear ?: cal.get(Calendar.YEAR)
+            val month = selectedMonth ?: (cal.get(Calendar.MONTH) + 1)
+            val (start, end) = getMonthRange(month, year)
             loadRepository.getLoadsOverlappingRange(start, end)
         }
         LoadFilter.YESTERDAY ->
