@@ -59,6 +59,7 @@ class TelegramLoadHandler(
             config = config,
             messageDateSeconds = messageDateSeconds,
             playFeedback = false,
+            reviveDeleted = true,
         )
         notifyIfChanged(results, playFeedback)
         return results

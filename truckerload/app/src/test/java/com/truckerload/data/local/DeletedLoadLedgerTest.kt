@@ -35,4 +35,15 @@ class DeletedLoadLedgerTest {
         assertFalse(DeletedLoadLedger.isBlocked(ctx, null, "T-UNDO"))
         assertFalse(DeletedLoadLedger.pendingHardDeleteIds(ctx).contains("id-2"))
     }
+
+    @Test
+    fun allowAgain_unblocksTripSoBotCanReadd() {
+        val ctx = RuntimeEnvironment.getApplication()
+        DeletedLoadLedger.markDeleted(ctx, "load-3", "T-114N6Z1N6")
+        assertTrue(DeletedLoadLedger.isBlocked(ctx, null, "t-114n6z1n6"))
+
+        DeletedLoadLedger.allowAgain(ctx, "load-3", "t-114n6z1n6")
+        assertFalse(DeletedLoadLedger.isBlocked(ctx, "load-3", null))
+        assertFalse(DeletedLoadLedger.isBlocked(ctx, null, "T-114N6Z1N6"))
+    }
 }
