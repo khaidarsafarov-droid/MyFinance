@@ -18,7 +18,7 @@ import dagger.assisted.AssistedInject
 
 /**
  * Background Telegram poll via WorkManager (~15 min periodic).
- * Skips if the foreground service is already active (app in foreground).
+ * Skips if the in-process poller is already active (app visible).
  */
 @HiltWorker
 class TelegramSyncWorker @AssistedInject constructor(
@@ -69,7 +69,7 @@ class TelegramSyncWorker @AssistedInject constructor(
         }
         runCatching { TelegramBotBranding.apply(applicationContext, token) }
         if (TelegramBotForegroundService.isRunning()) {
-            Log.d("TelegramSync", "FGS is active (app in foreground) — skip background poll")
+            Log.d("TelegramSync", "In-process poller is active — skip background poll")
             return Result.success()
         }
         try {
