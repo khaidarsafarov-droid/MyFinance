@@ -556,30 +556,34 @@
       height: 100%;
       display: flex;
       align-items: center;
-      padding: 48px 56px;
+      padding: 44px 52px;
       gap: 36px;
       color: #fff;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .feature-inner img {
-      width: 220px;
-      height: 220px;
-      border-radius: 48px;
+      width: 240px;
+      height: 240px;
+      border-radius: 52px;
       box-shadow: 0 18px 40px rgba(0,0,0,0.28);
       flex-shrink: 0;
     }
     .feature-inner h1 {
       margin: 0;
-      font-size: 64px;
+      font-size: 72px;
       font-weight: 700;
       letter-spacing: -0.03em;
+      line-height: 1.05;
     }
     .feature-inner p {
-      margin: 12px 0 0;
-      font-size: 26px;
+      margin: 14px 0 0;
+      font-size: 23px;
       font-weight: 500;
       color: var(--soft);
-      max-width: 560px;
+      max-width: 640px;
       line-height: 1.3;
+      white-space: nowrap;
     }
 
     .src {
@@ -1006,7 +1010,7 @@
         tgHint: "Перешлите лоуд, HTML-экспорт или .txt",
         cmdImport: "/import",
         cmdRestore: "восстанови",
-        featureP: "Данные всегда под рукой · Telegram-бот · виджет",
+        featureP: "Данные под рукой · Сканер и фото с локацией · Виджет",
         tabletH: "Всё на одном экране",
         tabletP: "Журнал любых грузов и цифры недели — всегда под рукой",
       },
@@ -1107,7 +1111,7 @@
         tgHint: "Forward a load, HTML export, or .txt",
         cmdImport: "/import",
         cmdRestore: "restore",
-        featureP: "Your data, always on hand · Telegram bot · widget",
+        featureP: "Your data, always on hand · Scanner & location photos · Widget",
         tabletH: "Everything on one screen",
         tabletP: "Any load in the journal, weekly numbers always at hand",
       },
