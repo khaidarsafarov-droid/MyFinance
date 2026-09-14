@@ -22,19 +22,19 @@ class TelegramFgsQuotaTest {
     }
 }
 
-class TelegramFgsTimeoutApiGuardTest {
+class TelegramManifestDropsDataSyncFgsTest {
 
     @Test
-    fun serviceDeclaresOnTimeoutOverride() {
-        // Compile-time + reflection guard: Android 15 requires onTimeout(startId, fgsType)
-        // or the process crashes with ForegroundServiceDidNotStopInTimeException.
-        val methods = TelegramBotForegroundService::class.java.declaredMethods
-        val hasTimeout = methods.any { m ->
-            m.name == "onTimeout" &&
-                m.parameterTypes.size == 2 &&
-                m.parameterTypes[0] == Int::class.javaPrimitiveType &&
-                m.parameterTypes[1] == Int::class.javaPrimitiveType
-        }
-        assertTrue("TelegramBotForegroundService must override onTimeout(int, int)", hasTimeout)
+    fun manifest_hasNoDataSyncForegroundService() {
+        val candidates = listOf(
+            java.io.File("src/main/AndroidManifest.xml"),
+            java.io.File("app/src/main/AndroidManifest.xml"),
+            java.io.File("../app/src/main/AndroidManifest.xml"),
+        )
+        val text = candidates.firstOrNull { it.isFile }?.readText()
+            ?: error("AndroidManifest.xml not found")
+        assertTrue(text.contains("FOREGROUND_SERVICE_DATA_SYNC\" tools:node=\"remove\""))
+        assertTrue(!text.contains("android:foregroundServiceType"))
+        assertTrue(!text.contains(".sync.TelegramBotForegroundService"))
     }
 }

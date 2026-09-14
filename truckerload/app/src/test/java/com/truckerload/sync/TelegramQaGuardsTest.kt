@@ -29,29 +29,28 @@ class TelegramWatchdogWorkNameTest {
     }
 }
 
-class TelegramLogoutStopsFgsGuardTest {
+class TelegramLogoutStopsPollerGuardTest {
 
     @Test
-    fun stopForLogout_existsOnCompanion() {
-        val names = TelegramBotForegroundService.Companion::class.java.methods.map { it.name }.toSet()
+    fun stopForLogout_exists() {
+        val names = TelegramBotForegroundService::class.java.methods.map { it.name }.toSet()
         assertTrue("stopForLogout must exist for logout path", "stopForLogout" in names)
         assertTrue("stop must exist", "stop" in names)
     }
 
     @Test
-    fun canStart_existsOnCompanion() {
-        val names = TelegramBotForegroundService.Companion::class.java.methods.map { it.name }.toSet()
-        assertTrue("canStart must exist for guarded FGS restarts", "canStart" in names)
+    fun canStart_exists() {
+        val names = TelegramBotForegroundService::class.java.methods.map { it.name }.toSet()
+        assertTrue("canStart must exist for guarded poller restarts", "canStart" in names)
     }
 }
 
-class TelegramBotFgsContractGuardTest {
+class TelegramBotNoFgsContractGuardTest {
 
     @Test
-    fun stopQuietly_and_startForegroundCompat_exist() {
-        // FIX: method was renamed stopGracefully → stopQuietly; keep the FGS contract
-        val methods = TelegramBotForegroundService::class.java.declaredMethods.map { it.name }.toSet()
-        assertTrue("stopQuietly must gate intentional FGS exits", "stopQuietly" in methods)
-        assertTrue("startForegroundCompat must exist", "startForegroundCompat" in methods)
+    fun poller_isNotAnAndroidService() {
+        assertFalse(
+            android.app.Service::class.java.isAssignableFrom(TelegramBotForegroundService::class.java),
+        )
     }
 }

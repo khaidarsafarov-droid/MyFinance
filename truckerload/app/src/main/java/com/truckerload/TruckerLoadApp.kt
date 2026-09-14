@@ -74,8 +74,6 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         initializeCrashReporting()
-        // FIX: hydrate durable dataSync FGS pause before watchdog/boot can restart the bot
-        com.truckerload.sync.TelegramFgsQuota.init(this)
         appScope.launch(Dispatchers.IO) {
             WeekStartRuntime.install(
                 settingsDataStore.getLoadWeekStartDayOnce(),
@@ -118,6 +116,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
 
             override fun onStop(owner: LifecycleOwner) {
+                TelegramBotForegroundService.stop(this@TruckerLoadApp)
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })

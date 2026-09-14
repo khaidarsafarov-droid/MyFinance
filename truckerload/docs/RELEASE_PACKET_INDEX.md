@@ -8,7 +8,7 @@ Single entry point for release readiness artifacts.
 - [Store listing copy EN/RU](../store/google-play/listing/)
 - [Privacy policy draft](../store/google-play/PRIVACY_POLICY.md)
 - [Data safety draft](../store/google-play/DATA_SAFETY.md)
-- [Release notes 1.5.9](../store/google-play/RELEASE_NOTES_1.5.9.md)
+- [Release notes 1.5.10](../store/google-play/RELEASE_NOTES_1.5.10.md)
 - [Listing images README](../store/google-play/README.md)
 - [Google Sign-In / upload SHA-1](./GOOGLE_SIGNIN_SETUP.md)
 
@@ -42,7 +42,7 @@ Single entry point for release readiness artifacts.
 
 ## Release Decision Snapshot
 
-- Build/version: **1.5.9 (14)**
+- Build/version: **1.5.10 (15)**
 - Candidate date:
 - Decision: [ ] GO   [ ] NO-GO
 - Final approver:
