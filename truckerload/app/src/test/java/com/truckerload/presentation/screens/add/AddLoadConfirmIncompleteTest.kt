@@ -74,14 +74,14 @@ class AddLoadConfirmIncompleteTest {
         assertNotNull("save must pause on gaps", pending)
         assertTrue(pending!!.missingOptional.contains(LoadField.DELIVERY))
         assertTrue(pending.missingOptional.contains(LoadField.MILES))
-        verify(loadRepository, never()).insertLoad(any(), any())
+        verify(loadRepository, never()).insertLoad(any(), any(), any())
 
         viewModel.confirmIncompleteSave(
             saveErrorFormatter = { it },
             onOptimisticInsert = null,
         )
 
-        verify(loadRepository, times(1)).insertLoad(any(), any())
+        verify(loadRepository, times(1)).insertLoad(any(), any(), any())
         assertNull(viewModel.uiState.value.confirmIncomplete)
         assertNotNull(viewModel.uiState.value.savedLoad)
     }
@@ -95,7 +95,7 @@ class AddLoadConfirmIncompleteTest {
 
         viewModel.dismissIncompleteConfirm()
 
-        verify(loadRepository, never()).insertLoad(any(), any())
+        verify(loadRepository, never()).insertLoad(any(), any(), any())
         assertNull(viewModel.uiState.value.confirmIncomplete)
         assertEquals("1500", viewModel.uiState.value.manual.rate)
     }
@@ -113,7 +113,7 @@ class AddLoadConfirmIncompleteTest {
         save()
 
         assertNull("nothing missing, no prompt", viewModel.uiState.value.confirmIncomplete)
-        verify(loadRepository, times(1)).insertLoad(any(), any())
+        verify(loadRepository, times(1)).insertLoad(any(), any(), any())
         val saved: Load? = viewModel.uiState.value.savedLoad
         assertEquals(2100.50, saved!!.totalRate, 0.01)
         assertEquals(700.0, saved.totalMiles, 0.01)

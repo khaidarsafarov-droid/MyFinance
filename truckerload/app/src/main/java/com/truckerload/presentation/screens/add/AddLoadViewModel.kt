@@ -421,7 +421,7 @@ class AddLoadViewModel @Inject constructor(
                     loadRepository.updateLoad(updated)
                     updated
                 } else {
-                    loadRepository.insertLoad(typed)
+                    loadRepository.insertLoad(typed, reviveDeleted = true)
                     typed
                 }
                 // FIX: alarm / journal must use the Room row id after an update

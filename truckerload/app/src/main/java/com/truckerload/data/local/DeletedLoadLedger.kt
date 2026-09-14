@@ -58,8 +58,34 @@ object DeletedLoadLedger {
         val id = loadId?.trim().orEmpty()
         val trip = tripId?.trim().orEmpty()
         if (id.isNotBlank() && id in loadIds(context)) return true
-        if (trip.isNotBlank() && trip in tripIds(context)) return true
+        if (trip.isNotBlank() && tripIds(context).any { it.equals(trip, ignoreCase = true) }) return true
         return false
+    }
+
+    /**
+     * User explicitly added this load again (bot paste or Add Load).
+     * Clears the delete block so the same Trip ID can return to the journal.
+     */
+    fun allowAgain(context: Context, loadId: String?, tripId: String?) {
+        val id = loadId?.trim().orEmpty()
+        val trip = tripId?.trim().orEmpty()
+        if (id.isBlank() && trip.isBlank()) return
+        prefs(context).edit(commit = true) {
+            if (id.isNotBlank()) {
+                putStringSet(KEY_PENDING, HashSet(pendingIds(context) - id))
+                putStringSet(KEY_LOAD_IDS, HashSet(loadIds(context) - id))
+                putStringSet(
+                    KEY_PENDING_TRIPS,
+                    HashSet(pendingTrips(context).filterNot { it.startsWith("$id\t") }),
+                )
+            }
+            if (trip.isNotBlank()) {
+                putStringSet(
+                    KEY_TRIP_IDS,
+                    HashSet(tripIds(context).filterNot { it.equals(trip, ignoreCase = true) }),
+                )
+            }
+        }
     }
 
     fun hasAny(context: Context): Boolean =

@@ -32,6 +32,7 @@ class LoadProcessor(
         config: ParserConfig = ParserConfig(),
         messageDateSeconds: Long? = null,
         playFeedback: Boolean = true,
+        reviveDeleted: Boolean = false,
     ): ProcessingResult {
         val incoming = normalizeIncoming(parsedLoad, messageDateSeconds)
 
@@ -45,10 +46,16 @@ class LoadProcessor(
 
         if (existingLoad == null) {
             val ctx = AppDatabase.applicationContext()
-            if (ctx != null && DeletedLoadLedger.isBlocked(ctx, incoming.id, incoming.tripId)) {
+            val blocked = ctx != null &&
+                DeletedLoadLedger.isBlocked(ctx, incoming.id, incoming.tripId)
+            if (blocked && !reviveDeleted) {
                 return ProcessingResult.Skipped("Deleted")
             }
-            loadRepository.insertLoad(incoming, playFeedback = playFeedback)
+            loadRepository.insertLoad(
+                incoming,
+                playFeedback = playFeedback,
+                reviveDeleted = reviveDeleted,
+            )
             return ProcessingResult.Added
         }
 
@@ -75,6 +82,7 @@ class LoadProcessor(
         config: ParserConfig = ParserConfig(),
         messageDateSeconds: Long? = null,
         playFeedback: Boolean = true,
+        reviveDeleted: Boolean = false,
     ): List<ProcessingResult> =
         loadRepository.runBatchWrite {
             parsedLoads.map { load ->
@@ -83,6 +91,7 @@ class LoadProcessor(
                     config = config,
                     messageDateSeconds = messageDateSeconds,
                     playFeedback = playFeedback,
+                    reviveDeleted = reviveDeleted,
                 )
             }
         }

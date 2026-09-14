@@ -330,7 +330,11 @@ class LoadRepository(
     private suspend fun stopsFor(loadId: String) = stopDao.getStopsByLoadId(loadId)
     private suspend fun penaltiesFor(loadId: String) = penaltyDao.getPenaltiesByLoadId(loadId)
 
-    suspend fun insertLoad(load: Load, playFeedback: Boolean = true) {
+    suspend fun insertLoad(
+        load: Load,
+        playFeedback: Boolean = true,
+        reviveDeleted: Boolean = false,
+    ) {
         val now = System.currentTimeMillis()
         val parsedAt = load.parsedAt.takeIf { it >= 946_684_800_000L } ?: now
         val repaired = LoadDateRepair.repair(
@@ -338,10 +342,11 @@ class LoadRepository(
             referenceMillis = parsedAt,
         )
         val normalized = repaired.copy(tripId = normalizeTripId(repaired.tripId)).withReportingWeek().withRouteMetrics()
-        val blocked = AppDatabase.applicationContext()?.let { ctx ->
-            DeletedLoadLedger.isBlocked(ctx, normalized.id, normalized.tripId)
-        } == true
-        if (blocked) return
+        val ctx = AppDatabase.applicationContext()
+        if (ctx != null && DeletedLoadLedger.isBlocked(ctx, normalized.id, normalized.tripId)) {
+            if (!reviveDeleted) return
+            DeletedLoadLedger.allowAgain(ctx, normalized.id, normalized.tripId)
+        }
         db.withTransaction {
             // FIX: REPLACE on loads would orphan autogen stop/penalty rows
             stopDao.deleteByLoadId(normalized.id)
