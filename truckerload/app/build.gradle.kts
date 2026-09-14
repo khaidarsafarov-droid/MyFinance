@@ -16,14 +16,14 @@ if (firebaseConfigured) {
 
 android {
     namespace = "com.truckerload"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.truckorig"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 13
-        versionName = "1.5.8"
+        targetSdk = 36
+        versionCode = 14
+        versionName = "1.5.9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
@@ -114,6 +114,10 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Play Console native-symbols warning: include JNI symbol table when NDK is present.
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
             // Never bake bot secrets into release APKs.
             // Public client IDs (Google Web client) stay in defaultConfig.
             buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
