@@ -16,7 +16,7 @@ object DieselTextParser {
             setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
         ),
     )
-    private val gallonsPattern = Regex("""([\d.]+)\s*(?:gal|gallons|gals|гл)\b""", RegexOption.IGNORE_CASE)
+    private val gallonsPattern = Regex("""([\d.]+)[ \t]*(?:gal|gallons|gals|гл)\b""", RegexOption.IGNORE_CASE)
     private val ppgPattern = Regex(
         """(?:Price|PPG|PPU|@\s*)\$?\s*([\d.]+)\s*(?:/|\s*per\s*)?\s*g(?:al)?""",
         RegexOption.IGNORE_CASE,

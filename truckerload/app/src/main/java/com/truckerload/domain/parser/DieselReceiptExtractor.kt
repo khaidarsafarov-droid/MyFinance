@@ -31,12 +31,12 @@ object DieselReceiptExtractor {
         RegexOption.IGNORE_CASE,
     )
     private val gallonsInline = listOf(
-        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)\s*(?:gal(?:lons?)?|gals?|гл)\b""", RegexOption.IGNORE_CASE),
+        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)[ \t]*(?:gal(?:lons?)?|gals?|гл)\b""", RegexOption.IGNORE_CASE),
         Regex(
             """(?:^|[\n\s])(?:gallons?|gals?|sale\s*gals?|volume|объем|галлоны?)\s*[:\-]?\s*\$?\s*([\d]{1,3}(?:[.,]\d{1,4})?)""",
             setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
         ),
-        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)\s*G(?:AL)?S?\b""", RegexOption.IGNORE_CASE),
+        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)[ \t]+G(?:AL)?S?\b""", RegexOption.IGNORE_CASE),
     )
     private val qtyInline = listOf(
         Regex(
