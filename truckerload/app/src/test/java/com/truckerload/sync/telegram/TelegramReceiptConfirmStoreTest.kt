@@ -40,6 +40,32 @@ class TelegramReceiptConfirmStoreTest {
         assertEquals("Settlement.pdf", loaded?.sourceFileName)
         assertEquals("paychecks/uuid_Settlement.pdf", loaded?.sourceFilePath)
         assertEquals(10907.79, loaded?.amount!!, 0.001)
+        assertEquals(false, loaded.awaitingTypedAmount)
+    }
+
+    @Test
+    fun roundTrip_keepsAwaitingTypedAmount() {
+        val context = RuntimeEnvironment.getApplication()
+        val prefs = context.getSharedPreferences("tg_confirm_await", 0)
+        val store = TelegramReceiptConfirmStore(prefs, context)
+        store.save(
+            "chat-await",
+            ReceiptPreview(
+                kind = ReceiptKind.PAYCHECK,
+                amount = 10.0,
+                gallons = null,
+                pricePerGallon = null,
+                date = null,
+                location = null,
+                vendor = null,
+                driverName = null,
+                tripId = null,
+                extractedText = "x",
+                highlightToken = null,
+                awaitingTypedAmount = true,
+            ),
+        )
+        assertEquals(true, store.load("chat-await")?.awaitingTypedAmount)
     }
 
     @Test

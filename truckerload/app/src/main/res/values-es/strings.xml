@@ -1122,6 +1122,12 @@
     <string name="sync_paycheck_confirm_ask">¿El total de pago $%1$s es correcto? Solo se guarda si confirmas.</string>
     <string name="sync_paycheck_confirm_yes">Sí, guardar</string>
     <string name="sync_paycheck_confirm_no">No</string>
+    <string name="sync_amount_confirm_ask">¿Guardar $%1$s? Toca otro monto si no es correcto.</string>
+    <string name="sync_amount_other_found">Otros montos que encontré:</string>
+    <string name="sync_amount_or_type">O escribe el número correcto, p. ej. 4040.30</string>
+    <string name="sync_amount_type_own">Lo escribo yo</string>
+    <string name="sync_amount_type_prompt">Envía el monto correcto, p. ej. 4040.30</string>
+    <string name="sync_amount_type_not_number">Eso no parece un monto. Envía 4040.30 o toca Cancelar.</string>
     <string name="sync_paycheck_amount_missing">Parece una liquidación, pero no encontré el total neto. Envía un PDF con texto o escribe Grand Total.</string>
     <string name="sync_receipt_btn_load">Carga</string>
     <string name="sync_receipt_btn_diesel">Diésel</string>

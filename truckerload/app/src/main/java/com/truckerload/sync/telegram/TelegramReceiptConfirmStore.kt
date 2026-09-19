@@ -65,6 +65,7 @@ class TelegramReceiptConfirmStore(
         put("file", preview.sourceFileName ?: JSONObject.NULL)
         put("filePath", preview.sourceFilePath ?: JSONObject.NULL)
         put("msgDate", preview.messageDateSeconds ?: JSONObject.NULL)
+        put("awaitAmt", preview.awaitingTypedAmount)
     }
 
     private fun fromJson(json: JSONObject) = ReceiptPreview(
@@ -90,6 +91,7 @@ class TelegramReceiptConfirmStore(
         } else {
             null
         },
+        awaitingTypedAmount = json.optBoolean("awaitAmt", false),
     )
 
     private fun JSONObject.optStringOrNull(key: String): String? =

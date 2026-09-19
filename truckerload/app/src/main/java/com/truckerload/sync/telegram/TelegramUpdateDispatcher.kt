@@ -209,6 +209,17 @@ class TelegramUpdateDispatcher(
             return
         }
 
+        if (ingest().tryHandleTypedAmount(
+                chatId = update.chatId,
+                text = rawText,
+                paycheckRepository = paycheckRepository,
+                dieselRepository = dieselRepository,
+                prefs = prefs,
+            )
+        ) {
+            return
+        }
+
         apiClient.sendMessage(update.chatId, context.getString(R.string.sync_processing))
             .onFailure { e -> Log.e(TAG, "ack failed: ${LogRedactor.redact(e.message)}") }
 
