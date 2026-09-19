@@ -19,6 +19,7 @@ import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.parser.LoadProcessor
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.PaycheckTextParser
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.sync.DuplicateAuditRunner
@@ -201,16 +202,18 @@ class TelegramMessageParser(
         prefs: SharedPreferences,
     ): String {
         val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
-        messageParseService.parseLoadsFromMessage(text, referenceMillis)
-            .onSuccess { incomingLoads ->
-                if (incomingLoads.isNotEmpty()) {
-                    return telegramLoadHandler(loadRepository).handleLoads(
-                        loads = incomingLoads,
-                        rawMessage = text,
-                        messageDateSeconds = messageDateSeconds,
-                    )
+        if (!PaycheckTextParser.looksLikePaycheck(text)) {
+            messageParseService.parseLoadsFromMessage(text, referenceMillis)
+                .onSuccess { incomingLoads ->
+                    if (incomingLoads.isNotEmpty()) {
+                        return telegramLoadHandler(loadRepository).handleLoads(
+                            loads = incomingLoads,
+                            rawMessage = text,
+                            messageDateSeconds = messageDateSeconds,
+                        )
+                    }
                 }
-            }
+        }
 
         messageParseService.parsePaycheckFromText(text)
             .onSuccess { r ->

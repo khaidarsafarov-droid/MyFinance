@@ -49,6 +49,16 @@ class MessageClassifierTest {
     }
 
     @Test
+    fun classify_settlementWithTripRows_returnsPaycheck() {
+        val text = """
+            Driver Settlement
+            Grand Total: ${'$'}4,040.30
+            T-113RD815D Indianapolis, IN
+        """.trimIndent()
+        assertEquals(MessageType.PAYCHECK, MessageClassifier.classify(text))
+    }
+
+    @Test
     fun isLoadLike_requiresLoadMarker() {
         assertTrue(MessageClassifier.isLoadLike("PU# 12345"))
         assertFalse(MessageClassifier.isLoadLike("Net Pay: ${'$'}500.00"))

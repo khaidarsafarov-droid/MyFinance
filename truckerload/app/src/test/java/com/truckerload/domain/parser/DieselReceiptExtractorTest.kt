@@ -89,6 +89,23 @@ class DieselReceiptExtractorTest {
     }
 
     @Test
+    fun pumpReceipt_readsPumpTotalPpuAndQty() {
+        val fields = DieselReceiptExtractor.extract(
+            """
+            LOVE'S
+            ULSD
+            QTY 88.210
+            PPU 3.459
+            PUMP TOTAL ${'$'}305.12
+            """.trimIndent(),
+        )
+        assertEquals(88.210, fields.gallons!!, 0.001)
+        assertEquals(3.459, fields.pricePerGallon!!, 0.001)
+        assertEquals(305.12, fields.totalAmount!!, 0.01)
+        assertEquals("Love's Travel Stop", fields.vendor)
+    }
+
+    @Test
     fun formatField_trimsTrailingZeros() {
         assertEquals("45.23", DieselReceiptExtractor.formatField(45.230))
         assertEquals("4", DieselReceiptExtractor.formatField(4.0))

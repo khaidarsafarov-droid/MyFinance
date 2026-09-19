@@ -14,29 +14,45 @@ object PaycheckTextParser {
             """[\d]+\.\d{2}|""" +
             """[\d]{3,6}\s+\d{2})"""
     private val moneyCapture = """[${'$'}S]?\s*$moneyNumber"""
-    private val netPayLabel = """(?:Net\s*Pay|Зарплата)"""
+    private val netPayLabel = """(?:Net\s*Pay|Зарплата|На\s*руки|К\s*выплате)"""
     private val statementTakeHomeLabel =
         """(?:G[ra]{0,2}and\s*Tota[l1I]|Settlement\s*(?:Total|Amount)|""" +
-            """Take[\s-]*Home|Check\s*(?:Amount|Total)|Net\s*Settlement)"""
+            """Take[\s-]*Home|Check\s*(?:Amount|Total)|""" +
+            """Net\s*(?:Settlement|Earnings|Compensation|Amount|Deposit)|""" +
+            """Payment\s*Amount)"""
     private val simpleTakeHomeLabel =
         """(?:$statementTakeHomeLabel|Driver\s*Pay|Net\s*(?:Check|Earnings)|""" +
             """Amount\s*(?:to\s*)?Driver|Total\s*(?:Due\s*)?Driver)"""
     private val statementMarker = Regex(
         """Driver\s*Sett+e?ment|Settlement\s*Summary|Settlement\s*Date|Payee\s*ID|""" +
             """Total\s*Deductions|Owner\s*Operator\s*Sett+e?ment|""" +
-            """Weekly\s*Sett+e?ment|Pay\s*Statement|Driver\s*Statement|Sett+e?ment""",
+            """Weekly\s*Sett+e?ment|Pay\s*Statement|Driver\s*Statement|Compensation\s*Summary|""" +
+            """Pay\s*Period|Sett+e?ment""",
         RegexOption.IGNORE_CASE,
     )
     private val grossPattern = Regex(
-        """Gross\s*Pay(?:\s*Total)?[^\d$]{0,40}$moneyCapture""",
+        """(?:Gross\s*(?:Pay(?:\s*Total)?|Earnings|Compensation|Amount)|Total\s*(?:Earnings|Compensation|Gross))[^\d$]{0,40}$moneyCapture""",
         setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
     )
-    private val driverPattern = Regex("""Driver\s*[:]\s*([A-Za-z .'-]+)""", RegexOption.IGNORE_CASE)
-    private val weekStartPattern = Regex(
-        """(?:Week\s*Start|Settlement\s*Date|Cutoff\s*Date)\s*[:\s]*([^\n]+)""",
+    private val driverPattern = Regex(
+        """(?:Driver(?:\s*Name)?|Contractor(?:\s*Name)?|Employee(?:\s*Name)?)\s*[:]\s*([A-Za-z .'-]{2,60})""",
         RegexOption.IGNORE_CASE,
     )
-    private val weekEndPattern = Regex("""Week\s*End\s*[:\s]*([^\n]+)""", RegexOption.IGNORE_CASE)
+    private val weekStartPattern = Regex(
+        """(?:Week\s*Start|Period\s*(?:Start|Beginning|Begin)|Settlement\s*Date|Cutoff\s*Date|Week\s*(?:Beginning|Of))\s*[:\s]*([^\n]+)""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val weekEndPattern = Regex(
+        """(?:Week\s*End(?:ing)?|Period\s*End(?:ing)?)\s*[:\s]*([^\n]+)""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val periodRangePattern = Regex(
+        """(?:Pay\s*Period|Settlement\s*Period|Statement\s*Period)\s*[:\s]*([^\n]+)""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val periodDateToken = Regex(
+        """\b(\d{4}-\d{2}-\d{2}|\d{1,2}[./-]\d{1,2}[./-]\d{2,4})\b""",
+    )
     private val fileWeekRange = Regex(
         """(\d{1,2}[./]\d{1,2})[-–](\d{1,2}[./]\d{1,2})""",
     )
@@ -75,13 +91,16 @@ object PaycheckTextParser {
         if (netAmount <= 0) return null
 
         val grossAmount = labeledMoney(hay, grossPattern)
+        val periodDates = periodRangePattern.find(hay)?.groupValues?.getOrNull(1)?.let(::datesIn).orEmpty()
         val weekStart = weekStartPattern.find(hay)?.groupValues?.get(1)
             ?.let { ParseUtils.normalizeDate(it) }
             ?.takeIf { it.isNotBlank() }
+            ?: periodDates.getOrNull(0)
             ?: weekFromFileName(fileName)?.first
         val weekEnd = weekEndPattern.find(hay)?.groupValues?.get(1)
             ?.let { ParseUtils.normalizeDate(it) }
             ?.takeIf { it.isNotBlank() }
+            ?: periodDates.getOrNull(1)
             ?: weekFromFileName(fileName)?.second
         val driverName = driverPattern.find(hay)?.groupValues?.get(1)?.trim()
 
@@ -164,6 +183,11 @@ object PaycheckTextParser {
         }
         return ParseUtils.parseMoney(trimmed)
     }
+
+    private fun datesIn(raw: String): List<String> =
+        periodDateToken.findAll(raw).mapNotNull { match ->
+            ParseUtils.normalizeDate(match.value).takeIf { it.length >= 10 }
+        }.toList()
 
     private fun weekFromFileName(fileName: String?): Pair<String, String>? {
         val match = fileWeekRange.find(fileName.orEmpty()) ?: return null

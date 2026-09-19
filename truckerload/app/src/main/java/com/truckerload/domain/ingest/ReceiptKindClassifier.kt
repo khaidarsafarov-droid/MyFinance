@@ -28,19 +28,22 @@ object ReceiptKindClassifier {
                 """Driver\s*Statement|Weekly\s*Sett+e?ment|Owner\s*Operator\s*Sett+e?ment""",
             RegexOption.IGNORE_CASE,
         ),
-        6 to Regex("""Net\s*Pay|Gross\s*Pay|Driver\s*Pay|зарплат""", RegexOption.IGNORE_CASE),
+        6 to Regex(
+            """Net\s*(?:Pay|Earnings|Settlement)|Gross\s*(?:Pay|Earnings)|Driver\s*Pay|зарплат""",
+            RegexOption.IGNORE_CASE,
+        ),
         5 to Regex("""paycheck|pay\s*stub|settlement|оклад|pay\s*statement""", RegexOption.IGNORE_CASE),
         4 to Regex(
-            """Grand\s*Total|Settlement\s*Total|Take[\s-]*Home|Cutoff\s*Date|Week\s*Start""",
+            """Grand\s*Total|Settlement\s*Total|Take[\s-]*Home|Cutoff\s*Date|Week\s*Start|Pay\s*Period|Compensation\s*Summary""",
             RegexOption.IGNORE_CASE,
         ),
         2 to Regex("""YTD|year[\s-]*to[\s-]*date""", RegexOption.IGNORE_CASE),
     )
 
     private val dieselMarkers = listOf(
-        6 to Regex("""\bdiesel\b|\bдизел|\bДТ\b|diesel\s*fuel""", RegexOption.IGNORE_CASE),
-        5 to Regex("""fuel\s*receipt|fuel\s*sale|reefer\s*fuel|топлив""", RegexOption.IGNORE_CASE),
-        4 to Regex("""gallons?|\bgal\b|price\s*per\s*gal|PPG|л\.?\s*ДТ""", RegexOption.IGNORE_CASE),
+        6 to Regex("""\bdiesel\b|\bдизел|\bДТ\b|diesel\s*fuel|\bulsd\b|#2\s*diesel""", RegexOption.IGNORE_CASE),
+        5 to Regex("""fuel\s*receipt|fuel\s*sale|pump\s*total|reefer\s*fuel|топлив""", RegexOption.IGNORE_CASE),
+        4 to Regex("""gallons?|\bgal\b|price\s*per\s*gal|PPG|PPU|л\.?\s*ДТ""", RegexOption.IGNORE_CASE),
         2 to Regex("""Pilot|Love'?s|Flying\s*J|TA\s*Petro|Fuel""", RegexOption.IGNORE_CASE),
     )
 
