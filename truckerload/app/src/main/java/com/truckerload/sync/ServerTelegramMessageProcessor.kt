@@ -8,6 +8,7 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.PaycheckTextParser
 import com.truckerload.sync.import.ImportCommandHandler
 import com.truckerload.sync.import.ImportSessionManager
 import com.truckerload.sync.telegram.TelegramJournalIngest
@@ -47,10 +48,14 @@ class ServerTelegramMessageProcessor(
         handleSlashCommand(text, chatId)?.let { return it }
         val messageDateSeconds = receivedAtMillis.takeIf { it > 0 }?.div(1000)
 
-        val loads = parser.parseLoadsFromMessage(
-            text,
-            messageDateSeconds?.times(1000) ?: System.currentTimeMillis(),
-        ).getOrNull().orEmpty()
+        val loads = if (PaycheckTextParser.looksLikePaycheck(text)) {
+            emptyList()
+        } else {
+            parser.parseLoadsFromMessage(
+                text,
+                messageDateSeconds?.times(1000) ?: System.currentTimeMillis(),
+            ).getOrNull().orEmpty()
+        }
         if (loads.isNotEmpty()) {
             loadHandler.handleLoads(
                 loads = loads,

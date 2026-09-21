@@ -26,20 +26,31 @@ data class DieselReceiptFields(
  */
 object DieselReceiptExtractor {
 
+    private val fuelProduct = Regex(
+        """diesel|ulsd|#2|fuel|топлив|дизел|reefer""",
+        RegexOption.IGNORE_CASE,
+    )
     private val gallonsInline = listOf(
-        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)\s*(?:gal(?:lons?)?|gals?|гл)\b""", RegexOption.IGNORE_CASE),
+        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)[ \t]*(?:gal(?:lons?)?|gals?|гл)\b""", RegexOption.IGNORE_CASE),
         Regex(
             """(?:^|[\n\s])(?:gallons?|gals?|sale\s*gals?|volume|объем|галлоны?)\s*[:\-]?\s*\$?\s*([\d]{1,3}(?:[.,]\d{1,4})?)""",
             setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
         ),
+        Regex("""([\d]{1,3}(?:[.,]\d{1,4})?)[ \t]+G(?:AL)?S?\b""", RegexOption.IGNORE_CASE),
+    )
+    private val qtyInline = listOf(
+        Regex(
+            """(?:qty|quantity)\s*[:\-]?\s*([\d]{1,3}(?:[.,]\d{1,4})?)""",
+            RegexOption.IGNORE_CASE,
+        ),
     )
     private val ppgInline = listOf(
         Regex(
-            """(?:price\s*/?\s*gal(?:lon)?s?|price\s*per\s*gal(?:lon)?s?|ppg|\$\s*/\s*gal|цена\s*за\s*гал(?:лон)?)\s*[:\-]?\s*\$?\s*([\d]{1,2}(?:[.,]\d{1,4})?)""",
+            """(?:price\s*/?\s*gal(?:lon)?s?|price\s*per\s*gal(?:lon)?s?|ppg|ppu|unit\s*price|\$\s*/\s*gal|цена\s*за\s*гал(?:лон)?)\s*[:\-]?\s*\$?\s*([\d]{1,2}(?:[.,]\d{1,4})?)""",
             RegexOption.IGNORE_CASE,
         ),
-        Regex("""(?:Price|PPG|@\s*)\$?\s*([\d.]+)\s*(?:/|\s*per\s*)?\s*gal""", RegexOption.IGNORE_CASE),
-        Regex("""\$\s*([\d]{1,2}\.\d{2,3})\s*/\s*gal""", RegexOption.IGNORE_CASE),
+        Regex("""(?:Price|PPG|PPU|@\s*)\$?\s*([\d.]+)\s*(?:/|\s*per\s*)?\s*g(?:al)?""", RegexOption.IGNORE_CASE),
+        Regex("""\$\s*([\d]{1,2}\.\d{2,3})\s*/\s*g(?:al)?""", RegexOption.IGNORE_CASE),
     )
     private val discountInline = listOf(
         Regex(
@@ -49,10 +60,13 @@ object DieselReceiptExtractor {
     )
     private val totalInline = listOf(
         Regex(
-            """(?:Total\s*Amount|Amount\s*Due|Fuel\s*Total|Diesel\s*Total|Sale\s*Amount|Итого)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""",
+            """(?:Total\s*Amount|Amount\s*Due|Fuel\s*Total|Diesel\s*Total|Pump\s*Total|Fuel\s*(?:Sale|Amount)|Sale\s*(?:Amount|Total)|Итого)\s*[:\s]*\$?\s*([\d,]+\.?\d*)""",
             RegexOption.IGNORE_CASE,
         ),
-        Regex("""^\s*Total\s*[:\s]*\$?\s*([\d,]+\.?\d*)\s*$""", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE)),
+        Regex(
+            """^\s*(?:Total|SALE|AMT|AMOUNT)\s*[:\s]*\$?\s*([\d,]+\.?\d*)\s*$""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
+        ),
     )
     private val locationInline = listOf(
         Regex("""(?:Location|Store|Station|АЗС)\s*[:\s]*([^\n]+)""", RegexOption.IGNORE_CASE),
@@ -61,19 +75,23 @@ object DieselReceiptExtractor {
     private val cityState = Regex(
         """\b([A-Z][A-Za-z]+(?:[\s\-'][A-Z][A-Za-z]+)*)\,\s*([A-Z]{2})(?:\s+\d{5}(?:-\d{4})?)?\b""",
     )
-    private val gallonsCue = Regex(
+    private val explicitGallonsCue = Regex(
         """gallons?|gals?|sale\s*gals?|volume|объем|галлон""",
         RegexOption.IGNORE_CASE,
     )
+    private val qtyCue = Regex("""\bqty\b|quantity""", RegexOption.IGNORE_CASE)
     private val ppgCue = Regex(
-        """price\s*/?\s*gal|price\s*per\s*gal|ppg|\$\s*/\s*g|цена\s*за\s*гал""",
+        """price\s*/?\s*gal|price\s*per\s*gal|ppg|ppu|unit\s*price|\$\s*/\s*g|цена\s*за\s*гал""",
         RegexOption.IGNORE_CASE,
     )
     private val discountCue = Regex(
         """disc(?:ount)?|fleet\s*price|cash\s*price|скидк""",
         RegexOption.IGNORE_CASE,
     )
-    private val totalCue = Regex("""total|amount\s*due|итого""", RegexOption.IGNORE_CASE)
+    private val totalCue = Regex(
+        """total|amount\s*due|итого|pump\s*total|fuel\s*sale|fuel\s*amount|sale\s*amount|\bsale\b|\bamt\b""",
+        RegexOption.IGNORE_CASE,
+    )
     private val numberToken = Regex("""\$?\s*([\d]{1,4}(?:[.,]\d{1,4})?)""")
 
     private val knownStops = listOf(
@@ -100,6 +118,9 @@ object DieselReceiptExtractor {
         if (raw.isBlank()) return DieselReceiptFields()
 
         var gallons = firstPositive(raw, gallonsInline, ::asGallons)
+        if (gallons == null && fuelProduct.containsMatchIn(raw)) {
+            gallons = firstPositive(raw, qtyInline, ::asGallons)
+        }
         var ppg = firstPositive(raw, ppgInline, ::asPpg)
         var discount = firstPositive(raw, discountInline, ::asPpg)
         var total = firstPositive(raw, totalInline) { ParseUtils.parseMoney(it).takeIf(::isTotal) }
@@ -151,9 +172,11 @@ object DieselReceiptExtractor {
             val next = lines.getOrNull(i + 1).orEmpty()
             val here = firstNumber(line)
             val below = firstNumber(next)
+            val prev = lines.getOrNull(i - 1).orEmpty()
             when {
-                isGallonsLine(line) && below != null -> gallons = gallons ?: asGallons(below)
-                isGallonsLine(next) && here != null -> gallons = gallons ?: asGallons(here)
+                isGallonsLine(line, prev, next) && below != null -> gallons = gallons ?: asGallons(below)
+                isGallonsLine(next, line, lines.getOrNull(i + 2).orEmpty()) && here != null ->
+                    gallons = gallons ?: asGallons(here)
                 isPpgLine(line) && below != null -> ppg = ppg ?: asPpg(below)
                 isPpgLine(next) && here != null -> ppg = ppg ?: asPpg(here)
                 isDiscountLine(line) && below != null -> discount = discount ?: asPpg(below)
@@ -194,16 +217,22 @@ object DieselReceiptExtractor {
         return parseNumber(raw)
     }
 
-    private fun isGallonsLine(line: String): Boolean =
-        gallonsCue.containsMatchIn(line) && !ppgCue.containsMatchIn(line)
+    private fun isGallonsLine(line: String, previous: String = "", next: String = ""): Boolean {
+        if (ppgCue.containsMatchIn(line)) return false
+        if (explicitGallonsCue.containsMatchIn(line)) return true
+        if (!qtyCue.containsMatchIn(line)) return false
+        return fuelProduct.containsMatchIn(line) ||
+            fuelProduct.containsMatchIn(previous) ||
+            fuelProduct.containsMatchIn(next)
+    }
 
     private fun isPpgLine(line: String): Boolean = ppgCue.containsMatchIn(line)
 
     private fun isDiscountLine(line: String): Boolean =
-        discountCue.containsMatchIn(line) && !isPpgLine(line) && !isGallonsLine(line)
+        discountCue.containsMatchIn(line) && !isPpgLine(line) && !explicitGallonsCue.containsMatchIn(line)
 
     private fun isTotalLine(line: String): Boolean =
-        totalCue.containsMatchIn(line) && !isGallonsLine(line) && !isPpgLine(line)
+        totalCue.containsMatchIn(line) && !explicitGallonsCue.containsMatchIn(line) && !isPpgLine(line)
 
     private fun parseNumber(raw: String): Double? {
         val cleaned = raw.trim().replace("$", "").replace(" ", "").replace(",", "")

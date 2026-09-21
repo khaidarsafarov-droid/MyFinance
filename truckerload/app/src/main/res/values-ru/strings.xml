@@ -1102,7 +1102,7 @@
     <string name="sync_help">📋 Как пользоваться ботом TruckoRig:\n1. Перешлите текст лоуда Amazon Relay или PDF rate confirmation\n2. Или текст / фото settlement / fuel receipt\n3. Данные сохранятся в приложении TruckoRig\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
     <string name="sync_status">📊 Статус TruckoRig:\n• Лоудов: %1$d\n• Зарплат: %2$d\n• Дизель: %3$d\n\nБот активен в фоне. Перешлите новые данные — добавлю в приложение.</string>
     <string name="sync_help_load">📦 Лоуд:\nПерешлите текст или файл (фото, PDF, DOCX): Amazon Relay, carrier rate confirmation или любой документ с Rate / Miles / адресами.\nЕсли это явно груз — сохраняется сразу, без вопроса про дизель.</string>
-    <string name="sync_help_pay">💰 Зарплата / дизель / DEF:\nПришлите фото или файл чека. Бот распознает текст, покажет сумму и спросит тип кнопками. Сохранит после выбора.</string>
+    <string name="sync_help_pay">💰 Зарплата / дизель / DEF:\nПришлите фото или файл стейтмента. Бот покажет сумму и другие цифры с документа. Если взял не ту — нажмите другую или напишите свою, например 4040.30.</string>
     <string name="sync_ocr_disabled">📷 OCR отключён. Скопируйте и отправьте текст лоуда, платёжки или чека.</string>
     <string name="sync_doc_not_supported">📎 Для импорта лоудов отправьте HTML-файлы экспорта Telegram (messages.html) или /import.\nPDF/DOCX пока не поддерживаются — скопируйте текст или сфотографируйте страницу.</string>
     <string name="sync_no_new_data">🔄 Связь установлена, но новых данных для синхронизации не обнаружено.</string>
@@ -1122,6 +1122,12 @@
     <string name="sync_paycheck_confirm_ask">Зарплата $%1$s — это верная сумма? Сохраню только после подтверждения.</string>
     <string name="sync_paycheck_confirm_yes">Да, сохранить</string>
     <string name="sync_paycheck_confirm_no">Нет</string>
+    <string name="sync_amount_confirm_ask">Сохранить $%1$s? Если сумма не та — нажмите другую.</string>
+    <string name="sync_amount_other_found">Другие суммы в тексте:</string>
+    <string name="sync_amount_or_type">Или напишите свою, например 4040.30</string>
+    <string name="sync_amount_type_own">Напишу сам</string>
+    <string name="sync_amount_type_prompt">Напишите верную сумму, например 4040.30</string>
+    <string name="sync_amount_type_not_number">Это не похоже на сумму. Напишите 4040.30 или нажмите Отмена.</string>
     <string name="sync_paycheck_amount_missing">Похоже на стейтмент, но сумму на руки не нашёл. Пришлите PDF с текстом или напишите Grand Total.</string>
     <string name="sync_receipt_btn_load">Груз</string>
     <string name="sync_receipt_btn_diesel">Дизель</string>

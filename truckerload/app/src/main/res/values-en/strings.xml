@@ -1102,7 +1102,7 @@
     <string name="sync_help">📋 How to use the TruckoRig bot:\n1. Forward Amazon Relay load text or a rate-confirmation PDF\n2. Or settlement / fuel receipt text or photo\n3. Data will be saved in the TruckoRig app\n\n🔄 Restore: type \"restore\" or /restore — the bot will reload all saved messages into the app.\n\n/dedup — scan the database and remove duplicates\n\nThe app can be closed — the bot runs in the background on your phone.\n/status — record count in database · /stats — weekly statistics</string>
     <string name="sync_status">📊 TruckoRig status:\n• Loads: %1$d\n• Paychecks: %2$d\n• Diesel: %3$d\n\nBot is active in background. Forward new data — I will add it to the app.</string>
     <string name="sync_help_load">📦 Load:\nForward text or a file (photo, PDF, DOCX): Amazon Relay, a carrier rate confirmation, or any document with Rate / Miles / addresses.\nClear loads save immediately — no diesel / DEF / paycheck prompt.</string>
-    <string name="sync_help_pay">💰 Paycheck / diesel / DEF:\nSend a photo or file of the receipt. The bot reads the text, shows the amount, and asks the type with buttons. It saves after you choose.</string>
+    <string name="sync_help_pay">💰 Paycheck / diesel / DEF:\nSend a photo or file. The bot shows the amount and other totals from the document. If it picked the wrong one, tap another or type your own, e.g. 4040.30.</string>
     <string name="sync_ocr_disabled">📷 OCR disabled. Copy and send load, settlement, or receipt text.</string>
     <string name="sync_doc_not_supported">📎 To import loads, send Telegram export HTML files (messages.html) or /import.\nPDF/DOCX not supported yet — copy the text or photograph the page.</string>
     <string name="sync_no_new_data">🔄 Connection established, but no new data found to sync.</string>
@@ -1122,6 +1122,12 @@
     <string name="sync_paycheck_confirm_ask">Is this paycheck total correct: $%1$s? It will be saved only if you confirm.</string>
     <string name="sync_paycheck_confirm_yes">Yes, save</string>
     <string name="sync_paycheck_confirm_no">No</string>
+    <string name="sync_amount_confirm_ask">Save $%1$s? Tap another amount if this is wrong.</string>
+    <string name="sync_amount_other_found">Other amounts I found:</string>
+    <string name="sync_amount_or_type">Or type the correct number, e.g. 4040.30</string>
+    <string name="sync_amount_type_own">I\'ll type it</string>
+    <string name="sync_amount_type_prompt">Send the correct amount, e.g. 4040.30</string>
+    <string name="sync_amount_type_not_number">That doesn\'t look like an amount. Send 4040.30 or tap Cancel.</string>
     <string name="sync_paycheck_amount_missing">This looks like a settlement, but the take-home total was not found. Send a PDF with a text layer, or type Grand Total.</string>
     <string name="sync_receipt_btn_load">Load</string>
     <string name="sync_receipt_btn_diesel">Diesel</string>

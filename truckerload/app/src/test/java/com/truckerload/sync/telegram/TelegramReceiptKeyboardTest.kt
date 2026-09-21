@@ -15,4 +15,22 @@ class TelegramReceiptKeyboardTest {
         assertEquals("rc:ok", TelegramReceiptKeyboard.CONFIRM)
         assertTrue(TelegramReceiptKeyboard.isReceiptCallback(TelegramReceiptKeyboard.CONFIRM))
     }
+
+    @Test
+    fun amountPicker_usesAmountCallbacksAndTypeOwn() {
+        val json = TelegramReceiptKeyboard.amountPicker(
+            amounts = listOf(4040.30, 8454.58),
+            yes = "Yes, save",
+            typeOwn = "I'll type it",
+            cancel = "Cancel",
+        ).toString()
+        assertTrue(json.contains(TelegramReceiptKeyboard.amountCallback(4040.30)))
+        assertTrue(json.contains(TelegramReceiptKeyboard.TYPE_AMOUNT))
+        assertTrue(json.contains(TelegramReceiptKeyboard.CANCEL))
+        assertEquals(
+            4040.30,
+            TelegramReceiptKeyboard.parseAmountCallback("rc:amt:4040.30")!!,
+            0.001,
+        )
+    }
 }

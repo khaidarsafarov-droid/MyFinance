@@ -204,4 +204,92 @@ class DieselPaycheckTextParserTest {
             0.01,
         )
     }
+
+    @Test
+    fun paycheck_amazonStyleNetEarningsAndPayPeriod() {
+        val text = """
+            Compensation Summary
+            Contractor: Alex Driver
+            Pay Period: 07/14/2026 - 07/20/2026
+            Gross Earnings: ${'$'}3,400.00
+            Deductions: ${'$'}649.75
+            Net Earnings: ${'$'}2,750.25
+        """.trimIndent()
+
+        val parsed = PaycheckTextParser.parse(text)!!
+        assertEquals("Alex Driver", parsed.driverName)
+        assertEquals("2026-07-14", parsed.weekStartDate)
+        assertEquals("2026-07-20", parsed.weekEndDate)
+        assertEquals(3400.0, parsed.grossAmount!!, 0.01)
+        assertEquals(2750.25, parsed.netAmount, 0.01)
+        assertEquals(MessageType.PAYCHECK, MessageClassifier.classify(text))
+    }
+
+    @Test
+    fun diesel_pilotPumpTotalReceipt() {
+        val text = """
+            PILOT TRAVEL CENTER
+            KNOXVILLE, TN
+            07/21/2026 14:32
+            PUMP 07
+            DIESEL #2
+            GALLONS     120.543
+            PRICE/GAL   ${'$'}3.899
+            PUMP TOTAL  ${'$'}469.99
+        """.trimIndent()
+
+        val parsed = DieselTextParser.parse(text)!!
+        assertEquals(469.99, parsed.totalAmount, 0.01)
+        assertEquals(120.543, parsed.gallons!!, 0.001)
+        assertEquals(3.899, parsed.pricePerGallon!!, 0.001)
+        assertEquals("2026-07-21", parsed.date)
+        assertEquals("Pilot", parsed.vendor)
+        assertEquals(MessageType.DIESEL, MessageClassifier.classify(text))
+    }
+
+    @Test
+    fun diesel_lovesQtyPpuSale() {
+        val text = """
+            LOVE'S TRAVEL STOP
+            Oklahoma City, OK
+            ULSD
+            QTY 88.210
+            PPU 3.459
+            SALE ${'$'}305.12
+        """.trimIndent()
+
+        val parsed = DieselTextParser.parse(text)!!
+        assertEquals(305.12, parsed.totalAmount, 0.01)
+        assertEquals(88.210, parsed.gallons!!, 0.001)
+        assertEquals(3.459, parsed.pricePerGallon!!, 0.001)
+        assertEquals("Love's Travel Stop", parsed.vendor)
+    }
+
+    @Test
+    fun diesel_fuelCardTransaction() {
+        val text = """
+            EFS FUEL TRANSACTION
+            Merchant: PILOT TRAVEL CENTER
+            City: KNOXVILLE, TN
+            Product: ULSD
+            Quantity: 102.450
+            Unit Price: 3.459
+            Fuel Amount: ${'$'}354.38
+            Date: 07/21/2026
+        """.trimIndent()
+
+        val parsed = DieselTextParser.parse(text)!!
+        assertEquals(354.38, parsed.totalAmount, 0.01)
+        assertEquals(102.450, parsed.gallons!!, 0.001)
+        assertEquals(3.459, parsed.pricePerGallon!!, 0.001)
+        assertEquals("2026-07-21", parsed.date)
+    }
+
+    @Test
+    fun diesel_derivesTotalFromGallonsAndPpg() {
+        val parsed = DieselTextParser.parse("Diesel\n50 gal\n${'$'}3.99/gal")
+        assertEquals(199.50, parsed!!.totalAmount, 0.01)
+        assertEquals(50.0, parsed.gallons!!, 0.01)
+        assertEquals(3.99, parsed.pricePerGallon!!, 0.01)
+    }
 }

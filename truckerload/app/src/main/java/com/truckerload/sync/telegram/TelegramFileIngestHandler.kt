@@ -10,6 +10,7 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.ingest.InboundDocumentResolver
+import com.truckerload.domain.ingest.ReceiptAmountCandidates
 import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
 import com.truckerload.domain.ingest.ReceiptPreviewFormatter
@@ -153,20 +154,39 @@ class TelegramFileIngestHandler(
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_expired))
             return
         }
+        callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
+        if (data == TelegramReceiptKeyboard.TYPE_AMOUNT) {
+            store.save(chatId, preview.copy(awaitingTypedAmount = true))
+            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_amount_type_prompt))
+            return
+        }
+        TelegramReceiptKeyboard.parseAmountCallback(data)?.let { picked ->
+            val updated = preview.copy(
+                amount = picked,
+                highlightToken = String.format(Locale.US, "%.2f", picked),
+                awaitingTypedAmount = false,
+            )
+            val reply = writer.save(updated.kind, updated, paycheckRepository, dieselRepository, prefs)
+            store.clear(chatId)
+            apiClient.sendWithMenu(chatId, reply)
+            return
+        }
         val kind = when (data) {
             TelegramReceiptKeyboard.LOAD -> ReceiptKind.LOAD
             TelegramReceiptKeyboard.DIESEL -> ReceiptKind.DIESEL
             TelegramReceiptKeyboard.DEF -> ReceiptKind.DEF
             TelegramReceiptKeyboard.PAYCHECK,
             TelegramReceiptKeyboard.CONFIRM,
-            -> ReceiptKind.PAYCHECK
+            -> if (preview.kind == ReceiptKind.UNKNOWN) ReceiptKind.PAYCHECK else preview.kind
             else -> preview.kind
         }
-        callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
-        if (kind == ReceiptKind.PAYCHECK && data != TelegramReceiptKeyboard.CONFIRM) {
-            val asPay = preview.copy(kind = ReceiptKind.PAYCHECK)
-            store.save(chatId, asPay)
-            askPaycheckConfirm(chatId, asPay, prefs)
+        if (data == TelegramReceiptKeyboard.PAYCHECK ||
+            data == TelegramReceiptKeyboard.DIESEL ||
+            data == TelegramReceiptKeyboard.DEF
+        ) {
+            val typed = preview.copy(kind = kind, awaitingTypedAmount = false)
+            store.save(chatId, typed)
+            askAmountConfirm(chatId, typed, prefs)
             return
         }
         if (kind == ReceiptKind.LOAD) {
@@ -237,8 +257,11 @@ class TelegramFileIngestHandler(
         prefs: SharedPreferences,
     ) {
         TelegramReceiptConfirmStore(prefs, context).save(chatId, preview)
-        if (preview.kind == ReceiptKind.PAYCHECK) {
-            askPaycheckConfirm(chatId, preview, prefs)
+        if (preview.kind == ReceiptKind.PAYCHECK ||
+            preview.kind == ReceiptKind.DIESEL ||
+            preview.kind == ReceiptKind.DEF
+        ) {
+            askAmountConfirm(chatId, preview, prefs)
             return
         }
         val guessed = when (preview.kind) {
@@ -266,29 +289,82 @@ class TelegramFileIngestHandler(
         )
     }
 
-    private suspend fun askPaycheckConfirm(
+    suspend fun tryHandleTypedAmount(
+        chatId: String,
+        text: String,
+        paycheckRepository: PaycheckRepository,
+        dieselRepository: DieselRepository,
+        prefs: SharedPreferences,
+    ): Boolean {
+        val store = TelegramReceiptConfirmStore(prefs, context)
+        val preview = store.load(chatId) ?: return false
+        if (!preview.awaitingTypedAmount) return false
+        val typed = ReceiptAmountCandidates.parseTypedAmount(text)
+        if (typed == null) {
+            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_amount_type_not_number))
+            return true
+        }
+        val updated = preview.copy(
+            amount = typed,
+            highlightToken = String.format(Locale.US, "%.2f", typed),
+            awaitingTypedAmount = false,
+        )
+        val reply = writer.save(updated.kind, updated, paycheckRepository, dieselRepository, prefs)
+        store.clear(chatId)
+        apiClient.sendWithMenu(chatId, reply)
+        return true
+    }
+
+    private suspend fun askAmountConfirm(
         chatId: String,
         preview: ReceiptPreview,
         prefs: SharedPreferences,
     ) {
         val amount = preview.amount
         if (amount == null || amount <= 0.0) {
-            TelegramReceiptConfirmStore(prefs, context).clear(chatId, discardFile = true)
-            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_paycheck_amount_missing))
+            TelegramReceiptConfirmStore(prefs, context).save(
+                chatId,
+                preview.copy(awaitingTypedAmount = true),
+            )
+            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_amount_type_prompt))
             return
         }
+        val choices = ReceiptAmountCandidates.forPreview(preview)
         val formatted = String.format(Locale.US, "%,.2f", amount)
+        val ask = buildString {
+            append(context.getString(R.string.sync_amount_confirm_ask, formatted))
+            val others = choices.filter { kotlin.math.abs(it.amount - amount) >= 0.015 }
+            if (others.isNotEmpty()) {
+                append("\n")
+                append(context.getString(R.string.sync_amount_other_found))
+                others.forEach { choice ->
+                    append("\n• $")
+                    append(String.format(Locale.US, "%,.2f", choice.amount))
+                }
+            }
+            append("\n")
+            append(context.getString(R.string.sync_amount_or_type))
+        }
+        val guessed = when (preview.kind) {
+            ReceiptKind.PAYCHECK -> context.getString(R.string.sync_receipt_guess_paycheck)
+            ReceiptKind.DIESEL -> context.getString(R.string.sync_receipt_guess_diesel)
+            ReceiptKind.DEF -> context.getString(R.string.sync_receipt_guess_def)
+            ReceiptKind.LOAD -> context.getString(R.string.sync_receipt_guess_load)
+            ReceiptKind.UNKNOWN -> context.getString(R.string.sync_receipt_guess_unknown)
+        }
         val html = ReceiptPreviewFormatter.toHtml(
             preview = preview,
-            guessedLabel = context.getString(R.string.sync_receipt_guess_paycheck),
-            askLabel = context.getString(R.string.sync_paycheck_confirm_ask, formatted),
+            guessedLabel = guessed,
+            askLabel = ask,
         )
         apiClient.sendHtml(
             chatId = chatId,
             html = html,
-            replyMarkup = TelegramReceiptKeyboard.confirm(
+            replyMarkup = TelegramReceiptKeyboard.amountPicker(
+                amounts = choices.map { it.amount },
                 yes = context.getString(R.string.sync_paycheck_confirm_yes),
-                no = context.getString(R.string.sync_paycheck_confirm_no),
+                typeOwn = context.getString(R.string.sync_amount_type_own),
+                cancel = context.getString(R.string.common_cancel),
             ),
         )
     }
