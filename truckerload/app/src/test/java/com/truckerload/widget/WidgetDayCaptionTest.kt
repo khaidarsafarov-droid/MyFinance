@@ -21,9 +21,9 @@ class WidgetDayCaptionTest {
     }
 
     @Test
-    fun today_showsTodayLabelEvenWithEarnings() {
+    fun todayWithEarnings_showsGross() {
         assertEquals(
-            "сегодня",
+            "$120",
             WidgetDayCaption.text(
                 isFuture = false,
                 isToday = true,
@@ -34,9 +34,22 @@ class WidgetDayCaptionTest {
     }
 
     @Test
-    fun futureDay_isEmDash() {
+    fun todayWithoutEarnings_showsTodayLabel() {
         assertEquals(
-            "—",
+            "сегодня",
+            WidgetDayCaption.text(
+                isFuture = false,
+                isToday = true,
+                dayGross = 0.0,
+                todayLabel = "сегодня",
+            ),
+        )
+    }
+
+    @Test
+    fun futureDayWithEarnings_showsGross() {
+        assertEquals(
+            "$80",
             WidgetDayCaption.text(
                 isFuture = true,
                 isToday = false,
@@ -44,11 +57,31 @@ class WidgetDayCaptionTest {
                 todayLabel = "сегодня",
             ),
         )
-        assertTrue(
+        assertFalse(
             WidgetDayCaption.usesEmptyColor(
                 isFuture = true,
                 isToday = false,
                 dayGross = 80.0,
+            ),
+        )
+    }
+
+    @Test
+    fun futureDayWithoutEarnings_isEmDash() {
+        assertEquals(
+            "—",
+            WidgetDayCaption.text(
+                isFuture = true,
+                isToday = false,
+                dayGross = 0.0,
+                todayLabel = "сегодня",
+            ),
+        )
+        assertTrue(
+            WidgetDayCaption.usesEmptyColor(
+                isFuture = true,
+                isToday = false,
+                dayGross = 0.0,
             ),
         )
     }

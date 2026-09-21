@@ -10,9 +10,9 @@ object WidgetDayCaption {
         dayGross: Double,
         todayLabel: String,
     ): String = when {
+        dayGross > 0.0 -> WidgetStatsFormatter.formatGrossUsd(dayGross)
         isToday -> todayLabel
         isFuture -> EMPTY
-        dayGross > 0.0 -> WidgetStatsFormatter.formatGrossUsd(dayGross)
         else -> EMPTY
     }
 
