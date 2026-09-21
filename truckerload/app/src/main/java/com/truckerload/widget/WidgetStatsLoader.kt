@@ -14,7 +14,6 @@ import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
-import com.truckerload.utils.getPickUpDate
 import com.truckerload.utils.getWeekRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -44,11 +43,8 @@ object WidgetStatsLoader {
         val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val weekStart = runCatching { LocalDate.parse(weekStartIso.take(10)) }
             .getOrElse { WidgetWeekDayHelper.startOfWeek() }
-        val weekDateHints = weekLoads.flatMap { load ->
-            listOfNotNull(load.date, getPickUpDate(load))
-        }
-        val weekLoadMask = WidgetWeekDayHelper.maskFromIsoDates(weekDateHints, weekStart)
         val dayTotals = WidgetDayProjection.totalsByDay(weekLoads, weekStart)
+        val weekLoadMask = WidgetDayProjection.maskFromDayTotals(dayTotals)
         val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
         val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)

@@ -18,7 +18,7 @@ data class WidgetStats(
     val goalPaceStatus: String = "",
     /**
      * Bitmask of Sun–Sat days in the current trucking week that have at least one load
-     * (bit 0 = Sunday). Built from [com.truckerload.domain.model.Load.date] and PU date.
+     * (bit 0 = Sunday). Built from per-day chip totals (finish date in-week, else PU).
      */
     val weekLoadMask: Int = 0,
     /** Per-day load counts Sun=0 … Sat=6 for the current trucking week. */

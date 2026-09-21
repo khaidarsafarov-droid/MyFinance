@@ -1,16 +1,20 @@
 package com.truckerload.widget
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.utils.LoadDateIndex
+import com.truckerload.utils.canonicalDateString
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 /**
- * Widget ring logic from the cabin sketch:
+ * Widget ring logic:
  *
  * - Days S…S are a selector (default = today; future days cannot be chosen).
- * - Ring / RPM show **week-to-date through the selected day**: gross, load count,
- *   miles, and RPM for Sunday…selected, against the unchanged weekly goal.
+ * - Ring / RPM on **today** show the **full reporting week** — the same loads as
+ *   Home → This week. Tapping a past day shows Sunday…that day.
+ * - Each load is chipped on its finish date when that date falls in the week
+ *   (so PU last week / DEL this week still appears), otherwise PU / load.date.
  */
 object WidgetDayProjection {
 
@@ -38,10 +42,23 @@ object WidgetDayProjection {
         return offset.takeIf { it in 0..6 }
     }
 
+    /**
+     * Date used to place [load] on a Sun–Sat chip in [weekStart]'s week.
+     * Prefers the finish date (same field Home cards show) so a load that
+     * reports in this week but picked up last week is not dropped.
+     */
+    fun isoDateForWeekChip(load: Load, weekStart: LocalDate): String? {
+        val candidates = listOfNotNull(
+            canonicalDateString(load.effectiveFinishDate()),
+            LoadDateIndex.exactLoadDate(load),
+        ).distinct()
+        return candidates.firstOrNull { offsetForIso(it, weekStart) != null }
+    }
+
     fun totalsByDay(loads: List<Load>, weekStart: LocalDate): List<DayTotals> {
         val days = Array(7) { DayTotals() }
         loads.forEach { load ->
-            val iso = LoadDateIndex.exactLoadDate(load) ?: return@forEach
+            val iso = isoDateForWeekChip(load, weekStart) ?: return@forEach
             val offset = offsetForIso(iso, weekStart) ?: return@forEach
             val current = days[offset]
             days[offset] = current.copy(
@@ -52,6 +69,11 @@ object WidgetDayProjection {
         }
         return days.toList()
     }
+
+    fun maskFromDayTotals(days: List<DayTotals>): Int =
+        days.foldIndexed(0) { index, mask, day ->
+            if (day.loadsCount > 0) mask or (1 shl index) else mask
+        }
 
     fun through(days: List<DayTotals>, endOffset: Int): DayTotals {
         if (days.isEmpty()) return DayTotals()
@@ -76,19 +98,26 @@ object WidgetDayProjection {
     fun hasDaySlices(stats: WidgetStats): Boolean =
         stats.dayLoads.any { it > 0 } || stats.dayGross.any { it > 0.0 }
 
+    fun isViewingToday(selectedOffset: Int?, todayOffset: Int): Boolean {
+        val end = clampSelection(selectedOffset, todayOffset)
+        return selectedOffset == null || end == todayOffset
+    }
+
     fun project(
         week: WidgetStats,
         selectedOffset: Int?,
         todayOffset: Int = todayOffset(),
     ): WidgetStats {
+        if (isViewingToday(selectedOffset, todayOffset)) return week
         val end = clampSelection(selectedOffset, todayOffset)
         if (!hasDaySlices(week)) {
-            return if (end == todayOffset) week else week.copy(
+            return week.copy(
                 loadsCount = 0,
                 totalLoadRate = 0.0,
                 totalMiles = 0.0,
                 avgCpm = 0.0,
                 goalProgressPercent = 0f,
+                goalRemainingAmount = week.weeklyProfitGoal,
             )
         }
         return applyToStats(week, through(slicesOf(week), end))
