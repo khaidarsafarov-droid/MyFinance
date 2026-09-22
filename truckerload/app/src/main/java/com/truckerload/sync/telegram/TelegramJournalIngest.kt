@@ -6,6 +6,7 @@ import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.domain.week.WeekStartRuntime
+import com.truckerload.utils.dateStringToStartOfDayMillis
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
@@ -88,6 +89,9 @@ class TelegramJournalIngest(
 
         val (weekNumber, year) = resolveWeek(dateHint, messageDateSeconds, WeekStartRuntime.diesel)
         val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
+        // Journal and week net filter by addedAt. Stamp the receipt (or message) day,
+        // not "now", or a last-week fill lands in the current week.
+        val recordedAt = dieselRecordedAtMillis(dateHint, messageDateSeconds, addedAt)
         dieselRepository.insertDiesel(
             Diesel(
                 id = 0,
@@ -102,7 +106,7 @@ class TelegramJournalIngest(
                 location = location,
                 rawExtractedText = rawText,
                 sourceFileName = sourceFileName,
-                addedAt = addedAt,
+                addedAt = recordedAt,
             ),
         )
         return DieselOutcome.Inserted(weekNumber, year, totalAmount)
@@ -120,4 +124,20 @@ class TelegramJournalIngest(
         }
         return getWeekNumberAndYearFromDate(dateForWeek, firstDay)
     }
+}
+
+/**
+ * Instant stored on a Telegram diesel row. Receipt date wins, then the message
+ * time, then [fallbackMillis] (ingest clock).
+ */
+internal fun dieselRecordedAtMillis(
+    dateHint: String?,
+    messageDateSeconds: Long?,
+    fallbackMillis: Long,
+): Long {
+    val fromHint = dateHint?.trim()?.takeIf { it.length >= 10 }
+        ?.let { dateStringToStartOfDayMillis(it.take(10)) }
+    if (fromHint != null) return fromHint
+    if (messageDateSeconds != null && messageDateSeconds > 0L) return messageDateSeconds * 1000L
+    return fallbackMillis
 }

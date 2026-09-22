@@ -63,6 +63,18 @@ class DisputePayoutTest {
     }
 
     @Test
+    fun newerUncomplete_reversesAppliedAmount() {
+        val settled = sample(totalRate = 2250.0, amount = 250.0, apply = true)
+            .copy(disputeCompleted = true, disputeAmountApplied = true, updatedAt = 1L)
+        val incoming = settled.copy(disputeCompleted = false, updatedAt = 2L)
+        val merged = DisputePayout.mergeIncoming(settled, incoming)
+        val cleared = DisputePayout.settleFrom(settled, merged)
+        assertFalse(cleared.disputeCompleted)
+        assertFalse(cleared.disputeAmountApplied)
+        assertEquals(2000.0, cleared.totalRate, 0.0)
+    }
+
+    @Test
     fun staleSnapshotAfterComplete_doesNotRollBackRate() {
         val settled = sample(totalRate = 2250.0, amount = 250.0, apply = true)
             .copy(disputeCompleted = true, disputeAmountApplied = true)

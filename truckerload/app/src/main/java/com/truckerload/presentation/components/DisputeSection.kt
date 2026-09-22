@@ -145,6 +145,19 @@ fun DisputeSection(
                     color = tc.TextSecondary,
                 )
             }
+            CompletedDisputeCheckbox(
+                checked = true,
+                onCheckedChange = { completed ->
+                    if (!completed) {
+                        onDisputeChanged(
+                            load.copy(
+                                disputeCompleted = false,
+                                updatedAt = System.currentTimeMillis(),
+                            ),
+                        )
+                    }
+                },
+            )
             return@Column
         }
 
@@ -242,32 +255,43 @@ fun DisputeSection(
                     )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(
-                    checked = load.disputeCompleted,
-                    onCheckedChange = { completed ->
-                        if (completed) {
-                            onDisputeChanged(
-                                load.copy(
-                                    disputeCompleted = true,
-                                    disputeAmount = parseDisputeAmount(amountText)
-                                        ?: load.disputeAmount,
-                                ),
-                            )
-                        }
-                    },
-                )
-                Text(
-                    text = stringResource(R.string.dispute_completed_checkbox),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = tc.TextPrimary,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
+            CompletedDisputeCheckbox(
+                checked = load.disputeCompleted,
+                onCheckedChange = { completed ->
+                    onDisputeChanged(
+                        load.copy(
+                            disputeCompleted = completed,
+                            disputeAmount = parseDisputeAmount(amountText)
+                                ?: load.disputeAmount,
+                            updatedAt = System.currentTimeMillis(),
+                        ),
+                    )
+                },
+            )
         }
+    }
+}
+
+@Composable
+private fun CompletedDisputeCheckbox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
+        Text(
+            text = stringResource(R.string.dispute_completed_checkbox),
+            style = MaterialTheme.typography.bodyLarge,
+            color = tc.TextPrimary,
+            modifier = Modifier.padding(start = 4.dp),
+        )
     }
 }
 
