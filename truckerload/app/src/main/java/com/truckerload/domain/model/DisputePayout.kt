@@ -10,8 +10,18 @@ object DisputePayout {
     /**
      * Merge a UI snapshot onto the latest persisted load so a stale in-flight
      * save cannot un-complete a dispute or roll [Load.totalRate] backwards.
+     * A newer snapshot that clears [Load.disputeCompleted] is the driver turning
+     * the dispute back off and must reach [settleFrom].
      */
     fun mergeIncoming(previous: Load, incoming: Load): Load {
+        if (previous.disputeCompleted && !incoming.disputeCompleted) {
+            if (incoming.updatedAt > previous.updatedAt) {
+                return incoming.copy(totalRate = previous.totalRate)
+            }
+            return previous.copy(
+                disputeAmount = incoming.disputeAmount ?: previous.disputeAmount,
+            )
+        }
         if (previous.disputeCompleted) {
             return previous.copy(
                 disputeAmount = incoming.disputeAmount ?: previous.disputeAmount,
