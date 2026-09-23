@@ -28,6 +28,8 @@ class WidgetBudgetRingActionsTest {
         assertTrue(core.contains("LocalCabinColors"))
         assertTrue(!core.contains("R.string.widget_goal_out_of"))
         assertTrue(wide.contains("WidgetWeekDaysBitmap"))
+        assertTrue(wide.contains("createTodayPointer"))
+        assertTrue(wide.contains("chip.isToday && todayPointer"))
         assertTrue(wide.contains("formatUsdRpm"))
         assertTrue(wide.contains("SelectWidgetDayAction"))
         assertTrue(wide.contains("widget_metric_goal"))

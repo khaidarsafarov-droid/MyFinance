@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import androidx.core.graphics.createBitmap
 
@@ -60,6 +61,29 @@ object WidgetWeekDaysBitmap {
             cellHeight = safe.toFloat(),
             colors = colors,
         )
+        return bitmap
+    }
+
+    /**
+     * Small downward caret that sits above today's circle. Tip faces the chip;
+     * the top corners stay clear so the marker reads as a pointer, not a bar.
+     */
+    fun createTodayPointer(widthPx: Int, heightPx: Int, color: Int): Bitmap {
+        val w = widthPx.coerceAtLeast(8)
+        val h = heightPx.coerceAtLeast(6)
+        val bitmap = createBitmap(w, h)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            this.color = color
+        }
+        val path = Path().apply {
+            moveTo(w / 2f, h - 1f)
+            lineTo(w * 0.18f, 1f)
+            lineTo(w * 0.82f, 1f)
+            close()
+        }
+        canvas.drawPath(path, paint)
         return bitmap
     }
 

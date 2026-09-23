@@ -24,6 +24,7 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -308,7 +309,17 @@ private fun WeekDaySelector(
 ) {
     val chips = WidgetWeekDayHelper.chips(week.weekLoadMask)
     val todayLabel = context.getString(R.string.widget_day_today)
-    val chipPx = (chipDp.value * context.resources.displayMetrics.density).toInt().coerceAtLeast(24)
+    val density = context.resources.displayMetrics.density
+    val chipPx = (chipDp.value * density).toInt().coerceAtLeast(24)
+    val markerWidth = (chipDp.value * 0.46f).dp
+    val markerHeight = 6.dp
+    val todayPointer = runCatching {
+        WidgetWeekDaysBitmap.createTodayPointer(
+            widthPx = (markerWidth.value * density).toInt().coerceAtLeast(8),
+            heightPx = (markerHeight.value * density).toInt().coerceAtLeast(6),
+            color = LocalCabinColors.current.ring,
+        )
+    }.getOrNull()
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
@@ -347,6 +358,16 @@ private fun WeekDaySelector(
                 },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                if (chip.isToday && todayPointer != null) {
+                    Image(
+                        provider = ImageProvider(todayPointer),
+                        contentDescription = todayLabel,
+                        modifier = GlanceModifier.width(markerWidth).height(markerHeight),
+                    )
+                } else {
+                    Spacer(modifier = GlanceModifier.height(markerHeight))
+                }
+                Spacer(modifier = GlanceModifier.height(1.dp))
                 if (bitmap != null) {
                     Image(
                         provider = ImageProvider(bitmap),
