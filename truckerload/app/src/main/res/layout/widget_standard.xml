@@ -129,10 +129,10 @@
                     android:textColor="@color/widget_text_primary"
                     android:textSize="@dimen/widget_rpm_value_text_standard"
                     android:textStyle="bold" />
-
-                <include layout="@layout/widget_quick_actions" />
             </LinearLayout>
         </LinearLayout>
+
+        <include layout="@layout/widget_quick_actions" />
     </LinearLayout>
 
     <LinearLayout

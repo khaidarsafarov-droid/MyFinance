@@ -36,6 +36,9 @@
     <color name="widget_on_accent">#FFFFFFFF</color>
     <color name="widget_action_fill">#FF5B54E6</color>
     <color name="widget_action_stroke">#FF3F3AC0</color>
+    <color name="widget_action_scanner">#FFC98BA4</color>
+    <color name="widget_action_camera">#FFD4B44A</color>
+    <color name="widget_action_diesel">#FFD4783A</color>
     <color name="widget_text_hint">#FF4A4868</color>
     <color name="widget_surface">#00EEEDFF</color>
     <color name="widget_cyan">#FF5B54E6</color>

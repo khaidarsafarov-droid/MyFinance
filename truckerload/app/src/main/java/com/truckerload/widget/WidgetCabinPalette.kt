@@ -23,9 +23,13 @@ object WidgetCabinPalette {
     /** Progress bar gradient end — SoftUI mint. */
     const val PROGRESS_END = 0xFF48C9B0.toInt()
     const val BRAND = 0xFF5B54E6.toInt()
-    /** Solid brand fill so camera / scanner / diesel buttons catch the eye. */
+    /** Solid brand fill leftover for older XML chrome; Glance actions are outline glyphs. */
     const val ACTION_BG = 0xFF5B54E6.toInt()
     const val ACTION_STROKE = 0xFF3F3AC0.toInt()
+    /** Mockup action tints: QR dusty rose, camera gold, diesel terracotta. */
+    const val ACTION_SCANNER = 0xFFC98BA4.toInt()
+    const val ACTION_CAMERA = 0xFFD4B44A.toInt()
+    const val ACTION_DIESEL = 0xFFD4783A.toInt()
     /** Brand-tinted captions under action buttons. */
     const val ACTION_LABEL = 0xFF3F3AC0.toInt()
     const val DIVIDER = 0xFFD4D2F0.toInt()

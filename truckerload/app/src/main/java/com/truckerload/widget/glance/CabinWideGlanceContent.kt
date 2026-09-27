@@ -89,7 +89,7 @@ internal fun WideBudgetContent(
         )
         if (layout.showQuickActions) {
             Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-            ActionRow(context, layout)
+            CabinActionRow(context, layout)
         }
     }
 }
@@ -401,13 +401,13 @@ private fun WeekDaySelector(
 }
 
 @Composable
-private fun ActionRow(context: Context, layout: CabinLayout) {
+internal fun CabinActionRow(context: Context, layout: CabinLayout) {
     Row(modifier = GlanceModifier.fillMaxWidth()) {
         QuickAction(
             context = context,
-            iconRes = R.drawable.ic_widget_camera,
-            label = context.getString(R.string.widget_camera_short),
-            route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
+            iconRes = R.drawable.ic_widget_scanner,
+            label = context.getString(R.string.widget_scanner_short),
+            route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
             showLabel = layout.showActionLabels,
             btnDp = layout.actionBtnDp,
             iconDp = layout.actionIconDp,
@@ -416,9 +416,9 @@ private fun ActionRow(context: Context, layout: CabinLayout) {
         )
         QuickAction(
             context = context,
-            iconRes = R.drawable.ic_widget_scanner,
-            label = context.getString(R.string.widget_scanner_short),
-            route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
+            iconRes = R.drawable.ic_widget_camera,
+            label = context.getString(R.string.widget_camera_short),
+            route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
             showLabel = layout.showActionLabels,
             btnDp = layout.actionBtnDp,
             iconDp = layout.actionIconDp,

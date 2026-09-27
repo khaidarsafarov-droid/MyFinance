@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +26,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -105,12 +103,12 @@ internal fun WidgetLivePreview(
                 showGoal = showGoal,
                 textPrimary = textPrimary,
                 textSecondary = textSecondary,
-                accent = accent,
                 ringColor = ringColor,
                 track = track,
                 progress = progress,
             )
         }
+        PreviewActionRow()
     }
 }
 
@@ -174,7 +172,6 @@ private fun CompactPreviewBody(
                 maxLines = 1,
             )
         }
-        PreviewActionRow(accent = accent, labeled = false)
     }
 }
 
@@ -186,7 +183,6 @@ private fun StandardPreviewBody(
     showGoal: Boolean,
     textPrimary: Color,
     textSecondary: Color,
-    accent: Color,
     ringColor: Color,
     track: Color,
     progress: Float,
@@ -246,7 +242,6 @@ private fun StandardPreviewBody(
                     maxLines = 1,
                 )
             }
-            PreviewActionRow(accent = accent, labeled = true)
         }
     }
 }
@@ -291,52 +286,35 @@ private fun PreviewRing(
 }
 
 @Composable
-private fun PreviewActionRow(accent: Color, labeled: Boolean) {
+private fun PreviewActionRow() {
     val actions = listOf(
-        AppIcons.PhotoCamera to stringResource(R.string.widget_camera_short),
-        AppIcons.DocumentScanner to stringResource(R.string.widget_scanner_short),
-        AppIcons.LocalGasStation to stringResource(R.string.widget_diesel_short),
+        Triple(
+            AppIcons.DocumentScanner,
+            stringResource(R.string.widget_scanner_short),
+            Color(WidgetCabinPalette.ACTION_SCANNER),
+        ),
+        Triple(
+            AppIcons.PhotoCamera,
+            stringResource(R.string.widget_camera_short),
+            Color(WidgetCabinPalette.ACTION_CAMERA),
+        ),
+        Triple(
+            AppIcons.LocalGasStation,
+            stringResource(R.string.widget_diesel_short),
+            Color(WidgetCabinPalette.ACTION_DIESEL),
+        ),
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        actions.forEach { (icon, label) ->
-            PreviewActionChip(
-                icon = icon,
-                label = label,
-                accent = accent,
-                labeled = labeled,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PreviewActionChip(
-    icon: ImageVector,
-    label: String,
-    accent: Color,
-    labeled: Boolean,
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(if (labeled) 28.dp else 26.dp)
-                .clip(CircleShape)
-                .background(Color(WidgetCabinPalette.ACTION_BG)),
-            contentAlignment = Alignment.Center,
-        ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        actions.forEach { (icon, label, tint) ->
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = accent,
-                modifier = Modifier.size(if (labeled) 15.dp else 14.dp),
-            )
-        }
-        if (labeled) {
-            Text(
-                text = label,
-                color = Color(WidgetCabinPalette.ACTION_LABEL),
-                fontSize = 8.sp,
-                maxLines = 1,
+                tint = tint,
+                modifier = Modifier.size(22.dp),
             )
         }
     }

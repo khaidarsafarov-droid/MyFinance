@@ -35,14 +35,12 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
-import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
-import androidx.glance.layout.width
 import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -51,7 +49,6 @@ import androidx.glance.text.TextStyle
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
 import com.truckerload.widget.WidgetCabinColors
-import com.truckerload.widget.WidgetCabinPalette
 import com.truckerload.widget.WidgetDataStore
 import com.truckerload.widget.WidgetDayProjection
 import com.truckerload.widget.WidgetDaySelectionStore
@@ -231,52 +228,31 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
             headroomDp = layout.progressBarHeadroomDp,
         )
         Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-        Row(
+        Column(
             modifier = GlanceModifier.defaultWeight().fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = GlanceModifier.defaultWeight()) {
-                Text(
-                    text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
-                    style = TextStyle(
-                        color = cabinColor(colors.text),
-                        fontSize = layout.amountSp,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    maxLines = 1,
-                )
-                Text(
-                    text = WidgetStatsFormatter.formatUsdRpm(stats.currentWeeklyRpm),
-                    style = TextStyle(
-                        color = cabinColor(colors.accent),
-                        fontSize = layout.metricSp,
-                    ),
-                    maxLines = 1,
-                )
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                QuickAction(
-                    context = context,
-                    iconRes = R.drawable.ic_widget_camera,
-                    label = context.getString(R.string.widget_camera_short),
-                    route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
-                    showLabel = false,
-                    btnDp = layout.actionBtnDp,
-                    iconDp = layout.actionIconDp,
-                    labelSp = layout.actionLabelSp,
-                )
-                Spacer(modifier = GlanceModifier.height(4.dp))
-                QuickAction(
-                    context = context,
-                    iconRes = R.drawable.ic_widget_scanner,
-                    label = context.getString(R.string.widget_scanner_short),
-                    route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
-                    showLabel = false,
-                    btnDp = layout.actionBtnDp,
-                    iconDp = layout.actionIconDp,
-                    labelSp = layout.actionLabelSp,
-                )
-            }
+            Text(
+                text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
+                style = TextStyle(
+                    color = cabinColor(colors.text),
+                    fontSize = layout.amountSp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                maxLines = 1,
+            )
+            Text(
+                text = WidgetStatsFormatter.formatUsdRpm(stats.currentWeeklyRpm),
+                style = TextStyle(
+                    color = cabinColor(colors.accent),
+                    fontSize = layout.metricSp,
+                ),
+                maxLines = 1,
+            )
+        }
+        if (layout.showQuickActions) {
+            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+            CabinActionRow(context, layout)
         }
     }
 }
@@ -350,16 +326,13 @@ internal fun QuickAction(
     route: String? = null,
     launchIntent: Intent? = null,
 ) {
-    val colors = LocalCabinColors.current
     val intent = launchIntent ?: routeIntent(context, requireNotNull(route))
     Column(
         modifier = modifier.clickable(actionStartActivity(intent)),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = GlanceModifier
-                .size(btnDp)
-                .cabinActionFill(colors),
+            modifier = GlanceModifier.size(btnDp),
             contentAlignment = Alignment.Center,
         ) {
             Image(
@@ -373,7 +346,7 @@ internal fun QuickAction(
             Text(
                 text = label,
                 style = TextStyle(
-                    color = cabinColor(colors.actionLabel),
+                    color = cabinColor(LocalCabinColors.current.actionLabel),
                     fontSize = labelSp,
                     textAlign = TextAlign.Center,
                 ),
