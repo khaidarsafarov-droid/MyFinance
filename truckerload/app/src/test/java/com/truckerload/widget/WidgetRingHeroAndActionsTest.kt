@@ -37,6 +37,8 @@ class WidgetRingHeroAndActionsTest {
         assertTrue(camera > scanner)
         assertTrue(diesel > camera)
         assertTrue(xml.contains("@drawable/ic_widget_diesel"))
+        assertTrue(xml.contains("@drawable/widget_action_chip"))
+        assertTrue(xml.contains("@color/widget_divider"))
         assertTrue(!xml.contains("@drawable/widget_action_btn_bg"))
         assertTrue(!xml.contains("widget_camera_short"))
     }
@@ -51,6 +53,7 @@ class WidgetRingHeroAndActionsTest {
         assertTrue(camera > scanner)
         assertTrue(diesel > camera)
         assertTrue(!xml.contains("@drawable/widget_action_btn_bg"))
+        assertTrue(xml.contains("@color/widget_divider"))
         assertTrue(xml.contains("android:id=\"@+id/widget_day_dots_row\""))
         val dotsBlock = xml.substring(
             xml.indexOf("android:id=\"@+id/widget_day_dots_row\""),

@@ -38,6 +38,7 @@ class WidgetCabinColorsTest {
     @Test
     fun forestLight_actionsUseBrandPurpleFill() {
         assertEquals(WidgetCabinPalette.ACTION_BG, WidgetCabinColors.Forest.actionBg)
+        assertEquals(WidgetCabinPalette.ACTION_CHIP, WidgetCabinColors.Forest.actionChip)
         assertEquals(WidgetCabinPalette.ACCENT, WidgetCabinColors.Forest.ring)
         assertEquals(0xFF5B54E6.toInt(), WidgetCabinColors.Forest.actionBg)
     }

@@ -402,7 +402,10 @@ private fun WeekDaySelector(
 
 @Composable
 internal fun CabinActionRow(context: Context, layout: CabinLayout) {
-    Row(modifier = GlanceModifier.fillMaxWidth()) {
+    Row(
+        modifier = GlanceModifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         QuickAction(
             context = context,
             iconRes = R.drawable.ic_widget_scanner,
@@ -414,6 +417,7 @@ internal fun CabinActionRow(context: Context, layout: CabinLayout) {
             labelSp = layout.actionLabelSp,
             modifier = GlanceModifier.defaultWeight(),
         )
+        ActionColumnDivider(height = layout.actionBtnDp)
         QuickAction(
             context = context,
             iconRes = R.drawable.ic_widget_camera,
@@ -425,6 +429,7 @@ internal fun CabinActionRow(context: Context, layout: CabinLayout) {
             labelSp = layout.actionLabelSp,
             modifier = GlanceModifier.defaultWeight(),
         )
+        ActionColumnDivider(height = layout.actionBtnDp)
         QuickAction(
             context = context,
             iconRes = R.drawable.ic_widget_diesel,
@@ -437,4 +442,14 @@ internal fun CabinActionRow(context: Context, layout: CabinLayout) {
             modifier = GlanceModifier.defaultWeight(),
         )
     }
+}
+
+@Composable
+private fun ActionColumnDivider(height: Dp) {
+    Spacer(
+        modifier = GlanceModifier
+            .width(1.dp)
+            .height(height)
+            .cabinActionDivider(LocalCabinColors.current),
+    )
 }

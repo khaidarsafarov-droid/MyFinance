@@ -227,24 +227,39 @@
             android:id="@+id/widget_btn_scanner"
             android:layout_width="28dp"
             android:layout_height="28dp"
+            android:background="@drawable/widget_action_chip"
             android:contentDescription="@string/widget_scanner"
             android:scaleType="centerInside"
             android:src="@drawable/ic_widget_scanner" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="8dp"
+            android:background="@color/widget_divider" />
 
         <ImageView
             android:id="@+id/widget_btn_camera"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/widget_action_chip"
             android:contentDescription="@string/widget_camera"
             android:scaleType="centerInside"
             android:src="@drawable/ic_widget_camera" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="8dp"
+            android:background="@color/widget_divider" />
 
         <ImageView
             android:id="@+id/widget_btn_diesel"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/widget_action_chip"
             android:contentDescription="@string/widget_diesel"
             android:scaleType="centerInside"
             android:src="@drawable/ic_widget_diesel" />

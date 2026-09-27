@@ -23,9 +23,11 @@ object WidgetCabinPalette {
     /** Progress bar gradient end — SoftUI mint. */
     const val PROGRESS_END = 0xFF48C9B0.toInt()
     const val BRAND = 0xFF5B54E6.toInt()
-    /** Solid brand fill leftover for older XML chrome; Glance actions are outline glyphs. */
+    /** Solid brand fill leftover for older XML chrome. */
     const val ACTION_BG = 0xFF5B54E6.toInt()
     const val ACTION_STROKE = 0xFF3F3AC0.toInt()
+    /** Soft lavender chip so outline icons still read as tap targets. */
+    const val ACTION_CHIP = 0xFFDCD9FF.toInt()
     /** Mockup action tints: QR dusty rose, camera gold, diesel terracotta. */
     const val ACTION_SCANNER = 0xFFC98BA4.toInt()
     const val ACTION_CAMERA = 0xFFD4B44A.toInt()
@@ -55,6 +57,7 @@ object WidgetCabinPalette {
         /** Keep solid brand purple so actions stay visible on dark cabin. */
         const val ACTION_BG = 0xFF5B54E6.toInt()
         const val ACTION_STROKE = 0xFF7B75F0.toInt()
+        const val ACTION_CHIP = 0xFF2A2640.toInt()
         const val ACTION_LABEL = 0xFFE0DEFF.toInt()
         const val DIVIDER = 0xFF35314A.toInt()
         const val DAY_FILLED = 0xFF5B54E6.toInt()
