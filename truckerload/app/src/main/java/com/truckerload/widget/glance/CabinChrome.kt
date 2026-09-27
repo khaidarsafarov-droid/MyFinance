@@ -23,8 +23,3 @@ internal fun cabinColor(argb: Int): ColorProvider = ColorProvider(Color(argb))
 internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors): GlanceModifier =
     background(ColorProvider(Color(colors.bg)))
         .cornerRadius(WidgetCabinPalette.CORNER_DP.dp)
-
-/** Full-circle SoftUI brand button — reads clearly on the home screen. */
-internal fun GlanceModifier.cabinActionFill(colors: WidgetCabinColors): GlanceModifier =
-    background(ColorProvider(Color(colors.actionBg)))
-        .cornerRadius(999.dp)

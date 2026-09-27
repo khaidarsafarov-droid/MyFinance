@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Solid SoftUI purple — matches Glance cabinActionFill. -->
+<!-- Unused oval chrome kept for older RemoteViews themes. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
     <solid android:color="@color/widget_action_fill" />

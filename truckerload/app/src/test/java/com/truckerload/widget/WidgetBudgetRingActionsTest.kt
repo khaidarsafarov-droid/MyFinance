@@ -45,7 +45,8 @@ class WidgetBudgetRingActionsTest {
         assertTrue(!bar.contains("drawFlatTruck"))
         assertTrue(!bar.contains("buildTruckSilhouette"))
         assertTrue(wide.contains("WidgetDayCaption"))
-        assertTrue(core.contains("cabinActionFill"))
+        assertTrue(!core.contains("cabinActionFill"))
+        assertTrue(core.contains("CabinActionRow"))
         assertTrue(core.contains("CabinSize4x4"))
         assertTrue(core.contains("SizeMode.Exact"))
         assertTrue(core.contains("SizeMode.Responsive"))
@@ -71,14 +72,14 @@ class WidgetBudgetRingActionsTest {
     }
 
     @Test
-    fun glanceQuickActions_areCameraThenScannerThenDiesel() {
+    fun glanceQuickActions_areScannerThenCameraThenDiesel() {
         val src = readSource("widget/glance/CabinWideGlanceContent.kt")
-        val camera = src.indexOf("ROUTE_ATTACH_CAMERA")
         val scanner = src.indexOf("ROUTE_ATTACH_SCANNER")
+        val camera = src.indexOf("ROUTE_ATTACH_CAMERA")
         val diesel = src.indexOf("dieselQuickAddIntent")
-        assertTrue(camera >= 0)
-        assertTrue(scanner > camera)
-        assertTrue(diesel > scanner)
+        assertTrue(scanner >= 0)
+        assertTrue(camera > scanner)
+        assertTrue(diesel > camera)
         assertTrue(src.contains("ic_widget_camera"))
         assertTrue(src.contains("ic_widget_scanner"))
         assertTrue(src.contains("ic_widget_diesel"))

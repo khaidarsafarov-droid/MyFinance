@@ -4,96 +4,51 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
-    android:gravity="start|center_vertical"
+    android:gravity="center"
     android:orientation="horizontal">
 
-    <LinearLayout
+    <ImageView
+        android:id="@+id/widget_btn_scanner"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:layout_weight="1"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:contentDescription="@string/widget_scanner"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_widget_scanner" />
 
-        <ImageView
-            android:id="@+id/widget_btn_camera"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/widget_cabin_action_btn"
-            android:contentDescription="@string/widget_camera"
-            android:padding="10dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_widget_camera" />
-
-        <TextView
-            android:id="@+id/widget_btn_camera_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/widget_camera_short"
-            android:textColor="@color/widget_accent"
-            android:textSize="10sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <LinearLayout
+    <ImageView
+        android:id="@+id/widget_btn_camera"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:layout_weight="1"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:contentDescription="@string/widget_camera"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_widget_camera" />
 
-        <ImageView
-            android:id="@+id/widget_btn_scanner"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/widget_cabin_action_btn"
-            android:contentDescription="@string/widget_scanner"
-            android:padding="10dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_widget_scanner" />
-
-        <TextView
-            android:id="@+id/widget_btn_scanner_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/widget_scanner_short"
-            android:textColor="@color/widget_accent"
-            android:textSize="10sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <LinearLayout
+    <ImageView
+        android:id="@+id/widget_btn_diesel"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:layout_weight="1"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:contentDescription="@string/widget_diesel"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_widget_diesel" />
 
-        <ImageView
-            android:id="@+id/widget_btn_diesel"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/widget_cabin_action_btn"
-            android:contentDescription="@string/widget_diesel"
-            android:padding="10dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_widget_diesel" />
+    <TextView
+        android:id="@+id/widget_btn_scanner_label"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/widget_btn_diesel_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/widget_diesel_short"
-            android:textColor="@color/widget_accent"
-            android:textSize="10sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/widget_btn_camera_label"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/widget_btn_diesel_label"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 </LinearLayout>

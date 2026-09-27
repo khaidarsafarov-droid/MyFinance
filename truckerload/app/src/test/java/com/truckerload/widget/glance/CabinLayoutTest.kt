@@ -17,26 +17,26 @@ class CabinLayoutTest {
         assertEquals(12.dp, layout.progressBarDp)
         assertTrue(layout.progressBarHeadroomDp >= 14.dp)
         assertEquals(28.dp, layout.dayChipDp)
-        assertEquals(48.dp, layout.actionBtnDp)
+        assertEquals(42.dp, layout.actionBtnDp)
         assertTrue(layout.showDayCaptions)
-        assertTrue(layout.showActionLabels)
+        assertFalse(layout.showActionLabels)
         assertTrue(layout.showQuickActions)
     }
 
     @Test
-    fun defaultWide_keepsCaptionsAndLabeledActions() {
+    fun defaultWide_keepsCaptionsWithoutActionLabels() {
         val layout = cabinLayoutFor(CabinSize4x3)
         assertTrue(layout.showDayCaptions)
-        assertTrue(layout.showActionLabels)
+        assertFalse(layout.showActionLabels)
         assertTrue(layout.progressBarDp >= 10.dp)
         assertTrue(layout.showQuickActions)
     }
 
     @Test
-    fun compactWide_showsLabeledActionButtons() {
+    fun compactWide_hidesActionLabels() {
         val layout = cabinLayoutFor(CabinSize4x2)
         assertFalse(layout.showDayCaptions)
-        assertTrue(layout.showActionLabels)
+        assertFalse(layout.showActionLabels)
         assertTrue(layout.showQuickActions)
     }
 
@@ -57,7 +57,7 @@ class CabinLayoutTest {
     @Test
     fun smallPref_staysCompactEvenWhenTall() {
         val layout = cabinLayoutFor(CabinSize4x4, WidgetSizeMode.SMALL)
-        assertTrue(layout.showActionLabels)
+        assertFalse(layout.showActionLabels)
         assertEquals(CabinBucket.COMPACT, cabinBucket(CabinSize4x4, WidgetSizeMode.SMALL))
     }
 
