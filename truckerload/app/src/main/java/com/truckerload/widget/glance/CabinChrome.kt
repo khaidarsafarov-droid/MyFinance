@@ -23,3 +23,11 @@ internal fun cabinColor(argb: Int): ColorProvider = ColorProvider(Color(argb))
 internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors): GlanceModifier =
     background(ColorProvider(Color(colors.bg)))
         .cornerRadius(WidgetCabinPalette.CORNER_DP.dp)
+
+/** Soft circular chip — enough to say “tap me”, not a brand-purple blob. */
+internal fun GlanceModifier.cabinActionChip(colors: WidgetCabinColors): GlanceModifier =
+    background(ColorProvider(Color(colors.actionChip)))
+        .cornerRadius(999.dp)
+
+internal fun GlanceModifier.cabinActionDivider(colors: WidgetCabinColors): GlanceModifier =
+    background(ColorProvider(Color(colors.divider)))

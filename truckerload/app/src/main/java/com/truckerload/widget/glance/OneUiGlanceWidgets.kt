@@ -332,7 +332,9 @@ internal fun QuickAction(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = GlanceModifier.size(btnDp),
+            modifier = GlanceModifier
+                .size(btnDp)
+                .cabinActionChip(LocalCabinColors.current),
             contentAlignment = Alignment.Center,
         ) {
             Image(
