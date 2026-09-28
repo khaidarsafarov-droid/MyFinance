@@ -19,25 +19,19 @@ class CabinLayoutTest {
         assertEquals(28.dp, layout.dayChipDp)
         assertEquals(42.dp, layout.actionBtnDp)
         assertTrue(layout.showDayCaptions)
-        assertFalse(layout.showActionLabels)
-        assertTrue(layout.showQuickActions)
     }
 
     @Test
-    fun defaultWide_keepsCaptionsWithoutActionLabels() {
+    fun defaultWide_keepsDayCaptions() {
         val layout = cabinLayoutFor(CabinSize4x3)
         assertTrue(layout.showDayCaptions)
-        assertFalse(layout.showActionLabels)
         assertTrue(layout.progressBarDp >= 10.dp)
-        assertTrue(layout.showQuickActions)
     }
 
     @Test
-    fun compactWide_hidesActionLabels() {
+    fun compactWide_hidesDayCaptions() {
         val layout = cabinLayoutFor(CabinSize4x2)
         assertFalse(layout.showDayCaptions)
-        assertFalse(layout.showActionLabels)
-        assertTrue(layout.showQuickActions)
     }
 
     @Test
@@ -57,7 +51,7 @@ class CabinLayoutTest {
     @Test
     fun smallPref_staysCompactEvenWhenTall() {
         val layout = cabinLayoutFor(CabinSize4x4, WidgetSizeMode.SMALL)
-        assertFalse(layout.showActionLabels)
+        assertFalse(layout.showDayCaptions)
         assertEquals(CabinBucket.COMPACT, cabinBucket(CabinSize4x4, WidgetSizeMode.SMALL))
     }
 
@@ -65,7 +59,5 @@ class CabinLayoutTest {
     fun square_hidesDayRowChrome() {
         val layout = cabinLayoutFor(CabinSize2x2)
         assertFalse(layout.showDayCaptions)
-        assertFalse(layout.showActionLabels)
-        assertTrue(layout.showQuickActions)
     }
 }

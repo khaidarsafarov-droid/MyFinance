@@ -1,6 +1,7 @@
 package com.truckerload.widget.glance
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -87,10 +88,8 @@ internal fun WideBudgetContent(
             captionSp = layout.dayCaptionSp,
             showCaptions = layout.showDayCaptions,
         )
-        if (layout.showQuickActions) {
-            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-            CabinActionRow(context, layout)
-        }
+        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        CabinActionRow(context, layout)
     }
 }
 
@@ -400,47 +399,47 @@ private fun WeekDaySelector(
     }
 }
 
+private data class CabinQuickAction(
+    val iconRes: Int,
+    val labelRes: Int,
+    val intent: (Context) -> Intent,
+)
+
+private val cabinQuickActions = listOf(
+    CabinQuickAction(
+        iconRes = R.drawable.ic_widget_scanner,
+        labelRes = R.string.widget_scanner_short,
+        intent = { routeIntent(it, WidgetDeepLink.ROUTE_ATTACH_SCANNER) },
+    ),
+    CabinQuickAction(
+        iconRes = R.drawable.ic_widget_camera,
+        labelRes = R.string.widget_camera_short,
+        intent = { routeIntent(it, WidgetDeepLink.ROUTE_ATTACH_CAMERA) },
+    ),
+    CabinQuickAction(
+        iconRes = R.drawable.ic_widget_diesel,
+        labelRes = R.string.widget_diesel_short,
+        intent = WidgetDeepLink::dieselQuickAddIntent,
+    ),
+)
+
 @Composable
 internal fun CabinActionRow(context: Context, layout: CabinLayout) {
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        QuickAction(
-            context = context,
-            iconRes = R.drawable.ic_widget_scanner,
-            label = context.getString(R.string.widget_scanner_short),
-            route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
-            showLabel = layout.showActionLabels,
-            btnDp = layout.actionBtnDp,
-            iconDp = layout.actionIconDp,
-            labelSp = layout.actionLabelSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
-        ActionColumnDivider(height = layout.actionBtnDp)
-        QuickAction(
-            context = context,
-            iconRes = R.drawable.ic_widget_camera,
-            label = context.getString(R.string.widget_camera_short),
-            route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
-            showLabel = layout.showActionLabels,
-            btnDp = layout.actionBtnDp,
-            iconDp = layout.actionIconDp,
-            labelSp = layout.actionLabelSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
-        ActionColumnDivider(height = layout.actionBtnDp)
-        QuickAction(
-            context = context,
-            iconRes = R.drawable.ic_widget_diesel,
-            label = context.getString(R.string.widget_diesel_short),
-            launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
-            showLabel = layout.showActionLabels,
-            btnDp = layout.actionBtnDp,
-            iconDp = layout.actionIconDp,
-            labelSp = layout.actionLabelSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
+        cabinQuickActions.forEachIndexed { index, action ->
+            if (index > 0) ActionColumnDivider(height = layout.actionBtnDp)
+            QuickAction(
+                iconRes = action.iconRes,
+                label = context.getString(action.labelRes),
+                btnDp = layout.actionBtnDp,
+                iconDp = layout.actionIconDp,
+                modifier = GlanceModifier.defaultWeight(),
+                launchIntent = action.intent(context),
+            )
+        }
     }
 }
 
