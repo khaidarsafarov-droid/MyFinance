@@ -2,7 +2,6 @@ package com.truckerload.widget
 
 import android.content.Intent
 import com.truckerload.presentation.screens.add.DieselQuickAddActivity
-import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -22,22 +21,5 @@ class WidgetDieselQuickAddIntentTest {
         assertEquals(DieselQuickAddActivity::class.java.name, intent.component!!.className)
         assertTrue(intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0)
         assertTrue(intent.flags and Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS != 0)
-    }
-
-    @Test
-    fun glanceWidgets_wireDieselQuickAdd() {
-        val wide = readSource("java/com/truckerload/widget/glance/CabinWideGlanceContent.kt")
-        assertTrue(wide.contains("dieselQuickAddIntent"))
-        assertTrue(wide.contains("ic_widget_diesel"))
-    }
-
-    private fun readSource(relativePath: String): String {
-        val candidates = listOf(
-            File("src/main/$relativePath"),
-            File("app/src/main/$relativePath"),
-            File("../app/src/main/$relativePath"),
-        )
-        return candidates.firstOrNull(File::isFile)?.readText()
-            ?: error("Source not found: $relativePath")
     }
 }

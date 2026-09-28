@@ -1,7 +1,6 @@
 package com.truckerload.widget.glance
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -399,37 +398,13 @@ private fun WeekDaySelector(
     }
 }
 
-private data class CabinQuickAction(
-    val iconRes: Int,
-    val labelRes: Int,
-    val intent: (Context) -> Intent,
-)
-
-private val cabinQuickActions = listOf(
-    CabinQuickAction(
-        iconRes = R.drawable.ic_widget_scanner,
-        labelRes = R.string.widget_scanner_short,
-        intent = { routeIntent(it, WidgetDeepLink.ROUTE_ATTACH_SCANNER) },
-    ),
-    CabinQuickAction(
-        iconRes = R.drawable.ic_widget_camera,
-        labelRes = R.string.widget_camera_short,
-        intent = { routeIntent(it, WidgetDeepLink.ROUTE_ATTACH_CAMERA) },
-    ),
-    CabinQuickAction(
-        iconRes = R.drawable.ic_widget_diesel,
-        labelRes = R.string.widget_diesel_short,
-        intent = WidgetDeepLink::dieselQuickAddIntent,
-    ),
-)
-
 @Composable
 internal fun CabinActionRow(context: Context, layout: CabinLayout) {
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        cabinQuickActions.forEachIndexed { index, action ->
+        CabinQuickAction.entries.forEachIndexed { index, action ->
             if (index > 0) ActionColumnDivider(height = layout.actionBtnDp)
             QuickAction(
                 iconRes = action.iconRes,
@@ -437,7 +412,7 @@ internal fun CabinActionRow(context: Context, layout: CabinLayout) {
                 btnDp = layout.actionBtnDp,
                 iconDp = layout.actionIconDp,
                 modifier = GlanceModifier.defaultWeight(),
-                launchIntent = action.intent(context),
+                launchIntent = action.launchIntent(context),
             )
         }
     }
