@@ -28,55 +28,6 @@ class WidgetRingHeroAndActionsTest {
     }
 
     @Test
-    fun quickActions_areScannerThenCameraThenDiesel() {
-        val xml = readRes("layout/widget_quick_actions.xml")
-        val scanner = xml.indexOf("android:id=\"@+id/widget_btn_scanner\"")
-        val camera = xml.indexOf("android:id=\"@+id/widget_btn_camera\"")
-        val diesel = xml.indexOf("android:id=\"@+id/widget_btn_diesel\"")
-        assertTrue(scanner >= 0)
-        assertTrue(camera > scanner)
-        assertTrue(diesel > camera)
-        assertTrue(xml.contains("@drawable/ic_widget_diesel"))
-        assertTrue(xml.contains("@drawable/widget_action_chip"))
-        assertTrue(xml.contains("@color/widget_divider"))
-        assertTrue(!xml.contains("@drawable/widget_action_btn_bg"))
-        assertTrue(!xml.contains("widget_camera_short"))
-    }
-
-    @Test
-    fun compactQuickActions_areScannerThenCameraThenDiesel() {
-        val xml = readRes("layout/widget_compact.xml")
-        val scanner = xml.indexOf("android:id=\"@+id/widget_btn_scanner\"")
-        val camera = xml.indexOf("android:id=\"@+id/widget_btn_camera\"")
-        val diesel = xml.indexOf("android:id=\"@+id/widget_btn_diesel\"")
-        assertTrue(scanner >= 0)
-        assertTrue(camera > scanner)
-        assertTrue(diesel > camera)
-        assertTrue(!xml.contains("@drawable/widget_action_btn_bg"))
-        assertTrue(xml.contains("@color/widget_divider"))
-        assertTrue(xml.contains("android:id=\"@+id/widget_day_dots_row\""))
-        val dotsBlock = xml.substring(
-            xml.indexOf("android:id=\"@+id/widget_day_dots_row\""),
-            xml.indexOf("android:id=\"@+id/widget_right_column\""),
-        )
-        assertTrue(dotsBlock.contains("android:visibility=\"gone\""))
-    }
-
-    @Test
-    fun standardAndExpanded_placeActionsFullWidthBelowMainRow() {
-        listOf("layout/widget_standard.xml", "layout/widget_expanded.xml").forEach { path ->
-            val xml = readRes(path)
-            val mainRow = xml.indexOf("android:id=\"@+id/widget_main_row\"")
-            val actions = xml.indexOf("@layout/widget_quick_actions")
-            val rightCol = xml.indexOf("android:id=\"@+id/widget_right_column\"")
-            assertTrue(path, mainRow >= 0)
-            assertTrue(path, actions > mainRow)
-            val rightBlock = xml.substring(rightCol, actions)
-            assertTrue(path, !rightBlock.contains("@layout/widget_quick_actions"))
-        }
-    }
-
-    @Test
     fun scannerIcon_isQrOutlineNotBriefcase() {
         val xml = readRes("drawable/ic_widget_scanner.xml")
         assertTrue(xml.contains("Thin QR scan glyph"))

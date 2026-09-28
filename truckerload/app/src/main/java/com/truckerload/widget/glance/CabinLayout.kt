@@ -25,12 +25,8 @@ internal data class CabinLayout(
     val dayChipDp: Dp,
     val dayCaptionSp: TextUnit,
     val showDayCaptions: Boolean,
-    val showDivider: Boolean,
     val actionBtnDp: Dp,
     val actionIconDp: Dp,
-    val actionLabelSp: TextUnit,
-    val showActionLabels: Boolean,
-    val showQuickActions: Boolean,
 )
 
 internal enum class CabinBucket { SQUARE, COMPACT, TALL, FULL }
@@ -84,12 +80,8 @@ private fun squareLayout() = CabinLayout(
     dayChipDp = 20.dp,
     dayCaptionSp = 7.sp,
     showDayCaptions = false,
-    showDivider = false,
     actionBtnDp = 32.dp,
     actionIconDp = 18.dp,
-    actionLabelSp = 9.sp,
-    showActionLabels = false,
-    showQuickActions = true,
 )
 
 private fun compactWideLayout() = CabinLayout(
@@ -109,12 +101,8 @@ private fun compactWideLayout() = CabinLayout(
     dayChipDp = 22.dp,
     dayCaptionSp = 8.sp,
     showDayCaptions = false,
-    showDivider = false,
     actionBtnDp = 36.dp,
     actionIconDp = 22.dp,
-    actionLabelSp = 10.sp,
-    showActionLabels = false,
-    showQuickActions = true,
 )
 
 private fun tallWideLayout() = CabinLayout(
@@ -134,12 +122,8 @@ private fun tallWideLayout() = CabinLayout(
     dayChipDp = 26.dp,
     dayCaptionSp = 9.sp,
     showDayCaptions = true,
-    showDivider = false,
     actionBtnDp = 40.dp,
     actionIconDp = 24.dp,
-    actionLabelSp = 11.sp,
-    showActionLabels = false,
-    showQuickActions = true,
 )
 
 private fun fullWideLayout() = CabinLayout(
@@ -159,10 +143,6 @@ private fun fullWideLayout() = CabinLayout(
     dayChipDp = 28.dp,
     dayCaptionSp = 10.sp,
     showDayCaptions = true,
-    showDivider = false,
     actionBtnDp = 42.dp,
     actionIconDp = 26.dp,
-    actionLabelSp = 11.sp,
-    showActionLabels = false,
-    showQuickActions = true,
 )

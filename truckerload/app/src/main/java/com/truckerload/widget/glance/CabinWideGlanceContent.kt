@@ -87,10 +87,8 @@ internal fun WideBudgetContent(
             captionSp = layout.dayCaptionSp,
             showCaptions = layout.showDayCaptions,
         )
-        if (layout.showQuickActions) {
-            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-            CabinActionRow(context, layout)
-        }
+        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        CabinActionRow(context, layout)
     }
 }
 
@@ -406,41 +404,17 @@ internal fun CabinActionRow(context: Context, layout: CabinLayout) {
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        QuickAction(
-            context = context,
-            iconRes = R.drawable.ic_widget_scanner,
-            label = context.getString(R.string.widget_scanner_short),
-            route = WidgetDeepLink.ROUTE_ATTACH_SCANNER,
-            showLabel = layout.showActionLabels,
-            btnDp = layout.actionBtnDp,
-            iconDp = layout.actionIconDp,
-            labelSp = layout.actionLabelSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
-        ActionColumnDivider(height = layout.actionBtnDp)
-        QuickAction(
-            context = context,
-            iconRes = R.drawable.ic_widget_camera,
-            label = context.getString(R.string.widget_camera_short),
-            route = WidgetDeepLink.ROUTE_ATTACH_CAMERA,
-            showLabel = layout.showActionLabels,
-            btnDp = layout.actionBtnDp,
-            iconDp = layout.actionIconDp,
-            labelSp = layout.actionLabelSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
-        ActionColumnDivider(height = layout.actionBtnDp)
-        QuickAction(
-            context = context,
-            iconRes = R.drawable.ic_widget_diesel,
-            label = context.getString(R.string.widget_diesel_short),
-            launchIntent = WidgetDeepLink.dieselQuickAddIntent(context),
-            showLabel = layout.showActionLabels,
-            btnDp = layout.actionBtnDp,
-            iconDp = layout.actionIconDp,
-            labelSp = layout.actionLabelSp,
-            modifier = GlanceModifier.defaultWeight(),
-        )
+        CabinQuickAction.entries.forEachIndexed { index, action ->
+            if (index > 0) ActionColumnDivider(height = layout.actionBtnDp)
+            QuickAction(
+                iconRes = action.iconRes,
+                label = context.getString(action.labelRes),
+                btnDp = layout.actionBtnDp,
+                iconDp = layout.actionIconDp,
+                modifier = GlanceModifier.defaultWeight(),
+                launchIntent = action.launchIntent(context),
+            )
+        }
     }
 }
 

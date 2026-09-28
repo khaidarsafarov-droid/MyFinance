@@ -59,7 +59,6 @@ class WidgetCabinColorsTest {
         assertEquals(scheme.primary.toArgb(), colors.accent)
         assertEquals(scheme.onSurface.toArgb(), colors.text)
         assertEquals(scheme.primaryContainer.toArgb(), colors.actionBg)
-        assertEquals(scheme.onPrimary.toArgb(), colors.actionLabel)
     }
 
     @Test

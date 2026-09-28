@@ -32,8 +32,6 @@ object WidgetCabinPalette {
     const val ACTION_SCANNER = 0xFFC98BA4.toInt()
     const val ACTION_CAMERA = 0xFFD4B44A.toInt()
     const val ACTION_DIESEL = 0xFFD4783A.toInt()
-    /** Brand-tinted captions under action buttons. */
-    const val ACTION_LABEL = 0xFF3F3AC0.toInt()
     const val DIVIDER = 0xFFD4D2F0.toInt()
     const val DAY_FILLED = 0xFF5B54E6.toInt()
     const val DAY_TODAY = 0xFFDCD9FF.toInt()
@@ -58,7 +56,6 @@ object WidgetCabinPalette {
         const val ACTION_BG = 0xFF5B54E6.toInt()
         const val ACTION_STROKE = 0xFF7B75F0.toInt()
         const val ACTION_CHIP = 0xFF2A2640.toInt()
-        const val ACTION_LABEL = 0xFFE0DEFF.toInt()
         const val DIVIDER = 0xFF35314A.toInt()
         const val DAY_FILLED = 0xFF5B54E6.toInt()
         const val DAY_TODAY = 0xFF2A2640.toInt()

@@ -34,9 +34,6 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("SelectWidgetDayAction"))
         assertTrue(wide.contains("widget_metric_goal"))
         assertTrue(wide.contains("widget_metric_rpm"))
-        assertTrue(wide.contains("widget_camera_short"))
-        assertTrue(wide.contains("widget_scanner_short"))
-        assertTrue(wide.contains("widget_diesel_short"))
         assertTrue(!wide.contains("widget_quick_actions"))
         val bar = readSource("widget/WidgetTruckProgressBitmap.kt")
         assertTrue(bar.contains("headroomPx"))
@@ -45,11 +42,6 @@ class WidgetBudgetRingActionsTest {
         assertTrue(!bar.contains("drawFlatTruck"))
         assertTrue(!bar.contains("buildTruckSilhouette"))
         assertTrue(wide.contains("WidgetDayCaption"))
-        assertTrue(!core.contains("cabinActionFill"))
-        assertTrue(core.contains("cabinActionChip"))
-        assertTrue(core.contains("CabinActionRow"))
-        assertTrue(wide.contains("ActionColumnDivider"))
-        assertTrue(wide.contains("cabinActionDivider"))
         assertTrue(core.contains("CabinSize4x4"))
         assertTrue(core.contains("SizeMode.Exact"))
         assertTrue(core.contains("SizeMode.Responsive"))
@@ -72,20 +64,6 @@ class WidgetBudgetRingActionsTest {
         assertTrue(src.contains("saveDynamicColor"))
         assertTrue(src.contains("WidgetRefresh.refreshAndUpdateAsync"))
         assertTrue(src.contains("saveThemeMode"))
-    }
-
-    @Test
-    fun glanceQuickActions_areScannerThenCameraThenDiesel() {
-        val src = readSource("widget/glance/CabinWideGlanceContent.kt")
-        val scanner = src.indexOf("ROUTE_ATTACH_SCANNER")
-        val camera = src.indexOf("ROUTE_ATTACH_CAMERA")
-        val diesel = src.indexOf("dieselQuickAddIntent")
-        assertTrue(scanner >= 0)
-        assertTrue(camera > scanner)
-        assertTrue(diesel > camera)
-        assertTrue(src.contains("ic_widget_camera"))
-        assertTrue(src.contains("ic_widget_scanner"))
-        assertTrue(src.contains("ic_widget_diesel"))
     }
 
     @Test

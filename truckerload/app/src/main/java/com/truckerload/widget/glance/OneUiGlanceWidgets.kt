@@ -44,7 +44,6 @@ import androidx.glance.layout.size
 import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
-import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
@@ -250,10 +249,8 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 maxLines = 1,
             )
         }
-        if (layout.showQuickActions) {
-            Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-            CabinActionRow(context, layout)
-        }
+        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        CabinActionRow(context, layout)
     }
 }
 
@@ -315,20 +312,15 @@ private fun TruckProgressBarSquare(
 
 @Composable
 internal fun QuickAction(
-    context: Context,
     iconRes: Int,
     label: String,
-    showLabel: Boolean,
     btnDp: Dp,
     iconDp: Dp,
-    labelSp: TextUnit,
     modifier: GlanceModifier = GlanceModifier,
-    route: String? = null,
-    launchIntent: Intent? = null,
+    launchIntent: Intent,
 ) {
-    val intent = launchIntent ?: routeIntent(context, requireNotNull(route))
     Column(
-        modifier = modifier.clickable(actionStartActivity(intent)),
+        modifier = modifier.clickable(actionStartActivity(launchIntent)),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
@@ -341,18 +333,6 @@ internal fun QuickAction(
                 provider = ImageProvider(iconRes),
                 contentDescription = label,
                 modifier = GlanceModifier.size(iconDp),
-            )
-        }
-        if (showLabel) {
-            Spacer(modifier = GlanceModifier.height(6.dp))
-            Text(
-                text = label,
-                style = TextStyle(
-                    color = cabinColor(LocalCabinColors.current.actionLabel),
-                    fontSize = labelSp,
-                    textAlign = TextAlign.Center,
-                ),
-                maxLines = 1,
             )
         }
     }

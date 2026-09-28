@@ -76,22 +76,4 @@
             android:scaleType="center"
             android:src="@drawable/ic_widget_diesel" />
     </FrameLayout>
-
-    <TextView
-        android:id="@+id/widget_btn_scanner_label"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/widget_btn_camera_label"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/widget_btn_diesel_label"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
 </LinearLayout>
