@@ -35,7 +35,6 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
-import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -217,20 +216,25 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
             .cabinPlate(colors)
             .padding(horizontal = layout.paddingH, vertical = layout.paddingV),
     ) {
-        CabinHeaderSquare(context, stats.weekLabel, layout.headerSp, layout.dateSp)
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-        TruckProgressBarSquare(
-            context = context,
-            progress = progress,
-            goalSet = goalSet,
-            barDp = layout.progressBarDp,
-            headroomDp = layout.progressBarHeadroomDp,
+        CabinHeaderSquare(
+            context,
+            stats.weekLabel,
+            layout.headerSp,
+            layout.dateSp,
+            modifier = GlanceModifier.sectionBelow(layout.sectionGap),
         )
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-        Column(
-            modifier = GlanceModifier.defaultWeight().fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        cabinSectionGap()
+        Box(modifier = GlanceModifier.fillMaxWidth().sectionBelow(layout.sectionGap)) {
+            TruckProgressBarSquare(
+                context = context,
+                progress = progress,
+                goalSet = goalSet,
+                barDp = layout.progressBarDp,
+                headroomDp = layout.progressBarHeadroomDp,
+            )
+        }
+        cabinSectionGap()
+        Column(modifier = GlanceModifier.fillMaxWidth().sectionBelow(layout.sectionGap)) {
             Text(
                 text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
                 style = TextStyle(
@@ -249,7 +253,7 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 maxLines = 1,
             )
         }
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        cabinSectionGap()
         CabinActionRow(context, layout)
     }
 }
@@ -260,6 +264,7 @@ private fun CabinHeaderSquare(
     weekLabel: String,
     headerSp: TextUnit,
     dateSp: TextUnit,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     val colors = LocalCabinColors.current
     Text(
@@ -270,7 +275,7 @@ private fun CabinHeaderSquare(
             fontWeight = FontWeight.Bold,
         ),
         maxLines = 1,
-        modifier = GlanceModifier.clickable(
+        modifier = modifier.clickable(
             actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME)),
         ),
     )
@@ -283,6 +288,7 @@ private fun TruckProgressBarSquare(
     goalSet: Boolean,
     barDp: Dp,
     headroomDp: Dp,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     val colors = LocalCabinColors.current
     val density = context.resources.displayMetrics.density
@@ -305,7 +311,7 @@ private fun TruckProgressBarSquare(
         Image(
             provider = ImageProvider(bitmap),
             contentDescription = context.getString(R.string.widget_weekly_summary),
-            modifier = GlanceModifier.fillMaxWidth().height(totalHeight),
+            modifier = modifier.height(totalHeight),
         )
     }
 }

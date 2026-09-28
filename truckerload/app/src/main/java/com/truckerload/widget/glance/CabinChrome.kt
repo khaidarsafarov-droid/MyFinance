@@ -3,10 +3,14 @@ package com.truckerload.widget.glance
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.layout.ColumnScope
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.padding
 import androidx.glance.unit.ColorProvider
 import com.truckerload.widget.WidgetCabinColors
 import com.truckerload.widget.WidgetCabinPalette
@@ -31,3 +35,15 @@ internal fun GlanceModifier.cabinActionChip(colors: WidgetCabinColors): GlanceMo
 
 internal fun GlanceModifier.cabinActionDivider(colors: WidgetCabinColors): GlanceModifier =
     background(ColorProvider(Color(colors.divider)))
+
+/**
+ * One weighted spacer. Glance columns keep only the first 10 children, so the
+ * minimum gap lives in [sectionBelow] on the block above this spacer.
+ */
+@Composable
+internal fun ColumnScope.cabinSectionGap() {
+    Spacer(modifier = GlanceModifier.defaultWeight())
+}
+
+/** Floor between sections. Extra cell height is shared by [cabinSectionGap]. */
+internal fun GlanceModifier.sectionBelow(gap: Dp): GlanceModifier = this.padding(bottom = gap)

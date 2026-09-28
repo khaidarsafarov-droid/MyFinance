@@ -57,19 +57,29 @@ internal fun WideBudgetContent(
             .cabinPlate(colors)
             .padding(horizontal = layout.paddingH, vertical = layout.paddingV),
     ) {
-        CabinHeader(context, shown.weekLabel, layout.headerSp, layout.dateSp)
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-        TruckProgressBar(
-            context = context,
-            progress = progress,
-            goalSet = goalSet,
-            barDp = layout.progressBarDp,
-            headroomDp = layout.progressBarHeadroomDp,
+        CabinHeader(
+            context,
+            shown.weekLabel,
+            layout.headerSp,
+            layout.dateSp,
+            modifier = GlanceModifier.sectionBelow(layout.sectionGap),
+        )
+        cabinSectionGap()
+        Box(
             modifier = GlanceModifier
                 .fillMaxWidth()
+                .sectionBelow(layout.sectionGap)
                 .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
-        )
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        ) {
+            TruckProgressBar(
+                context = context,
+                progress = progress,
+                goalSet = goalSet,
+                barDp = layout.progressBarDp,
+                headroomDp = layout.progressBarHeadroomDp,
+            )
+        }
+        cabinSectionGap()
         MockupStatsRow(
             context = context,
             shown = shown,
@@ -77,17 +87,21 @@ internal fun WideBudgetContent(
             amountSp = layout.amountSp,
             metricSp = layout.metricSp,
             metricGap = layout.metricGap,
+            modifier = GlanceModifier.sectionBelow(layout.sectionGap),
         )
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-        WeekDaySelector(
-            context = context,
-            week = week,
-            selectedOffset = selectedOffset,
-            chipDp = layout.dayChipDp,
-            captionSp = layout.dayCaptionSp,
-            showCaptions = layout.showDayCaptions,
-        )
-        Spacer(modifier = GlanceModifier.height(layout.sectionGap))
+        if (layout.showWeekRow) {
+            cabinSectionGap()
+            WeekDaySelector(
+                context = context,
+                week = week,
+                selectedOffset = selectedOffset,
+                chipDp = layout.dayChipDp,
+                captionSp = layout.dayCaptionSp,
+                showCaptions = layout.showDayCaptions,
+                modifier = GlanceModifier.sectionBelow(layout.sectionGap),
+            )
+        }
+        cabinSectionGap()
         CabinActionRow(context, layout)
     }
 }
@@ -135,10 +149,11 @@ private fun CabinHeader(
     weekLabel: String,
     headerSp: TextUnit,
     dateSp: TextUnit,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     val colors = LocalCabinColors.current
     Row(
-        modifier = GlanceModifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME))),
         verticalAlignment = Alignment.CenterVertically,
@@ -304,6 +319,7 @@ private fun WeekDaySelector(
     chipDp: Dp,
     captionSp: TextUnit,
     showCaptions: Boolean,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     val chips = WidgetWeekDayHelper.chips(week.weekLoadMask)
     val todayLabel = context.getString(R.string.widget_day_today)
@@ -319,7 +335,7 @@ private fun WeekDaySelector(
         )
     }.getOrNull()
     Row(
-        modifier = GlanceModifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
     ) {
         chips.forEachIndexed { offset, chip ->
