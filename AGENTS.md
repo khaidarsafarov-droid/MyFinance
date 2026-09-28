@@ -13,10 +13,9 @@ the "Telegram bot" runs inside the app as a foreground service. General project 
   (platform-34, build-tools 34.0.0, platform-tools, emulator, system image
   `android-34;google_apis;x86_64`). `JAVA_HOME`, `ANDROID_HOME`, and `PATH` are exported in
   `~/.bashrc`, so use an interactive/login shell (or `source ~/.bashrc`) before Android commands.
-- **Non-obvious gotcha:** the committed `truckerload/gradle.properties` hard-codes a Windows
-  path `org.gradle.java.home=C:\...\Android Studio\jbr`. This breaks Gradle on Linux, so it is
-  overridden in `~/.gradle/gradle.properties` (`org.gradle.java.home=/usr/lib/jvm/java-21-openjdk-amd64`),
-  which takes precedence. Do not "fix" it in the repo.
+- **JDK:** do not commit `org.gradle.java.home`. CI passes `-Dorg.gradle.java.home="$JAVA_HOME"`.
+  On this VM, JDK 21 is `/usr/lib/jvm/java-21-openjdk-amd64`. A personal override belongs in
+  `~/.gradle/gradle.properties`, not in the repo.
 - `truckerload/local.properties` is gitignored and holds `sdk.dir` + `LOCAL_ONLY_MODE=true`
   (skips Supabase login; app runs fully offline on Room). The update script recreates it if missing.
 - **`gradlew` is not marked executable** in this checkout — invoke it as `sh ./gradlew ...`.
