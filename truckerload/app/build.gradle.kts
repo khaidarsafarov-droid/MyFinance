@@ -233,7 +233,7 @@ dependencies {
 
     // Google Sign-In (Drive app-data backup only; app identity is local)
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.android.billingclient:billing-ktx:9.1.0")
 
     // Google Maps (free-tier Maps SDK; friends map routes use OSRM, not Directions API)
     implementation("com.google.maps.android:maps-compose:4.3.0")

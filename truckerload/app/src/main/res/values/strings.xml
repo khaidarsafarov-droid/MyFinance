@@ -735,12 +735,12 @@
     <string name="load_detail_deadhead_miles_label">Deadhead miles</string>
     <string name="premium_title">TruckoRig Premium</string>
     <string name="premium_body">Google Play offers the first month free on the subscription. After that month, Telegram, analytics, the weekly goal, the map, taxes, scanner, camera, export, Drive backup, and deadhead stay on the paid plan. Loads, diesel, and paychecks stay free.</string>
-    <string name="premium_subscribe">Subscribe</string>
-    <string name="premium_subscribe_price">Subscribe · %1$s</string>
+    <string name="premium_subscribe">Try 1 month free (then $3/month)</string>
+    <string name="premium_subscribe_price">Try 1 month free (then %1$s/month)</string>
     <string name="premium_restore">Restore purchases</string>
     <string name="premium_play_trial">The free month starts in Google Play when you subscribe.</string>
     <string name="premium_active">Premium is active</string>
-    <string name="premium_purchase_unavailable">Google Play subscription is not available yet. Create the monthly plan truckorig_premium_monthly in Play Console.</string>
+    <string name="premium_purchase_unavailable">Google Play subscription is not available yet. Create monthly plan premium_monthly_subscription with a 1-month free trial in Play Console.</string>
     <string name="premium_locked_telegram">Telegram import is part of Premium.</string>
     <string name="premium_locked_analytics">Analytics is part of Premium.</string>
     <string name="premium_locked_goal">The weekly goal is part of Premium.</string>

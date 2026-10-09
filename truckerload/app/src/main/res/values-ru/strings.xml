@@ -735,12 +735,12 @@
     <string name="load_detail_deadhead_miles_label">Мили deadhead</string>
     <string name="premium_title">TruckoRig Premium</string>
     <string name="premium_body">Первый месяц бесплатно даёт Google Play в подписке. После него Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт, копия в Drive и deadhead остаются платными. Грузы, дизель и зарплаты остаются бесплатными.</string>
-    <string name="premium_subscribe">Оформить подписку</string>
-    <string name="premium_subscribe_price">Оформить подписку · %1$s</string>
+    <string name="premium_subscribe">Попробовать 1 месяц бесплатно (далее $3/мес)</string>
+    <string name="premium_subscribe_price">Попробовать 1 месяц бесплатно (далее %1$s/мес)</string>
     <string name="premium_restore">Восстановить покупки</string>
     <string name="premium_play_trial">Бесплатный месяц начинается в Google Play, когда оформляете подписку.</string>
     <string name="premium_active">Подписка активна</string>
-    <string name="premium_purchase_unavailable">Подписка Google Play ещё не настроена. В Play Console нужен месячный план truckorig_premium_monthly.</string>
+    <string name="premium_purchase_unavailable">Подписка Google Play ещё не настроена. В Play Console нужен план premium_monthly_subscription с бесплатным месяцем.</string>
     <string name="premium_locked_telegram">Импорт из Telegram входит в Premium.</string>
     <string name="premium_locked_analytics">Аналитика входит в Premium.</string>
     <string name="premium_locked_goal">Недельная цель входит в Premium.</string>

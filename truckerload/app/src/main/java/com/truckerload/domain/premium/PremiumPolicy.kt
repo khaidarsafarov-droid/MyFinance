@@ -30,7 +30,7 @@ object PremiumPolicy {
      * Play Console subscription id. The free month is a Play offer on this product
      * (base plan + 1 month free trial), not a timer inside the app.
      */
-    const val PLAY_PRODUCT_ID = "truckorig_premium_monthly"
+    const val PLAY_PRODUCT_ID = "premium_monthly_subscription"
 
     /** An active Play purchase covers both the free-trial offer and the paid month. */
     fun status(subscribed: Boolean): PremiumStatus =
