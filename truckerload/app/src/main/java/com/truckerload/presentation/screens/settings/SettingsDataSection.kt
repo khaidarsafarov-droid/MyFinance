@@ -36,6 +36,9 @@ import com.truckerload.data.backup.BackupRestoreErrors
 import com.truckerload.data.backup.BackupSchema
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.presentation.premium.PremiumLockedCard
+import com.truckerload.presentation.premium.rememberPremiumAccess
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.BackupService
@@ -51,6 +54,7 @@ fun SettingsDataSection(
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val exportState by settingsViewModel.exportState.collectAsStateWithLifecycle()
+    val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var exportedFile by remember { mutableStateOf<File?>(null) }
     var showExportActions by remember { mutableStateOf(false) }
@@ -123,8 +127,13 @@ fun SettingsDataSection(
                 color = tc.TextSecondary,
             )
         }
+        if (!premium.allows(PremiumFeature.EXPORT)) {
+            PremiumLockedCard(PremiumFeature.EXPORT)
+        }
         Button(
-            onClick = { settingsViewModel.exportCsv() },
+            onClick = {
+                if (premium.allows(PremiumFeature.EXPORT)) settingsViewModel.exportCsv()
+            },
             enabled = exportState !is SettingsViewModel.ExportState.Loading &&
                 !backupBusy && !restoreBusy,
             modifier = Modifier

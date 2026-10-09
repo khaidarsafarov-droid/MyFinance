@@ -8,6 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.presentation.premium.PremiumGate
 import com.truckerload.presentation.screens.about.AboutAppScreen
 import com.truckerload.presentation.screens.feedback.ImprovementFeedbackScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsScreen
@@ -55,12 +57,14 @@ fun NavGraphBuilder.toolsNavGraph(
             sharedTransitionScope = sharedTransitionScope,
             animatedVisibilityScope = this,
         ) {
+            PremiumGate(PremiumFeature.ANALYTICS, onBack = { navController.popBackStack() }) {
             AnalyticsScreen(
                 onBack = { navController.popBackStack() },
                 onLoadClick = { loadId -> navController.navigate(Routes.loadDetail(loadId)) },
                 onAbout = { navController.navigate(Routes.ABOUT) { launchSingleTop = true } },
                 onImprove = { navController.navigate(Routes.IMPROVE) { launchSingleTop = true } },
             )
+            }
         }
     }
     composable(
@@ -70,7 +74,9 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { tabEnterTransition(reduceMotion) },
         popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
-        WeeklyGoalScreen()
+        PremiumGate(PremiumFeature.WEEKLY_GOAL, onBack = { navController.popBackStack() }) {
+            WeeklyGoalScreen()
+        }
     }
     composable(
         route = Routes.MAP,
@@ -79,7 +85,9 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { tabEnterTransition(reduceMotion) },
         popExitTransition = { tabExitTransition(reduceMotion) },
     ) {
-        MapScreen(onBack = { navController.popBackStack() })
+        PremiumGate(PremiumFeature.MAP, onBack = { navController.popBackStack() }) {
+            MapScreen(onBack = { navController.popBackStack() })
+        }
     }
     composable(
         route = Routes.MAINTENANCE,
@@ -97,7 +105,9 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { navPopEnter(reduceMotion) },
         popExitTransition = { navPopExit(reduceMotion) },
     ) {
-        TaxTrackerScreen(onBack = { navController.popBackStack() })
+        PremiumGate(PremiumFeature.TAX, onBack = { navController.popBackStack() }) {
+            TaxTrackerScreen(onBack = { navController.popBackStack() })
+        }
     }
     composable(
         route = Routes.SETTINGS,
@@ -175,6 +185,10 @@ fun NavGraphBuilder.toolsNavGraph(
             "scanner" -> AttachPickMode.SCANNER
             else -> AttachPickMode.CAMERA
         }
+        PremiumGate(
+            if (mode == AttachPickMode.SCANNER) PremiumFeature.SCANNER else PremiumFeature.CAMERA,
+            onBack = { navController.popBackStack() },
+        ) {
         AttachLoadPickScreen(
             mode = mode,
             onCancel = { navController.popBackStack() },
@@ -191,6 +205,7 @@ fun NavGraphBuilder.toolsNavGraph(
                 navController.navigate(dest) { launchSingleTop = true }
             },
         )
+        }
     }
     composable(
         route = Routes.CAMERA,
@@ -199,10 +214,12 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { navModalPopEnter(reduceMotion) },
         popExitTransition = { navModalPopExit(reduceMotion) },
     ) {
+        PremiumGate(PremiumFeature.CAMERA, onBack = { navController.popBackStack() }) {
         CameraFlowScreen(
             onFinished = { navController.popBackStack() },
             onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
         )
+        }
     }
     composable(
         route = Routes.CAMERA_FOR_LOAD,
@@ -220,6 +237,7 @@ fun NavGraphBuilder.toolsNavGraph(
         val tripId = Uri.decode(entry.arguments?.getString("tripId").orEmpty())
         val loadDate = Uri.decode(entry.arguments?.getString("loadDate").orEmpty())
             .takeIf { it != "_" }.orEmpty()
+        PremiumGate(PremiumFeature.CAMERA, onBack = { navController.popBackStack() }) {
         CameraFlowScreen(
             onFinished = {
                 if (loadId.isNotBlank() && loadId != "_") {
@@ -236,6 +254,7 @@ fun NavGraphBuilder.toolsNavGraph(
             attachTripId = tripId.takeIf { it.isNotBlank() && it != "_" },
             attachLoadDate = loadDate,
         )
+        }
     }
     composable(
         route = Routes.SCANNER,
@@ -244,6 +263,7 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { navModalPopEnter(reduceMotion) },
         popExitTransition = { navModalPopExit(reduceMotion) },
     ) {
+        PremiumGate(PremiumFeature.SCANNER, onBack = { navController.popBackStack() }) {
         ScannerFlowScreen(
             onFinished = { navController.popBackStack() },
             onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
@@ -252,6 +272,7 @@ fun NavGraphBuilder.toolsNavGraph(
                 navController.navigate(Routes.CAMERA) { launchSingleTop = true }
             },
         )
+        }
     }
     composable(
         route = Routes.SCANNER_FOR_LOAD,
@@ -269,6 +290,7 @@ fun NavGraphBuilder.toolsNavGraph(
         val tripId = Uri.decode(entry.arguments?.getString("tripId").orEmpty())
         val loadDate = Uri.decode(entry.arguments?.getString("loadDate").orEmpty())
             .takeIf { it != "_" }.orEmpty()
+        PremiumGate(PremiumFeature.SCANNER, onBack = { navController.popBackStack() }) {
         ScannerFlowScreen(
             onFinished = { navController.popBackStack() },
             onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
@@ -286,6 +308,7 @@ fun NavGraphBuilder.toolsNavGraph(
             attachTripId = tripId.takeIf { it.isNotBlank() && it != "_" },
             attachLoadDate = loadDate,
         )
+        }
     }
     composable(
         route = Routes.SCAN_GALLERY,

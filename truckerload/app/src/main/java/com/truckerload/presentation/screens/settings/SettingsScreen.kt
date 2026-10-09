@@ -35,6 +35,10 @@ import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftTabletTwoPane
 import com.truckerload.presentation.components.verticalContentScroll
+import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.presentation.premium.PremiumLockedCard
+import com.truckerload.presentation.premium.PremiumSettingsBanner
+import com.truckerload.presentation.premium.rememberPremiumAccess
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -69,6 +73,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val thresholds by store.thresholds.collectAsStateWithLifecycle()
+    val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
     var minInput by remember(thresholds) { mutableStateOf(thresholds.minProfit.toString()) }
     var targetInput by remember(thresholds) { mutableStateOf(thresholds.targetProfit.toString()) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -87,6 +92,10 @@ fun SettingsScreen(
                 .verticalContentScroll()
                 .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
         ) {
+            BentoGlassSection(title = stringResource(R.string.premium_title)) {
+                PremiumSettingsBanner()
+            }
+
             SoftTabletTwoPane(
                 start = {
                     Column {
@@ -115,7 +124,11 @@ fun SettingsScreen(
                             notifyMissingWeek = notifyMissingWeek,
                             notifyMaintenance = notifyMaintenance,
                         )
-                        TelegramSettingsSection()
+                        if (premium.allows(PremiumFeature.TELEGRAM)) {
+                            TelegramSettingsSection()
+                        } else {
+                            PremiumLockedCard(PremiumFeature.TELEGRAM)
+                        }
                     }
                 },
             )
@@ -176,7 +189,13 @@ fun SettingsScreen(
 
             SettingsDataSection(settingsViewModel = settingsViewModel)
 
-            GoogleDriveSyncSection(tc = tc)
+            if (premium.allows(PremiumFeature.DRIVE)) {
+                GoogleDriveSyncSection(tc = tc)
+            } else {
+                BentoGlassSection(title = stringResource(R.string.premium_locked_drive)) {
+                    PremiumLockedCard(PremiumFeature.DRIVE)
+                }
+            }
 
             SettingsShareAppSection()
 

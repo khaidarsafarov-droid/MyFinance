@@ -57,6 +57,10 @@ class TelegramSyncWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
+        if (!com.truckerload.data.premium.PremiumAccess.get(applicationContext).isUnlocked()) {
+            Log.d("TelegramSync", "Premium locked — skip background poll")
+            return Result.success()
+        }
         val userId = authStore.currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.w("TelegramSync", "No active user — skip background poll")

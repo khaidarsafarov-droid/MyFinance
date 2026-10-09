@@ -21,6 +21,10 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.DeadheadMiles
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.presentation.premium.PremiumLockedCard
+import com.truckerload.presentation.premium.rememberPremiumAccess
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
@@ -31,8 +35,17 @@ internal fun DeadheadSection(
     onSave: (Double) -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
     var showEditor by rememberSaveable { mutableStateOf(false) }
     val deadhead = load.deadheadMiles.coerceAtLeast(0.0)
+    if (!premium.allows(PremiumFeature.DEADHEAD)) {
+        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                PremiumLockedCard(PremiumFeature.DEADHEAD)
+            }
+        }
+        return
+    }
     BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(20.dp),

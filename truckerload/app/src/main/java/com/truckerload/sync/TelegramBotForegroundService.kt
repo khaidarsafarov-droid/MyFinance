@@ -41,6 +41,7 @@ object TelegramBotForegroundService {
     }
 
     fun start(context: Context) {
+        if (!com.truckerload.data.premium.PremiumAccess.get(context).isUnlocked()) return
         if (!canStart(context)) return
         val app = context.applicationContext
         if (isRunningFlag.get() || TelegramPollCoordinator.isForegroundPolling()) return

@@ -74,6 +74,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         initializeCrashReporting()
+        com.truckerload.data.premium.PremiumAccess.get(this).refresh()
         appScope.launch(Dispatchers.IO) {
             WeekStartRuntime.install(
                 settingsDataStore.getLoadWeekStartDayOnce(),
