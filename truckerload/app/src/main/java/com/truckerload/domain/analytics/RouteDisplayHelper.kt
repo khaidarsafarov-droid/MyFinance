@@ -58,7 +58,7 @@ object RouteDisplayHelper {
             .groupBy { it.first to it.second }
             .map { (pair, group) ->
                 val gross = group.sumOf { it.third.totalRate }
-                val miles = group.sumOf { it.third.totalMiles }
+                val miles = group.sumOf { it.third.drivenMiles }
                 val (origin, destination) = pair
                 RouteData(
                     origin = origin,

@@ -46,7 +46,7 @@ fun groupedLoadsByYearMonth(loads: List<Load>): List<YearSection> {
             year,
             yearLoads.size,
             yearLoads.sumOf { it.totalRate },
-            yearLoads.sumOf { it.totalMiles },
+            yearLoads.sumOf { it.drivenMiles },
             monthSections,
         )
     }

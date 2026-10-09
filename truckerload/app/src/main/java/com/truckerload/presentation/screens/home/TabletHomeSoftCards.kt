@@ -246,7 +246,7 @@ internal fun SoftRecentCard(
 internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
-    val rpm = computeRpm(load.totalRate, load.totalMiles)
+    val rpm = computeRpm(load.totalRate, load.drivenMiles)
     val stops = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
     Column(
         modifier = Modifier
@@ -299,7 +299,7 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
             text = stringResource(
                 R.string.load_card_summary_line,
                 stops,
-                MoneyFormat.formatNumber(load.totalMiles),
+                MoneyFormat.formatNumber(load.drivenMiles),
                 MoneyFormat.formatCurrency(load.totalRate, decimals = 2),
             ),
             style = AppTypography.CaptionMuted,

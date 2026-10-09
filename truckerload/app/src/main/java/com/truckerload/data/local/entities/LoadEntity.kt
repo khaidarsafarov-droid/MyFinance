@@ -57,4 +57,6 @@ data class LoadEntity(
     val actualFinishDate: String? = null,
     /** Trailer type; null = not set (legacy rows). Stored as [EquipmentType] name. */
     val equipmentType: String? = null,
+    /** Empty miles to the pickup. 0 for loads saved before this column existed. */
+    val deadheadMiles: Double = 0.0,
 )

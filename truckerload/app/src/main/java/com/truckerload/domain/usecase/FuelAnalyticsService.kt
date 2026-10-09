@@ -37,7 +37,7 @@ class FuelAnalyticsService(
         val loads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val totalSpent = diesel.sumOf { it.totalAmount }
         val totalGallons = diesel.sumOf { it.gallons ?: 0.0 }
-        val totalMiles = loads.sumOf { it.totalMiles }
+        val totalMiles = loads.sumOf { it.drivenMiles }
         val totalSavings = diesel.sumOf { it.savingsAmount ?: 0.0 }
         val avgMpg = if (totalGallons > 0) totalMiles / totalGallons else 0.0
         val avgPrice = if (totalGallons > 0) totalSpent / totalGallons else 0.0

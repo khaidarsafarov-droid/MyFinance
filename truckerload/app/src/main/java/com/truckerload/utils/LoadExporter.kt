@@ -122,7 +122,10 @@ object LoadExporter {
         loads.forEachIndexed { index, load ->
             val date = formatDisplayDate(load.date)
             val route = "${load.pointA} → ${load.pointB}"
-            val miles = formatMiles(ParseUtils.sanitizeLoadedMiles(load.totalMiles, load.totalRate))
+            val miles = formatMiles(
+                ParseUtils.sanitizeLoadedMiles(load.totalMiles, load.totalRate) +
+                    load.deadheadMiles.coerceAtLeast(0.0),
+            )
             val income = formatMoney(load.totalRate)
             appendLine("${index + 1}. $date | $route | $miles | $income")
         }
@@ -131,7 +134,7 @@ object LoadExporter {
     private fun formatStatistics(loads: List<Load>): String {
         val count = loads.size
         val totalIncome = loads.sumOf { it.totalRate }
-        val totalMiles = loads.sumOf { ParseUtils.sanitizeLoadedMiles(it.totalMiles, it.totalRate) }
+        val totalMiles = loads.sumOf { ParseUtils.sanitizeLoadedMiles(it.totalMiles, it.totalRate) + it.deadheadMiles.coerceAtLeast(0.0) }
         val avgIncome = if (count > 0) totalIncome / count else 0.0
         val avgRpm = if (totalMiles > 0) totalIncome / totalMiles else 0.0
         return buildString {

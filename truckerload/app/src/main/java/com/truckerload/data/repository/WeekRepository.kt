@@ -29,7 +29,7 @@ class WeekRepository(
                 WeekStartRebinder.dieselIsoInRange(it.addedAt, weekStartDate, weekEndDate)
             }
             val totalLoadRate = loadList.sumOf { it.totalRate }
-            val totalMiles = loadList.sumOf { it.totalMiles }
+            val totalMiles = loadList.sumOf { it.drivenMiles }
             // Paycheck amount comes only from Paycheck.netAmount.
             val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
             val hasPaycheck = paycheckList.isNotEmpty()
@@ -61,7 +61,7 @@ class WeekRepository(
             WeekStartRebinder.dieselIsoInRange(it.addedAt, weekStartDate, weekEndDate)
         }
         val totalLoadRate = loadList.sumOf { it.totalRate }
-        val totalMiles = loadList.sumOf { it.totalMiles }
+        val totalMiles = loadList.sumOf { it.drivenMiles }
         // Paycheck amount comes only from Paycheck.netAmount.
         val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
         val dieselAmount = dieselList.sumOf { it.totalAmount }

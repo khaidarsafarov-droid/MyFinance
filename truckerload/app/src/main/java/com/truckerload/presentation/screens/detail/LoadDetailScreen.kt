@@ -218,7 +218,7 @@ fun LoadDetailScreen(
                             Text(
                                 stringResource(
                                     R.string.load_detail_miles_stops,
-                                    l.totalMiles,
+                                    l.drivenMiles,
                                     l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -241,14 +241,14 @@ fun LoadDetailScreen(
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_miles),
-                            value = String.format(Locale.US, "%.2f", l.totalMiles),
+                            value = String.format(Locale.US, "%.2f", l.drivenMiles),
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_rpm),
                             value = formatRpm(
                                 l.totalRate,
-                                l.totalMiles,
+                                l.drivenMiles,
                                 stringResource(R.string.rpm_per_mile_format),
                             ),
                             modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -289,6 +289,12 @@ fun LoadDetailScreen(
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
                     }
+                    DeadheadSection(
+                        load = l,
+                        onSave = { miles ->
+                            viewModel.setDeadheadMiles(miles, saveErrorEmpty)
+                        },
+                    )
                     ActualFinishSection(
                         load = l,
                         onPickClick = onEditFinish,

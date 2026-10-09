@@ -24,7 +24,7 @@ object TelegramStatusMessages {
         val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val weekCount = weekLoads.size
         val weekIncome = weekLoads.sumOf { it.totalRate }
-        val weekMiles = weekLoads.sumOf { it.totalMiles }
+        val weekMiles = weekLoads.sumOf { it.drivenMiles }
         Log.d(TAG, "/stats total=$total week=$weekCount income=$weekIncome miles=$weekMiles")
         return context.getString(
             R.string.sync_stats,

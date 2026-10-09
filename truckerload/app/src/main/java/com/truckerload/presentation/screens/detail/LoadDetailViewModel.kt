@@ -107,6 +107,27 @@ class LoadDetailViewModel @Inject constructor(
         }
     }
 
+    fun setDeadheadMiles(miles: Double, saveErrorFallback: String) {
+        viewModelScope.launch {
+            persistMutex.withLock {
+                try {
+                    val current = loadRepository.getLoadById(loadId)
+                        ?: _uiState.value.load
+                        ?: return@withLock
+                    val next = current.copy(
+                        deadheadMiles = miles.coerceAtLeast(0.0),
+                        updatedAt = System.currentTimeMillis(),
+                    ).withRouteMetrics()
+                    loadRepository.updateLoad(next)
+                    val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
+                    _uiState.update { it.copy(load = reloaded) }
+                } catch (e: Exception) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                }
+            }
+        }
+    }
+
     fun setActualFinishDate(isoDate: String?, saveErrorFallback: String) {
         viewModelScope.launch {
             persistMutex.withLock {

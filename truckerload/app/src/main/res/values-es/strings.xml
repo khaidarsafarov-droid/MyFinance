@@ -726,6 +726,13 @@
     <string name="load_detail_cd_delete">Eliminar</string>
     <string name="load_detail_stat_total_rate">Total Rate</string>
     <string name="load_detail_stat_miles">Millas</string>
+    <string name="load_detail_deadhead_title">Deadhead</string>
+    <string name="load_detail_deadhead_none">Millas en vacío hasta esta carga. Se suman al kilometraje del viaje.</string>
+    <string name="load_detail_deadhead_set">%1$.0f mi deadhead · %2$.0f cargadas + %1$.0f = %3$.0f mi</string>
+    <string name="load_detail_deadhead_add">Añadir deadhead</string>
+    <string name="load_detail_deadhead_edit">Cambiar deadhead</string>
+    <string name="load_detail_deadhead_hint">Millas que condujo vacío hasta recoger esta carga. Ejemplo: la carga es de 1,000 mi y condujo 100 mi hasta ella — escriba 100. Esas millas se suman a este viaje.</string>
+    <string name="load_detail_deadhead_miles_label">Millas deadhead</string>
     <string name="load_detail_stat_rpm">RPM</string>
     <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>

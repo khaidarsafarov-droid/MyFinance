@@ -27,7 +27,8 @@ object CsvExporter {
         val route = formatLoadRoute(metrics).replace("\"", "\"\"")
         val income = metrics.totalRate
         // FIX: sanitize typo miles so export RPM matches Room-mapped journal values
-        val miles = ParseUtils.sanitizeLoadedMiles(metrics.totalMiles, income)
+        val miles = ParseUtils.sanitizeLoadedMiles(metrics.totalMiles, income) +
+            metrics.deadheadMiles.coerceAtLeast(0.0)
         val rpm = if (miles > 0) income / miles else 0.0
         return listOf(
             metrics.date,

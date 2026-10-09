@@ -13,10 +13,10 @@ object MapStateMetrics {
     fun computeFromLoads(loads: List<Load>): List<USStateMetric> {
         val knownCodes = getUsStateCodes()
         val loadsWithState = loads
-            .filter { it.pointB.isNotBlank() && it.totalMiles > 0 }
+            .filter { it.pointB.isNotBlank() && it.drivenMiles > 0 }
             .mapNotNull { load ->
                 extractStateFromLocation(load.pointB)?.let { state ->
-                    if (state in knownCodes) Triple(state, load.totalRate, load.totalMiles) else null
+                    if (state in knownCodes) Triple(state, load.totalRate, load.drivenMiles) else null
                 }
             }
         data class StateAgg(val revenue: Double, val trips: Int, val avgMiles: Double, val rpm: Double)

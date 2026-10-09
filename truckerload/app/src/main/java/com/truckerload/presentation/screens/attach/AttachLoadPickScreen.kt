@@ -317,9 +317,9 @@ private fun AttachLoadRow(
                 Text(
                     text = buildString {
                         append(load.date)
-                        if (load.totalMiles > 0) {
+                        if (load.drivenMiles > 0) {
                             append(" · ")
-                            append(String.format(Locale.US, "%,.0f mi", load.totalMiles))
+                            append(String.format(Locale.US, "%,.0f mi", load.drivenMiles))
                         }
                         if (load.totalRate > 0) {
                             append(" · ")

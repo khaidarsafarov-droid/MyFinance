@@ -104,7 +104,7 @@ private fun LoadCardContent(
     val cs = MaterialTheme.colorScheme
     val route = formatLoadRoute(load)
     val stopLabel = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
-    val rpm = computeRpm(load.totalRate, load.totalMiles)
+    val rpm = computeRpm(load.totalRate, load.drivenMiles)
     val rpmColor = rpm?.let {
         getRpmColor(it, tc, rpmThresholds.minProfit, rpmThresholds.targetProfit)
     }
@@ -170,7 +170,7 @@ private fun LoadCardContent(
                 text = stringResource(
                     R.string.load_card_summary_line,
                     stopLabel,
-                    String.format(Locale.US, "%,.0f", load.totalMiles),
+                    String.format(Locale.US, "%,.0f", load.drivenMiles),
                     String.format(Locale.US, "$%,.2f", load.totalRate),
                 ),
                 style = AppTypography.Caption.copy(color = cs.onSurfaceVariant),
@@ -212,7 +212,7 @@ private fun LoadCardContent(
                         Text(
                             text = formatRpm(
                                 load.totalRate,
-                                load.totalMiles,
+                                load.drivenMiles,
                                 stringResource(R.string.rpm_per_mile_format),
                             ),
                             style = AppTypography.NumbersSmall.copy(color = cs.onSurface),

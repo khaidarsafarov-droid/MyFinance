@@ -102,7 +102,7 @@ class LoadFilterUseCase {
 
     fun calculateTotals(loads: List<Load>): Totals {
         val totalRate = loads.sumOf { it.totalRate }
-        val totalMiles = loads.sumOf { it.totalMiles }
+        val totalMiles = loads.sumOf { it.drivenMiles }
         return Totals(
             loadCount = loads.size,
             totalRate = totalRate,

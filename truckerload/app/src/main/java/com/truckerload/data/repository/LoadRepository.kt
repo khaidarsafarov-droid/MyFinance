@@ -371,6 +371,7 @@ class LoadRepository(
                 loadDate = normalized.date,
                 totalRate = normalized.totalRate,
                 totalMiles = normalized.totalMiles,
+                deadheadMiles = normalized.deadheadMiles.coerceAtLeast(0.0),
                 pointA = normalized.pointA,
                 pointB = normalized.pointB,
                 puCount = normalized.puCount,

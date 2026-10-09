@@ -3,7 +3,7 @@ package com.truckerload.data.local
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room migrations for schema versions 25→41 (startVersion 25..40). */
+/** Room migrations for schema versions 25→42 (startVersion 25..41). */
 
 /** Durable attachment queue and per-row cloud state (idempotent column adds). */
 val MIGRATION_25_26 = object : Migration(25, 26) {
@@ -422,6 +422,17 @@ val MIGRATION_40_41 = object : Migration(40, 41) {
         db.execLogged(
             "CREATE UNIQUE INDEX IF NOT EXISTS `index_paychecks_weekNumber_year` " +
                 "ON `paychecks` (`weekNumber`, `year`)",
+        )
+    }
+}
+
+/** Empty miles to the pickup, stored separately from loaded miles. */
+val MIGRATION_41_42 = object : Migration(41, 42) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.addColumnIfMissing(
+            "loads",
+            "deadheadMiles",
+            "REAL NOT NULL DEFAULT 0.0",
         )
     }
 }

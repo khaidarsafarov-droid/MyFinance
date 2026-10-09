@@ -64,7 +64,7 @@ object WidgetDayProjection {
             days[offset] = current.copy(
                 loadsCount = current.loadsCount + 1,
                 gross = current.gross + load.totalRate,
-                miles = current.miles + load.totalMiles,
+                miles = current.miles + load.drivenMiles,
             )
         }
         return days.toList()

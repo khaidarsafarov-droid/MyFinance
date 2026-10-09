@@ -726,6 +726,13 @@
     <string name="load_detail_cd_delete">Delete</string>
     <string name="load_detail_stat_total_rate">Total Rate</string>
     <string name="load_detail_stat_miles">Miles</string>
+    <string name="load_detail_deadhead_title">Deadhead</string>
+    <string name="load_detail_deadhead_none">Empty miles to this pickup. They are added to the load mileage.</string>
+    <string name="load_detail_deadhead_set">%1$.0f deadhead mi · %2$.0f loaded + %1$.0f = %3$.0f mi</string>
+    <string name="load_detail_deadhead_add">Add deadhead</string>
+    <string name="load_detail_deadhead_edit">Change deadhead</string>
+    <string name="load_detail_deadhead_hint">Miles you drove empty to pick up this load. Example: the load is 1,000 mi and you drove 100 mi to it — enter 100. Those miles are added to this load.</string>
+    <string name="load_detail_deadhead_miles_label">Deadhead miles</string>
     <string name="load_detail_stat_rpm">RPM</string>
     <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>

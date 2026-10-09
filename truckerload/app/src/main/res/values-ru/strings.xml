@@ -726,6 +726,13 @@
     <string name="load_detail_cd_delete">Удалить</string>
     <string name="load_detail_stat_total_rate">Total Rate</string>
     <string name="load_detail_stat_miles">Miles</string>
+    <string name="load_detail_deadhead_title">Deadhead</string>
+    <string name="load_detail_deadhead_none">Порожние мили до этого заказа. Они прибавляются к пробегу груза.</string>
+    <string name="load_detail_deadhead_set">%1$.0f mi deadhead · %2$.0f груз + %1$.0f = %3$.0f mi</string>
+    <string name="load_detail_deadhead_add">Добавить deadhead</string>
+    <string name="load_detail_deadhead_edit">Изменить deadhead</string>
+    <string name="load_detail_deadhead_hint">Мили порожняком до этого заказа. Например, груз 1000 миль, а вы проехали 100 миль до него — введите 100. Эти мили прибавятся к пробегу груза.</string>
+    <string name="load_detail_deadhead_miles_label">Мили deadhead</string>
     <string name="load_detail_stat_rpm">RPM</string>
     <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>

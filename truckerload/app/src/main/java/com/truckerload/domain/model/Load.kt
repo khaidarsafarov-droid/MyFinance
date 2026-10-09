@@ -38,7 +38,13 @@ data class Load(
     val stops: List<Stop> = emptyList(),
     val penalties: List<Penalty> = emptyList(),
     val equipmentType: EquipmentType? = null,
+    /** Empty miles driven to pick up this load. Added to [drivenMiles]. */
+    val deadheadMiles: Double = 0.0,
 ) {
     val isActiveDispute: Boolean get() = isDispute && !disputeCompleted
     val hadDispute: Boolean get() = isDispute && disputeCompleted
+
+    /** Loaded miles plus deadhead. This is the load's mileage in the journal. */
+    val drivenMiles: Double
+        get() = totalMiles + deadheadMiles.coerceAtLeast(0.0)
 }

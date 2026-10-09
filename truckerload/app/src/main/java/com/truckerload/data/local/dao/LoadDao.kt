@@ -139,6 +139,7 @@ interface LoadDao {
             date = :loadDate,
             totalRate = :totalRate,
             totalMiles = :totalMiles,
+            deadheadMiles = :deadheadMiles,
             pointA = :pointA,
             pointB = :pointB,
             puCount = :puCount,
@@ -171,6 +172,7 @@ interface LoadDao {
         loadDate: String,
         totalRate: Double,
         totalMiles: Double,
+        deadheadMiles: Double,
         pointA: String,
         pointB: String,
         puCount: Int,
@@ -315,7 +317,7 @@ interface LoadDao {
             weekNumber,
             year,
             COALESCE(SUM(totalRate), 0.0) AS gross,
-            COALESCE(SUM(totalMiles), 0.0) AS miles,
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS miles,
             COUNT(*) AS loadCount
         FROM loads
         WHERE (:minDate = '' OR date >= :minDate)
@@ -351,7 +353,7 @@ interface LoadDao {
         SELECT
             COUNT(*) AS loadCount,
             COALESCE(SUM(totalRate), 0.0) AS gross,
-            COALESCE(SUM(totalMiles), 0.0) AS miles
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS miles
         FROM loads
         WHERE (:minDate = '' OR date >= :minDate)
           AND (:maxDate = '' OR date <= :maxDate)
@@ -363,7 +365,7 @@ interface LoadDao {
         """
         SELECT
             COUNT(*) AS totalLoads,
-            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS totalMiles,
             COALESCE(SUM(totalRate), 0.0) AS totalRevenue
         FROM loads
         """
@@ -374,7 +376,7 @@ interface LoadDao {
         """
         SELECT
             COUNT(*) AS loadCount,
-            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS totalMiles,
             COALESCE(SUM(totalRate), 0.0) AS totalRevenue
         FROM loads
         WHERE weekNumber = :weekNumber AND year = :year
@@ -395,7 +397,7 @@ interface LoadDao {
         """
         SELECT
             COUNT(*) AS loadCount,
-            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS totalMiles,
             COALESCE(SUM(totalRate), 0.0) AS totalRevenue
         FROM loads
         WHERE isDispute = 1
@@ -407,7 +409,7 @@ interface LoadDao {
         """
         SELECT
             COUNT(*) AS loadCount,
-            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS totalMiles,
             COALESCE(SUM(totalRate), 0.0) AS totalRevenue
         FROM loads
         WHERE date LIKE :yearPrefix || '-%'
@@ -422,7 +424,7 @@ interface LoadDao {
         """
         SELECT
             COUNT(*) AS loadCount,
-            COALESCE(SUM(totalMiles), 0.0) AS totalMiles,
+            COALESCE(SUM(totalMiles + deadheadMiles), 0.0) AS totalMiles,
             COALESCE(SUM(totalRate), 0.0) AS totalRevenue
         FROM loads
         WHERE weekNumber = :weekNumber AND year = :year
@@ -431,7 +433,7 @@ interface LoadDao {
     suspend fun getWeeklyLoadStatsOnce(weekNumber: Int, year: Int): WeeklyLoadStatsAgg
 
     /** Loaded miles from journal loads with date on/after [startDate] (YYYY-MM-DD). */
-    @Query("SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads WHERE date >= :startDate")
+    @Query("SELECT COALESCE(SUM(totalMiles + deadheadMiles), 0.0) FROM loads WHERE date >= :startDate")
     suspend fun sumMilesSince(startDate: String): Double
 
     /**
@@ -440,7 +442,7 @@ interface LoadDao {
      */
     @Query(
         """
-        SELECT COALESCE(SUM(totalMiles), 0.0) FROM loads
+        SELECT COALESCE(SUM(totalMiles + deadheadMiles), 0.0) FROM loads
         WHERE COALESCE(actualFinishDate, date) >= :serviceDate
         """,
     )
