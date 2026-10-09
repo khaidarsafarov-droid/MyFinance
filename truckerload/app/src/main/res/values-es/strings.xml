@@ -738,6 +738,9 @@
     <string name="premium_subscribe">Suscribirse</string>
     <string name="premium_subscribe_price">Suscribirse · %1$s</string>
     <string name="premium_restore">Restaurar compras</string>
+    <string name="premium_welcome_title">El primer mes es gratis</string>
+    <string name="premium_welcome_body">TruckoRig se descarga gratis. No se paga antes de abrirlo. Durante %1$d días todas las funciones están abiertas. Después, las cargas, el diésel y los pagos siguen gratis. Telegram, analítica, mapa, escáner y el resto de Premium requieren suscripción.</string>
+    <string name="premium_welcome_start">Empezar el mes gratis</string>
     <string name="premium_trial_days">Prueba gratis: quedan %1$d días</string>
     <string name="premium_trial_ended">La prueba gratis terminó</string>
     <string name="premium_active">Premium activo</string>

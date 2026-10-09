@@ -738,6 +738,9 @@
     <string name="premium_subscribe">Оформить подписку</string>
     <string name="premium_subscribe_price">Оформить подписку · %1$s</string>
     <string name="premium_restore">Восстановить покупки</string>
+    <string name="premium_welcome_title">Первый месяц бесплатно</string>
+    <string name="premium_welcome_body">TruckoRig скачивается бесплатно. Платить до открытия не нужно. %1$d дней открыты все функции. Потом грузы, дизель и зарплаты остаются бесплатными. Telegram, аналитика, карта, сканер и остальные инструменты Premium — по подписке.</string>
+    <string name="premium_welcome_start">Начать бесплатный месяц</string>
     <string name="premium_trial_days">Пробный период: ещё %1$d дн.</string>
     <string name="premium_trial_ended">Пробный период закончился</string>
     <string name="premium_active">Подписка активна</string>

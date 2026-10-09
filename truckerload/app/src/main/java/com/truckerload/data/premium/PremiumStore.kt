@@ -21,9 +21,16 @@ class PremiumStore(context: Context) {
         prefs.edit().putBoolean(KEY_SUBSCRIBED, subscribed).apply()
     }
 
+    fun shouldShowTrialWelcome(): Boolean = !prefs.getBoolean(KEY_WELCOME_SHOWN, false)
+
+    fun markTrialWelcomeShown() {
+        prefs.edit().putBoolean(KEY_WELCOME_SHOWN, true).apply()
+    }
+
     companion object {
         private const val PREFS = "truckorig_premium"
         private const val KEY_TRIAL_START = "trial_started_at"
         private const val KEY_SUBSCRIBED = "play_subscribed"
+        private const val KEY_WELCOME_SHOWN = "trial_welcome_shown"
     }
 }

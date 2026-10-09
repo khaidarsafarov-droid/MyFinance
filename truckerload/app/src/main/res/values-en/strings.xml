@@ -738,6 +738,9 @@
     <string name="premium_subscribe">Subscribe</string>
     <string name="premium_subscribe_price">Subscribe · %1$s</string>
     <string name="premium_restore">Restore purchases</string>
+    <string name="premium_welcome_title">Your first month is free</string>
+    <string name="premium_welcome_body">TruckoRig downloads free. You do not pay before opening it. For %1$d days every feature is open. After that, loads, diesel, and paychecks stay free. Telegram, analytics, the map, scanner, and the other Premium tools need a subscription.</string>
+    <string name="premium_welcome_start">Start my free month</string>
     <string name="premium_trial_days">Free trial: %1$d days left</string>
     <string name="premium_trial_ended">Free trial ended</string>
     <string name="premium_active">Premium is active</string>
