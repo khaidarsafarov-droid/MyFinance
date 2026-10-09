@@ -13,7 +13,11 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.truckerload.domain.premium.PremiumPolicy
 import kotlin.coroutines.resume
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 
 /**
  * Google Play subscription. The product [PremiumPolicy.PLAY_PRODUCT_ID] must exist in Play Console
@@ -22,12 +26,18 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 class PlayPremiumBilling(
     context: Context,
     private val store: PremiumStore,
+    private val onPurchasesChanged: () -> Unit,
 ) {
     private val app = context.applicationContext
+    private val connectLock = Mutex()
     private val client: BillingClient = BillingClient.newBuilder(app)
         .setListener { result, purchases ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                applyPurchases(purchases.orEmpty())
+            when (result.responseCode) {
+                BillingClient.BillingResponseCode.OK -> {
+                    applyPurchases(purchases.orEmpty())
+                    onPurchasesChanged()
+                }
+                BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> onPurchasesChanged()
             }
         }
         .enablePendingPurchases(
@@ -39,6 +49,17 @@ class PlayPremiumBilling(
         if (!connect()) return store.isSubscribed()
         val purchases = querySubs() ?: return store.isSubscribed()
         return applyPurchases(purchases)
+    }
+
+    suspend fun formattedPrice(): String? {
+        if (!connect()) return null
+        val phases = queryProduct()?.subscriptionOfferDetails
+            ?.firstOrNull()
+            ?.pricingPhases
+            ?.pricingPhaseList
+            .orEmpty()
+        return phases.lastOrNull { it.priceAmountMicros > 0L }?.formattedPrice
+            ?: phases.lastOrNull()?.formattedPrice
     }
 
     suspend fun launchPurchase(activity: Activity): String? {
@@ -56,11 +77,13 @@ class PlayPremiumBilling(
                 ),
             )
             .build()
-        val result = client.launchBillingFlow(activity, params)
-        return if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-            null
-        } else {
-            result.debugMessage.ifBlank { "billing_${result.responseCode}" }
+        val result = withContext(Dispatchers.Main) {
+            client.launchBillingFlow(activity, params)
+        }
+        return when (result.responseCode) {
+            BillingClient.BillingResponseCode.OK -> null
+            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> "already_owned"
+            else -> result.debugMessage.ifBlank { "billing_${result.responseCode}" }
         }
     }
 
@@ -114,14 +137,19 @@ class PlayPremiumBilling(
 
     private suspend fun connect(): Boolean {
         if (client.isReady) return true
-        return suspendCancellableCoroutine { cont ->
-            client.startConnection(object : BillingClientStateListener {
-                override fun onBillingSetupFinished(result: com.android.billingclient.api.BillingResult) {
-                    cont.resume(result.responseCode == BillingClient.BillingResponseCode.OK)
-                }
+        return connectLock.withLock {
+            if (client.isReady) return true
+            suspendCancellableCoroutine { cont ->
+                client.startConnection(object : BillingClientStateListener {
+                    override fun onBillingSetupFinished(result: com.android.billingclient.api.BillingResult) {
+                        if (cont.isActive) {
+                            cont.resume(result.responseCode == BillingClient.BillingResponseCode.OK)
+                        }
+                    }
 
-                override fun onBillingServiceDisconnected() = Unit
-            })
+                    override fun onBillingServiceDisconnected() = Unit
+                })
+            }
         }
     }
 }

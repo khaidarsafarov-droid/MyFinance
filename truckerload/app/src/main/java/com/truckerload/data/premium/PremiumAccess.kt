@@ -11,12 +11,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Trial plus Google Play subscription. The journal does not go through this gate. */
 class PremiumAccess private constructor(context: Context) {
     private val app = context.applicationContext
     private val store = PremiumStore(app)
-    private val billing = PlayPremiumBilling(app, store)
+    private val billing = PlayPremiumBilling(app, store) { refresh() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _status = MutableStateFlow(initialStatus())
     val status: StateFlow<PremiumStatus> = _status.asStateFlow()
@@ -42,11 +43,13 @@ class PremiumAccess private constructor(context: Context) {
 
     fun isUnlocked(): Boolean = _status.value.unlocked
 
+    suspend fun formattedPrice(): String? = billing.formattedPrice()
+
     fun purchase(activity: Activity, onResult: (String?) -> Unit) {
         scope.launch {
-            val error = billing.launchPurchase(activity)
-            refresh()
-            onResult(error)
+            val error = runCatching { billing.launchPurchase(activity) }.getOrElse { it.message }
+            if (error == "already_owned") refresh()
+            withContext(Dispatchers.Main) { onResult(error?.takeUnless { it == "already_owned" }) }
         }
     }
 

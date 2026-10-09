@@ -1,6 +1,5 @@
 package com.truckerload.presentation.premium
 
-import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +26,7 @@ import com.truckerload.data.premium.PremiumAccess
 import com.truckerload.domain.premium.PremiumFeature
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.utils.findActivity
 
 @Composable
 fun PremiumGate(
@@ -57,6 +58,8 @@ fun PaywallScreen(
     val context = LocalContext.current
     val access = rememberPremiumAccess()
     var buying by remember { mutableStateOf(false) }
+    var price by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(access) { price = access.formattedPrice() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -80,8 +83,7 @@ fun PaywallScreen(
         )
         TlButton(
             onClick = {
-                val activity = context as? Activity
-                if (activity == null) return@TlButton
+                val activity = context.findActivity() ?: return@TlButton
                 buying = true
                 access.purchase(activity) { error ->
                     buying = false
@@ -97,7 +99,16 @@ fun PaywallScreen(
             enabled = !buying,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(stringResource(R.string.premium_subscribe))
+            Text(
+                price?.let { stringResource(R.string.premium_subscribe_price, it) }
+                    ?: stringResource(R.string.premium_subscribe),
+            )
+        }
+        TextButton(
+            onClick = { access.refresh() },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.premium_restore))
         }
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.common_back))
@@ -124,8 +135,11 @@ fun PremiumSettingsBanner() {
         Text(stringResource(R.string.premium_body), style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
         if (!status.subscribed) {
             val context = LocalContext.current
+            TextButton(onClick = { access.refresh() }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.premium_restore))
+            }
             TlButton(onClick = {
-                val activity = context as? Activity ?: return@TlButton
+                val activity = context.findActivity() ?: return@TlButton
                 access.purchase(activity) { error ->
                     if (error != null) {
                         Toast.makeText(
@@ -165,7 +179,7 @@ fun PremiumLockedCard(feature: PremiumFeature) {
                 val context = LocalContext.current
                 val access = rememberPremiumAccess()
                 TextButton(onClick = {
-                    val activity = context as? Activity ?: return@TextButton
+                    val activity = context.findActivity() ?: return@TextButton
                     access.purchase(activity) { error ->
                         if (error == null) open = false
                         else {
