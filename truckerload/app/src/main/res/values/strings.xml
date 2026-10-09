@@ -734,15 +734,11 @@
     <string name="load_detail_deadhead_hint">Miles you drove empty to pick up this load. Example: the load is 1,000 mi and you drove 100 mi to it — enter 100. Those miles are added to this load.</string>
     <string name="load_detail_deadhead_miles_label">Deadhead miles</string>
     <string name="premium_title">TruckoRig Premium</string>
-    <string name="premium_body">The first month is free. After that, Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, export, Drive backup, and deadhead stay on the paid plan. Loads, diesel, and paychecks stay free.</string>
+    <string name="premium_body">Google Play offers the first month free on the subscription. After that month, Telegram, analytics, the weekly goal, the map, taxes, scanner, camera, export, Drive backup, and deadhead stay on the paid plan. Loads, diesel, and paychecks stay free.</string>
     <string name="premium_subscribe">Subscribe</string>
     <string name="premium_subscribe_price">Subscribe · %1$s</string>
     <string name="premium_restore">Restore purchases</string>
-    <string name="premium_welcome_title">Your first month is free</string>
-    <string name="premium_welcome_body">TruckoRig downloads free. You do not pay before opening it. For %1$d days every feature is open. After that, loads, diesel, and paychecks stay free. Telegram, analytics, the map, scanner, and the other Premium tools need a subscription.</string>
-    <string name="premium_welcome_start">Start my free month</string>
-    <string name="premium_trial_days">Free trial: %1$d days left</string>
-    <string name="premium_trial_ended">Free trial ended</string>
+    <string name="premium_play_trial">The free month starts in Google Play when you subscribe.</string>
     <string name="premium_active">Premium is active</string>
     <string name="premium_purchase_unavailable">Google Play subscription is not available yet. Create the monthly plan truckorig_premium_monthly in Play Console.</string>
     <string name="premium_locked_telegram">Telegram import is part of Premium.</string>

@@ -734,15 +734,11 @@
     <string name="load_detail_deadhead_hint">Мили порожняком до этого заказа. Например, груз 1000 миль, а вы проехали 100 миль до него — введите 100. Эти мили прибавятся к пробегу груза.</string>
     <string name="load_detail_deadhead_miles_label">Мили deadhead</string>
     <string name="premium_title">TruckoRig Premium</string>
-    <string name="premium_body">Первый месяц бесплатно. Дальше импорт из Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт, копия в Drive и deadhead остаются в платной версии. Грузы, дизель и зарплаты остаются бесплатными.</string>
+    <string name="premium_body">Первый месяц бесплатно даёт Google Play в подписке. После него Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт, копия в Drive и deadhead остаются платными. Грузы, дизель и зарплаты остаются бесплатными.</string>
     <string name="premium_subscribe">Оформить подписку</string>
     <string name="premium_subscribe_price">Оформить подписку · %1$s</string>
     <string name="premium_restore">Восстановить покупки</string>
-    <string name="premium_welcome_title">Первый месяц бесплатно</string>
-    <string name="premium_welcome_body">TruckoRig скачивается бесплатно. Платить до открытия не нужно. %1$d дней открыты все функции. Потом грузы, дизель и зарплаты остаются бесплатными. Telegram, аналитика, карта, сканер и остальные инструменты Premium — по подписке.</string>
-    <string name="premium_welcome_start">Начать бесплатный месяц</string>
-    <string name="premium_trial_days">Пробный период: ещё %1$d дн.</string>
-    <string name="premium_trial_ended">Пробный период закончился</string>
+    <string name="premium_play_trial">Бесплатный месяц начинается в Google Play, когда оформляете подписку.</string>
     <string name="premium_active">Подписка активна</string>
     <string name="premium_purchase_unavailable">Подписка Google Play ещё не настроена. В Play Console нужен месячный план truckorig_premium_monthly.</string>
     <string name="premium_locked_telegram">Импорт из Telegram входит в Premium.</string>

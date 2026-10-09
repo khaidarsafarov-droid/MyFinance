@@ -26,18 +26,14 @@ class PremiumAccess private constructor(context: Context) {
         refresh()
     }
 
-    private fun initialStatus(): PremiumStatus {
-        val now = System.currentTimeMillis()
-        val started = store.ensureTrialStarted(now)
-        return PremiumPolicy.status(started, store.isSubscribed(), now)
-    }
+    private fun initialStatus(): PremiumStatus =
+        PremiumPolicy.status(store.isSubscribed())
 
     fun refresh() {
         scope.launch {
-            val started = store.ensureTrialStarted(System.currentTimeMillis())
             val subscribed = runCatching { billing.hasActiveSubscription() }.getOrDefault(store.isSubscribed())
             if (subscribed != store.isSubscribed()) store.setSubscribed(subscribed)
-            _status.value = PremiumPolicy.status(started, subscribed, System.currentTimeMillis())
+            _status.value = PremiumPolicy.status(subscribed)
         }
     }
 

@@ -20,8 +20,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 /**
- * Google Play subscription. The product [PremiumPolicy.PLAY_PRODUCT_ID] must exist in Play Console
- * as a monthly plan. The first month is the in-app trial, so the Play offer should not add another.
+ * Google Play subscription. The free month is an offer on [PremiumPolicy.PLAY_PRODUCT_ID]
+ * in Play Console. This client only launches that offer and reads the resulting purchase.
  */
 class PlayPremiumBilling(
     context: Context,
@@ -53,11 +53,8 @@ class PlayPremiumBilling(
 
     suspend fun formattedPrice(): String? {
         if (!connect()) return null
-        val phases = queryProduct()?.subscriptionOfferDetails
-            ?.firstOrNull()
-            ?.pricingPhases
-            ?.pricingPhaseList
-            .orEmpty()
+        val details = queryProduct() ?: return null
+        val phases = playOffer(details)?.pricingPhases?.pricingPhaseList.orEmpty()
         return phases.lastOrNull { it.priceAmountMicros > 0L }?.formattedPrice
             ?: phases.lastOrNull()?.formattedPrice
     }
@@ -65,8 +62,7 @@ class PlayPremiumBilling(
     suspend fun launchPurchase(activity: Activity): String? {
         if (!connect()) return "billing_unavailable"
         val details = queryProduct() ?: return "product_missing"
-        val offer = details.subscriptionOfferDetails?.firstOrNull()?.offerToken
-            ?: return "offer_missing"
+        val offer = playOffer(details)?.offerToken ?: return "offer_missing"
         val params = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(
                 listOf(
@@ -118,6 +114,16 @@ class PlayPremiumBilling(
             }
         }
     }
+
+    /** Prefer the Play Console offer that includes a free month, then any other offer. */
+    private fun playOffer(details: ProductDetails) =
+        details.subscriptionOfferDetails.orEmpty().let { offers ->
+            offers.firstOrNull { offer ->
+                offer.pricingPhases.pricingPhaseList.any { phase ->
+                    phase.priceAmountMicros == 0L && phase.billingCycleCount >= 1
+                }
+            } ?: offers.firstOrNull()
+        }
 
     private suspend fun queryProduct(): ProductDetails? = suspendCancellableCoroutine { cont ->
         val product = QueryProductDetailsParams.Product.newBuilder()

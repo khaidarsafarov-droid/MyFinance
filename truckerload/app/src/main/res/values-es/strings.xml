@@ -734,15 +734,11 @@
     <string name="load_detail_deadhead_hint">Millas que condujo vacío hasta recoger esta carga. Ejemplo: la carga es de 1,000 mi y condujo 100 mi hasta ella — escriba 100. Esas millas se suman a este viaje.</string>
     <string name="load_detail_deadhead_miles_label">Millas deadhead</string>
     <string name="premium_title">TruckoRig Premium</string>
-    <string name="premium_body">El primer mes es gratis. Después, la importación de Telegram, analítica, meta semanal, mapa, impuestos, escáner, cámara, exportación, copia en Drive y deadhead quedan en el plan de pago. Las cargas, el diésel y los pagos siguen gratis.</string>
+    <string name="premium_body">Google Play ofrece el primer mes gratis en la suscripción. Después, Telegram, analítica, meta semanal, mapa, impuestos, escáner, cámara, exportación, copia en Drive y deadhead quedan de pago. Las cargas, el diésel y los pagos siguen gratis.</string>
     <string name="premium_subscribe">Suscribirse</string>
     <string name="premium_subscribe_price">Suscribirse · %1$s</string>
     <string name="premium_restore">Restaurar compras</string>
-    <string name="premium_welcome_title">El primer mes es gratis</string>
-    <string name="premium_welcome_body">TruckoRig se descarga gratis. No se paga antes de abrirlo. Durante %1$d días todas las funciones están abiertas. Después, las cargas, el diésel y los pagos siguen gratis. Telegram, analítica, mapa, escáner y el resto de Premium requieren suscripción.</string>
-    <string name="premium_welcome_start">Empezar el mes gratis</string>
-    <string name="premium_trial_days">Prueba gratis: quedan %1$d días</string>
-    <string name="premium_trial_ended">La prueba gratis terminó</string>
+    <string name="premium_play_trial">El mes gratis empieza en Google Play al suscribirse.</string>
     <string name="premium_active">Premium activo</string>
     <string name="premium_purchase_unavailable">La suscripción de Google Play aún no está lista. Cree el plan mensual truckorig_premium_monthly en Play Console.</string>
     <string name="premium_locked_telegram">La importación de Telegram es Premium.</string>

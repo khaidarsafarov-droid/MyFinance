@@ -16,46 +16,23 @@ enum class PremiumFeature {
 
 data class PremiumStatus(
     val subscribed: Boolean,
-    val inTrial: Boolean,
-    val trialEndsAt: Long,
     val unlocked: Boolean,
 ) {
     fun allows(@Suppress("UNUSED_PARAMETER") feature: PremiumFeature): Boolean = unlocked
 
-    fun trialDaysLeft(now: Long): Int {
-        if (!inTrial) return 0
-        val left = (trialEndsAt - now).coerceAtLeast(0L)
-        if (left == 0L) return 0
-        val day = PremiumPolicy.DAY_MS
-        return ((left + day - 1) / day).toInt()
-    }
-
     companion object {
-        val LOCKED = PremiumStatus(
-            subscribed = false,
-            inTrial = false,
-            trialEndsAt = 0L,
-            unlocked = false,
-        )
+        val LOCKED = PremiumStatus(subscribed = false, unlocked = false)
     }
 }
 
 object PremiumPolicy {
-    const val TRIAL_DAYS = 30
-    const val DAY_MS = 24L * 60L * 60L * 1000L
-    const val TRIAL_MS = TRIAL_DAYS * DAY_MS
-
-    /** Play Console subscription id. Create it as a monthly base plan, without a second Play trial. */
+    /**
+     * Play Console subscription id. The free month is a Play offer on this product
+     * (base plan + 1 month free trial), not a timer inside the app.
+     */
     const val PLAY_PRODUCT_ID = "truckorig_premium_monthly"
 
-    fun status(trialStartedAt: Long, subscribed: Boolean, now: Long): PremiumStatus {
-        val ends = if (trialStartedAt > 0L) trialStartedAt + TRIAL_MS else 0L
-        val inTrial = !subscribed && trialStartedAt > 0L && now < ends
-        return PremiumStatus(
-            subscribed = subscribed,
-            inTrial = inTrial,
-            trialEndsAt = ends,
-            unlocked = subscribed || inTrial,
-        )
-    }
+    /** An active Play purchase covers both the free-trial offer and the paid month. */
+    fun status(subscribed: Boolean): PremiumStatus =
+        PremiumStatus(subscribed = subscribed, unlocked = subscribed)
 }

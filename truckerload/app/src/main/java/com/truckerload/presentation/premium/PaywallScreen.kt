@@ -121,13 +121,10 @@ fun PremiumSettingsBanner() {
     val tc = LocalTruckColors.current
     val access = rememberPremiumAccess()
     val status by access.status.collectAsStateWithLifecycle()
-    val label = when {
-        status.subscribed -> stringResource(R.string.premium_active)
-        status.inTrial -> stringResource(
-            R.string.premium_trial_days,
-            status.trialDaysLeft(System.currentTimeMillis()),
-        )
-        else -> stringResource(R.string.premium_trial_ended)
+    val label = if (status.subscribed) {
+        stringResource(R.string.premium_active)
+    } else {
+        stringResource(R.string.premium_play_trial)
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.premium_title), style = MaterialTheme.typography.titleMedium, color = tc.TextPrimary)

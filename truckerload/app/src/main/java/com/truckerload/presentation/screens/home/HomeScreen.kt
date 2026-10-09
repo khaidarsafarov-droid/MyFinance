@@ -50,7 +50,6 @@ import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
-import com.truckerload.presentation.premium.TrialWelcomeDialog
 import com.truckerload.widget.WidgetDeepLink
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +80,6 @@ fun HomeScreen(
             ?: ""
     }
     val context = LocalContext.current
-    TrialWelcomeDialog()
     val openDrawer = LocalOpenDrawer.current
     val viewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
