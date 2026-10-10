@@ -26,6 +26,14 @@ class DeadheadMilesTest {
     }
 
     @Test
+    fun normalize_capsAndDropsGarbage() {
+        assertEquals(0.0, DeadheadMiles.normalize(-5.0), 0.01)
+        assertEquals(0.0, DeadheadMiles.normalize(Double.NaN), 0.01)
+        assertEquals(DeadheadMiles.MAX, DeadheadMiles.normalize(20_000.0), 0.01)
+        assertEquals(100.0, DeadheadMiles.normalize(100.0), 0.01)
+    }
+
+    @Test
     fun parse_rejectsJunkAndOutOfRange() {
         assertNull(DeadheadMiles.parse("abc"))
         assertNull(DeadheadMiles.parse("-5"))

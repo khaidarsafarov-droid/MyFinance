@@ -17,13 +17,7 @@ class TelegramTokenStore(
     private val resolvedUserId = userId?.trim()?.takeIf { it.isNotBlank() }
     private val prefs: SharedPreferences = openPrefs(appContext, resolvedUserId)
 
-    fun getToken(): String {
-        val saved = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
-        if (saved.isNotBlank()) return saved
-        // Device bootstrap token only when an account is active (avoid writing into empty logout state).
-        if (resolvedUserId != null) return BuildConfig.TELEGRAM_BOT_TOKEN.trim()
-        return ""
-    }
+    fun getToken(): String = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
 
     fun setToken(token: String) {
         val trimmed = token.trim()

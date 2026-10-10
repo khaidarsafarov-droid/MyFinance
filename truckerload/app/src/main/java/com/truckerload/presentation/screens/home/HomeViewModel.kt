@@ -45,6 +45,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
@@ -75,6 +77,9 @@ class HomeViewModel @Inject constructor(
     }
 
     private val filterUseCase = LoadFilterUseCase()
+
+    /** Survives onCleared. viewModelScope is already cancelled there, and runBlocking would ANR. */
+    private val deleteScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -569,12 +574,22 @@ class HomeViewModel @Inject constructor(
         undoDeleteJob?.cancel()
         undoDeleteJob = null
         _undoDeleteLoadId.value = null
-        kotlinx.coroutines.runBlocking {
-            pending.forEach { id ->
-                runCatching { loadRepository.deleteLoad(id) }
+        deleteScope.launch {
+            val failed = mutableListOf<String>()
+            for (id in pending) {
+                try {
+                    loadRepository.deleteLoad(id)
+                } catch (e: Exception) {
+                    failed += id
+                    _deleteError.value = e.message?.takeIf { it.isNotBlank() }
+                        ?: app.getString(R.string.home_delete_failed)
+                }
+            }
+            _pendingDeleteIds.update { (it - pending) + failed }
+            if (failed.isEmpty()) {
+                WidgetDataUpdater.updateWidgetData(app.applicationContext)
             }
         }
-        _pendingDeleteIds.update { it - pending }
     }
 
     override fun onCleared() {

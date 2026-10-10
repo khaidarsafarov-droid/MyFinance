@@ -96,12 +96,12 @@ fun PaywallScreen(
                     }
                 }
             },
-            enabled = !buying,
+            enabled = !buying && price != null,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 price?.let { stringResource(R.string.premium_subscribe_price, it) }
-                    ?: stringResource(R.string.premium_subscribe),
+                    ?: stringResource(R.string.premium_price_loading),
             )
         }
         TextButton(
@@ -132,22 +132,31 @@ fun PremiumSettingsBanner() {
         Text(stringResource(R.string.premium_body), style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
         if (!status.subscribed) {
             val context = LocalContext.current
+            var price by remember { mutableStateOf<String?>(null) }
+            LaunchedEffect(access) { price = access.formattedPrice() }
             TextButton(onClick = { access.refresh() }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.premium_restore))
             }
-            TlButton(onClick = {
-                val activity = context.findActivity() ?: return@TlButton
-                access.purchase(activity) { error ->
-                    if (error != null) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.premium_purchase_unavailable),
-                            Toast.LENGTH_LONG,
-                        ).show()
+            TlButton(
+                onClick = {
+                    val activity = context.findActivity() ?: return@TlButton
+                    access.purchase(activity) { error ->
+                        if (error != null) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.premium_purchase_unavailable),
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        }
                     }
-                }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.premium_subscribe))
+                },
+                enabled = price != null,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    price?.let { stringResource(R.string.premium_subscribe_price, it) }
+                        ?: stringResource(R.string.premium_price_loading),
+                )
             }
         }
     }

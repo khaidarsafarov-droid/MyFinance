@@ -115,7 +115,7 @@ class LoadDetailViewModel @Inject constructor(
                         ?: _uiState.value.load
                         ?: return@withLock
                     val next = current.copy(
-                        deadheadMiles = miles.coerceAtLeast(0.0),
+                        deadheadMiles = com.truckerload.domain.model.DeadheadMiles.normalize(miles),
                         updatedAt = System.currentTimeMillis(),
                     ).withRouteMetrics()
                     loadRepository.updateLoad(next)

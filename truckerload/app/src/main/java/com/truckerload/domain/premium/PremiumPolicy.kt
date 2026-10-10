@@ -32,6 +32,12 @@ object PremiumPolicy {
      */
     const val PLAY_PRODUCT_ID = "premium_monthly_subscription"
 
+    /** Tag this offer in Play Console. A zero price alone is not enough. */
+    const val FREE_MONTH_OFFER_TAG = "free-month"
+
+    /** Offline cache of a successful Play check. After this, Premium stays off until Play answers. */
+    const val SUBSCRIPTION_CACHE_TTL_MS = 72L * 60L * 60L * 1000L
+
     /** An active Play purchase covers both the free-trial offer and the paid month. */
     fun status(subscribed: Boolean): PremiumStatus =
         PremiumStatus(subscribed = subscribed, unlocked = subscribed)

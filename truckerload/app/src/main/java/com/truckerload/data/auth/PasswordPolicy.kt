@@ -1,5 +1,6 @@
 package com.truckerload.data.auth
 
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.SecretKeyFactory
@@ -50,8 +51,7 @@ object PasswordPolicy {
     fun matches(password: String, stored: String): Boolean {
         if (password.isBlank() || stored.isBlank()) return false
         if (!isHashed(stored)) {
-            // Legacy plaintext (pre-hash installs) — constant-time-ish compare.
-            return stored == password
+            return legacyEquals(stored, password)
         }
         val parts = stored.split('$')
         if (parts.size != 4 || parts[0] != "pbkdf2") return false
@@ -69,6 +69,12 @@ object PasswordPolicy {
         return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
             .generateSecret(spec)
             .encoded
+    }
+
+    private fun legacyEquals(stored: String, password: String): Boolean {
+        val left = stored.toByteArray(Charsets.UTF_8)
+        val right = password.toByteArray(Charsets.UTF_8)
+        return MessageDigest.isEqual(left, right)
     }
 
     private fun constantTimeEquals(a: ByteArray, b: ByteArray): Boolean {

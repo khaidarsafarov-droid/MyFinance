@@ -27,6 +27,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Единственная точка работы с Google Play Billing.
@@ -43,11 +44,13 @@ class BillingManager(context: Context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val connectLock = Mutex()
 
-    private val _isSubscribed = MutableStateFlow(cache.subscribed)
+    private val _isSubscribed = MutableStateFlow(cache.readFresh())
     /** true — активная подписка или бесплатный месяц Play; false — нет или истекла. */
     val isSubscribed: StateFlow<Boolean> = _isSubscribed.asStateFlow()
 
     private var reconnectAttempt = 0
+    private var connecting: kotlinx.coroutines.CompletableDeferred<Boolean>? = null
+    private val reconnectScheduled = AtomicBoolean(false)
 
     private val client: BillingClient = BillingClient.newBuilder(app)
         .setListener { result, purchases -> onPurchasesUpdated(result, purchases) }
@@ -68,12 +71,13 @@ class BillingManager(context: Context) {
      */
     suspend fun refresh() {
         if (!connect()) {
-            _isSubscribed.value = cache.subscribed
+            _isSubscribed.value = cache.readFresh()
             return
         }
+        retryPendingAcks()
         val purchases = queryPurchases()
         if (purchases == null) {
-            _isSubscribed.value = cache.subscribed
+            _isSubscribed.value = cache.readFresh()
             return
         }
         val active = applyPurchases(purchases)
@@ -123,28 +127,51 @@ class BillingManager(context: Context) {
     private fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
         when (result.responseCode) {
             BillingClient.BillingResponseCode.OK -> {
-                val active = applyPurchases(purchases.orEmpty())
-                cache.save(active)
-                _isSubscribed.value = active
+                scope.launch {
+                    val active = applyPurchases(purchases.orEmpty())
+                    cache.save(active)
+                    _isSubscribed.value = active
+                }
             }
             BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> start()
             BillingClient.BillingResponseCode.USER_CANCELED -> Unit
         }
     }
 
-    /** PURCHASED по нашему product id. Триал Play тоже приходит как PURCHASED. */
-    private fun applyPurchases(purchases: List<Purchase>): Boolean {
+    /**
+     * PURCHASED по нашему product id. Триал Play тоже приходит как PURCHASED.
+     * Неподтверждённая покупка не открывает Premium: Google отзывает её через 3 дня.
+     */
+    private suspend fun applyPurchases(purchases: List<Purchase>): Boolean {
         val ours = purchases.filter { it.products.contains(PremiumPolicy.PLAY_PRODUCT_ID) }
-        ours.filter { purchase ->
-            purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged
-        }.forEach { purchase ->
-            client.acknowledgePurchase(
-                AcknowledgePurchaseParams.newBuilder()
-                    .setPurchaseToken(purchase.purchaseToken)
-                    .build(),
-            ) { }
+        val purchased = ours.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+        var ackFailed = false
+        for (purchase in purchased.filter { !it.isAcknowledged }) {
+            if (acknowledge(purchase.purchaseToken)) {
+                cache.removePendingAck(purchase.purchaseToken)
+            } else {
+                cache.addPendingAck(purchase.purchaseToken)
+                ackFailed = true
+            }
         }
-        return ours.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+        val alreadyAcked = purchased.any { it.isAcknowledged }
+        return alreadyAcked || (purchased.isNotEmpty() && !ackFailed)
+    }
+
+    private suspend fun retryPendingAcks() {
+        for (token in cache.pendingAcks()) {
+            if (acknowledge(token)) cache.removePendingAck(token)
+        }
+    }
+
+    private suspend fun acknowledge(token: String): Boolean = suspendCancellableCoroutine { cont ->
+        client.acknowledgePurchase(
+            AcknowledgePurchaseParams.newBuilder().setPurchaseToken(token).build(),
+        ) { result ->
+            if (cont.isActive) {
+                cont.resume(result.responseCode == BillingClient.BillingResponseCode.OK)
+            }
+        }
     }
 
     private suspend fun queryPurchases(): List<Purchase>? = suspendCancellableCoroutine { cont ->
@@ -179,60 +206,85 @@ class BillingManager(context: Context) {
         }
     }
 
-    /** Сначала оффер с бесплатной фазой (триал из Play Console), иначе базовый. */
+    /** Оффер с тегом [PremiumPolicy.FREE_MONTH_OFFER_TAG], иначе базовый. Нулевая цена сама по себе не выбирается. */
     private fun playOffer(details: ProductDetails) =
         details.subscriptionOfferDetails.orEmpty().let { offers ->
-            offers.firstOrNull { offer ->
-                offer.pricingPhases.pricingPhaseList.any { phase ->
-                    phase.priceAmountMicros == 0L && phase.billingCycleCount >= 1
-                }
-            } ?: offers.firstOrNull()
+            offers.firstOrNull { PremiumPolicy.FREE_MONTH_OFFER_TAG in it.offerTags }
+                ?: offers.firstOrNull()
         }
 
     private suspend fun connect(): Boolean {
         if (client.isReady) return true
-        return connectLock.withLock {
+        val pending = connectLock.withLock {
             if (client.isReady) return true
-            suspendCancellableCoroutine { cont ->
-                client.startConnection(object : BillingClientStateListener {
-                    override fun onBillingSetupFinished(result: BillingResult) {
-                        if (cont.isActive) {
-                            cont.resume(result.responseCode == BillingClient.BillingResponseCode.OK)
-                        }
-                    }
+            connecting?.let { return@withLock it }
+            val created = kotlinx.coroutines.CompletableDeferred<Boolean>()
+            connecting = created
+            client.startConnection(object : BillingClientStateListener {
+                override fun onBillingSetupFinished(result: BillingResult) {
+                    connecting = null
+                    created.complete(result.responseCode == BillingClient.BillingResponseCode.OK)
+                }
 
-                    override fun onBillingServiceDisconnected() {
-                        // Play оборвал сервис. Не крутим бесконечно: несколько попыток и кэш.
-                        if (reconnectAttempt >= MAX_RECONNECT) return
-                        reconnectAttempt += 1
-                        scope.launch {
-                            delay(RECONNECT_DELAY_MS * reconnectAttempt)
-                            if (connect()) refresh()
-                        }
-                    }
-                })
-            }
+                override fun onBillingServiceDisconnected() {
+                    // Не вызывать connect() отсюда: этот callback может прийти, пока connect() ещё ждёт.
+                    scheduleReconnect()
+                }
+            })
+            created
+        }
+        return pending.await()
+    }
+
+    private fun scheduleReconnect() {
+        if (reconnectAttempt >= MAX_RECONNECT) return
+        if (!reconnectScheduled.compareAndSet(false, true)) return
+        reconnectAttempt += 1
+        scope.launch {
+            delay(RECONNECT_DELAY_MS * reconnectAttempt)
+            reconnectScheduled.set(false)
+            if (connect()) refresh()
         }
     }
 
     private class SubscriptionCache(context: Context) {
         private val prefs = SecurePreferences.open(context, PREFS)
+        private val encrypted = !SecurePreferences.plaintextFallbackUsed
 
-        val subscribed: Boolean
-            get() = prefs.getBoolean(KEY_SUBSCRIBED, false)
+        /** Просроченный или незашифрованный кэш не открывает Premium. */
+        fun readFresh(now: Long = System.currentTimeMillis()): Boolean {
+            if (!encrypted) return false
+            val checkedAt = prefs.getLong(KEY_CHECKED_AT, 0L)
+            if (checkedAt <= 0L || now - checkedAt > PremiumPolicy.SUBSCRIPTION_CACHE_TTL_MS) return false
+            return prefs.getBoolean(KEY_SUBSCRIBED, false)
+        }
 
-        /** Пишем только после успешного ответа Play, вместе с временем проверки. */
         fun save(subscribed: Boolean) {
+            if (!encrypted) return
             prefs.edit()
                 .putBoolean(KEY_SUBSCRIBED, subscribed)
                 .putLong(KEY_CHECKED_AT, System.currentTimeMillis())
                 .apply()
         }
 
+        fun pendingAcks(): Set<String> =
+            if (!encrypted) emptySet() else prefs.getStringSet(KEY_PENDING_ACKS, emptySet()).orEmpty()
+
+        fun addPendingAck(token: String) {
+            if (!encrypted || token.isBlank()) return
+            prefs.edit().putStringSet(KEY_PENDING_ACKS, pendingAcks() + token).apply()
+        }
+
+        fun removePendingAck(token: String) {
+            if (!encrypted) return
+            prefs.edit().putStringSet(KEY_PENDING_ACKS, pendingAcks() - token).apply()
+        }
+
         companion object {
             private const val PREFS = "truckorig_billing"
             private const val KEY_SUBSCRIBED = "is_subscribed"
             private const val KEY_CHECKED_AT = "last_online_check_at"
+            private const val KEY_PENDING_ACKS = "pending_ack_tokens"
         }
     }
 
