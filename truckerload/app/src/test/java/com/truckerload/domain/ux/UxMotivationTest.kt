@@ -36,9 +36,16 @@ class UxMotivationTest {
     }
 
     @Test
-    fun `suggested goals are five six and seven thousand`() {
+    fun `empty closed week keeps the default chips`() {
         assertEquals(listOf(5000.0, 6000.0, 7000.0), UxMotivation.suggestedWeeklyGoals(0.0))
-        assertEquals(listOf(5000.0, 6000.0, 7000.0), UxMotivation.suggestedWeeklyGoals(5200.0))
+    }
+
+    @Test
+    fun `closed week of 11000 suggests ten eleven and eleven five`() {
+        assertEquals(listOf(10000.0, 11000.0, 11500.0), UxMotivation.suggestedWeeklyGoals(11000.0))
+        assertEquals("10K", UxMotivation.formatSuggestedGoal(10000.0))
+        assertEquals("11K", UxMotivation.formatSuggestedGoal(11000.0))
+        assertEquals("$11,500", UxMotivation.formatSuggestedGoal(11500.0))
     }
 
     @Test

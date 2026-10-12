@@ -11,6 +11,8 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.domain.goal.WeeklyGoalProgress
 import com.truckerload.domain.ux.UxMotivation
+import com.truckerload.utils.getPreviousWeekNumberAndYear
+import com.truckerload.utils.isLoadInWeek
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -88,15 +90,20 @@ class GoalViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            progressFlow.collect { progress ->
-                val recentGross = progress?.currentGross ?: 0.0
+            combine(progressFlow, loadsFlow) { progress, loads ->
+                progress to loads
+            }.collect { (progress, loads) ->
+                val (closedWeek, closedYear) = getPreviousWeekNumberAndYear()
+                val closedGross = loads
+                    .filter { isLoadInWeek(it, closedWeek, closedYear) }
+                    .sumOf { it.totalRate }
                 _uiState.update {
                     it.copy(
                         progress = progress,
                         goalInput = if (it.isEditingGoal) it.goalInput
                         else progress?.let { p -> formatGoalInput(p.targetAmount) }.orEmpty(),
                         isLoading = progress == null,
-                        suggestedGoals = UxMotivation.suggestedWeeklyGoals(recentGross),
+                        suggestedGoals = UxMotivation.suggestedWeeklyGoals(closedGross),
                     )
                 }
             }

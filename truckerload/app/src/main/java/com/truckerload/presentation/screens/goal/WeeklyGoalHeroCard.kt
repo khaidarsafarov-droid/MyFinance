@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.goal.WeeklyGoalProgress
+import com.truckerload.domain.ux.UxMotivation
 import com.truckerload.presentation.components.GoalProgressRing
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -134,7 +135,7 @@ internal fun GoalHeroCard(
                             modifier = Modifier.weight(1f),
                         ) {
                             Text(
-                                text = "$${amount.toInt()}",
+                                text = UxMotivation.formatSuggestedGoal(amount),
                                 maxLines = 1,
                                 softWrap = false,
                                 style = MaterialTheme.typography.labelLarge,

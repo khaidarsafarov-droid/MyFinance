@@ -58,9 +58,25 @@ object UxMotivation {
         return LossAversionSignal(kind = LossAversionKind.NONE)
     }
 
-    /** Fixed weekly targets shown on the goal picker. */
-    fun suggestedWeeklyGoals(@Suppress("UNUSED_PARAMETER") recentWeekGross: Double = 0.0): List<Double> =
-        listOf(5000.0, 6000.0, 7000.0)
+    /**
+     * Chips for the new week, based on the gross of the week that just closed.
+     * $11,000 → $10,000, $11,000, $11,500. An empty closed week stays at $5,000 / $6,000 / $7,000.
+     */
+    fun suggestedWeeklyGoals(closedWeekGross: Double = 0.0): List<Double> {
+        if (closedWeekGross <= 0.0) return listOf(5000.0, 6000.0, 7000.0)
+        val anchor = (kotlin.math.round(closedWeekGross / 500.0) * 500.0).coerceAtLeast(1_000.0)
+        return listOf(anchor - 1_000.0, anchor, anchor + 500.0)
+    }
+
+    /** 10000 → 10K, 11500 → $11,500. */
+    fun formatSuggestedGoal(amount: Double): String {
+        val whole = amount.toLong()
+        return if (whole % 1_000L == 0L) {
+            "${whole / 1_000L}K"
+        } else {
+            "$${java.lang.String.format(java.util.Locale.US, "%,d", whole)}"
+        }
+    }
 
     fun dieselContrast(gross: Double, diesel: Double): ContrastBreakdown? {
         if (gross <= 0 || diesel <= 0) return null
