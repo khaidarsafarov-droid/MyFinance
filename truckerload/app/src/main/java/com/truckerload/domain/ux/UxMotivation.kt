@@ -58,21 +58,9 @@ object UxMotivation {
         return LossAversionSignal(kind = LossAversionKind.NONE)
     }
 
-    /** Suggested weekly goals — ownership / IKEA effect chips. */
-    fun suggestedWeeklyGoals(recentWeekGross: Double = 0.0): List<Double> {
-        val base = when {
-            recentWeekGross >= 8000 -> listOf(8000.0, 10000.0, 12000.0)
-            recentWeekGross >= 5000 -> listOf(5000.0, 7000.0, 9000.0)
-            recentWeekGross >= 2500 -> listOf(3000.0, 4500.0, 6000.0)
-            recentWeekGross > 0 -> {
-                val rounded = (kotlin.math.ceil(recentWeekGross / 500.0) * 500.0)
-                    .coerceAtLeast(2000.0)
-                listOf(rounded, rounded + 1000.0, rounded + 2000.0)
-            }
-            else -> listOf(3000.0, 5000.0, 7000.0)
-        }
-        return base.distinct().sorted()
-    }
+    /** Fixed weekly targets shown on the goal picker. */
+    fun suggestedWeeklyGoals(@Suppress("UNUSED_PARAMETER") recentWeekGross: Double = 0.0): List<Double> =
+        listOf(5000.0, 6000.0, 7000.0)
 
     fun dieselContrast(gross: Double, diesel: Double): ContrastBreakdown? {
         if (gross <= 0 || diesel <= 0) return null

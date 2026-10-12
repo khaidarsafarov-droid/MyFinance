@@ -133,7 +133,12 @@ internal fun GoalHeroCard(
                             onClick = { onSuggestedGoal(amount) },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(MoneyFormat.formatCurrency(amount), maxLines = 1)
+                            Text(
+                                text = "$${amount.toInt()}",
+                                maxLines = 1,
+                                softWrap = false,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
                         }
                     }
                 }

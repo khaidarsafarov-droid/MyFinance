@@ -2,7 +2,6 @@ package com.truckerload.domain.ux
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UxMotivationTest {
@@ -37,13 +36,9 @@ class UxMotivationTest {
     }
 
     @Test
-    fun `suggested goals scale with recent gross`() {
-        val fresh = UxMotivation.suggestedWeeklyGoals(0.0)
-        assertEquals(listOf(3000.0, 5000.0, 7000.0), fresh)
-
-        val mid = UxMotivation.suggestedWeeklyGoals(5200.0)
-        assertTrue(mid.contains(5000.0))
-        assertEquals(3, mid.size)
+    fun `suggested goals are five six and seven thousand`() {
+        assertEquals(listOf(5000.0, 6000.0, 7000.0), UxMotivation.suggestedWeeklyGoals(0.0))
+        assertEquals(listOf(5000.0, 6000.0, 7000.0), UxMotivation.suggestedWeeklyGoals(5200.0))
     }
 
     @Test
