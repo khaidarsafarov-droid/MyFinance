@@ -6,6 +6,7 @@ import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.JournalSyncClock
 import com.truckerload.utils.BackupService
+import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -42,9 +43,16 @@ class DieselRepository(private val db: AppDatabase) {
 
     /** Deletes all fills for the trucking week, then inserts [fills]. */
     suspend fun replaceWeekFills(weekNumber: Int, year: Int, fills: List<Diesel>) {
-        val existing = getDieselForWeekOnce(weekNumber, year)
-        existing.forEach { deleteDiesel(it.id) }
-        fills.forEach { insertDiesel(it) }
+        db.withTransaction {
+            dao.deleteWeek(weekNumber, year)
+            dao.insertAll(
+                fills.map { fill ->
+                    fill.copy(addedAt = JournalSyncClock.bump(fill.addedAt)).toEntity()
+                },
+            )
+        }
+        scheduleAutoBackup()
+        notifyWidgetDataChanged()
     }
 
     suspend fun deleteAllDiesel() {

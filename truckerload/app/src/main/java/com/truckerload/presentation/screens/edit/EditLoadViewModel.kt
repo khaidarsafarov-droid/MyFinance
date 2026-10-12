@@ -58,6 +58,7 @@ class EditLoadViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(EditLoadUiState(focusFinish = focusFinish))
     val uiState: StateFlow<EditLoadUiState> = _uiState.asStateFlow()
+    private var loadGeneration: Long = 0
 
     init {
         load()
@@ -190,6 +191,7 @@ class EditLoadViewModel @Inject constructor(
     }
 
     private fun load() {
+        val generation = ++loadGeneration
         val app = getApplication<Application>()
         if (loadId.isBlank()) {
             _uiState.update {
@@ -200,6 +202,7 @@ class EditLoadViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
+                if (generation != loadGeneration) return@launch
                 if (loaded == null) {
                     _uiState.update {
                         it.copy(
@@ -247,6 +250,7 @@ class EditLoadViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                if (generation != loadGeneration) return@launch
                 _uiState.update {
                     it.copy(isLoading = false, loadError = e.message)
                 }

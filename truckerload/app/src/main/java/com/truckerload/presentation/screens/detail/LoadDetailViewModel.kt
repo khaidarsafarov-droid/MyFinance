@@ -50,12 +50,14 @@ class LoadDetailViewModel @Inject constructor(
     private val _events = MutableSharedFlow<LoadDetailEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<LoadDetailEvent> = _events.asSharedFlow()
     private val persistMutex = Mutex()
+    private var refreshGeneration: Long = 0
 
     init {
         refresh()
     }
 
     fun refresh() {
+        val generation = ++refreshGeneration
         val app = getApplication<Application>()
         if (loadId.isBlank()) {
             _uiState.update {
@@ -73,6 +75,7 @@ class LoadDetailViewModel @Inject constructor(
                 // Always recompute duration/pace from stops + actualFinishDate so the
                 // detail stats stay in sync even if denormalized DB fields were stale.
                 val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
+                if (generation != refreshGeneration) return@launch
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -85,6 +88,7 @@ class LoadDetailViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                if (generation != refreshGeneration) return@launch
                 _uiState.update {
                     it.copy(
                         isLoading = false,

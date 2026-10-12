@@ -38,6 +38,9 @@ interface DieselDao {
     @Query("DELETE FROM diesel WHERE id = :id")
     suspend fun deleteById(id: Int)
 
+    @Query("DELETE FROM diesel WHERE weekNumber = :weekNumber AND year = :year")
+    suspend fun deleteWeek(weekNumber: Int, year: Int)
+
     @Query("DELETE FROM diesel")
     suspend fun deleteAll()
 }

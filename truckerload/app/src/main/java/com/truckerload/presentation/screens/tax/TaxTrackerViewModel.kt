@@ -63,6 +63,7 @@ class TaxTrackerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TaxTrackerUiState())
     val uiState: StateFlow<TaxTrackerUiState> = _uiState.asStateFlow()
     private var autoPerDiemDates: Set<String> = emptySet()
+    private var loadGeneration: Long = 0
 
     init {
         loadTaxData(Calendar.getInstance().get(Calendar.YEAR))
@@ -183,6 +184,7 @@ class TaxTrackerViewModel @Inject constructor(
     }
 
     private fun loadTaxData(year: Int) {
+        val generation = ++loadGeneration
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
@@ -195,7 +197,6 @@ class TaxTrackerViewModel @Inject constructor(
                 }
                 val dieselDed = diesel.sumOf { it.totalAmount }
                 val autoDates = PerDiemCalculator.uniqueOnDutyDates(loads, year)
-                autoPerDiemDates = autoDates
                 val perDiemDates = PerDiemDayOverrides.apply(
                     autoDates,
                     perDiemOverrideRepository.snapshotForYear(year),
@@ -213,6 +214,8 @@ class TaxTrackerViewModel @Inject constructor(
                 val reserved = 0.0
                 val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
 
+                if (generation != loadGeneration) return@launch
+                autoPerDiemDates = autoDates
                 _uiState.update {
                     it.copy(
                         year = year,
@@ -235,6 +238,7 @@ class TaxTrackerViewModel @Inject constructor(
                     )
                 }
             }.onFailure { error ->
+                if (generation != loadGeneration) return@onFailure
                 _uiState.update {
                     it.copy(
                         isLoading = false,

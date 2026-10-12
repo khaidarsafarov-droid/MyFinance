@@ -66,6 +66,7 @@ class AnalyticsViewModel @Inject constructor(
     val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
 
     private var lastDashboard: AnalyticsDashboard? = null
+    private var lastDashboardFilter: AnalyticsFilter? = null
     private var refreshJob: Job? = null
     private val refreshGeneration = AtomicInteger(0)
     private var weekLoadJob: Job? = null
@@ -136,6 +137,7 @@ class AnalyticsViewModel @Inject constructor(
             }.onSuccess { dashboard ->
                 if (generation != refreshGeneration.get()) return@launch
                 lastDashboard = dashboard
+                lastDashboardFilter = filter
                 val defaultIndex = dashboard.weeks.lastIndex.takeIf { idx -> idx >= 0 }
                 _uiState.update {
                     it.copy(
@@ -160,13 +162,20 @@ class AnalyticsViewModel @Inject constructor(
     }
 
     fun shareAnalytics(format: AnalyticsShareFormat, givenName: String, familyName: String) {
-        val dashboard = lastDashboard ?: return
         viewModelScope.launch {
+            val filter = _uiState.value.filter
+            val dashboard = if (lastDashboardFilter == filter) {
+                lastDashboard
+            } else {
+                runCatching { repository.loadDashboard(filter) }.getOrNull()
+            } ?: run {
+                _uiState.update { it.copy(error = app.getString(R.string.analytics_share_failed)) }
+                return@launch
+            }
             val given = givenName.trim()
             val family = familyName.trim()
             runCatching { profileRepository.updateOwnName(given, family) }
             val owner = AnalyticsOwnerName.display(given, family)
-            val filter = _uiState.value.filter
             val labels = analyticsExportLabels(app, filter, owner)
             runCatching {
                 AnalyticsExportShare.writeReport(app, dashboard, labels, format, filter.exportKey())
