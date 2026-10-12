@@ -8,13 +8,13 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.model.PaycheckJournalFilter
 import com.truckerload.domain.paycheck.PaycheckSalaryFields
+import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.PaycheckSourceFiles
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.shiftWeekNumberAndYear
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -189,55 +189,43 @@ class PaycheckJournalViewModel @Inject constructor(
             return
         }
         val net = PaycheckSalaryFields.parseAmount(current.netText) ?: return
-        viewModelScope.launch {
-            isSaving.value = true
-            try {
-                paycheckRepository.updatePaycheck(
-                    current.paycheck.copy(
-                        netAmount = net,
-                        sourceFileName = current.sourceFileName,
-                        sourceFilePath = current.sourceFilePath,
-                    ),
-                )
-                val previousPath = current.originalSourceFilePath
-                val newPath = current.sourceFilePath
-                if (previousPath != null && previousPath != newPath) {
-                    PaycheckSourceFiles.delete(appContext, previousPath)
-                }
-                editor.value = null
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                editor.value = current.copy(error = PaycheckSalaryFields.Error.NET)
-            } finally {
-                isSaving.value = false
+        viewModelScope.launchExclusive(
+            isSaving,
+            TAG,
+            onError = { editor.value = current.copy(error = PaycheckSalaryFields.Error.NET) },
+        ) {
+            paycheckRepository.updatePaycheck(
+                current.paycheck.copy(
+                    netAmount = net,
+                    sourceFileName = current.sourceFileName,
+                    sourceFilePath = current.sourceFilePath,
+                ),
+            )
+            val previousPath = current.originalSourceFilePath
+            val newPath = current.sourceFilePath
+            if (previousPath != null && previousPath != newPath) {
+                PaycheckSourceFiles.delete(appContext, previousPath)
             }
+            editor.value = null
         }
     }
 
     fun deleteEditor() {
         val current = editor.value ?: return
-        if (isSaving.value) return
-        viewModelScope.launch {
-            isSaving.value = true
-            try {
-                val id = current.paycheck.id
-                val paths = buildSet {
-                    current.sourceFilePath?.let { add(it) }
-                    current.originalSourceFilePath?.let { add(it) }
-                }
-                paycheckRepository.deletePaycheck(id)
-                paths.forEach { path ->
-                    PaycheckSourceFiles.delete(appContext, path)
-                }
-                editor.value = null
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                editor.value = current.copy(error = PaycheckSalaryFields.Error.NET)
-            } finally {
-                isSaving.value = false
+        viewModelScope.launchExclusive(
+            isSaving,
+            TAG,
+            onError = { editor.value = current.copy(error = PaycheckSalaryFields.Error.NET) },
+        ) {
+            val paths = buildSet {
+                current.sourceFilePath?.let { add(it) }
+                current.originalSourceFilePath?.let { add(it) }
             }
+            paycheckRepository.deletePaycheck(current.paycheck.id)
+            paths.forEach { path ->
+                PaycheckSourceFiles.delete(appContext, path)
+            }
+            editor.value = null
         }
     }
 
@@ -257,4 +245,8 @@ class PaycheckJournalViewModel @Inject constructor(
         val entries: List<Paycheck>,
         val total: Double,
     )
+
+    private companion object {
+        const val TAG = "PaycheckJournalVM"
+    }
 }

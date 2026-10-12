@@ -43,6 +43,7 @@ import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
+import com.truckerload.domain.parser.DecimalInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -168,8 +169,8 @@ fun SettingsScreen(
                 }
                 Button(
                     onClick = {
-                        val min = minInput.replace(",", ".").toDoubleOrNull()
-                        val target = targetInput.replace(",", ".").toDoubleOrNull()
+                        val min = DecimalInput.parse(minInput)
+                        val target = DecimalInput.parse(targetInput)
                         when {
                             min == null -> error = context.getString(R.string.settings_red_threshold_error)
                             target == null -> error = context.getString(R.string.settings_green_threshold_error)

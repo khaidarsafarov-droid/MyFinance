@@ -11,6 +11,7 @@ import com.truckerload.domain.importing.DieselImportReview
 import com.truckerload.domain.importing.DieselImportUseCase
 import com.truckerload.domain.importing.DieselSpreadsheetParser
 import com.truckerload.widget.WidgetDataUpdater
+import com.truckerload.utils.suspendRunCatching
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,19 +60,25 @@ class DieselImportViewModel @Inject constructor(
     }
 
     fun apply(action: DieselImportAction) {
-        val current = _uiState.value as? DieselImportUiState.Review ?: return
-        _uiState.value = current.copy(isApplying = true)
+        var current: DieselImportUiState.Review? = null
+        _uiState.update { state ->
+            val review = state as? DieselImportUiState.Review
+            if (review == null || review.isApplying) return@update state
+            current = review
+            review.copy(isApplying = true)
+        }
+        val accepted = current ?: return
         viewModelScope.launch {
-            runCatching {
+            suspendRunCatching {
                 withContext(Dispatchers.IO) {
-                    importUseCase.apply(current.review, action)
+                    importUseCase.apply(accepted.review, action)
                     WidgetDataUpdater.updateWidgetData(application)
                 }
                 val msg = when (action) {
                     DieselImportAction.ADD_FROM_FILE ->
-                        application.getString(R.string.diesel_import_added, current.review.importedPreview.size)
+                        application.getString(R.string.diesel_import_added, accepted.review.importedPreview.size)
                     DieselImportAction.REPLACE_WEEK ->
-                        application.getString(R.string.diesel_import_replaced, current.review.importedPreview.size)
+                        application.getString(R.string.diesel_import_replaced, accepted.review.importedPreview.size)
                 }
                 msg
             }.onSuccess { message ->

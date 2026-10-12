@@ -53,14 +53,14 @@ fun LegacyAbsorbDialog(
                 onClick = {
                     busy = true
                     scope.launch {
-                        val rebuilt = withContext(Dispatchers.IO) {
+                        val (rebuilt, copied) = withContext(Dispatchers.IO) {
+                            val manager = context.userComponentManager()
+                            manager.endSession()
                             val ok = LegacyDatabaseAbsorb.acceptAndCopy(context, userId)
-                            if (!ok) return@withContext null
-                            context.userComponentManager().endSession()
-                            context.userComponentManager().startSession(userId)
+                            manager.startSession(userId) to ok
                         }
-                        if (rebuilt != null) {
-                            onSessionRebuilt(rebuilt)
+                        onSessionRebuilt(rebuilt)
+                        if (copied) {
                             Toast.makeText(
                                 context,
                                 context.getString(R.string.legacy_absorb_success),

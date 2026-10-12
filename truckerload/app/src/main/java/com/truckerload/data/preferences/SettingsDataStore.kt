@@ -13,6 +13,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.utils.AppLanguageManager
+import java.security.SecureRandom
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -24,6 +25,9 @@ private val Context.settingsDataStore: DataStore<Preferences> by preferencesData
 private val KEY_FIRST_RUN = booleanPreferencesKey("is_first_run")
 private val KEY_TELEGRAM_CHAT_ID = longPreferencesKey("telegram_chat_id")
 private val KEY_TELEGRAM_CHAT_ID_LEGACY_CLAIMED = booleanPreferencesKey("telegram_chat_id_legacy_claimed")
+private val KEY_TELEGRAM_PAIRING_CODE = stringPreferencesKey("telegram_pairing_code")
+private const val PAIRING_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+private const val PAIRING_CODE_LENGTH = 8
 private val KEY_TELEGRAM_UPDATE_OFFSET = longPreferencesKey("telegram_last_update_offset")
 private val KEY_THEME_MODE = intPreferencesKey("app_theme_mode")
 private val KEY_LANGUAGE = intPreferencesKey("app_language")
@@ -225,6 +229,63 @@ class SettingsDataStore(context: Context) {
                 prefs[KEY_TELEGRAM_CHAT_ID] = chatId
             }
         }
+    }
+
+    /** Paired chat of the device profile, for UI; [getTelegramChatIdOnce] does the legacy migration. */
+    fun observeTelegramChatId(): Flow<Long?> {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        return appContext.settingsDataStore.data.map { prefs ->
+            val scoped = userId?.let {
+                prefs[longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(it)}")]
+            }
+            scoped ?: prefs[KEY_TELEGRAM_CHAT_ID]?.takeUnless { prefs[KEY_TELEGRAM_CHAT_ID_LEGACY_CLAIMED] == true }
+        }
+    }
+
+    suspend fun clearTelegramChatId() {
+        val userId = AuthStore(appContext).currentUserIdOrNull()
+        appContext.settingsDataStore.edit { prefs ->
+            if (userId != null) {
+                prefs.remove(longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}"))
+                prefs[KEY_TELEGRAM_CHAT_ID_LEGACY_CLAIMED] = true
+            }
+            prefs.remove(KEY_TELEGRAM_CHAT_ID)
+            prefs.remove(KEY_TELEGRAM_PAIRING_CODE)
+        }
+    }
+
+    /**
+     * One-time code the owner sends as `/start <code>`; without it, anyone who finds the bot
+     * username could pair first. Rotated by [consumeTelegramPairingCode] and [clearTelegramChatId].
+     */
+    suspend fun getOrCreateTelegramPairingCode(): String {
+        appContext.settingsDataStore.data.first()[KEY_TELEGRAM_PAIRING_CODE]?.let { return it }
+        var code = ""
+        appContext.settingsDataStore.edit { prefs ->
+            code = prefs[KEY_TELEGRAM_PAIRING_CODE] ?: newPairingCode().also {
+                prefs[KEY_TELEGRAM_PAIRING_CODE] = it
+            }
+        }
+        return code
+    }
+
+    /** True (and the code is rotated) when [candidate] matches the current pairing code. */
+    suspend fun consumeTelegramPairingCode(candidate: String): Boolean {
+        val normalized = candidate.trim().uppercase()
+        if (normalized.isEmpty()) return false
+        var matched = false
+        appContext.settingsDataStore.edit { prefs ->
+            if (prefs[KEY_TELEGRAM_PAIRING_CODE] == normalized) {
+                matched = true
+                prefs.remove(KEY_TELEGRAM_PAIRING_CODE)
+            }
+        }
+        return matched
+    }
+
+    private fun newPairingCode(): String {
+        val random = SecureRandom()
+        return String(CharArray(PAIRING_CODE_LENGTH) { PAIRING_CODE_ALPHABET[random.nextInt(PAIRING_CODE_ALPHABET.length)] })
     }
 
     /** Next offset for getUpdates (last processed update_id + 1). Scoped per active account. */

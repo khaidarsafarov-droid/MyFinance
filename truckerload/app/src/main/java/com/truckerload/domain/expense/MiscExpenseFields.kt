@@ -1,6 +1,6 @@
 package com.truckerload.domain.expense
 
-import com.truckerload.domain.paycheck.PaycheckSalaryFields
+import com.truckerload.domain.parser.DecimalInput
 
 /** Validation and CSV helpers for miscellaneous expenses. */
 object MiscExpenseFields {
@@ -11,7 +11,7 @@ object MiscExpenseFields {
         DATE,
     }
 
-    fun parseAmount(raw: String): Double? = PaycheckSalaryFields.parseAmount(raw)
+    fun parseAmount(raw: String): Double? = DecimalInput.parse(raw)?.takeIf { it > 0.0 }
 
     fun validate(amountText: String, description: String, dateIso: String): Error? {
         if (parseAmount(amountText) == null) return Error.AMOUNT

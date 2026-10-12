@@ -182,7 +182,6 @@ object GoogleDriveBackupService {
             return false
         }
         val remoteExists = remote.getOrDefault(false)
-        // No remote file yet: create one. A stale timestamp must not block that.
         if (remoteExists &&
             DriveSyncPolicy.shouldSkipAutoPush(prefs.remoteModifiedAt, prefs.lastSyncAt)
         ) {

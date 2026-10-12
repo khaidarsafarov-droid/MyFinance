@@ -4,14 +4,11 @@ import com.truckerload.utils.normalizeKey
 import java.security.MessageDigest
 
 /**
- * Stable account identifiers for multi-user local isolation.
- * Priority: Google `sub` → Supabase UUID → email hash → LOCAL_DEV.
- *
- * One Google account is one TruckerLoad login: Room / prefs are keyed by
- * [fromGoogleSub], never by a parallel Supabase UUID for the same `sub`.
+ * Identifier of the single device profile. New installs use [LOCAL_DEV]; installs upgraded
+ * from cloud-era builds keep their persisted `google_…` / `local_…` / UUID id, because the
+ * Room file and encrypted preference files are named after it.
  */
 object AccountIds {
-    /** Single-device offline mode ([com.truckerload.BuildConfig.LOCAL_ONLY_MODE]). */
     const val LOCAL_DEV = "local_dev"
 
     fun fromEmail(email: String): String {
@@ -32,27 +29,6 @@ object AccountIds {
         val hex = digest.take(16).joinToString("") { b -> "%02x".format(b) }
         return "google_$hex"
     }
-
-    /**
-     * @return account id, or null when no usable identity is available.
-     */
-    fun resolveOrNull(
-        supabaseUserId: String?,
-        email: String?,
-        googleSub: String? = null,
-    ): String? {
-        val sub = googleSub?.trim().orEmpty()
-        if (sub.isNotBlank()) return fromGoogleSub(sub)
-        val remote = supabaseUserId?.trim().orEmpty()
-        if (remote.isNotBlank()) return remote
-        val mail = email?.trim().orEmpty()
-        if (mail.isBlank()) return null
-        return fromEmail(mail)
-    }
-
-    fun resolve(supabaseUserId: String?, email: String, googleSub: String? = null): String =
-        resolveOrNull(supabaseUserId, email, googleSub)
-            ?: error("Cannot resolve account id without Supabase user id, Google sub, or email")
 
     /** Safe fragment for Room database file names. */
     fun sanitizeFilePart(userId: String): String =

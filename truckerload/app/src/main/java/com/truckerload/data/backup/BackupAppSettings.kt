@@ -24,6 +24,7 @@ data class BackupAppSettings(
     val weeklyProfitGoal: Double? = null,
     val rpmMinProfit: Double? = null,
     val rpmTargetProfit: Double? = null,
+    /** Read-compat for old backups only; never written or restored (pair again on a new phone). */
     val telegramChatId: Long? = null,
     val loadWeekStartDay: Int? = null,
     val dieselWeekStartDay: Int? = null,

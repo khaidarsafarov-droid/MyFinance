@@ -6,6 +6,7 @@ import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -78,6 +79,8 @@ class GoogleDriveApiClient(
      * Refreshes Drive file metadata. Failure is not the same as "no file":
      * a network error must not be treated as permission to overwrite the remote copy.
      */
+    suspend fun probeRemoteBackup(): Result<Boolean> = refreshRemoteBackup()
+
     suspend fun refreshRemoteBackup(): Result<Boolean> = withContext(Dispatchers.IO) {
         com.truckerload.utils.runCatchingCancellable {
             val token = accessToken()
@@ -101,6 +104,8 @@ class GoogleDriveApiClient(
         repeat(DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS) { attempt ->
             try {
                 return Result.success(block())
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
                 if (e is DriveError.NeedsUserConsent || e is DriveError.NotSignedIn) {
                     return Result.failure(e)

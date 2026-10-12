@@ -5,58 +5,51 @@ import android.util.Log
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.UserProfileStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Owns the active [UserComponent]. Create on login, destroy on logout / account switch.
- *
- * Thread-safe: MainActivity, workers, and ViewModel injection may race briefly during switch.
+ * Owns the [UserComponent] of the single device profile. Created when the profile opens,
+ * dropped only by a full data erase ([endSession]).
  */
 @Singleton
 class UserComponentManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userProfileStore: UserProfileStore,
 ) {
-    private val active = AtomicReference<UserComponent?>(null)
-    private val sessionLock = Any()
+    private val lock = Any()
+    private var active: UserComponent? = null
 
-    @Synchronized
-    fun currentOrNull(): UserComponent? = active.get()
+    fun currentOrNull(): UserComponent? = synchronized(lock) { active }
 
-    @Synchronized
-    fun currentUserIdOrNull(): String? = active.get()?.userId
+    fun currentUserIdOrNull(): String? = synchronized(lock) { active?.userId }
 
-    @Synchronized
     fun require(): UserComponent =
-        active.get()
-            ?: error("No active UserComponent — call startSession(userId) after login")
+        currentOrNull() ?: error("No active UserComponent — call startSession(userId) first")
 
-    /**
-     * Ensures a graph for [userId]. No-op when already bound to the same user.
-     * Switches atomically so [require] never sees a torn-down graph mid-switch.
-     */
-    fun startSession(userId: String): UserComponent = synchronized(sessionLock) {
+    /** Ensures the graph for [userId]. No-op when it is already open. */
+    fun startSession(userId: String): UserComponent {
         val id = userId.trim()
         require(id.isNotBlank()) { "userId required" }
-        active.get()?.let { existing ->
-            if (existing.userId == id) return existing
-            Log.i(TAG, "Switching UserComponent ${existing.userId} → $id")
-            userProfileStore.unbind()
-        } ?: Log.i(TAG, "Starting UserComponent for $id")
-        // FIX: create + swap before clearing active — no null window for concurrent readers
-        val created = UserComponent.create(context, id, userProfileStore)
-        active.set(created)
-        return created
+        synchronized(lock) {
+            active?.let { existing ->
+                if (existing.userId == id) return existing
+                Log.w(TAG, "Replacing UserComponent ${existing.userId} → $id")
+                userProfileStore.unbind()
+            }
+            return UserComponent.create(context, id, userProfileStore).also { active = it }
+        }
     }
 
-    /** Logout / guest: drop graph, close Room, unbind profile. */
-    fun endSession() = synchronized(sessionLock) {
-        val previous = active.getAndSet(null) ?: return
-        Log.i(TAG, "Ending UserComponent")
-        AppDatabase.closeIfCurrentUser(previous.userId)
-        userProfileStore.unbind()
+    /** Full data erase: drop graph, close Room, unbind profile. */
+    fun endSession() {
+        synchronized(lock) {
+            val previous = active ?: return
+            active = null
+            Log.i(TAG, "Ending UserComponent")
+            AppDatabase.closeIfCurrentUser(previous.userId)
+            userProfileStore.unbind()
+        }
     }
 
     companion object {

@@ -7,18 +7,12 @@ internal object ParseUtils {
 
     fun parseMoney(raw: String?): Double {
         if (raw.isNullOrBlank()) return 0.0
-        // FIX: comma-decimal (EU) was treated as thousands — "2500,50" became 250050
-        return com.truckerload.domain.paycheck.PaycheckSalaryFields.parseAmountAllowingZero(raw)
-            ?: 0.0
+        return DecimalInput.parse(raw) ?: 0.0
     }
 
     fun parseMiles(raw: String?): Double {
         if (raw.isNullOrBlank()) return 0.0
-        val cleaned = raw.trim()
-            .replace("mi", "", ignoreCase = true)
-            .replace(",", "")
-            .trim()
-        return cleaned.toDoubleOrNull() ?: 0.0
+        return DecimalInput.parse(raw.replace("mi", "", ignoreCase = true)) ?: 0.0
     }
 
     /**

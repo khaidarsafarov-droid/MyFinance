@@ -263,8 +263,7 @@ object DieselReceiptExtractor {
     private fun isTotalLine(line: String): Boolean =
         totalCue.containsMatchIn(line) && !explicitGallonsCue.containsMatchIn(line) && !isPpgLine(line)
 
-    private fun parseNumber(raw: String): Double? =
-        com.truckerload.domain.paycheck.PaycheckSalaryFields.parseAmount(raw)
+    private fun parseNumber(raw: String): Double? = DecimalInput.parse(raw)?.takeIf { it > 0.0 }
 
     private fun asGallons(value: Double): Double? = value.takeIf { it in GALLONS_MIN..GALLONS_MAX }
     private fun asGallons(raw: String): Double? = parseNumber(raw)?.let(::asGallons)

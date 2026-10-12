@@ -18,13 +18,16 @@ import com.truckerload.presentation.utils.decodeSampledBitmap
 import com.truckerload.utils.LocationData
 import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.PhotoManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 data class CapturedPhoto(
@@ -152,7 +155,7 @@ class CameraViewModel @Inject constructor(
             var bitmap: Bitmap? = null
             try {
                 val ctx = attachContext.await()
-                bitmap = decodeBitmap(imageFile) ?: run {
+                bitmap = withContext(Dispatchers.Default) { decodeBitmap(imageFile) } ?: run {
                     Log.w(TAG, "Failed to decode captured image: ${imageFile.absolutePath}")
                     _uiState.update {
                         it.copy(isProcessing = false, errorMessage = "decode_failed")
@@ -161,15 +164,18 @@ class CameraViewModel @Inject constructor(
                 }
                 val timestamp = System.currentTimeMillis()
                 val location = locationHelper.getCurrentLocation() ?: LocationData()
-                val savedFile = photoManager.savePhoto(
-                    bitmap = bitmap,
-                    locationData = location,
-                    timestamp = timestamp,
-                    tripId = ctx.tripId,
-                    loadDate = ctx.loadDate,
-                    watermarkTitle = ctx.tripId,
-                )
-                bitmap.recycle()
+                val decoded = bitmap
+                val savedFile = withContext(Dispatchers.IO) {
+                    photoManager.savePhoto(
+                        bitmap = decoded,
+                        locationData = location,
+                        timestamp = timestamp,
+                        tripId = ctx.tripId,
+                        loadDate = ctx.loadDate,
+                        watermarkTitle = ctx.tripId,
+                    )
+                }
+                decoded.recycle()
                 bitmap = null
                 var photo = CapturedPhoto(
                     file = savedFile,
@@ -197,6 +203,9 @@ class CameraViewModel @Inject constructor(
                         watermarkTripId = ctx.tripId,
                     )
                 }
+            } catch (e: CancellationException) {
+                bitmap?.recycle()
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to save captured photo", e)
                 bitmap?.recycle()
@@ -278,7 +287,7 @@ class CameraViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            persistUnsavedPhotos()
+            if (!persistUnsavedPhotos()) return@launch
             if (_uiState.value.errorMessage == null) {
                 _uiState.update { it.copy(saveSuccess = true) }
             }
@@ -294,17 +303,22 @@ class CameraViewModel @Inject constructor(
         val photos = _uiState.value.sessionPhotos
         if (photos.isEmpty() || _uiState.value.isProcessing) return
         viewModelScope.launch {
-            persistUnsavedPhotos()
+            if (!persistUnsavedPhotos()) return@launch
             if (_uiState.value.errorMessage != null) return@launch
             onReady(_uiState.value.sessionPhotos.map { it.file })
         }
     }
 
-    private suspend fun persistUnsavedPhotos() {
+    /** Returns false when another capture/save already holds [CameraUiState.isProcessing]. */
+    private suspend fun persistUnsavedPhotos(): Boolean {
         val ctx = attachContext.await()
-        val photos = _uiState.value.sessionPhotos
-        if (photos.all { it.savedToDb }) return
-        _uiState.update { it.copy(isProcessing = true, errorMessage = null) }
+        val previous = _uiState.getAndUpdate { state ->
+            if (state.isProcessing || state.sessionPhotos.all { it.savedToDb }) state
+            else state.copy(isProcessing = true, errorMessage = null)
+        }
+        if (previous.isProcessing) return false
+        val photos = previous.sessionPhotos
+        if (photos.all { it.savedToDb }) return true
         try {
             val updated = photos.map { photo ->
                 if (photo.savedToDb) return@map photo
@@ -321,15 +335,23 @@ class CameraViewModel @Inject constructor(
                 )
                 photo.copy(savedToDb = true, dbId = entity.id)
             }
-            _uiState.update {
-                it.copy(sessionPhotos = updated, isProcessing = false)
+            val byFile = updated.associateBy { it.file }
+            _uiState.update { state ->
+                state.copy(
+                    sessionPhotos = state.sessionPhotos.map { byFile[it.file] ?: it },
+                    isProcessing = false,
+                )
             }
+        } catch (e: CancellationException) {
+            _uiState.update { it.copy(isProcessing = false) }
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to persist session photos", e)
             _uiState.update {
                 it.copy(isProcessing = false, errorMessage = "save_failed")
             }
         }
+        return true
     }
 
     fun clearSaveSuccess() {
@@ -360,5 +382,12 @@ class CameraViewModel @Inject constructor(
     companion object {
         private const val TAG = "CameraViewModel"
         private const val MAX_CAPTURE_EDGE_PX = 2048
+
+        /** Largest power of two that still keeps the long edge at or above [targetEdge]. */
+        internal fun sampleSizeFor(longEdge: Int, targetEdge: Int): Int {
+            var sample = 1
+            while (longEdge / (sample * 2) >= targetEdge) sample *= 2
+            return sample
+        }
     }
 }

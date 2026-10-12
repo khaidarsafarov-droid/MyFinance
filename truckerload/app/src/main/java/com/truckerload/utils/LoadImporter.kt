@@ -11,6 +11,7 @@ import com.truckerload.domain.parser.ParserConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import com.truckerload.domain.parser.DecimalInput
 
 object LoadImporter {
 
@@ -157,8 +158,7 @@ object LoadImporter {
         return ParsedLoadRow(date, pointA, pointB, miles, rate)
     }
 
-    private fun parseNumber(raw: String): Double =
-        raw.replace(",", "").trim().toDoubleOrNull() ?: 0.0
+    private fun parseNumber(raw: String): Double = DecimalInput.parse(raw) ?: 0.0
 
     private fun toIsoDate(displayDate: String): String {
         val parts = displayDate.split(".")

@@ -5,6 +5,7 @@ import com.truckerload.domain.model.MaintenanceReminderType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.truckerload.domain.parser.DecimalInput
 
 data class TaskDraft(
     val title: String = "",
@@ -19,7 +20,7 @@ data class ArchiveLineDraft(
     val description: String = "",
     val amount: String = "",
 ) {
-    fun parsedAmount(): Double? = amount.replace(',', '.').trim().toDoubleOrNull()
+    fun parsedAmount(): Double? = DecimalInput.parse(amount)
 }
 
 data class ArchiveDraft(

@@ -16,6 +16,8 @@ import com.truckerload.utils.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,8 +110,9 @@ class ScannerViewModel @Inject constructor(
                 )
                 val session = _uiState.value.sessionScans + newScan
                 val oldMerged = _uiState.value.pendingScan?.takeIf { it.isMerged && !it.savedToDb }
-                val display = buildMergedPending(session, timestamp)
-                withContext(Dispatchers.IO) { oldMerged?.file?.delete() }
+                val display = withContext(Dispatchers.IO) {
+                    buildMergedPending(session, timestamp).also { oldMerged?.file?.delete() }
+                }
                 // Attached-to-load: show result first (share, then save). Do not auto-persist.
                 _uiState.update {
                     it.copy(
@@ -285,6 +288,8 @@ class ScannerViewModel @Inject constructor(
                     autoAttachedAndDone = finishAfter,
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             _uiState.update { it.copy(errorKey = "scan_error_keep") }
         }

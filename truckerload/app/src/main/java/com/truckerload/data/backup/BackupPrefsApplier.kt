@@ -43,7 +43,6 @@ object BackupPrefsApplier {
         settings.lastEquipmentType?.let { name ->
             EquipmentType.fromStorage(name)?.let { store.saveLastEquipmentType(it) }
         }
-        settings.telegramChatId?.let { store.saveTelegramChatId(it) }
         settings.loadWeekStartDay?.let { store.saveLoadWeekStartDay(WeekStartDay.fromCalendarDay(it)) }
         settings.dieselWeekStartDay?.let { store.saveDieselWeekStartDay(WeekStartDay.fromCalendarDay(it)) }
         WeekStartRuntime.install(

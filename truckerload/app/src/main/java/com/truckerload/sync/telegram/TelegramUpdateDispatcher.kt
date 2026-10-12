@@ -476,7 +476,8 @@ class TelegramUpdateDispatcher(
     /**
      * Pairing rules:
      * - Bound chat: only that chat id is accepted (others get a short reject).
-     * - Unbound: `/start` in a private chat binds once; other traffic is rejected.
+     * - Unbound: `/start <code>` in a private chat, with the one-time code shown in Settings,
+     *   binds once; other traffic is rejected.
      * Never overwrite a bound chat id from inbound messages.
      */
     private suspend fun answerCallback(update: TelegramUpdate, text: String) {
@@ -505,10 +506,9 @@ class TelegramUpdateDispatcher(
             Log.w(TAG, "Rejected unauthorized chatId=$chatIdLong (bound=$bound)")
             return ChatGate.Foreign
         }
-        val raw = update.text.trim()
-        val isStart = isCommand(raw, "/start") ||
-            (update.isCallbackQuery && TelegramBotFeatures.menuButtonToCommand(raw) == "/start")
-        if (isStart && (update.chatType == "private" || update.chatType.isBlank())) {
+        val code = telegramStartPayload(update.text)
+        val isPrivate = update.chatType == "private" || update.chatType.isBlank()
+        if (!update.isCallbackQuery && isPrivate && code != null && settings.consumeTelegramPairingCode(code)) {
             settings.saveTelegramChatId(chatIdLong)
             Log.i(TAG, "Paired Telegram chatId=$chatIdLong")
             return ChatGate.JustPaired
@@ -528,4 +528,13 @@ class TelegramUpdateDispatcher(
     private companion object {
         const val TAG = "TelegramBotSync"
     }
+}
+
+/** `/start ABC` or `/start@bot ABC` → `ABC`; null when it is not `/start` or has no argument. */
+internal fun telegramStartPayload(text: String): String? {
+    val command = text.trim().substringBefore(' ')
+    if (!command.equals("/start", ignoreCase = true) && !command.startsWith("/start@", ignoreCase = true)) {
+        return null
+    }
+    return text.trim().substringAfter(' ', missingDelimiterValue = "").trim().takeIf { it.isNotEmpty() }
 }

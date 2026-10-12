@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.add
 import com.truckerload.domain.parser.LoadCompleteness
 import com.truckerload.domain.parser.LoadCompletenessChecker
 import com.truckerload.domain.parser.LoadDraftFields
+import com.truckerload.domain.parser.DecimalInput
 
 enum class AddLoadInputMode {
     PASTE,
@@ -20,9 +21,9 @@ data class ManualLoadFields(
     /** Extra stops after B: C, D, E, … */
     val extraPoints: List<String> = emptyList(),
 ) {
-    fun parsedRate(): Double? = rate.replace(",", ".").trim().toDoubleOrNull()
+    fun parsedRate(): Double? = DecimalInput.parse(rate)
 
-    fun parsedMiles(): Double = miles.replace(",", ".").trim().toDoubleOrNull() ?: 0.0
+    fun parsedMiles(): Double = DecimalInput.parse(miles) ?: 0.0
 
     fun allPoints(): List<String> = listOf(pointA, pointB) + extraPoints
 

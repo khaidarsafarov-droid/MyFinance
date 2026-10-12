@@ -63,7 +63,6 @@ object BackupSnapshotBuilder {
             notifyMissingWeek = settings.getNotifyMissingWeekOnce(),
             notifyMaintenance = settings.getNotifyMaintenanceOnce(),
             lastEquipmentType = settings.getLastEquipmentTypeOnce()?.name,
-            telegramChatId = settings.getTelegramChatIdOnce(),
             loadWeekStartDay = settings.getLoadWeekStartDayOnce().calendarDay,
             dieselWeekStartDay = settings.getDieselWeekStartDayOnce().calendarDay,
         )
@@ -86,7 +85,6 @@ object BackupSnapshotBuilder {
             weeklyProfitGoal = goals.getGoal().takeIf { goals.isConfigured },
             rpmMinProfit = rpm.minProfit,
             rpmTargetProfit = rpm.targetProfit,
-            telegramChatId = settings.getTelegramChatIdOnce(),
             loadWeekStartDay = settings.getLoadWeekStartDayOnce().calendarDay,
             dieselWeekStartDay = settings.getDieselWeekStartDayOnce().calendarDay,
         )

@@ -22,6 +22,8 @@ class GoogleSessionPersistTest {
     fun setUp() {
         AuthStore.resetForTests()
         SecurePreferences.resetFallbackForTests()
+        // The device profile is pinned once set, so start every case without a session.
+        AuthStore(RuntimeEnvironment.getApplication()).logout()
     }
 
     @After
@@ -194,77 +196,41 @@ class GoogleSessionPersistTest {
     }
 
     @Test
-    fun googleUuidSessionRewritesToCanonicalGoogleIdOnColdStart() {
+    fun activeProfileIsPinnedWhenAnotherIdLogsIn() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)
-        val sub = "unify-cold-sub"
+        auth.login(
+            userId = AccountIds.LOCAL_DEV,
+            email = LocalDeviceOnboarding.LOCAL_EMAIL,
+            rememberMe = true,
+        )
+
         auth.login(
             userId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            email = "other@example.com",
+            rememberMe = true,
+            googleSub = "other-sub",
+            provider = AuthProvider.GOOGLE,
+        )
+
+        assertEquals(AccountIds.LOCAL_DEV, auth.currentUserIdOrNull())
+        AuthStore.resetForTests()
+        assertEquals(AccountIds.LOCAL_DEV, AuthStore(context).currentUserIdOrNull())
+    }
+
+    @Test
+    fun upgradedInstallKeepsPersistedLegacyIdOnColdStart() {
+        val context = RuntimeEnvironment.getApplication()
+        val legacyId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        AuthStore(context).login(
+            userId = legacyId,
             email = "voice@example.com",
             rememberMe = true,
-            googleSub = sub,
-            provider = AuthProvider.GOOGLE,
+            provider = AuthProvider.EMAIL,
         )
         AuthStore.resetForTests()
         val restored = AuthStore(context)
-        assertEquals(AccountIds.fromGoogleSub(sub), restored.currentUserIdOrNull())
+        assertEquals(legacyId, restored.currentUserIdOrNull())
         assertTrue(restored.isLoggedIn.value)
-    }
-
-    @Test
-    fun googleLoginWithSupabaseUuidCopiesJournalToCanonicalId() {
-        val context = RuntimeEnvironment.getApplication()
-        val uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-        val sub = "unify-login-sub"
-        val source = context.getDatabasePath(
-            com.truckerload.data.local.AppDatabase.databaseNameFor(uuid),
-        )
-        source.parentFile?.mkdirs()
-        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(source, null).use { db ->
-            db.execSQL("CREATE TABLE t(id INTEGER PRIMARY KEY)")
-            db.execSQL("INSERT INTO t VALUES (7)")
-        }
-
-        val auth = AuthStore(context)
-        auth.login(
-            userId = uuid,
-            email = "same@example.com",
-            rememberMe = true,
-            googleSub = sub,
-            provider = AuthProvider.GOOGLE,
-        )
-
-        val canonical = AccountIds.fromGoogleSub(sub)
-        assertEquals(canonical, auth.currentUserIdOrNull())
-        assertTrue(
-            com.truckerload.data.local.DatabaseFileCopy.isHealthyDatabase(
-                context.getDatabasePath(
-                    com.truckerload.data.local.AppDatabase.databaseNameFor(canonical),
-                ),
-            ),
-        )
-    }
-
-    @Test
-    fun tryCompleteLogin_oneGoogleAccountIgnoresSupabaseUuid() {
-        val context = RuntimeEnvironment.getApplication()
-        val auth = AuthStore(context)
-        val profiles = UserProfileStore(context)
-        val sub = "one-google-one-login"
-        val ok = AuthLogin.tryCompleteLogin(
-            authStore = auth,
-            userProfileStore = profiles,
-            supabaseUserId = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
-            profile = UserProfile(
-                email = "driver@example.com",
-                givenName = "D",
-                familyName = "R",
-                photoUrl = null,
-                googleId = sub,
-            ),
-        )
-        assertTrue(ok)
-        assertEquals(AccountIds.fromGoogleSub(sub), auth.currentUserIdOrNull())
-        assertEquals(AccountIds.fromGoogleSub(sub), profiles.boundUserIdOrNull)
     }
 }

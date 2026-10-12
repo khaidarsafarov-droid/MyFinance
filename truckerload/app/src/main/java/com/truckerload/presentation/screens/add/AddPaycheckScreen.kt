@@ -48,6 +48,7 @@ import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.formatDateTimeForDisplay
 import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekRange
+import com.truckerload.domain.parser.DecimalInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +105,7 @@ fun AddPaycheckScreen(
             onEditDateTime = { showDatePicker = true },
             dateTimeLabel = formatDateTimeForDisplay(uiState.recordedAtMillis),
         ) {
-            val previewAmount = uiState.amountText.replace(",", "").toDoubleOrNull()
+            val previewAmount = DecimalInput.parse(uiState.amountText)
             if (previewAmount != null) {
                 Text(
                     MoneyFormat.formatCurrency(previewAmount, decimals = 2),
@@ -227,7 +228,7 @@ fun AddPaycheckScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = AppTextFieldDefaults.outlined(),
                 )
-                val parsedAmount = uiState.amountText.replace(",", "").toDoubleOrNull()
+                val parsedAmount = DecimalInput.parse(uiState.amountText)
                 if (parsedAmount != null) {
                     Text(
                         text = MoneyFormat.formatCurrency(parsedAmount, decimals = 2),
