@@ -30,14 +30,14 @@ object FlexibleLoadParser {
     private val pickupPatterns = listOf(
         // FIX: \b on From — otherwise "Platform:" / "Freeform:" can steal the pickup
         Regex(
-            """(?:Pu[\s\-]*address|Pickup(?:\s*Location)?|\bFrom\b|Origin|Погрузка)\s*[:]\s*(.+)""",
+            """(?:Pu[\s\-]*address|Pickup(?:\s*(?:Location|City))?|\bFrom\b|Origin|Shipper|Погрузка)\s*[:]\s*(.+)""",
             RegexOption.IGNORE_CASE,
         ),
     )
     private val deliveryPatterns = listOf(
         // FIX: \b on To — otherwise "Total Rate:" / "Auto:" can steal the delivery
         Regex(
-            """(?:Del[\s\-]*address|Delivery(?:\s*Location)?|\bTo\b|Destination|Разгрузка)\s*[:]\s*(.+)""",
+            """(?:Del[\s\-]*address|Delivery(?:\s*(?:Location|City))?|\bTo\b|Destination|Consignee|Разгрузка)\s*[:]\s*(.+)""",
             RegexOption.IGNORE_CASE,
         ),
     )
@@ -48,7 +48,7 @@ object FlexibleLoadParser {
         """\b([A-Z][A-Za-z .'\-]{1,32},\s*[A-Za-z]{2}(?:\s+\d{5}(?:-\d{4})?)?)\b""",
     )
     private val standaloneLabel = Regex(
-        """^(?:Trip\s*ID|Load\s*(?:ID|#|Number)|Confirmation(?:\s*(?:#|No\.?|Number))?|Total\s*Rate|Line\s*-?\s*Haul(?:\s*Rate)?|All[\s-]?in(?:\s*rate)?|Rate|Pay|Оплата|Ставка|Total\s*Loaded\s*Miles|Loaded\s*Miles|Miles|Мил[иь]|Distance|Pu[\s\-]*address|Pickup(?:\s*Location)?|Origin|Погрузка|Del[\s\-]*address|Delivery(?:\s*Location)?|Destination|Разгрузка|Date|Load\s*Date)\s*:?\s*$""",
+        """^(?:Trip\s*ID|Load\s*(?:ID|#|Number)|Confirmation(?:\s*(?:#|No\.?|Number))?|Total\s*Rate|Line\s*-?\s*Haul(?:\s*Rate)?|All[\s-]?in(?:\s*rate)?|Rate|Pay|Оплата|Ставка|Total\s*Loaded\s*Miles|Loaded\s*Miles|Miles|Мил[иь]|Distance|Pu[\s\-]*address|Pickup(?:\s*(?:Location|City))?|Origin|Shipper|Погрузка|Del[\s\-]*address|Delivery(?:\s*(?:Location|City))?|Destination|Consignee|Разгрузка|Date|Load\s*Date)\s*:?\s*$""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -141,11 +141,34 @@ object FlexibleLoadParser {
         return true
     }
 
-    private fun firstMoney(text: String): Double? =
-        ratePatterns.firstNotNullOfOrNull { pattern ->
-            pattern.find(text)?.groupValues?.get(1)?.let { ParseUtils.parseMoney(it) }
-                ?.takeIf { it > 0.0 }
+    private val notRateLine = Regex(
+        """mile|gallon|gal\b|deduct|fee|tax|surcharge|percent|%|per\s*mile|\brpm\b|ppg|#\s*\d""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Specific labels win. A bare dollar or a generic "Pay:" on a miles/fee line is skipped. */
+    private fun firstMoney(text: String): Double? {
+        val looseFrom = ratePatterns.size - 2
+        for ((index, pattern) in ratePatterns.withIndex()) {
+            val amount = pattern.findAll(text).firstNotNullOfOrNull { match ->
+                val value = ParseUtils.parseMoney(match.groupValues[1]).takeIf { it > 0.0 }
+                    ?: return@firstNotNullOfOrNull null
+                if (index >= looseFrom && notRateLine.containsMatchIn(lineAt(text, match.range.first))) {
+                    return@firstNotNullOfOrNull null
+                }
+                value
+            }
+            if (amount != null) return amount
         }
+        return null
+    }
+
+    private fun lineAt(text: String, index: Int): String {
+        if (index !in text.indices) return ""
+        val start = text.lastIndexOf('\n', index - 1).let { if (it < 0) 0 else it + 1 }
+        val end = text.indexOf('\n', index).let { if (it < 0) text.length else it }
+        return text.substring(start, end)
+    }
 
     private fun firstMiles(text: String): Double? =
         milesPatterns.mapNotNull { pattern ->

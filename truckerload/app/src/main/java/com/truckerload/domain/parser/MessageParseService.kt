@@ -19,37 +19,53 @@ class MessageParseService {
     }
 
     /**
-     * Any inbound payload of unknown layout: structured JSON, Relay blocks, broker
-     * rate confirmations, then loose paste / OCR text. Shared by the bot and the app.
+     * Any inbound payload of unknown layout. Every parser runs; the ranker keeps the
+     * candidate whose rate, miles, and stops agree. Shared by the bot and the app.
      */
     fun parseLoadsFromInboundText(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
         fileName: String? = null,
     ): Result<List<Load>> = runCatching {
-        val json = JsonLoadParser.parseAll(rawMessage, referenceMillis)
-        if (json.isNotEmpty()) return@runCatching json
-        val relay = LoadMessageParser.parseAll(rawMessage, referenceMillis)
-        if (relay.isNotEmpty()) return@runCatching relay
-        val rows = DelimitedLoadParser.parseAll(rawMessage, referenceMillis)
-        if (rows.isNotEmpty()) return@runCatching rows
-        listOfNotNull(anyLayoutLoad(rawMessage, referenceMillis, fileName))
+        val chosen = LoadCandidateRanker.choose(loadGroups(rawMessage, referenceMillis, fileName))
+        if (LoadCandidateRanker.keepDespiteReceipt(classify(rawMessage), chosen)) chosen else emptyList()
     }
 
-    /** Non-Relay single load: rate confirmation, loose text, or a flattened JSON dump. */
-    private fun anyLayoutLoad(
+    /** Every parser that can read this text. The ranker, not call order, decides the winner. */
+    private fun loadGroups(
         rawMessage: String,
         referenceMillis: Long,
-        fileName: String? = null,
-    ): Load? {
-        RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)?.let { return it }
-        FlexibleLoadParser.parseOne(rawMessage, referenceMillis)?.let { return it }
-        DelimitedLoadParser.parseOne(rawMessage, referenceMillis)?.let { return it }
+        fileName: String?,
+    ): List<LoadParseGroup> {
         val flattened = JsonLoadParser.flattenToText(rawMessage)
-        if (flattened.isBlank()) return null
-        return FlexibleLoadParser.parseOne(flattened, referenceMillis)
-            ?.copy(rawMessage = rawMessage)
+        val fromFlat = if (flattened.isBlank()) {
+            emptyList()
+        } else {
+            listOfNotNull(
+                FlexibleLoadParser.parseOne(flattened, referenceMillis)?.copy(rawMessage = rawMessage),
+            )
+        }
+        return listOf(
+            LoadParseGroup(LoadParseSource.JSON, JsonLoadParser.parseAll(rawMessage, referenceMillis)),
+            LoadParseGroup(LoadParseSource.RELAY, LoadMessageParser.parseAll(rawMessage, referenceMillis)),
+            LoadParseGroup(LoadParseSource.DELIMITED, DelimitedLoadParser.parseAll(rawMessage, referenceMillis)),
+            LoadParseGroup(
+                LoadParseSource.RATE_CONFIRMATION,
+                listOfNotNull(RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)),
+            ),
+            LoadParseGroup(
+                LoadParseSource.FLEXIBLE,
+                listOfNotNull(FlexibleLoadParser.parseOne(rawMessage, referenceMillis)),
+            ),
+            LoadParseGroup(LoadParseSource.FLEXIBLE, fromFlat),
+        )
     }
+
+    private fun bestLoad(
+        rawMessage: String,
+        referenceMillis: Long,
+        fileName: String?,
+    ): Load? = LoadCandidateRanker.chooseOne(loadGroups(rawMessage, referenceMillis, fileName))
 
     fun parseLoadFromMessage(
         rawMessage: String,
@@ -59,15 +75,13 @@ class MessageParseService {
             ?: throw IllegalArgumentException("No valid load found in message")
     }
 
-    /** Add-load screen: Relay first, then JSON / rate confirmation / loose paste. */
+    /** Add-load screen: the parser whose numbers agree, not the first one that matched. */
     fun parseLoadFromUserInput(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
         fileName: String? = null,
     ): Result<Load> = runCatching {
-        parseAmazonRelayLoad(rawMessage, referenceMillis)?.load
-            ?: JsonLoadParser.parseOne(rawMessage, referenceMillis)
-            ?: anyLayoutLoad(rawMessage, referenceMillis, fileName)
+        bestLoad(rawMessage, referenceMillis, fileName)
             ?: throw IllegalArgumentException("No valid load found in message")
     }
 
@@ -80,14 +94,7 @@ class MessageParseService {
         referenceMillis: Long = System.currentTimeMillis(),
         fileName: String? = null,
     ): LoadDraftFields {
-        parseAmazonRelayLoad(rawMessage, referenceMillis)?.load?.let { return LoadDraftFields.fromLoad(it) }
-        JsonLoadParser.parseOne(rawMessage, referenceMillis)?.let { return LoadDraftFields.fromLoad(it) }
-        RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)?.let {
-            return LoadDraftFields.fromLoad(it)
-        }
-        DelimitedLoadParser.parseOne(rawMessage, referenceMillis)?.let {
-            return LoadDraftFields.fromLoad(it)
-        }
+        bestLoad(rawMessage, referenceMillis, fileName)?.let { return LoadDraftFields.fromLoad(it) }
         val direct = FlexibleLoadParser.extractFields(rawMessage)
         if (!direct.isEmpty()) return direct
         val flattened = JsonLoadParser.flattenToText(rawMessage)

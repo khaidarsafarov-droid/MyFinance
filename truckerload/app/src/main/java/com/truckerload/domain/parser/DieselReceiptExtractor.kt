@@ -149,14 +149,43 @@ object DieselReceiptExtractor {
         val cityStateLine = cityState.find(raw)?.value?.trim()
         val location = buildLocation(labeledLocation, vendor, cityStateLine)
 
-        return DieselReceiptFields(
-            gallons = gallons,
-            pricePerGallon = ppg,
-            discountPricePerGallon = discount,
-            totalAmount = total,
-            location = location,
-            vendor = vendor,
+        return reconcile(
+            DieselReceiptFields(
+                gallons = gallons,
+                pricePerGallon = ppg,
+                discountPricePerGallon = discount,
+                totalAmount = total,
+                location = location,
+                vendor = vendor,
+            ),
+            raw,
         )
+    }
+
+    /**
+     * Gallons × price must land on the total. A grade such as diesel #2 is not a gallon count;
+     * when it disagrees with the receipt, the gallons are rebuilt from total ÷ price.
+     */
+    internal fun reconcile(fields: DieselReceiptFields, text: String): DieselReceiptFields {
+        val gallons = fields.gallons ?: return fields
+        val price = fields.pricePerGallon ?: fields.discountPricePerGallon ?: return fields
+        val total = fields.totalAmount ?: return fields
+        if (close(gallons * price, total)) {
+            return if (fields.pricePerGallon == null) fields.copy(pricePerGallon = price) else fields
+        }
+        val discount = fields.discountPricePerGallon
+        if (discount != null && fields.pricePerGallon != null && close(gallons * discount, total)) {
+            return fields.copy(pricePerGallon = discount)
+        }
+        val grade = gallons <= GRADE_GALLONS_MAX && fuelGrade.containsMatchIn(text)
+        if (!grade) return fields
+        val rebuilt = asGallons(total / price)
+        return fields.copy(gallons = rebuilt)
+    }
+
+    private fun close(product: Double, total: Double): Boolean {
+        val gap = kotlin.math.abs(product - total)
+        return gap <= 0.75 || gap <= total * 0.02
     }
 
     private fun harvestAdjacent(
@@ -251,6 +280,8 @@ object DieselReceiptExtractor {
         return text.trimEnd('0').trimEnd('.')
     }
 
+    private val fuelGrade = Regex("""#\s*\d|\bgrade\b""", RegexOption.IGNORE_CASE)
+    private const val GRADE_GALLONS_MAX = 9.0
     private const val GALLONS_MIN = 0.1
     private const val GALLONS_MAX = 400.0
     private const val PPG_MIN = 0.5
