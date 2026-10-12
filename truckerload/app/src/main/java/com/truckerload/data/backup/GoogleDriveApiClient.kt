@@ -6,6 +6,7 @@ import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -74,8 +75,11 @@ class GoogleDriveApiClient(
         }
     }
 
-    suspend fun hasRemoteBackup(): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
+    suspend fun hasRemoteBackup(): Boolean = probeRemoteBackup().getOrDefault(false)
+
+    /** Refreshes remote metadata; a failure means the remote state is unknown. */
+    suspend fun probeRemoteBackup(): Result<Boolean> = withContext(Dispatchers.IO) {
+        withRetry {
             val token = accessToken()
             val meta = findBackupFileMeta(token)
             if (meta != null) {
@@ -83,7 +87,7 @@ class GoogleDriveApiClient(
                 prefs.remoteModifiedAt = meta.modifiedAt
             }
             meta != null
-        }.getOrDefault(false)
+        }
     }
 
     /** Remote newer than last successful local sync — useful for restore warnings. */
@@ -95,6 +99,8 @@ class GoogleDriveApiClient(
         repeat(DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS) { attempt ->
             try {
                 return Result.success(block())
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
                 if (e is DriveError.NeedsUserConsent || e is DriveError.NotSignedIn) {
                     return Result.failure(e)

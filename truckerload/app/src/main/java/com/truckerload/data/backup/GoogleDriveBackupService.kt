@@ -171,7 +171,12 @@ object GoogleDriveBackupService {
         if (!prefs.isLinked && !isDriveScopeGranted(app)) return true
         syncLinkedAccountFromGoogle(app)
         val client = GoogleDriveApiClient(app, prefs)
-        runCatching { client.hasRemoteBackup() }
+        client.probeRemoteBackup().onFailure {
+            prefs.lastSyncError = it.message ?: "auto_push_probe_failed"
+            prefs.lastSyncErrorAt = System.currentTimeMillis()
+            Log.w(TAG, "auto push skipped — remote state unknown: ${it.message}")
+            return false
+        }
         // FIX: auto-push used to PATCH Drive even when remote was newer (or this device never synced)
         if (DriveSyncPolicy.shouldSkipAutoPush(prefs.remoteModifiedAt, prefs.lastSyncAt)) {
             Log.i(TAG, "auto push skipped — remote backup is newer or unsynced on this device")
