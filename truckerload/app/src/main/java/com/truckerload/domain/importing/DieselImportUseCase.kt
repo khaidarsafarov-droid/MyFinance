@@ -4,6 +4,7 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getMillisForWeek
+import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import java.util.Calendar
 import java.util.Locale
@@ -14,8 +15,11 @@ class DieselImportUseCase @Inject constructor(
 ) {
 
     suspend fun buildReview(import: DieselSpreadsheetImport): DieselImportReview {
-        val existing = dieselRepository.getDieselForWeekOnce(import.weekNumber, import.year)
         val preview = import.fills.map { fill -> toDiesel(import, fill, id = 0) }
+        val existing = preview
+            .map { it.weekNumber to it.year }
+            .distinct()
+            .flatMap { (week, year) -> dieselRepository.getDieselForWeekOnce(week, year) }
         val comparison = DieselImportComparison(
             existingCount = existing.size,
             importedCount = preview.size,
@@ -39,30 +43,39 @@ class DieselImportUseCase @Inject constructor(
                 review.importedPreview.forEach { dieselRepository.insertDiesel(it) }
             }
             DieselImportAction.REPLACE_WEEK -> {
-                dieselRepository.replaceWeekFills(
-                    weekNumber = review.import.weekNumber,
-                    year = review.import.year,
-                    fills = review.importedPreview,
-                )
+                review.importedPreview
+                    .groupBy { it.weekNumber to it.year }
+                    .forEach { (week, fills) ->
+                        dieselRepository.replaceWeekFills(
+                            weekNumber = week.first,
+                            year = week.second,
+                            fills = fills,
+                        )
+                    }
             }
         }
     }
 
     fun toDiesel(import: DieselSpreadsheetImport, fill: ParsedDieselFill, id: Int): Diesel {
-        val (weekStart, weekEnd, weekLabel) = getWeekRange(import.weekNumber, import.year, WeekStartRuntime.diesel)
+        val (weekNumber, year) = dieselReportingWeek(
+            transactionDate = fill.transactionDate,
+            fallbackWeek = import.weekNumber,
+            fallbackYear = import.year,
+        )
+        val (weekStart, weekEnd, weekLabel) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
         val addedAt = fill.transactionDate?.let { dateToMillis(it) }
-            ?: getMillisForWeek(import.weekNumber, import.year, WeekStartRuntime.diesel)
+            ?: getMillisForWeek(weekNumber, year, WeekStartRuntime.diesel)
         return Diesel(
             id = id,
-            weekNumber = import.weekNumber,
-            year = import.year,
+            weekNumber = weekNumber,
+            year = year,
             weekLabel = weekLabel,
             weekStartDate = weekStart,
             weekEndDate = weekEnd,
             totalAmount = fill.totalAmount,
             gallons = fill.gallons,
             pricePerGallon = fill.pricePerGallon,
-            discountPricePerGallon = null,
+            discountPricePerGallon = fill.discountPricePerGallon,
             location = fill.location,
             rawExtractedText = fill.rawLine,
             sourceFileName = import.fileName,
@@ -85,4 +98,14 @@ class DieselImportUseCase @Inject constructor(
         }
         return cal.timeInMillis
     }
+}
+
+/** Week of the fill's own date. Falls back to the file's anchor week when the date is missing. */
+internal fun dieselReportingWeek(
+    transactionDate: String?,
+    fallbackWeek: Int,
+    fallbackYear: Int,
+): Pair<Int, Int> {
+    if (transactionDate.isNullOrBlank()) return fallbackWeek to fallbackYear
+    return getWeekNumberAndYearFromDate(transactionDate, WeekStartRuntime.diesel)
 }

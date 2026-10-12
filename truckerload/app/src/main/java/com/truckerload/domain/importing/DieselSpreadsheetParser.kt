@@ -3,6 +3,7 @@ package com.truckerload.domain.importing
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
+import java.time.LocalDate
 import java.util.Locale
 
 /**
@@ -16,29 +17,42 @@ object DieselSpreadsheetParser {
     private val ISO_DATE = Regex("""(\d{4})-(\d{2})-(\d{2})""")
     private val US_DATE = Regex("""(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})""")
 
+    /** Excel 1900 date system: serial 1 is 1900-01-01, so day 0 is 1899-12-30. */
+    private val EXCEL_EPOCH: LocalDate = LocalDate.of(1899, 12, 30)
+    private const val MIN_EXCEL_SERIAL = 20_000.0
+    private const val MAX_EXCEL_SERIAL = 80_000.0
+
     private val DATE_HEADERS = setOf(
         "date", "transaction date", "trans date", "trx date", "post date", "purchase date",
         "дата",
     )
-    private val GALLONS_HEADERS = setOf(
-        "gallons", "qty", "quantity", "volume", "fuel qty", "product qty", "total qty",
-        "галлоны", "гал",
+    private val GALLONS_EXACT = setOf(
+        "gallons", "qty", "quantity", "volume", "галлоны", "гал",
     )
-    private val PRICE_HEADERS = setOf(
+    private val GALLONS_HEADERS = GALLONS_EXACT + setOf(
+        "fuel qty", "product qty", "total qty",
+    )
+    private val LIST_PRICE_HEADERS = setOf(
         "ppg", "price per gallon", "unit price", "price/gal", "avg ppg", "price / gal",
         "цена / гал", "цена за галлон",
     )
-    private val AMOUNT_HEADERS = setOf(
-        "amount", "total", "gross", "net amount", "total amount", "fuel cost", "spend",
-        "сумма", "итого",
+    private val DISCOUNT_PRICE_HEADERS = setOf(
+        "disc ppu", "discount ppu", "disc ppg", "discount ppg", "discount price", "disc price",
     )
+    private val AMOUNT_EXACT = setOf(
+        "amt", "amount", "net amount", "total amount", "fuel cost", "сумма",
+    )
+    private val AMOUNT_LOOSE = setOf("gross", "spend", "итого", "total")
     private val LOCATION_HEADERS = setOf(
-        "location", "merchant", "site", "station", "merchant name", "city", "stop",
+        "location", "merchant", "site", "station", "merchant name", "stop",
         "место", "локация", "маршрут",
     )
+    private val CITY_HEADERS = setOf("city", "город")
+    private val STATE_HEADERS = setOf("state", "state/prov", "province", "штат")
     private val PRODUCT_HEADERS = setOf(
-        "product", "fuel type", "fuel", "product description", "type",
+        "product", "fuel type", "fuel", "product description", "type", "item",
     )
+    private val DRIVER_HEADERS = setOf("driver", "driver name", "driver's name", "водитель")
 
     fun parse(bytes: ByteArray, fileName: String): DieselSpreadsheetImport {
         val tables = XlsxWorkbookReader.readAllSheets(bytes)
@@ -48,20 +62,27 @@ object DieselSpreadsheetParser {
         val headerIdx = findHeaderRowIndex(table)
             ?: error("header_not_found")
         val columns = mapColumns(table[headerIdx])
+        var driverFromSheet: String? = null
         val fills = table.drop(headerIdx + 1).mapNotNull { row ->
+            if (driverFromSheet == null) {
+                driverFromSheet = columns.driver?.let { cellAt(row, it) }
+            }
             parseDataRow(row, columns)
         }
         require(fills.isNotEmpty()) { "no_fuel_rows" }
-        val weekStart = meta?.second ?: fills.firstNotNullOfOrNull { it.transactionDate }
+        val anchorDate = meta?.second ?: fills.firstNotNullOfOrNull { it.transactionDate }
             ?: error("week_unknown")
-        val weekEnd = meta?.third ?: weekStart
-        val (weekNumber, year) = getWeekNumberAndYearFromDate(weekStart, WeekStartRuntime.diesel)
+        val (weekNumber, year) = getWeekNumberAndYearFromDate(anchorDate, WeekStartRuntime.diesel)
         val (canonicalStart, canonicalEnd, _) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
+        val weekEnd = fills.mapNotNull { it.transactionDate }.maxOrNull()?.let { lastDate ->
+            val (endWeek, endYear) = getWeekNumberAndYearFromDate(lastDate, WeekStartRuntime.diesel)
+            getWeekRange(endWeek, endYear, WeekStartRuntime.diesel).second
+        } ?: canonicalEnd
         return DieselSpreadsheetImport(
             fileName = fileName,
-            driverName = meta?.first,
+            driverName = meta?.first ?: driverFromSheet,
             weekStartDate = canonicalStart,
-            weekEndDate = canonicalEnd,
+            weekEndDate = maxOf(canonicalEnd, weekEnd),
             weekNumber = weekNumber,
             year = year,
             fills = fills,
@@ -85,35 +106,81 @@ object DieselSpreadsheetParser {
     private fun headerScore(row: List<String>): Int {
         val normalized = row.map { normalizeHeader(it) }
         var score = 0
-        if (normalized.any { DATE_HEADERS.any { h -> it.contains(h) } }) score++
-        if (normalized.any { GALLONS_HEADERS.any { h -> it.contains(h) } }) score++
-        if (normalized.any { AMOUNT_HEADERS.any { h -> it.contains(h) } }) score++
-        if (normalized.any { LOCATION_HEADERS.any { h -> it.contains(h) } }) score++
-        if (normalized.any { PRICE_HEADERS.any { h -> it.contains(h) } }) score++
+        if (pick(normalized, DATE_HEADERS) != null) score++
+        if (pickGallons(normalized) != null) score++
+        if (pickAmount(normalized) != null) score++
+        if (pick(normalized, LOCATION_HEADERS) != null || pick(normalized, CITY_HEADERS) != null) score++
+        if (pickListPrice(normalized) != null || pick(normalized, DISCOUNT_PRICE_HEADERS) != null) score++
         return score
     }
 
     private data class ColumnMap(
         val date: Int? = null,
         val gallons: Int? = null,
-        val price: Int? = null,
+        val listPrice: Int? = null,
+        val discountPrice: Int? = null,
         val amount: Int? = null,
         val location: Int? = null,
+        val city: Int? = null,
+        val state: Int? = null,
         val product: Int? = null,
+        val driver: Int? = null,
     )
 
     private fun mapColumns(header: List<String>): ColumnMap {
         val normalized = header.map { normalizeHeader(it) }
-        fun find(candidates: Set<String>): Int? =
-            normalized.indexOfFirst { cell -> candidates.any { cell.contains(it) } }.takeIf { it >= 0 }
         return ColumnMap(
-            date = find(DATE_HEADERS),
-            gallons = find(GALLONS_HEADERS),
-            price = find(PRICE_HEADERS),
-            amount = find(AMOUNT_HEADERS),
-            location = find(LOCATION_HEADERS),
-            product = find(PRODUCT_HEADERS),
+            date = pick(normalized, DATE_HEADERS),
+            gallons = pickGallons(normalized),
+            listPrice = pickListPrice(normalized),
+            discountPrice = pick(normalized, DISCOUNT_PRICE_HEADERS),
+            amount = pickAmount(normalized),
+            location = pick(normalized, LOCATION_HEADERS),
+            city = pick(normalized, CITY_HEADERS),
+            state = pick(normalized, STATE_HEADERS),
+            product = pick(normalized, PRODUCT_HEADERS),
+            driver = pick(normalized, DRIVER_HEADERS),
         )
+    }
+
+    /**
+     * Exact paid-amount headers (`Amt`, `Amount`) beat sheet totals such as
+     * "Total Payables" and discount columns such as "Disc Amt".
+     */
+    private fun pickAmount(normalized: List<String>): Int? {
+        val exact = normalized.indexOfFirst { it in AMOUNT_EXACT }
+        if (exact >= 0) return exact
+        return normalized.indexOfFirst { cell ->
+            headerHit(cell, AMOUNT_LOOSE) && !isRollupAmount(cell)
+        }.takeIf { it >= 0 }
+    }
+
+    private fun isRollupAmount(cell: String): Boolean =
+        cell.contains("disc") || cell.contains("payable") || cell.contains("fee") ||
+            cell.contains("qty") || cell.contains("adjustment") || cell.contains("discount")
+
+    private fun pickGallons(normalized: List<String>): Int? {
+        val exact = normalized.indexOfFirst { it in GALLONS_EXACT }
+        if (exact >= 0) return exact
+        return pick(normalized, GALLONS_HEADERS)
+    }
+
+    /** Rack / list price. Discount columns stay on [pick] of [DISCOUNT_PRICE_HEADERS]. */
+    private fun pickListPrice(normalized: List<String>): Int? =
+        normalized.indexOfFirst { cell ->
+            headerHit(cell, LIST_PRICE_HEADERS) && !cell.contains("disc")
+        }.takeIf { it >= 0 }
+
+    private fun pick(normalized: List<String>, candidates: Set<String>): Int? =
+        normalized.indexOfFirst { cell -> headerHit(cell, candidates) }.takeIf { it >= 0 }
+
+    private fun headerHit(cell: String, candidates: Set<String>): Boolean {
+        if (cell.isBlank()) return false
+        if (cell in candidates) return true
+        val words = cell.split(' ', '/', '-')
+        return candidates.any { candidate ->
+            if (candidate.length <= 3) words.any { it == candidate } else cell.contains(candidate)
+        }
     }
 
     private fun parseDataRow(row: List<String>, columns: ColumnMap): ParsedDieselFill? {
@@ -127,24 +194,47 @@ object DieselSpreadsheetParser {
         if (product != null && !isDieselProduct(product)) return null
 
         val date = columns.date?.let { parseDateCell(row.getOrNull(it)) }
-        val location = columns.location?.let { row.getOrNull(it)?.trim()?.takeIf { s -> s.isNotBlank() } }
+        val location = joinLocation(
+            name = columns.location?.let { cellAt(row, it) },
+            city = columns.city?.let { cellAt(row, it) },
+            state = columns.state?.let { cellAt(row, it) },
+        )
         val gallons = columns.gallons?.let { parseNumber(row.getOrNull(it)) }
-        val price = columns.price?.let { parseNumber(row.getOrNull(it)) }
+        val listPrice = columns.listPrice?.let { parseNumber(row.getOrNull(it)) }
+        val discountPrice = columns.discountPrice?.let { parseNumber(row.getOrNull(it)) }
+        val paidPrice = discountPrice ?: listPrice
         var amount = columns.amount?.let { parseNumber(row.getOrNull(it)) }
-        if (amount == null && gallons != null && price != null) {
-            amount = gallons * price
+        if (amount == null && gallons != null && paidPrice != null) {
+            amount = gallons * paidPrice
         }
         if (amount == null || amount <= 0.0) return null
         return ParsedDieselFill(
             transactionDate = date,
             location = location,
             gallons = gallons,
-            pricePerGallon = price,
+            pricePerGallon = listPrice,
+            discountPricePerGallon = discountPrice,
             totalAmount = amount,
             productLabel = product,
             rawLine = rawLine,
         )
     }
+
+    internal fun joinLocation(name: String?, city: String?, state: String?): String? {
+        val parts = mutableListOf<String>()
+        fun add(value: String?) {
+            val trimmed = value?.trim()?.takeIf { it.isNotBlank() } ?: return
+            if (parts.any { it.equals(trimmed, ignoreCase = true) }) return
+            parts += trimmed
+        }
+        add(name)
+        add(city)
+        add(state)
+        return parts.joinToString(", ").takeIf { it.isNotBlank() }
+    }
+
+    private fun cellAt(row: List<String>, index: Int): String? =
+        row.getOrNull(index)?.trim()?.takeIf { it.isNotBlank() }
 
     private fun isDieselProduct(label: String): Boolean {
         val lower = label.lowercase(Locale.US)
@@ -181,7 +271,14 @@ object DieselSpreadsheetParser {
             val (month, day) = if (a > 12) b to a else a to b
             return String.format(Locale.US, "%04d-%02d-%02d", year, month, day)
         }
-        return null
+        return parseExcelSerial(trimmed)
+    }
+
+    /** Whole days of an Excel serial. Time-of-day fraction is ignored. */
+    internal fun parseExcelSerial(raw: String): String? {
+        val serial = raw.toDoubleOrNull() ?: return null
+        if (serial < MIN_EXCEL_SERIAL || serial > MAX_EXCEL_SERIAL) return null
+        return EXCEL_EPOCH.plusDays(serial.toLong()).toString()
     }
 
     internal fun parseNumber(raw: String?): Double? {

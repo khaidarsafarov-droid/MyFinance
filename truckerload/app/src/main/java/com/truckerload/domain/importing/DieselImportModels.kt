@@ -8,6 +8,8 @@ data class ParsedDieselFill(
     val location: String?,
     val gallons: Double?,
     val pricePerGallon: Double?,
+    /** Fleet price actually paid per gallon, when the sheet has a discount column. */
+    val discountPricePerGallon: Double? = null,
     val totalAmount: Double,
     val productLabel: String? = null,
     val rawLine: String = "",

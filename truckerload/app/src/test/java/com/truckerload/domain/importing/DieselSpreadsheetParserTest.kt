@@ -2,8 +2,10 @@ package com.truckerload.domain.importing
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class DieselSpreadsheetParserTest {
 
@@ -53,6 +55,98 @@ class DieselSpreadsheetParserTest {
         assertEquals(1, result.fills.size)
         assertEquals(150.0, result.fills[0].totalAmount, 0.01)
     }
+
+    @Test
+    fun parseDateCell_readsExcelSerial() {
+        assertEquals("2026-09-28", DieselSpreadsheetParser.parseDateCell("46293.795138888891"))
+        assertEquals("2026-10-04", DieselSpreadsheetParser.parseDateCell("46299.75"))
+        assertNull(DieselSpreadsheetParser.parseDateCell("3513.73"))
+    }
+
+    @Test
+    fun parse_readsPrimexInvoiceWithExcelDatesAndDiscountedAmount() {
+        val header = listOf(
+            "Driver Name",
+            "Tran Date",
+            "Location Name",
+            "City",
+            "State/Prov",
+            "Item",
+            "Unit Price",
+            "Disc PPU",
+            "Qty",
+            "Disc Amt",
+            "Amt",
+            "Total Payables after Non-cash Adjustment:",
+        )
+        val fills = listOf(
+            primexRow("46293.795138888891", "PILOT NEWBURGH 394", "NEWBURGH", "NY", "63.9", "6.799", "5.907", "56.9988", "377.4573"),
+            primexRow("46294.409722222219", "TA SOUTHINGTON", "MILLDALE", "CT", "142.74", "6.739", "5.848", "127.18134", "834.74352"),
+            primexRow("46295.61319444445", "LOVES #682 TRAVEL STOP", "HAGERSTOWN", "MD", "55.99", "6.849", "5.787", "59.46138", "324.01413"),
+            primexRow("46296.871527777781", "LOVES #682 TRAVEL STOP", "HAGERSTOWN", "MD", "72.3", "6.849", "5.838", "73.0953", "422.0874"),
+            primexRow("46298.714583333334", "LOVES #646 TRAVEL STOP", "WILLINGTON", "CT", "121.63", "6.719", "5.974", "90.61435", "726.61762"),
+            primexRow("46299.75", "LOVES #330 TRAVEL STOP", "BAXTER", "TN", "147.58", "5.949", "5.616", "49.14414", "828.80928"),
+        )
+        val bytes = MinimalXlsxBuilder.build(
+            headers = listOf("Driver`s Name", "ULSD Qty", "ULSD Amt", "Total Discount", "Fees", "Total"),
+            rows = listOf(
+                listOf("Khaidar Safarov", "604.14", "3513.73", "456.50", "0", "3513.73"),
+                listOf("DETAILS:"),
+                header,
+                listOf("Khaidar Safarov"),
+                listOf("Khaidar Safarov", "46297", "TA", "CITY", "NY", "DEF", "4.00", "3.50", "5.0", "2.50", "17.50"),
+            ) + fills,
+        )
+        val result = DieselSpreadsheetParser.parse(bytes, "diesel_7299.xlsx")
+        assertEquals(6, result.fills.size)
+        assertEquals("Khaidar Safarov", result.driverName)
+        assertEquals("2026-09-27", result.weekStartDate)
+        assertEquals("2026-10-10", result.weekEndDate)
+        assertEquals(604.14, result.fills.sumOf { it.gallons ?: 0.0 }, 0.02)
+        assertEquals(3513.73, result.fills.sumOf { it.totalAmount }, 0.02)
+
+        val first = result.fills.first()
+        assertEquals("2026-09-28", first.transactionDate)
+        assertEquals("PILOT NEWBURGH 394, NEWBURGH, NY", first.location)
+        assertEquals(63.9, first.gallons!!, 0.01)
+        assertEquals(6.799, first.pricePerGallon!!, 0.001)
+        assertEquals(5.907, first.discountPricePerGallon!!, 0.001)
+        assertEquals(377.4573, first.totalAmount, 0.001)
+        assertEquals("2026-10-04", result.fills.last().transactionDate)
+        assertEquals("LOVES #330 TRAVEL STOP, BAXTER, TN", result.fills.last().location)
+
+        val useCase = DieselImportUseCase(mock())
+        val early = useCase.toDiesel(result, result.fills.first(), 0)
+        val last = useCase.toDiesel(result, result.fills.last(), 0)
+        assertEquals("2026-09-27", early.weekStartDate)
+        assertEquals("2026-10-04", last.weekStartDate)
+        assertNotEquals(early.weekNumber, last.weekNumber)
+        assertEquals(5.907, early.discountPricePerGallon!!, 0.001)
+    }
+
+    private fun primexRow(
+        serial: String,
+        location: String,
+        city: String,
+        state: String,
+        qty: String,
+        unitPrice: String,
+        discPpu: String,
+        discAmt: String,
+        amt: String,
+    ): List<String> = listOf(
+        "Khaidar Safarov",
+        serial,
+        location,
+        city,
+        state,
+        "ULSD",
+        unitPrice,
+        discPpu,
+        qty,
+        discAmt,
+        amt,
+    )
 
     @Test
     fun xlsxReader_parsesSharedStrings() {
