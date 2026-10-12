@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.MiscExpenseRepository
 import com.truckerload.domain.expense.MiscExpenseFields
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.formatIsoDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,8 +114,7 @@ class MiscExpenseViewModel @Inject constructor(
         }
         val amount = MiscExpenseFields.parseAmount(current.amountText) ?: return
         val now = System.currentTimeMillis()
-        viewModelScope.launch {
-            isSaving.value = true
+        viewModelScope.launchExclusive(isSaving, TAG) {
             repository.upsert(
                 MiscExpense(
                     id = current.id,
@@ -126,7 +126,6 @@ class MiscExpenseViewModel @Inject constructor(
                     updatedAt = now,
                 ),
             )
-            isSaving.value = false
             editor.value = null
             confirmDeleteId.value = null
         }
@@ -143,12 +142,14 @@ class MiscExpenseViewModel @Inject constructor(
 
     fun confirmDelete() {
         val id = confirmDeleteId.value ?: return
-        viewModelScope.launch {
-            isSaving.value = true
+        viewModelScope.launchExclusive(isSaving, TAG) {
             repository.delete(id)
-            isSaving.value = false
             confirmDeleteId.value = null
             editor.value = null
         }
+    }
+
+    private companion object {
+        const val TAG = "MiscExpenseVM"
     }
 }

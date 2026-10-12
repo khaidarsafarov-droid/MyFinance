@@ -16,11 +16,16 @@ import com.truckerload.utils.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 data class PendingScan(
     val file: File,
@@ -66,6 +71,7 @@ class ScannerViewModel @Inject constructor(
     val isAttachedToLoad: Boolean = !attachLoadId.isNullOrBlank()
 
     private val _uiState = MutableStateFlow(ScannerUiState())
+    private val persistMutex = Mutex()
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
 
     fun onScanResult(intent: Intent?) {
@@ -80,12 +86,14 @@ class ScannerViewModel @Inject constructor(
             _uiState.update { it.copy(isProcessing = true, errorKey = null) }
             try {
                 val timestamp = System.currentTimeMillis()
-                val saved = pdfGenerator.saveScanFromResult(
-                    result = result,
-                    timestamp = timestamp,
-                    tripId = attachTripId,
-                    loadDate = attachLoadDate,
-                )
+                val saved = withContext(Dispatchers.IO) {
+                    pdfGenerator.saveScanFromResult(
+                        result = result,
+                        timestamp = timestamp,
+                        tripId = attachTripId,
+                        loadDate = attachLoadDate,
+                    )
+                }
                 val ocrResult = ocrService.recognizeScanResult(app, result)
                 val newScan = PendingScan(
                     file = saved.file,
@@ -97,8 +105,9 @@ class ScannerViewModel @Inject constructor(
                 )
                 val session = _uiState.value.sessionScans + newScan
                 val oldMerged = _uiState.value.pendingScan?.takeIf { it.isMerged && !it.savedToDb }
-                val display = buildMergedPending(session, timestamp)
-                oldMerged?.file?.delete()
+                val display = withContext(Dispatchers.IO) {
+                    buildMergedPending(session, timestamp).also { oldMerged?.file?.delete() }
+                }
                 // Attached-to-load: show result first (share, then save). Do not auto-persist.
                 _uiState.update {
                     it.copy(
@@ -107,6 +116,8 @@ class ScannerViewModel @Inject constructor(
                         pendingScan = display,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
                 _uiState.update {
                     it.copy(
@@ -225,7 +236,11 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun persistPendingToApp(showSuccess: Boolean, finishAfter: Boolean = false) {
+    /** Serialized so a double tap re-reads the state and sees the scan already saved. */
+    private suspend fun persistPendingToApp(showSuccess: Boolean, finishAfter: Boolean = false) =
+        persistMutex.withLock { persistPendingLocked(showSuccess, finishAfter) }
+
+    private suspend fun persistPendingLocked(showSuccess: Boolean, finishAfter: Boolean) {
         val state = _uiState.value
         val pending = state.pendingScan ?: return
         if (pending.savedToDb) {
@@ -271,6 +286,8 @@ class ScannerViewModel @Inject constructor(
                     autoAttachedAndDone = finishAfter,
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             _uiState.update { it.copy(errorKey = "scan_error_keep") }
         }

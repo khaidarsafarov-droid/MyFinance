@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.utils.suspendRunCatching
 
 data class MaintenanceUiState(
     val activeProgress: List<MaintenanceProgress> = emptyList(),
@@ -138,9 +139,15 @@ class MaintenanceViewModel @Inject constructor(
     }
 
     private fun persistTask(task: MaintenanceTask) {
+        var accepted = false
+        _formState.update { state ->
+            if (state.isSaving) return@update state
+            accepted = true
+            state.copy(isSaving = true)
+        }
+        if (!accepted) return
         viewModelScope.launch {
-            _formState.update { it.copy(isSaving = true) }
-            runCatching { repository.insertTask(task) }
+            suspendRunCatching { repository.insertTask(task) }
                 .onSuccess {
                     _formState.update {
                         it.copy(isSaving = false, showAddTask = false, taskDraft = TaskDraft())

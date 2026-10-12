@@ -17,12 +17,14 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.lastDelDateFromStops
 import com.truckerload.domain.model.lastDelDateTimeFromStops
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.domain.parser.DecimalInput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
 
 data class EditLoadUiState(
     val isLoading: Boolean = true,
@@ -139,8 +141,8 @@ class EditLoadViewModel @Inject constructor(
         val state = _uiState.value
         val original = state.original ?: return
         if (state.isSaving) return
-        val parsedRate = state.totalRate.toDoubleOrNull()
-        val parsedMiles = state.totalMiles.toDoubleOrNull()
+        val parsedRate = DecimalInput.parse(state.totalRate)
+        val parsedMiles = DecimalInput.parse(state.totalMiles)
         if (parsedRate == null || parsedMiles == null) {
             _uiState.update {
                 it.copy(saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number))
@@ -178,6 +180,8 @@ class EditLoadViewModel @Inject constructor(
                         disputeLoad = reloaded,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

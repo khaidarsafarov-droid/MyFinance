@@ -6,6 +6,7 @@ import com.truckerload.data.repository.account.RegistrationService
 import com.truckerload.domain.account.DriverRole
 import com.truckerload.domain.account.RegistrationProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,14 +20,20 @@ class RegistrationViewModel @Inject constructor(
 
     private val _progress = MutableStateFlow(registration.progress())
     val progress: StateFlow<RegistrationProgress> = _progress.asStateFlow()
+    private val submitting = AtomicBoolean(false)
 
     fun needsRequiredOnboarding(): Boolean = registration.needsRequiredOnboarding()
 
     fun completeBasic(displayName: String, role: DriverRole, phone: String?, onDone: (Result<Unit>) -> Unit) {
+        if (!submitting.compareAndSet(false, true)) return
         viewModelScope.launch {
-            val result = registration.completeBasicProfile(displayName, role, phone)
-            _progress.value = registration.progress()
-            onDone(result)
+            try {
+                val result = registration.completeBasicProfile(displayName, role, phone)
+                _progress.value = registration.progress()
+                onDone(result)
+            } finally {
+                submitting.set(false)
+            }
         }
     }
 }

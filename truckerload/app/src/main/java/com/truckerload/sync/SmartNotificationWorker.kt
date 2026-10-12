@@ -21,6 +21,7 @@ import dagger.assisted.AssistedInject
 import com.truckerload.utils.shiftWeekNumberAndYear
 import java.util.Calendar
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CancellationException
 
 /**
  * At most one paycheck + one diesel reminder per ISO week, and one bundled maintenance alert
@@ -140,6 +141,8 @@ class SmartNotificationWorker @AssistedInject constructor(
                 maintenanceRepo.markNotified(progress.task.id)
             }
             Result.success()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             android.util.Log.w("SmartNotification", "check failed", e)
             Result.retry()

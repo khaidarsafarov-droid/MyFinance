@@ -13,6 +13,7 @@ import com.truckerload.sync.telegram.TelegramSyncScheduler
 import com.truckerload.sync.telegram.TelegramUpdateDispatcher
 import com.truckerload.utils.LogRedactor
 import java.io.File
+import kotlinx.coroutines.CancellationException
 
 /**
  * Shared Telegram long-poll + parse + DB + reply coordinator for Worker and ForegroundService.
@@ -104,6 +105,8 @@ class TelegramBotSyncEngine(private val context: Context) {
                 nextRequestOffset = update.updateId + 1
                 syncScheduler.persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
                 clearPoisonFailures(prefs, update.updateId)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(
                     TAG,

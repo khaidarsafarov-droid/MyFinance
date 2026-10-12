@@ -8,6 +8,7 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.model.PaycheckJournalFilter
 import com.truckerload.domain.paycheck.PaycheckSalaryFields
+import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.PaycheckSourceFiles
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
@@ -188,8 +189,7 @@ class PaycheckJournalViewModel @Inject constructor(
             return
         }
         val net = PaycheckSalaryFields.parseAmount(current.netText) ?: return
-        viewModelScope.launch {
-            isSaving.value = true
+        viewModelScope.launchExclusive(isSaving, TAG) {
             paycheckRepository.updatePaycheck(
                 current.paycheck.copy(
                     netAmount = net,
@@ -202,26 +202,21 @@ class PaycheckJournalViewModel @Inject constructor(
             if (previousPath != null && previousPath != newPath) {
                 PaycheckSourceFiles.delete(appContext, previousPath)
             }
-            isSaving.value = false
             editor.value = null
         }
     }
 
     fun deleteEditor() {
         val current = editor.value ?: return
-        if (isSaving.value) return
-        viewModelScope.launch {
-            isSaving.value = true
-            val id = current.paycheck.id
+        viewModelScope.launchExclusive(isSaving, TAG) {
             val paths = buildSet {
                 current.sourceFilePath?.let { add(it) }
                 current.originalSourceFilePath?.let { add(it) }
             }
-            paycheckRepository.deletePaycheck(id)
+            paycheckRepository.deletePaycheck(current.paycheck.id)
             paths.forEach { path ->
                 PaycheckSourceFiles.delete(appContext, path)
             }
-            isSaving.value = false
             editor.value = null
         }
     }
@@ -242,4 +237,8 @@ class PaycheckJournalViewModel @Inject constructor(
         val entries: List<Paycheck>,
         val total: Double,
     )
+
+    private companion object {
+        const val TAG = "PaycheckJournalVM"
+    }
 }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 
 /**
  * In-process Telegram long-poll while the app is visible.
@@ -125,6 +126,8 @@ object TelegramBotForegroundService {
                     result.nextDelaySeconds.coerceIn(2, 60)
                 }
                 if (delaySec > 0L) delay(delaySec * 1000)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "pollLoop error — retrying", e)
                 delay(5_000)

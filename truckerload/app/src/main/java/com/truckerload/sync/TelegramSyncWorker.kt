@@ -15,6 +15,7 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotBranding
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 
 /**
  * Background Telegram poll via WorkManager (~15 min periodic).
@@ -84,6 +85,8 @@ class TelegramSyncWorker @AssistedInject constructor(
                 return Result.retry()
             }
             Log.d("TelegramSync", "Background poll completed")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w("TelegramSync", "Background poll failed", e)
         }

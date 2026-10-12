@@ -13,6 +13,8 @@ import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.DisputePayout
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -45,6 +47,7 @@ class LoadDetailViewModel @Inject constructor(
     private val loadId = Uri.decode(savedStateHandle.get<String>("loadId").orEmpty())
 
     private val _uiState = MutableStateFlow(LoadDetailUiState())
+    private val deleting = AtomicBoolean(false)
     val uiState: StateFlow<LoadDetailUiState> = _uiState.asStateFlow()
 
     private val _events = MutableSharedFlow<LoadDetailEvent>(extraBufferCapacity = 1)
@@ -97,12 +100,17 @@ class LoadDetailViewModel @Inject constructor(
     }
 
     fun delete(fallbackMessage: String) {
+        if (!deleting.compareAndSet(false, true)) return
         viewModelScope.launch {
             try {
                 loadRepository.deleteLoad(loadId)
                 _events.emit(LoadDetailEvent.Deleted)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
+            } finally {
+                deleting.set(false)
             }
         }
     }
