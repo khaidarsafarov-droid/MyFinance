@@ -16,7 +16,6 @@ import com.truckerload.data.backup.BackupSchema
 import com.truckerload.data.backup.BackupSnapshotBuilder
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.DeletedLoadLedger
-import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.widget.WidgetDataUpdater

@@ -26,7 +26,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import kotlinx.coroutines.CancellationException
 
 data class EditLoadUiState(
     val isLoading: Boolean = true,

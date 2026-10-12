@@ -12,8 +12,12 @@ class LoadImportRepositoryImpl(
     override suspend fun exists(tripId: String): Boolean =
         loadDao.getExistingTripIds(listOf(tripId)).isNotEmpty()
 
-    override suspend fun insertLoad(load: Load, playFeedback: Boolean) {
-        loadRepository.insertLoad(load, playFeedback = playFeedback)
+    override suspend fun insertLoad(
+        load: Load,
+        playFeedback: Boolean,
+        reviveDeleted: Boolean,
+    ) {
+        loadRepository.insertLoad(load, playFeedback = playFeedback, reviveDeleted = reviveDeleted)
     }
 
     override suspend fun <T> runBatchWrite(block: suspend () -> T): T =
