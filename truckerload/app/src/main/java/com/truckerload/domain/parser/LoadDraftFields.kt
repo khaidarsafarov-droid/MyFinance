@@ -16,9 +16,9 @@ data class LoadDraftFields(
     val pointA: String = "",
     val pointB: String = "",
 ) {
-    fun parsedRate(): Double? = rate.replace(",", ".").trim().toDoubleOrNull()
+    fun parsedRate(): Double? = DecimalInput.parse(rate)
 
-    fun parsedMiles(): Double = miles.replace(",", ".").trim().toDoubleOrNull() ?: 0.0
+    fun parsedMiles(): Double = DecimalInput.parse(miles) ?: 0.0
 
     fun isEmpty(): Boolean = listOf(tripId, date, rate, miles, pointA, pointB).all { it.isBlank() }
 

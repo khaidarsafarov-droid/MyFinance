@@ -45,6 +45,7 @@ import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
+import com.truckerload.domain.parser.DecimalInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -320,11 +321,7 @@ fun DisputeBadge(
     }
 }
 
-internal fun parseDisputeAmount(raw: String): Double? {
-    val cleaned = raw.replace(',', '.').trim()
-    if (cleaned.isEmpty() || cleaned == ".") return null
-    return cleaned.toDoubleOrNull()?.takeIf { it >= 0.0 }
-}
+internal fun parseDisputeAmount(raw: String): Double? = DecimalInput.parse(raw)?.takeIf { it >= 0.0 }
 
 internal fun formatDisputeAmountInput(amount: Double?): String {
     if (amount == null) return ""

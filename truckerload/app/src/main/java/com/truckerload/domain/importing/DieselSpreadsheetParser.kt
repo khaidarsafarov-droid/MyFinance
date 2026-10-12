@@ -4,6 +4,7 @@ import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
 import java.util.Locale
+import com.truckerload.domain.parser.DecimalInput
 
 /**
  * Parses fleet diesel exports such as
@@ -184,15 +185,5 @@ object DieselSpreadsheetParser {
         return null
     }
 
-    internal fun parseNumber(raw: String?): Double? {
-        if (raw.isNullOrBlank()) return null
-        val cleaned = raw
-            .replace("$", "")
-            .replace("USD", "", ignoreCase = true)
-            .replace("\u00a0", "")
-            .replace(" ", "")
-            .replace(",", "")
-            .trim()
-        return cleaned.toDoubleOrNull()
-    }
+    internal fun parseNumber(raw: String?): Double? = DecimalInput.parse(raw)
 }

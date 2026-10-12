@@ -7,6 +7,7 @@ import com.truckerload.domain.parser.PaycheckTextParser
 import com.truckerload.domain.parser.RateConfirmationLoadParser
 import com.truckerload.domain.parser.ServiceReceiptTextParser
 import java.util.Locale
+import com.truckerload.domain.parser.DecimalInput
 
 /**
  * Pulls journal fields from OCR / file text using the same parsers as in-app add flows.
@@ -92,10 +93,7 @@ object ReceiptFieldExtractor {
         return values.lastOrNull()
     }
 
-    private fun parseMoney(raw: String): Double {
-        val cleaned = raw.trim().replace("$", "").replace(",", "").replace(" ", "")
-        return cleaned.toDoubleOrNull() ?: 0.0
-    }
+    private fun parseMoney(raw: String): Double = DecimalInput.parse(raw) ?: 0.0
 
     private fun formatMoneyToken(amount: Double, text: String): String? {
         val cents = String.format(Locale.US, "%.2f", amount)

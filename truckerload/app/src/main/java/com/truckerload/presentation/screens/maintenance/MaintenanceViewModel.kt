@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import com.truckerload.domain.parser.DecimalInput
 
 data class MaintenanceUiState(
     val activeProgress: List<MaintenanceProgress> = emptyList(),
@@ -97,8 +98,8 @@ class MaintenanceViewModel @Inject constructor(
         }
         when (draft.reminderType) {
             MaintenanceReminderType.MILES -> {
-                val interval = draft.intervalMiles.replace(',', '.').toDoubleOrNull()
-                val odo = draft.odometerAtStart.replace(',', '.').toDoubleOrNull()
+                val interval = DecimalInput.parse(draft.intervalMiles)
+                val odo = DecimalInput.parse(draft.odometerAtStart)
                 if (interval == null || interval <= 0) {
                     _formState.update { it.copy(errorMessage = "invalid_interval") }
                     return
@@ -122,7 +123,7 @@ class MaintenanceViewModel @Inject constructor(
                     _formState.update { it.copy(errorMessage = "invalid_due_date") }
                     return
                 }
-                val odo = draft.odometerAtStart.replace(',', '.').toDoubleOrNull()
+                val odo = DecimalInput.parse(draft.odometerAtStart)
                 persistTask(
                     MaintenanceTask(
                         title = title,

@@ -1,5 +1,7 @@
 package com.truckerload.domain.expense
 
+import com.truckerload.domain.parser.DecimalInput
+
 /** Validation and CSV helpers for miscellaneous expenses. */
 object MiscExpenseFields {
 
@@ -9,14 +11,7 @@ object MiscExpenseFields {
         DATE,
     }
 
-    fun parseAmount(raw: String): Double? {
-        val cleaned = raw.trim()
-            .replace('\u00A0', ' ')
-            .replace(" ", "")
-            .replace("$", "")
-            .replace(',', '.')
-        return cleaned.toDoubleOrNull()?.takeIf { it > 0.0 }
-    }
+    fun parseAmount(raw: String): Double? = DecimalInput.parse(raw)?.takeIf { it > 0.0 }
 
     fun validate(amountText: String, description: String, dateIso: String): Error? {
         if (parseAmount(amountText) == null) return Error.AMOUNT
