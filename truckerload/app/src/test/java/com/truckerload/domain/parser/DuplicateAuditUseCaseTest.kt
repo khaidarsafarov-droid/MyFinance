@@ -36,7 +36,7 @@ class DuplicateAuditUseCaseTest {
 
         val deleted = useCase.findDuplicateLoadIds(loads)
 
-        assertEquals(setOf("2"), deleted)
+        assertEquals(setOf("1"), deleted)
     }
 
     @Test
@@ -46,7 +46,7 @@ class DuplicateAuditUseCaseTest {
 
         val deleted = useCase.findDuplicateLoadIds(listOf(keeper, duplicate))
 
-        assertEquals(setOf("2"), deleted)
+        assertEquals(setOf("1"), deleted)
     }
 
     @Test
@@ -77,7 +77,32 @@ class DuplicateAuditUseCaseTest {
     }
 
     @Test
-    fun `auditAndRemove after import deletes newer tripId duplicate`() = runBlocking {
+    fun `different paychecks in the same week are preserved`() {
+        val first = paycheck(id = 1, addedAt = 100L)
+        val second = paycheck(id = 2, addedAt = 200L).copy(
+            netAmount = 1800.0,
+            rawExtractedText = "second settlement",
+        )
+
+        val deleted = useCase.findDuplicatePaycheckIds(listOf(first, second))
+
+        assertTrue(deleted.isEmpty())
+    }
+
+    @Test
+    fun `rescheduled same route date and rate is removed as duplicate`() {
+        val first = sampleLoad(id = "1", tripId = "T-ONE", parsedAt = 10L)
+        val rescheduled = sampleLoad(id = "2", tripId = "T-TWO", parsedAt = 20L).copy(
+            stops = first.stops.map { it.copy(scheduledTime = "2026-06-10 12:00") },
+        )
+
+        val deleted = useCase.findDuplicateLoadIds(listOf(first, rescheduled))
+
+        assertEquals(setOf("1"), deleted)
+    }
+
+    @Test
+    fun `auditAndRemove after import keeps newer tripId duplicate`() = runBlocking {
         val keeper = sampleLoad(id = "1", tripId = "T-IMPORT", parsedAt = 10L)
         val dup = sampleLoad(id = "2", tripId = "t-import", parsedAt = 99L)
         val deleted = mutableListOf<String>()
@@ -95,8 +120,8 @@ class DuplicateAuditUseCaseTest {
 
         assertEquals(2, report.scannedLoads)
         assertEquals(1, report.deletedLoads)
-        assertEquals(listOf("t-import"), report.deletedLoadTripIds)
-        assertEquals(listOf("2"), deleted)
+        assertEquals(listOf("T-IMPORT"), report.deletedLoadTripIds)
+        assertEquals(listOf("1"), deleted)
     }
 
     @Test

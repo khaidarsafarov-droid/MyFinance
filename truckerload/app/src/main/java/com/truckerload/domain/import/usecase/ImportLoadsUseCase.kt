@@ -205,6 +205,9 @@ class ImportLoadsUseCase(
                 config = parserConfig,
                 messageDateSeconds = messageDateSeconds,
                 playFeedback = false,
+                // A file chosen explicitly by the user is authoritative and may
+                // intentionally restore a trip that was deleted earlier.
+                reviveDeleted = true,
             )
         ) {
             ProcessingResult.Added -> ImportResult.Added(ParsedLoad.from(load))
@@ -220,7 +223,7 @@ class ImportLoadsUseCase(
                 ImportResult.Skipped(load.tripId, SkipReason.DUPLICATE)
             }
             else -> {
-                loadRepository.insertLoad(load, playFeedback = false)
+                loadRepository.insertLoad(load, playFeedback = false, reviveDeleted = true)
                 ImportResult.Added(ParsedLoad.from(load))
             }
         }

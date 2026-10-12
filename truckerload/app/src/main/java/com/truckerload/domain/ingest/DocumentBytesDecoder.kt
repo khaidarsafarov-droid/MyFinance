@@ -1,6 +1,7 @@
 package com.truckerload.domain.ingest
 
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
 import java.util.Locale
 import java.util.zip.ZipInputStream
@@ -112,7 +113,8 @@ object DocumentBytesDecoder {
             var entry = zip.nextEntry
             while (entry != null) {
                 if (entry.name == path) {
-                    val xml = decodeText(zip.readBytes())
+                    val xmlBytes = readEntryCapped(zip) ?: return null
+                    val xml = decodeText(xmlBytes)
                     val withBreaks = if (docx) {
                         xml.replace(Regex("</w:p>"), "\n")
                             .replace(Regex("<w:tab[^/]*/>"), "\t")
@@ -127,6 +129,20 @@ object DocumentBytesDecoder {
         return null
     }
 
+    private fun readEntryCapped(zip: ZipInputStream): ByteArray? {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0
+        while (true) {
+            val count = zip.read(buffer)
+            if (count <= 0) break
+            total += count
+            if (total > MAX_ZIP_ENTRY_BYTES) return null
+            output.write(buffer, 0, count)
+        }
+        return output.toByteArray()
+    }
+
     private fun extractXlsx(bytes: ByteArray): String? {
         val shared = extractZipXml(bytes, "xl/sharedStrings.xml", docx = false).orEmpty()
         val sheet = extractZipXml(bytes, "xl/worksheets/sheet1.xml", docx = false).orEmpty()
@@ -135,4 +151,5 @@ object DocumentBytesDecoder {
     }
 
     private val PNG_SIG = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)
+    private const val MAX_ZIP_ENTRY_BYTES = 16 * 1024 * 1024
 }

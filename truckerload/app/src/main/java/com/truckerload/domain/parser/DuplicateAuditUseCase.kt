@@ -99,7 +99,7 @@ class DuplicateAuditUseCase(
     internal fun findDuplicatePaycheckIds(paychecks: List<Paycheck>): Set<Int> {
         val toDelete = mutableSetOf<Int>()
         paychecks
-            .groupBy { it.weekNumber to it.year }
+            .groupBy(::paycheckFingerprint)
             .values
             .filter { it.size > 1 }
             .forEach { group ->
@@ -123,11 +123,32 @@ class DuplicateAuditUseCase(
     }
 
     private fun pickCanonicalLoad(group: List<Load>): Load =
-        group.minWith(
+        group.maxWith(
             compareBy<Load> { it.parsedAt }
-                .thenByDescending { it.rawMessage.length }
+                .thenBy { it.updatedAt }
+                .thenBy { it.rawMessage.length }
                 .thenBy { it.tripId.length },
         )
+
+    /**
+     * A week can legitimately contain multiple settlements. Only byte-for-byte
+     * equivalent business records are safe to remove automatically.
+     */
+    private fun paycheckFingerprint(paycheck: Paycheck): String {
+        val evidence = paycheck.rawExtractedText.trim().lowercase(Locale.US)
+            .ifBlank { paycheck.sourceFileName.orEmpty().trim().lowercase(Locale.US) }
+        if (evidence.isBlank()) return "unique:${paycheck.id}"
+        return listOf(
+            paycheck.weekNumber,
+            paycheck.year,
+            paycheck.weekStartDate,
+            paycheck.weekEndDate,
+            paycheck.driverName.orEmpty().trim().lowercase(Locale.US),
+            paycheck.grossAmount?.let { "%.2f".format(Locale.US, it) }.orEmpty(),
+            "%.2f".format(Locale.US, paycheck.netAmount),
+            evidence,
+        ).joinToString("|")
+    }
 
     private fun loadFingerprint(load: Load): String {
         if (load.stops.isEmpty() || load.date.isBlank()) return ""
@@ -159,6 +180,6 @@ class DuplicateAuditUseCase(
         if (keeper.date == candidate.date && comparison.stopsHashMatch && comparison.totalRateMatch) return true
 
         val sameRoute = routeFingerprint(keeper) == routeFingerprint(candidate) && routeFingerprint(keeper).isNotBlank()
-        return sameRoute && comparison.isIdentical()
+        return sameRoute && keeper.date == candidate.date && comparison.totalRateMatch
     }
 }

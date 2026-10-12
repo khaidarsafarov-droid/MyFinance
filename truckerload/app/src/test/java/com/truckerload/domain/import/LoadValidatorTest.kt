@@ -92,6 +92,16 @@ class LoadValidatorTest {
         assertTrue(result.errors.any { it.contains("date", ignoreCase = true) })
     }
 
+    @Test
+    fun validate_rejectsImpossibleCalendarDate() {
+        val result = validator.validate(
+            sampleLoad(tripId = "T-123", totalRate = 500.0, date = "2026-02-31"),
+        )
+
+        assertFalse(result.isValid)
+        assertTrue(result.errors.any { it.contains("date", ignoreCase = true) })
+    }
+
     private fun sampleLoad(
         tripId: String,
         totalRate: Double,

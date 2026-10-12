@@ -16,6 +16,7 @@ import com.truckerload.data.backup.BackupRoomApplier
 import com.truckerload.data.backup.BackupSchema
 import com.truckerload.data.backup.BackupSnapshotBuilder
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.widget.WidgetDataUpdater
@@ -355,6 +356,11 @@ object BackupService {
             return Result.failure(BackupRestoreException.WrongAccount())
         }
         BackupRoomApplier.applyFullReplace(db, backup)
+        // Restore is an explicit user decision. Remove old ingest tombstones for rows
+        // that the selected backup intentionally brought back.
+        backup.loads.forEach { load ->
+            DeletedLoadLedger.allowAgain(context.applicationContext, load.id, load.tripId)
+        }
         BackupRoomApplier.pruneOrphanMedia(db)
         BackupPrefsApplier.apply(context.applicationContext, backup.appSettings)
 
