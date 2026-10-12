@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
  * Maps a [Load] to [AnonymizedRpmSample].
  *
  * Reads only money, miles, PU/DEL **text for 2-letter state extraction**, and a
- * local timestamp used to compute ISO [AnonymizedRpmSample.weekNumber] / window
+ * local date used to compute the trucking-week [AnonymizedRpmSample.weekNumber] / window
  * filters. Addresses, facility codes, trip ids, raw messages, and user identity
  * are discarded and never copied onto the sample.
  *

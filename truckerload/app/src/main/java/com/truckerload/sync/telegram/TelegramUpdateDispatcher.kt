@@ -37,7 +37,8 @@ class TelegramUpdateDispatcher(
     ) {
         // FIX: only the paired private chat may mutate journal data / hijack exports.
         // Unpaired load texts are stored and imported after /start so the offset can move.
-        when (authorizeChat(update)) {
+        val gate = authorizeChat(update)
+        when (gate) {
             ChatGate.Foreign -> {
                 answerCallback(update, context.getString(R.string.sync_chat_not_authorized))
                 return
@@ -89,6 +90,16 @@ class TelegramUpdateDispatcher(
                     prefs,
                     stateMachine,
                 )
+                if (gate == ChatGate.JustPaired) {
+                    replayUnpaired(
+                        chatId = update.chatId,
+                        chatRestore = chatRestore,
+                        loadRepository = loadRepository,
+                        paycheckRepository = paycheckRepository,
+                        dieselRepository = dieselRepository,
+                        prefs = prefs,
+                    )
+                }
             }
             return
         }
@@ -102,21 +113,14 @@ class TelegramUpdateDispatcher(
         when {
             isCommand(rawText, "/start") -> {
                 apiClient.sendWithMenu(update.chatId, context.getString(R.string.sync_welcome))
-                val imported = TelegramPairingReplay.importPending(
+                replayUnpaired(
                     chatId = update.chatId,
                     chatRestore = chatRestore,
-                    messageParser = messageParser,
                     loadRepository = loadRepository,
                     paycheckRepository = paycheckRepository,
                     dieselRepository = dieselRepository,
                     prefs = prefs,
                 )
-                if (imported > 0) {
-                    apiClient.sendWithMenu(
-                        update.chatId,
-                        context.getString(R.string.sync_unpaired_replayed, imported),
-                    )
-                }
                 return
             }
             isCommand(rawText, "/help") -> {
@@ -353,6 +357,31 @@ class TelegramUpdateDispatcher(
             .handle(update.chatId, text, apiClient.api())
         if (reply.isNotBlank()) {
             apiClient.sendWithMenu(update.chatId, reply)
+        }
+    }
+
+    private suspend fun replayUnpaired(
+        chatId: String,
+        chatRestore: TelegramChatRestore,
+        loadRepository: LoadRepository,
+        paycheckRepository: PaycheckRepository,
+        dieselRepository: DieselRepository,
+        prefs: SharedPreferences,
+    ) {
+        val imported = TelegramPairingReplay.importPending(
+            chatId = chatId,
+            chatRestore = chatRestore,
+            messageParser = messageParser,
+            loadRepository = loadRepository,
+            paycheckRepository = paycheckRepository,
+            dieselRepository = dieselRepository,
+            prefs = prefs,
+        )
+        if (imported > 0) {
+            apiClient.sendWithMenu(
+                chatId,
+                context.getString(R.string.sync_unpaired_replayed, imported),
+            )
         }
     }
 
