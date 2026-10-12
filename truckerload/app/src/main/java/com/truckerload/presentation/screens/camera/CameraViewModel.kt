@@ -2,7 +2,6 @@ package com.truckerload.presentation.screens.camera
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.util.Log
@@ -15,6 +14,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.domain.model.effectiveFinishDate
+import com.truckerload.presentation.utils.decodeSampledBitmap
 import com.truckerload.utils.LocationData
 import com.truckerload.utils.LocationHelper
 import com.truckerload.utils.PhotoManager
@@ -337,7 +337,7 @@ class CameraViewModel @Inject constructor(
     }
 
     private fun decodeBitmap(file: File): Bitmap? {
-        val original = BitmapFactory.decodeFile(file.absolutePath) ?: return null
+        val original = decodeSampledBitmap(file.absolutePath, MAX_CAPTURE_EDGE_PX) ?: return null
         return try {
             val exif = ExifInterface(file.absolutePath)
             val rotation = when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
@@ -359,5 +359,6 @@ class CameraViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "CameraViewModel"
+        private const val MAX_CAPTURE_EDGE_PX = 2048
     }
 }

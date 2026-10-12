@@ -201,7 +201,6 @@ class TaxTrackerViewModel @Inject constructor(
                 }
                 val dieselDed = diesel.sumOf { it.totalAmount }
                 val autoDates = PerDiemCalculator.uniqueOnDutyDates(loads, year)
-                autoPerDiemDates = autoDates
                 val perDiemDates = PerDiemDayOverrides.apply(
                     autoDates,
                     perDiemOverrideRepository.snapshotForYear(year),
@@ -219,7 +218,7 @@ class TaxTrackerViewModel @Inject constructor(
                 val reserved = 0.0
                 val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
                 if (generation != taxGeneration) return@runCatchingCancellable
-
+                autoPerDiemDates = autoDates
                 _uiState.update {
                     it.copy(
                         year = year,

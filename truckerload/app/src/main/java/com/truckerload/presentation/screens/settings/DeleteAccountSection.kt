@@ -79,12 +79,18 @@ fun DeleteAccountSection() {
                         if (busy) return@Button
                         busy = true
                         scope.launch {
-                            runCatching { deletion.deleteAccountAndSignOut() }
+                            val result = runCatching { deletion.deleteAccountAndSignOut() }
                             busy = false
-                            confirm = false
+                            if (result.isSuccess) confirm = false
                             android.widget.Toast.makeText(
                                 context,
-                                context.getString(R.string.settings_delete_account_success),
+                                context.getString(
+                                    if (result.isSuccess) {
+                                        R.string.settings_delete_account_success
+                                    } else {
+                                        R.string.settings_delete_account_error
+                                    },
+                                ),
                                 android.widget.Toast.LENGTH_SHORT,
                             ).show()
                         }

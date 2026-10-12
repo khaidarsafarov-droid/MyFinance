@@ -192,21 +192,23 @@ class PaycheckJournalViewModel @Inject constructor(
         viewModelScope.launch {
             isSaving.value = true
             try {
-            paycheckRepository.updatePaycheck(
-                current.paycheck.copy(
-                    netAmount = net,
-                    sourceFileName = current.sourceFileName,
-                    sourceFilePath = current.sourceFilePath,
-                ),
-            )
-            val previousPath = current.originalSourceFilePath
-            val newPath = current.sourceFilePath
-            if (previousPath != null && previousPath != newPath) {
-                PaycheckSourceFiles.delete(appContext, previousPath)
-            }
-            editor.value = null
+                paycheckRepository.updatePaycheck(
+                    current.paycheck.copy(
+                        netAmount = net,
+                        sourceFileName = current.sourceFileName,
+                        sourceFilePath = current.sourceFilePath,
+                    ),
+                )
+                val previousPath = current.originalSourceFilePath
+                val newPath = current.sourceFilePath
+                if (previousPath != null && previousPath != newPath) {
+                    PaycheckSourceFiles.delete(appContext, previousPath)
+                }
+                editor.value = null
             } catch (e: CancellationException) {
                 throw e
+            } catch (_: Exception) {
+                editor.value = current.copy(error = PaycheckSalaryFields.Error.NET)
             } finally {
                 isSaving.value = false
             }
@@ -219,18 +221,20 @@ class PaycheckJournalViewModel @Inject constructor(
         viewModelScope.launch {
             isSaving.value = true
             try {
-            val id = current.paycheck.id
-            val paths = buildSet {
-                current.sourceFilePath?.let { add(it) }
-                current.originalSourceFilePath?.let { add(it) }
-            }
-            paycheckRepository.deletePaycheck(id)
-            paths.forEach { path ->
-                PaycheckSourceFiles.delete(appContext, path)
-            }
-            editor.value = null
+                val id = current.paycheck.id
+                val paths = buildSet {
+                    current.sourceFilePath?.let { add(it) }
+                    current.originalSourceFilePath?.let { add(it) }
+                }
+                paycheckRepository.deletePaycheck(id)
+                paths.forEach { path ->
+                    PaycheckSourceFiles.delete(appContext, path)
+                }
+                editor.value = null
             } catch (e: CancellationException) {
                 throw e
+            } catch (_: Exception) {
+                editor.value = current.copy(error = PaycheckSalaryFields.Error.NET)
             } finally {
                 isSaving.value = false
             }

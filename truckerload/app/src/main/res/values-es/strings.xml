@@ -1281,6 +1281,7 @@
     <string name="settings_delete_account_confirm_title">¿Eliminar la cuenta de forma permanente?</string>
     <string name="settings_delete_account_confirm_message">Se eliminarán tu cuenta, perfil y todos los registros del diario en este teléfono. No podrás recuperar la cuenta.</string>
     <string name="settings_delete_account_success">Cuenta eliminada</string>
+    <string name="settings_delete_account_error">No se pudo eliminar la cuenta</string>
     <string name="email_verify_title">Verificar correo</string>
     <string name="email_verify_subtitle">Verificación suave para %1$s. El código se muestra abajo en esta pantalla (la app no envía el código por correo). El diario ya está disponible: puedes verificar después.</string>
     <string name="email_verify_code_label">Código de 6 dígitos</string>

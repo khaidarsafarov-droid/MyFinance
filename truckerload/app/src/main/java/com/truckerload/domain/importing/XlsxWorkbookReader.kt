@@ -1,6 +1,7 @@
 package com.truckerload.domain.importing
 
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.util.zip.ZipInputStream
 
 /**
@@ -38,12 +39,26 @@ object XlsxWorkbookReader {
             var entry = zip.nextEntry
             while (entry != null) {
                 if (entry.name == path) {
-                    return zip.readBytes().decodeToString()
+                    return readEntryCapped(zip)?.decodeToString()
                 }
                 entry = zip.nextEntry
             }
         }
         return null
+    }
+
+    private fun readEntryCapped(zip: ZipInputStream): ByteArray? {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0
+        while (true) {
+            val count = zip.read(buffer)
+            if (count <= 0) break
+            total += count
+            if (total > MAX_ZIP_ENTRY_BYTES) return null
+            output.write(buffer, 0, count)
+        }
+        return output.toByteArray()
     }
 
     private fun listZipEntries(bytes: ByteArray): List<String> {
@@ -122,4 +137,6 @@ object XlsxWorkbookReader {
             .replace("&gt;", ">")
             .replace("&quot;", "\"")
             .replace("&apos;", "'")
+
+    private const val MAX_ZIP_ENTRY_BYTES = 16 * 1024 * 1024
 }

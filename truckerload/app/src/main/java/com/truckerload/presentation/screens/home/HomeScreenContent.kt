@@ -128,6 +128,11 @@ internal fun HomeScreenContent(
     if (tabletChrome) {
         val totals = periodTotals ?: periodSummary?.totals
             ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, 0.0, 0.0)
+        val tabletRecentLoads = if (useRoomPaging) {
+            (0 until minOf(pagedLoads.itemCount, 6)).mapNotNull { index -> pagedLoads[index] }
+        } else {
+            filteredLoads
+        }
         BentoGlassScreenBackground(modifier = modifier) {
             val tabletPullState = rememberPullToRefreshState()
             Box(
@@ -145,7 +150,7 @@ internal fun HomeScreenContent(
                     searchQuery = searchQuery,
                     periodSummary = periodSummary,
                     totals = totals,
-                    recentLoads = filteredLoads,
+                    recentLoads = tabletRecentLoads,
                     viewModel = viewModel,
                     onLoadClick = onLoadClick,
                     onAddLoad = onAddLoad,

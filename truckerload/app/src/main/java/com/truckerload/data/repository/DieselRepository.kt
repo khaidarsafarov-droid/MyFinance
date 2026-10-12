@@ -7,6 +7,7 @@ import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.JournalSyncClock
 import com.truckerload.utils.BackupService
+import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

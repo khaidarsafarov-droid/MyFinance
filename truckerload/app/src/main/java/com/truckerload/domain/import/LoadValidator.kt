@@ -1,6 +1,7 @@
 package com.truckerload.domain.import
 
 import com.truckerload.domain.model.Load
+import java.time.LocalDate
 
 class LoadValidator {
     data class ValidationResult(val isValid: Boolean, val errors: List<String>)
@@ -29,9 +30,7 @@ class LoadValidator {
         if (date.length < 10) return false
         val ymd = date.take(10)
         if (ymd[4] != '-' || ymd[7] != '-') return false
-        val y = ymd.substring(0, 4).toIntOrNull() ?: return false
-        val m = ymd.substring(5, 7).toIntOrNull() ?: return false
-        val d = ymd.substring(8, 10).toIntOrNull() ?: return false
-        return y in 2000..2100 && m in 1..12 && d in 1..31
+        val parsed = runCatching { LocalDate.parse(ymd) }.getOrNull() ?: return false
+        return parsed.year in 2000..2100
     }
 }

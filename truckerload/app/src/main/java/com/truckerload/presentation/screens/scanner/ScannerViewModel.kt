@@ -23,6 +23,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 data class PendingScan(
@@ -70,6 +72,7 @@ class ScannerViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
+    private val saveMutex = Mutex()
 
     fun onScanResult(intent: Intent?) {
         val result = intent?.let { GmsDocumentScanningResult.fromActivityResultIntent(it) }
@@ -235,9 +238,10 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun persistPendingToApp(showSuccess: Boolean, finishAfter: Boolean = false) {
+    private suspend fun persistPendingToApp(showSuccess: Boolean, finishAfter: Boolean = false) =
+        saveMutex.withLock {
         val state = _uiState.value
-        val pending = state.pendingScan ?: return
+        val pending = state.pendingScan ?: return@withLock
         if (pending.savedToDb) {
             // Always emit scan_success when finishing so the UI can exit (never leave
             // autoAttachedAndDone=true without a status the LaunchedEffect handles).
@@ -249,7 +253,7 @@ class ScannerViewModel @Inject constructor(
                     )
                 }
             }
-            return
+            return@withLock
         }
         try {
             scanRepository.saveScan(
