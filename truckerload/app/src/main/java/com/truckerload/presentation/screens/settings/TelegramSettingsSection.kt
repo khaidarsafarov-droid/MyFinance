@@ -279,6 +279,7 @@ fun TelegramSettingsSection() {
                     Text(stringResource(R.string.settings_telegram_change_token))
                 }
             }
+            TelegramPairingBlock(onStatus = { statusMessage = it })
         } else {
             Button(
                 onClick = {

@@ -1121,8 +1121,13 @@
 
     <string name="sync_processing">⏳ Обрабатываю...</string>
     <string name="sync_update_skipped_error">Сообщение пропущено из‑за внутренней ошибки. Пришлите его ещё раз.</string>
-    <string name="sync_chat_not_authorized">Этот бот уже привязан к другому чату. Откройте настройки TruckoRig, чтобы сменить чат.</string>
-    <string name="sync_chat_pair_required">Сначала отправьте /start, чтобы привязать этот чат к аккаунту в TruckoRig.</string>
+    <string name="sync_chat_not_authorized">Этот бот уже привязан к другому чату. Отвяжите его в TruckoRig → Настройки → Telegram.</string>
+    <string name="sync_chat_pair_required">Чтобы привязать этот чат, откройте TruckoRig → Настройки → Telegram и отправьте команду /start с кодом, указанным там.</string>
+    <string name="settings_telegram_open_bot">Открыть бота и привязать</string>
+    <string name="settings_telegram_pair_hint">Чат ещё не привязан. Отправьте боту: /start %1$s</string>
+    <string name="settings_telegram_unpaired_done">Чат отвязан. Привяжите снова с новым кодом.</string>
+    <string name="settings_telegram_unpair">Отвязать чат</string>
+    <string name="settings_telegram_paired">Привязан к вашему чату в Telegram</string>
     <string name="backup_restore_wrong_account">Резервная копия принадлежит другому аккаунту и не будет восстановлена.</string>
     <string name="sync_welcome">🚛 Добро пожаловать в TruckoRig!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
     <string name="sync_help">📋 Как пользоваться ботом TruckoRig:\n1. Перешлите текст лоуда Amazon Relay или PDF rate confirmation\n2. Или текст / фото settlement / fuel receipt\n3. Данные сохранятся в приложении TruckoRig\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>

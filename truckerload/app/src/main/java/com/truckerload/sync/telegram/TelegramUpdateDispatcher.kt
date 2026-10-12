@@ -418,7 +418,8 @@ class TelegramUpdateDispatcher(
     /**
      * Pairing rules:
      * - Bound chat: only that chat id is accepted (others get a short reject).
-     * - Unbound: `/start` in a private chat binds once; other traffic is rejected.
+     * - Unbound: `/start <code>` in a private chat, with the one-time code shown in Settings,
+     *   binds once; other traffic is rejected.
      * Never overwrite a bound chat id from inbound messages.
      */
     private suspend fun authorizeChat(update: TelegramUpdate): Boolean {
@@ -441,10 +442,9 @@ class TelegramUpdateDispatcher(
             Log.w(TAG, "Rejected unauthorized chatId=$chatIdLong (bound=$bound)")
             return false
         }
-        val raw = update.text.trim()
-        val isStart = isCommand(raw, "/start") ||
-            (update.isCallbackQuery && TelegramBotFeatures.menuButtonToCommand(raw) == "/start")
-        if (isStart && (update.chatType == "private" || update.chatType.isBlank())) {
+        val code = telegramStartPayload(update.text)
+        val isPrivate = update.chatType == "private" || update.chatType.isBlank()
+        if (!update.isCallbackQuery && isPrivate && code != null && settings.consumeTelegramPairingCode(code)) {
             settings.saveTelegramChatId(chatIdLong)
             Log.i(TAG, "Paired Telegram chatId=$chatIdLong")
             return true
@@ -455,11 +455,20 @@ class TelegramUpdateDispatcher(
                 context.getString(R.string.sync_chat_pair_required),
             )
         }
-        Log.w(TAG, "Rejected unpaired chatId=$chatIdLong — send /start to pair")
+        Log.w(TAG, "Rejected unpaired chatId=$chatIdLong — pairing code required")
         return false
     }
 
     private companion object {
         const val TAG = "TelegramBotSync"
     }
+}
+
+/** `/start ABC` or `/start@bot ABC` → `ABC`; null when it is not `/start` or has no argument. */
+internal fun telegramStartPayload(text: String): String? {
+    val command = text.trim().substringBefore(' ')
+    if (!command.equals("/start", ignoreCase = true) && !command.startsWith("/start@", ignoreCase = true)) {
+        return null
+    }
+    return text.trim().substringAfter(' ', missingDelimiterValue = "").trim().takeIf { it.isNotEmpty() }
 }

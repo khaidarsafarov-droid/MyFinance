@@ -1121,8 +1121,13 @@
 
     <string name="sync_processing">⏳ Procesando...</string>
     <string name="sync_update_skipped_error">Mensaje omitido por un error interno. Reenvíalo.</string>
-    <string name="sync_chat_not_authorized">Este bot ya está emparejado con otro chat. Cambia el chat en los ajustes de TruckoRig.</string>
-    <string name="sync_chat_pair_required">Envía /start primero para emparejar este chat con tu cuenta de TruckoRig.</string>
+    <string name="sync_chat_not_authorized">Este bot ya está emparejado con otro chat. Desvincúlalo en TruckoRig → Ajustes → Telegram.</string>
+    <string name="sync_chat_pair_required">Para emparejar este chat, abre TruckoRig → Ajustes → Telegram y envía el comando /start con el código que aparece allí.</string>
+    <string name="settings_telegram_open_bot">Abrir bot y emparejar</string>
+    <string name="settings_telegram_pair_hint">Aún sin emparejar. Envía esto a tu bot: /start %1$s</string>
+    <string name="settings_telegram_unpaired_done">Chat desvinculado. Vuelve a emparejar con el nuevo código.</string>
+    <string name="settings_telegram_unpair">Desvincular chat</string>
+    <string name="settings_telegram_paired">Emparejado con tu chat de Telegram</string>
     <string name="backup_restore_wrong_account">Este respaldo pertenece a otra cuenta y no se restaurará.</string>
     <string name="sync_welcome">🚛 ¡Bienvenido a TruckoRig!\n\nReenvía aquí:\n• carga (Trip ID / PU# / Total Rate)\n• texto de liquidación (Grand Total)\n• recibo de combustible (Total / gallons)\n\nEl bot funciona aunque la app esté cerrada.\n\n📥 /import — importación masiva (HTML, Relay, CSV)\n🔄 \"Restore\" o /restore — restaurar todo del archivo del bot.\nComandos: /help · /status · /stats</string>
     <string name="sync_help">📋 Cómo usar el bot de TruckoRig:\n1. Reenvía el texto de una carga de Amazon Relay o un PDF de confirmación de tarifa\n2. O el texto o foto de una liquidación / recibo de combustible\n3. Los datos se guardarán en la app TruckoRig\n\n🔄 Restaurar: escribe \"restore\" o /restore — el bot recargará todos los mensajes guardados en la app.\n\n/dedup — escanear la base de datos y quitar duplicados\n\nLa app puede estar cerrada: el bot corre en segundo plano en tu teléfono.\n/status — cantidad de registros en la base · /stats — estadísticas semanales</string>
