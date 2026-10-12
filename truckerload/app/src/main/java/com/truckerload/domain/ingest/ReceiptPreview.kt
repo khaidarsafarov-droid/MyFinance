@@ -19,4 +19,5 @@ data class ReceiptPreview(
     val sourceFilePath: String? = null,
     val messageDateSeconds: Long? = null,
     val awaitingTypedAmount: Boolean = false,
+    val grossAmount: Double? = null,
 )

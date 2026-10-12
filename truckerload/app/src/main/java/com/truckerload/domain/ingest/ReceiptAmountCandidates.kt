@@ -26,6 +26,8 @@ object ReceiptAmountCandidates {
         }
         add("take-home", parsed?.netAmount)
         add("gross", parsed?.grossAmount)
+        add("loads net", parsed?.loadsNetAmount)
+        add("deductions", parsed?.deductionsAmount)
         for ((label, pattern) in PAYCHECK_LABELS) {
             add(label, firstLabeled(hay, pattern))
         }

@@ -39,7 +39,7 @@ object PaycheckTextParser {
         RegexOption.IGNORE_CASE,
     )
     private val weekStartPattern = Regex(
-        """(?:Week\s*Start|Period\s*(?:Start|Beginning|Begin)|Settlement\s*Date|Cutoff\s*Date|Week\s*(?:Beginning|Of))\s*[:\s]*([^\n]+)""",
+        """(?:Week\s*Start|Period\s*(?:Start|Beginning|Begin)|Cutoff\s*Date|Week\s*(?:Beginning|Of))\s*[:\s]*([^\n]+)""",
         RegexOption.IGNORE_CASE,
     )
     private val weekEndPattern = Regex(
@@ -92,17 +92,25 @@ object PaycheckTextParser {
 
         val grossAmount = labeledMoney(hay, grossPattern)
         val periodDates = periodRangePattern.find(hay)?.groupValues?.getOrNull(1)?.let(::datesIn).orEmpty()
+        val loadSpan = PaycheckStatementFields.loadDateSpan(text)
+        val fileWeek = weekFromFileName(fileName)
         val weekStart = weekStartPattern.find(hay)?.groupValues?.get(1)
             ?.let { ParseUtils.normalizeDate(it) }
             ?.takeIf { it.isNotBlank() }
             ?: periodDates.getOrNull(0)
-            ?: weekFromFileName(fileName)?.first
+            ?: loadSpan?.first
+            ?: fileWeek?.first
         val weekEnd = weekEndPattern.find(hay)?.groupValues?.get(1)
             ?.let { ParseUtils.normalizeDate(it) }
             ?.takeIf { it.isNotBlank() }
             ?: periodDates.getOrNull(1)
-            ?: weekFromFileName(fileName)?.second
-        val driverName = driverPattern.find(hay)?.groupValues?.get(1)?.trim()
+            ?: loadSpan?.second
+            ?: fileWeek?.second
+        val driverName = driverPattern.find(text)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
+            ?: PaycheckStatementFields.unlabeledDriver(text)
+        val loadsNets = PaycheckStatementFields.loadsNetCandidates(text)
+        val deductions = PaycheckStatementFields.deductions(text)
+        val lineGross = PaycheckStatementFields.grossFromLines(text)
 
         return PaycheckParseResult(
             driverName = driverName,
@@ -110,7 +118,17 @@ object PaycheckTextParser {
             weekEndDate = weekEnd,
             grossAmount = grossAmount,
             netAmount = netAmount,
-            confidence = "high",
+            confidence = PaycheckStatementFields.confidence(
+                takeHome = netAmount,
+                loadsNets = loadsNets,
+                deductions = deductions,
+                gross = grossAmount,
+                lineGross = lineGross,
+            ),
+            settlementDate = PaycheckStatementFields.settlementDate(text),
+            miles = PaycheckStatementFields.miles(text),
+            deductionsAmount = deductions,
+            loadsNetAmount = PaycheckStatementFields.closingLoadsNet(netAmount, loadsNets, deductions),
         )
     }
 

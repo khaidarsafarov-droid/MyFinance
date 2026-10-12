@@ -1,6 +1,7 @@
 package com.truckerload.domain.parser
 
 import com.truckerload.domain.ingest.InboundDocumentResolver
+import com.truckerload.domain.ingest.ReceiptAmountCandidates
 import com.truckerload.domain.ingest.ReceiptFieldExtractor
 import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptKindClassifier
@@ -129,7 +130,14 @@ class DieselPaycheckTextParserTest {
         )!!
         assertEquals(4040.30, parsed.netAmount, 0.01)
         assertEquals(8454.58, parsed.grossAmount!!, 0.01)
-        assertEquals("2026-08-26", parsed.weekStartDate)
+        assertEquals("KHAIDAR SAFAROV", parsed.driverName)
+        assertEquals("2026-08-17", parsed.weekStartDate)
+        assertEquals("2026-08-19", parsed.weekEndDate)
+        assertEquals("2026-08-26", parsed.settlementDate)
+        assertEquals(2662.019, parsed.miles!!, 0.001)
+        assertEquals(7440.03, parsed.loadsNetAmount!!, 0.01)
+        assertEquals(3399.73, parsed.deductionsAmount!!, 0.01)
+        assertEquals("high", parsed.confidence)
         assertTrue(PaycheckTextParser.isDriverStatement(text))
         assertEquals(
             ReceiptKind.PAYCHECK,
@@ -143,12 +151,129 @@ class DieselPaycheckTextParserTest {
             fileName = "Settlement 08.17-08.23 Khaidar Safarov.pdf",
         )
         assertEquals(4040.30, preview.amount!!, 0.01)
+        assertEquals(8454.58, preview.grossAmount!!, 0.01)
+        assertEquals("KHAIDAR SAFAROV", preview.driverName)
+        assertEquals("2026-08-17", preview.date)
+        assertEquals(2662.019, preview.miles!!, 0.001)
+        assertNull(preview.tripId)
         assertFalse(
             InboundDocumentResolver.resolve(
                 text,
                 fileName = "Settlement 08.17-08.23 Khaidar Safarov.pdf",
             ).autoSaveLoads,
         )
+    }
+
+    @Test
+    fun paycheck_zp7611Layout_keepsTakeHomeAndUsesLoadWeek() {
+        val text = """
+            PRIMEX GROUP LOGISTICS LLC Driver Settlement
+            3601 ALGONQUIN RD STE 214
+            Settlement #:
+            ROLLING MEADOWS, IL 60008
+            Payee ID: 268709
+            Settlement Date: 10/07/26
+            KHAIDAR SAFAROV
+            1 MAIN ST
+            PHILADELPHIA, PA 19114
+            Load # Origin Destn Ship Date Delv Date Gross Method Net Pay
+            88.00
+            T-113SFQ84J PITTSTON, PA CARLISLE, PA 09/27/26 09/27/26 ${'$'}672.73 ${'$'}592.00
+            percent
+            Order Total:
+            ${'$'}592.00
+            88.00
+            T-115RX9TFD LEWISBERRY, PA UXBRIDGE, MA 09/28/26 09/29/26 ${'$'}1,605.05 ${'$'}1,412.44
+            percent
+            Order Total:
+            ${'$'}1,412.44
+            88.00
+            T-1135WXBFW CHARLTON, MA CARLISLE, PA 09/29/26 09/29/26 ${'$'}1,485.92 ${'$'}1,307.61
+            percent
+            Order Total: ${'$'}1,307.61
+            HAGERSTOWN, HAGERSTOWN, 88.00
+            ${'$'}1,508.66
+            T-115JWXXPZ 09/30/26 10/01/26 ${'$'}1,714.39
+            MD MD percent
+            Order Total: ${'$'}1,508.66
+            HAGERSTOWN, HAGERSTOWN, 88.00
+            ${'$'}1,283.69
+            T-116LJZY9Z 10/01/26 10/02/26 ${'$'}1,458.74
+            MD MD percent
+            Order Total: ${'$'}1,283.69
+            HOPEWELL 88.00
+            ${'$'}154.00
+            114Z7J4J5 BEDFORD, PA 10/02/26 10/02/26 ${'$'}175.00
+            JUNCTION, NY percent
+            Order Total: ${'$'}154.00
+            HOPEWELL 88.00
+            ${'$'}890.20
+            114GQNPCD BEDFORD, PA 10/03/26 10/03/26 ${'$'}1,011.59
+            JUNCTION, NY percent
+            Order Total: ${'$'}890.20
+            Total: ${'$'}7,148.60
+            Deductions
+            Description Date Rate
+            IFTA 10/05/26 ${'$'}50.00
+            LOGBOOK 10/05/26 ${'$'}50.00
+            LIABILITY 10/05/26 ${'$'}344.00
+            WEEKLY PREPASS ${'$'}6 10/05/26 ${'$'}6.00
+            ACH 10/05/26 ${'$'}5.00
+            FUEL SAMEDAY 10/05/26 ${'$'}3,513.73
+            Total: ${'$'}3,968.73
+
+            Grand Total: ${'$'}3,179.87
+            Settlement Summary:
+            Loads Total: 7
+            Gross Pay Total: ${'$'}8,123.42
+            Miles Total: 1508.932
+        """.trimIndent()
+
+        val parsed = PaycheckTextParser.parse(text, fileName = "ZP_7611.pdf")!!
+        assertEquals(3179.87, parsed.netAmount, 0.01)
+        assertEquals(8123.42, parsed.grossAmount!!, 0.01)
+        assertEquals("KHAIDAR SAFAROV", parsed.driverName)
+        assertEquals("2026-09-27", parsed.weekStartDate)
+        assertEquals("2026-10-03", parsed.weekEndDate)
+        assertEquals("2026-10-07", parsed.settlementDate)
+        assertEquals(1508.932, parsed.miles!!, 0.001)
+        assertEquals(7148.60, parsed.loadsNetAmount!!, 0.01)
+        assertEquals(3968.73, parsed.deductionsAmount!!, 0.01)
+        assertEquals("high", parsed.confidence)
+
+        val preview = ReceiptFieldExtractor.extract(text, fileName = "ZP_7611.pdf")
+        assertEquals(ReceiptKind.PAYCHECK, preview.kind)
+        assertEquals(3179.87, preview.amount!!, 0.01)
+        assertEquals(8123.42, preview.grossAmount!!, 0.01)
+        assertNull(preview.tripId)
+        assertEquals(1508.932, preview.miles!!, 0.001)
+        val choices = ReceiptAmountCandidates.paycheck(text, "ZP_7611.pdf")
+        assertEquals(3179.87, choices.first().amount, 0.01)
+        assertTrue(choices.any { kotlin.math.abs(it.amount - 8123.42) < 0.01 })
+        assertTrue(choices.any { kotlin.math.abs(it.amount - 7148.60) < 0.01 })
+        assertTrue(choices.any { kotlin.math.abs(it.amount - 3968.73) < 0.01 })
+        assertFalse(
+            InboundDocumentResolver.resolve(text, fileName = "ZP_7611.pdf").autoSaveLoads,
+        )
+    }
+
+    @Test
+    fun paycheck_mismatchingTotals_stayLowConfidenceAndKeepPrintedTakeHome() {
+        val parsed = PaycheckTextParser.parse(
+            """
+            Driver Settlement
+            Payee ID: 268709
+            Settlement Date: 10/07/26
+            Grand Total: ${'$'}100.00
+            T-113SFQ84J PITTSTON, PA 09/27/26 ${'$'}672.73 88% ${'$'}592.00
+            T-115RX9TFD UXBRIDGE, MA 09/29/26 ${'$'}1,605.05 88% ${'$'}1,412.44
+            Total: ${'$'}7,148.60
+            Total Deductions ${'$'}3,968.73
+            Gross Pay Total: ${'$'}8,123.42
+            """.trimIndent(),
+        )!!
+        assertEquals(100.0, parsed.netAmount, 0.01)
+        assertEquals("low", parsed.confidence)
     }
 
     @Test

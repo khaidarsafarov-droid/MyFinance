@@ -22,8 +22,8 @@ class ReceiptAmountCandidatesTest {
 
         assertTrue(amounts.any { kotlin.math.abs(it - 4040.30) < 0.01 })
         assertTrue(amounts.any { kotlin.math.abs(it - 8454.58) < 0.01 })
+        assertTrue(amounts.any { kotlin.math.abs(it - 3399.73) < 0.01 })
         assertTrue(amounts.none { kotlin.math.abs(it - 3278.50) < 0.01 })
-        assertTrue(amounts.none { kotlin.math.abs(it - 3399.73) < 0.01 })
         assertEquals(4040.30, choices.first().amount, 0.01)
     }
 
