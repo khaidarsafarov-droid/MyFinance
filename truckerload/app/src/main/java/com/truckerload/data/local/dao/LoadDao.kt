@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.truckerload.data.local.entities.LoadDateSpan
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadStatsAgg
@@ -123,8 +124,16 @@ interface LoadDao {
     @Query("SELECT * FROM loads WHERE tripId LIKE '%' || :query || '%' OR pointA LIKE '%' || :query || '%' OR pointB LIKE '%' || :query || '%' OR date LIKE '%' || :query || '%' ORDER BY parsedAt DESC")
     fun searchLoads(query: String): Flow<List<LoadEntity>>
 
+    /**
+     * REPLACE is DELETE + INSERT in SQLite: it cascades into stops/penalties. Callers must
+     * re-insert children in the same transaction, or use [updateEntity] instead.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(load: LoadEntity)
+
+    /** Plain UPDATE of an existing row; stops and penalties stay attached. */
+    @Update
+    suspend fun updateEntity(load: LoadEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(loads: List<LoadEntity>)

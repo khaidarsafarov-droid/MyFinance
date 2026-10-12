@@ -469,7 +469,7 @@ class LoadRepository(
                 updated.firstPuMillis != entity.firstPuMillis ||
                 updated.lastDelMillis != entity.lastDelMillis
             ) {
-                loadDao.insert(updated)
+                loadDao.updateEntity(updated)
             }
         }
         notifyWidgetDataChanged()
@@ -482,7 +482,7 @@ class LoadRepository(
             val stops = stopDao.getStopsByLoadId(entity.id)
             if (stops.isEmpty()) continue
             val load = entity.toDomain(stops).withReportingWeek()
-            loadDao.insert(load.toEntity())
+            loadDao.updateEntity(load.toEntity())
         }
     }
 
