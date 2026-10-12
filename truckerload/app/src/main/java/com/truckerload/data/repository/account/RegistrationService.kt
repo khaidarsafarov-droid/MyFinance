@@ -53,16 +53,6 @@ class RegistrationService(
         return Result.success(account)
     }
 
-    suspend fun markVerified() {
-        val existing = identity.get(userId) ?: return
-        identity.upsert(existing.copy(isVerified = true))
-        progressStore.save(progress().copy(verificationComplete = true))
-    }
-
-    suspend fun skipVerificationForNow() {
-        progressStore.save(progress().copy(verificationComplete = true))
-    }
-
     suspend fun completeBasicProfile(
         displayName: String,
         role: DriverRole,

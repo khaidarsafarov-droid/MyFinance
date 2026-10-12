@@ -40,9 +40,9 @@ class AuthRepositoryArchitectureTest {
     }
 
     @Test
-    fun emailJournalUnifier_stillRelocatesLocalEmailDb() {
+    fun authStore_keepsOneDeviceProfileWithoutJournalRelocation() {
         val store = readMainSource("com/truckerload/data/preferences/AuthStore.kt")
-        assertTrue(store.contains("EmailAccountUnifier.relocateLocalEmailJournal"))
+        assertTrue(!store.contains("AccountUnifier"))
         val diesel = readMainSource("com/truckerload/presentation/screens/add/AddDieselViewModel.kt")
         assertTrue(diesel.contains("applyUtcDatePickerDay"))
         val paycheck = readMainSource("com/truckerload/presentation/screens/add/AddPaycheckViewModel.kt")

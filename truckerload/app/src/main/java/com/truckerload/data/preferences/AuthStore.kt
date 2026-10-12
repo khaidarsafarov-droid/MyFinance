@@ -3,8 +3,6 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import com.truckerload.data.local.EmailAccountUnifier
-import com.truckerload.data.local.GoogleAccountUnifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -65,15 +63,6 @@ class AuthStore(context: Context) {
                     }
                     liveLoggedIn = true
                     liveSessionHealth = AuthSessionHealth.VERIFIED
-                    val canonical = GoogleAccountUnifier.canonicalSessionUserId(
-                        appContext,
-                        persistedId,
-                        liveGoogleSub,
-                    )
-                    if (canonical != persistedId) {
-                        liveUserId = canonical
-                        prefs.edit(commit = true) { putString(KEY_USER_ID, canonical) }
-                    }
                 }
                 _isLoggedIn.value = liveLoggedIn
                 _userId.value = liveUserId
@@ -120,20 +109,6 @@ class AuthStore(context: Context) {
 
     fun googleSubOrNull(): String? = synchronized(lock) { liveGoogleSub }
 
-    /**
-     * Copies a leftover Supabase-UUID journal/prefs into the canonical Google id
-     * before [UserProfileStore] binds. No-op when [googleSub] is blank.
-     */
-    fun unifyGoogleJournal(googleSub: String?, aliasUserIds: Collection<String> = emptyList()) {
-        val sub = googleSub?.trim().orEmpty()
-        if (sub.isBlank()) return
-        GoogleAccountUnifier.relocateAliases(
-            appContext,
-            AccountIds.fromGoogleSub(sub),
-            aliasUserIds,
-        )
-    }
-
     fun markSessionHealth(health: AuthSessionHealth) {
         synchronized(lock) {
             liveSessionHealth = health
@@ -179,7 +154,10 @@ class AuthStore(context: Context) {
     }
 
     /**
-     * Starts a multi-user session. Each [userId] gets its own Room DB and preference namespaces.
+     * Opens the device profile. The app keeps exactly one profile per device: while a profile
+     * is active, a login with another id keeps the active id, so the Room file and every
+     * account-scoped preference namespace stay the same. Only [logout] (full data erase)
+     * releases the id.
      *
      * Google and email sessions always survive app restarts (normal app behavior).
      * Only [AuthProvider.LOCAL] / ephemeral debug sessions can skip disk when [rememberMe] is false.
@@ -193,38 +171,15 @@ class AuthStore(context: Context) {
         googleSub: String? = null,
         provider: AuthProvider = AuthProvider.LOCAL,
         googleIdToken: String? = null,
-        aliasUserIds: List<String> = emptyList(),
     ) {
-        val requestedId = userId.trim()
-        val id = if (!googleSub.isNullOrBlank()) {
+        val requestedId = if (!googleSub.isNullOrBlank()) {
             AccountIds.fromGoogleSub(googleSub)
         } else {
-            requestedId
+            userId.trim()
         }
-        require(id.isNotBlank()) { "userId required" }
+        require(requestedId.isNotBlank()) { "userId required" }
+        val id = currentUserIdOrNull() ?: requestedId
         val mail = email.trim()
-        val previousId: String?
-        val previousSub: String?
-        synchronized(lock) {
-            previousId = liveUserId
-            previousSub = liveGoogleSub
-        }
-        if (!googleSub.isNullOrBlank()) {
-            val aliases = buildList {
-                addAll(aliasUserIds)
-                if (requestedId.isNotBlank()) add(requestedId)
-                if (!previousId.isNullOrBlank() &&
-                    previousId != id &&
-                    previousSub == googleSub.trim()
-                ) {
-                    add(previousId)
-                }
-            }
-            GoogleAccountUnifier.relocateAliases(appContext, id, aliases)
-        } else if (mail.isNotBlank()) {
-            // FIX: offline email login used local_<hash> while cloud used UUID — two journals
-            EmailAccountUnifier.relocateLocalEmailJournal(appContext, id, mail)
-        }
         val resolvedProvider = when {
             !googleSub.isNullOrBlank() -> AuthProvider.GOOGLE
             provider == AuthProvider.GOOGLE || provider == AuthProvider.EMAIL -> provider
@@ -315,7 +270,7 @@ class AuthStore(context: Context) {
             )
             return
         }
-        error("login(userId, email) required for multi-user sessions")
+        error("login(userId, email) required to open the device profile")
     }
 
     fun logout() {

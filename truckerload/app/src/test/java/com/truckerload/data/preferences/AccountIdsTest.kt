@@ -2,7 +2,6 @@ package com.truckerload.data.preferences
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -18,19 +17,11 @@ class AccountIdsTest {
     }
 
     @Test
-    fun `resolve prefers google sub over supabase uuid`() {
+    fun `email ids are namespaced apart from google ids`() {
         val googleId = AccountIds.fromGoogleSub("sub")
-        assertEquals(
-            googleId,
-            AccountIds.resolveOrNull("uuid-1", "a@b.com", "sub"),
-        )
-        assertTrue(googleId.startsWith("google_"))
-        val emailId = AccountIds.resolveOrNull(null, "driver@example.com", null)
-        assertTrue(emailId!!.startsWith("local_"))
+        val emailId = AccountIds.fromEmail("driver@example.com")
+        assertTrue(emailId.startsWith("local_"))
         assertNotEquals(googleId, emailId)
-        assertEquals("uuid-1", AccountIds.resolveOrNull("uuid-1", "a@b.com", null))
-        assertNull(AccountIds.resolveOrNull(null, null, null))
-        assertNull(AccountIds.resolveOrNull(null, "  ", "  "))
     }
 
     @Test

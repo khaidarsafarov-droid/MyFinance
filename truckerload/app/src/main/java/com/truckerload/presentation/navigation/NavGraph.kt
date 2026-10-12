@@ -65,7 +65,7 @@ fun NavGraph(
     val navigationRail = useNavigationRail()
 
     if (!isLoggedIn) {
-        // Auth UI is hosted by MainActivity (account switch recreates user-scoped deps).
+        // First-run UI is hosted by MainActivity.
         return
     }
     if (!showMainContent) {
@@ -75,29 +75,15 @@ fun NavGraph(
     val profileRepository = LocalProfileRepository.current
     val userProfileStore = LocalUserProfileStore.current
     val setupComplete by userProfileStore.setupComplete.collectAsStateWithLifecycle()
-    val authEmail by authStore.email.collectAsStateWithLifecycle()
     var needsSetup by remember { mutableStateOf<Boolean?>(null) }
-    var needsEmailVerify by remember { mutableStateOf<Boolean?>(null) }
     var needsTelegramOnboarding by remember { mutableStateOf<Boolean?>(null) }
-    val emailVerifyStore = remember(context) {
-        com.truckerload.data.preferences.EmailVerificationStore(context.applicationContext)
-    }
     val registrationService = com.truckerload.presentation.di.LocalRegistrationService.current
-    val registrationScope = androidx.compose.runtime.rememberCoroutineScope()
-    LaunchedEffect(isLoggedIn, setupComplete, authEmail) {
+    LaunchedEffect(isLoggedIn, setupComplete) {
         if (!isLoggedIn) {
             needsSetup = null
-            needsEmailVerify = null
             needsTelegramOnboarding = null
             return@LaunchedEffect
         }
-        val provider = authStore.authProvider()
-        val emailPending =
-            provider == com.truckerload.data.preferences.AuthProvider.EMAIL &&
-                authEmail.isNotBlank() &&
-                emailVerifyStore.isPending(authEmail)
-        // Step 2 (verification) happens before the profile wizard.
-        needsEmailVerify = emailPending
         if (setupComplete) {
             needsSetup = false
             needsTelegramOnboarding = com.truckerload.data.preferences.TelegramOnboardingStore(
@@ -123,24 +109,6 @@ fun NavGraph(
             ).shouldPrompt(context)
         }
     }
-    if (needsEmailVerify == true) {
-        com.truckerload.presentation.screens.auth.EmailVerificationScreen(
-            email = authEmail,
-            onVerified = {
-                needsEmailVerify = false
-                registrationScope.launch {
-                    runCatching { registrationService.markVerified() }
-                }
-            },
-            onSkip = {
-                needsEmailVerify = false
-                registrationScope.launch {
-                    runCatching { registrationService.skipVerificationForNow() }
-                }
-            },
-        )
-        return
-    }
     if (needsSetup == true) {
         ProfileSetupScreen(
             onCompleted = {
@@ -152,7 +120,7 @@ fun NavGraph(
         )
         return
     }
-    if (needsSetup == null || needsEmailVerify == null || needsTelegramOnboarding == null) {
+    if (needsSetup == null || needsTelegramOnboarding == null) {
         // Lightweight placeholder instead of a blank frame (reads as a freeze).
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -171,9 +139,9 @@ fun NavGraph(
     }
 
     // Handle widget deep links only after NavHost is about to be composed (setup gates passed).
-    LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent, needsSetup, needsEmailVerify, needsTelegramOnboarding) {
+    LaunchedEffect(deepLinkRoute, isLoggedIn, showMainContent, needsSetup, needsTelegramOnboarding) {
         if (!isLoggedIn || !showMainContent) return@LaunchedEffect
-        if (needsSetup != false || needsEmailVerify != false || needsTelegramOnboarding != false) {
+        if (needsSetup != false || needsTelegramOnboarding != false) {
             return@LaunchedEffect
         }
         val route = deepLinkRoute ?: return@LaunchedEffect

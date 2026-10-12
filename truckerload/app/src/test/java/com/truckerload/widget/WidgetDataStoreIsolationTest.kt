@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config
 class WidgetDataStoreIsolationTest {
 
     @Test
-    fun statsDoNotLeakAcrossAccounts() {
+    fun statsStayWithTheSingleDeviceProfile() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)
 
@@ -47,11 +47,7 @@ class WidgetDataStoreIsolationTest {
             ),
         )
 
-        auth.login(userId = "widget_user_a", email = "a@example.com", rememberMe = true)
-        assertEquals(3, WidgetDataStore.load(context).loadsCount)
-        assertEquals("A", WidgetDataStore.load(context).weekLabel)
-
-        auth.login(userId = "widget_user_b", email = "b@example.com", rememberMe = true)
+        assertEquals("widget_user_a", auth.currentUserIdOrNull())
         assertEquals(9, WidgetDataStore.load(context).loadsCount)
         assertEquals("B", WidgetDataStore.load(context).weekLabel)
     }
