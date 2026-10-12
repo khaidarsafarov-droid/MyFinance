@@ -36,8 +36,12 @@ fun SupportSQLiteDatabase.addColumnIfMissing(
     table: String,
     column: String,
     definitionSql: String,
+    requireTable: Boolean = false,
 ) {
     if (!hasTable(table)) {
+        if (requireTable) {
+            error("addColumnIfMissing: required table missing table=$table column=$column")
+        }
         Log.w(TAG, "addColumnIfMissing: table missing table=$table column=$column")
         return
     }

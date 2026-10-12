@@ -15,6 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.truckerload.utils.runCatchingCancellable
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -63,6 +65,8 @@ class TaxTrackerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TaxTrackerUiState())
     val uiState: StateFlow<TaxTrackerUiState> = _uiState.asStateFlow()
     private var autoPerDiemDates: Set<String> = emptySet()
+    private var taxLoadJob: Job? = null
+    private var taxGeneration = 0
 
     init {
         loadTaxData(Calendar.getInstance().get(Calendar.YEAR))
@@ -183,9 +187,11 @@ class TaxTrackerViewModel @Inject constructor(
     }
 
     private fun loadTaxData(year: Int) {
-        viewModelScope.launch {
+        taxLoadJob?.cancel()
+        val generation = ++taxGeneration
+        taxLoadJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching {
+            runCatchingCancellable {
                 val paychecks = paycheckRepository.getPaychecksForYear(year)
                 val diesel = dieselRepository.getDieselForYear(year)
                 val loads = loadRepository.getLoadsByYear(year)
@@ -212,6 +218,7 @@ class TaxTrackerViewModel @Inject constructor(
                 val (daysUntil, nextDate) = getNextQuarterlyDate()
                 val reserved = 0.0
                 val shortfall = (totalOwed - reserved).coerceAtLeast(0.0)
+                if (generation != taxGeneration) return@runCatchingCancellable
 
                 _uiState.update {
                     it.copy(
@@ -235,6 +242,7 @@ class TaxTrackerViewModel @Inject constructor(
                     )
                 }
             }.onFailure { error ->
+                if (generation != taxGeneration) return@onFailure
                 _uiState.update {
                     it.copy(
                         isLoading = false,

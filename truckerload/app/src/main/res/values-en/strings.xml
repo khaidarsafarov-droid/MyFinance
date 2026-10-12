@@ -1125,6 +1125,10 @@
     <string name="sync_chat_not_authorized">This bot is already paired with another chat. Change the chat in TruckoRig settings.</string>
     <string name="sync_chat_pair_required">Send /start first to pair this chat with your TruckoRig account.</string>
     <string name="backup_restore_wrong_account">This backup belongs to another account and will not be restored.</string>
+    <string name="backup_restore_unbound_account">This backup is not tied to an account. Restoring it replaces the journal on this device.</string>
+    <string name="backup_restore_unbound_confirm">Replace journal</string>
+    <string name="backup_restore_too_large">This backup is too large to restore on the device.</string>
+    <string name="sync_unpaired_replayed">Imported %1$d message(s) saved before this chat was paired.</string>
     <string name="sync_welcome">🚛 Welcome to TruckoRig!\n\nForward here:\n• load (Trip ID / PU# / Total Rate)\n• settlement text (Grand Total)\n• fuel receipt (Total / gallons)\n\nThe bot works even when the app is closed.\n\n📥 /import — bulk import (HTML, Relay, CSV)\n🔄 \"Restore\" or /restore — restore everything from the bot archive.\nCommands: /help · /status · /stats</string>
     <string name="sync_help">📋 How to use the TruckoRig bot:\n1. Forward Amazon Relay load text or a rate-confirmation PDF\n2. Or settlement / fuel receipt text or photo\n3. Data will be saved in the TruckoRig app\n\n🔄 Restore: type \"restore\" or /restore — the bot will reload all saved messages into the app.\n\n/dedup — scan the database and remove duplicates\n\nThe app can be closed — the bot runs in the background on your phone.\n/status — record count in database · /stats — weekly statistics</string>
     <string name="sync_status">📊 TruckoRig status:\n• Loads: %1$d\n• Paychecks: %2$d\n• Diesel: %3$d\n\nBot is active in background. Forward new data — I will add it to the app.</string>

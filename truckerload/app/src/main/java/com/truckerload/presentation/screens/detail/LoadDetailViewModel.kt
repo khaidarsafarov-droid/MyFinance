@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -50,6 +52,8 @@ class LoadDetailViewModel @Inject constructor(
     private val _events = MutableSharedFlow<LoadDetailEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<LoadDetailEvent> = _events.asSharedFlow()
     private val persistMutex = Mutex()
+    private var refreshJob: Job? = null
+    private var refreshGeneration = 0
 
     init {
         refresh()
@@ -67,12 +71,15 @@ class LoadDetailViewModel @Inject constructor(
             }
             return
         }
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        val generation = ++refreshGeneration
+        refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, loadError = null) }
             try {
                 // Always recompute duration/pace from stops + actualFinishDate so the
                 // detail stats stay in sync even if denormalized DB fields were stale.
                 val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
+                if (generation != refreshGeneration) return@launch
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -84,7 +91,10 @@ class LoadDetailViewModel @Inject constructor(
                         },
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                if (generation != refreshGeneration) return@launch
                 _uiState.update {
                     it.copy(
                         isLoading = false,

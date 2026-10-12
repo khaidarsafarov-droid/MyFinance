@@ -17,6 +17,7 @@ import com.truckerload.sync.import.ImportCommandHandler
 import com.truckerload.sync.import.ImportDocumentHandler
 import com.truckerload.sync.import.ImportSessionManager
 import com.truckerload.utils.LogRedactor
+import com.truckerload.utils.runCatchingCancellable
 /**
  * Routes Telegram updates / commands to import, restore, or inbound parse paths.
  */
@@ -34,8 +35,23 @@ class TelegramUpdateDispatcher(
         prefs: SharedPreferences,
         stateMachine: TelegramStateMachine,
     ) {
-        // FIX: only the paired private chat may mutate journal data / hijack exports
-        if (!authorizeChat(update)) return
+        // FIX: only the paired private chat may mutate journal data / hijack exports.
+        // Unpaired load texts are stored and imported after /start so the offset can move.
+        when (authorizeChat(update)) {
+            ChatGate.Foreign -> {
+                answerCallback(update, context.getString(R.string.sync_chat_not_authorized))
+                return
+            }
+            ChatGate.Unpaired -> {
+                if (!update.isCallbackQuery && chatRestore.isRestorableDataMessage(update.text)) {
+                    chatRestore.persistIncoming(update)
+                    TelegramPairingReplay.remember(prefs, update.updateId)
+                }
+                answerCallback(update, context.getString(R.string.sync_chat_pair_required))
+                return
+            }
+            ChatGate.JustPaired, ChatGate.Accepted -> Unit
+        }
 
         if (!update.isCallbackQuery && update.text.isNotBlank()) {
             chatRestore.persistIncoming(update)
@@ -86,6 +102,21 @@ class TelegramUpdateDispatcher(
         when {
             isCommand(rawText, "/start") -> {
                 apiClient.sendWithMenu(update.chatId, context.getString(R.string.sync_welcome))
+                val imported = TelegramPairingReplay.importPending(
+                    chatId = update.chatId,
+                    chatRestore = chatRestore,
+                    messageParser = messageParser,
+                    loadRepository = loadRepository,
+                    paycheckRepository = paycheckRepository,
+                    dieselRepository = dieselRepository,
+                    prefs = prefs,
+                )
+                if (imported > 0) {
+                    apiClient.sendWithMenu(
+                        update.chatId,
+                        context.getString(R.string.sync_unpaired_replayed, imported),
+                    )
+                }
                 return
             }
             isCommand(rawText, "/help") -> {
@@ -281,8 +312,6 @@ class TelegramUpdateDispatcher(
                     telegramApi = apiClient.api(),
                     update = update,
                     loadRepository = loadRepository,
-                    paycheckRepository = paycheckRepository,
-                    dieselRepository = dieselRepository,
                 )
                 apiClient.sendWithMenu(update.chatId, reply)
                 return
@@ -421,25 +450,31 @@ class TelegramUpdateDispatcher(
      * - Unbound: `/start` in a private chat binds once; other traffic is rejected.
      * Never overwrite a bound chat id from inbound messages.
      */
-    private suspend fun authorizeChat(update: TelegramUpdate): Boolean {
+    private suspend fun answerCallback(update: TelegramUpdate, text: String) {
+        val id = update.callbackQueryId ?: return
+        apiClient.answerCallbackQuery(id, text).onFailure { e ->
+            Log.w(TAG, "answerCallbackQuery: ${LogRedactor.redact(e.message)}")
+        }
+    }
+
+    private suspend fun authorizeChat(update: TelegramUpdate): ChatGate {
         val chatIdLong = update.chatId.toLongOrNull()
         if (chatIdLong == null) {
             Log.w(TAG, "Reject update with non-numeric chatId")
-            return false
+            return ChatGate.Foreign
         }
         val settings = SettingsDataStore(context)
         val bound = settings.getTelegramChatIdOnce()
         if (bound != null) {
-            if (bound == chatIdLong) return true
-            // Still advance offset by returning successfully; do not process payload.
-            runCatching {
+            if (bound == chatIdLong) return ChatGate.Accepted
+            runCatchingCancellable {
                 apiClient.sendMessage(
                     update.chatId,
                     context.getString(R.string.sync_chat_not_authorized),
                 )
             }
             Log.w(TAG, "Rejected unauthorized chatId=$chatIdLong (bound=$bound)")
-            return false
+            return ChatGate.Foreign
         }
         val raw = update.text.trim()
         val isStart = isCommand(raw, "/start") ||
@@ -447,17 +482,19 @@ class TelegramUpdateDispatcher(
         if (isStart && (update.chatType == "private" || update.chatType.isBlank())) {
             settings.saveTelegramChatId(chatIdLong)
             Log.i(TAG, "Paired Telegram chatId=$chatIdLong")
-            return true
+            return ChatGate.JustPaired
         }
-        runCatching {
+        runCatchingCancellable {
             apiClient.sendMessage(
                 update.chatId,
                 context.getString(R.string.sync_chat_pair_required),
             )
         }
         Log.w(TAG, "Rejected unpaired chatId=$chatIdLong — send /start to pair")
-        return false
+        return ChatGate.Unpaired
     }
+
+    private enum class ChatGate { Accepted, JustPaired, Foreign, Unpaired }
 
     private companion object {
         const val TAG = "TelegramBotSync"

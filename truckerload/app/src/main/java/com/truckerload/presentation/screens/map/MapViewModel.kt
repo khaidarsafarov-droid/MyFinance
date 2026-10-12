@@ -10,7 +10,9 @@ import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdStateSummary
 import com.truckerload.presentation.components.USStateMetric
+import com.truckerload.utils.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -40,15 +42,19 @@ class MapViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private var allLoadsReports: List<CrowdRateReport> = emptyList()
+    private var refreshJob: Job? = null
+    private var refreshGeneration = 0
 
     init {
         refresh()
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        val generation = ++refreshGeneration
+        refreshJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching {
+            runCatchingCancellable {
                 val loads = withContext(Dispatchers.IO) { loadRepository.getAllLoadsOnce() }
                 // Keep a wide cache, then slice by the selected period in applySelection.
                 allLoadsReports = withContext(Dispatchers.Default) {
@@ -57,8 +63,10 @@ class MapViewModel @Inject constructor(
                         windowMs = MapPeriod.YEAR.windowMs,
                     )
                 }
+                if (generation != refreshGeneration) return@runCatchingCancellable
                 applySelection(_uiState.value.selectedStateCode, _uiState.value.period)
             }.onFailure { error ->
+                if (generation != refreshGeneration) return@onFailure
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = error.toUiMessage())
                 }
@@ -73,6 +81,10 @@ class MapViewModel @Inject constructor(
 
     fun setPeriod(period: MapPeriod) {
         if (period == _uiState.value.period) return
+        if (refreshJob?.isActive == true) {
+            _uiState.update { it.copy(period = period) }
+            return
+        }
         applySelection(_uiState.value.selectedStateCode, period)
     }
 

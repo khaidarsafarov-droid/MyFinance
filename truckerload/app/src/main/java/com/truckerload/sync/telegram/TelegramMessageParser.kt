@@ -25,7 +25,6 @@ import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.sync.DuplicateAuditRunner
 import com.truckerload.sync.TelegramLoadHandler
 import com.truckerload.sync.import.ImportDocumentHandler
-import com.truckerload.sync.import.ImportHandlerSupport
 import com.truckerload.sync.import.ImportMessageHandler
 import com.truckerload.sync.import.ImportReportFormatter
 import com.truckerload.sync.import.ImportSessionManager
@@ -67,9 +66,6 @@ class TelegramMessageParser(
             importUseCase = useCase,
             sessionManager = sessionManager,
             reportFormatter = ImportReportFormatter(context),
-            loadRepository = loadRepository,
-            paycheckRepository = PaycheckRepository(db),
-            dieselRepository = DieselRepository(db),
         )
     }
 
@@ -91,9 +87,6 @@ class TelegramMessageParser(
             importUseCase = useCase,
             sessionManager = ImportSessionManager(prefs),
             reportFormatter = ImportReportFormatter(context),
-            loadRepository = loadRepository,
-            paycheckRepository = PaycheckRepository(db),
-            dieselRepository = DieselRepository(db),
         )
     }
 
@@ -275,8 +268,6 @@ class TelegramMessageParser(
         telegramApi: TelegramApi,
         update: TelegramUpdate,
         loadRepository: LoadRepository,
-        paycheckRepository: PaycheckRepository,
-        dieselRepository: DieselRepository,
     ): String {
         val fileId = update.documentFileId ?: return context.getString(R.string.sync_doc_not_supported)
         val declaredSize = update.documentFileSize
@@ -298,14 +289,7 @@ class TelegramMessageParser(
         }
         WidgetDataUpdater.updateWidgetData(context)
         WidgetUpdateWorker.refreshNow(context)
-        val base = context.getString(R.string.file_received, result.imported)
-        val dedupSection = ImportHandlerSupport.runPostImportDedup(
-            context = context,
-            loadRepository = loadRepository,
-            paycheckRepository = paycheckRepository,
-            dieselRepository = dieselRepository,
-        )
-        return if (dedupSection.isBlank()) base else "$base\n\n$dedupSection"
+        return context.getString(R.string.file_received, result.imported)
     }
 
     fun isExportTextDocument(update: TelegramUpdate): Boolean {

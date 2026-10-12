@@ -74,17 +74,23 @@ class GoogleDriveApiClient(
         }
     }
 
-    suspend fun hasRemoteBackup(): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
+    /**
+     * Refreshes Drive file metadata. Failure is not the same as "no file":
+     * a network error must not be treated as permission to overwrite the remote copy.
+     */
+    suspend fun refreshRemoteBackup(): Result<Boolean> = withContext(Dispatchers.IO) {
+        com.truckerload.utils.runCatchingCancellable {
             val token = accessToken()
             val meta = findBackupFileMeta(token)
             if (meta != null) {
                 prefs.driveFileId = meta.id
-                prefs.remoteModifiedAt = meta.modifiedAt
+                if (meta.modifiedAt > 0L) prefs.remoteModifiedAt = meta.modifiedAt
             }
             meta != null
-        }.getOrDefault(false)
+        }
     }
+
+    suspend fun hasRemoteBackup(): Boolean = refreshRemoteBackup().getOrDefault(false)
 
     /** Remote newer than last successful local sync — useful for restore warnings. */
     fun isRemoteNewerThanLastSync(): Boolean =

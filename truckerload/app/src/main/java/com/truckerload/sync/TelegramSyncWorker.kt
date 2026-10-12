@@ -72,7 +72,7 @@ class TelegramSyncWorker @AssistedInject constructor(
             return Result.success()
         }
         runCatching { TelegramBotBranding.apply(applicationContext, token) }
-        if (TelegramBotForegroundService.isRunning()) {
+        if (TelegramBotPoller.isRunning()) {
             Log.d("TelegramSync", "In-process poller is active — skip background poll")
             return Result.success()
         }

@@ -280,13 +280,7 @@ object DieselSpreadsheetParser {
 
     internal fun parseNumber(raw: String?): Double? {
         if (raw.isNullOrBlank()) return null
-        val cleaned = raw
-            .replace("$", "")
-            .replace("USD", "", ignoreCase = true)
-            .replace("\u00a0", "")
-            .replace(" ", "")
-            .replace(",", "")
-            .trim()
-        return cleaned.toDoubleOrNull()
+        val cleaned = raw.replace("USD", "", ignoreCase = true)
+        return com.truckerload.domain.paycheck.PaycheckSalaryFields.parseAmountAllowingZero(cleaned)
     }
 }

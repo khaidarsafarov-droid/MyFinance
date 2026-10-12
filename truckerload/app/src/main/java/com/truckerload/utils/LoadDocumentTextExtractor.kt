@@ -132,11 +132,18 @@ class LoadDocumentTextExtractor(context: Context) {
 
     private fun openDescriptor(uri: Uri): ParcelFileDescriptor? {
         appContext.contentResolver.openFileDescriptor(uri, "r")?.let { return it }
-        val tmp = File(appContext.cacheDir, "load_import.pdf")
-        appContext.contentResolver.openInputStream(uri)?.use { input ->
+        val tmp = File(appContext.cacheDir, "load_import_${java.util.UUID.randomUUID()}.pdf")
+        val copied = appContext.contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(tmp).use { output -> input.copyTo(output) }
-        } ?: return null
-        return ParcelFileDescriptor.open(tmp, ParcelFileDescriptor.MODE_READ_ONLY)
+            true
+        } ?: false
+        if (!copied) {
+            tmp.delete()
+            return null
+        }
+        val descriptor = ParcelFileDescriptor.open(tmp, ParcelFileDescriptor.MODE_READ_ONLY)
+        tmp.delete()
+        return descriptor
     }
 
     companion object {

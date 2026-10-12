@@ -10,6 +10,7 @@ import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.remote.TelegramBotBranding
 import com.truckerload.data.remote.TelegramBotTokenFingerprint
 import com.truckerload.utils.LogRedactor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,11 +19,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * In-process Telegram long-poll while the app is visible.
- * No Android foreground service — Play does not need DATA_SYNC FGS.
- * Background catch-up is [TelegramSyncWorker] (~15 min).
+ * Not an Android foreground service. Background catch-up is [TelegramSyncWorker].
+ * Call sites should use [TelegramBotPoller].
  */
 object TelegramBotForegroundService {
     private const val TAG = "TelegramBotPoller"
@@ -31,6 +33,7 @@ object TelegramBotForegroundService {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val isRunningFlag = AtomicBoolean(false)
     private val startRequested = AtomicBoolean(false)
+    private val pollGeneration = AtomicInteger(0)
     private var pollJob: Job? = null
 
     fun isRunning(): Boolean = isRunningFlag.get()
@@ -55,14 +58,17 @@ object TelegramBotForegroundService {
         startRequested.set(false)
         isRunningFlag.set(true)
         setupBotFeaturesOnce(app, token)
+        val generation = pollGeneration.incrementAndGet()
         pollJob?.cancel()
         TelegramPollCoordinator.markForegroundPolling(true)
         pollJob = scope.launch {
             try {
                 pollLoop(app, token, userId)
             } finally {
-                TelegramPollCoordinator.markForegroundPolling(false)
-                isRunningFlag.set(false)
+                if (pollGeneration.get() == generation) {
+                    TelegramPollCoordinator.markForegroundPolling(false)
+                    isRunningFlag.set(false)
+                }
             }
         }
     }
@@ -125,6 +131,8 @@ object TelegramBotForegroundService {
                     result.nextDelaySeconds.coerceIn(2, 60)
                 }
                 if (delaySec > 0L) delay(delaySec * 1000)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "pollLoop error — retrying", e)
                 delay(5_000)
@@ -132,3 +140,6 @@ object TelegramBotForegroundService {
         }
     }
 }
+
+/** In-process poller. The old name described a foreground service this app does not run. */
+typealias TelegramBotPoller = TelegramBotForegroundService

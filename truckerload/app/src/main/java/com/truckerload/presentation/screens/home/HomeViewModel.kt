@@ -10,7 +10,7 @@ import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
-import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramBotPoller
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
@@ -356,7 +356,7 @@ class HomeViewModel @Inject constructor(
                 val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
                 _uiState.update { it.copy(botStatusActive = health.ok) }
                 if (health.ok && botServiceStarted.compareAndSet(false, true)) {
-                    TelegramBotForegroundService.start(app)
+                    TelegramBotPoller.start(app)
                 }
             }
         }

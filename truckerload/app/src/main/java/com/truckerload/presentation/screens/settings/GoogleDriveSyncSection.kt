@@ -33,10 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.backup.BackupRestoreErrors
-import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.DriveConnectOutcome
 import com.truckerload.data.backup.DriveConnectPending
 import com.truckerload.data.backup.DriveConnectInterpreter
+import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.remote.GoogleSignInClients
@@ -79,6 +79,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     var lastSyncError by remember { mutableStateOf(prefs.lastSyncError) }
     var busy by remember { mutableStateOf(false) }
     var showRestoreConfirm by remember { mutableStateOf(false) }
+    var showUnboundRestore by remember { mutableStateOf(false) }
     var restoreConflict by remember { mutableStateOf(false) }
     var pendingConnect by remember { mutableStateOf(DriveConnectPending.None) }
     var tokenConsentTried by remember { mutableStateOf(false) }
@@ -396,6 +397,37 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         }
     }
 
+    if (showUnboundRestore) {
+        AlertDialog(
+            onDismissRequest = { if (!busy) showUnboundRestore = false },
+            title = { Text(stringResource(R.string.drive_sync_restore_confirm_title)) },
+            text = { Text(stringResource(R.string.backup_restore_unbound_account)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showUnboundRestore = false
+                        scope.launch {
+                            busy = true
+                            val result = withContext(Dispatchers.IO) {
+                                GoogleDriveBackupService.restoreNow(context, allowUnboundAccount = true)
+                            }
+                            refreshSyncStatus()
+                            busy = false
+                            toastResult(result)
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.backup_restore_unbound_confirm))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showUnboundRestore = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+
     if (showRestoreConfirm) {
         AlertDialog(
             onDismissRequest = { if (!busy) showRestoreConfirm = false },
@@ -422,7 +454,11 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                             }
                             refreshSyncStatus()
                             busy = false
-                            toastResult(result)
+                            if (result.exceptionOrNull() is BackupRestoreException.UnboundAccount) {
+                                showUnboundRestore = true
+                            } else {
+                                toastResult(result)
+                            }
                         }
                     }
                 ) {

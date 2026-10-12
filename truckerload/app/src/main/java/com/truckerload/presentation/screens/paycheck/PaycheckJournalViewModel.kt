@@ -14,6 +14,7 @@ import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.shiftWeekNumberAndYear
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -190,6 +191,7 @@ class PaycheckJournalViewModel @Inject constructor(
         val net = PaycheckSalaryFields.parseAmount(current.netText) ?: return
         viewModelScope.launch {
             isSaving.value = true
+            try {
             paycheckRepository.updatePaycheck(
                 current.paycheck.copy(
                     netAmount = net,
@@ -202,8 +204,12 @@ class PaycheckJournalViewModel @Inject constructor(
             if (previousPath != null && previousPath != newPath) {
                 PaycheckSourceFiles.delete(appContext, previousPath)
             }
-            isSaving.value = false
             editor.value = null
+            } catch (e: CancellationException) {
+                throw e
+            } finally {
+                isSaving.value = false
+            }
         }
     }
 
@@ -212,6 +218,7 @@ class PaycheckJournalViewModel @Inject constructor(
         if (isSaving.value) return
         viewModelScope.launch {
             isSaving.value = true
+            try {
             val id = current.paycheck.id
             val paths = buildSet {
                 current.sourceFilePath?.let { add(it) }
@@ -221,8 +228,12 @@ class PaycheckJournalViewModel @Inject constructor(
             paths.forEach { path ->
                 PaycheckSourceFiles.delete(appContext, path)
             }
-            isSaving.value = false
             editor.value = null
+            } catch (e: CancellationException) {
+                throw e
+            } finally {
+                isSaving.value = false
+            }
         }
     }
 

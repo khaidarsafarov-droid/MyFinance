@@ -1,26 +1,7 @@
 package com.truckerload.sync
 
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
-
-class TelegramFgsQuotaTest {
-
-    @Before
-    fun setUp() {
-        TelegramFgsQuota.resetForTests()
-    }
-
-    @Test
-    fun markTimedOut_pausesUntilCleared() {
-        assertFalse(TelegramFgsQuota.isPaused())
-        TelegramFgsQuota.markTimedOut()
-        assertTrue(TelegramFgsQuota.isPaused())
-        TelegramFgsQuota.clearPause()
-        assertFalse(TelegramFgsQuota.isPaused())
-    }
-}
 
 class TelegramManifestDropsDataSyncFgsTest {
 

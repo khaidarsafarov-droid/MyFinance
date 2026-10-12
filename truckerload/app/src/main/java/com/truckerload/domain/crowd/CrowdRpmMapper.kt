@@ -1,7 +1,10 @@
 package com.truckerload.domain.crowd
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.extractStateFromLocation
+import com.truckerload.utils.WeekCalendarMath
+import com.truckerload.utils.getWeekNumberAndYearFromDate
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -33,16 +36,16 @@ object CrowdRpmMapper {
         val rpm = load.totalRate / load.totalMiles
         val from = originState(load)
         val to = destState(load)
-        val at = eventTimeMillis(load)
+        val (week, year) = reportingWeek(load)
         return AnonymizedRpmSample(
             rpm = rpm,
             miles = load.totalMiles,
             region = regionOf(from, to),
-            weekNumber = isoWeekNumber(at),
+            weekNumber = week,
             fromState = from.orEmpty(),
             toState = to.orEmpty(),
-            week = isoWeekNumber(at),
-            year = isoWeekYear(at),
+            week = week,
+            year = year,
             equipmentType = load.equipmentType,
         )
     }
@@ -68,8 +71,8 @@ object CrowdRpmMapper {
         loads: List<Load>,
         nowMillis: Long = System.currentTimeMillis(),
     ): CrowdRpmWeekSummary {
-        val week = isoWeekNumber(nowMillis)
-        val samples = samplesInWindow(loads, nowMillis, WEEK_MS)
+        val (week, year) = WeekCalendarMath.current(WeekStartRuntime.loads, nowMillis)
+        val samples = fromLoads(loads).filter { it.weekNumber == week && it.year == year }
         val miles = samples.sumOf { it.miles }
         val avgRpm = if (miles > 0.0) samples.sumOf { it.rpm * it.miles } / miles else 0.0
         return CrowdRpmWeekSummary(
@@ -100,6 +103,11 @@ object CrowdRpmMapper {
         } catch (_: DateTimeParseException) {
             0L
         }
+    }
+
+    private fun reportingWeek(load: Load): Pair<Int, Int> {
+        val date = load.date.take(10).takeIf { it.length >= 10 }
+        return getWeekNumberAndYearFromDate(date, WeekStartRuntime.loads)
     }
 
     fun isoWeekNumber(epochMillis: Long): Int {

@@ -150,7 +150,6 @@ object LoadDateRepair {
         if (hasIsoDate(repaired.date)) return repaired
         val ref = saneReferenceMillis(referenceMillis)
             ?: saneReferenceMillis(repaired.parsedAt)
-            ?: System.currentTimeMillis().takeIf { it >= MIN_SANE_REFERENCE_MS }
             ?: return repaired
         return repaired.copy(date = formatIsoDate(ref)).withReportingWeek().withRouteMetrics()
     }

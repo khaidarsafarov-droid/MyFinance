@@ -27,9 +27,12 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
 /**
@@ -97,18 +100,21 @@ fun HomeWeekHeroCard(
 
 @Composable
 private fun WeekDayDotsRow(modifier: Modifier = Modifier) {
-    val cal = Calendar.getInstance()
-    val today = cal.get(Calendar.DAY_OF_WEEK) // Sun=1
-    val labels = listOf("S", "M", "T", "W", "T", "F", "S")
+    val firstDay = WeekStartRuntime.loads
+    val sundayFirst = listOf("S", "M", "T", "W", "T", "F", "S")
+    val startIndex = (firstDay.calendarDay - 1).coerceIn(0, 6)
+    val labels = (0..6).map { sundayFirst[(startIndex + it) % 7] }
+    val today = LocalDate.now()
+    val weekStart = today.with(TemporalAdjusters.previousOrSame(firstDay.javaDayOfWeek))
+    val todayOffset = ChronoUnit.DAYS.between(weekStart, today).toInt().coerceIn(0, 6)
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         labels.forEachIndexed { index, label ->
-            val dayIndex = index + 1
-            val isPast = dayIndex < today
-            val isToday = dayIndex == today
+            val isPast = index < todayOffset
+            val isToday = index == todayOffset
             val bg = when {
                 isToday -> Color.White
                 isPast -> Color.White.copy(alpha = 0.85f)

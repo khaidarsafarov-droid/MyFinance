@@ -68,7 +68,8 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
 import com.truckerload.presentation.theme.TruckerLoadTheme
-import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.presentation.auth.BiometricSession
+import com.truckerload.sync.TelegramBotPoller
 import com.truckerload.utils.AppLocale
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.widget.WidgetDataUpdater
@@ -122,9 +123,9 @@ class MainActivity : AppCompatActivity() {
                     val activeUserId = userId as String
                     val needsRebuild = session == null || session?.userId != activeUserId
                     if (needsRebuild) {
-                        if (session == null) {
-                            sessionReady = false
-                        }
+                        BiometricSession.unlockedThisProcess = false
+                        session = null
+                        sessionReady = false
                         val deps = withContext(Dispatchers.IO) {
                             WeekStartRuntime.install(
                                 settingsDataStore.getLoadWeekStartDayOnce(),
@@ -133,11 +134,11 @@ class MainActivity : AppCompatActivity() {
                             userComponentManager.startSession(activeUserId)
                         }
                         session = deps
-                        TelegramBotForegroundService.stopForLogout(applicationContext)
+                        TelegramBotPoller.stopForLogout(applicationContext)
                         val tokenStore = TelegramTokenStore(applicationContext, activeUserId)
                         tokenStore.bootstrapFromBuildConfigIfEmpty()
                         if (tokenStore.hasToken()) {
-                            TelegramBotForegroundService.start(applicationContext)
+                            TelegramBotPoller.start(applicationContext)
                         }
                         sessionReady = true
                         withContext(Dispatchers.IO) {
@@ -165,6 +166,7 @@ class MainActivity : AppCompatActivity() {
                         sessionReady = true
                     }
                 } else {
+                    BiometricSession.unlockedThisProcess = false
                     SessionTeardown.beforeLogout(applicationContext)
                     userComponentManager.endSession()
                     session = null

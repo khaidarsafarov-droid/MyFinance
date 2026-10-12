@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
@@ -115,6 +116,7 @@ class MiscExpenseViewModel @Inject constructor(
         val now = System.currentTimeMillis()
         viewModelScope.launch {
             isSaving.value = true
+            try {
             repository.upsert(
                 MiscExpense(
                     id = current.id,
@@ -126,9 +128,13 @@ class MiscExpenseViewModel @Inject constructor(
                     updatedAt = now,
                 ),
             )
-            isSaving.value = false
             editor.value = null
             confirmDeleteId.value = null
+            } catch (e: CancellationException) {
+                throw e
+            } finally {
+                isSaving.value = false
+            }
         }
     }
 
@@ -145,10 +151,15 @@ class MiscExpenseViewModel @Inject constructor(
         val id = confirmDeleteId.value ?: return
         viewModelScope.launch {
             isSaving.value = true
-            repository.delete(id)
-            isSaving.value = false
-            confirmDeleteId.value = null
-            editor.value = null
+            try {
+                repository.delete(id)
+                confirmDeleteId.value = null
+                editor.value = null
+            } catch (e: CancellationException) {
+                throw e
+            } finally {
+                isSaving.value = false
+            }
         }
     }
 }

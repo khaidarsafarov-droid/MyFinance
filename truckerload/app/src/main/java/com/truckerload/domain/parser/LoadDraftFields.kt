@@ -1,6 +1,7 @@
 package com.truckerload.domain.parser
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.paycheck.PaycheckSalaryFields
 import java.util.Locale
 import kotlin.math.abs
 
@@ -16,9 +17,9 @@ data class LoadDraftFields(
     val pointA: String = "",
     val pointB: String = "",
 ) {
-    fun parsedRate(): Double? = rate.replace(",", ".").trim().toDoubleOrNull()
+    fun parsedRate(): Double? = PaycheckSalaryFields.parseAmount(rate)
 
-    fun parsedMiles(): Double = miles.replace(",", ".").trim().toDoubleOrNull() ?: 0.0
+    fun parsedMiles(): Double = PaycheckSalaryFields.parseAmountAllowingZero(miles)?.coerceAtLeast(0.0) ?: 0.0
 
     fun isEmpty(): Boolean = listOf(tripId, date, rate, miles, pointA, pointB).all { it.isBlank() }
 

@@ -19,8 +19,11 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class PendingScan(
     val file: File,
@@ -76,17 +79,22 @@ class ScannerViewModel @Inject constructor(
             }
             return
         }
+        if (_uiState.value.isProcessing) return
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, errorKey = null) }
             try {
                 val timestamp = System.currentTimeMillis()
-                val saved = pdfGenerator.saveScanFromResult(
-                    result = result,
-                    timestamp = timestamp,
-                    tripId = attachTripId,
-                    loadDate = attachLoadDate,
-                )
-                val ocrResult = ocrService.recognizeScanResult(app, result)
+                val saved = withContext(Dispatchers.IO) {
+                    pdfGenerator.saveScanFromResult(
+                        result = result,
+                        timestamp = timestamp,
+                        tripId = attachTripId,
+                        loadDate = attachLoadDate,
+                    )
+                }
+                val ocrResult = withContext(Dispatchers.IO) {
+                    ocrService.recognizeScanResult(app, result)
+                }
                 val newScan = PendingScan(
                     file = saved.file,
                     pageCount = saved.pageCount,
@@ -98,7 +106,7 @@ class ScannerViewModel @Inject constructor(
                 val session = _uiState.value.sessionScans + newScan
                 val oldMerged = _uiState.value.pendingScan?.takeIf { it.isMerged && !it.savedToDb }
                 val display = buildMergedPending(session, timestamp)
-                oldMerged?.file?.delete()
+                withContext(Dispatchers.IO) { oldMerged?.file?.delete() }
                 // Attached-to-load: show result first (share, then save). Do not auto-persist.
                 _uiState.update {
                     it.copy(
@@ -107,6 +115,8 @@ class ScannerViewModel @Inject constructor(
                         pendingScan = display,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
                 _uiState.update {
                     it.copy(

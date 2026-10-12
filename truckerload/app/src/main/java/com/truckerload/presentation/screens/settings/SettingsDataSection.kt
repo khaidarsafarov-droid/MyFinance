@@ -32,6 +32,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import android.net.Uri
+import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.BackupRestoreErrors
 import com.truckerload.data.backup.BackupSchema
 import com.truckerload.presentation.components.TlButton as Button
@@ -61,6 +63,7 @@ fun SettingsDataSection(
     var showRestoreConfirm by remember { mutableStateOf(false) }
     var backupBusy by remember { mutableStateOf(false) }
     var restoreBusy by remember { mutableStateOf(false) }
+    var pendingUnboundUri by remember { mutableStateOf<Uri?>(null) }
 
     val restoreLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -72,11 +75,22 @@ fun SettingsDataSection(
                 BackupService.restoreFromUri(context, uri)
             }
             restoreBusy = false
-            val message = result.fold(
-                onSuccess = { it },
-                onFailure = { BackupRestoreErrors.userMessage(context, it) },
+            result.fold(
+                onSuccess = { message ->
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                },
+                onFailure = { error ->
+                    if (error is BackupRestoreException.UnboundAccount) {
+                        pendingUnboundUri = uri
+                    } else {
+                        Toast.makeText(
+                            context,
+                            BackupRestoreErrors.userMessage(context, error),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                },
             )
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -201,6 +215,44 @@ fun SettingsDataSection(
             text = stringResource(R.string.settings_backup_restore_hint),
             style = MaterialTheme.typography.labelSmall,
             color = tc.TextSecondary,
+        )
+    }
+
+    pendingUnboundUri?.let { unboundUri ->
+        AlertDialog(
+            onDismissRequest = { pendingUnboundUri = null },
+            title = { Text(stringResource(R.string.backup_restore_confirm_title)) },
+            text = { Text(stringResource(R.string.backup_restore_unbound_account)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        pendingUnboundUri = null
+                        scope.launch {
+                            restoreBusy = true
+                            val confirmed = withContext(Dispatchers.IO) {
+                                BackupService.restoreFromUri(
+                                    context,
+                                    unboundUri,
+                                    allowUnboundAccount = true,
+                                )
+                            }
+                            restoreBusy = false
+                            val message = confirmed.fold(
+                                onSuccess = { it },
+                                onFailure = { BackupRestoreErrors.userMessage(context, it) },
+                            )
+                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.backup_restore_unbound_confirm))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { pendingUnboundUri = null }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
         )
     }
 

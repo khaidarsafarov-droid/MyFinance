@@ -32,4 +32,13 @@ sealed class BackupRestoreException : IllegalStateException() {
     class WrongAccount : BackupRestoreException() {
         override val messageResId: Int = R.string.backup_restore_wrong_account
     }
+
+    /** Backup JSON has no account id. Restore replaces the on-device journal. */
+    class UnboundAccount : BackupRestoreException() {
+        override val messageResId: Int = R.string.backup_restore_unbound_account
+    }
+
+    class TooLarge : BackupRestoreException() {
+        override val messageResId: Int = R.string.backup_restore_too_large
+    }
 }

@@ -5,7 +5,6 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
-import com.truckerload.di.userComponentManager
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselJournalFilter
 import com.truckerload.domain.model.Paycheck
@@ -23,13 +22,8 @@ object WeekStartRebinder {
 
     suspend fun rebindIfPossible(context: Context) {
         val app = context.applicationContext
-        val session = runCatching { app.userComponentManager().currentOrNull() }.getOrNull()
-        if (session != null) {
-            rebind(session.loadRepository, session.dieselRepository, session.paycheckRepository)
-        } else {
-            val db = AppDatabase.getInstanceForActiveUser(app) ?: return
-            rebind(LoadRepository(db), DieselRepository(db), PaycheckRepository(db))
-        }
+        val db = AppDatabase.getInstanceForActiveUser(app) ?: return
+        rebind(LoadRepository(db), DieselRepository(db), PaycheckRepository(db))
     }
 
     suspend fun rebind(

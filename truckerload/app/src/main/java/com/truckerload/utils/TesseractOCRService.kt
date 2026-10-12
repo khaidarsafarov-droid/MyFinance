@@ -18,9 +18,7 @@ class TesseractOCRService(private val context: Context) {
 
     suspend fun recognizeFromUri(uri: Uri): String = withContext(Dispatchers.IO) {
         if (!TessDataManager.ensureTessData(context)) return@withContext ""
-        val bitmap = context.contentResolver.openInputStream(uri)?.use { stream ->
-            BitmapFactory.decodeStream(stream)
-        } ?: return@withContext ""
+        val bitmap = decodeSampled(uri) ?: return@withContext ""
         try {
             recognizeBitmap(bitmap)
         } finally {
@@ -34,6 +32,22 @@ class TesseractOCRService(private val context: Context) {
             val tess = getOrInitTess() ?: return@withContext ""
             tess.setImage(bitmap)
             tess.getUTF8Text()?.trim().orEmpty()
+        }
+    }
+
+    private fun decodeSampled(uri: Uri, maxEdge: Int = 2048): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(uri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, bounds)
+        }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (bounds.outWidth / sample > maxEdge || bounds.outHeight / sample > maxEdge) {
+            sample *= 2
+        }
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        return context.contentResolver.openInputStream(uri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, options)
         }
     }
 

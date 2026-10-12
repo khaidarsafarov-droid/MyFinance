@@ -19,6 +19,9 @@ internal fun weekCalendar(firstDay: WeekStartDay): Calendar =
  */
 object WeekCalendarMath {
 
+    /** Present but unparseable date. Callers must not treat this as the current week. */
+    val INVALID_WEEK: Pair<Int, Int> = 0 to 0
+
     fun numberAndYearFromTimestamp(millis: Long, firstDay: WeekStartDay): Pair<Int, Int> {
         val cal = weekCalendar(firstDay).apply { timeInMillis = millis }
         return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.getWeekYear())
@@ -35,17 +38,34 @@ object WeekCalendarMath {
 
     fun numberAndYearFromDate(dateStr: String?, firstDay: WeekStartDay): Pair<Int, Int> {
         if (dateStr.isNullOrBlank() || dateStr.length < 10) return current(firstDay)
+        return parseStrict(dateStr.take(10), firstDay) ?: INVALID_WEEK
+    }
+
+    private fun parseStrict(dateStr: String, firstDay: WeekStartDay): Pair<Int, Int>? {
+        val parts = dateStr.split("-")
+        if (parts.size != 3) return null
+        val y = parts[0].toIntOrNull() ?: return null
+        val month = parts[1].toIntOrNull() ?: return null
+        val day = parts[2].toIntOrNull() ?: return null
+        if (month !in 1..12 || day !in 1..31) return null
+        val cal = weekCalendar(firstDay)
+        cal.isLenient = false
         return try {
-            val parts = dateStr.split("-")
-            if (parts.size != 3) return current(firstDay)
-            val y = parts[0].toIntOrNull() ?: return current(firstDay)
-            val m = parts[1].toIntOrNull()?.minus(1) ?: return current(firstDay)
-            val d = parts[2].toIntOrNull() ?: return current(firstDay)
-            val cal = weekCalendar(firstDay)
-            cal.set(y, m, d)
-            Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.getWeekYear())
-        } catch (_: Exception) {
-            current(firstDay)
+            cal.set(Calendar.YEAR, y)
+            cal.set(Calendar.MONTH, month - 1)
+            cal.set(Calendar.DAY_OF_MONTH, day)
+            cal.timeInMillis
+            if (
+                cal.get(Calendar.YEAR) != y ||
+                cal.get(Calendar.MONTH) != month - 1 ||
+                cal.get(Calendar.DAY_OF_MONTH) != day
+            ) {
+                null
+            } else {
+                Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.getWeekYear())
+            }
+        } catch (_: IllegalArgumentException) {
+            null
         }
     }
 

@@ -99,7 +99,7 @@ class DuplicateAuditUseCase(
     internal fun findDuplicatePaycheckIds(paychecks: List<Paycheck>): Set<Int> {
         val toDelete = mutableSetOf<Int>()
         paychecks
-            .groupBy { it.weekNumber to it.year }
+            .groupBy { Triple(it.weekNumber to it.year, it.weekStartDate, it.netAmount) }
             .values
             .filter { it.size > 1 }
             .forEach { group ->

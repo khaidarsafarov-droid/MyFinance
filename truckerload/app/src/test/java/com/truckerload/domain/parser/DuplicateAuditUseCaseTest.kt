@@ -77,6 +77,18 @@ class DuplicateAuditUseCaseTest {
     }
 
     @Test
+    fun `different paycheck amounts in the same week are kept`() {
+        val paychecks = listOf(
+            paycheck(id = 1, addedAt = 100L),
+            paycheck(id = 2, addedAt = 200L).copy(netAmount = 1800.0),
+        )
+
+        val deleted = useCase.findDuplicatePaycheckIds(paychecks)
+
+        assertTrue(deleted.isEmpty())
+    }
+
+    @Test
     fun `auditAndRemove after import deletes newer tripId duplicate`() = runBlocking {
         val keeper = sampleLoad(id = "1", tripId = "T-IMPORT", parsedAt = 10L)
         val dup = sampleLoad(id = "2", tripId = "t-import", parsedAt = 99L)

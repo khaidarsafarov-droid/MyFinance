@@ -25,7 +25,7 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
-import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramBotPoller
 import com.truckerload.sync.TelegramSyncWorker
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.utils.BackupService
@@ -110,14 +110,14 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                     TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
                     // Ensure service once; start() is a no-op if already polling.
                     if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
-                        TelegramBotForegroundService.start(this@TruckerLoadApp)
+                        TelegramBotPoller.start(this@TruckerLoadApp)
                     }
                 }
                 WidgetDataUpdater.updateWidgetData(this@TruckerLoadApp)
             }
 
             override fun onStop(owner: LifecycleOwner) {
-                TelegramBotForegroundService.stop(this@TruckerLoadApp)
+                TelegramBotPoller.stop(this@TruckerLoadApp)
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })

@@ -1125,6 +1125,10 @@
     <string name="sync_chat_not_authorized">Este bot ya está emparejado con otro chat. Cambia el chat en los ajustes de TruckoRig.</string>
     <string name="sync_chat_pair_required">Envía /start primero para emparejar este chat con tu cuenta de TruckoRig.</string>
     <string name="backup_restore_wrong_account">Este respaldo pertenece a otra cuenta y no se restaurará.</string>
+    <string name="backup_restore_unbound_account">Esta copia no está vinculada a una cuenta. Restaurarla reemplaza el diario de este dispositivo.</string>
+    <string name="backup_restore_unbound_confirm">Reemplazar diario</string>
+    <string name="backup_restore_too_large">El archivo es demasiado grande para restaurarlo en el dispositivo.</string>
+    <string name="sync_unpaired_replayed">Se importaron %1$d mensaje(s) guardados antes de vincular este chat.</string>
     <string name="sync_welcome">🚛 ¡Bienvenido a TruckoRig!\n\nReenvía aquí:\n• carga (Trip ID / PU# / Total Rate)\n• texto de liquidación (Grand Total)\n• recibo de combustible (Total / gallons)\n\nEl bot funciona aunque la app esté cerrada.\n\n📥 /import — importación masiva (HTML, Relay, CSV)\n🔄 \"Restore\" o /restore — restaurar todo del archivo del bot.\nComandos: /help · /status · /stats</string>
     <string name="sync_help">📋 Cómo usar el bot de TruckoRig:\n1. Reenvía el texto de una carga de Amazon Relay o un PDF de confirmación de tarifa\n2. O el texto o foto de una liquidación / recibo de combustible\n3. Los datos se guardarán en la app TruckoRig\n\n🔄 Restaurar: escribe \"restore\" o /restore — el bot recargará todos los mensajes guardados en la app.\n\n/dedup — escanear la base de datos y quitar duplicados\n\nLa app puede estar cerrada: el bot corre en segundo plano en tu teléfono.\n/status — cantidad de registros en la base · /stats — estadísticas semanales</string>
     <string name="sync_status">📊 Estado de TruckoRig:\n• Cargas: %1$d\n• Pagos: %2$d\n• Diésel: %3$d\n\nEl bot está activo en segundo plano. Reenvía datos nuevos: los agregaré a la app.</string>

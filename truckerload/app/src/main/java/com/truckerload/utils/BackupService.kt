@@ -3,7 +3,6 @@ package com.truckerload.utils
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.content.edit
 import com.truckerload.R
@@ -27,7 +26,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -41,6 +42,8 @@ object BackupService {
     private const val DEFAULT_KEEP_COUNT = 5
     private const val TAG = "BackupRestore"
     private const val AUTO_BACKUP_DEBOUNCE_MS = 45_000L
+    /** Cap a user-picked restore so a huge file cannot exhaust the only device copy. */
+    private const val MAX_RESTORE_BYTES = 32 * 1024 * 1024
 
     private val autoBackupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val autoBackupTimestampRef = AtomicReference(SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US))
@@ -90,7 +93,7 @@ object BackupService {
                 IllegalStateException(context.getString(R.string.auto_restore_no_file))
             )
         }
-        restoreFromJson(context, file.readText(Charsets.UTF_8)).map { backup ->
+        restoreFromJson(context, file.readText(Charsets.UTF_8), allowUnboundAccount = true).map { backup ->
             WidgetDataUpdater.updateWidgetData(context.applicationContext)
             backup.loads.size
         }
@@ -139,8 +142,12 @@ object BackupService {
         }
     }
 
-    suspend fun restoreBackupJson(context: Context, json: String): Result<BackupData> =
-        restoreFromJson(context, json).onSuccess {
+    suspend fun restoreBackupJson(
+        context: Context,
+        json: String,
+        allowUnboundAccount: Boolean = false,
+    ): Result<BackupData> =
+        restoreFromJson(context, json, allowUnboundAccount).onSuccess {
             WidgetDataUpdater.updateWidgetData(context.applicationContext)
         }
 
@@ -213,23 +220,16 @@ object BackupService {
         )
     }
 
-    suspend fun restoreFromUri(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun restoreFromUri(
+        context: Context,
+        uri: Uri,
+        allowUnboundAccount: Boolean = false,
+    ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val appContext = context.applicationContext
-            val fileName = queryDisplayName(appContext, uri)
-            readCompanionJson(appContext, fileName)?.let {
-                return@withContext restoreFromJson(appContext, it).map { backup ->
-                    appContext.getString(
-                        R.string.backup_restore_success,
-                        backup.loads.size,
-                        backup.paychecks.size,
-                        backup.diesel.size
-                    )
-                }
-            }
-
-            val bytes = appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: return@withContext Result.failure(BackupRestoreException.ReadFailed())
+            val bytes = appContext.contentResolver.openInputStream(uri)?.use { input ->
+                input.readCapped(MAX_RESTORE_BYTES)
+            } ?: return@withContext Result.failure(BackupRestoreException.ReadFailed())
 
             val json = BackupRestoreParser.parseToJson(bytes)
                 .getOrElse { err ->
@@ -237,7 +237,7 @@ object BackupService {
                     return@withContext Result.failure(err)
                 }
 
-            restoreFromJson(appContext, json).map { backup ->
+            restoreFromJson(appContext, json, allowUnboundAccount).map { backup ->
                 appContext.getString(
                     R.string.backup_restore_success,
                     backup.loads.size,
@@ -245,6 +245,10 @@ object BackupService {
                     backup.diesel.size
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: BackupRestoreException) {
+            Result.failure(e)
         } catch (e: Exception) {
             Log.e(TAG, "restoreFromUri failed: ${e.javaClass.simpleName}")
             Result.failure(e)
@@ -269,7 +273,7 @@ object BackupService {
             ?: return@withContext null
 
         Log.i(TAG, "Auto-restore from companion ${latest.name}")
-        restoreFromJson(appContext, latest.readText(Charsets.UTF_8)).map { backup ->
+        restoreFromJson(appContext, latest.readText(Charsets.UTF_8), allowUnboundAccount = true).map { backup ->
             WidgetDataUpdater.updateWidgetData(appContext)
             appContext.getString(
                 R.string.backup_restore_success,
@@ -305,60 +309,72 @@ object BackupService {
         }
     }
 
-    private fun readCompanionJson(context: Context, txtFileName: String?): String? {
-        if (txtFileName.isNullOrBlank()) return null
-        val userId = AuthStore(context).currentUserIdOrNull() ?: return null
-        val dir = companionBackupDir(context, userId)
-        val path = companionPrefs(context, userId).getString(txtFileName, null) ?: return null
-        val file = File(path)
-        if (!file.exists() || !file.isFile) return null
-        // FIX: never follow a prefs path outside this account's companion directory
-        if (!isUnderDirectory(file, dir)) return null
-        return BackupDataCodec.stripBom(file.readText(Charsets.UTF_8)).trim()
-            .takeIf { it.startsWith("{") }
-    }
-
     private fun companionPrefs(context: Context, userId: String) =
         context.getSharedPreferences(
             "${PREFS}_${AccountIds.sanitizeFilePart(userId)}",
             Context.MODE_PRIVATE,
         )
 
-    private fun isUnderDirectory(file: File, dir: File): Boolean {
-        val canonical = runCatching { file.canonicalFile }.getOrElse { return false }
-        val base = runCatching { dir.canonicalFile }.getOrElse { return false }
-        val prefix = base.path + File.separator
-        return canonical.path == base.path || canonical.path.startsWith(prefix)
+    private fun java.io.InputStream.readCapped(maxBytes: Int): ByteArray {
+        val buffer = ByteArrayOutputStream()
+        val chunk = ByteArray(8192)
+        var total = 0
+        while (true) {
+            val read = read(chunk)
+            if (read < 0) break
+            total += read
+            if (total > maxBytes) throw BackupRestoreException.TooLarge()
+            buffer.write(chunk, 0, read)
+        }
+        return buffer.toByteArray()
     }
 
-    private fun queryDisplayName(context: Context, uri: Uri): String? =
-        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-            val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (cursor.moveToFirst() && index >= 0) cursor.getString(index) else null
-        }
-
-    private suspend fun restoreFromJson(context: Context, json: String): Result<BackupData> {
+    private suspend fun restoreFromJson(
+        context: Context,
+        json: String,
+        allowUnboundAccount: Boolean = false,
+    ): Result<BackupData> {
         val backup = try {
             BackupDataCodec.decode(json)
         } catch (e: BackupRestoreException) {
             return Result.failure(e)
         }
 
-        val db = AppDatabase.getInstanceForActiveUser(context.applicationContext)
+        val app = context.applicationContext
+        val db = AppDatabase.getInstanceForActiveUser(app)
             ?: return Result.failure(IllegalStateException("No active user session"))
-        val activeUserId = AuthStore(context.applicationContext).currentUserIdOrNull()
-        // FIX: refuse restore when backup.accountId is bound to a different account
-        if (!backup.accountId.isNullOrBlank() &&
-            !activeUserId.isNullOrBlank() &&
-            backup.accountId != activeUserId
-        ) {
+        val activeUserId = AuthStore(app).currentUserIdOrNull()
+        if (backup.accountId.isNullOrBlank()) {
+            if (!allowUnboundAccount) return Result.failure(BackupRestoreException.UnboundAccount())
+        } else if (!activeUserId.isNullOrBlank() && backup.accountId != activeUserId) {
             return Result.failure(BackupRestoreException.WrongAccount())
         }
-        BackupRoomApplier.applyFullReplace(db, backup)
-        BackupRoomApplier.pruneOrphanMedia(db)
-        BackupPrefsApplier.apply(context.applicationContext, backup.appSettings)
-
-        return Result.success(backup)
+        val snapshot = try {
+            BackupSnapshotBuilder.build(app, db)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "restore snapshot failed: ${e.javaClass.simpleName}")
+            return Result.failure(BackupRestoreException.ReadFailed())
+        }
+        return try {
+            BackupRoomApplier.applyFullReplace(db, backup)
+            BackupRoomApplier.pruneOrphanMedia(db)
+            BackupPrefsApplier.apply(app, backup.appSettings)
+            Result.success(backup)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "restore failed, rolling back journal: ${e.javaClass.simpleName}")
+            runCatching {
+                BackupRoomApplier.applyFullReplace(db, snapshot)
+                BackupPrefsApplier.apply(app, snapshot.appSettings)
+            }.onFailure { rollback ->
+                if (rollback is CancellationException) throw rollback
+                Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
+            }
+            Result.failure(e)
+        }
     }
 
     private fun formatAutoBackupTimestamp(): String =

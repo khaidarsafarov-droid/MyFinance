@@ -16,7 +16,7 @@ object SessionTeardown {
      */
     suspend fun beforeLogout(context: Context) {
         val app = context.applicationContext
-        TelegramBotForegroundService.stopForLogout(app)
+        TelegramBotPoller.stopForLogout(app)
         delay(300)
     }
 

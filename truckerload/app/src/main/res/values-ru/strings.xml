@@ -1125,6 +1125,10 @@
     <string name="sync_chat_not_authorized">Этот бот уже привязан к другому чату. Откройте настройки TruckoRig, чтобы сменить чат.</string>
     <string name="sync_chat_pair_required">Сначала отправьте /start, чтобы привязать этот чат к аккаунту в TruckoRig.</string>
     <string name="backup_restore_wrong_account">Резервная копия принадлежит другому аккаунту и не будет восстановлена.</string>
+    <string name="backup_restore_unbound_account">В этой копии нет привязки к аккаунту. Восстановление заменит журнал на этом устройстве.</string>
+    <string name="backup_restore_unbound_confirm">Заменить журнал</string>
+    <string name="backup_restore_too_large">Файл слишком большой для восстановления на устройстве.</string>
+    <string name="sync_unpaired_replayed">Импортировано сообщений, сохранённых до привязки чата: %1$d.</string>
     <string name="sync_welcome">🚛 Добро пожаловать в TruckoRig!\n\nПерешлите сюда:\n• лоуд (Trip ID / PU# / Total Rate)\n• текст платёжки (Grand Total)\n• чек за дизель (Total / gallons)\n\nБот отвечает даже когда приложение закрыто.\n\n📥 /import — массовый импорт (HTML, Relay, CSV)\n🔄 «Восстанови» или /restore — вернуть всё из архива бота.\nКоманды: /help · /status · /stats</string>
     <string name="sync_help">📋 Как пользоваться ботом TruckoRig:\n1. Перешлите текст лоуда Amazon Relay или PDF rate confirmation\n2. Или текст / фото settlement / fuel receipt\n3. Данные сохранятся в приложении TruckoRig\n\n🔄 Восстановление: напишите «восстанови» или /restore — бот заново загрузит все сохранённые сообщения в приложение.\n\n/dedup — проверить базу и удалить дубликаты\n\nПриложение может быть закрыто — бот работает в фоне на телефоне.\n/status — сколько записей в базе · /stats — статистика недели</string>
     <string name="sync_status">📊 Статус TruckoRig:\n• Лоудов: %1$d\n• Зарплат: %2$d\n• Дизель: %3$d\n\nБот активен в фоне. Перешлите новые данные — добавлю в приложение.</string>

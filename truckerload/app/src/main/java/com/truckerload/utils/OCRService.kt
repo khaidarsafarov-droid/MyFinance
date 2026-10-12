@@ -50,6 +50,8 @@ class OCRService(context: Context) {
         return try {
             val image = InputImage.fromFilePath(appContext, uri)
             latinRecognizer.process(image).await().text.trim()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             ""
         }

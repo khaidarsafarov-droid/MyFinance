@@ -102,10 +102,8 @@ object ReceiptFieldExtractor {
         return values.lastOrNull()
     }
 
-    private fun parseMoney(raw: String): Double {
-        val cleaned = raw.trim().replace("$", "").replace(",", "").replace(" ", "")
-        return cleaned.toDoubleOrNull() ?: 0.0
-    }
+    private fun parseMoney(raw: String): Double =
+        com.truckerload.domain.paycheck.PaycheckSalaryFields.parseAmountAllowingZero(raw) ?: 0.0
 
     private fun formatMoneyToken(amount: Double, text: String): String? {
         val cents = String.format(Locale.US, "%.2f", amount)

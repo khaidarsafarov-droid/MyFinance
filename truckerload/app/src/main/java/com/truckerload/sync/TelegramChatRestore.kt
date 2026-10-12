@@ -21,6 +21,13 @@ class TelegramChatRestore(
     private val messageArchive: TelegramMessageArchive
 ) {
 
+    suspend fun pendingRows(chatId: String, updateIds: Set<Long>): List<RestorableChatMessage> {
+        if (updateIds.isEmpty()) return emptyList()
+        return inboxDao.getAllForChat(chatId)
+            .filter { it.updateId in updateIds && isRestorableDataMessage(it.text) }
+            .map { RestorableChatMessage(it.text, it.messageDateSeconds, "inbox") }
+    }
+
     suspend fun persistIncoming(update: TelegramUpdate) {
         if (update.isCallbackQuery) return
         val text = update.text.trim()

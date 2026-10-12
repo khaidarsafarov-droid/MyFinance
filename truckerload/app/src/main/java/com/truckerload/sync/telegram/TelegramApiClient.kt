@@ -6,7 +6,7 @@ import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.remote.TelegramBotFeatures
 import com.truckerload.data.remote.TelegramGetUpdatesResult
 import com.truckerload.sync.TelegramAuthErrors
-import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramBotPoller
 import com.truckerload.utils.LogRedactor
 import java.io.File
 import java.text.SimpleDateFormat
@@ -63,7 +63,7 @@ class TelegramApiClient(
         Log.e(TAG, "getUpdates failed: ${LogRedactor.redact(e.message)}", e)
         val delay = if (e.message?.contains("409") == true) 45L else 30L
         if (TelegramAuthErrors.shouldStopService(e.message)) {
-            TelegramBotForegroundService.stop(context)
+            TelegramBotPoller.stop(context)
         }
         return TelegramSyncRunResult(
             skipped = false,

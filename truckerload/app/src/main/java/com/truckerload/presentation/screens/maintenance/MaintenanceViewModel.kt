@@ -14,6 +14,7 @@ import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.domain.model.MaintenanceTask
 import com.truckerload.domain.parser.ServiceReceiptTextParser
 import com.truckerload.utils.OCRService
+import com.truckerload.utils.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -139,7 +140,7 @@ class MaintenanceViewModel @Inject constructor(
     private fun persistTask(task: MaintenanceTask) {
         viewModelScope.launch {
             _formState.update { it.copy(isSaving = true) }
-            runCatching { repository.insertTask(task) }
+            runCatchingCancellable { repository.insertTask(task) }
                 .onSuccess {
                     _formState.update {
                         it.copy(isSaving = false, showAddTask = false, taskDraft = TaskDraft())
@@ -273,7 +274,7 @@ class MaintenanceViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _formState.update { it.copy(isSaving = true) }
-            runCatching { repository.insertArchives(entries) }
+            runCatchingCancellable { repository.insertArchives(entries) }
                 .onSuccess {
                     _formState.update {
                         it.copy(isSaving = false, showAddArchive = false, archiveDraft = ArchiveDraft())

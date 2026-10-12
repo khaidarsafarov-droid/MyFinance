@@ -214,8 +214,10 @@ fun ScanGalleryScreen(
                 TextButton(
                     onClick = {
                         scope.launch {
-                            File(scan.filePath).delete()
-                            scanRepository.deleteScan(scan.id)
+                            withContext(Dispatchers.IO) {
+                                File(scan.filePath).delete()
+                                scanRepository.deleteScan(scan.id)
+                            }
                             scanToDelete = null
                         }
                     },

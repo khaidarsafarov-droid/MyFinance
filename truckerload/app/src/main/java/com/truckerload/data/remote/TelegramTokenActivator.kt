@@ -3,7 +3,7 @@ package com.truckerload.data.remote
 import android.content.Context
 import com.truckerload.data.preferences.SecurePreferences
 import com.truckerload.data.preferences.TelegramTokenStore
-import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramBotPoller
 
 /**
  * Validates a BotFather token, stores it, and starts the local Telegram service.
@@ -39,8 +39,8 @@ object TelegramTokenActivator {
             TelegramTokenStore(context).setToken(token)
             // Name + logo must not depend on the foreground poller starting.
             runCatching { TelegramBotBranding.apply(context, token, forceName = true) }
-            TelegramBotForegroundService.stop(context)
-            TelegramBotForegroundService.start(context)
+            TelegramBotPoller.stop(context)
+            TelegramBotPoller.start(context)
             health.username.orEmpty()
         }
     }

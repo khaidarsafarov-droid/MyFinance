@@ -1,7 +1,10 @@
 package com.truckerload.data.local
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.truckerload.data.preferences.AccountIds
+import com.truckerload.data.preferences.AuthStore
 
 /**
  * Durable record of loads the user deleted. Survives process death, Telegram
@@ -13,6 +16,7 @@ object DeletedLoadLedger {
     private const val KEY_TRIP_IDS = "trip_ids"
     private const val KEY_PENDING = "pending_ids"
     private const val KEY_PENDING_TRIPS = "pending_trips"
+    private const val KEY_MIGRATED = "migrated_to_user"
 
     fun markPending(context: Context, loadId: String, tripId: String?) {
         val id = loadId.trim()
@@ -97,8 +101,23 @@ object DeletedLoadLedger {
 
     fun blockedTripIds(context: Context): Set<String> = tripIds(context)
 
-    private fun prefs(context: Context) =
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private fun prefs(context: Context): SharedPreferences {
+        val app = context.applicationContext
+        val userId = AuthStore(app).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV
+        val name = "${PREFS}_${AccountIds.sanitizeFilePart(userId)}"
+        val scoped = app.getSharedPreferences(name, Context.MODE_PRIVATE)
+        val legacy = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (!legacy.getBoolean(KEY_MIGRATED, false) && scoped.getStringSet(KEY_LOAD_IDS, null) == null) {
+            scoped.edit {
+                putStringSet(KEY_LOAD_IDS, legacy.getStringSet(KEY_LOAD_IDS, emptySet()))
+                putStringSet(KEY_TRIP_IDS, legacy.getStringSet(KEY_TRIP_IDS, emptySet()))
+                putStringSet(KEY_PENDING, legacy.getStringSet(KEY_PENDING, emptySet()))
+                putStringSet(KEY_PENDING_TRIPS, legacy.getStringSet(KEY_PENDING_TRIPS, emptySet()))
+            }
+            legacy.edit { putBoolean(KEY_MIGRATED, true) }
+        }
+        return scoped
+    }
 
     private fun pendingIds(context: Context): Set<String> =
         prefs(context).getStringSet(KEY_PENDING, emptySet()).orEmpty().toSet()

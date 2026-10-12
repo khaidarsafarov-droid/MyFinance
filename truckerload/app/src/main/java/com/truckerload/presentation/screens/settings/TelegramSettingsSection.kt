@@ -37,7 +37,7 @@ import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButto
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.sync.TelegramBotForegroundService
+import com.truckerload.sync.TelegramBotPoller
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,12 +62,12 @@ fun TelegramSettingsSection() {
     var showToken by remember { mutableStateOf(false) }
     var dialogError by remember { mutableStateOf<String?>(null) }
     var botActive: Boolean by remember {
-        mutableStateOf(TelegramBotForegroundService.isRunning())
+        mutableStateOf(TelegramBotPoller.isRunning())
     }
 
     LaunchedEffect(Unit) {
         hasToken = tokenStore.hasToken()
-        botActive = TelegramBotForegroundService.isRunning()
+        botActive = TelegramBotPoller.isRunning()
     }
 
     if (showTokenDialog) {
@@ -144,7 +144,7 @@ fun TelegramSettingsSection() {
                             result.fold(
                                 onSuccess = {
                                     hasToken = true
-                                    botActive = TelegramBotForegroundService.isRunning()
+                                    botActive = TelegramBotPoller.isRunning()
                                     showTokenDialog = false
                                     tokenInput = ""
                                     showToken = false
@@ -252,9 +252,9 @@ fun TelegramSettingsSection() {
                             hasToken = true
                             statusMessage = when {
                                 health.ok -> {
-                                    TelegramBotForegroundService.stop(context)
-                                    TelegramBotForegroundService.start(context)
-                                    botActive = TelegramBotForegroundService.isRunning()
+                                    TelegramBotPoller.stop(context)
+                                    TelegramBotPoller.start(context)
+                                    botActive = TelegramBotPoller.isRunning()
                                     context.getString(R.string.settings_telegram_ok, health.username.orEmpty())
                                 }
                                 health.isUnauthorized -> context.getString(R.string.settings_telegram_invalid)

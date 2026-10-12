@@ -239,7 +239,8 @@ fun getLoadDateRange(load: Load): Set<String> {
 }
 
 /**
- * Parse "YYYY-MM-DD" to (weekNumber, weekYear). On error returns current week/year.
+ * Parse "YYYY-MM-DD" to (weekNumber, weekYear).
+ * A blank date is the current reporting week. A present but invalid date is [WeekCalendarMath.INVALID_WEEK].
  */
 fun getWeekNumberAndYearFromDate(
     dateStr: String?,

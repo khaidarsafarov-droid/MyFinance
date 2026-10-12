@@ -133,7 +133,10 @@ object GoogleDriveBackupService {
         )
     }
 
-    suspend fun restoreNow(context: Context): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun restoreNow(
+        context: Context,
+        allowUnboundAccount: Boolean = false,
+    ): Result<String> = withContext(Dispatchers.IO) {
         val app = context.applicationContext
         val prefs = prefs(app)
         if (!prefs.isLinked && !isDriveScopeGranted(app)) {
@@ -145,7 +148,7 @@ object GoogleDriveBackupService {
         val client = GoogleDriveApiClient(app, prefs)
         val jsonResult = client.downloadBackupJson()
         val json = jsonResult.getOrElse { return@withContext Result.failure(mapError(app, it)) }
-        BackupService.restoreBackupJson(app, json).fold(
+        BackupService.restoreBackupJson(app, json, allowUnboundAccount).fold(
             onSuccess = { backup ->
                 prefs.lastSyncAt = System.currentTimeMillis()
                 prefs.lastSyncError = null
@@ -171,9 +174,18 @@ object GoogleDriveBackupService {
         if (!prefs.isLinked && !isDriveScopeGranted(app)) return true
         syncLinkedAccountFromGoogle(app)
         val client = GoogleDriveApiClient(app, prefs)
-        runCatching { client.hasRemoteBackup() }
-        // FIX: auto-push used to PATCH Drive even when remote was newer (or this device never synced)
-        if (DriveSyncPolicy.shouldSkipAutoPush(prefs.remoteModifiedAt, prefs.lastSyncAt)) {
+        val remote = client.refreshRemoteBackup()
+        if (remote.isFailure) {
+            Log.w(TAG, "auto push skipped — Drive metadata unavailable")
+            prefs.lastSyncError = "drive_metadata_unavailable"
+            prefs.lastSyncErrorAt = System.currentTimeMillis()
+            return false
+        }
+        val remoteExists = remote.getOrDefault(false)
+        // No remote file yet: create one. A stale timestamp must not block that.
+        if (remoteExists &&
+            DriveSyncPolicy.shouldSkipAutoPush(prefs.remoteModifiedAt, prefs.lastSyncAt)
+        ) {
             Log.i(TAG, "auto push skipped — remote backup is newer or unsynced on this device")
             return true
         }

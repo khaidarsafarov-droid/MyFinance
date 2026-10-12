@@ -175,6 +175,12 @@ class WeekUtilsTest {
         assertEquals(yearWeeks.size, monthWeeks.size)
     }
 
+    @Test
+    fun invalidCalendarDateDoesNotBecomeTheCurrentWeek() {
+        assertEquals(WeekCalendarMath.INVALID_WEEK, getWeekNumberAndYearFromDate("2026-02-31"))
+        assertEquals(getCurrentWeekNumberAndYear(), getWeekNumberAndYearFromDate(null))
+    }
+
     private fun weekSortKey(week: Pair<Int, Int>): Long = week.second * 100L + week.first
 
     private fun sampleLoad(date: String, puTime: String, delTime: String): Load =

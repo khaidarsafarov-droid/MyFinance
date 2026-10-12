@@ -1,5 +1,6 @@
 package com.truckerload.data.repository
 
+import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
@@ -40,11 +41,20 @@ class DieselRepository(private val db: AppDatabase) {
         notifyWidgetDataChanged()
     }
 
-    /** Deletes all fills for the trucking week, then inserts [fills]. */
+    /** Deletes all fills for the trucking week, then inserts [fills], in one transaction. */
     suspend fun replaceWeekFills(weekNumber: Int, year: Int, fills: List<Diesel>) {
-        val existing = getDieselForWeekOnce(weekNumber, year)
-        existing.forEach { deleteDiesel(it.id) }
-        fills.forEach { insertDiesel(it) }
+        db.withTransaction {
+            dao.deleteForWeek(weekNumber, year)
+            if (fills.isNotEmpty()) {
+                dao.insertAll(
+                    fills.map { fill ->
+                        fill.copy(addedAt = JournalSyncClock.bump(fill.addedAt)).toEntity()
+                    },
+                )
+            }
+        }
+        scheduleAutoBackup()
+        notifyWidgetDataChanged()
     }
 
     suspend fun deleteAllDiesel() {

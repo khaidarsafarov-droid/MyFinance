@@ -20,6 +20,8 @@ import com.truckerload.domain.model.withRouteMetrics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -58,6 +60,8 @@ class EditLoadViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(EditLoadUiState(focusFinish = focusFinish))
     val uiState: StateFlow<EditLoadUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var loadGeneration = 0
 
     init {
         load()
@@ -178,13 +182,14 @@ class EditLoadViewModel @Inject constructor(
                         disputeLoad = reloaded,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isSaving = false,
-                        saveError = saveErrorFormatter(e.message.orEmpty()),
-                    )
+                    it.copy(saveError = saveErrorFormatter(e.message.orEmpty()))
                 }
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
             }
         }
     }
@@ -197,9 +202,12 @@ class EditLoadViewModel @Inject constructor(
             }
             return
         }
-        viewModelScope.launch {
+        loadJob?.cancel()
+        val generation = ++loadGeneration
+        loadJob = viewModelScope.launch {
             try {
                 val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
+                if (generation != loadGeneration) return@launch
                 if (loaded == null) {
                     _uiState.update {
                         it.copy(
@@ -246,7 +254,10 @@ class EditLoadViewModel @Inject constructor(
                         focusFinish = focusFinish,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                if (generation != loadGeneration) return@launch
                 _uiState.update {
                     it.copy(isLoading = false, loadError = e.message)
                 }
