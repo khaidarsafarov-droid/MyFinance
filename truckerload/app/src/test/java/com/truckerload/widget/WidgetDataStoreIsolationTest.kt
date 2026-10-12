@@ -16,6 +16,7 @@ class WidgetDataStoreIsolationTest {
     fun statsStayWithTheSingleDeviceProfile() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)
+        auth.logout()
 
         auth.login(userId = "widget_user_a", email = "a@example.com", rememberMe = true)
         WidgetDataStore.save(

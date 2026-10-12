@@ -22,6 +22,8 @@ class GoogleSessionPersistTest {
     fun setUp() {
         AuthStore.resetForTests()
         SecurePreferences.resetFallbackForTests()
+        // The device profile is pinned once set, so start every case without a session.
+        AuthStore(RuntimeEnvironment.getApplication()).logout()
     }
 
     @After
