@@ -2,7 +2,6 @@ package com.truckerload.domain.feedback
 
 import com.truckerload.utils.BrandConstants
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 /** Builds the support email the driver sends from in-app improvement feedback. */
 object ImprovementFeedbackMail {
@@ -50,5 +49,5 @@ object ImprovementFeedbackMail {
     }
 
     private fun encode(value: String): String =
-        URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")
+        URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 }

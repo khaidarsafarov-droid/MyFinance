@@ -121,8 +121,8 @@
     <string name="analytics_share_name_hint">El nombre y apellido de tu perfil van al archivo. Puedes editarlos antes de enviar.</string>
     <string name="social_chat_name_hint">Nombre del chat</string>
     <string name="social_chat_create_error">No se pudo crear el chat: %1$s</string>
-    <string name="login_google_error">No se pudo conectar con Google. Inténtalo de nuevo.</string>
-    <string name="login_google_developer_error">No se pudo conectar con Google. Inténtalo de nuevo.</string>
+    <string name="login_google_error">No se pudo conectar con Google. Inténtalo de nuevo. (%1$s)</string>
+    <string name="login_google_developer_error">No se pudo conectar con Google. Inténtalo de nuevo. (SHA-1 %1$s)</string>
     <string name="login_google_play_services_error">Google Play Services no está instalado o está desactualizado en este dispositivo.</string>
     <string name="login_google_fallback">Supabase no está disponible por ahora (%1$s). Sesión iniciada en local.</string>
     <string name="login_google_cancelled">Inicio de sesión cancelado</string>

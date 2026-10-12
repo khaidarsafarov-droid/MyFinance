@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,6 +61,7 @@ import java.util.Locale
 @Composable
 internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val activity = context.findActivity()
     val scope = rememberCoroutineScope()
     val authProvider = LocalAuthStore.current.authProvider()
@@ -192,13 +194,13 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             }
             DriveConnectOutcome.Cancelled -> {
                 pendingConnect = DriveConnectPending.None
-                toastMessage(context.getString(R.string.drive_sync_connect_cancelled))
+                toastMessage(resources.getString(R.string.drive_sync_connect_cancelled))
             }
             is DriveConnectOutcome.Failed -> {
                 pendingConnect = DriveConnectPending.None
                 toastMessage(
                     outcome.error?.let { GoogleSignInSupport.formatError(context, it) }
-                        ?: context.getString(R.string.drive_sync_connect_failed),
+                        ?: resources.getString(R.string.drive_sync_connect_failed),
                 )
             }
         }
@@ -208,7 +210,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     fun startDriveSync() {
         val host = activity ?: context.findActivity()
         if (host == null) {
-            toastMessage(context.getString(R.string.drive_sync_need_activity))
+            toastMessage(resources.getString(R.string.drive_sync_need_activity))
             return
         }
         GoogleDriveBackupService.syncLinkedAccountFromGoogle(host)
@@ -226,7 +228,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             driveSignInLauncher.launch(GoogleDriveBackupService.signInIntent(host))
         }.onFailure {
             pendingConnect = DriveConnectPending.None
-            toastMessage(context.getString(R.string.drive_sync_connect_failed))
+            toastMessage(resources.getString(R.string.drive_sync_connect_failed))
         }
     }
 

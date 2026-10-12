@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,6 +57,7 @@ fun PaywallScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val access = rememberPremiumAccess()
     var buying by remember { mutableStateOf(false) }
     var price by remember { mutableStateOf<String?>(null) }
@@ -90,7 +92,7 @@ fun PaywallScreen(
                     if (error != null) {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.premium_purchase_unavailable),
+                            resources.getString(R.string.premium_purchase_unavailable),
                             Toast.LENGTH_LONG,
                         ).show()
                     }
@@ -132,6 +134,7 @@ fun PremiumSettingsBanner() {
         Text(stringResource(R.string.premium_body), style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
         if (!status.subscribed) {
             val context = LocalContext.current
+            val resources = LocalResources.current
             var price by remember { mutableStateOf<String?>(null) }
             LaunchedEffect(access) { price = access.formattedPrice() }
             TextButton(onClick = { access.refresh() }, modifier = Modifier.fillMaxWidth()) {
@@ -144,7 +147,7 @@ fun PremiumSettingsBanner() {
                         if (error != null) {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.premium_purchase_unavailable),
+                                resources.getString(R.string.premium_purchase_unavailable),
                                 Toast.LENGTH_LONG,
                             ).show()
                         }
@@ -183,6 +186,7 @@ fun PremiumLockedCard(feature: PremiumFeature) {
             text = { Text(stringResource(R.string.premium_body)) },
             confirmButton = {
                 val context = LocalContext.current
+                val resources = LocalResources.current
                 val access = rememberPremiumAccess()
                 TextButton(onClick = {
                     val activity = context.findActivity() ?: return@TextButton
@@ -191,7 +195,7 @@ fun PremiumLockedCard(feature: PremiumFeature) {
                         else {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.premium_purchase_unavailable),
+                                resources.getString(R.string.premium_purchase_unavailable),
                                 Toast.LENGTH_LONG,
                             ).show()
                         }
