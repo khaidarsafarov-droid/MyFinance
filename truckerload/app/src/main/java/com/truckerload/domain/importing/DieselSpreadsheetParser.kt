@@ -70,19 +70,16 @@ object DieselSpreadsheetParser {
             parseDataRow(row, columns)
         }
         require(fills.isNotEmpty()) { "no_fuel_rows" }
-        val anchorDate = meta?.second ?: fills.firstNotNullOfOrNull { it.transactionDate }
+        val anchorDate = meta?.second
+            ?: fills.mapNotNull { it.transactionDate }.minOrNull()
             ?: error("week_unknown")
         val (weekNumber, year) = getWeekNumberAndYearFromDate(anchorDate, WeekStartRuntime.diesel)
         val (canonicalStart, canonicalEnd, _) = getWeekRange(weekNumber, year, WeekStartRuntime.diesel)
-        val weekEnd = fills.mapNotNull { it.transactionDate }.maxOrNull()?.let { lastDate ->
-            val (endWeek, endYear) = getWeekNumberAndYearFromDate(lastDate, WeekStartRuntime.diesel)
-            getWeekRange(endWeek, endYear, WeekStartRuntime.diesel).second
-        } ?: canonicalEnd
         return DieselSpreadsheetImport(
             fileName = fileName,
             driverName = meta?.first ?: driverFromSheet,
             weekStartDate = canonicalStart,
-            weekEndDate = maxOf(canonicalEnd, weekEnd),
+            weekEndDate = canonicalEnd,
             weekNumber = weekNumber,
             year = year,
             fills = fills,

@@ -1,8 +1,14 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getMillisForWeek
+import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Calendar
+import java.util.Locale
 
 class DieselJournalFilterTest {
 
@@ -19,6 +25,26 @@ class DieselJournalFilterTest {
     }
 
     @Test
+    fun forWeek_keepsOneSpreadsheetInTheDieselWeekOfItsFirstFill() {
+        val previous = WeekStartRuntime.diesel
+        WeekStartRuntime.installDiesel(WeekStartDay.SUNDAY)
+        try {
+            val monday = millis(2026, Calendar.SEPTEMBER, 28)
+            val nextSunday = millis(2026, Calendar.OCTOBER, 4)
+            val (week, year) = getWeekNumberAndYearFromTimestamp(monday, WeekStartDay.SUNDAY)
+            val (laterWeek, laterYear) = getWeekNumberAndYearFromTimestamp(nextSunday, WeekStartDay.SUNDAY)
+            val fills = listOf(
+                sample(id = 1, week = week, year = year, addedAt = monday, sourceFileName = "diesel_7299.xlsx"),
+                sample(id = 2, week = week, year = year, addedAt = nextSunday, sourceFileName = "diesel_7299.xlsx"),
+            )
+            assertEquals(listOf(2, 1), DieselJournalFilter.forWeek(fills, week, year).map { it.id })
+            assertTrue(DieselJournalFilter.forWeek(fills, laterWeek, laterYear).isEmpty())
+        } finally {
+            WeekStartRuntime.installDiesel(previous)
+        }
+    }
+
+    @Test
     fun forDate_keepsMatchingCalendarDay() {
         val dayA = 1_777_046_400_000L // 2026-05-25 00:00 UTC; local day still 2026-05-25 in US/EU
         val dayB = dayA + 86_400_000L
@@ -30,11 +56,20 @@ class DieselJournalFilterTest {
         assertEquals(listOf(1), DieselJournalFilter.forDate(fills, iso).map { it.id })
     }
 
+    private fun millis(year: Int, month: Int, day: Int): Long {
+        val cal = Calendar.getInstance(Locale.US)
+        cal.clear()
+        cal.set(year, month, day, 12, 0, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
     private fun sample(
         id: Int,
         week: Int,
         year: Int,
         addedAt: Long,
+        sourceFileName: String? = null,
     ) = Diesel(
         id = id,
         weekNumber = week,
@@ -48,7 +83,7 @@ class DieselJournalFilterTest {
         discountPricePerGallon = 4.0,
         location = "Pilot",
         rawExtractedText = "",
-        sourceFileName = null,
+        sourceFileName = sourceFileName,
         addedAt = addedAt,
     )
 }

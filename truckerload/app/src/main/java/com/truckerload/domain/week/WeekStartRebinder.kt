@@ -7,6 +7,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.di.userComponentManager
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.model.DieselJournalFilter
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -44,7 +45,7 @@ object WeekStartRebinder {
     fun recomputeDiesel(entries: List<Diesel>): List<Diesel> {
         val firstDay = WeekStartRuntime.diesel
         return entries.mapNotNull { diesel ->
-            val (weekNumber, year) = getWeekNumberAndYearFromTimestamp(diesel.addedAt, firstDay)
+            val (weekNumber, year) = DieselJournalFilter.reportingWeek(diesel, entries)
             val (start, end, label) = getWeekRange(weekNumber, year, firstDay)
             if (
                 diesel.weekNumber == weekNumber &&

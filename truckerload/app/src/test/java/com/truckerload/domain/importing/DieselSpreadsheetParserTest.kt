@@ -1,8 +1,8 @@
 package com.truckerload.domain.importing
 
+import com.truckerload.utils.formatIsoDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -101,7 +101,7 @@ class DieselSpreadsheetParserTest {
         assertEquals(6, result.fills.size)
         assertEquals("Khaidar Safarov", result.driverName)
         assertEquals("2026-09-27", result.weekStartDate)
-        assertEquals("2026-10-10", result.weekEndDate)
+        assertEquals("2026-10-03", result.weekEndDate)
         assertEquals(604.14, result.fills.sumOf { it.gallons ?: 0.0 }, 0.02)
         assertEquals(3513.73, result.fills.sumOf { it.totalAmount }, 0.02)
 
@@ -116,12 +116,12 @@ class DieselSpreadsheetParserTest {
         assertEquals("LOVES #330 TRAVEL STOP, BAXTER, TN", result.fills.last().location)
 
         val useCase = DieselImportUseCase(mock())
-        val early = useCase.toDiesel(result, result.fills.first(), 0)
-        val last = useCase.toDiesel(result, result.fills.last(), 0)
-        assertEquals("2026-09-27", early.weekStartDate)
-        assertEquals("2026-10-04", last.weekStartDate)
-        assertNotEquals(early.weekNumber, last.weekNumber)
-        assertEquals(5.907, early.discountPricePerGallon!!, 0.001)
+        val saved = result.fills.mapIndexed { index, fill -> useCase.toDiesel(result, fill, index + 1) }
+        assertEquals(1, saved.map { it.weekNumber to it.year }.distinct().size)
+        assertEquals("2026-09-27", saved.first().weekStartDate)
+        assertEquals("2026-10-03", saved.first().weekEndDate)
+        assertEquals("2026-10-04", formatIsoDate(saved.last().addedAt))
+        assertEquals(5.907, saved.first().discountPricePerGallon!!, 0.001)
     }
 
     private fun primexRow(
