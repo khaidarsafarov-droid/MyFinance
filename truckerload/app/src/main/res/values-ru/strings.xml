@@ -1273,6 +1273,7 @@
     <string name="settings_delete_account_confirm_title">Удалить аккаунт навсегда?</string>
     <string name="settings_delete_account_confirm_message">Будут удалены аккаунт, профиль и все записи журнала на этом телефоне. Восстановить аккаунт будет нельзя.</string>
     <string name="settings_delete_account_success">Аккаунт удалён</string>
+    <string name="settings_delete_account_error">Не удалось удалить аккаунт</string>
     <string name="email_verify_title">Подтверждение email</string>
     <string name="email_verify_subtitle">Мягкое подтверждение для %1$s. Код показан ниже на этом экране (письмо с кодом приложение не отправляет). Журнал уже доступен — можно подтвердить позже.</string>
     <string name="email_verify_code_label">6-значный код</string>

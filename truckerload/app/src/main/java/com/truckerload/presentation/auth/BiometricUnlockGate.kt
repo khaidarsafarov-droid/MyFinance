@@ -69,11 +69,11 @@ fun BiometricUnlockGate(
 
     fun launchPrompt() {
         if (activity == null) {
-            markUnlocked()
+            error = context.getString(R.string.biometric_unlock_failed)
             return
         }
         if (!canUseBiometricUnlock(context)) {
-            markUnlocked()
+            error = context.getString(R.string.biometric_unlock_failed)
             return
         }
         val executor = ContextCompat.getMainExecutor(context)
