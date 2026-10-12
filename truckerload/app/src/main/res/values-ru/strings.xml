@@ -525,6 +525,7 @@
     <string name="add_paycheck_parsing">Читаем файл…</string>
     <string name="add_paycheck_file_name">Файл: %1$s</string>
     <string name="add_paycheck_file_parsed">Зарплата распознана. Проверьте сумму и неделю, затем нажмите «Сохранить».</string>
+    <string name="add_paycheck_file_totals_mismatch">Итоги на стейтменте не сходятся между собой. Проверьте сумму и неделю перед сохранением.</string>
     <string name="add_paycheck_file_read_failed">Не удалось прочитать файл. Попробуйте другой документ или введите сумму вручную.</string>
     <string name="add_paycheck_file_parse_failed">В файле не найдена сумма зарплаты. Проверьте документ или введите total вручную.</string>
     <string name="add_paycheck_telegram_hint">Или перешлите файл боту в Telegram — он тоже распознает зарплату и спросит подтверждение.</string>
@@ -1150,6 +1151,9 @@
     <string name="sync_paycheck_confirm_no">Нет</string>
     <string name="sync_amount_confirm_ask">Сохранить $%1$s? Если сумма не та — нажмите другую.</string>
     <string name="sync_amount_other_found">Другие суммы в тексте:</string>
+    <string name="sync_amount_label_gross">гросс</string>
+    <string name="sync_amount_label_loads">рейсы</string>
+    <string name="sync_amount_label_deductions">удержания</string>
     <string name="sync_amount_or_type">Или напишите свою, например 4040.30</string>
     <string name="sync_amount_type_own">Напишу сам</string>
     <string name="sync_amount_type_prompt">Напишите верную сумму, например 4040.30</string>

@@ -525,6 +525,7 @@
     <string name="add_paycheck_parsing">Reading file…</string>
     <string name="add_paycheck_file_name">File: %1$s</string>
     <string name="add_paycheck_file_parsed">Paycheck recognized. Check the amount and week, then tap Save.</string>
+    <string name="add_paycheck_file_totals_mismatch">The totals on this statement do not match each other. Check the amount and week before saving.</string>
     <string name="add_paycheck_file_read_failed">Could not read the file. Try another document or enter the amount manually.</string>
     <string name="add_paycheck_file_parse_failed">No paycheck total found in the file. Check the document or enter the total manually.</string>
     <string name="add_paycheck_telegram_hint">Or forward the file to the Telegram bot — it also recognizes paychecks and asks before saving.</string>
@@ -1150,6 +1151,9 @@
     <string name="sync_paycheck_confirm_no">No</string>
     <string name="sync_amount_confirm_ask">Save $%1$s? Tap another amount if this is wrong.</string>
     <string name="sync_amount_other_found">Other amounts I found:</string>
+    <string name="sync_amount_label_gross">gross</string>
+    <string name="sync_amount_label_loads">loads</string>
+    <string name="sync_amount_label_deductions">deductions</string>
     <string name="sync_amount_or_type">Or type the correct number, e.g. 4040.30</string>
     <string name="sync_amount_type_own">I\'ll type it</string>
     <string name="sync_amount_type_prompt">Send the correct amount, e.g. 4040.30</string>

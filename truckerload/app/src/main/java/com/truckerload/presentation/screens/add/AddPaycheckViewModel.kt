@@ -168,7 +168,11 @@ class AddPaycheckViewModel @Inject constructor(
                 sourceFilePath = sourceFilePath,
                 driverName = parsed.driverName,
                 grossAmount = parsed.grossAmount,
-                parseNotice = getApplication<Application>().getString(R.string.add_paycheck_file_parsed),
+                parseNotice = if (parsed.confidence == "low") {
+                    getApplication<Application>().getString(R.string.add_paycheck_file_totals_mismatch)
+                } else {
+                    getApplication<Application>().getString(R.string.add_paycheck_file_parsed)
+                },
             )
         }
     }

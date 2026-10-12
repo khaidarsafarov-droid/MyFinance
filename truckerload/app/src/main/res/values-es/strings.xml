@@ -525,6 +525,7 @@
     <string name="add_paycheck_parsing">Leyendo archivo…</string>
     <string name="add_paycheck_file_name">Archivo: %1$s</string>
     <string name="add_paycheck_file_parsed">Pago reconocido. Revisa el monto y la semana, luego toca Guardar.</string>
+    <string name="add_paycheck_file_totals_mismatch">Los totales de esta liquidación no coinciden. Revisa el monto y la semana antes de guardar.</string>
     <string name="add_paycheck_file_read_failed">No se pudo leer el archivo. Prueba otro documento o ingresa el monto a mano.</string>
     <string name="add_paycheck_file_parse_failed">No se encontró el total del pago en el archivo. Revisa el documento o ingresa el total a mano.</string>
     <string name="add_paycheck_telegram_hint">O reenvía el archivo al bot de Telegram: también reconoce pagos y pregunta antes de guardar.</string>
@@ -1150,6 +1151,9 @@
     <string name="sync_paycheck_confirm_no">No</string>
     <string name="sync_amount_confirm_ask">¿Guardar $%1$s? Toca otro monto si no es correcto.</string>
     <string name="sync_amount_other_found">Otros montos que encontré:</string>
+    <string name="sync_amount_label_gross">bruto</string>
+    <string name="sync_amount_label_loads">viajes</string>
+    <string name="sync_amount_label_deductions">deducciones</string>
     <string name="sync_amount_or_type">O escribe el número correcto, p. ej. 4040.30</string>
     <string name="sync_amount_type_own">Lo escribo yo</string>
     <string name="sync_amount_type_prompt">Envía el monto correcto, p. ej. 4040.30</string>

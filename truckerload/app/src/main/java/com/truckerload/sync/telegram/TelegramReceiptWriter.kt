@@ -47,7 +47,7 @@ class TelegramReceiptWriter(
         return when (
             val outcome = ingest.insertPaycheck(
                 netAmount = amount,
-                grossAmount = null,
+                grossAmount = preview.grossAmount,
                 driverName = preview.driverName,
                 weekStartDateHint = preview.date,
                 messageDateSeconds = preview.messageDateSeconds,

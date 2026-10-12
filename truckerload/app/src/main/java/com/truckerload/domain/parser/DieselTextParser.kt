@@ -47,10 +47,10 @@ object DieselTextParser {
         if (totalAmount <= 0) return null
 
         val extra = DieselReceiptExtractor.extract(text)
-        val gallons = gallonsPattern.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
-            ?: extra.gallons
-        val ppg = ppgPattern.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
-            ?: extra.pricePerGallon
+        val gallons = extra.gallons
+            ?: gallonsPattern.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+        val ppg = extra.pricePerGallon
+            ?: ppgPattern.find(text)?.groupValues?.get(1)?.toDoubleOrNull()
         return DieselParseResult(
             date = findDate(text),
             totalAmount = totalAmount,

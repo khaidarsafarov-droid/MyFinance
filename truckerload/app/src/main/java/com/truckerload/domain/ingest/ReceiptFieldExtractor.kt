@@ -46,6 +46,7 @@ object ReceiptFieldExtractor {
         }
 
         val isLoad = resolvedKind == ReceiptKind.LOAD
+        val paycheckDoc = resolvedKind == ReceiptKind.PAYCHECK
         val gallons = if (isLoad) {
             null
         } else {
@@ -73,15 +74,24 @@ object ReceiptFieldExtractor {
             location = location?.takeIf { it.isNotBlank() },
             vendor = vendor?.takeIf { it.isNotBlank() },
             driverName = paycheck?.driverName,
-            tripId = load?.tripId?.takeIf { it.isNotBlank() }
-                ?: tripToken.find(text)?.groupValues?.get(1),
-            miles = load?.totalMiles?.takeIf { it > 0 },
-            pointA = load?.pointA?.takeIf { it.isNotBlank() },
-            pointB = load?.pointB?.takeIf { it.isNotBlank() },
+            tripId = if (paycheckDoc) {
+                null
+            } else {
+                load?.tripId?.takeIf { it.isNotBlank() }
+                    ?: tripToken.find(text)?.groupValues?.get(1)
+            },
+            miles = if (paycheckDoc) {
+                paycheck?.miles?.takeIf { it > 0 }
+            } else {
+                load?.totalMiles?.takeIf { it > 0 }
+            },
+            pointA = if (paycheckDoc) null else load?.pointA?.takeIf { it.isNotBlank() },
+            pointB = if (paycheckDoc) null else load?.pointB?.takeIf { it.isNotBlank() },
             extractedText = text.trim(),
             highlightToken = highlight,
             sourceFileName = fileName,
             messageDateSeconds = messageDateSeconds,
+            grossAmount = if (paycheckDoc) paycheck?.grossAmount?.takeIf { it > 0 } else null,
         )
     }
 

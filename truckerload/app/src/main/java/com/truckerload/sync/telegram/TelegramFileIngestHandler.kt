@@ -340,6 +340,11 @@ class TelegramFileIngestHandler(
                 others.forEach { choice ->
                     append("\n• $")
                     append(String.format(Locale.US, "%,.2f", choice.amount))
+                    amountCaption(choice.label)?.let { caption ->
+                        append(" (")
+                        append(caption)
+                        append(")")
+                    }
                 }
             }
             append("\n")
@@ -371,5 +376,12 @@ class TelegramFileIngestHandler(
 
     private companion object {
         const val TAG = "TgFileIngest"
+    }
+
+    private fun amountCaption(label: String): String? = when (label) {
+        "gross" -> context.getString(R.string.sync_amount_label_gross)
+        "loads net" -> context.getString(R.string.sync_amount_label_loads)
+        "deductions" -> context.getString(R.string.sync_amount_label_deductions)
+        else -> null
     }
 }
