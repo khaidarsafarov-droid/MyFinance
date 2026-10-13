@@ -967,6 +967,15 @@
     <string name="widget_metric_goal">Цель</string>
     <string name="widget_metric_revenue">Выручка</string>
     <string name="widget_metric_rpm">RPM</string>
+    <string name="widget_current_rpm">Текущий RPM</string>
+    <string name="widget_goal_status_line">Статус цели: %1$s</string>
+    <string name="widget_rpm_goal_line">Цель RPM: %1$s</string>
+    <string name="widget_progress_label">Прогресс</string>
+    <string name="widget_active_days">Активных дней за неделю: %1$s</string>
+    <string name="widget_pace_met">Цель достигнута</string>
+    <string name="widget_pace_ahead">Выше плана</string>
+    <string name="widget_pace_on_track">В графике</string>
+    <string name="widget_pace_behind">Ниже плана</string>
     <string name="widget_metric_trips">Рейсов</string>
     <string name="widget_day_today">сегодня</string>
     <string name="rpm_per_mile_format">$%1$.2f/ми</string>

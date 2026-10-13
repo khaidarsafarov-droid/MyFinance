@@ -52,6 +52,17 @@ object WidgetStatsFormatter {
     fun formatUsdRpm(rpm: Double): String =
         String.format(Locale.US, "$%.2f", rpm)
 
+    /** Whole days when the fraction is noise, otherwise one decimal. */
+    fun formatActiveDayCount(days: Double): String {
+        if (days <= 0.0) return "0"
+        val tenths = kotlin.math.round(days * 10.0) / 10.0
+        return if (kotlin.math.abs(tenths - tenths.toInt()) < 0.05) {
+            tenths.toInt().toString()
+        } else {
+            String.format(Locale.US, "%.1f", tenths)
+        }
+    }
+
     @Deprecated("Use formatRpmPerMile(context, rpm) for localized unit")
     fun formatRpmPerMile(rpm: Double): String =
         String.format(Locale.US, "$%.2f/mi", rpm)

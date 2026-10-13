@@ -96,6 +96,14 @@ class WidgetStatsFormatterTest {
     }
 
     @Test
+    fun formatActiveDayCount_dropsNoise() {
+        assertEquals("0", WidgetStatsFormatter.formatActiveDayCount(0.0))
+        assertEquals("0", WidgetStatsFormatter.formatActiveDayCount(-1.0))
+        assertEquals("3", WidgetStatsFormatter.formatActiveDayCount(3.0))
+        assertEquals("2.5", WidgetStatsFormatter.formatActiveDayCount(2.54))
+    }
+
+    @Test
     fun percentSp_staysInsideRingBounds() {
         assertEquals(13f, WidgetStatsFormatter.percentSp(13f), 0.01f)
         assertEquals(16f, WidgetStatsFormatter.percentSp(20f), 0.01f)

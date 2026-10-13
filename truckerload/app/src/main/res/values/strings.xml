@@ -967,6 +967,15 @@
     <string name="widget_metric_goal">Goal</string>
     <string name="widget_metric_revenue">Total Revenue</string>
     <string name="widget_metric_rpm">RPM</string>
+    <string name="widget_current_rpm">Current RPM</string>
+    <string name="widget_goal_status_line">Goal status: %1$s</string>
+    <string name="widget_rpm_goal_line">RPM goal: %1$s</string>
+    <string name="widget_progress_label">Progress</string>
+    <string name="widget_active_days">Active days this week: %1$s</string>
+    <string name="widget_pace_met">Goal reached</string>
+    <string name="widget_pace_ahead">Ahead of plan</string>
+    <string name="widget_pace_on_track">On track</string>
+    <string name="widget_pace_behind">Behind plan</string>
     <string name="widget_metric_trips">Loads</string>
     <string name="widget_day_today">today</string>
     <string name="rpm_per_mile_format">$%1$.2f/mi</string>

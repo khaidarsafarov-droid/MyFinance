@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -43,6 +44,7 @@ import androidx.glance.layout.size
 import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import com.truckerload.R
 import com.truckerload.presentation.MainActivity
@@ -323,8 +325,11 @@ internal fun QuickAction(
     btnDp: Dp,
     iconDp: Dp,
     modifier: GlanceModifier = GlanceModifier,
+    showLabel: Boolean = false,
+    labelSp: TextUnit = 10.sp,
     launchIntent: Intent,
 ) {
+    val colors = LocalCabinColors.current
     Column(
         modifier = modifier.clickable(actionStartActivity(launchIntent)),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -332,13 +337,24 @@ internal fun QuickAction(
         Box(
             modifier = GlanceModifier
                 .size(btnDp)
-                .cabinActionChip(LocalCabinColors.current),
+                .cabinActionChip(colors),
             contentAlignment = Alignment.Center,
         ) {
             Image(
                 provider = ImageProvider(iconRes),
                 contentDescription = label,
                 modifier = GlanceModifier.size(iconDp),
+            )
+        }
+        if (showLabel) {
+            Text(
+                text = label,
+                style = TextStyle(
+                    color = cabinColor(colors.muted),
+                    fontSize = labelSp,
+                    textAlign = TextAlign.Center,
+                ),
+                maxLines = 1,
             )
         }
     }
