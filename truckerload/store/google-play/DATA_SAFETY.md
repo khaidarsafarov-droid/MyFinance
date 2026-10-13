@@ -44,4 +44,7 @@ Use “App functionality” as the primary purpose.
 ## Ads / monetization
 
 - No ads SDK
-- No in-app products required for core use
+- The install is free. Loads, diesel, and paychecks do not require a purchase.
+- Optional auto-renewing subscription **premium_monthly_subscription**: first month free, then **$2.99 / month** in the United States (base plan `monthly`, offer `free-month`).
+- Google Play processes the payment. The app does not collect card numbers and does not send purchase tokens to a developer server. A local subscribed flag is not “collected” under Play’s off-device definition.
+- Financial features form: this is still a journal, not banking, loans, or crypto. Declare the subscription under **Monetize → Subscriptions**, not as a financial product.

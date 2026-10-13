@@ -1,6 +1,6 @@
 # TruckoRig — Privacy Policy (Play Store)
 
-**Last updated:** 2026-09-03  
+**Last updated:** 2026-10-13  
 **App:** TruckoRig (`com.truckorig`)  
 **Public URL (paste into Play Console):** https://rentry.co/truckorig-privacy-policy
 
@@ -29,6 +29,16 @@ TruckoRig is a **local-first** trucking journal. Core load, paycheck, and diesel
 - **Foreground service (data sync)** — optional on-device Telegram long-poll
 
 You can revoke permissions in system settings. Denying optional permissions does not block the core journal.
+
+## Payments
+
+TruckoRig is free to install. An optional subscription, TruckoRig Premium, is sold by **Google Play**:
+
+- The first month is free.
+- After that, Google Play charges the monthly price — **$2.99 in the United States** (other countries use the local Play price).
+- The plan renews every month until you cancel it in Google Play → Payments and subscriptions.
+
+Google processes the payment. TruckoRig does not receive your card number. A purchase flag stays on this device so Premium can remain unlocked offline for a short time. It is not sent to a TruckoRig server.
 
 ## Sharing
 

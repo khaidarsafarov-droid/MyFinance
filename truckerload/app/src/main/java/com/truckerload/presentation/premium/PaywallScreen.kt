@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.premium.PremiumAccess
 import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.domain.premium.PremiumOfferQuote
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.findActivity
@@ -55,11 +56,7 @@ fun PaywallScreen(
     onBack: () -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
     val access = rememberPremiumAccess()
-    var buying by remember { mutableStateOf(false) }
-    var price by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(access) { price = access.formattedPrice() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,29 +78,12 @@ fun PaywallScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = tc.TextSecondary,
         )
-        TlButton(
-            onClick = {
-                val activity = context.findActivity() ?: return@TlButton
-                buying = true
-                access.purchase(activity) { error ->
-                    buying = false
-                    if (error != null) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.premium_purchase_unavailable),
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
-                }
-            },
-            enabled = !buying && price != null,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                price?.let { stringResource(R.string.premium_subscribe_price, it) }
-                    ?: stringResource(R.string.premium_price_loading),
-            )
-        }
+        Text(
+            stringResource(R.string.premium_terms),
+            style = MaterialTheme.typography.bodySmall,
+            color = tc.TextSecondary,
+        )
+        PremiumPurchaseButton(modifier = Modifier.fillMaxWidth())
         TextButton(
             onClick = { access.refresh() },
             modifier = Modifier.fillMaxWidth(),
@@ -130,34 +110,18 @@ fun PremiumSettingsBanner() {
         Text(stringResource(R.string.premium_title), style = MaterialTheme.typography.titleMedium, color = tc.TextPrimary)
         Text(label, style = MaterialTheme.typography.bodyMedium, color = tc.TextSecondary)
         Text(stringResource(R.string.premium_body), style = MaterialTheme.typography.bodySmall, color = tc.TextSecondary)
-        if (!status.subscribed) {
-            val context = LocalContext.current
-            var price by remember { mutableStateOf<String?>(null) }
-            LaunchedEffect(access) { price = access.formattedPrice() }
+        if (status.subscribed) {
+            ManageSubscriptionButton()
+        } else {
+            Text(
+                stringResource(R.string.premium_terms),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.TextSecondary,
+            )
             TextButton(onClick = { access.refresh() }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.premium_restore))
             }
-            TlButton(
-                onClick = {
-                    val activity = context.findActivity() ?: return@TlButton
-                    access.purchase(activity) { error ->
-                        if (error != null) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.premium_purchase_unavailable),
-                                Toast.LENGTH_LONG,
-                            ).show()
-                        }
-                    }
-                },
-                enabled = price != null,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    price?.let { stringResource(R.string.premium_subscribe_price, it) }
-                        ?: stringResource(R.string.premium_price_loading),
-                )
-            }
+            PremiumPurchaseButton(modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -180,28 +144,86 @@ fun PremiumLockedCard(feature: PremiumFeature) {
         AlertDialog(
             onDismissRequest = { open = false },
             title = { Text(stringResource(R.string.premium_title)) },
-            text = { Text(stringResource(R.string.premium_body)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.premium_body))
+                    Text(stringResource(R.string.premium_terms))
+                }
+            },
             confirmButton = {
-                val context = LocalContext.current
-                val access = rememberPremiumAccess()
-                TextButton(onClick = {
-                    val activity = context.findActivity() ?: return@TextButton
-                    access.purchase(activity) { error ->
-                        if (error == null) open = false
-                        else {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.premium_purchase_unavailable),
-                                Toast.LENGTH_LONG,
-                            ).show()
-                        }
-                    }
-                }) { Text(stringResource(R.string.premium_subscribe)) }
+                PremiumPurchaseButton(
+                    filled = false,
+                    onFinished = { error -> if (error == null) open = false },
+                )
             },
             dismissButton = {
                 TextButton(onClick = { open = false }) { Text(stringResource(R.string.common_cancel)) }
             },
         )
+    }
+}
+
+@Composable
+private fun PremiumPurchaseButton(
+    modifier: Modifier = Modifier,
+    filled: Boolean = true,
+    onFinished: (String?) -> Unit = {},
+) {
+    val context = LocalContext.current
+    val access = rememberPremiumAccess()
+    var buying by remember { mutableStateOf(false) }
+    var loaded by remember { mutableStateOf(false) }
+    var quote by remember { mutableStateOf<PremiumOfferQuote?>(null) }
+    LaunchedEffect(access) {
+        quote = access.loadOffer()
+        loaded = true
+    }
+    val label = subscribeLabel(loaded, quote)
+    fun startPurchase() {
+        val activity = context.findActivity() ?: return
+        buying = true
+        access.purchase(activity) { error ->
+            buying = false
+            if (error != null) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.premium_purchase_unavailable),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+            onFinished(error)
+        }
+    }
+    if (filled) {
+        TlButton(onClick = ::startPurchase, enabled = !buying, modifier = modifier) { Text(label) }
+    } else {
+        TextButton(onClick = ::startPurchase, enabled = !buying, modifier = modifier) { Text(label) }
+    }
+}
+
+@Composable
+private fun ManageSubscriptionButton() {
+    val context = LocalContext.current
+    val access = rememberPremiumAccess()
+    TextButton(
+        onClick = {
+            val activity = context.findActivity() ?: return@TextButton
+            access.openSubscriptionManagement(activity)
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(stringResource(R.string.premium_manage))
+    }
+}
+
+@Composable
+private fun subscribeLabel(loaded: Boolean, quote: PremiumOfferQuote?): String {
+    if (!loaded) return stringResource(R.string.premium_price_loading)
+    val price = quote?.formattedPrice
+    return when {
+        price != null && quote.includesFreeMonth -> stringResource(R.string.premium_subscribe_price, price)
+        price != null -> stringResource(R.string.premium_subscribe_paid, price)
+        else -> stringResource(R.string.premium_subscribe)
     }
 }
 

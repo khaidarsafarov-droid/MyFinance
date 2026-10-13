@@ -9,6 +9,10 @@ WHAT YOU CAN DO
 • Optional Telegram bot on the device to import chat history
 • Optional Google Sign-In + Drive backup (you stay in control)
 
+SUBSCRIPTION
+The app is free to install. Loads, diesel, and paychecks stay free.
+TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, export, Drive backup, and deadhead miles. It renews every month until you cancel in Google Play → Payments and subscriptions.
+
 PRIVACY BY DESIGN
 • Journal data lives in an on-device database (Room)
 • Cloud sync and Drive are optional — turn them on only if you need them
