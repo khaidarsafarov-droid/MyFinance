@@ -7,6 +7,7 @@ import com.truckerload.utils.getDaysActiveForWeek
 import com.truckerload.utils.getDaysRemainingForWeek
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.isLoadInWeek
+import java.time.LocalDate
 import kotlin.math.min
 
 object WeeklyGoalCalculator {
@@ -27,23 +28,25 @@ object WeeklyGoalCalculator {
         val sqlGross = sqlYield?.totalGross ?: 0.0
         // Prefer the larger gross: SQL misses weekNumber=0 rows that isLoadInWeek still includes.
         val currentGross = GoalMoneyMath.roundMoney(maxOf(sqlGross, loadGross))
-        val (_, _, weekLabel) = getWeekRange(weekNumber, year)
+        val (weekStartIso, weekEndIso, weekLabel) = getWeekRange(weekNumber, year)
 
         val (currentWeek, currentYear) = getCurrentWeekNumberAndYear()
         val isCurrentWeek = weekNumber == currentWeek && year == currentYear
         val daysActiveCalendar = getDaysActiveForWeek(weekNumber, year)
         val daysRemaining = getDaysRemainingForWeek(weekNumber, year)
-        // FIX: SQL yield can undercount weekNumber=0 rows already included in loadGross
-        val sqlUndercounts = sqlYield != null && loadGross > sqlGross + 0.009
-        val totalActiveDays = if (!sqlUndercounts && sqlYield != null && sqlYield.totalActiveDays > 0.0) {
-            sqlYield.totalActiveDays
+        // Days on the road are unique calendar days through today, not the SQL sum of
+        // each load's planned pickup-to-delivery length.
+        val onRoadDays = LoadYieldCalculator.onRoadDays(
+            loads = weekLoads,
+            weekStart = LocalDate.parse(weekStartIso),
+            weekEnd = LocalDate.parse(weekEndIso),
+            today = LocalDate.now(),
+        )
+        val totalActiveDays = onRoadDays.toDouble()
+        val actualDailyYield = if (onRoadDays > 0) {
+            GoalMoneyMath.roundMoney(currentGross / totalActiveDays)
         } else {
-            LoadYieldCalculator.totalActiveDays(weekLoads)
-        }
-        val actualDailyYield = if (!sqlUndercounts && sqlYield != null && sqlYield.totalActiveDays > 0.0) {
-            sqlYield.actualDailyYield
-        } else {
-            calculateDailyPace(weekLoads)
+            0.0
         }
 
         // FIX: past weeks used daysRemaining=1 → "needed/day" = entire remaining gap

@@ -10,7 +10,6 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.WeekRepository
-import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.goal.WeekYieldSnapshot
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
@@ -89,8 +88,7 @@ object WidgetStatsLoader {
             dayLoads = dayTotals.map { it.loadsCount },
             dayGross = dayTotals.map { it.gross },
             dayMiles = dayTotals.map { it.miles },
-            totalActiveDays = sqlYield.totalActiveDays.takeIf { it > 0.0 }
-                ?: LoadYieldCalculator.totalActiveDays(weekLoads),
+            totalActiveDays = goalProgress.totalActiveDays,
             updatedAtMillis = System.currentTimeMillis()
         ).also { WidgetDataStore.save(appContext, it) }
     }

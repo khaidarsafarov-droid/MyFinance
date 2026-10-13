@@ -6,6 +6,7 @@ import com.truckerload.domain.model.StopType
 import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.lastDelDateFromStops
 import com.truckerload.domain.model.withRouteMetrics
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -99,6 +100,50 @@ class LoadYieldCalculatorTest {
         assertEquals(
             "2026-07-18",
             load.copy(actualFinishDate = "2026-07-18").effectiveFinishDate(),
+        )
+    }
+
+    @Test
+    fun `onRoadDays stops at today even when delivery is still later`() {
+        val weekStart = LocalDate.of(2026, 10, 11)
+        val weekEnd = LocalDate.of(2026, 10, 17)
+        val tuesday = LocalDate.of(2026, 10, 13)
+        val plannedThroughFriday = sampleLoad(
+            stops = listOf(
+                stop(StopType.PU, "2026-10-11 08:00", "Garner", "NC"),
+                stop(StopType.DEL, "2026-10-16 18:00", "Wilmington", "NC"),
+            ),
+        )
+        val sameTripAgain = plannedThroughFriday.copy(id = "id-2", tripId = "T-2")
+        assertEquals(
+            3,
+            LoadYieldCalculator.onRoadDays(listOf(plannedThroughFriday), weekStart, weekEnd, tuesday),
+        )
+        assertEquals(
+            3,
+            LoadYieldCalculator.onRoadDays(
+                listOf(plannedThroughFriday, sameTripAgain),
+                weekStart,
+                weekEnd,
+                tuesday,
+            ),
+        )
+    }
+
+    @Test
+    fun `onRoadDays honors an earlier finish without counting days after it`() {
+        val weekStart = LocalDate.of(2026, 10, 11)
+        val weekEnd = LocalDate.of(2026, 10, 17)
+        val tuesday = LocalDate.of(2026, 10, 13)
+        val closedMonday = sampleLoad(
+            stops = listOf(
+                stop(StopType.PU, "2026-10-11 08:00", "Garner", "NC"),
+                stop(StopType.DEL, "2026-10-16 18:00", "Wilmington", "NC"),
+            ),
+        ).copy(actualFinishDate = "2026-10-12")
+        assertEquals(
+            2,
+            LoadYieldCalculator.onRoadDays(listOf(closedMonday), weekStart, weekEnd, tuesday),
         )
     }
 

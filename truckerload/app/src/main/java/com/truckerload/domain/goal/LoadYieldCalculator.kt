@@ -2,8 +2,11 @@ package com.truckerload.domain.goal
 
 import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.utils.getFirstPickUpMillis
 import com.truckerload.utils.getLastDeliveryMillis
+import com.truckerload.utils.getPickUpDate
+import java.time.LocalDate
 import kotlin.math.ceil
 
 private const val MS_PER_DAY = 86_400_000.0
@@ -60,4 +63,41 @@ object LoadYieldCalculator {
 
     fun totalActiveDays(weekLoads: List<Load>): Double =
         weekLoads.sumOf { loadActiveDurationDays(it) }
+
+    /**
+     * Days the driver was actually on the road inside this reporting week.
+     *
+     * Each load covers pickup through its finish date, but not past [today] and not
+     * outside the week. Overlapping loads count once. A delivery date that is still
+     * in the future does not add days that have not happened, even when the driver
+     * left that date unchanged.
+     */
+    fun onRoadDays(
+        loads: List<Load>,
+        weekStart: LocalDate,
+        weekEnd: LocalDate,
+        today: LocalDate,
+    ): Int {
+        if (loads.isEmpty() || today.isBefore(weekStart)) return 0
+        val last = if (today.isBefore(weekEnd)) today else weekEnd
+        val covered = HashSet<LocalDate>()
+        for (load in loads) {
+            val start = isoDate(getPickUpDate(load)) ?: continue
+            val finish = isoDate(load.effectiveFinishDate()) ?: start
+            if (finish.isBefore(weekStart) || start.isAfter(last)) continue
+            var day = if (start.isAfter(weekStart)) start else weekStart
+            val stop = if (finish.isBefore(last)) finish else last
+            if (stop.isBefore(day)) continue
+            while (!day.isAfter(stop)) {
+                covered.add(day)
+                day = day.plusDays(1)
+            }
+        }
+        return covered.size
+    }
+
+    private fun isoDate(raw: String?): LocalDate? {
+        val text = raw?.take(10)?.takeIf { it.length == 10 } ?: return null
+        return runCatching { LocalDate.parse(text) }.getOrNull()
+    }
 }
