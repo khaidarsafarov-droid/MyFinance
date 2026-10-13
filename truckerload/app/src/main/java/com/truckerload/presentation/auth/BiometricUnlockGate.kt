@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -57,6 +58,7 @@ fun BiometricUnlockGate(
         return
     }
     val context = LocalContext.current
+    val resources = LocalResources.current
     val tc = LocalTruckColors.current
     var error by remember { mutableStateOf<String?>(null) }
     val activity = context as? FragmentActivity
@@ -101,9 +103,9 @@ fun BiometricUnlockGate(
             },
         )
         val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(context.getString(R.string.biometric_unlock_title))
-            .setSubtitle(context.getString(R.string.biometric_unlock_subtitle))
-            .setNegativeButtonText(context.getString(R.string.common_cancel))
+            .setTitle(resources.getString(R.string.biometric_unlock_title))
+            .setSubtitle(resources.getString(R.string.biometric_unlock_subtitle))
+            .setNegativeButtonText(resources.getString(R.string.common_cancel))
             .build()
         prompt.authenticate(info)
     }

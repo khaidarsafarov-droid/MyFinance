@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -17,6 +18,7 @@ import com.truckerload.utils.AppStoreLinkShare
 @Composable
 internal fun SettingsShareAppSection() {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     BentoGlassSection(
         title = stringResource(R.string.settings_share_app_title),
@@ -27,7 +29,7 @@ internal fun SettingsShareAppSection() {
                 if (!ok) {
                     Toast.makeText(
                         context,
-                        context.getString(R.string.settings_share_app_unavailable),
+                        resources.getString(R.string.settings_share_app_unavailable),
                         Toast.LENGTH_LONG,
                     ).show()
                 }

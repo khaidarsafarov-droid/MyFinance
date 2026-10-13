@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,6 +53,7 @@ import java.util.Locale
 fun TaxTrackerScreen(onBack: () -> Unit) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val viewModel: TaxTrackerViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -63,20 +65,20 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
             runCatching {
                 val input = viewModel.prepareWorkbookInput(sections)
                 if (viewModel.isWorkbookEmpty(input, sections)) {
-                    viewModel.setExporting(false, context.getString(R.string.tax_send_empty))
+                    viewModel.setExporting(false, resources.getString(R.string.tax_send_empty))
                     return@launch
                 }
                 val file = AccountantExportShare.writeWorkbook(context, input, sections)
                 AccountantExportShare.shareWorkbook(context, file)
                 viewModel.setExporting(
                     false,
-                    context.getString(R.string.tax_export_success, file.name)
+                    resources.getString(R.string.tax_export_success, file.name)
                 )
                 showSendSheet = false
             }.onFailure { err ->
                 viewModel.setExporting(
                     false,
-                    context.getString(
+                    resources.getString(
                         R.string.tax_export_error,
                         err.message ?: err.javaClass.simpleName,
                     ),
