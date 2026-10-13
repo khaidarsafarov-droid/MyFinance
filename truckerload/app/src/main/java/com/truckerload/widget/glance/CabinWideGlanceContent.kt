@@ -2,6 +2,7 @@ package com.truckerload.widget.glance
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import com.truckerload.R
 import com.truckerload.widget.WidgetDayCaption
 import com.truckerload.widget.WidgetDeepLink
@@ -63,30 +65,19 @@ internal fun WideBudgetContent(
             modifier = GlanceModifier.sectionBelow(layout.sectionGap),
         )
         cabinSectionGap()
-        if (layout.showGoalStatus) {
-            GoalStatusRow(
+        Box(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .sectionBelow(layout.sectionGap)
+                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
+        ) {
+            TruckProgressBar(
                 context = context,
-                shown = shown,
                 progress = progress,
                 goalSet = goalSet,
-                layout = layout,
-                modifier = GlanceModifier.sectionBelow(layout.sectionGap),
+                barDp = layout.progressBarDp,
+                headroomDp = layout.progressBarHeadroomDp,
             )
-        } else {
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .sectionBelow(layout.sectionGap)
-                    .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
-            ) {
-                TruckProgressBar(
-                    context = context,
-                    progress = progress,
-                    goalSet = goalSet,
-                    barDp = layout.progressBarDp,
-                    headroomDp = layout.progressBarHeadroomDp,
-                )
-            }
         }
         cabinSectionGap()
         MockupStatsRow(
@@ -100,35 +91,18 @@ internal fun WideBudgetContent(
         )
         if (layout.showWeekRow) {
             cabinSectionGap()
-            Column(modifier = GlanceModifier.fillMaxWidth().sectionBelow(layout.sectionGap)) {
-                WeekDaySelector(
-                    context = context,
-                    week = week,
-                    selectedOffset = selectedOffset,
-                    chipDp = layout.dayChipDp,
-                    captionSp = layout.dayCaptionSp,
-                    showCaptions = layout.showDayCaptions,
-                )
-                if (layout.showActiveDays) {
-                    Spacer(modifier = GlanceModifier.height(2.dp))
-                    Text(
-                        text = context.getString(
-                            R.string.widget_active_days,
-                            WidgetStatsFormatter.formatActiveDayCount(week.totalActiveDays),
-                        ),
-                        style = TextStyle(
-                            color = cabinColor(colors.muted),
-                            fontSize = layout.dayCaptionSp,
-                            textAlign = TextAlign.Center,
-                        ),
-                        maxLines = 1,
-                        modifier = GlanceModifier.fillMaxWidth(),
-                    )
-                }
-            }
+            WeekDaySelector(
+                context = context,
+                week = week,
+                selectedOffset = selectedOffset,
+                chipDp = layout.dayChipDp,
+                captionSp = layout.dayCaptionSp,
+                showCaptions = layout.showDayCaptions,
+                modifier = GlanceModifier.sectionBelow(layout.sectionGap),
+            )
         }
         cabinSectionGap()
-        CabinActionRow(context, layout, layout.showActionLabels)
+        CabinActionRow(context, layout)
     }
 }
 
@@ -209,71 +183,6 @@ private fun CabinHeader(
 }
 
 @Composable
-private fun GoalStatusRow(
-    context: Context,
-    shown: WidgetStats,
-    progress: Float,
-    goalSet: Boolean,
-    layout: CabinLayout,
-    modifier: GlanceModifier = GlanceModifier,
-) {
-    val colors = LocalCabinColors.current
-    val status = if (goalSet) {
-        context.getString(paceLabel(shown.goalPaceStatus))
-    } else {
-        context.getString(R.string.widget_goal_not_set)
-    }
-    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        Column(
-            modifier = GlanceModifier
-                .defaultWeight()
-                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
-        ) {
-            Text(
-                text = context.getString(R.string.widget_goal_status_line, status),
-                style = TextStyle(color = cabinColor(colors.text), fontSize = layout.metricSp),
-                maxLines = 2,
-            )
-            Spacer(modifier = GlanceModifier.height(layout.metricGap))
-            Text(
-                text = context.getString(
-                    R.string.widget_rpm_goal_line,
-                    WidgetStatsFormatter.formatUsdRpm(shown.cpmTarget),
-                ),
-                style = TextStyle(color = cabinColor(colors.muted), fontSize = layout.metricSp),
-                maxLines = 1,
-            )
-        }
-        Spacer(modifier = GlanceModifier.width(layout.financeGap))
-        Column(
-            modifier = GlanceModifier
-                .defaultWeight()
-                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
-        ) {
-            Text(
-                text = context.getString(R.string.widget_progress_label),
-                style = TextStyle(color = cabinColor(colors.muted), fontSize = layout.percentSp),
-                maxLines = 1,
-            )
-            TruckProgressBar(
-                context = context,
-                progress = progress,
-                goalSet = goalSet,
-                barDp = layout.progressBarDp,
-                headroomDp = layout.progressBarHeadroomDp,
-            )
-        }
-    }
-}
-
-private fun paceLabel(pace: String): Int = when (pace) {
-    "GOAL_MET" -> R.string.widget_pace_met
-    "AHEAD" -> R.string.widget_pace_ahead
-    "BEHIND" -> R.string.widget_pace_behind
-    else -> R.string.widget_pace_on_track
-}
-
-@Composable
 private fun MockupStatsRow(
     context: Context,
     shown: WidgetStats,
@@ -311,30 +220,94 @@ private fun MockupStatsRow(
                 maxLines = 1,
             )
         }
-        Column(
-            modifier = GlanceModifier
-                .defaultWeight()
-                .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_STATS))),
-        ) {
-            Text(
-                text = context.getString(R.string.widget_current_rpm),
-                style = TextStyle(
-                    color = cabinColor(colors.muted),
-                    fontSize = metricSp,
-                ),
-                maxLines = 1,
+        Column(modifier = GlanceModifier.defaultWeight()) {
+            MetricRow(
+                label = context.getString(R.string.widget_metric_goal),
+                value = if (shown.weeklyProfitGoal > 0) {
+                    WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
+                } else {
+                    context.getString(R.string.widget_goal_not_set)
+                },
+                valueColor = Color(colors.text),
+                fontSize = metricSp,
+                context = context,
+                onClickRoute = WidgetDeepLink.ROUTE_WEEKLY_GOAL,
             )
             Spacer(modifier = GlanceModifier.height(metricGap))
-            Text(
-                text = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
-                style = TextStyle(
-                    color = cabinColor(colors.accent),
-                    fontSize = amountSp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                maxLines = 1,
+            MetricRow(
+                label = context.getString(R.string.widget_metric_rpm),
+                value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
+                valueColor = Color(colors.accent),
+                fontSize = metricSp,
+                onClickRoute = WidgetDeepLink.ROUTE_STATS,
+                context = context,
             )
         }
+    }
+}
+
+@Composable
+internal fun CompactFinanceBlock(
+    context: Context,
+    shown: WidgetStats,
+    progress: Float,
+    goalSet: Boolean,
+    amountSp: TextUnit,
+    percentSp: TextUnit,
+    metricSp: TextUnit,
+    metricGap: Dp,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    MockupStatsRow(
+        context = context,
+        shown = shown,
+        revenueLabelSp = percentSp,
+        amountSp = amountSp,
+        metricSp = metricSp,
+        metricGap = metricGap,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun MetricRow(
+    label: String,
+    value: String,
+    valueColor: Color,
+    fontSize: TextUnit,
+    context: Context? = null,
+    onClickRoute: String? = null,
+) {
+    val style = GlanceModifier.fillMaxWidth().let { base ->
+        if (onClickRoute != null && context != null) {
+            base.clickable(actionStartActivity(routeIntent(context, onClickRoute)))
+        } else {
+            base
+        }
+    }
+    Row(
+        modifier = style,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = TextStyle(
+                color = cabinColor(LocalCabinColors.current.muted),
+                fontSize = fontSize,
+            ),
+            maxLines = 1,
+        )
+        Spacer(modifier = GlanceModifier.defaultWeight())
+        Text(
+            text = value,
+            style = TextStyle(
+                color = ColorProvider(valueColor),
+                fontSize = fontSize,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.End,
+            ),
+            maxLines = 1,
+        )
     }
 }
 
@@ -442,7 +415,7 @@ private fun WeekDaySelector(
 }
 
 @Composable
-internal fun CabinActionRow(context: Context, layout: CabinLayout, showLabels: Boolean = false) {
+internal fun CabinActionRow(context: Context, layout: CabinLayout) {
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -454,8 +427,6 @@ internal fun CabinActionRow(context: Context, layout: CabinLayout, showLabels: B
                 label = context.getString(action.labelRes),
                 btnDp = layout.actionBtnDp,
                 iconDp = layout.actionIconDp,
-                showLabel = showLabels,
-                labelSp = layout.dayCaptionSp,
                 modifier = GlanceModifier.defaultWeight(),
                 launchIntent = action.launchIntent(context),
             )

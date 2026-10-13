@@ -14,15 +14,13 @@ class CabinLayoutTest {
     fun fullHeight_matchesMockupTokens() {
         val layout = cabinLayoutFor(CabinSize4x4)
         assertEquals(CabinBucket.FULL, layout.bucket)
-        assertEquals(14.dp, layout.paddingH)
-        assertEquals(10.dp, layout.progressBarDp)
+        assertEquals(16.dp, layout.paddingH)
+        assertEquals(12.dp, layout.progressBarDp)
         assertTrue(layout.progressBarHeadroomDp >= 14.dp)
-        assertEquals(24.dp, layout.dayChipDp)
-        assertEquals(36.dp, layout.actionBtnDp)
+        assertEquals(28.dp, layout.dayChipDp)
+        assertEquals(42.dp, layout.actionBtnDp)
         assertTrue(layout.showWeekRow)
-        assertTrue(layout.showGoalStatus)
-        assertTrue(layout.showActiveDays)
-        assertFalse(layout.showDayCaptions)
+        assertTrue(layout.showDayCaptions)
         assertFits(CabinSize4x4, layout)
     }
 
@@ -96,8 +94,7 @@ class CabinLayoutTest {
         val tight = cabinLayoutFor(DpSize(320.dp, 210.dp))
         val roomy = cabinLayoutFor(DpSize(320.dp, 280.dp))
         assertFalse(tight.showDayCaptions)
-        assertFalse(roomy.showDayCaptions)
-        assertTrue(roomy.showActiveDays)
+        assertTrue(roomy.showDayCaptions)
         assertFits(DpSize(320.dp, 210.dp), tight)
         assertFits(DpSize(320.dp, 280.dp), roomy)
     }

@@ -1,7 +1,6 @@
 package com.truckerload.widget
 
 import java.io.File
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,11 +32,8 @@ class WidgetBudgetRingActionsTest {
         assertTrue(wide.contains("chip.isToday && todayPointer"))
         assertTrue(wide.contains("formatUsdRpm"))
         assertTrue(wide.contains("SelectWidgetDayAction"))
-        assertTrue(wide.contains("widget_goal_status_line"))
-        assertTrue(wide.contains("widget_rpm_goal_line"))
-        assertTrue(wide.contains("widget_current_rpm"))
-        assertTrue(wide.contains("widget_active_days"))
-        assertEquals(2, wide.split("widget_metric_revenue").size)
+        assertTrue(wide.contains("widget_metric_goal"))
+        assertTrue(wide.contains("widget_metric_rpm"))
         assertTrue(!wide.contains("widget_quick_actions"))
         val bar = readSource("widget/WidgetTruckProgressBitmap.kt")
         assertTrue(bar.contains("headroomPx"))

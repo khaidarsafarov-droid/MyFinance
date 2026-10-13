@@ -26,12 +26,6 @@ internal data class CabinLayout(
     val dayCaptionSp: TextUnit,
     val showWeekRow: Boolean,
     val showDayCaptions: Boolean,
-    /** Goal status and RPM target on the left, progress on the right. */
-    val showGoalStatus: Boolean,
-    /** One line under the day letters: active days, not another revenue figure. */
-    val showActiveDays: Boolean,
-    /** Icon captions. Off on short cells so the buttons are not clipped. */
-    val showActionLabels: Boolean,
     val actionBtnDp: Dp,
     val actionIconDp: Dp,
     val bucket: CabinBucket,
@@ -67,27 +61,23 @@ internal fun cabinBucket(
  */
 internal fun cabinFixedHeight(layout: CabinLayout, wide: Boolean): Dp {
     val header = textLine(layout.headerSp)
-    val progress = if (wide && layout.showGoalStatus) {
-        statusBlockHeight(layout)
-    } else {
-        layout.progressBarDp + layout.progressBarHeadroomDp
-    }
+    val progress = layout.progressBarDp + layout.progressBarHeadroomDp
     val stats = if (wide) {
-        textLine(layout.revenueLabelSp) + textLine(layout.amountSp)
+        maxOf(
+            textLine(layout.revenueLabelSp) + textLine(layout.amountSp),
+            textLine(layout.metricSp) * 2 + layout.metricGap,
+        )
     } else {
         textLine(layout.amountSp) + textLine(layout.metricSp)
     }
     val days = if (wide && layout.showWeekRow) {
         7.dp + layout.dayChipDp +
-            (if (layout.showDayCaptions) 4.dp + textLine(layout.dayCaptionSp) else 0.dp) +
-            (if (layout.showActiveDays) 2.dp + textLine(layout.dayCaptionSp) else 0.dp)
+            if (layout.showDayCaptions) 4.dp + textLine(layout.dayCaptionSp) else 0.dp
     } else {
         0.dp
     }
-    val actions = layout.actionBtnDp +
-        if (layout.showActionLabels) 2.dp + textLine(layout.dayCaptionSp) else 0.dp
     val gaps = layout.sectionGap * gapCount(wide, layout.showWeekRow)
-    return layout.paddingV * 2 + header + progress + stats + days + actions + gaps
+    return layout.paddingV * 2 + header + progress + stats + days + layout.actionBtnDp + gaps
 }
 
 private fun widestThatFits(budget: Dp, sizeMode: WidgetSizeMode): CabinLayout {
@@ -165,13 +155,6 @@ private fun CabinLayout.scaled(scale: Float): CabinLayout {
 private fun gapCount(wide: Boolean, showWeekRow: Boolean): Int =
     if (wide && showWeekRow) 4 else 3
 
-/** Left column is two lines (goal status, RPM target). Right column is the bar. */
-private fun statusBlockHeight(layout: CabinLayout): Dp {
-    val left = textLine(layout.metricSp) * 2 + layout.metricGap
-    val right = textLine(layout.percentSp) + layout.progressBarDp + layout.progressBarHeadroomDp
-    return if (left >= right) left else right
-}
-
 /** Glance text keeps font padding, so a line is taller than the sp size. */
 private fun textLine(sp: TextUnit): Dp = (sp.value * 1.35f).dp + 3.dp
 
@@ -195,9 +178,6 @@ private fun squareLayout() = CabinLayout(
     dayCaptionSp = 7.sp,
     showWeekRow = false,
     showDayCaptions = false,
-    showGoalStatus = false,
-    showActiveDays = false,
-    showActionLabels = false,
     actionBtnDp = 32.dp,
     actionIconDp = 18.dp,
     bucket = CabinBucket.SQUARE,
@@ -221,9 +201,6 @@ private fun squareTightLayout() = CabinLayout(
     dayCaptionSp = 7.sp,
     showWeekRow = false,
     showDayCaptions = false,
-    showGoalStatus = false,
-    showActiveDays = false,
-    showActionLabels = false,
     actionBtnDp = 24.dp,
     actionIconDp = 14.dp,
     bucket = CabinBucket.SQUARE,
@@ -247,9 +224,6 @@ private fun microWideLayout() = CabinLayout(
     dayCaptionSp = 7.sp,
     showWeekRow = false,
     showDayCaptions = false,
-    showGoalStatus = false,
-    showActiveDays = false,
-    showActionLabels = false,
     actionBtnDp = 24.dp,
     actionIconDp = 14.dp,
     bucket = CabinBucket.MICRO,
@@ -257,11 +231,11 @@ private fun microWideLayout() = CabinLayout(
 
 private fun shortWideLayout() = CabinLayout(
     paddingH = 12.dp,
-    paddingV = 4.dp,
+    paddingV = 6.dp,
     sectionGap = 2.dp,
     financeGap = 4.dp,
     progressBarDp = 8.dp,
-    progressBarHeadroomDp = 12.dp,
+    progressBarHeadroomDp = 18.dp,
     headerSp = 12.sp,
     dateSp = 9.sp,
     revenueLabelSp = 8.sp,
@@ -273,9 +247,6 @@ private fun shortWideLayout() = CabinLayout(
     dayCaptionSp = 8.sp,
     showWeekRow = true,
     showDayCaptions = false,
-    showGoalStatus = true,
-    showActiveDays = false,
-    showActionLabels = false,
     actionBtnDp = 30.dp,
     actionIconDp = 18.dp,
     bucket = CabinBucket.SHORT,
@@ -299,9 +270,6 @@ private fun compactWideLayout() = CabinLayout(
     dayCaptionSp = 8.sp,
     showWeekRow = true,
     showDayCaptions = false,
-    showGoalStatus = true,
-    showActiveDays = true,
-    showActionLabels = false,
     actionBtnDp = 36.dp,
     actionIconDp = 22.dp,
     bucket = CabinBucket.COMPACT,
@@ -324,37 +292,31 @@ private fun tallWideLayout() = CabinLayout(
     dayChipDp = 26.dp,
     dayCaptionSp = 9.sp,
     showWeekRow = true,
-    showDayCaptions = false,
-    showGoalStatus = true,
-    showActiveDays = true,
-    showActionLabels = true,
+    showDayCaptions = true,
     actionBtnDp = 40.dp,
     actionIconDp = 24.dp,
     bucket = CabinBucket.TALL,
 )
 
 private fun fullWideLayout() = CabinLayout(
-    paddingH = 14.dp,
-    paddingV = 6.dp,
-    sectionGap = 4.dp,
-    financeGap = 8.dp,
-    progressBarDp = 10.dp,
-    progressBarHeadroomDp = 14.dp,
-    headerSp = 14.sp,
-    dateSp = 11.sp,
-    revenueLabelSp = 10.sp,
-    amountSp = 22.sp,
-    percentSp = 10.sp,
-    metricSp = 11.sp,
-    metricGap = 4.dp,
-    dayChipDp = 24.dp,
+    paddingH = 16.dp,
+    paddingV = 8.dp,
+    sectionGap = 6.dp,
+    financeGap = 12.dp,
+    progressBarDp = 12.dp,
+    progressBarHeadroomDp = 18.dp,
+    headerSp = 15.sp,
+    dateSp = 12.sp,
+    revenueLabelSp = 11.sp,
+    amountSp = 26.sp,
+    percentSp = 11.sp,
+    metricSp = 13.sp,
+    metricGap = 6.dp,
+    dayChipDp = 28.dp,
     dayCaptionSp = 10.sp,
     showWeekRow = true,
-    showDayCaptions = false,
-    showGoalStatus = true,
-    showActiveDays = true,
-    showActionLabels = true,
-    actionBtnDp = 36.dp,
-    actionIconDp = 22.dp,
+    showDayCaptions = true,
+    actionBtnDp = 42.dp,
+    actionIconDp = 26.dp,
     bucket = CabinBucket.FULL,
 )
