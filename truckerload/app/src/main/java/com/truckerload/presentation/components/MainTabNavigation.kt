@@ -83,7 +83,7 @@ fun navigateToMainRoute(
 }
 
 private fun tabRootInBackStack(navController: NavHostController, route: String): Boolean =
-    navController.currentBackStack.value.any { it.destination.route == route }
+    runCatching { navController.getBackStackEntry(route) }.isSuccess
 
 internal fun isImmersivePhoneRoute(route: String): Boolean =
     route == Routes.CAMERA ||

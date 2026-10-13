@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +45,7 @@ fun ImprovementFeedbackScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val tc = LocalTruckColors.current
     var topic by rememberSaveable { mutableStateOf(ImprovementFeedbackMail.Topic.IMPROVE) }
     var message by rememberSaveable { mutableStateOf("") }
@@ -134,7 +136,7 @@ fun ImprovementFeedbackScreen(
                     )
                     Button(
                         onClick = {
-                            val topicLabel = context.getString(topicLabelRes(topic))
+                            val topicLabel = resources.getString(topicLabelRes(topic))
                             val draft = ImprovementFeedbackMail.compose(
                                 topic = topic,
                                 message = message,
@@ -145,7 +147,7 @@ fun ImprovementFeedbackScreen(
                             if (draft == null) {
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.improve_empty),
+                                    resources.getString(R.string.improve_empty),
                                     Toast.LENGTH_SHORT,
                                 ).show()
                                 return@Button
@@ -153,16 +155,16 @@ fun ImprovementFeedbackScreen(
                             val result = ImprovementFeedbackSender.send(context, draft)
                             val followUp = when (result) {
                                 ImprovementFeedbackSendResult.OPENED_EMAIL ->
-                                    context.getString(R.string.improve_opened)
+                                    resources.getString(R.string.improve_opened)
                                 ImprovementFeedbackSendResult.COPIED_FALLBACK ->
-                                    context.getString(
+                                    resources.getString(
                                         R.string.improve_copied,
                                         ImprovementFeedbackMail.SUPPORT_EMAIL,
                                     )
                             }
                             Toast.makeText(
                                 context,
-                                "${context.getString(R.string.improve_thank_you)}\n$followUp",
+                                "${resources.getString(R.string.improve_thank_you)}\n$followUp",
                                 Toast.LENGTH_LONG,
                             ).show()
                             submitted = true

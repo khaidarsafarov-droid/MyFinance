@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,6 +46,7 @@ fun MiscExpenseScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val viewModel: MiscExpenseViewModel = hiltViewModel()
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -82,7 +84,7 @@ fun MiscExpenseScreen(
                     if (ui.entries.isEmpty()) {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.misc_expense_send_empty),
+                            resources.getString(R.string.misc_expense_send_empty),
                             Toast.LENGTH_SHORT,
                         ).show()
                     } else {
@@ -93,7 +95,7 @@ fun MiscExpenseScreen(
                             }.onFailure {
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.misc_expense_send_error),
+                                    resources.getString(R.string.misc_expense_send_error),
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }

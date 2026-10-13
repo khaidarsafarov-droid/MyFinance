@@ -18,6 +18,6 @@ class PremiumPolicyTest {
     fun withoutPlaySubscription_featuresStayLocked() {
         val status = PremiumPolicy.status(subscribed = false)
         assertFalse(status.unlocked)
-        assertFalse(status.allows(PremiumFeature.DEADHEAD))
+        assertFalse(status.allows(PremiumFeature.EXPORT))
     }
 }

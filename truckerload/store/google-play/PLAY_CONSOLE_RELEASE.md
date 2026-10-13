@@ -70,7 +70,48 @@ Confirm:
 1. Upload `app-release.aab` to **Internal testing** first  
 2. Smoke on a clean device (`docs/SMOKE_TEST_SCRIPT.md`)  
 3. Promote to **Closed** → **Open** → **Production** when green  
-4. Countries / pricing: free, distribute where you support EN/RU/ES
+4. Countries / pricing: the **app download stays free**. Paid access is the in-app subscription below, not a paid app price.
+
+## 4b) Subscription — first month free, then $2.99
+
+The app cannot set this price. Play Console is the only place the charge exists. Create it **before** you expect the Subscribe button to open a payment sheet. Billing also needs the app uploaded to at least internal testing, with the same package `com.truckorig`.
+
+Play Console → **Monetize** → **Products** → **Subscriptions** → **Create subscription**
+
+| Field | Value |
+| --- | --- |
+| Product ID | `premium_monthly_subscription` (cannot be changed later) |
+| Name | TruckoRig Premium |
+| Description | First month free, then monthly Premium: Telegram, analytics, weekly goal, map, taxes, scanner, camera, export, Drive backup. Deadhead stays free. |
+
+**Base plan** (Add base plan):
+
+| Field | Value |
+| --- | --- |
+| Base plan ID | `monthly` |
+| Type | Auto-renewing |
+| Billing period | Monthly (1 month) |
+| Price | **USD 2.99**. Use Play’s price conversion for other countries, or set them yourself. |
+| Activation | Activate the base plan |
+
+**Offer** on that base plan (Add offer):
+
+| Field | Value |
+| --- | --- |
+| Offer ID | `free-month` |
+| Phase | Free trial, duration **1 month** |
+| Tag | `free-month` |
+| Eligibility | New subscribers (people who have not already used this offer) |
+| Regions | Same countries as the base plan |
+| Activation | Activate the offer, then activate the subscription |
+
+The app asks Play for this product, prefers the offer tagged `free-month`, and shows Play’s own price on the button (`$2.99` in the US). After the free month, Play renews the `monthly` base plan until the user cancels. The manifest already has `com.android.vending.BILLING`.
+
+**Try a purchase:** Play Console → **Settings** → **License testing** → add your Gmail. Install the app **from Play** (internal testing is enough), not as a sideloaded APK. License testers are not charged; test renewals are accelerated (a month can renew in minutes).
+
+**Manage / cancel:** Settings → Premium → “Manage subscription in Google Play”, or Play → Payments and subscriptions.
+
+Republish the privacy policy (payments section dated 2026-10-13) at https://rentry.co/truckorig-privacy-policy so the Play URL matches the draft.
 
 ## 5) Post-upload
 

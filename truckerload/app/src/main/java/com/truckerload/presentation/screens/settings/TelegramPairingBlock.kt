@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun TelegramPairingBlock(onStatus: (String) -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
@@ -59,7 +61,7 @@ fun TelegramPairingBlock(onStatus: (String) -> Unit) {
             onClick = {
                 scope.launch {
                     settings.clearTelegramChatId()
-                    onStatus(context.getString(R.string.settings_telegram_unpaired_done))
+                    onStatus(resources.getString(R.string.settings_telegram_unpaired_done))
                 }
             },
             modifier = Modifier.fillMaxWidth().height(44.dp),

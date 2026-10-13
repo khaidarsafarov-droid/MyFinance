@@ -2,6 +2,9 @@ package com.truckerload.data.premium
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import com.truckerload.domain.premium.PremiumOfferQuote
 import com.truckerload.domain.premium.PremiumPolicy
 import com.truckerload.domain.premium.PremiumStatus
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +41,16 @@ class PremiumAccess private constructor(context: Context) {
 
     fun isUnlocked(): Boolean = isSubscribed.value
 
-    suspend fun formattedPrice(): String? = billing.formattedPrice()
+    suspend fun loadOffer(): PremiumOfferQuote? = billing.loadOffer()
+
+    /** Открывает подписку в Google Play: отмена, смена карты, дата следующего списания. */
+    fun openSubscriptionManagement(activity: Activity) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(PremiumPolicy.subscriptionManagementUrl(activity.packageName)),
+        )
+        runCatching { activity.startActivity(intent) }
+    }
 
     fun purchase(activity: Activity, onResult: (String?) -> Unit) {
         scope.launch(Dispatchers.IO) {

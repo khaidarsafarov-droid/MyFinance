@@ -9,6 +9,7 @@ Single entry point for release readiness artifacts.
 - [Privacy policy draft](../store/google-play/PRIVACY_POLICY.md)
 - [Data safety draft](../store/google-play/DATA_SAFETY.md)
 - [Release notes 1.5.11](../store/google-play/RELEASE_NOTES_1.5.11.md)
+- [Subscription setup](../store/google-play/PLAY_CONSOLE_RELEASE.md) — section 4b, $2.99/month after a free month
 - [Listing images README](../store/google-play/README.md)
 - [Google Sign-In / upload SHA-1](./GOOGLE_SIGNIN_SETUP.md)
 

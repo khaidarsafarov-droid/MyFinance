@@ -13,6 +13,10 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.truckerload.data.preferences.SecurePreferences
+import com.truckerload.domain.premium.PlayOfferSelector
+import com.truckerload.domain.premium.PlayPricingPhase
+import com.truckerload.domain.premium.PlaySubscriptionOffer
+import com.truckerload.domain.premium.PremiumOfferQuote
 import com.truckerload.domain.premium.PremiumPolicy
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
@@ -86,14 +90,17 @@ class BillingManager(context: Context) {
         reconnectAttempt = 0
     }
 
-    /** Цена платного периода из оффера Play, чтобы кнопка не врала сумму. */
-    suspend fun formattedPrice(): String? {
+    /**
+     * Цена и наличие бесплатного месяца из оффера Play.
+     * Сумму на кнопке берём только отсюда: в США это $2.99, в других странах — локальная цена Play.
+     */
+    suspend fun loadOffer(): PremiumOfferQuote? {
         if (!connect()) return null
-        val phases = playOffer(queryProduct() ?: return null)
-            ?.pricingPhases
-            ?.pricingPhaseList
-            .orEmpty()
-        return phases.lastOrNull { it.priceAmountMicros > 0L }?.formattedPrice
+        val selected = playOffer(queryProduct() ?: return null) ?: return null
+        return PremiumOfferQuote(
+            formattedPrice = selected.recurringFormattedPrice,
+            includesFreeMonth = selected.includesFreeMonth,
+        )
     }
 
     /** Открывает платёжный лист Google Play. Вызывать с Activity. */
@@ -206,11 +213,26 @@ class BillingManager(context: Context) {
         }
     }
 
-    /** Оффер с тегом [PremiumPolicy.FREE_MONTH_OFFER_TAG], иначе базовый. Нулевая цена сама по себе не выбирается. */
-    private fun playOffer(details: ProductDetails) =
-        details.subscriptionOfferDetails.orEmpty().let { offers ->
-            offers.firstOrNull { PremiumPolicy.FREE_MONTH_OFFER_TAG in it.offerTags }
-                ?: offers.firstOrNull()
+    /** Бесплатный месяц, если Play его ещё отдаёт; иначе платный monthly. */
+    private fun playOffer(details: ProductDetails): PlaySubscriptionOffer? =
+        PlayOfferSelector.select(details.toPlayOffers())
+
+    private fun ProductDetails.toPlayOffers(): List<PlaySubscriptionOffer> =
+        subscriptionOfferDetails.orEmpty().map { offer ->
+            PlaySubscriptionOffer(
+                offerToken = offer.offerToken,
+                offerId = offer.offerId,
+                basePlanId = offer.basePlanId,
+                offerTags = offer.offerTags.toSet(),
+                phases = offer.pricingPhases.pricingPhaseList.map { phase ->
+                    PlayPricingPhase(
+                        priceAmountMicros = phase.priceAmountMicros,
+                        billingPeriod = phase.billingPeriod,
+                        billingCycleCount = phase.billingCycleCount,
+                        formattedPrice = phase.formattedPrice,
+                    )
+                },
+            )
         }
 
     private suspend fun connect(): Boolean {
