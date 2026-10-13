@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -170,6 +171,7 @@ private fun PremiumPurchaseButton(
     onFinished: (String?) -> Unit = {},
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val access = rememberPremiumAccess()
     var buying by remember { mutableStateOf(false) }
     var loaded by remember { mutableStateOf(false) }
@@ -187,7 +189,7 @@ private fun PremiumPurchaseButton(
             if (error != null) {
                 Toast.makeText(
                     context,
-                    context.getString(R.string.premium_purchase_unavailable),
+                    resources.getString(R.string.premium_purchase_unavailable),
                     Toast.LENGTH_LONG,
                 ).show()
             }
@@ -237,5 +239,4 @@ private fun PremiumFeature.lockedMessage(): Int = when (this) {
     PremiumFeature.CAMERA -> R.string.premium_locked_camera
     PremiumFeature.EXPORT -> R.string.premium_locked_export
     PremiumFeature.DRIVE -> R.string.premium_locked_drive
-    PremiumFeature.DEADHEAD -> R.string.premium_locked_deadhead
 }

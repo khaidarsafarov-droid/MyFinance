@@ -11,7 +11,6 @@ enum class PremiumFeature {
     CAMERA,
     EXPORT,
     DRIVE,
-    DEADHEAD,
 }
 
 data class PremiumStatus(

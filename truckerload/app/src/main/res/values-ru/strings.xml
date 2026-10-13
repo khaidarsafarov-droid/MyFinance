@@ -735,7 +735,7 @@
     <string name="load_detail_deadhead_hint">Мили порожняком до этого заказа. Например, груз 1000 миль, а вы проехали 100 миль до него — введите 100. Эти мили прибавятся к пробегу груза.</string>
     <string name="load_detail_deadhead_miles_label">Мили deadhead</string>
     <string name="premium_title">TruckoRig Premium</string>
-    <string name="premium_body">Первый месяц бесплатно. Дальше Google Play списывает цену на кнопке — в США это 2,99 $ в месяц. Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт, копия в Drive и deadhead остаются в этой подписке. Грузы, дизель и зарплаты остаются бесплатными.</string>
+    <string name="premium_body">Первый месяц бесплатно. Дальше Google Play списывает цену на кнопке — в США это 2,99 $ в месяц. Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт и копия в Drive остаются в этой подписке. Грузы, дизель, зарплаты и deadhead остаются бесплатными.</string>
     <string name="premium_subscribe">Попробовать 1 месяц бесплатно</string>
     <string name="premium_subscribe_price">Попробовать 1 месяц бесплатно (далее %1$s/мес)</string>
     <string name="premium_subscribe_paid">Подписаться — %1$s/мес</string>
@@ -755,7 +755,6 @@
     <string name="premium_locked_camera">Камера входит в Premium.</string>
     <string name="premium_locked_export">Экспорт входит в Premium.</string>
     <string name="premium_locked_drive">Копия в Google Drive входит в Premium.</string>
-    <string name="premium_locked_deadhead">Deadhead входит в Premium.</string>
     <string name="load_detail_stat_rpm">RPM</string>
     <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>

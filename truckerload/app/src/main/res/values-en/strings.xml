@@ -735,7 +735,7 @@
     <string name="load_detail_deadhead_hint">Miles you drove empty to pick up this load. Example: the load is 1,000 mi and you drove 100 mi to it — enter 100. Those miles are added to this load.</string>
     <string name="load_detail_deadhead_miles_label">Deadhead miles</string>
     <string name="premium_title">TruckoRig Premium</string>
-    <string name="premium_body">The first month is free. After that, Google Play charges the monthly price on the button — $2.99 in the United States. Telegram, analytics, the weekly goal, the map, taxes, scanner, camera, export, Drive backup, and deadhead stay on this plan. Loads, diesel, and paychecks stay free.</string>
+    <string name="premium_body">The first month is free. After that, Google Play charges the monthly price on the button — $2.99 in the United States. Telegram, analytics, the weekly goal, the map, taxes, scanner, camera, export, and Drive backup stay on this plan. Loads, diesel, paychecks, and deadhead stay free.</string>
     <string name="premium_subscribe">Try 1 month free</string>
     <string name="premium_subscribe_price">Try 1 month free (then %1$s/month)</string>
     <string name="premium_subscribe_paid">Subscribe — %1$s/month</string>
@@ -755,7 +755,6 @@
     <string name="premium_locked_camera">The camera is part of Premium.</string>
     <string name="premium_locked_export">Export is part of Premium.</string>
     <string name="premium_locked_drive">Google Drive backup is part of Premium.</string>
-    <string name="premium_locked_deadhead">Deadhead miles are part of Premium.</string>
     <string name="load_detail_stat_rpm">RPM</string>
     <string name="load_detail_stat_pu">PU</string>
     <string name="load_detail_stat_del">DEL</string>
