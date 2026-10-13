@@ -117,7 +117,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
 
             override fun onStop(owner: LifecycleOwner) {
-                TelegramBotPoller.stop(this@TruckerLoadApp)
+                // Leave the long-poll running. The driver often leaves this app to send
+                // a text or a file in Telegram; stopping here dropped those updates.
+                TelegramSyncWorker.enqueueFollowUp(this@TruckerLoadApp)
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })

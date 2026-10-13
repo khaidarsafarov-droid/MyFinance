@@ -22,9 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * In-process Telegram long-poll while the app is visible.
- * Not an Android foreground service. Background catch-up is [TelegramSyncWorker].
- * Call sites should use [TelegramBotPoller].
+ * In-process Telegram long-poll. Stays up when the app is in the background so a
+ * text or file sent from the Telegram chat is still received.
+ * Not an Android foreground service. If the process is killed, [TelegramSyncWorker]
+ * keeps polling. Call sites should use [TelegramBotPoller].
  */
 object TelegramBotForegroundService {
     private const val TAG = "TelegramBotPoller"

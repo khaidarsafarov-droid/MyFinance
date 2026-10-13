@@ -53,4 +53,22 @@ class TelegramBotNoFgsContractGuardTest {
             android.app.Service::class.java.isAssignableFrom(TelegramBotForegroundService::class.java),
         )
     }
+
+    @Test
+    fun leavingTheApp_doesNotStopThePoller() {
+        val src = readMain("TruckerLoadApp.kt")
+        val onStop = src.substringAfter("override fun onStop").substringBefore("private fun initializeCrashReporting")
+        assertFalse(onStop.contains("TelegramBotPoller.stop"))
+        assertTrue(onStop.contains("enqueueFollowUp"))
+    }
+
+    private fun readMain(relativePath: String): String {
+        val candidates = listOf(
+            java.io.File("src/main/java/com/truckerload/$relativePath"),
+            java.io.File("app/src/main/java/com/truckerload/$relativePath"),
+            java.io.File("../app/src/main/java/com/truckerload/$relativePath"),
+        )
+        return candidates.firstOrNull(java.io.File::isFile)?.readText()
+            ?: error("Source not found: $relativePath")
+    }
 }

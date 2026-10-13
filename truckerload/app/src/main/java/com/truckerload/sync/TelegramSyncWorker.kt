@@ -16,10 +16,13 @@ import com.truckerload.data.remote.TelegramBotBranding
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
+import java.util.concurrent.TimeUnit
 
 /**
- * Background Telegram poll via WorkManager (~15 min periodic).
- * Skips if the in-process poller is already active (app visible).
+ * Background Telegram poll via WorkManager.
+ * One long-poll per run, then the next run is queued so texts and files still
+ * arrive after the app leaves the screen. Skips the network call when the
+ * in-process poller already holds the connection.
  */
 @HiltWorker
 class TelegramSyncWorker @AssistedInject constructor(
@@ -30,6 +33,7 @@ class TelegramSyncWorker @AssistedInject constructor(
 
     companion object {
         const val UNIQUE_ENSURE_SERVICE_WORK = "telegram_sync_ensure_service"
+        const val UNIQUE_FOLLOW_UP_WORK = "telegram_sync_followup"
         const val UNIQUE_WATCHDOG_WORK = "telegram_bot_watchdog"
         const val PREFS_NAME = "telegram_sync"
         const val KEY_LAST_OFFSET = "last_update_offset"
@@ -55,6 +59,24 @@ class TelegramSyncWorker @AssistedInject constructor(
                 request,
             )
         }
+
+        /** Queue the next poll. A short delay while the in-process poller is already running. */
+        fun enqueueFollowUp(context: Context) {
+            val app = context.applicationContext
+            val delaySec = if (TelegramBotPoller.isRunning()) 45L else 3L
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val request = OneTimeWorkRequestBuilder<TelegramSyncWorker>()
+                .setConstraints(constraints)
+                .setInitialDelay(delaySec, TimeUnit.SECONDS)
+                .build()
+            WorkManager.getInstance(app).enqueueUniqueWork(
+                UNIQUE_FOLLOW_UP_WORK,
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                request,
+            )
+        }
     }
 
     override suspend fun doWork(): Result {
@@ -74,7 +96,8 @@ class TelegramSyncWorker @AssistedInject constructor(
         }
         runCatching { TelegramBotBranding.apply(applicationContext, token) }
         if (TelegramBotPoller.isRunning()) {
-            Log.d("TelegramSync", "In-process poller is active — skip background poll")
+            Log.d("TelegramSync", "In-process poller is active — schedule the next check")
+            enqueueFollowUp(applicationContext)
             return Result.success()
         }
         try {
@@ -90,6 +113,7 @@ class TelegramSyncWorker @AssistedInject constructor(
         } catch (e: Exception) {
             Log.w("TelegramSync", "Background poll failed", e)
         }
+        enqueueFollowUp(applicationContext)
         return Result.success()
     }
 }
