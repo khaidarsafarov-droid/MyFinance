@@ -96,10 +96,10 @@ fun TruckLogNavigationRail(
         )
     }
 
-    val overdue by LocalMaintenanceRepository.current
-        .watchActiveProgress()
-        .map { items -> items.count { it.isDue } }
-        .collectAsStateWithLifecycle(initialValue = 0)
+    val maintenance = LocalMaintenanceRepository.current
+    val overdue by remember(maintenance) {
+        maintenance.watchActiveProgress().map { items -> items.count { it.isDue } }
+    }.collectAsStateWithLifecycle(initialValue = 0)
     val railColor = MaterialTheme.colorScheme.surface
     Column(
         modifier = modifier

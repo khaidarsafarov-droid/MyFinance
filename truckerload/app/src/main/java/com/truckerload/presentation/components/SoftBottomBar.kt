@@ -91,10 +91,10 @@ internal fun SoftBottomBar(
     onNavigate: (String) -> Unit,
     onQuickAction: () -> Unit,
 ) {
-    val overdue by LocalMaintenanceRepository.current
-        .watchActiveProgress()
-        .map { items -> items.count { it.isDue } }
-        .collectAsStateWithLifecycle(initialValue = 0)
+    val maintenance = LocalMaintenanceRepository.current
+    val overdue by remember(maintenance) {
+        maintenance.watchActiveProgress().map { items -> items.count { it.isDue } }
+    }.collectAsStateWithLifecycle(initialValue = 0)
     val reduceMotion = LocalReduceMotion.current
     val barColor = MaterialTheme.colorScheme.surfaceVariant
     val indicator = remember { Animatable(0f) }
