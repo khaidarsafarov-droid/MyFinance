@@ -15,6 +15,13 @@ class PremiumPolicyTest {
     }
 
     @Test
+    fun firstOpen_asksToSubscribeUntilHandledOrPurchased() {
+        assertTrue(PremiumPolicy.shouldPromptForSubscription(subscribed = false, offerAlreadyHandled = false))
+        assertFalse(PremiumPolicy.shouldPromptForSubscription(subscribed = true, offerAlreadyHandled = false))
+        assertFalse(PremiumPolicy.shouldPromptForSubscription(subscribed = false, offerAlreadyHandled = true))
+    }
+
+    @Test
     fun withoutPlaySubscription_featuresStayLocked() {
         val status = PremiumPolicy.status(subscribed = false)
         assertFalse(status.unlocked)

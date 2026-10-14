@@ -40,6 +40,7 @@ import com.truckerload.presentation.utils.AdaptiveScreenContainer
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.presentation.utils.useTwoPaneLayout
+import com.truckerload.presentation.premium.PremiumFirstRunOffer
 import com.truckerload.presentation.screens.home.HomeScreen
 import com.truckerload.presentation.screens.auth.ProfileSetupScreen
 import com.truckerload.presentation.di.LocalUserProfileStore
@@ -207,6 +208,8 @@ fun NavGraph(
     }
 
     val reduceMotion = rememberReduceMotion()
+
+    PremiumFirstRunOffer()
 
     AdaptiveScaffold(
         showMainNavigation = showMainNavigation,

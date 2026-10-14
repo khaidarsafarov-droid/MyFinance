@@ -56,4 +56,11 @@ object PremiumPolicy {
     /** An active Play purchase covers both the free-trial offer and the paid month. */
     fun status(subscribed: Boolean): PremiumStatus =
         PremiumStatus(subscribed = subscribed, unlocked = subscribed)
+
+    /**
+     * Ask once, before any Play purchase. Opening the app does not start the free month.
+     * Skipping leaves the free journal. Subscribing is what starts Google's trial.
+     */
+    fun shouldPromptForSubscription(subscribed: Boolean, offerAlreadyHandled: Boolean): Boolean =
+        !subscribed && !offerAlreadyHandled
 }

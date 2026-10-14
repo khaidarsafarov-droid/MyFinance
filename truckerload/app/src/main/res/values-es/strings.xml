@@ -743,7 +743,10 @@
     <string name="premium_restore">Restaurar compras</string>
     <string name="premium_manage">Gestionar la suscripción en Google Play</string>
     <string name="premium_terms">Se renueva cada mes en Google Play hasta que la canceles. Cancela cuando quieras en Google Play → Pagos y suscripciones.</string>
-    <string name="premium_play_trial">El mes gratis empieza en Google Play al suscribirse.</string>
+    <string name="premium_play_trial">Estás en la versión gratis. El mes gratis aún no ha empezado: empieza solo al suscribirte en Google Play.</string>
+    <string name="premium_offer_title">Suscripción en Google Play</string>
+    <string name="premium_offer_body">El mes gratis no empieza al abrir la app. Empieza solo cuando te suscribes en Google Play: un mes gratis y luego el precio mensual (2,99 $ en Estados Unidos). Si lo omites, sigue la versión gratis: cargas, diésel, pagos y deadhead. Telegram, analítica y el resto de Premium quedan bloqueados.</string>
+    <string name="premium_offer_continue_free">Seguir con la versión gratis</string>
     <string name="premium_active">Premium activo</string>
     <string name="premium_purchase_unavailable">Google Play no pudo abrir la suscripción. Entra en Play Store e inténtalo de nuevo.</string>
     <string name="premium_locked_telegram">La importación de Telegram es Premium.</string>
