@@ -43,7 +43,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.utils.FeedbackManager
-import kotlinx.coroutines.flow.map
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -96,10 +95,10 @@ fun TruckLogNavigationRail(
         )
     }
 
-    val overdue by LocalMaintenanceRepository.current
+    val activeProgress by LocalMaintenanceRepository.current
         .watchActiveProgress()
-        .map { items -> items.count { it.isDue } }
-        .collectAsStateWithLifecycle(initialValue = 0)
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val overdue = activeProgress.count { it.isDue }
     val railColor = MaterialTheme.colorScheme.surface
     Column(
         modifier = modifier

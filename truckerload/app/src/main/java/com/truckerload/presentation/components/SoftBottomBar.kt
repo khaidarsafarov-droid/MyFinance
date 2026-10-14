@@ -58,7 +58,6 @@ import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.utils.FeedbackManager
-import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
 
 private data class PhoneTab(
@@ -91,10 +90,10 @@ internal fun SoftBottomBar(
     onNavigate: (String) -> Unit,
     onQuickAction: () -> Unit,
 ) {
-    val overdue by LocalMaintenanceRepository.current
+    val activeProgress by LocalMaintenanceRepository.current
         .watchActiveProgress()
-        .map { items -> items.count { it.isDue } }
-        .collectAsStateWithLifecycle(initialValue = 0)
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val overdue = activeProgress.count { it.isDue }
     val reduceMotion = LocalReduceMotion.current
     val barColor = MaterialTheme.colorScheme.surfaceVariant
     val indicator = remember { Animatable(0f) }
