@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.diesel
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,6 +46,7 @@ import com.truckerload.presentation.screens.add.JournalDatePickerDialog
 import com.truckerload.presentation.screens.add.JournalWeekSelectorRow
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.utcDatePickerMillisToDateString
 
@@ -176,7 +176,7 @@ fun DieselJournalScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (ui.selectedDateIso == null) tc.AccentPrimary else tc.TextSecondary,
                             modifier = Modifier
-                                .clickable(onClick = viewModel::clearDateFilter)
+                                .buttonTap(onClick = viewModel::clearDateFilter)
                                 .padding(vertical = 8.dp, horizontal = 4.dp),
                         )
                         Text(
@@ -185,7 +185,7 @@ fun DieselJournalScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (ui.selectedDateIso != null) tc.AccentPrimary else tc.TextSecondary,
                             modifier = Modifier
-                                .clickable { showDatePicker = true }
+                                .buttonTap(onClick = { showDatePicker = true })
                                 .padding(vertical = 8.dp, horizontal = 4.dp),
                         )
                     }

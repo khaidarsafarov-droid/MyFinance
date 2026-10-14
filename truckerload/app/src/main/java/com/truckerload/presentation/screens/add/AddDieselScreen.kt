@@ -1,7 +1,6 @@
 package com.truckerload.presentation.screens.add
 
 import android.net.Uri
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +34,7 @@ import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.formatDateForDisplay
 import com.truckerload.utils.formatDateTimeForDisplay
@@ -214,7 +214,7 @@ private fun DieselEntryForm(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onOpenDate),
+                    .buttonTap(onClick = onOpenDate),
             ) {
                 Text(
                     formatDateForDisplay(uiState.recordedAtMillis),

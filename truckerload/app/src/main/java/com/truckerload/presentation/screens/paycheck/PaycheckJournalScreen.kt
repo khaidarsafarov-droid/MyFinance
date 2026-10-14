@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.paycheck
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -50,6 +49,7 @@ import com.truckerload.presentation.screens.add.JournalWeekSelectorRow
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.PaycheckSourceFiles
 import kotlinx.coroutines.launch
 
@@ -156,7 +156,7 @@ fun PaycheckJournalScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (ui.showAllWeeks) tc.AccentPrimary else tc.TextSecondary,
                             modifier = Modifier
-                                .clickable(onClick = viewModel::showAllWeeks)
+                                .buttonTap(onClick = viewModel::showAllWeeks)
                                 .padding(vertical = 8.dp, horizontal = 4.dp),
                         )
                     }
