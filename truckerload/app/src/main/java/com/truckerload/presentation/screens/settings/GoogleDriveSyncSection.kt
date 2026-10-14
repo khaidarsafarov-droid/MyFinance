@@ -41,6 +41,7 @@ import com.truckerload.data.backup.BackupRestoreException
 import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.remote.GoogleSignInClients
+import com.truckerload.presentation.auth.DriveSha1Dialog
 import com.truckerload.presentation.auth.GoogleSignInSupport
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -84,6 +85,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     var showUnboundRestore by remember { mutableStateOf(false) }
     var restoreConflict by remember { mutableStateOf(false) }
     var pendingConnect by remember { mutableStateOf(DriveConnectPending.None) }
+    var unrecognizedInstall by remember { mutableStateOf<GoogleSignInSupport.Failure?>(null) }
     var tokenConsentTried by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
@@ -198,10 +200,14 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             }
             is DriveConnectOutcome.Failed -> {
                 pendingConnect = DriveConnectPending.None
-                toastMessage(
-                    outcome.error?.let { GoogleSignInSupport.formatError(context, it) }
-                        ?: resources.getString(R.string.drive_sync_connect_failed),
-                )
+                val failure = outcome.error?.let { GoogleSignInSupport.failure(context, it) }
+                if (failure?.sha1 != null) {
+                    unrecognizedInstall = failure
+                } else {
+                    toastMessage(
+                        failure?.message ?: resources.getString(R.string.drive_sync_connect_failed),
+                    )
+                }
             }
         }
     }
@@ -396,6 +402,17 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             ) {
                 Text(stringResource(R.string.drive_sync_disconnect))
             }
+        }
+    }
+
+    unrecognizedInstall?.let { failure ->
+        val sha = failure.sha1
+        if (sha != null) {
+            DriveSha1Dialog(
+                message = failure.message,
+                sha1 = sha,
+                onDismiss = { unrecognizedInstall = null },
+            )
         }
     }
 

@@ -11,8 +11,14 @@ class GoogleSignInSupportTest {
         val source = readMainSource("com/truckerload/presentation/auth/GoogleSignInSupport.kt")
         assertTrue(source.contains("InstalledSigningSha1.fingerprint"))
         assertTrue(source.contains("login_google_developer_error"))
+        assertTrue(!source.contains("ANDROID_CLIENT_ID"))
         assertTrue(!source.contains("fun loginOptions"))
         assertTrue(!source.contains("SIGN_OUT_TIMEOUT_MS"))
+        val settings = readMainSource(
+            "com/truckerload/presentation/screens/settings/GoogleDriveSyncSection.kt",
+        )
+        assertTrue(settings.contains("DriveSha1Dialog"))
+        assertTrue(settings.contains("failure?.sha1"))
     }
 
     @Test
