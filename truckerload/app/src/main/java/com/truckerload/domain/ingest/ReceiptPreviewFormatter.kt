@@ -13,9 +13,7 @@ object ReceiptPreviewFormatter {
         preview.miles?.let {
             lines += "🛣️ ${String.format(Locale.US, "%,.2f", it)} mi"
         }
-        preview.gallons?.let {
-            lines += "⛽ ${String.format(Locale.US, "%.2f", it)} gal"
-        }
+        preview.gallons?.let { lines += "⛽ ${gallonsLabel(it)}" }
         preview.pricePerGallon?.let {
             lines += "PPG \$%s".format(Locale.US, String.format(Locale.US, "%.3f", it))
         }
@@ -32,11 +30,18 @@ object ReceiptPreviewFormatter {
         preview.driverName?.let { lines += escape(it) }
         preview.tripId?.let { lines += "Trip ${escape(it)}" }
         lines += ""
-        lines += highlightSnippet(preview.extractedText, preview.highlightToken)
-        lines += ""
         lines += escape(askLabel)
         val html = lines.joinToString("\n")
         return html.take(3900)
+    }
+
+    private fun gallonsLabel(gallons: Double): String {
+        val text = if (gallons >= 100.0) {
+            String.format(Locale.US, "%.0f", gallons)
+        } else {
+            String.format(Locale.US, "%.1f", gallons).trimEnd('0').trimEnd('.')
+        }
+        return "$text gal"
     }
 
     fun highlightSnippet(text: String, token: String?, maxLen: Int = 900): String {

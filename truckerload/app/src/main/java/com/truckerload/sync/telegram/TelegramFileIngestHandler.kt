@@ -9,6 +9,8 @@ import com.truckerload.data.remote.TelegramUpdate
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.domain.importing.DieselSpreadsheetParser
+import com.truckerload.domain.ingest.FleetDieselPreview
 import com.truckerload.domain.ingest.InboundDocumentResolver
 import com.truckerload.domain.ingest.ReceiptAmountCandidates
 import com.truckerload.domain.ingest.ReceiptKind
@@ -59,6 +61,12 @@ class TelegramFileIngestHandler(
         val fileName = update.documentFileName?.takeIf { it.isNotBlank() }
             ?: if (update.photoFileId != null) "telegram_photo.jpg" else "telegram_file"
         val storedPath = PaycheckSourceFiles.copyFromBytes(context, bytes, fileName)
+        val fleet = runCatching { DieselSpreadsheetParser.parse(bytes, fileName) }.getOrNull()
+            ?.let { FleetDieselPreview.from(it, storedPath, update.messageDateSeconds) }
+        if (fleet != null) {
+            askConfirmation(update.chatId, fleet, prefs)
+            return
+        }
         val fileText = extractor.extract(bytes, fileName, update.documentMimeType)
             .getOrElse { e ->
                 Log.e(TAG, "extract failed: ${LogRedactor.redact(e.message)}", e)
@@ -330,25 +338,7 @@ class TelegramFileIngestHandler(
         }
         val choices = ReceiptAmountCandidates.forPreview(preview)
         val formatted = String.format(Locale.US, "%,.2f", amount)
-        val ask = buildString {
-            append(context.getString(R.string.sync_amount_confirm_ask, formatted))
-            val others = choices.filter { kotlin.math.abs(it.amount - amount) >= 0.015 }
-            if (others.isNotEmpty()) {
-                append("\n")
-                append(context.getString(R.string.sync_amount_other_found))
-                others.forEach { choice ->
-                    append("\n• $")
-                    append(String.format(Locale.US, "%,.2f", choice.amount))
-                    amountCaption(choice.label)?.let { caption ->
-                        append(" (")
-                        append(caption)
-                        append(")")
-                    }
-                }
-            }
-            append("\n")
-            append(context.getString(R.string.sync_amount_or_type))
-        }
+        val ask = context.getString(R.string.sync_amount_confirm_ask, formatted)
         val guessed = when (preview.kind) {
             ReceiptKind.PAYCHECK -> context.getString(R.string.sync_receipt_guess_paycheck)
             ReceiptKind.DIESEL -> context.getString(R.string.sync_receipt_guess_diesel)
@@ -375,12 +365,5 @@ class TelegramFileIngestHandler(
 
     private companion object {
         const val TAG = "TgFileIngest"
-    }
-
-    private fun amountCaption(label: String): String? = when (label) {
-        "gross" -> context.getString(R.string.sync_amount_label_gross)
-        "loads net" -> context.getString(R.string.sync_amount_label_loads)
-        "deductions" -> context.getString(R.string.sync_amount_label_deductions)
-        else -> null
     }
 }

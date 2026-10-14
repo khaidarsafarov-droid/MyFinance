@@ -1155,7 +1155,7 @@
     <string name="sync_last_diesel">📥 Sync complete!\nLatest added: diesel $%1$s (week %2$d)</string>
     <string name="sync_last_def">📥 Sync complete!\nLatest added: DEF $%1$s (week %2$d)</string>
     <string name="sync_receipt_guess_paycheck">Recognized: paycheck</string>
-    <string name="sync_receipt_guess_diesel">Recognized: diesel</string>
+    <string name="sync_receipt_guess_diesel">Diesel</string>
     <string name="sync_receipt_guess_def">Recognized: DEF</string>
     <string name="sync_receipt_guess_load">Recognized: load</string>
     <string name="sync_receipt_guess_unknown">Read text from the file</string>
@@ -1163,7 +1163,7 @@
     <string name="sync_paycheck_confirm_ask">Is this paycheck total correct: $%1$s? It will be saved only if you confirm.</string>
     <string name="sync_paycheck_confirm_yes">Yes, save</string>
     <string name="sync_paycheck_confirm_no">No</string>
-    <string name="sync_amount_confirm_ask">Save $%1$s? Tap another amount if this is wrong.</string>
+    <string name="sync_amount_confirm_ask">Save $%1$s?</string>
     <string name="sync_amount_other_found">Other amounts I found:</string>
     <string name="sync_amount_label_gross">gross</string>
     <string name="sync_amount_label_loads">loads</string>

@@ -1,6 +1,7 @@
 package com.truckerload.domain.ingest
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -124,6 +125,29 @@ class ReceiptPreviewFormatterTest {
         assertTrue(html.contains("<b>\$42.10</b>"))
         assertTrue(html.contains("&lt;store&gt;"))
         assertTrue(!html.contains("<store>"))
+    }
+
+    @Test
+    fun driverMessage_keepsTheTotalAndDropsTheStatement() {
+        val preview = com.truckerload.domain.ingest.ReceiptPreview(
+            kind = com.truckerload.domain.ingest.ReceiptKind.DIESEL,
+            amount = 3513.73,
+            gallons = 604.14,
+            pricePerGallon = null,
+            date = "2026-09-28 – 2026-10-04",
+            location = null,
+            vendor = null,
+            driverName = "Khaidar Safarov",
+            tripId = null,
+            extractedText = "ULSD Qty Total Amount Due " + "x".repeat(500),
+            highlightToken = "604.14",
+        )
+        val html = ReceiptPreviewFormatter.toHtml(preview, "Diesel", "Save \$3,513.73?")
+        assertTrue(html.contains("3,513.73"))
+        assertTrue(html.contains("604 gal"))
+        assertTrue(html.contains("Khaidar Safarov"))
+        assertFalse(html.contains("ULSD Qty"))
+        assertTrue(html.length < 250)
     }
 }
 
