@@ -67,10 +67,10 @@ object LoadYieldCalculator {
     /**
      * Days the driver was actually on the road inside this reporting week.
      *
-     * Each load covers pickup through its finish date, but not past [today] and not
-     * outside the week. Overlapping loads count once. A delivery date that is still
-     * in the future does not add days that have not happened, even when the driver
-     * left that date unchanged.
+     * By default a load runs from its pickup to its own finish. When a later load
+     * is picked up before that finish, the earlier load ends on the later pickup
+     * day — the driver does not have to edit the first delivery date. Days after
+     * [today] are not counted, and the same calendar day is never counted twice.
      */
     fun onRoadDays(
         loads: List<Load>,
@@ -80,10 +80,24 @@ object LoadYieldCalculator {
     ): Int {
         if (loads.isEmpty() || today.isBefore(weekStart)) return 0
         val last = if (today.isBefore(weekEnd)) today else weekEnd
+        val ordered = loads.mapNotNull { load ->
+            val start = isoDate(getPickUpDate(load)) ?: return@mapNotNull null
+            load to start
+        }.sortedBy { it.second }
         val covered = HashSet<LocalDate>()
-        for (load in loads) {
-            val start = isoDate(getPickUpDate(load)) ?: continue
-            val finish = isoDate(load.effectiveFinishDate()) ?: start
+        for (index in ordered.indices) {
+            val (load, start) = ordered[index]
+            val ownFinish = isoDate(load.effectiveFinishDate()) ?: start
+            val nextPickup = ordered.getOrNull(index + 1)?.second
+            val finish = if (
+                nextPickup != null &&
+                nextPickup.isAfter(start) &&
+                nextPickup.isBefore(ownFinish)
+            ) {
+                nextPickup
+            } else {
+                ownFinish
+            }
             if (finish.isBefore(weekStart) || start.isAfter(last)) continue
             var day = if (start.isAfter(weekStart)) start else weekStart
             val stop = if (finish.isBefore(last)) finish else last

@@ -131,6 +131,29 @@ class LoadYieldCalculatorTest {
     }
 
     @Test
+    fun `next pickup cuts the previous load on that pickup day`() {
+        val weekStart = LocalDate.of(2026, 10, 11)
+        val weekEnd = LocalDate.of(2026, 10, 17)
+        val saturday = LocalDate.of(2026, 10, 17)
+        val first = sampleLoad(
+            stops = listOf(
+                stop(StopType.PU, "2026-10-11 08:00", "Garner", "NC"),
+                stop(StopType.DEL, "2026-10-16 18:00", "Wilmington", "NC"),
+            ),
+        )
+        val second = sampleLoad(
+            stops = listOf(
+                stop(StopType.PU, "2026-10-14 09:00", "Wilmington", "NC"),
+                stop(StopType.DEL, "2026-10-14 20:00", "Baltimore", "MD"),
+            ),
+        ).copy(id = "id-2", tripId = "T-2")
+        assertEquals(
+            4,
+            LoadYieldCalculator.onRoadDays(listOf(first, second), weekStart, weekEnd, saturday),
+        )
+    }
+
+    @Test
     fun `onRoadDays honors an earlier finish without counting days after it`() {
         val weekStart = LocalDate.of(2026, 10, 11)
         val weekEnd = LocalDate.of(2026, 10, 17)
