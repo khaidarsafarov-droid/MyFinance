@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.presentation.components.OneUiBackButton
+import com.truckerload.presentation.components.rememberFormBack
 import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.TlButton as Button
@@ -44,6 +45,7 @@ fun AddLoadScreen(
     val context = LocalContext.current
     val viewModel: AddLoadViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
     val parseFailed = stringResource(R.string.add_load_parse_failed)
     val alarmSetToast = stringResource(R.string.load_alarm_set_toast)
     val invalidCustomTime = stringResource(R.string.load_alarm_invalid_custom_time)
@@ -101,7 +103,7 @@ fun AddLoadScreen(
         topBar = {
             OneUiLargeTitleHeader(
                 title = stringResource(R.string.add_load_title),
-                navigationIcon = { OneUiBackButton(onBack = onBack) },
+                navigationIcon = { OneUiBackButton(onBack = requestBack) },
             )
         },
         bottomBar = {

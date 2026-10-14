@@ -40,6 +40,7 @@ import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.screens.add.EquipmentTypeChipRow
 import com.truckerload.presentation.components.DisputeSection
+import com.truckerload.presentation.components.rememberFormBack
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -63,6 +64,7 @@ fun EditLoadScreen(
     val context = LocalContext.current
     val viewModel: EditLoadViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
     val scrollState = rememberScrollState()
     val finishFocusRequester = remember { FocusRequester() }
 
@@ -99,7 +101,7 @@ fun EditLoadScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = requestBack) {
                         Icon(
                             AppIcons.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),

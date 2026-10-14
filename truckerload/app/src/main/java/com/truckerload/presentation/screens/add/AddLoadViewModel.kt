@@ -63,7 +63,22 @@ data class AddLoadUiState(
     val completeness: LoadCompleteness? = null,
     /** Set when save is held back until the driver confirms an incomplete load. */
     val confirmIncomplete: LoadCompleteness? = null,
-)
+    val draftBaseline: String? = null,
+) {
+    fun draftSignature(): String = FormDraft.addLoad(
+        mode = mode.name,
+        rawText = rawText,
+        tripId = manual.tripId,
+        date = manual.date,
+        rate = manual.rate,
+        miles = manual.miles,
+        points = manual.allPoints(),
+        equipment = equipmentType?.name.orEmpty(),
+        documentName = documentName.orEmpty(),
+    )
+
+    val isDirty: Boolean get() = FormDraft.isDirty(draftBaseline, draftSignature())
+}
 
 @HiltViewModel
 class AddLoadViewModel @Inject constructor(
@@ -86,14 +101,34 @@ class AddLoadViewModel @Inject constructor(
     private var previewGeneration = 0
 
     init {
+        _uiState.update { captureBaseline(it) }
         val initial = _uiState.value.rawText
         if (initial.isNotBlank()) schedulePreview(initial)
         viewModelScope.launch {
             val last = settingsDataStore.getLastEquipmentTypeOnce()
             if (last != null && _uiState.value.equipmentType == null) {
-                _uiState.update { it.copy(equipmentType = last) }
+                _uiState.update { state ->
+                    val before = state.draftSignature()
+                    val next = state.copy(equipmentType = last)
+                    val baseline = FormDraft.baselineAfterAutoFill(
+                        state.draftBaseline,
+                        before,
+                        next.draftSignature(),
+                    )
+                    if (baseline != null && baseline != state.draftBaseline) {
+                        savedStateHandle[KEY_DRAFT] = baseline
+                    }
+                    next.copy(draftBaseline = baseline)
+                }
             }
         }
+    }
+
+    private fun captureBaseline(state: AddLoadUiState): AddLoadUiState {
+        val baseline = savedStateHandle.get<String>(KEY_DRAFT) ?: state.draftSignature().also {
+            savedStateHandle[KEY_DRAFT] = it
+        }
+        return state.copy(draftBaseline = baseline)
     }
 
     fun setEquipmentType(type: EquipmentType?) {
@@ -488,6 +523,7 @@ class AddLoadViewModel @Inject constructor(
 
     companion object {
         private const val KEY_RAW = "add_load_raw_text"
+        private const val KEY_DRAFT = "add_load_draft_baseline"
         private const val PREVIEW_DEBOUNCE_MS = 450L
         private const val MIN_PREVIEW_CHARS = 40
     }

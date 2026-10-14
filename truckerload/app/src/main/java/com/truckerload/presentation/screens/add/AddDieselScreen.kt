@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.components.rememberFormBack
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -44,6 +45,7 @@ fun AddDieselScreen(
     val tc = LocalTruckColors.current
     val viewModel: AddDieselViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var datePickerThenTime by remember { mutableStateOf(false) }
@@ -150,7 +152,7 @@ fun AddDieselScreen(
         title = stringResource(
             if (uiState.editingId != null) R.string.edit_diesel_title else R.string.add_diesel_title,
         ),
-        onBack = onBack,
+        onBack = requestBack,
         onSave = viewModel::openSaveDialog,
         saveEnabled = !uiState.isSaving,
         errorMessage = uiState.error?.takeIf { !uiState.showSaveDialog },

@@ -49,7 +49,20 @@ data class AddDieselUiState(
     val saved: Boolean = false,
     val deleted: Boolean = false,
     val showSaveDialog: Boolean = false,
+    val draftBaseline: String? = null,
 ) {
+    fun draftSignature(): String = FormDraft.diesel(
+        gallons = gallonsText,
+        price = pricePerGallonText,
+        discount = discountPriceText,
+        location = locationText,
+        recordedAtMillis = recordedAtMillis,
+        weekNumber = weekNumber,
+        year = year,
+    )
+
+    val isDirty: Boolean get() = FormDraft.isDirty(draftBaseline, draftSignature())
+
     val gallons: Double? get() = AmountInputValidator.parsePositiveAmount(gallonsText)
     val pricePerGallon: Double? get() = AmountInputValidator.parsePositiveAmount(pricePerGallonText)
     val discountPricePerGallon: Double?
@@ -91,7 +104,8 @@ class AddDieselViewModel @Inject constructor(
     val uiState: StateFlow<AddDieselUiState> = _uiState.asStateFlow()
 
     init {
-        if (editDieselId > 0) {
+        val savedBaseline = savedStateHandle.get<String>(KEY_DRAFT)
+        if (editDieselId > 0 && savedBaseline == null) {
             viewModelScope.launch {
                 runCatching {
                     dieselRepository.getDieselById(editDieselId)
@@ -100,6 +114,16 @@ class AddDieselViewModel @Inject constructor(
                         loadForEdit(existing)
                     }
                 }
+            }
+        } else {
+            val baseline = savedBaseline ?: _uiState.value.draftSignature().also {
+                savedStateHandle[KEY_DRAFT] = it
+            }
+            _uiState.update {
+                it.copy(
+                    draftBaseline = baseline,
+                    editingId = editDieselId.takeIf { id -> id > 0 },
+                )
             }
         }
     }
@@ -132,9 +156,19 @@ class AddDieselViewModel @Inject constructor(
                 LocationHelper(getApplication()).getCurrentStopLabel()
             }
             _uiState.update { state ->
-                val next = state.locationText.ifBlank { label.orEmpty() }
-                savedStateHandle[KEY_LOCATION_TEXT] = next
-                state.copy(isResolvingLocation = false, locationText = next)
+                val nextLocation = state.locationText.ifBlank { label.orEmpty() }
+                savedStateHandle[KEY_LOCATION_TEXT] = nextLocation
+                val before = state.draftSignature()
+                val filled = state.copy(isResolvingLocation = false, locationText = nextLocation)
+                val baseline = FormDraft.baselineAfterAutoFill(
+                    state.draftBaseline,
+                    before,
+                    filled.draftSignature(),
+                )
+                if (baseline != null && baseline != state.draftBaseline) {
+                    savedStateHandle[KEY_DRAFT] = baseline
+                }
+                filled.copy(draftBaseline = baseline)
             }
         }
     }
@@ -338,8 +372,8 @@ class AddDieselViewModel @Inject constructor(
         savedStateHandle[KEY_RECORDED_AT_MILLIS] = existing.addedAt
         savedStateHandle[KEY_WEEK_NUMBER] = existing.weekNumber
         savedStateHandle[KEY_YEAR] = existing.year
-        _uiState.update {
-            it.copy(
+        _uiState.update { state ->
+            val loaded = state.copy(
                 editingId = existing.id,
                 gallonsText = gallons,
                 pricePerGallonText = price,
@@ -350,6 +384,10 @@ class AddDieselViewModel @Inject constructor(
                 weekNumber = existing.weekNumber,
                 year = existing.year,
             )
+            val baseline = savedStateHandle.get<String>(KEY_DRAFT) ?: loaded.draftSignature().also {
+                savedStateHandle[KEY_DRAFT] = it
+            }
+            loaded.copy(draftBaseline = baseline)
         }
     }
 
@@ -407,5 +445,6 @@ class AddDieselViewModel @Inject constructor(
         private const val KEY_WEEK_NUMBER = "add_diesel_week_number"
         private const val KEY_YEAR = "add_diesel_year"
         private const val KEY_SHOW_SAVE_DIALOG = "add_diesel_show_save_dialog"
+        private const val KEY_DRAFT = "add_diesel_draft_baseline"
     }
 }

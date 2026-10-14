@@ -41,6 +41,7 @@ import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
+import com.truckerload.presentation.components.rememberFormBack
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
@@ -60,6 +61,7 @@ fun AddPaycheckScreen(
     val context = LocalContext.current
     val viewModel: AddPaycheckViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
@@ -136,7 +138,7 @@ fun AddPaycheckScreen(
 
     JournalEntryScaffold(
         title = stringResource(R.string.add_paycheck_title),
-        onBack = onBack,
+        onBack = requestBack,
         onSave = viewModel::openSaveDialog,
         saveEnabled = !uiState.isSaving,
         errorMessage = uiState.error?.takeIf { !uiState.showSaveDialog },

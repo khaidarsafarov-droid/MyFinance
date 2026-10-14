@@ -49,7 +49,19 @@ data class AddPaycheckUiState(
     val driverName: String? = null,
     val grossAmount: Double? = null,
     val parseNotice: String? = null,
-)
+    val draftBaseline: String? = null,
+) {
+    fun draftSignature(): String = FormDraft.paycheck(
+        amount = amountText,
+        recordedAtMillis = recordedAtMillis,
+        weekNumber = weekNumber,
+        year = year,
+        sourceFileName = sourceFileName.orEmpty(),
+        rawText = rawExtractedText,
+    )
+
+    val isDirty: Boolean get() = FormDraft.isDirty(draftBaseline, draftSignature())
+}
 
 @HiltViewModel
 class AddPaycheckViewModel @Inject constructor(
@@ -74,6 +86,13 @@ class AddPaycheckViewModel @Inject constructor(
     val uiState: StateFlow<AddPaycheckUiState> = _uiState.asStateFlow()
 
     private var pendingSourceUri: Uri? = null
+
+    init {
+        val baseline = savedStateHandle.get<String>(KEY_DRAFT) ?: _uiState.value.draftSignature().also {
+            savedStateHandle[KEY_DRAFT] = it
+        }
+        _uiState.update { it.copy(draftBaseline = baseline) }
+    }
 
     fun setAmountText(value: String) {
         savedStateHandle[KEY_AMOUNT_TEXT] = value
@@ -370,5 +389,6 @@ class AddPaycheckViewModel @Inject constructor(
         private const val KEY_WEEK_NUMBER = "add_paycheck_week_number"
         private const val KEY_YEAR = "add_paycheck_year"
         private const val KEY_SHOW_SAVE_DIALOG = "add_paycheck_show_save_dialog"
+        private const val KEY_DRAFT = "add_paycheck_draft_baseline"
     }
 }

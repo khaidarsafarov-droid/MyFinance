@@ -3,6 +3,10 @@
     <string name="app_name">TruckoRig</string>
     <string name="app_tagline">Записывай грузы, отслеживай доход</string>
     <string name="common_back">Назад</string>
+    <string name="discard_changes_title">Отменить изменения?</string>
+    <string name="discard_changes_message">Правки на этом экране пропадут.</string>
+    <string name="discard_changes_keep">Продолжить правку</string>
+    <string name="discard_changes_confirm">Отменить</string>
     <string name="common_menu">Меню</string>
     <string name="common_close">Закрыть</string>
     <string name="common_save">Сохранить</string>

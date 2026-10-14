@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.auth
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -28,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.domain.account.DriverRole
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.verticalContentScroll
@@ -45,6 +49,8 @@ fun RegistrationFlowScreen(
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
+    val step by viewModel.step.collectAsStateWithLifecycle()
+    BackHandler(enabled = step > 0) { viewModel.goToPreviousStep() }
     var displayName by remember {
         mutableStateOf(userProfile?.displayName?.takeIf { it != userProfile?.email }.orEmpty())
     }
@@ -57,6 +63,16 @@ fun RegistrationFlowScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.profile_setup_title)) },
+                navigationIcon = {
+                    if (step > 0) {
+                        IconButton(onClick = { viewModel.goToPreviousStep() }) {
+                            Icon(
+                                AppIcons.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back),
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
