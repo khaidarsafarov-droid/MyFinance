@@ -1,4 +1,7 @@
 package com.truckerload.presentation.screens.detail
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -95,7 +98,7 @@ class LoadDetailViewModel @Inject constructor(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 if (generation != refreshGeneration) return@launch
                 _uiState.update {
                     it.copy(
@@ -104,6 +107,39 @@ class LoadDetailViewModel @Inject constructor(
                         load = null,
                     )
                 }
+            
+            } catch (e: IOException) {
+                if (generation != refreshGeneration) return@launch
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadError = e.message ?: app.getString(R.string.load_error_loading),
+                        load = null,
+                    )
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                if (generation != refreshGeneration) return@launch
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadError = e.message ?: app.getString(R.string.load_error_loading),
+                        load = null,
+                    )
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                if (generation != refreshGeneration) return@launch
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadError = e.message ?: app.getString(R.string.load_error_loading),
+                        load = null,
+                    )
+                }
+            
             }
         }
     }
@@ -116,8 +152,18 @@ class LoadDetailViewModel @Inject constructor(
                 _events.emit(LoadDetailEvent.Deleted)
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
+            
+            } catch (e: IOException) {
+                _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
+            
+            } catch (e: IllegalArgumentException) {
+                _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
+            
+            } catch (e: IllegalStateException) {
+                _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
+            
             } finally {
                 deleting.set(false)
             }
@@ -138,8 +184,20 @@ class LoadDetailViewModel @Inject constructor(
                     loadRepository.updateLoad(next)
                     val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
                     _uiState.update { it.copy(load = reloaded) }
-                } catch (e: Exception) {
+                } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: IOException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: IllegalArgumentException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: IllegalStateException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
                 }
             }
         }
@@ -160,8 +218,20 @@ class LoadDetailViewModel @Inject constructor(
                     loadRepository.updateLoad(next)
                     val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
                     _uiState.update { it.copy(load = reloaded) }
-                } catch (e: Exception) {
+                } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: IOException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: IllegalArgumentException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: IllegalStateException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
                 }
             }
         }
@@ -179,8 +249,20 @@ class LoadDetailViewModel @Inject constructor(
                     loadRepository.updateLoad(settled)
                     val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: settled
                     _uiState.update { it.copy(load = reloaded) }
-                } catch (e: Exception) {
+                } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: IOException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: IllegalArgumentException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: IllegalStateException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                
                 }
             }
         }

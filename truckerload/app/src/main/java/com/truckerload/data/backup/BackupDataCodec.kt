@@ -35,7 +35,7 @@ object BackupDataCodec {
             throw BackupRestoreException.Corrupted()
         } catch (_: JsonIOException) {
             throw BackupRestoreException.Corrupted()
-        } catch (_: RuntimeException) {
+        } catch (_: IllegalStateException) {
             throw BackupRestoreException.Corrupted()
         } ?: throw BackupRestoreException.Corrupted()
 

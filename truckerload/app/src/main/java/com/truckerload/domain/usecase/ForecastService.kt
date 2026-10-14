@@ -28,10 +28,8 @@ class ForecastService(
             shiftWeekNumberAndYear(currentWeek, currentYear, -offset)
         }
 
-        val summariesWithPaycheck = last8Weeks.mapNotNull { (wn, wy) ->
-            try {
-                weekRepository.getWeekSummaryOnce(wn, wy)
-            } catch (e: Exception) { android.util.Log.w("TL", "swallowed", e); null }
+        val summariesWithPaycheck = last8Weeks.map { (wn, wy) ->
+            weekRepository.getWeekSummaryOnce(wn, wy)
         }.filter { it.paycheckAmount > 0 }
 
         if (summariesWithPaycheck.isEmpty()) return null

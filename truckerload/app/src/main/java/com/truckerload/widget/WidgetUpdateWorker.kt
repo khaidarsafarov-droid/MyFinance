@@ -7,6 +7,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.hilt.work.HiltWorker
+import com.truckerload.utils.logFailure
+import com.truckerload.utils.runReportedSuspending
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
@@ -18,13 +20,16 @@ class WidgetUpdateWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        return try {
-            WidgetRefresh.refreshAndUpdate(applicationContext)
-            Result.success()
-        } catch (e: Exception) {
-            android.util.Log.e(TAG, "Widget update failed", e)
-            Result.retry()
-        }
+        return runReportedSuspending(
+            block = {
+                WidgetRefresh.refreshAndUpdate(applicationContext)
+                Result.success()
+            },
+            onFailure = { e ->
+                logFailure(TAG, "Widget update failed", e)
+                Result.retry()
+            },
+        )
     }
 
     companion object {

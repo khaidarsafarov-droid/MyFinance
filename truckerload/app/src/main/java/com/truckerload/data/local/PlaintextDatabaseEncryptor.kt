@@ -2,11 +2,13 @@ package com.truckerload.data.local
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
-import android.util.Log
+import android.database.sqlite.SQLiteException
+import com.truckerload.utils.logFailure
 import net.zetetic.database.sqlcipher.SQLiteDatabase as CipherDatabase
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 
 /**
  * Turns a plaintext Room file into a SQLCipher database.
@@ -56,14 +58,30 @@ internal object PlaintextDatabaseEncryptor {
             File(plain.path + "-wal").delete()
             File(plain.path + "-shm").delete()
             backup.delete()
-        } catch (error: Throwable) {
-            tmp.delete()
-            if (movedOriginal && backup.exists() && !plain.exists()) {
-                backup.renameTo(plain)
-            }
-            Log.e(TAG, "plaintext encryption failed; original database kept", error)
-            throw error
+        } catch (error: IOException) {
+            restorePlaintextAfterFailedEncryption(tmp, backup, plain, movedOriginal, error)
+        } catch (error: SQLiteException) {
+            restorePlaintextAfterFailedEncryption(tmp, backup, plain, movedOriginal, error)
+        } catch (error: IllegalStateException) {
+            restorePlaintextAfterFailedEncryption(tmp, backup, plain, movedOriginal, error)
+        } catch (error: IllegalArgumentException) {
+            restorePlaintextAfterFailedEncryption(tmp, backup, plain, movedOriginal, error)
         }
+    }
+
+    private fun restorePlaintextAfterFailedEncryption(
+        tmp: File,
+        backup: File,
+        plain: File,
+        movedOriginal: Boolean,
+        error: Exception,
+    ): Nothing {
+        tmp.delete()
+        if (movedOriginal && backup.exists() && !plain.exists()) {
+            backup.renameTo(plain)
+        }
+        logFailure(TAG, "plaintext encryption failed; original database kept", error)
+        throw error
     }
 
     private fun exportPlaintextIntoEncrypted(plain: File, encrypted: File, passphrase: ByteArray) {

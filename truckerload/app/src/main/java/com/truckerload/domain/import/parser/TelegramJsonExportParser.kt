@@ -6,6 +6,7 @@ import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramMessageDate
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 /** Parses result.json from Telegram Desktop chat export. */
@@ -77,7 +78,7 @@ class TelegramJsonExportParser(
             root.has("messages") &&
                 root.optJSONArray("messages") != null &&
                 (root.has("name") || root.has("type") || root.has("id"))
-        } catch (e: Exception) {
+        } catch (_: JSONException) {
             false
         }
     }

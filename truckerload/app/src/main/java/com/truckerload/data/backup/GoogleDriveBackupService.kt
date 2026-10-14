@@ -12,6 +12,7 @@ import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.utils.BackupService
+import com.truckerload.utils.logFailure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -68,9 +69,9 @@ object GoogleDriveBackupService {
                 grantedDriveScope = account != null && hasDriveScope(account),
                 error = null,
             )
-        } catch (e: Exception) {
+        } catch (e: ApiException) {
             if (!DriveConnectInterpreter.isUserCancel(e)) {
-                Log.w(TAG, "parseSignInIntent failed", e)
+                logFailure(TAG, "parseSignInIntent failed", e)
             }
             ParsedSignIn(email = null, grantedDriveScope = false, error = e)
         }

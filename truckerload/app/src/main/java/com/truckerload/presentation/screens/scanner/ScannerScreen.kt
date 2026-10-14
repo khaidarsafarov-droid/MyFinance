@@ -296,7 +296,10 @@ private object ShareHelperWrapper {
     fun share(context: android.content.Context, file: java.io.File): Boolean = try {
         com.truckerload.utils.ShareHelper(context).sharePdf(file)
         true
-    } catch (_: Exception) {
+    } catch (_: android.content.ActivityNotFoundException) {
+        false
+    } catch (e: SecurityException) {
+        com.truckerload.utils.logFailure("Scanner", "share failed", e)
         false
     }
 }

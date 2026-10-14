@@ -14,9 +14,9 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotBranding
 import com.truckerload.utils.LogRedactor
+import com.truckerload.utils.runReportedSuspending
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.CancellationException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -101,19 +101,22 @@ class TelegramSyncWorker @AssistedInject constructor(
             enqueueFollowUp(applicationContext)
             return Result.success()
         }
-        try {
-            val engine = TelegramBotSyncEngine(applicationContext)
-            val result = engine.runOnce(token, expectedUserId = userId)
-            if (result.pollLockContention) {
-                Log.d("TelegramSync", "Poll lock contention — retry background poll")
-                return Result.retry()
-            }
-            Log.d("TelegramSync", "Background poll completed")
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Log.w("TelegramSync", "Background poll failed", LogRedactor.redactThrowable(e))
-        }
+        runReportedSuspending(
+            block = {
+                val engine = TelegramBotSyncEngine(applicationContext)
+                val result = engine.runOnce(token, expectedUserId = userId)
+                if (result.pollLockContention) {
+                    Log.d("TelegramSync", "Poll lock contention — retry background poll")
+                    return@runReportedSuspending Result.retry()
+                }
+                Log.d("TelegramSync", "Background poll completed")
+                null
+            },
+            onFailure = { e ->
+                Log.w("TelegramSync", "Background poll failed", LogRedactor.redactThrowable(e))
+                null
+            },
+        )?.let { return it }
         enqueueFollowUp(applicationContext)
         return Result.success()
     }

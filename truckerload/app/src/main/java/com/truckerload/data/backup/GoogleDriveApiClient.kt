@@ -2,6 +2,7 @@ package com.truckerload.data.backup
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.truckerload.BuildConfig
 import com.truckerload.data.remote.installSecretRedaction
@@ -17,7 +18,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -103,6 +106,11 @@ class GoogleDriveApiClient(
     fun isRemoteNewerThanLastSync(): Boolean =
         DriveSyncPolicy.remoteIsNewer(prefs.remoteModifiedAt, prefs.lastSyncAt)
 
+    private fun giveUp(error: Exception, attempt: Int): Boolean {
+        val retryable = DriveSyncPolicy.isRetryableFailure(error.message)
+        return !retryable || attempt == DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS - 1
+    }
+
     private suspend fun <T> withRetry(block: suspend () -> T): Result<T> {
         var last: Throwable? = null
         repeat(DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS) { attempt ->
@@ -110,17 +118,22 @@ class GoogleDriveApiClient(
                 return Result.success(block())
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Throwable) {
+            } catch (e: DriveError) {
                 if (e is DriveError.NeedsUserConsent || e is DriveError.NotSignedIn) {
                     return Result.failure(e)
                 }
+                if (giveUp(e, attempt)) return Result.failure(e)
                 last = e
-                val retryable = DriveSyncPolicy.isRetryableFailure(e.message)
-                if (!retryable || attempt == DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS - 1) {
-                    return Result.failure(e)
-                }
-                delay(DriveSyncPolicy.backoffDelayMs(attempt))
+            } catch (e: IOException) {
+                if (giveUp(e, attempt)) return Result.failure(e)
+                last = e
+            } catch (e: JSONException) {
+                return Result.failure(e)
+            } catch (e: GoogleAuthException) {
+                if (giveUp(e, attempt)) return Result.failure(e)
+                last = e
             }
+            delay(DriveSyncPolicy.backoffDelayMs(attempt))
         }
         return Result.failure(last ?: DriveError.Api("Unknown Drive error"))
     }

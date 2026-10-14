@@ -1,6 +1,9 @@
 package com.truckerload.presentation.utils
+import android.database.sqlite.SQLiteException
+import java.io.IOException
 
-import android.util.Log
+
+import com.truckerload.utils.logFailure
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,9 +26,24 @@ fun CoroutineScope.launchExclusive(
             block()
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
-            Log.e(tag, "action failed", e)
+        } catch (e: SQLiteException) {
+            logFailure(tag, "action failed", e)
             onError(e)
+        
+        } catch (e: IOException) {
+            logFailure(tag, "action failed", e)
+            onError(e)
+        
+        } catch (e: IllegalArgumentException) {
+            logFailure(tag, "action failed", e)
+            onError(e)
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            logFailure(tag, "action failed", e)
+            onError(e)
+        
         } finally {
             busy.value = false
         }

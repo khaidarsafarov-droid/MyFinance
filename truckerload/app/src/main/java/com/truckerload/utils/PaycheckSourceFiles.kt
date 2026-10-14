@@ -25,7 +25,11 @@ object PaycheckSourceFiles {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 writeBytes(context, input.readBytes(), name)
             }
-        } catch (_: Exception) {
+        } catch (e: java.io.IOException) {
+            logFailure("PaycheckSource", "copy from uri failed", e)
+            null
+        } catch (e: SecurityException) {
+            logFailure("PaycheckSource", "copy from uri failed", e)
             null
         }
     }
@@ -47,7 +51,12 @@ object PaycheckSourceFiles {
                 return null
             }
             "$DIR/${dest.name}"
-        } catch (_: Exception) {
+        } catch (e: java.io.IOException) {
+            logFailure("PaycheckSource", "write failed", e)
+            dest.delete()
+            null
+        } catch (e: SecurityException) {
+            logFailure("PaycheckSource", "write failed", e)
             dest.delete()
             null
         }
@@ -101,7 +110,8 @@ object PaycheckSourceFiles {
             true
         } catch (_: ActivityNotFoundException) {
             false
-        } catch (_: Exception) {
+        } catch (e: SecurityException) {
+            logFailure("PaycheckSource", "open failed", e)
             false
         }
     }

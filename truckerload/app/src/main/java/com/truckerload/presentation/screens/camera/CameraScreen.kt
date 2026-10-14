@@ -1,4 +1,6 @@
 package com.truckerload.presentation.screens.camera
+import kotlinx.coroutines.CancellationException
+
 
 import com.truckerload.presentation.icons.AppIcons
 
@@ -175,7 +177,14 @@ fun CameraScreen(
                     preview,
                     imageCapture,
                 )
-            } catch (e: Exception) {
+            } catch (_: IllegalArgumentException) {
+                if (!disposed) viewModel.onCaptureError("camera_bind_failed")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: IllegalStateException) {
+                if (!disposed) viewModel.onCaptureError("camera_bind_failed")
+            } catch (e: java.util.concurrent.ExecutionException) {
+                com.truckerload.utils.logFailure("Camera", "bind failed", e)
                 if (!disposed) viewModel.onCaptureError("camera_bind_failed")
             }
         }, mainExecutor)

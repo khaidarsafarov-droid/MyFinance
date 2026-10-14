@@ -16,12 +16,13 @@ import com.truckerload.di.UserComponentManager
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.domain.notifications.QuietHours
 import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.logFailure
+import com.truckerload.utils.runReportedSuspending
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import com.truckerload.utils.shiftWeekNumberAndYear
 import java.util.Calendar
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.CancellationException
 
 /**
  * At most one paycheck + one diesel reminder per ISO week, and one bundled maintenance alert
@@ -81,7 +82,8 @@ class SmartNotificationWorker @AssistedInject constructor(
         val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val alreadyNotifiedMissing = prefs.getString(KEY_MISSING_WEEK, null) == weekKey
 
-        return try {
+        return runReportedSuspending(
+            block = {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
             val diesel = dieselRepo.getDieselForWeek(lastDieselWeek, lastDieselYear).first()
             val dueMaintenance = if (allowMaintenance) {
@@ -141,12 +143,12 @@ class SmartNotificationWorker @AssistedInject constructor(
                 maintenanceRepo.markNotified(progress.task.id)
             }
             Result.success()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w("SmartNotification", "check failed", e)
-            Result.retry()
-        }
+            },
+            onFailure = { e ->
+                logFailure("SmartNotification", "check failed", e)
+                Result.retry()
+            },
+        )
     }
 
     private fun cancelLegacyPerTaskMaintenanceAlerts() {

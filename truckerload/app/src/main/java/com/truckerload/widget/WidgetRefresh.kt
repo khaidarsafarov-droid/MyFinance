@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.truckerload.utils.logFailure
+import com.truckerload.utils.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,8 +30,7 @@ object WidgetRefresh {
      */
     suspend fun refreshAndUpdate(context: Context) {
         val appContext = context.applicationContext
-        runCatching { WidgetDataProvider.refresh(appContext) }
-            .onFailure { Log.e(TAG, "Stats load failed", it) }
+        WidgetDataProvider.refresh(appContext)
         applyGlance(appContext)
     }
 
@@ -37,8 +38,8 @@ object WidgetRefresh {
     suspend fun applyGlance(context: Context) {
         val appContext = context.applicationContext
         withContext(Dispatchers.Main.immediate) {
-            runCatching { com.truckerload.widget.glance.OneUiGlanceWidgets.updateAll(appContext) }
-                .onFailure { Log.e(TAG, "Glance widget update failed", it) }
+            runCatchingCancellable { com.truckerload.widget.glance.OneUiGlanceWidgets.updateAll(appContext) }
+                .onFailure { logFailure(TAG, "Glance widget update failed", it) }
                 .onSuccess { Log.d(TAG, "Glance widgets updated") }
         }
     }
@@ -58,8 +59,8 @@ object WidgetRefresh {
             if (alreadyRunning) return@launch
             try {
                 do {
-                    runCatching { refreshAndUpdate(appContext) }
-                        .onFailure { Log.e(TAG, "Widget refresh failed", it) }
+                    runCatchingCancellable { refreshAndUpdate(appContext) }
+                        .onFailure { logFailure(TAG, "Widget refresh failed", it) }
                 } while (
                     refreshMutex.withLock {
                         if (refreshQueued) {
@@ -71,12 +72,13 @@ object WidgetRefresh {
                         }
                     }
                 )
-            } catch (t: Throwable) {
+            } finally {
                 refreshMutex.withLock {
-                    refreshRunning = false
-                    refreshQueued = false
+                    if (refreshRunning) {
+                        refreshRunning = false
+                        refreshQueued = false
+                    }
                 }
-                throw t
             }
         }
     }
@@ -89,8 +91,8 @@ object WidgetRefresh {
         val appContext = context.applicationContext
         mainHandler.postAtFrontOfQueue {
             scope.launch(Dispatchers.Main.immediate) {
-                runCatching { applyGlance(appContext) }
-                    .onFailure { Log.e(TAG, "Cached Glance paint failed", it) }
+                runCatchingCancellable { applyGlance(appContext) }
+                    .onFailure { logFailure(TAG, "Cached Glance paint failed", it) }
             }
         }
     }

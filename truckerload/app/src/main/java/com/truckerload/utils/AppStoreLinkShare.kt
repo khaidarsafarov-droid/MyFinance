@@ -1,8 +1,8 @@
 package com.truckerload.utils
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import com.truckerload.R
 
 /** Opens the system share sheet with Play Store (and App Store when listed). */
@@ -31,8 +31,11 @@ object AppStoreLinkShare {
                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
             true
-        } catch (e: Exception) {
-            Log.w(TAG, "share failed", e)
+        } catch (e: ActivityNotFoundException) {
+            logFailure(TAG, "share failed", e)
+            false
+        } catch (e: SecurityException) {
+            logFailure(TAG, "share failed", e)
             false
         }
     }

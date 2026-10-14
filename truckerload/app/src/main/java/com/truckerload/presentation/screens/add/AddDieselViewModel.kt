@@ -1,4 +1,9 @@
 package com.truckerload.presentation.screens.add
+import kotlinx.coroutines.CancellationException
+
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.app.Application
 import android.net.Uri
@@ -282,13 +287,40 @@ class AddDieselViewModel @Inject constructor(
                         showSaveDialog = false,
                     )
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         isSaving = false,
                         error = e.message ?: getApplication<Application>().getString(R.string.common_save_failed),
                     )
                 }
+            
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            
             }
         }
     }
@@ -307,7 +339,7 @@ class AddDieselViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(isSaving = false, deleted = true, showSaveDialog = false)
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         isSaving = false,
@@ -315,6 +347,36 @@ class AddDieselViewModel @Inject constructor(
                             ?: getApplication<Application>().getString(R.string.common_save_failed),
                     )
                 }
+            
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message
+                            ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message
+                            ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message
+                            ?: getApplication<Application>().getString(R.string.common_save_failed),
+                    )
+                }
+            
             }
         }
     }

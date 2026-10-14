@@ -1,10 +1,14 @@
 package com.truckerload.presentation.screens.camera
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
 import android.util.Log
+import com.truckerload.utils.logFailure
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -206,12 +210,36 @@ class CameraViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 bitmap?.recycle()
                 throw e
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to save captured photo", e)
+            } catch (e: SQLiteException) {
+                logFailure(TAG, "Failed to save captured photo", e)
                 bitmap?.recycle()
                 _uiState.update {
                     it.copy(isProcessing = false, errorMessage = "save_failed")
                 }
+            
+            } catch (e: IOException) {
+                logFailure(TAG, "Failed to save captured photo", e)
+                bitmap?.recycle()
+                _uiState.update {
+                    it.copy(isProcessing = false, errorMessage = "save_failed")
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                logFailure(TAG, "Failed to save captured photo", e)
+                bitmap?.recycle()
+                _uiState.update {
+                    it.copy(isProcessing = false, errorMessage = "save_failed")
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                logFailure(TAG, "Failed to save captured photo", e)
+                bitmap?.recycle()
+                _uiState.update {
+                    it.copy(isProcessing = false, errorMessage = "save_failed")
+                }
+            
             } finally {
                 imageFile.delete()
             }
@@ -345,11 +373,32 @@ class CameraViewModel @Inject constructor(
         } catch (e: CancellationException) {
             _uiState.update { it.copy(isProcessing = false) }
             throw e
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to persist session photos", e)
+        } catch (e: SQLiteException) {
+            logFailure(TAG, "Failed to persist session photos", e)
             _uiState.update {
                 it.copy(isProcessing = false, errorMessage = "save_failed")
             }
+        
+        } catch (e: IOException) {
+            logFailure(TAG, "Failed to persist session photos", e)
+            _uiState.update {
+                it.copy(isProcessing = false, errorMessage = "save_failed")
+            }
+        
+        } catch (e: IllegalArgumentException) {
+            logFailure(TAG, "Failed to persist session photos", e)
+            _uiState.update {
+                it.copy(isProcessing = false, errorMessage = "save_failed")
+            }
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            logFailure(TAG, "Failed to persist session photos", e)
+            _uiState.update {
+                it.copy(isProcessing = false, errorMessage = "save_failed")
+            }
+        
         }
         return true
     }
@@ -373,9 +422,24 @@ class CameraViewModel @Inject constructor(
             Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true).also {
                 if (it !== original) original.recycle()
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "EXIF orientation failed; using original", e)
+        } catch (e: SQLiteException) {
+            logFailure(TAG, "EXIF orientation failed; using original", e)
             original
+        
+        } catch (e: IOException) {
+            logFailure(TAG, "EXIF orientation failed; using original", e)
+            original
+        
+        } catch (e: IllegalArgumentException) {
+            logFailure(TAG, "EXIF orientation failed; using original", e)
+            original
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            logFailure(TAG, "EXIF orientation failed; using original", e)
+            original
+        
         }
     }
 

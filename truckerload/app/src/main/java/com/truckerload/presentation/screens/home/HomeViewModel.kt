@@ -18,6 +18,7 @@ import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getWeekRange
+import com.truckerload.utils.runReportedSuspending
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -435,16 +436,19 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _optimisticOverlay.update { it - loadId }
             _pendingDeleteIds.update { it + loadId }
-            try {
-                loadRepository.deleteLoad(loadId)
-                WidgetDataUpdater.updateWidgetData(app.applicationContext)
-                _pendingDeleteIds.update { it - loadId }
-            } catch (e: Exception) {
-                _pendingDeleteIds.update { it - loadId }
-                _swipeSettleGeneration.update { it + 1 }
-                _deleteError.value = e.message?.takeIf { it.isNotBlank() }
-                    ?: app.getString(R.string.home_delete_failed)
-            }
+            runReportedSuspending(
+                block = {
+                    loadRepository.deleteLoad(loadId)
+                    WidgetDataUpdater.updateWidgetData(app.applicationContext)
+                    _pendingDeleteIds.update { it - loadId }
+                },
+                onFailure = { e ->
+                    _pendingDeleteIds.update { it - loadId }
+                    _swipeSettleGeneration.update { it + 1 }
+                    _deleteError.value = e.message?.takeIf { it.isNotBlank() }
+                        ?: app.getString(R.string.home_delete_failed)
+                },
+            )
         }
     }
 
@@ -524,7 +528,6 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.withMonthWeek(year, month, weekNumber, weekYear) }
     }
 
-
     fun setSelectedYear(year: Int?) {
         _uiState.update { it.copy(selectedYear = year, filter = LoadFilter.ALL) }
     }
@@ -577,9 +580,7 @@ class HomeViewModel @Inject constructor(
         deleteScope.launch {
             val failed = mutableListOf<String>()
             for (id in pending) {
-                try {
-                    loadRepository.deleteLoad(id)
-                } catch (e: Exception) {
+                runReportedSuspending(block = { loadRepository.deleteLoad(id) }) { e ->
                     failed += id
                     _deleteError.value = e.message?.takeIf { it.isNotBlank() }
                         ?: app.getString(R.string.home_delete_failed)

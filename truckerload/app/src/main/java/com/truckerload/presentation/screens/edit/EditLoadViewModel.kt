@@ -1,4 +1,7 @@
 package com.truckerload.presentation.screens.edit
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.app.Application
 import android.net.Uri
@@ -185,10 +188,28 @@ class EditLoadViewModel @Inject constructor(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 _uiState.update {
                     it.copy(saveError = saveErrorFormatter(e.message.orEmpty()))
                 }
+            
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(saveError = saveErrorFormatter(e.message.orEmpty()))
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(saveError = saveErrorFormatter(e.message.orEmpty()))
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.update {
+                    it.copy(saveError = saveErrorFormatter(e.message.orEmpty()))
+                }
+            
             } finally {
                 _uiState.update { it.copy(isSaving = false) }
             }
@@ -257,11 +278,32 @@ class EditLoadViewModel @Inject constructor(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 if (generation != loadGeneration) return@launch
                 _uiState.update {
                     it.copy(isLoading = false, loadError = e.message)
                 }
+            
+            } catch (e: IOException) {
+                if (generation != loadGeneration) return@launch
+                _uiState.update {
+                    it.copy(isLoading = false, loadError = e.message)
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                if (generation != loadGeneration) return@launch
+                _uiState.update {
+                    it.copy(isLoading = false, loadError = e.message)
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                if (generation != loadGeneration) return@launch
+                _uiState.update {
+                    it.copy(isLoading = false, loadError = e.message)
+                }
+            
             }
         }
     }

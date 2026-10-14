@@ -67,8 +67,11 @@ class LocationHelper(private val context: Context) {
                     adminArea = address.adminArea,
                 ).takeIf { it.isNotBlank() }
             }
-        } catch (e: Exception) {
-            android.util.Log.w("LocationHelper", "stop label failed", e)
+        } catch (e: java.io.IOException) {
+            logFailure("LocationHelper", "stop label failed", e)
+            null
+        } catch (e: SecurityException) {
+            logFailure("LocationHelper", "stop label failed", e)
             null
         }
     }
@@ -92,8 +95,13 @@ class LocationHelper(private val context: Context) {
                 accuracyMeters = location.accuracy,
                 timestampMillis = location.time.takeIf { it > 0L } ?: System.currentTimeMillis(),
             )
-        } catch (e: Exception) {
-            android.util.Log.w("LocationHelper", "balanced location failed", e)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: SecurityException) {
+            logFailure("LocationHelper", "balanced location failed", e)
+            null
+        } catch (e: java.io.IOException) {
+            logFailure("LocationHelper", "balanced location failed", e)
             null
         }
     }
@@ -109,8 +117,11 @@ class LocationHelper(private val context: Context) {
                 address.adminArea.orEmpty(),
                 address.postalCode.orEmpty(),
             )
-        } catch (e: Exception) {
-            android.util.Log.w("LocationHelper", "reverseGeocode failed", e)
+        } catch (e: java.io.IOException) {
+            logFailure("LocationHelper", "reverseGeocode failed", e)
+            null
+        } catch (e: IllegalArgumentException) {
+            logFailure("LocationHelper", "reverseGeocode failed", e)
             null
         }
     }
@@ -129,8 +140,11 @@ class LocationHelper(private val context: Context) {
             @Suppress("DEPRECATION")
             val address = geocoder.getFromLocationName(key, 1)?.firstOrNull()
             if (address != null) LatLngPoint(address.latitude, address.longitude) else null
-        } catch (e: Exception) {
-            android.util.Log.w("LocationHelper", "geocodeAddress failed for '$key'", e)
+        } catch (e: java.io.IOException) {
+            logFailure("LocationHelper", "geocodeAddress failed", e)
+            null
+        } catch (e: IllegalArgumentException) {
+            logFailure("LocationHelper", "geocodeAddress failed", e)
             null
         }
         geocodeCache[key] = point

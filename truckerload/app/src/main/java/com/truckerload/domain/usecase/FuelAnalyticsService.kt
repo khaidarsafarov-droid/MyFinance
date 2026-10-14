@@ -48,12 +48,7 @@ class FuelAnalyticsService(
         val prev = if (includePrevious) {
             // FIX: week-year aware previous week (not hardcoded 52)
             val (prevWeek, prevYear) = shiftWeekNumberAndYear(weekNumber, year, -1)
-            try {
-                calculateForWeek(prevWeek, prevYear, includePrevious = false)
-            } catch (e: Exception) {
-                android.util.Log.w("TL", "fuel previous-week analytics failed", e)
-                null
-            }
+            calculateForWeek(prevWeek, prevYear, includePrevious = false)
         } else {
             null
         }

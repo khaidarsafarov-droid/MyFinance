@@ -10,7 +10,7 @@ import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.remote.TelegramBotBranding
 import com.truckerload.data.remote.TelegramBotTokenFingerprint
 import com.truckerload.utils.LogRedactor
-import kotlinx.coroutines.CancellationException
+import com.truckerload.utils.runReportedSuspending
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -114,26 +114,30 @@ object TelegramBotForegroundService {
     private suspend fun pollLoop(app: Context, token: String, expectedUserId: String) {
         val engine = TelegramBotSyncEngine(app)
         while (scope.isActive && isRunningFlag.get()) {
-            try {
-                val activeUserId = AuthStore(app).currentUserIdOrNull()
-                if (activeUserId.isNullOrBlank() || activeUserId != expectedUserId) {
-                    Log.w(TAG, "Active user changed — stopping pollLoop")
-                    break
-                }
-                val activeToken = TelegramTokenStore(app, activeUserId).getToken()
-                if (activeToken.isBlank() || activeToken != token) {
-                    Log.w(TAG, "Bot token changed — stopping pollLoop")
-                    break
-                }
-                val result = engine.runOnce(token, expectedUserId = expectedUserId)
-                val delaySec = result.nextDelaySeconds.coerceIn(0, 60)
-                if (delaySec > 0L) delay(delaySec * 1000)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.e(TAG, "pollLoop error — retrying", LogRedactor.redactThrowable(e))
-                delay(5_000)
-            }
+            val pause = runReportedSuspending(
+                block = {
+                    val activeUserId = AuthStore(app).currentUserIdOrNull()
+                    if (activeUserId.isNullOrBlank() || activeUserId != expectedUserId) {
+                        Log.w(TAG, "Active user changed — stopping pollLoop")
+                        return@runReportedSuspending false
+                    }
+                    val activeToken = TelegramTokenStore(app, activeUserId).getToken()
+                    if (activeToken.isBlank() || activeToken != token) {
+                        Log.w(TAG, "Bot token changed — stopping pollLoop")
+                        return@runReportedSuspending false
+                    }
+                    val result = engine.runOnce(token, expectedUserId = expectedUserId)
+                    val delaySec = result.nextDelaySeconds.coerceIn(0, 60)
+                    if (delaySec > 0L) delay(delaySec * 1000)
+                    true
+                },
+                onFailure = { e ->
+                    Log.e(TAG, "pollLoop error — retrying", LogRedactor.redactThrowable(e))
+                    null
+                },
+            )
+            if (pause == null) delay(5_000)
+            if (pause == false) break
         }
     }
 }

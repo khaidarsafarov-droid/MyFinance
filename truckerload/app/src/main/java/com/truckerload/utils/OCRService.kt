@@ -2,6 +2,7 @@ package com.truckerload.utils
 
 import android.content.Context
 import android.net.Uri
+import com.google.mlkit.common.MlKitException
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.google.mlkit.vision.text.TextRecognition
@@ -52,7 +53,11 @@ class OCRService(context: Context) {
             latinRecognizer.process(image).await().text.trim()
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: MlKitException) {
+            logFailure("OCRService", "latin recognition failed", e)
+            ""
+        } catch (e: java.io.IOException) {
+            logFailure("OCRService", "latin recognition failed", e)
             ""
         }
     }

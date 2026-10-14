@@ -63,7 +63,8 @@ object LoadExporter {
             host.startActivity(chooserForExport(host, view, host.getString(R.string.open_folder)))
         } catch (_: ActivityNotFoundException) {
             shareExportOrToast(host, uri, mime, file.name)
-        } catch (_: RuntimeException) {
+        } catch (e: SecurityException) {
+            logFailure("LoadExporter", "open export failed", e)
             shareExportOrToast(host, uri, mime, file.name)
         }
     }
@@ -99,7 +100,10 @@ object LoadExporter {
         }
         try {
             host.startActivity(chooserForExport(host, send, host.getString(R.string.open_folder)))
-        } catch (_: Exception) {
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(host, host.getString(R.string.export_open_failed), Toast.LENGTH_LONG).show()
+        } catch (e: SecurityException) {
+            logFailure("LoadExporter", "open export failed", e)
             Toast.makeText(host, host.getString(R.string.export_open_failed), Toast.LENGTH_LONG).show()
         }
     }
