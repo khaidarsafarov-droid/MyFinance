@@ -4,6 +4,7 @@ import com.truckerload.utils.formatIsoDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.mock
 import com.truckerload.domain.money.UnitPrice
@@ -123,6 +124,23 @@ class DieselSpreadsheetParserTest {
         assertEquals("2026-10-03", saved.first().weekEndDate)
         assertEquals("2026-10-04", formatIsoDate(saved.last().addedAt))
         assertEquals(UnitPrice.fromDollars(5.907), saved.first().discountPricePerGallon!!)
+
+        val preview = com.truckerload.domain.ingest.FleetDieselPreview.from(result)
+        requireNotNull(preview)
+        val fuelCents = com.truckerload.domain.money.Money.fromDollars(result.fills.sumOf { it.totalAmount })
+        assertEquals(com.truckerload.domain.money.Money.parse("3513.73").cents, fuelCents.cents)
+        assertEquals(3513.73, preview.amount!!, 0.001)
+        assertEquals(604.14, preview.gallons!!, 0.001)
+        assertTrue(kotlin.math.abs(preview.amount!! - preview.gallons!!) > 1.0)
+        val html = com.truckerload.domain.ingest.ReceiptPreviewFormatter.toHtml(
+            preview,
+            "Diesel",
+            "Save \$3,513.73?",
+        )
+        assertTrue(html.contains("3,513.73"))
+        assertTrue(html.contains("604.14 gal"))
+        assertFalse(html.contains("ULSD"))
+        assertFalse(html.contains("Total Payables"))
     }
 
     private fun primexRow(

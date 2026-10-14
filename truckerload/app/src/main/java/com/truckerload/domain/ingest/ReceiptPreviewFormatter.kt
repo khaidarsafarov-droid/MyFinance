@@ -31,9 +31,11 @@ object ReceiptPreviewFormatter {
         preview.vendor?.let { lines += escape(it) }
         preview.driverName?.let { lines += escape(it) }
         preview.tripId?.let { lines += "Trip ${escape(it)}" }
-        lines += ""
-        lines += highlightSnippet(preview.extractedText, preview.highlightToken)
-        lines += ""
+        if (preview.includeStatement) {
+            lines += ""
+            lines += highlightSnippet(preview.extractedText, preview.highlightToken)
+            lines += ""
+        }
         lines += escape(askLabel)
         val html = lines.joinToString("\n")
         return html.take(3900)

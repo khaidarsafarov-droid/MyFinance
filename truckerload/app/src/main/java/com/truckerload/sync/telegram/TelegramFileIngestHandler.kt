@@ -9,6 +9,8 @@ import com.truckerload.data.remote.TelegramUpdate
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.domain.importing.DieselSpreadsheetParser
+import com.truckerload.domain.ingest.FleetDieselPreview
 import com.truckerload.domain.ingest.InboundDocumentResolver
 import com.truckerload.domain.ingest.ReceiptAmountCandidates
 import com.truckerload.domain.ingest.ReceiptKind
@@ -59,6 +61,12 @@ class TelegramFileIngestHandler(
         val fileName = update.documentFileName?.takeIf { it.isNotBlank() }
             ?: if (update.photoFileId != null) "telegram_photo.jpg" else "telegram_file"
         val storedPath = PaycheckSourceFiles.copyFromBytes(context, bytes, fileName)
+        val fleet = runCatching { DieselSpreadsheetParser.parse(bytes, fileName) }.getOrNull()
+            ?.let { FleetDieselPreview.from(it, storedPath, update.messageDateSeconds) }
+        if (fleet != null) {
+            askConfirmation(update.chatId, fleet, prefs)
+            return
+        }
         val fileText = extractor.extract(bytes, fileName, update.documentMimeType)
             .getOrElse { e ->
                 Log.e(TAG, "extract failed: ${LogRedactor.redact(e.message)}", e)
@@ -328,9 +336,15 @@ class TelegramFileIngestHandler(
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_amount_type_prompt))
             return
         }
-        val choices = ReceiptAmountCandidates.forPreview(preview)
+        val choices = if (preview.includeStatement) {
+            ReceiptAmountCandidates.forPreview(preview)
+        } else {
+            emptyList()
+        }
         val formatted = String.format(Locale.US, "%,.2f", amount)
-        val ask = buildString {
+        val ask = if (!preview.includeStatement) {
+            context.getString(R.string.sync_diesel_save_ask, formatted)
+        } else buildString {
             append(context.getString(R.string.sync_amount_confirm_ask, formatted))
             val others = choices.filter { kotlin.math.abs(it.amount - amount) >= 0.015 }
             if (others.isNotEmpty()) {

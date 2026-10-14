@@ -129,7 +129,12 @@ object BackupService {
         getAutoBackups(context).isNotEmpty()
     }
 
-    /** Full-account JSON (journal + ТО + settings) for local file or Google Drive. */
+    /**
+     * Full-account JSON (journal + maintenance + settings) for a local file or Google Drive.
+     * The Room file itself is SQLCipher-encrypted. This export reads decrypted rows through
+     * Room and writes JSON. Restore inserts that JSON back through Room, so Drive never
+     * needs the raw database or the passphrase.
+     */
     suspend fun createBackupJson(context: Context): String? = withContext(Dispatchers.IO) {
         runCatching {
             val appContext = context.applicationContext

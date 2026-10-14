@@ -1168,6 +1168,7 @@
     <string name="sync_paycheck_confirm_yes">Да, сохранить</string>
     <string name="sync_paycheck_confirm_no">Нет</string>
     <string name="sync_amount_confirm_ask">Сохранить $%1$s? Если сумма не та — нажмите другую.</string>
+    <string name="sync_diesel_save_ask">Сохранить $%1$s?</string>
     <string name="sync_amount_other_found">Другие суммы в тексте:</string>
     <string name="sync_amount_label_gross">гросс</string>
     <string name="sync_amount_label_loads">рейсы</string>
