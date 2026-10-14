@@ -52,6 +52,17 @@ Room databases and their repositories are deliberately created after the active 
 is known and are rebuilt on account changes. They are not application singletons,
 which prevents one user's database from surviving into another user's session.
 
+## Database encryption
+
+The Room file is encrypted with SQLCipher. A random 256-bit passphrase is wrapped
+with an AES-GCM key that stays in the Android Keystore. Only the wrapped
+passphrase is stored on disk. The first open of an older plaintext database
+copies it with `sqlcipher_export`. If that copy fails, the original file is
+left in place.
+
+Google Drive backup does not upload the database file. It exports decrypted
+rows as JSON and restores them through Room into the encrypted database.
+
 ## Google Drive API key
 
 Drive backup reads `GOOGLE_DRIVE_API_KEY` from the environment or from gitignored

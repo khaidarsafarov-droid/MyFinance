@@ -119,15 +119,21 @@ abstract class AppDatabase : RoomDatabase() {
                 currentUserId = null
                 LegacyDatabaseAbsorb.notePendingIfNeeded(context.applicationContext, id)
                 val dbName = databaseNameFor(id)
-                val db = Room.databaseBuilder(
+                val builder = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     dbName,
                 )
                     .addMigrations(*ALL_ROOM_MIGRATIONS)
-                    // Pre-v6: blocked migrations throw UnsupportedDatabaseUpgradeException
-                    // (no destructive wipe — restore from backup / reinstall).
-                    .build()
+                // Pre-v6: blocked migrations throw UnsupportedDatabaseUpgradeException
+                // (no destructive wipe — restore from backup / reinstall).
+                if (!DatabasePassphraseStore.isRobolectric()) {
+                    val passphrase = DatabasePassphraseStore.forDatabase(context.applicationContext, dbName)
+                        .getOrCreate()
+                    PlaintextDatabaseEncryptor.ensureEncrypted(context.applicationContext, dbName, passphrase)
+                    builder.openHelperFactory(PlaintextDatabaseEncryptor.openHelperFactory(passphrase))
+                }
+                val db = builder.build()
                 INSTANCE = db
                 currentUserId = id
                 return db

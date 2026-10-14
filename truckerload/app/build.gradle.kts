@@ -207,6 +207,7 @@ dependencies {
     ksp(libs.androidx.hilt.compiler)
 
     // Room
+    implementation("net.zetetic:sqlcipher-android:4.6.1")
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)

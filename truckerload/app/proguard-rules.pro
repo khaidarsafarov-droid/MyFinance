@@ -3,6 +3,11 @@
 -keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
 
+# SQLCipher. The JNI entry points are looked up by name.
+-keep class net.zetetic.database.** { *; }
+-keep class net.zetetic.database.sqlcipher.** { *; }
+-dontwarn net.zetetic.database.**
+
 # Room
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *
