@@ -122,7 +122,7 @@
     <string name="social_chat_name_hint">Chat name</string>
     <string name="social_chat_create_error">Could not create chat: %1$s</string>
     <string name="login_google_error">Couldn’t connect to Google. Please try again. (%1$s)</string>
-    <string name="login_google_developer_error">Couldn’t connect to Google. Please try again. (%1$s)</string>
+    <string name="login_google_developer_error">Google did not recognize this install. Add this SHA-1 for package com.truckorig: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services are missing or outdated on this device.</string>
     <string name="login_google_fallback">Supabase temporarily unavailable (%1$s). Signed in locally.</string>
     <string name="login_google_cancelled">Sign-in cancelled</string>

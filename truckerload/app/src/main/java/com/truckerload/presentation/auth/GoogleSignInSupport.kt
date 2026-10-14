@@ -11,11 +11,11 @@ object GoogleSignInSupport {
     fun formatError(context: Context, error: Throwable?): String {
         val api = error as? ApiException
         val status = api?.statusCode
+        if (status == 10) {
+            val sha = InstalledSigningSha1.fingerprint(context) ?: "—"
+            return context.getString(R.string.login_google_developer_error, sha)
+        }
         val detail = when (status) {
-            10 -> {
-                val sha = InstalledSigningSha1.fingerprint(context) ?: "—"
-                context.getString(R.string.login_google_developer_error, sha)
-            }
             12500 -> context.getString(R.string.login_google_play_services_error)
             12501, 16 -> context.getString(R.string.login_google_cancelled)
             else -> api?.message?.takeIf { it.isNotBlank() }

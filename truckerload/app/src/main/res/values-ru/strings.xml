@@ -122,7 +122,7 @@
     <string name="social_chat_name_hint">Название чата</string>
     <string name="social_chat_create_error">Не удалось создать чат: %1$s</string>
     <string name="login_google_error">Не удалось подключиться к Google. Попробуйте ещё раз. (%1$s)</string>
-    <string name="login_google_developer_error">Не удалось подключиться к Google. Попробуйте ещё раз. (%1$s)</string>
+    <string name="login_google_developer_error">Google не узнал подпись этой установки. Добавьте этот SHA-1 для пакета com.truckorig: %1$s</string>
     <string name="login_google_play_services_error">Google Play Services недоступны или устарели на этом устройстве.</string>
     <string name="login_google_fallback">Supabase временно недоступен (%1$s). Вход выполнен локально.</string>
     <string name="login_google_cancelled">Вход отменён</string>
