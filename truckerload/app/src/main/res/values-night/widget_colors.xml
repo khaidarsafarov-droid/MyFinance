@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- SoftUI indigo cabin — solid brand-purple actions for visibility. -->
-    <color name="widget_bg">#FF1A1830</color>
-    <color name="widget_bg_bottom">#FF141228</color>
+    <!-- Material dark surface. -->
+    <color name="widget_bg">#FF1C1B1F</color>
+    <color name="widget_bg_bottom">#FF1C1B1F</color>
     <color name="widget_glass_fill">#335B54E6</color>
     <color name="widget_bg_stroke">#FF35314A</color>
-    <color name="widget_loading_bg">#FF141228</color>
+    <color name="widget_loading_bg">#FF1C1B1F</color>
     <color name="widget_loading_text">#FFF4F3FA</color>
     <color name="widget_loading_text_secondary">#FFB8B5D4</color>
     <color name="widget_text_primary">#FFF4F3FA</color>
@@ -40,7 +40,7 @@
     <color name="widget_rpm_warn">#FFFFB74D</color>
     <color name="widget_rpm_bad">#FFFF8BA0</color>
     <color name="widget_hero_number">#FFF4F3FA</color>
-    <color name="widget_hero_bg">#FF141228</color>
+    <color name="widget_hero_bg">#FF1C1B1F</color>
     <color name="widget_outline_variant">#FF35314A</color>
     <color name="widget_chip_bg">#FF2A2640</color>
 </resources>

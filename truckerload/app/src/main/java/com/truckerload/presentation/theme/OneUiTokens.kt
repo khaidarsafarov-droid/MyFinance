@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Samsung One UI layout tokens: large titles up top, controls in the thumb zone,
- * and card radii in the 16–28 dp One UI range.
+ * Material 3 layout tokens. Cards stay 12–16 dp, buttons 16 dp.
+ * The name is historical; these are no longer One UI radii.
  */
 object OneUiTokens {
-    val CornerChip = 16.dp
-    val CornerButton = 20.dp
-    val CornerCard = 26.dp
-    val CornerCardLarge = 28.dp
-    val CornerBottomBar = 26.dp
+    val CornerChip = 8.dp
+    val CornerButton = 16.dp
+    val CornerCard = 12.dp
+    val CornerCardLarge = 16.dp
+    val CornerBottomBar = 0.dp
 
     val ScreenHorizontal = 24.dp
     val TitleTopPadding = 8.dp
@@ -39,7 +39,7 @@ object OneUiTokens {
     val CardLargeShape = RoundedCornerShape(CornerCardLarge)
     val BottomBarShape = RoundedCornerShape(CornerBottomBar)
 
-    /** One UI-like emphasized easing (slightly snappier than standard Material). */
+    /** Material emphasized easing. */
     val MotionEasing: Easing = CubicBezierEasing(0.33f, 0.0f, 0.10f, 1.0f)
     const val MotionShortMs = 200
     const val MotionMediumMs = 350
@@ -50,7 +50,7 @@ object OneUiTokens {
         return tween(durationMillis = duration, easing = easing)
     }
 
-    fun isCornerInOneUiRange(dp: Float): Boolean = dp in 16f..28f
+    fun isCornerInOneUiRange(dp: Float): Boolean = dp in 8f..16f
 }
 
 /** True-black OLED override that still keeps Material You accents. */

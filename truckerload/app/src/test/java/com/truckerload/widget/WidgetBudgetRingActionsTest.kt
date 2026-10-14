@@ -98,7 +98,7 @@ class WidgetBudgetRingActionsTest {
     fun cabinPlateDrawable_usesKitBackgroundToken() {
         val xml = readRes("drawable/widget_cabin_plate.xml")
         assertTrue(xml.contains("@color/widget_bg"))
-        assertTrue(xml.contains("22dp"))
+        assertTrue(xml.contains("16dp"))
         assertTrue(!xml.contains("#FF12251C"))
         assertTrue(!xml.contains("#FF0B1A12"))
         assertTrue(!xml.contains("#FF07140E"))
@@ -106,7 +106,7 @@ class WidgetBudgetRingActionsTest {
         assertTrue(!xml.contains("#FF143882"))
         assertTrue(!xml.contains("#FF00E676"))
         val light = readRes("values/widget_colors.xml")
-        assertTrue(light.contains("#FFEEEDFF"))
+        assertTrue(light.contains("#FFFFFFFF"))
         assertTrue(light.contains("#FF5B54E6"))
         assertTrue(light.contains("#FF12121A"))
     }

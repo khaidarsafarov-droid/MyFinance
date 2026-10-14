@@ -10,14 +10,17 @@ import org.junit.Test
 class OneUiTokensTest {
 
     @Test
-    fun cardCornersStayInOneUiRange() {
+    fun cardCornersStayInMaterialRange() {
+        assertEquals(8f, OneUiTokens.CornerChip.value)
+        assertEquals(16f, OneUiTokens.CornerButton.value)
+        assertEquals(12f, OneUiTokens.CornerCard.value)
+        assertEquals(16f, OneUiTokens.CornerCardLarge.value)
         assertTrue(OneUiTokens.isCornerInOneUiRange(OneUiTokens.CornerChip.value))
         assertTrue(OneUiTokens.isCornerInOneUiRange(OneUiTokens.CornerButton.value))
         assertTrue(OneUiTokens.isCornerInOneUiRange(OneUiTokens.CornerCard.value))
-        assertTrue(OneUiTokens.isCornerInOneUiRange(OneUiTokens.CornerCardLarge.value))
         assertTrue(OneUiTokens.isCornerInOneUiRange(SoftUiDimens.CardRadius.value))
-        assertFalse(OneUiTokens.isCornerInOneUiRange(12f))
-        assertFalse(OneUiTokens.isCornerInOneUiRange(32f))
+        assertFalse(OneUiTokens.isCornerInOneUiRange(4f))
+        assertFalse(OneUiTokens.isCornerInOneUiRange(28f))
     }
 
     @Test

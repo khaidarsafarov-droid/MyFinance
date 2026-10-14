@@ -4,17 +4,17 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.toArgb
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.presentation.theme.forestDarkColorScheme
-import com.truckerload.presentation.theme.forestLightColorScheme
 
 /**
- * Resolved widget paint tokens. Kit light plate by default; indigo cabin in
- * dark theme; Material You when Settings → Dynamic colors is on (API 31+).
+ * Widget paint. Android 12+ follows the wallpaper Material You scheme.
+ * Older devices use the neutral Material surface. Light and dark still follow the widget theme.
  */
 data class WidgetCabinColors(
     val bg: Int,
@@ -125,26 +125,25 @@ data class WidgetCabinColors(
             }
         }
 
+        /**
+         * Home-screen plate follows the system, the way other Google widgets do.
+         * Android 12+ uses the wallpaper Material You scheme. Older devices use
+         * the neutral Material light or dark surface.
+         */
         suspend fun resolve(context: Context): Pair<ColorScheme, WidgetCabinColors> {
             return runCatching {
                 val app = context.applicationContext
                 val settings = SettingsDataStore(app)
-                val wantDynamic = settings.getDynamicColorOnce() &&
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                 val dark = isDarkTheme(app, settings.getThemeModeOnce())
+                val dynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                 val scheme = when {
-                    wantDynamic && dark -> dynamicDarkColorScheme(app)
-                    wantDynamic && !dark -> dynamicLightColorScheme(app)
-                    dark -> forestDarkColorScheme()
-                    else -> forestLightColorScheme()
+                    dynamic && dark -> dynamicDarkColorScheme(app)
+                    dynamic -> dynamicLightColorScheme(app)
+                    dark -> darkColorScheme()
+                    else -> lightColorScheme()
                 }
-                val colors = when {
-                    wantDynamic -> fromScheme(scheme, dynamic = true)
-                    dark -> ForestDark
-                    else -> ForestLight
-                }
-                scheme to colors
-            }.getOrElse { forestLightColorScheme() to ForestLight }
+                scheme to fromScheme(scheme, dynamic = dynamic)
+            }.getOrElse { lightColorScheme().let { it to fromScheme(it, dynamic = false) } }
         }
     }
 }
