@@ -10,6 +10,7 @@ import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadYieldCalculatorTest {
 
@@ -31,7 +32,7 @@ class LoadYieldCalculatorTest {
             sampleLoad(durationDays = 2.0, totalRate = 1000.0),
             sampleLoad(durationDays = 2.0, totalRate = 600.0),
         )
-        assertEquals(400.0, LoadYieldCalculator.actualDailyYield(loads), 0.001)
+        assertEquals(Money.fromDollars(400.0), LoadYieldCalculator.actualDailyYield(loads))
     }
 
     @Test
@@ -46,7 +47,7 @@ class LoadYieldCalculatorTest {
         assertTrue(early.durationDays < fromStops.durationDays)
         assertTrue(early.pace > fromStops.pace)
         assertEquals(2.0, early.durationDays, 0.001)
-        assertEquals(1509.56, early.pace, 0.01)
+        assertEquals(Money.fromDollars(1509.56), early.pace)
     }
 
     @Test
@@ -212,7 +213,7 @@ class LoadYieldCalculatorTest {
         id = "id-1",
         tripId = "T-1",
         date = "2026-07-17",
-        totalRate = totalRate,
+        totalRate = Money.fromDollars(totalRate),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

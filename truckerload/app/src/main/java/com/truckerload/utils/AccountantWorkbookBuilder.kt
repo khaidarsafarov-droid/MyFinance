@@ -1,6 +1,9 @@
 package com.truckerload.utils
 
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.formatLoadRoute
@@ -93,11 +96,11 @@ object AccountantWorkbookBuilder {
     }
 
     private fun summarySheet(input: Input, sections: Set<AccountantExportSection>): String {
-        val loadsTotal = input.loads.sumOf { it.totalRate }
-        val dieselTotal = input.diesel.sumOf { it.totalAmount }
+        val loadsTotal = input.loads.map { it.totalRate }.sum()
+        val dieselTotal = input.diesel.map { it.totalAmount }.sum()
         val perDiemDays = input.perDiemDates.size
         val perDiemTotal = PerDiemCalculator.amount(perDiemDays)
-        val maintenanceTotal = input.maintenance.sumOf { it.amount }
+        val maintenanceTotal = input.maintenance.map { it.amount }.sum()
         val rows = mutableListOf(
             listOf("${BrandConstants.DISPLAY_NAME} — отчёт для бухгалтера", ""),
             listOf("Год", input.year.toString()),
@@ -148,7 +151,7 @@ object AccountantWorkbookBuilder {
                 val metrics = load.withRouteMetrics()
                 val miles = metrics.totalMiles
                 val rate = metrics.totalRate
-                val rpm = if (miles > 0) rate / miles else 0.0
+                val rpm = if (miles > 0) rate.cents / 100.0 / miles else 0.0
                 val days = PerDiemCalculator.uniqueOnDutyDates(listOf(load), input.year).size
                 listOf(
                     metrics.date,
@@ -223,7 +226,7 @@ object AccountantWorkbookBuilder {
             "ИТОГО",
             "",
             "",
-            money(input.maintenance.sumOf { it.amount }, input.locale),
+            money(input.maintenance.map { it.amount }.sum(), input.locale),
         )
         return worksheet("ТО", listOf(header) + body + listOf(total), headerRow = true)
     }
@@ -247,6 +250,10 @@ object AccountantWorkbookBuilder {
             appendLine("  </Worksheet>")
         }
     }
+
+    private fun money(value: Money, locale: Locale): String = value.formatPlain()
+
+    private fun money(value: UnitPrice, locale: Locale): String = value.formatPlain()
 
     private fun money(value: Double, locale: Locale): String =
         String.format(locale, "%.2f", value)

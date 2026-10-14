@@ -6,6 +6,7 @@ import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.isLoadInWeek
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 /**
  * QUALITY_100 #50 — Home THIS_WEEK totals match filtering Stats would use for current week.
@@ -25,7 +26,7 @@ class StatsHomeWeekTotalsParityTest {
         id = id,
         tripId = id,
         date = date,
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = miles,
         pointA = "A",
         pointB = "B",
@@ -62,8 +63,8 @@ class StatsHomeWeekTotalsParityTest {
 
         assertEquals(1, homeTotals.loadCount)
         assertEquals(homeTotals.loadCount, statsTotals.loadCount)
-        assertEquals(homeTotals.totalRate, statsTotals.totalRate, 0.01)
+        assertEquals(homeTotals.totalRate, statsTotals.totalRate)
         assertEquals(homeTotals.totalMiles, statsTotals.totalMiles, 0.01)
-        assertEquals(2500.0, homeTotals.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), homeTotals.totalRate)
     }
 }

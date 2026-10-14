@@ -216,7 +216,7 @@ class ProfileRepositoryImpl(
                 entity,
                 stats.totalLoads,
                 stats.totalMiles.toInt(),
-                stats.totalRevenue,
+                com.truckerload.domain.money.Money.fromCents(stats.totalRevenue).cents / 100.0,
                 userProfile?.photoUrl,
                 userProfileStore,
             )

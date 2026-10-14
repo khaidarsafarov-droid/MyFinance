@@ -11,6 +11,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import androidx.room.Room
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -28,7 +29,7 @@ class SyncLoadsCdcTest {
         id = "id-$tripId",
         tripId = tripId,
         date = "2026-07-21",
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = 100.0,
         pointA = "A, NC",
         pointB = "B, FL",
@@ -65,7 +66,7 @@ class SyncLoadsCdcTest {
         repo.syncLoadsCdc(listOf(sample("t-abc", rate = 1000.0)), null, playFeedback = false)
         val result = repo.syncLoadsCdc(listOf(sample("t-abc", rate = 1200.0)), null, playFeedback = false)
         assertEquals(SyncStatus.UPDATED, result.status)
-        assertEquals(1200.0, repo.getByTripId("t-abc")?.totalRate ?: 0.0, 0.01)
+        assertEquals(Money.fromDollars(1200.0), repo.getByTripId("t-abc")?.totalRate ?: Money.ZERO)
     }
 
     @Test

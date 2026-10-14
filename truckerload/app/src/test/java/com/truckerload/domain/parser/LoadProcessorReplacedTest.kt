@@ -12,6 +12,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import com.truckerload.domain.money.Money
 
 class LoadProcessorReplacedTest {
 
@@ -69,7 +70,7 @@ class LoadProcessorReplacedTest {
             id = tripId,
             tripId = tripId,
             date = "2026-08-01",
-            totalRate = rate,
+            totalRate = Money.fromDollars(rate),
             totalMiles = 850.0,
             pointA = "Garner, NC",
             pointB = "Dallas, TX",

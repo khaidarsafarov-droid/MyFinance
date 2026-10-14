@@ -32,7 +32,7 @@ fun HomeUxMotivators(
 
     val goal by goalStore.goalAmount.collectAsStateWithLifecycle()
     val totalStats by loadRepository.watchTotalLoadStats()
-        .collectAsStateWithLifecycle(initialValue = LoadStatsAgg(0, 0.0, 0.0))
+        .collectAsStateWithLifecycle(initialValue = LoadStatsAgg(0, 0.0, 0L))
     val profileOk by userProfileStore.setupComplete.collectAsStateWithLifecycle()
     val hasLoad = totalStats.totalLoads > 0
 

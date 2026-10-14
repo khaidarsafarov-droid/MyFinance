@@ -12,7 +12,7 @@ class LoadValidator {
         if (load.tripId.isBlank() || load.tripId.length < 3) {
             errors.add("Invalid Trip ID: ${load.tripId}")
         }
-        if (load.totalRate <= 0) {
+        if (!load.totalRate.isPositive()) {
             errors.add("Invalid rate: ${load.totalRate}")
         }
         if (!hasValidDate(load.date)) {

@@ -174,8 +174,8 @@ internal fun GoalHeroCard(
         } else {
             Spacer(Modifier.height(16.dp))
 
-            val expectedPercent = if (progress.targetAmount > 0) {
-                (progress.expectedGrossByNow / progress.targetAmount * 100).toFloat().coerceIn(0f, 100f)
+            val expectedPercent = if (progress.targetAmount.isPositive()) {
+                (progress.expectedGrossByNow.cents.toFloat() / progress.targetAmount.cents * 100f).coerceIn(0f, 100f)
             } else {
                 0f
             }
@@ -201,7 +201,7 @@ internal fun GoalHeroCard(
                 text = stringResource(
                     R.string.goal_linear_percent_remaining,
                     progress.progressPercent.toInt(),
-                    MoneyFormat.formatCurrency(progress.remainingAmount.coerceAtLeast(0.0)),
+                    MoneyFormat.formatCurrency(progress.remainingAmount.coerceAtLeast(com.truckerload.domain.money.Money.ZERO)),
                 ),
                 style = AppTypography.CardTitle.copy(
                     color = cs.onPrimary,

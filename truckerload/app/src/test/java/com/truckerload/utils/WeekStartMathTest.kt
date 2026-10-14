@@ -12,6 +12,8 @@ import org.junit.Before
 import org.junit.Test
 import java.util.Calendar
 import java.util.Locale
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class WeekStartMathTest {
 
@@ -86,9 +88,9 @@ class WeekStartMathTest {
             weekLabel = "",
             weekStartDate = "",
             weekEndDate = "",
-            totalAmount = 50.0,
+            totalAmount = Money.fromDollars(50.0),
             gallons = 10.0,
-            pricePerGallon = 5.0,
+            pricePerGallon = UnitPrice.fromDollars(5.0),
             location = null,
             rawExtractedText = "",
             sourceFileName = null,

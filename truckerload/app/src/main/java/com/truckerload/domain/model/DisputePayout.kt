@@ -1,5 +1,7 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.money.Money
+
 /**
  * When a dispute is marked completed, optionally add the claimed amount to the load rate.
  * [Load.disputeAmountApplied] prevents adding twice on later saves.
@@ -33,9 +35,9 @@ object DisputePayout {
     fun settleFrom(previous: Load, next: Load): Load {
         if (!next.disputeCompleted) {
             if (previous.disputeAmountApplied) {
-                val amount = previous.disputeAmount ?: next.disputeAmount ?: 0.0
-                val reversed = if (amount > 0.0) {
-                    (previous.totalRate - amount).coerceAtLeast(0.0)
+                val amount = previous.disputeAmount ?: next.disputeAmount ?: Money.ZERO
+                val reversed = if (amount.isPositive()) {
+                    (previous.totalRate - amount).coerceAtLeast(Money.ZERO)
                 } else {
                     next.totalRate
                 }
@@ -49,8 +51,8 @@ object DisputePayout {
         if (previous.disputeAmountApplied) {
             return next.copy(disputeAmountApplied = true)
         }
-        val amount = next.disputeAmount ?: 0.0
-        if (!next.disputeApplyToLoad || amount <= 0.0) {
+        val amount = next.disputeAmount ?: Money.ZERO
+        if (!next.disputeApplyToLoad || !amount.isPositive()) {
             return next.copy(disputeAmountApplied = false)
         }
         return next.copy(

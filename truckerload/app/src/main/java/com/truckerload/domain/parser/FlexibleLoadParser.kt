@@ -1,5 +1,6 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import java.util.Locale
 
@@ -63,7 +64,7 @@ object FlexibleLoadParser {
         if (rate <= 0.0) return null
         if (draft.pointA.isBlank() && draft.pointB.isBlank()) return null
 
-        val miles = ParseUtils.sanitizeLoadedMiles(draft.parsedMiles(), rate)
+        val miles = ParseUtils.sanitizeLoadedMiles(draft.parsedMiles(), Money.fromDollars(rate))
         val tripId = draft.tripId.ifBlank {
             ManualLoadFactory.generateTripId(nowMillis, draft.pointA, draft.pointB, rate)
         }
@@ -96,7 +97,7 @@ object FlexibleLoadParser {
 
         val rate = firstMoney(text)
         val miles = firstMiles(text)?.let { rawMiles ->
-            ParseUtils.sanitizeLoadedMiles(rawMiles, rate ?: 0.0)
+            ParseUtils.sanitizeLoadedMiles(rawMiles, Money.fromDollars(rate ?: 0.0))
         }
         val labeledPickup = firstLabeled(text, pickupPatterns)
         val labeledDelivery = firstLabeled(text, deliveryPatterns)

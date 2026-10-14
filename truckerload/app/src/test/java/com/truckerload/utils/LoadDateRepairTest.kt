@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
+import com.truckerload.domain.money.Money
 
 class LoadDateRepairTest {
 
@@ -114,7 +115,7 @@ class LoadDateRepairTest {
             id = "T-OLD",
             tripId = "T-OLD",
             date = "2026-07-05",
-            totalRate = 1500.0,
+            totalRate = Money.fromDollars(1500.0),
             totalMiles = 400.0,
             pointA = "Austin, TX",
             pointB = "Dallas, TX",
@@ -247,7 +248,7 @@ class LoadDateRepairTest {
         id = id,
         tripId = id,
         date = date,
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = miles,
         pointA = "A",
         pointB = "B",

@@ -1,6 +1,9 @@
 package com.truckerload.data.repository
 
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
+import com.truckerload.domain.money.sum
 import com.truckerload.data.local.toDomain
 import com.truckerload.domain.analytics.RouteDisplayHelper
 import com.truckerload.domain.model.DieselPurchaseMath
@@ -37,7 +40,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
                 weekNumber = weekNumber,
                 year = year,
                 label = "W$weekNumber",
-                gross = row?.gross ?: 0.0,
+                gross = Money.fromCents(row?.gross ?: 0L).cents / 100.0,
                 miles = row?.miles ?: 0.0,
                 loadCount = row?.loadCount ?: 0,
             )
@@ -45,12 +48,13 @@ class AnalyticsRepository(private val db: AppDatabase) {
         val routes = loadTopRoutes(minDate, maxDate, 5)
         val daily = mapDailyDistribution(loadDao.getDailyDistribution(minDate, maxDate))
         val totals = loadDao.getAnalyticsTotals(minDate, maxDate)
-        val avgRpm = if (totals.miles > 0) totals.gross / totals.miles else 0.0
-        val avgPerLoad = if (totals.loadCount > 0) totals.gross / totals.loadCount else 0.0
+        val grossDollars = Money.fromCents(totals.gross).cents / 100.0
+        val avgRpm = if (totals.miles > 0) grossDollars / totals.miles else 0.0
+        val avgPerLoad = if (totals.loadCount > 0) grossDollars / totals.loadCount else 0.0
         val bestWeek = weeks.maxByOrNull { it.gross }
         val summary = AnalyticsSummary(
             totalLoads = totals.loadCount,
-            totalGross = totals.gross,
+            totalGross = grossDollars,
             totalMiles = totals.miles,
             avgRpm = avgRpm,
             avgGrossPerLoad = avgPerLoad,
@@ -73,22 +77,24 @@ class AnalyticsRepository(private val db: AppDatabase) {
         val paycheckTotal = paycheckDao.getPaychecksSince(minDate, maxDate)
             .groupBy { it.weekNumber to it.year }
             .values
-            .sumOf { rows -> rows.maxBy { it.addedAt }.netAmount }
+            .map { rows -> Money.fromCents(rows.maxBy { it.addedAt }.netAmount) }
+            .sum()
         val diesel = dieselDao.getAllDiesel().first().filter { row ->
             val iso = formatIsoDate(row.addedAt)
             (minDate.isEmpty() || iso >= minDate) && (maxDate.isEmpty() || iso <= maxDate)
         }
+        val dieselSavings = diesel.map { row ->
+            DieselPurchaseMath.savings(
+                gallons = row.gallons,
+                pricePerGallon = row.pricePerGallon?.let(UnitPrice::fromThousandths),
+                discountPricePerGallon = row.discountPricePerGallon?.let(UnitPrice::fromThousandths),
+            ) ?: Money.ZERO
+        }.sum()
         return PeriodFinance(
-            paycheckTotal = paycheckTotal,
-            dieselTotal = diesel.sumOf { it.totalAmount },
+            paycheckTotal = paycheckTotal.cents / 100.0,
+            dieselTotal = diesel.map { Money.fromCents(it.totalAmount) }.sum().cents / 100.0,
             dieselGallons = diesel.sumOf { it.gallons ?: 0.0 },
-            dieselSavings = diesel.sumOf {
-                DieselPurchaseMath.savings(
-                    gallons = it.gallons,
-                    pricePerGallon = it.pricePerGallon,
-                    discountPricePerGallon = it.discountPricePerGallon,
-                ) ?: 0.0
-            },
+            dieselSavings = dieselSavings.cents / 100.0,
         )
     }
 
@@ -136,7 +142,7 @@ class AnalyticsRepository(private val db: AppDatabase) {
             DailyData(
                 dayLabel = labels[dow],
                 dayOfWeek = dow,
-                gross = row?.gross ?: 0.0,
+                gross = Money.fromCents(row?.gross ?: 0L).cents / 100.0,
                 loadCount = row?.loadCount ?: 0,
             )
         }

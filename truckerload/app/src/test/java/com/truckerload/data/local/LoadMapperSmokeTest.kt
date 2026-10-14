@@ -10,6 +10,7 @@ import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadMapperSmokeTest {
 
@@ -19,7 +20,7 @@ class LoadMapperSmokeTest {
             id = "load-1",
             tripId = "T-ABC123",
             date = "2026-01-15",
-            totalRate = 2500.0,
+            totalRate = Money.fromDollars(2500.0).cents,
             totalMiles = 850.0,
             pointA = "Garner, NC",
             pointB = "Atlanta, GA",
@@ -34,7 +35,7 @@ class LoadMapperSmokeTest {
             firstPuCityState = "Garner, NC",
             lastDelCityState = "Atlanta, GA",
             durationDays = 2.0,
-            pace = 1250.0,
+            pace = Money.fromDollars(1250.0).cents,
             stopCount = 2,
             isDispute = false,
             disputeResponseDate = null,
@@ -74,14 +75,14 @@ class LoadMapperSmokeTest {
             ),
         )
         val penalties = listOf(
-            PenaltyEntity(id = 1, loadId = entity.id, description = "Detention", amount = 75.0),
+            PenaltyEntity(id = 1, loadId = entity.id, description = "Detention", amount = Money.fromDollars(75.0).cents),
         )
 
         val domain = entity.toDomain(stops = stops, penalties = penalties)
 
         assertEquals(entity.id, domain.id)
         assertEquals(entity.tripId, domain.tripId)
-        assertEquals(entity.totalRate, domain.totalRate, 0.0)
+        assertEquals(entity.totalRate, domain.totalRate.cents)
         assertEquals(entity.totalMiles, domain.totalMiles, 0.0)
         assertEquals(2, domain.stops.size)
         assertEquals(StopType.PU, domain.stops.first().type)
@@ -95,7 +96,7 @@ class LoadMapperSmokeTest {
             id = "load-2",
             tripId = "T-XYZ999",
             date = "2026-02-01",
-            totalRate = 1800.0,
+            totalRate = Money.fromDollars(1800.0),
             totalMiles = 620.0,
             pointA = "Dallas, TX",
             pointB = "Houston, TX",
@@ -110,7 +111,7 @@ class LoadMapperSmokeTest {
             firstPuCityState = "Dallas, TX",
             lastDelCityState = "Houston, TX",
             durationDays = 1.0,
-            pace = 1800.0,
+            pace = Money.fromDollars(1800.0),
             stopCount = 0,
             equipmentType = com.truckerload.domain.model.EquipmentType.AMAZON_RELAY,
         )
@@ -120,10 +121,10 @@ class LoadMapperSmokeTest {
 
         assertEquals(load.id, back.id)
         assertEquals(load.tripId, back.tripId)
-        assertEquals(load.totalRate, back.totalRate, 0.0)
+        assertEquals(load.totalRate, back.totalRate)
         assertEquals(load.totalMiles, back.totalMiles, 0.0)
         assertEquals(load.route, back.route)
-        assertEquals(load.pace, back.pace, 0.0)
+        assertEquals(load.pace, back.pace)
         assertEquals(com.truckerload.domain.model.EquipmentType.AMAZON_RELAY, back.equipmentType)
     }
 
@@ -133,7 +134,7 @@ class LoadMapperSmokeTest {
             id = "load-3",
             tripId = "T-DSP",
             date = "2026-08-23",
-            totalRate = 2250.0,
+            totalRate = Money.fromDollars(2250.0),
             totalMiles = 400.0,
             pointA = "A",
             pointB = "B",
@@ -147,15 +148,15 @@ class LoadMapperSmokeTest {
             isDispute = true,
             disputeResponseDate = "2026-08-27",
             disputeCompleted = true,
-            disputeAmount = 250.0,
+            disputeAmount = Money.fromDollars(250.0),
             disputeApplyToLoad = true,
             disputeAmountApplied = true,
         )
         val back = load.toEntity().toDomain()
-        assertEquals(250.0, back.disputeAmount)
+        assertEquals(Money.parse("250.00"), back.disputeAmount)
         assertTrue(back.disputeApplyToLoad)
         assertTrue(back.disputeAmountApplied)
-        assertEquals(2250.0, back.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2250.0), back.totalRate)
     }
 
     @Test
@@ -184,7 +185,7 @@ class LoadMapperSmokeTest {
 
     @Test
     fun penalty_roundTrip_preservesFields() {
-        val penalty = Penalty(id = 1, loadId = "load-1", description = "Lumper", amount = 120.0)
+        val penalty = Penalty(id = 1, loadId = "load-1", description = "Lumper", amount = Money.fromDollars(120.0))
 
         val entity = penalty.toEntity(loadId = "load-1")
         val back = entity.toDomain()

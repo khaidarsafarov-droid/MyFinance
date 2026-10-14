@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -60,7 +61,7 @@ class BackfillKeepsStopsTest {
     private suspend fun insertLoadWithMissingMillis() {
         repo.insertLoad(sampleLoad(), playFeedback = false)
         db.penaltyDao().insertAll(
-            listOf(PenaltyEntity(loadId = LOAD_ID, description = "Late", amount = 50.0)),
+            listOf(PenaltyEntity(loadId = LOAD_ID, description = "Late", amount = Money.fromDollars(50.0).cents)),
         )
         val entity = db.loadDao().getLoadById(LOAD_ID)!!
         db.loadDao().updateEntity(entity.copy(firstPuMillis = null, lastDelMillis = null, route = ""))
@@ -70,7 +71,7 @@ class BackfillKeepsStopsTest {
         id = LOAD_ID,
         tripId = "T-BACKFILL",
         date = "2026-07-21",
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 300.0,
         pointA = "Austin, TX",
         pointB = "Dallas, TX",

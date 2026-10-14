@@ -1,6 +1,9 @@
 package com.truckerload.domain.importing
 
 import com.truckerload.data.repository.DieselRepository
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getMillisForWeek
@@ -19,8 +22,8 @@ class DieselImportUseCase @Inject constructor(
         val comparison = DieselImportComparison(
             existingCount = existing.size,
             importedCount = preview.size,
-            existingTotal = existing.sumOf { it.totalAmount },
-            importedTotal = preview.sumOf { it.totalAmount },
+            existingTotal = existing.map { it.totalAmount }.sum().cents / 100.0,
+            importedTotal = preview.map { it.totalAmount }.sum().cents / 100.0,
             existingGallons = existing.sumOf { it.gallons ?: 0.0 },
             importedGallons = preview.sumOf { it.gallons ?: 0.0 },
         )
@@ -59,10 +62,10 @@ class DieselImportUseCase @Inject constructor(
             weekLabel = weekLabel,
             weekStartDate = weekStart,
             weekEndDate = weekEnd,
-            totalAmount = fill.totalAmount,
+            totalAmount = Money.fromDollars(fill.totalAmount),
             gallons = fill.gallons,
-            pricePerGallon = fill.pricePerGallon,
-            discountPricePerGallon = fill.discountPricePerGallon,
+            pricePerGallon = fill.pricePerGallon?.let(UnitPrice::fromDollars),
+            discountPricePerGallon = fill.discountPricePerGallon?.let(UnitPrice::fromDollars),
             location = fill.location,
             rawExtractedText = fill.rawLine,
             sourceFileName = import.fileName,

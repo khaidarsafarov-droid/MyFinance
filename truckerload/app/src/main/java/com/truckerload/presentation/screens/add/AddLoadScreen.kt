@@ -244,7 +244,8 @@ private fun saveButtonLabel(
     manual: ManualLoadFields?,
 ): String {
     if (isSaving) return stringResource(R.string.add_load_saving)
-    val rate = preview?.totalRate?.takeIf { it > 0 } ?: manual?.parsedRate()?.takeIf { it > 0 }
+    val rate = preview?.totalRate?.takeIf { it.isPositive() }
+        ?: manual?.parsedRate()?.takeIf { it > 0.0 }?.let(com.truckerload.domain.money.Money::fromDollars)
     val miles = preview?.totalMiles ?: manual?.parsedMiles() ?: 0.0
     return if (rate != null) {
         stringResource(

@@ -5,6 +5,7 @@ import com.truckerload.domain.model.Load
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class HomeLoadGridTest {
 
@@ -12,7 +13,7 @@ class HomeLoadGridTest {
         id = id,
         tripId = "T-$id",
         date = "2026-08-01",
-        totalRate = 100.0,
+        totalRate = Money.fromDollars(100.0),
         totalMiles = 50.0,
         pointA = "A",
         pointB = "B",
@@ -74,7 +75,7 @@ class HomeLoadGridTest {
 
     @Test
     fun filteredSectionHeader_isSkipped() {
-        val totals = LoadFilterUseCase.Totals(1, 100.0, 50.0, 2.0)
+        val totals = LoadFilterUseCase.Totals(1, Money.fromDollars(100.0), 50.0, 2.0)
         val items = listOf(
             HomeListItem.FilteredSectionHeader("Week", totals),
             HomeListItem.LoadItem(load("a")),

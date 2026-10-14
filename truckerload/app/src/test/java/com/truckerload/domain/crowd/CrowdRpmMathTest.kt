@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class CrowdRpmMathTest {
 
@@ -88,8 +89,8 @@ class CrowdRpmMathTest {
         id = id,
         fromState = from,
         toState = to,
-        rpm = rpm,
-        rate = rpm * 400.0,
+        rpm = Money.fromDollars(rpm),
+        rate = Money.fromDollars(rpm * 400.0),
         miles = 400.0,
         reportedAtMillis = at,
         source = source,

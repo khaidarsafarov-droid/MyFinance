@@ -2,6 +2,7 @@ package com.truckerload.data.local
 
 import com.truckerload.data.local.entities.PaycheckEntity
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.domain.money.Money
 
 fun PaycheckEntity.toDomain(): Paycheck =
     Paycheck(
@@ -12,8 +13,8 @@ fun PaycheckEntity.toDomain(): Paycheck =
         weekStartDate = weekStartDate,
         weekEndDate = weekEndDate,
         driverName = driverName,
-        grossAmount = grossAmount,
-        netAmount = netAmount,
+        grossAmount = grossAmount?.let(Money::fromCents),
+        netAmount = Money.fromCents(netAmount),
         rawExtractedText = rawExtractedText,
         sourceFileName = sourceFileName,
         addedAt = addedAt,
@@ -29,8 +30,8 @@ fun Paycheck.toEntity(): PaycheckEntity =
         weekStartDate = weekStartDate,
         weekEndDate = weekEndDate,
         driverName = driverName,
-        grossAmount = grossAmount,
-        netAmount = netAmount,
+        grossAmount = grossAmount?.cents,
+        netAmount = netAmount.cents,
         rawExtractedText = rawExtractedText,
         sourceFileName = sourceFileName,
         addedAt = addedAt,

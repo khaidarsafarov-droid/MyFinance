@@ -1,20 +1,23 @@
 package com.truckerload.domain.goal
 
-import kotlin.math.round
+import com.truckerload.domain.money.Money
 
 object GoalMoneyMath {
-    fun roundMoney(value: Double): Double = round(value * 100.0) / 100.0
-
-    fun dailyTarget(goal: Double, totalGross: Double, daysRemaining: Int): Double {
-        if (goal <= 0.0) return 0.0
-        val remaining = (goal - totalGross).coerceAtLeast(0.0)
-        if (remaining <= 0.0) return 0.0
-        return roundMoney(remaining / daysRemaining.coerceAtLeast(1))
+    fun dailyTarget(goal: Money, totalGross: Money, daysRemaining: Int): Money {
+        if (goal.cents <= 0L) return Money.ZERO
+        val remaining = (goal - totalGross).coerceAtLeast(Money.ZERO)
+        if (remaining.cents <= 0L) return Money.ZERO
+        return remaining.dividedBy(daysRemaining.coerceAtLeast(1))
     }
 
-    /** Linear calendar plan marker for progress ring. */
-    fun expectedGrossByNow(goal: Double, daysActive: Int): Double {
-        if (goal <= 0.0 || daysActive <= 0) return 0.0
-        return roundMoney(goal * daysActive.coerceAtMost(7) / 7.0)
+    /** Linear calendar plan marker for the progress ring. */
+    fun expectedGrossByNow(goal: Money, daysActive: Int): Money {
+        if (goal.cents <= 0L || daysActive <= 0) return Money.ZERO
+        val days = daysActive.coerceAtMost(7)
+        val product = goal.cents * days.toLong()
+        val negative = product < 0
+        val absProduct = kotlin.math.abs(product)
+        val cents = (absProduct + 3L) / 7L
+        return Money(if (negative) -cents else cents)
     }
 }

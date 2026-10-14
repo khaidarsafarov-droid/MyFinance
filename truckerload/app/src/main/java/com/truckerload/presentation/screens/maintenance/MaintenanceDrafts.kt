@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.maintenance
 
 import com.truckerload.domain.model.MaintenanceArchiveEntry
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.MaintenanceReminderType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -54,7 +55,7 @@ data class ArchiveDraft(
                 serviceName = serviceName.trim(),
                 serviceDate = serviceDate,
                 description = line.description.trim(),
-                amount = line.parsedAmount() ?: 0.0,
+                amount = Money.fromDollars(line.parsedAmount() ?: 0.0),
                 photoPath = photoPath,
                 ocrText = ocrText,
                 createdAt = createdAt,

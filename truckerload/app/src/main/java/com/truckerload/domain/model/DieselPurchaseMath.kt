@@ -1,5 +1,8 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
+
 /**
  * Pure diesel fill math: paid total and discount savings from gallons + prices.
  *
@@ -9,29 +12,30 @@ object DieselPurchaseMath {
 
     fun paidTotal(
         gallons: Double?,
-        pricePerGallon: Double?,
-        discountPricePerGallon: Double?,
-    ): Double? {
+        pricePerGallon: UnitPrice?,
+        discountPricePerGallon: UnitPrice?,
+    ): Money? {
         val g = gallons ?: return null
         if (g <= 0.0) return null
         val paidPrice = when {
-            discountPricePerGallon != null && discountPricePerGallon > 0.0 -> discountPricePerGallon
-            pricePerGallon != null && pricePerGallon > 0.0 -> pricePerGallon
+            discountPricePerGallon != null && discountPricePerGallon.isPositive() -> discountPricePerGallon
+            pricePerGallon != null && pricePerGallon.isPositive() -> pricePerGallon
             else -> return null
         }
-        // FIX: persist cents, not IEEE remainder (500 * 4.09 → 2044.999…)
-        return com.truckerload.domain.goal.GoalMoneyMath.roundMoney(g * paidPrice)
+        return paidPrice.timesGallons(g)
     }
 
     fun savings(
         gallons: Double?,
-        pricePerGallon: Double?,
-        discountPricePerGallon: Double?,
-    ): Double? {
+        pricePerGallon: UnitPrice?,
+        discountPricePerGallon: UnitPrice?,
+    ): Money? {
         val g = gallons ?: return null
         val list = pricePerGallon ?: return null
         val disc = discountPricePerGallon ?: return null
-        if (g <= 0.0 || list <= 0.0 || disc <= 0.0) return null
-        return com.truckerload.domain.goal.GoalMoneyMath.roundMoney((list - disc) * g).coerceAtLeast(0.0)
+        if (g <= 0.0 || !list.isPositive() || !disc.isPositive()) return null
+        val gap = list - disc
+        if (!gap.isPositive()) return Money.ZERO
+        return gap.timesGallons(g)
     }
 }

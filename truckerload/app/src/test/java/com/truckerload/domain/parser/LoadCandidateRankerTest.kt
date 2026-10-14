@@ -3,6 +3,7 @@ package com.truckerload.domain.parser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadCandidateRankerTest {
 
@@ -21,7 +22,7 @@ class LoadCandidateRankerTest {
         """.trimIndent()
 
         val load = MessageParseService().parseLoadFromUserInput(text).getOrThrow()
-        assertEquals(2100.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2100.0), load.totalRate)
         assertEquals(700.0, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("Garner"))
         assertTrue(load.pointB.contains("Dallas"))
@@ -36,7 +37,7 @@ class LoadCandidateRankerTest {
 
         val load = MessageParseService().parseLoadsFromInboundText(text).getOrThrow().firstOrNull()
         assertEquals("T-88002", load!!.tripId)
-        assertEquals(1800.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(1800.0), load.totalRate)
         assertEquals(600.0, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("Garner"))
         assertTrue(load.pointB.contains("Dallas"))

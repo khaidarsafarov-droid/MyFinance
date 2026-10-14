@@ -110,7 +110,7 @@ object BackupSnapshotBuilder {
         serviceName = serviceName,
         serviceDate = serviceDate,
         description = description,
-        amount = amount,
+        amount = amount.cents / 100.0,
         photoPath = photoPath,
         ocrText = ocrText,
         createdAt = createdAt,

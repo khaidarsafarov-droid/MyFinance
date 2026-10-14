@@ -144,8 +144,8 @@ class DuplicateAuditUseCase(
             paycheck.weekStartDate,
             paycheck.weekEndDate,
             paycheck.driverName.orEmpty().trim().lowercase(Locale.US),
-            paycheck.grossAmount?.let { "%.2f".format(Locale.US, it) }.orEmpty(),
-            "%.2f".format(Locale.US, paycheck.netAmount),
+            paycheck.grossAmount?.formatPlain().orEmpty(),
+            paycheck.netAmount.formatPlain(),
             evidence,
         ).joinToString("|")
     }
@@ -167,7 +167,7 @@ class DuplicateAuditUseCase(
             entry.weekNumber.toString(),
             entry.year.toString(),
             entry.rawExtractedText.trim().lowercase(Locale.US),
-            "%.2f".format(Locale.US, entry.totalAmount),
+            entry.totalAmount.formatPlain(),
             entry.location.orEmpty().trim().lowercase(Locale.US),
         ).joinToString("|")
 

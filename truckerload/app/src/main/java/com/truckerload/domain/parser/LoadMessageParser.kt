@@ -1,5 +1,6 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
@@ -74,13 +75,16 @@ object LoadMessageParser {
         return blocks.ifEmpty { listOf(0 to text) }
     }
 
+    private fun parseRate(raw: String): Money =
+        runCatching { Money.parse(raw) }.getOrElse { Money.fromDollars(ParseUtils.parseMoney(raw)) }
+
     private fun parseBlock(block: String, rawMessage: String, referenceMillis: Long): Load? {
         val tripId = ParseUtils.firstMatch(block, tripIdPatterns)?.uppercase(Locale.US).orEmpty()
         if (tripId.isBlank()) return null
 
-        val totalRate = totalRatePattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMoney(it) }
-            ?: inlineRatePattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMoney(it) }
-            ?: 0.0
+        val totalRate = totalRatePattern.find(block)?.groupValues?.get(1)?.let(::parseRate)
+            ?: inlineRatePattern.find(block)?.groupValues?.get(1)?.let(::parseRate)
+            ?: Money.ZERO
         val rawMiles = totalMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
             // FIX: fallback uses largest "X mi" — first match is often a leg, not Total Loaded Miles
             ?: inlineMilesPattern.findAll(block)
@@ -105,7 +109,7 @@ object LoadMessageParser {
         val pointB = delStops.lastOrNull()?.let { formatRoutePoint(it) }.orEmpty()
 
         val now = referenceMillis.takeIf { it > 0L } ?: System.currentTimeMillis()
-        if (totalRate <= 0.0 || (pointA.isBlank() && pointB.isBlank())) return null
+        if (!totalRate.isPositive() || (pointA.isBlank() && pointB.isBlank())) return null
 
         val draft = Load(
             id = tripId,

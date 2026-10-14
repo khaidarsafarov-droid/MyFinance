@@ -9,15 +9,20 @@ struct WeeklyGoalView: View {
     @State private var daysRemainingText = "4"
 
     private var dailyNeeded: Double {
-        SharedBusinessLogic.shared.dailyTarget(
-            goal: Double(goalText) ?? 0,
-            totalGross: Double(grossText) ?? 0,
+        let cents = SharedBusinessLogic.shared.dailyTargetCents(
+            goalCents: (Int64(goalText) ?? 0) * 100,
+            totalGrossCents: (Int64(grossText) ?? 0) * 100,
             daysRemaining: Int32(Int(daysRemainingText) ?? 1)
         )
+        return Double(cents) / 100
     }
 
     private var expectedByDayOne: Double {
-        SharedBusinessLogic.shared.expectedGrossByNow(goal: Double(goalText) ?? 0, daysActive: 1)
+        let cents = SharedBusinessLogic.shared.expectedGrossByNowCents(
+            goalCents: (Int64(goalText) ?? 0) * 100,
+            daysActive: 1
+        )
+        return Double(cents) / 100
     }
 
     var body: some View {

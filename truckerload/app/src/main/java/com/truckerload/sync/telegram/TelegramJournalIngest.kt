@@ -3,6 +3,8 @@ package com.truckerload.sync.telegram
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.domain.week.WeekStartRuntime
@@ -57,8 +59,8 @@ class TelegramJournalIngest(
                 weekStartDate = weekStart,
                 weekEndDate = weekEnd,
                 driverName = driverName,
-                grossAmount = grossAmount,
-                netAmount = netAmount,
+                grossAmount = grossAmount?.let(Money::fromDollars),
+                netAmount = Money.fromDollars(netAmount),
                 rawExtractedText = rawText,
                 sourceFileName = sourceFileName,
                 addedAt = addedAt,
@@ -100,9 +102,9 @@ class TelegramJournalIngest(
                 weekLabel = weekLabel,
                 weekStartDate = weekStart,
                 weekEndDate = weekEnd,
-                totalAmount = totalAmount,
+                totalAmount = Money.fromDollars(totalAmount),
                 gallons = gallons,
-                pricePerGallon = pricePerGallon,
+                pricePerGallon = pricePerGallon?.let(UnitPrice::fromDollars),
                 location = location,
                 rawExtractedText = rawText,
                 sourceFileName = sourceFileName,

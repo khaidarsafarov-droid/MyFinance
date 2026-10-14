@@ -13,6 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
+import com.truckerload.domain.money.Money
 
 class RateConfirmationLoadParserTest {
 
@@ -24,7 +25,7 @@ class RateConfirmationLoadParserTest {
             fileName = "2665704-Carrier-Rate-Confirmation.pdf",
         )
         assertNotNull(load)
-        assertEquals(2325.84, load!!.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2325.84), load!!.totalRate)
         assertEquals(742.50, load.totalMiles, 0.01)
         assertTrue(load.tripId.contains("2665704"))
         assertTrue(load.pointA.contains("LAKE ZURICH", ignoreCase = true))
@@ -52,7 +53,7 @@ class RateConfirmationLoadParserTest {
         assertEquals(ReceiptKind.LOAD, decision.preview.kind)
         assertTrue(decision.autoSaveLoads)
         assertEquals(1, decision.loads.size)
-        assertEquals(2325.84, decision.loads.first().totalRate, 0.01)
+        assertEquals(Money.fromDollars(2325.84), decision.loads.first().totalRate)
         assertEquals(2325.84, decision.preview.amount!!, 0.01)
         assertTrue(decision.preview.pointA!!.contains("LAKE ZURICH", ignoreCase = true))
     }
@@ -74,7 +75,7 @@ class RateConfirmationLoadParserTest {
             .parseLoadsFromInboundText(IEL_RATE_CON, REF_MILLIS, "rate-confirmation.pdf")
             .getOrThrow()
         assertEquals(1, loads.size)
-        assertEquals(2325.84, loads.first().totalRate, 0.01)
+        assertEquals(Money.fromDollars(2325.84), loads.first().totalRate)
     }
 
     @Test
@@ -108,7 +109,7 @@ class RateConfirmationLoadParserTest {
         assertEquals(ReceiptKind.LOAD, decision.preview.kind)
         assertTrue(decision.autoSaveLoads)
         val load = decision.loads.single()
-        assertEquals(2325.84, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2325.84), load.totalRate)
         assertEquals(742.50, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("LAKE ZURICH", ignoreCase = true))
         assertTrue(load.pointB.contains("ELKRIDGE", ignoreCase = true))

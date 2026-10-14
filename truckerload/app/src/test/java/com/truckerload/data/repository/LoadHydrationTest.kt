@@ -11,6 +11,7 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import com.truckerload.domain.money.Money
 
 class LoadHydrationTest {
 
@@ -22,7 +23,7 @@ class LoadHydrationTest {
             id = "load-1",
             tripId = "T-116KYL6KW",
             date = "2026-07-05",
-            totalRate = 2500.0,
+            totalRate = Money.fromDollars(2500.0).cents,
             totalMiles = 850.0,
             pointA = "Garner, NC",
             pointB = "Atlanta, GA",

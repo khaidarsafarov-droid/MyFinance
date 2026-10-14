@@ -53,7 +53,7 @@ fun compareLoads(
     val rateMatch = if (priceThresholdPercent > 0.0) {
         !detector.isRateChangedSignificant(old.totalRate, new.totalRate, priceThresholdPercent)
     } else {
-        abs(old.totalRate - new.totalRate) < 0.01
+        kotlin.math.abs(old.totalRate.cents - new.totalRate.cents) < 1L
     }
 
     return LoadComparison(

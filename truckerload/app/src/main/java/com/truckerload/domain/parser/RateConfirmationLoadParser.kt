@@ -1,5 +1,6 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import java.util.Locale
 
@@ -89,7 +90,7 @@ object RateConfirmationLoadParser {
 
         val miles = milesPattern.find(text)?.groupValues?.get(1)
             ?.let { ParseUtils.parseMiles(it) }
-            ?.let { ParseUtils.sanitizeLoadedMiles(it, rate) }
+            ?.let { ParseUtils.sanitizeLoadedMiles(it, Money.fromDollars(rate)) }
             ?: 0.0
         val tripId = ParseUtils.firstMatch(text, tripIdPatterns)
             ?.uppercase(Locale.US)

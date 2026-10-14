@@ -16,6 +16,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -29,13 +30,13 @@ class LoadUpdaterTest {
         val updater = LoadUpdater(repository)
 
         val oldLoad = sampleLoad(
-            penalties = listOf(Penalty(id = 1, loadId = "load-1", amount = 50.0, description = "late")),
+            penalties = listOf(Penalty(id = 1, loadId = "load-1", amount = Money.fromDollars(50.0), description = "late")),
         )
         val newLoad = oldLoad.copy(
-            totalRate = 2600.0,
+            totalRate = Money.fromDollars(2600.0),
             penalties = listOf(
-                Penalty(id = 0, loadId = "", amount = 100.0, description = "detention"),
-                Penalty(id = 0, loadId = "", amount = 25.0, description = "lumper"),
+                Penalty(id = 0, loadId = "", amount = Money.fromDollars(100.0), description = "detention"),
+                Penalty(id = 0, loadId = "", amount = Money.fromDollars(25.0), description = "lumper"),
             ),
         )
 
@@ -46,7 +47,7 @@ class LoadUpdaterTest {
         val saved = captor.firstValue
         assertEquals(2, saved.penalties.size)
         assertEquals("load-1", saved.penalties[0].loadId)
-        assertEquals(100.0, saved.penalties[0].amount, 0.001)
+        assertEquals(Money.fromDollars(100.0), saved.penalties[0].amount)
         assertEquals("detention", saved.penalties[0].description)
         assertEquals("lumper", saved.penalties[1].description)
     }
@@ -59,7 +60,7 @@ class LoadUpdaterTest {
 
         val oldLoad = sampleLoad(id = "persist-id")
         val newLoad = oldLoad.copy(
-            penalties = listOf(Penalty(id = 0, loadId = "wrong", amount = 75.0, description = "fee")),
+            penalties = listOf(Penalty(id = 0, loadId = "wrong", amount = Money.fromDollars(75.0), description = "fee")),
         )
 
         updater.updateLoad(oldLoad, newLoad, emptyList())
@@ -77,7 +78,7 @@ class LoadUpdaterTest {
 
         val oldLoad = sampleLoad(id = "load-42")
         val newLoad = oldLoad.copy(
-            totalRate = 3000.0,
+            totalRate = Money.fromDollars(3000.0),
             totalMiles = 900.0,
             stops = listOf(
                 Stop(
@@ -128,7 +129,7 @@ class LoadUpdaterTest {
         assertTrue(saved.pointA.contains("Garner"))
         assertTrue(saved.pointB.contains("Hopewell"))
         assertTrue(saved.durationDays > 0.0)
-        assertTrue(saved.pace > 0.0)
+        assertTrue(saved.pace > Money.fromDollars(0.0))
     }
 
     private fun sampleLoad(
@@ -138,7 +139,7 @@ class LoadUpdaterTest {
         id = id,
         tripId = "T-TEST123",
         date = "2026-06-10",
-        totalRate = 2500.0,
+        totalRate = Money.fromDollars(2500.0),
         totalMiles = 850.0,
         pointA = "Hopewell Junction, NY",
         pointB = "Garner, NC",

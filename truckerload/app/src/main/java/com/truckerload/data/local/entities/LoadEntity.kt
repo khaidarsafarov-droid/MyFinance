@@ -20,7 +20,8 @@ data class LoadEntity(
     @PrimaryKey val id: String,
     val tripId: String,
     val date: String,
-    val totalRate: Double,
+    /** Gross pay in cents. */
+    val totalRate: Long,
     val totalMiles: Double,
     val pointA: String,
     val pointB: String,
@@ -39,7 +40,8 @@ data class LoadEntity(
     val firstPuCityState: String = "",
     val lastDelCityState: String = "",
     val durationDays: Double = 0.0,
-    val pace: Double = 0.0,
+    /** Dollars per day, in cents. */
+    val pace: Long = 0L,
     val stopCount: Int = 0,
     /** Груз помечен как диспют (или был диспютом). */
     val isDispute: Boolean = false,
@@ -48,7 +50,8 @@ data class LoadEntity(
     /** Диспют закрыт пользователем. */
     val disputeCompleted: Boolean = false,
     /** Заявленная сумма диспута; null = не указана. */
-    val disputeAmount: Double? = null,
+    /** Claimed dispute payout in cents; null when unset. */
+    val disputeAmount: Long? = null,
     /** Добавить [disputeAmount] к totalRate при закрытии диспута. */
     val disputeApplyToLoad: Boolean = false,
     /** Сумма уже включена в totalRate. */

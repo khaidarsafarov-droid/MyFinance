@@ -15,6 +15,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.whenever
+import com.truckerload.domain.money.Money
 
 class DuplicateAuditUseCaseTest {
 
@@ -80,7 +81,7 @@ class DuplicateAuditUseCaseTest {
     fun `different paychecks in the same week are preserved`() {
         val first = paycheck(id = 1, addedAt = 100L)
         val second = paycheck(id = 2, addedAt = 200L).copy(
-            netAmount = 1800.0,
+            netAmount = Money.fromDollars(1800.0),
             rawExtractedText = "second settlement",
         )
 
@@ -150,7 +151,7 @@ class DuplicateAuditUseCaseTest {
         id = id,
         tripId = tripId,
         date = "2026-06-10",
-        totalRate = totalRate,
+        totalRate = Money.fromDollars(totalRate),
         totalMiles = 850.0,
         pointA = "Hopewell Junction, NY",
         pointB = "Garner, NC",
@@ -195,8 +196,8 @@ class DuplicateAuditUseCaseTest {
             weekStartDate = "2026-06-09",
             weekEndDate = "2026-06-15",
             driverName = "Test",
-            grossAmount = 3000.0,
-            netAmount = 2500.0,
+            grossAmount = Money.fromDollars(3000.0),
+            netAmount = Money.fromDollars(2500.0),
             rawExtractedText = "settlement",
             sourceFileName = null,
             addedAt = addedAt,

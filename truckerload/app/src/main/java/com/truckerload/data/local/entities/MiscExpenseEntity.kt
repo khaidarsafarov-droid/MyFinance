@@ -10,7 +10,8 @@ import androidx.room.PrimaryKey
 )
 data class MiscExpenseEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val amount: Double,
+    /** Expense amount in cents. */
+    val amount: Long,
     val description: String,
     val date: String,
     /** Absolute path to an attached receipt photo in app files (optional). */

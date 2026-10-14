@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -97,18 +98,18 @@ class LoadUpdatePersistsFieldsTest {
         repo.insertLoad(sampleLoad("load-d", tripId = "T-DSP"), playFeedback = false)
         repo.updateLoad(
             sampleLoad("load-d", tripId = "T-DSP").copy(
-                totalRate = 2250.0,
+                totalRate = Money.fromDollars(2250.0),
                 isDispute = true,
                 disputeResponseDate = "2026-08-27",
                 disputeCompleted = true,
-                disputeAmount = 250.0,
+                disputeAmount = Money.fromDollars(250.0),
                 disputeApplyToLoad = true,
                 disputeAmountApplied = true,
             ),
         )
         val reloaded = repo.getLoadById("load-d")!!
-        assertEquals(2250.0, reloaded.totalRate, 0.0)
-        assertEquals(250.0, reloaded.disputeAmount)
+        assertEquals(Money.fromDollars(2250.0), reloaded.totalRate)
+        assertEquals(com.truckerload.domain.money.Money.parse("250.00"), reloaded.disputeAmount)
         assertTrue(reloaded.disputeApplyToLoad)
         assertTrue(reloaded.disputeAmountApplied)
         assertTrue(reloaded.hadDispute)
@@ -118,7 +119,7 @@ class LoadUpdatePersistsFieldsTest {
         id = id,
         tripId = tripId,
         date = "2026-07-21",
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

@@ -52,7 +52,7 @@ fun parseAmazonRelayLoad(
 
     return AmazonRelayParseResult(
         load = load,
-        totalRate = load.totalRate,
+        totalRate = load.totalRate.cents / 100.0,
         totalLoadedMiles = load.totalMiles,
         firstPuTime = firstPuTime,
         lastDelTime = lastDelTime,

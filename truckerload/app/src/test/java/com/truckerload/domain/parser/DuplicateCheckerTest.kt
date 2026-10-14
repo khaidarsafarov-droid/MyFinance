@@ -9,6 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.mock
+import com.truckerload.domain.money.Money
 
 class DuplicateCheckerTest {
 
@@ -93,7 +94,7 @@ class DuplicateCheckerTest {
             id = "id-$tripId",
             tripId = tripId,
             date = "2026-08-01",
-            totalRate = rate,
+            totalRate = Money.fromDollars(rate),
             totalMiles = 850.0,
             pointA = "Garner, NC",
             pointB = "Dallas, TX",

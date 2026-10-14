@@ -18,22 +18,22 @@ internal object DieselFillCardMetaFormatter {
             ?.let { String.format(Locale.US, "%.2f gal", it) }
             ?: return ""
 
-        val list = diesel.pricePerGallon?.takeIf { it > 0.0 }
-        val discount = diesel.discountPricePerGallon?.takeIf { it > 0.0 }
+        val list = diesel.pricePerGallon?.takeIf { it.isPositive() }
+        val discount = diesel.discountPricePerGallon?.takeIf { it.isPositive() }
 
         val line = when {
             list != null && discount != null && discount < list ->
-                String.format(Locale.US, withDiscountFormat, gallonsLabel, list, discount)
+                String.format(Locale.US, withDiscountFormat, gallonsLabel, list.thousandths / 1000.0, discount.thousandths / 1000.0)
             list != null ->
-                String.format(Locale.US, listOnlyFormat, gallonsLabel, list)
+                String.format(Locale.US, listOnlyFormat, gallonsLabel, list.thousandths / 1000.0)
             discount != null ->
-                String.format(Locale.US, listOnlyFormat, gallonsLabel, discount)
+                String.format(Locale.US, listOnlyFormat, gallonsLabel, discount.thousandths / 1000.0)
             else -> gallonsLabel
         }
 
         val savedSuffix = diesel.savingsAmount
-            ?.takeIf { it > 0.0 }
-            ?.let { String.format(Locale.US, savedSuffixFormat, formatSavedAmount(it)) }
+            ?.takeIf { it.isPositive() }
+            ?.let { String.format(Locale.US, savedSuffixFormat, formatSavedAmount(it.cents / 100.0)) }
 
         return line + (savedSuffix ?: "")
     }

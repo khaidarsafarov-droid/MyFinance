@@ -66,7 +66,7 @@ internal suspend fun syncLoadsCdcImpl(
 ): SyncLoadsResult {
     val validLoads = incomingLoads.filter { load ->
         load.tripId.isNotBlank() && load.tripId != "T-UNKNOWN" &&
-            (load.pointA.isNotBlank() || load.pointB.isNotBlank()) && load.totalRate > 0
+            (load.pointA.isNotBlank() || load.pointB.isNotBlank()) && load.totalRate.isPositive()
     }
     if (validLoads.isEmpty()) {
         return SyncLoadsResult(0, "", SyncStatus.EMPTY)
@@ -137,4 +137,4 @@ internal suspend fun syncLoadsCdcImpl(
 }
 
 private fun formatLoadSummary(load: Load): String =
-    "${load.tripId} — ${load.pointA} → ${load.pointB}, $${String.format("%,.2f", load.totalRate)}"
+    "${load.tripId} — ${load.pointA} → ${load.pointB}, $${load.totalRate.formatPlain()}"

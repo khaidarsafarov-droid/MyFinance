@@ -90,6 +90,9 @@ object BackupNoteFormatter {
         return isoDate.ifBlank { "-" }
     }
 
+    private fun formatMoney(value: com.truckerload.domain.money.Money): String =
+        com.truckerload.presentation.utils.MoneyFormat.formatCurrency(value)
+
     private fun formatMoney(value: Double): String =
         "$" + String.format(Locale.US, "%,.2f", value)
 

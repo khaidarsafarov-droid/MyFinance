@@ -3,6 +3,7 @@ package com.truckerload.domain.model
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class DeadheadMilesTest {
 
@@ -44,7 +45,7 @@ class DeadheadMilesTest {
         id = "1",
         tripId = "T-1",
         date = "2026-09-28",
-        totalRate = 2500.0,
+        totalRate = Money.fromDollars(2500.0),
         totalMiles = totalMiles,
         pointA = "A",
         pointB = "B",

@@ -1,7 +1,7 @@
 package com.truckerload.domain.model
 
-import com.truckerload.domain.goal.GoalMoneyMath
 import com.truckerload.domain.goal.LoadYieldCalculator
+import com.truckerload.domain.money.Money
 import java.util.Locale
 
 /** Recomputes route, duration, pace and stop counts from stops + rate. */
@@ -18,9 +18,9 @@ fun Load.withRouteMetrics(): Load {
     }
     val duration = LoadYieldCalculator.computeActiveDurationDays(this)
     val loadPace = if (duration > 0.0) {
-        GoalMoneyMath.roundMoney(totalRate / duration)
+        totalRate.dividedBy(kotlin.math.ceil(duration).toInt().coerceAtLeast(1))
     } else {
-        0.0
+        Money.ZERO
     }
     return copy(
         pointA = firstPuCityState,
@@ -51,14 +51,12 @@ fun formatDurationDays(days: Double): String {
     }
 }
 
-fun formatPacePerDay(pace: Double): String {
-    if (pace <= 0.0) return "—"
-    val hasFraction = kotlin.math.abs(pace - pace.toLong()) > 0.009
-    return if (hasFraction) {
-        String.format(Locale.US, "$%,.2f/day", pace)
-    } else {
-        String.format(Locale.US, "$%,.0f/day", pace)
-    }
+fun formatPacePerDay(pace: Money): String {
+    if (pace.cents <= 0L) return "—"
+    val plain = pace.formatPlain()
+    val whole = pace.cents % 100L == 0L
+    val body = if (whole) (pace.cents / 100).toString() else plain
+    return "$$body/day"
 }
 
 /** Дата последнего DEL из стопов (YYYY-MM-DD), без учёта ручного override. */

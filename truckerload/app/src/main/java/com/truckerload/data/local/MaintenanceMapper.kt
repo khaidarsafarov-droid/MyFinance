@@ -2,6 +2,7 @@ package com.truckerload.data.local
 
 import com.truckerload.data.local.entities.MaintenanceArchiveEntity
 import com.truckerload.data.local.entities.MaintenanceTaskEntity
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.domain.model.MaintenanceTask
@@ -45,7 +46,7 @@ fun MaintenanceArchiveEntity.toDomain(): MaintenanceArchiveEntry =
         serviceName = serviceName,
         serviceDate = serviceDate,
         description = description,
-        amount = amount,
+        amount = Money.fromCents(amount),
         photoPath = photoPath,
         ocrText = ocrText,
         createdAt = createdAt,
@@ -57,7 +58,7 @@ fun MaintenanceArchiveEntry.toEntity(): MaintenanceArchiveEntity =
         serviceName = serviceName,
         serviceDate = serviceDate,
         description = description,
-        amount = amount,
+        amount = amount.cents,
         photoPath = photoPath,
         ocrText = ocrText,
         createdAt = createdAt,

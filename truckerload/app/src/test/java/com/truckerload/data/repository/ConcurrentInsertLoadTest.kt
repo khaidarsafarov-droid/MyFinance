@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 /**
  * QUALITY_100 #91 — light concurrent insert stress; BackupService.autoBackupMutex is the
@@ -73,7 +74,7 @@ class ConcurrentInsertLoadTest {
         repo.insertLoad(first, playFeedback = false)
         repo.insertLoad(
             first.copy(
-                totalRate = 2000.0,
+                totalRate = Money.fromDollars(2000.0),
                 stops = listOf(
                     Stop(0, "same", 1, StopType.PU, null, null, "07/22 08:00 EDT", "EDT", null, "Houston, TX", "Houston", "TX", ""),
                 ),
@@ -81,7 +82,7 @@ class ConcurrentInsertLoadTest {
             playFeedback = false,
         )
         val loaded = repo.getLoadById("same")!!
-        assertEquals(2000.0, loaded.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2000.0), loaded.totalRate)
         assertEquals(1, loaded.stops.size)
         assertEquals("Houston", loaded.stops[0].city)
     }
@@ -90,7 +91,7 @@ class ConcurrentInsertLoadTest {
         id = id,
         tripId = "T-$id",
         date = "2026-07-21",
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

@@ -3,6 +3,7 @@ package com.truckerload.shared
 import com.truckerload.contract.PushPlatforms
 import com.truckerload.domain.auth.AuthProvider
 import com.truckerload.domain.goal.GoalMoneyMath
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.platform.PlatformTime
 
 /**
@@ -15,13 +16,11 @@ import com.truckerload.domain.platform.PlatformTime
 object SharedBusinessLogic {
     fun iosPushPlatform(): String = PushPlatforms.IOS
 
-    fun roundMoney(value: Double): Double = GoalMoneyMath.roundMoney(value)
+    fun dailyTargetCents(goalCents: Long, totalGrossCents: Long, daysRemaining: Int): Long =
+        GoalMoneyMath.dailyTarget(Money(goalCents), Money(totalGrossCents), daysRemaining).cents
 
-    fun dailyTarget(goal: Double, totalGross: Double, daysRemaining: Int): Double =
-        GoalMoneyMath.dailyTarget(goal, totalGross, daysRemaining)
-
-    fun expectedGrossByNow(goal: Double, daysActive: Int): Double =
-        GoalMoneyMath.expectedGrossByNow(goal, daysActive)
+    fun expectedGrossByNowCents(goalCents: Long, daysActive: Int): Long =
+        GoalMoneyMath.expectedGrossByNow(Money(goalCents), daysActive).cents
 
     fun epochMillis(): Long = PlatformTime.epochMillis()
 

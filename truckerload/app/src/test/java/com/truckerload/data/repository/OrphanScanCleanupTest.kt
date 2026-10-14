@@ -16,6 +16,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -100,7 +101,7 @@ class OrphanScanCleanupTest {
         id = id,
         tripId = "T-$id",
         date = "2026-07-21",
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

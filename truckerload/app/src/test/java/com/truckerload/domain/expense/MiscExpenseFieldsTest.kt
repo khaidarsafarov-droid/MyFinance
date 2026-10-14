@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class MiscExpenseFieldsTest {
 
@@ -83,7 +84,7 @@ class MiscExpenseExporterTest {
         amount: Double,
     ) = MiscExpense(
         id = id,
-        amount = amount,
+        amount = Money.fromDollars(amount),
         description = description,
         date = date,
         createdAt = 1L,

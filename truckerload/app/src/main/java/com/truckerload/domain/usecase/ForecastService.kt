@@ -1,6 +1,7 @@
 package com.truckerload.domain.usecase
 
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.money.sum
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.utils.shiftWeekNumberAndYear
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,7 @@ class ForecastService(
 
         val avgExpected = summariesWithPaycheck.map { it.totalLoadRate }.average()
         val currentLoads = loadRepository.getLoadsByWeek(currentWeek, currentYear).first()
-        val currentTotal = currentLoads.sumOf { it.totalRate }
+        val currentTotal = currentLoads.map { it.totalRate }.sum().cents / 100.0
 
         val progressPercent = if (avgExpected > 0) (currentTotal / avgExpected).toFloat().coerceIn(0f, 1.5f) else 0f
         val deltaAmount = currentTotal - avgExpected

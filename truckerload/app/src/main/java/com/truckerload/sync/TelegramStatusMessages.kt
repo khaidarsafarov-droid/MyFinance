@@ -3,6 +3,7 @@ package com.truckerload.sync
 import android.content.Context
 import android.util.Log
 import com.truckerload.R
+import com.truckerload.domain.money.sum
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
@@ -23,7 +24,7 @@ object TelegramStatusMessages {
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
         val weekLoads = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val weekCount = weekLoads.size
-        val weekIncome = weekLoads.sumOf { it.totalRate }
+        val weekIncome = weekLoads.map { it.totalRate }.sum().cents / 100.0
         val weekMiles = weekLoads.sumOf { it.drivenMiles }
         Log.d(TAG, "/stats total=$total week=$weekCount income=$weekIncome miles=$weekMiles")
         return context.getString(

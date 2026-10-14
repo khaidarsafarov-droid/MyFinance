@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.model.PaycheckJournalFilter
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.paycheck.PaycheckSalaryFields
 import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.PaycheckSourceFiles
@@ -82,7 +84,7 @@ class PaycheckJournalViewModel @Inject constructor(
             showAllWeeks = showAll,
             searchQuery = query,
             entries = visible,
-            total = scoped.sumOf { it.netAmount },
+            total = scoped.map { it.netAmount }.sum().cents / 100.0,
         )
     }
 
@@ -196,7 +198,7 @@ class PaycheckJournalViewModel @Inject constructor(
         ) {
             paycheckRepository.updatePaycheck(
                 current.paycheck.copy(
-                    netAmount = net,
+                    netAmount = Money.fromDollars(net),
                     sourceFileName = current.sourceFileName,
                     sourceFilePath = current.sourceFilePath,
                 ),

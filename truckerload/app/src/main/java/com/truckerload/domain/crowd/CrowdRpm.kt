@@ -47,7 +47,7 @@ object CrowdRpmMath {
     }
 
     fun crowdRpmsExcludingMe(reports: List<CrowdRateReport>): List<CrowdRateReport> =
-        reports.filter { it.source != CrowdRateSource.ME && it.rpm > 0.0 }
+        reports.filter { it.source != CrowdRateSource.ME && it.rpm.isPositive() }
 
     fun matchingLaneReports(
         myLanes: Set<Pair<String, String>>,
@@ -67,9 +67,9 @@ object CrowdRpmMath {
         val similar = matchingLaneReports(myLanes, network)
         val usedSimilar = similar.size >= MIN_SIMILAR_SAMPLES
         val sampleRpms = if (usedSimilar) {
-            similar.map { it.rpm }
+            similar.map { it.rpm.cents / 100.0 }
         } else {
-            (network.map { it.rpm } + extraAnonymousRpms.filter { it > 0.0 })
+            (network.map { it.rpm.cents / 100.0 } + extraAnonymousRpms.filter { it > 0.0 })
         }
         return CrowdRpmSnapshot(
             myRpm = myRpm,

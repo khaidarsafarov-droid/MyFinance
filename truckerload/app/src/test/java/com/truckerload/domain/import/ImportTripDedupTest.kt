@@ -3,6 +3,7 @@ package com.truckerload.domain.import
 import com.truckerload.domain.model.Load
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class ImportTripDedupTest {
 
@@ -15,7 +16,7 @@ class ImportTripDedupTest {
         val result = ImportTripDedup.keepLatestByTripId(listOf(older, other, newer))
 
         assertEquals(listOf("T-XYZ", "T-ABC"), result.map { it.tripId })
-        assertEquals(2500.0, result.first { it.tripId == "T-ABC" }.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2500.0), result.first { it.tripId == "T-ABC" }.totalRate)
     }
 
     @Test
@@ -24,14 +25,14 @@ class ImportTripDedupTest {
         val newer = sampleLoad("T-ABC", rate = 2.0)
         val result = ImportTripDedup.keepLatestByTripId(listOf(older, newer))
         assertEquals(1, result.size)
-        assertEquals(2.0, result.single().totalRate, 0.0)
+        assertEquals(Money.fromDollars(2.0), result.single().totalRate)
     }
 
     private fun sampleLoad(tripId: String, rate: Double) = Load(
         id = tripId,
         tripId = tripId,
         date = "2026-07-01",
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 /**
  * QUALITY_100 #62 — TaxTrackerViewModel.setYear recalculates from year-scoped repos.
@@ -134,8 +135,8 @@ class TaxTrackerViewModelYearSwitchTest {
         weekStartDate = "$year-01-01",
         weekEndDate = "$year-01-07",
         driverName = null,
-        grossAmount = net,
-        netAmount = net,
+        grossAmount = net?.let(Money::fromDollars),
+        netAmount = Money.fromDollars(net),
         rawExtractedText = "",
         sourceFileName = null,
         addedAt = 1L,
@@ -148,7 +149,7 @@ class TaxTrackerViewModelYearSwitchTest {
         weekLabel = "",
         weekStartDate = "$year-01-01",
         weekEndDate = "$year-01-07",
-        totalAmount = amount,
+        totalAmount = Money.fromDollars(amount),
         gallons = null,
         pricePerGallon = null,
         location = null,
@@ -161,7 +162,7 @@ class TaxTrackerViewModelYearSwitchTest {
         id = date,
         tripId = date,
         date = date,
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

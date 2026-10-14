@@ -1,26 +1,44 @@
 package com.truckerload.domain.goal
 
+import com.truckerload.domain.money.Money
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class GoalMoneyMathTest {
     @Test
-    fun `roundMoney keeps two decimal places`() {
-        assertEquals(12.34, GoalMoneyMath.roundMoney(12.344))
-        assertEquals(12.35, GoalMoneyMath.roundMoney(12.346))
+    fun dailyTargetSplitsRemainingGoalAcrossRemainingDays() {
+        assertEquals(
+            Money.parse("100.00"),
+            GoalMoneyMath.dailyTarget(
+                goal = Money.parse("700.00"),
+                totalGross = Money.parse("200.00"),
+                daysRemaining = 5,
+            ),
+        )
+        assertEquals(
+            Money.ZERO,
+            GoalMoneyMath.dailyTarget(
+                goal = Money.parse("500.00"),
+                totalGross = Money.parse("500.00"),
+                daysRemaining = 2,
+            ),
+        )
+        assertEquals(
+            Money.ZERO,
+            GoalMoneyMath.dailyTarget(goal = Money.ZERO, totalGross = Money.ZERO, daysRemaining = 3),
+        )
     }
 
     @Test
-    fun `dailyTarget splits remaining goal across remaining days`() {
-        assertEquals(100.0, GoalMoneyMath.dailyTarget(goal = 700.0, totalGross = 200.0, daysRemaining = 5))
-        assertEquals(0.0, GoalMoneyMath.dailyTarget(goal = 500.0, totalGross = 500.0, daysRemaining = 2))
-        assertEquals(0.0, GoalMoneyMath.dailyTarget(goal = 0.0, totalGross = 0.0, daysRemaining = 3))
-    }
-
-    @Test
-    fun `expectedGrossByNow is linear across a seven day week`() {
-        assertEquals(100.0, GoalMoneyMath.expectedGrossByNow(goal = 700.0, daysActive = 1))
-        assertEquals(700.0, GoalMoneyMath.expectedGrossByNow(goal = 700.0, daysActive = 7))
-        assertEquals(0.0, GoalMoneyMath.expectedGrossByNow(goal = 700.0, daysActive = 0))
+    fun expectedGrossByNowIsLinearAcrossASevenDayWeek() {
+        assertEquals(
+            Money.parse("100.00"),
+            GoalMoneyMath.expectedGrossByNow(goal = Money.parse("700.00"), daysActive = 1),
+        )
+        assertEquals(
+            Money.parse("700.00"),
+            GoalMoneyMath.expectedGrossByNow(goal = Money.parse("700.00"), daysActive = 7),
+        )
+        assertEquals(Money.ZERO, GoalMoneyMath.expectedGrossByNow(goal = Money.parse("700.00"), daysActive = 0))
     }
 }

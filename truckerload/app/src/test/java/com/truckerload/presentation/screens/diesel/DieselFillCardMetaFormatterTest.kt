@@ -4,6 +4,8 @@ import com.truckerload.domain.model.Diesel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class DieselFillCardMetaFormatterTest {
 
@@ -18,10 +20,10 @@ class DieselFillCardMetaFormatterTest {
         weekLabel = "W35",
         weekStartDate = "2026-08-23",
         weekEndDate = "2026-08-29",
-        totalAmount = 2300.0,
+        totalAmount = Money.fromDollars(2300.0),
         gallons = gallons,
-        pricePerGallon = pricePerGallon,
-        discountPricePerGallon = discountPricePerGallon,
+        pricePerGallon = pricePerGallon?.let(UnitPrice::fromDollars),
+        discountPricePerGallon = discountPricePerGallon?.let(UnitPrice::fromDollars),
         location = "Pilot",
         rawExtractedText = "",
         sourceFileName = null,

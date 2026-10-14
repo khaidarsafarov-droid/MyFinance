@@ -3,6 +3,7 @@ package com.truckerload.domain.import.parser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class RelayMessageParserTest {
 
@@ -37,6 +38,6 @@ class RelayMessageParserTest {
     val loads = parser.parse(sample)
     assertTrue(loads.size >= 2)
     assertEquals("T-116KYL6KW", loads[0].tripId)
-    assertEquals(2945.56, loads[0].totalRate, 0.01)
+    assertEquals(Money.fromDollars(2945.56), loads[0].totalRate)
   }
 }

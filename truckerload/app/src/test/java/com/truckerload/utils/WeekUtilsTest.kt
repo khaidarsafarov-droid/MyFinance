@@ -9,6 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class WeekUtilsTest {
 
@@ -188,7 +189,7 @@ class WeekUtilsTest {
             id = "id",
             tripId = "T-TEST",
             date = date,
-            totalRate = 1000.0,
+            totalRate = Money.fromDollars(1000.0),
             totalMiles = 100.0,
             pointA = "A",
             pointB = "B",

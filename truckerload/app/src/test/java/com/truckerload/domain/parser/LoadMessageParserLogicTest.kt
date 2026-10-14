@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 /**
  * Documents the intended Relay parse logic from RELAY_PARSE_EXAMPLES / AGENTS.md.
@@ -23,7 +24,7 @@ class LoadMessageParserLogicTest {
         val load = LoadMessageParser.parseOne(message)
         assertNotNull(load)
         assertEquals("T-116KYL6KW", load!!.tripId)
-        assertEquals(2500.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), load.totalRate)
         assertEquals(850.0, load.totalMiles, 0.01)
         assertEquals("Garner, NC", load.pointA)
         assertEquals("Perrysburg, OH", load.pointB)
@@ -83,7 +84,7 @@ class LoadMessageParserLogicTest {
         assertEquals("TOL3", load.stops[1].facilityCode)
         assertEquals("12533", load.stops[0].zip)
         assertEquals("43551", load.stops[1].zip)
-        assertTrue(load.totalRate > 2900)
+        assertTrue(load.totalRate > Money.fromDollars(2900.0))
     }
 
     @Test

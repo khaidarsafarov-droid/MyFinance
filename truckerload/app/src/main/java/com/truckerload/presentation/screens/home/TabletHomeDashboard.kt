@@ -67,7 +67,7 @@ internal fun TabletHomeDashboard(
     }
     val wide = useWideTabletSidebar()
     val goalProgress = if (weeklyGoal > 0) {
-        (totals.totalRate / weeklyGoal).toFloat().coerceIn(0f, 1f)
+        (totals.totalRate.cents / 100.0 / weeklyGoal).toFloat().coerceIn(0f, 1f)
     } else {
         0f
     }
@@ -171,7 +171,7 @@ internal fun TabletHomeDashboard(
                     SoftGoalCard(
                         modifier = Modifier.weight(1f),
                         weeklyGoal = weeklyGoal,
-                        currentGross = totals.totalRate,
+                        currentGross = totals.totalRate.cents / 100.0,
                         progress = goalProgress,
                         onOpenWeeklyGoal = onOpenWeeklyGoal,
                     )
@@ -189,7 +189,7 @@ internal fun TabletHomeDashboard(
                     SoftGoalCard(
                         modifier = Modifier.fillMaxWidth(),
                         weeklyGoal = weeklyGoal,
-                        currentGross = totals.totalRate,
+                        currentGross = totals.totalRate.cents / 100.0,
                         progress = goalProgress,
                         onOpenWeeklyGoal = onOpenWeeklyGoal,
                     )

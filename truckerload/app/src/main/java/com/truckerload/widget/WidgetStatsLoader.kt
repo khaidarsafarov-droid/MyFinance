@@ -11,6 +11,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.domain.goal.WeekYieldSnapshot
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
@@ -46,42 +47,43 @@ object WidgetStatsLoader {
         val weekLoadMask = WidgetDayProjection.maskFromDayTotals(dayTotals)
         val weekSummary = weekRepository.getWeekSummaryOnce(weekNumber, year)
         val sqlAgg = db.loadDao().watchWeekYieldAgg(weekNumber, year).first()
-        val sqlYield = WeekYieldSnapshot(sqlAgg.totalGross, sqlAgg.totalActiveDays)
+        val sqlYield = WeekYieldSnapshot(Money.fromCents(sqlAgg.totalGross), sqlAgg.totalActiveDays)
         val profitGoal = WeeklyProfitGoalStore(appContext).getGoal().takeIf { it > 0 }
             ?: DEFAULT_WEEKLY_GROSS_GOAL
         val goalProgress = WeeklyGoalCalculator.calculate(
-            profitGoal,
+            Money.fromDollars(profitGoal),
             weekLoads,
             weekNumber,
             year,
             sqlYield,
         )
+        val grossDollars = goalProgress.currentGross.cents / 100.0
         val rpmTarget = RpmThresholdsStore(appContext).thresholds.value.targetProfit
         val statsLine = appContext.getString(
             R.string.home_stats_header,
             goalProgress.loadsCount,
-            goalProgress.currentGross,
+            grossDollars,
             goalProgress.totalMiles,
             if (goalProgress.totalMiles > 0) {
-                String.format(Locale.US, "%.2f", goalProgress.currentGross / goalProgress.totalMiles)
+                String.format(Locale.US, "%.2f", grossDollars / goalProgress.totalMiles)
             } else {
                 "0.00"
             }
         )
         WidgetStats(
             loadsCount = goalProgress.loadsCount,
-            avgCpm = if (goalProgress.totalMiles > 0) goalProgress.currentGross / goalProgress.totalMiles else 0.0,
+            avgCpm = if (goalProgress.totalMiles > 0) grossDollars / goalProgress.totalMiles else 0.0,
             totalMiles = goalProgress.totalMiles,
-            totalLoadRate = goalProgress.currentGross,
+            totalLoadRate = grossDollars,
             netProfit = weekSummary.netProfit,
             weekLabel = weekLabel,
             statsLine = statsLine,
             cpmTarget = rpmTarget,
             weeklyProfitGoal = profitGoal,
             goalProgressPercent = goalProgress.progressPercent,
-            goalRemainingAmount = goalProgress.remainingAmount,
-            goalDailyNeeded = goalProgress.dailyTargetNeeded,
-            goalActualDailyYield = goalProgress.actualDailyYield,
+            goalRemainingAmount = goalProgress.remainingAmount.cents / 100.0,
+            goalDailyNeeded = goalProgress.dailyTargetNeeded.cents / 100.0,
+            goalActualDailyYield = goalProgress.actualDailyYield.cents / 100.0,
             goalDaysRemaining = goalProgress.daysRemainingInWeek,
             goalPaceStatus = goalProgress.paceStatus.name,
             weekLoadMask = weekLoadMask,

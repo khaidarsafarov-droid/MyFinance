@@ -1,11 +1,12 @@
 package com.truckerload.domain.model
 
-import com.truckerload.presentation.components.parseDisputeAmount
+import com.truckerload.presentation.components.parseDisputeMoney
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class DisputePayoutTest {
 
@@ -14,44 +15,39 @@ class DisputePayoutTest {
         val load = sample(totalRate = 2000.0, amount = 250.0, apply = true)
         val completed = load.copy(disputeCompleted = true)
         val settled = DisputePayout.settleFrom(load, completed)
-        assertEquals(2250.0, settled.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2250.0), settled.totalRate)
         assertTrue(settled.disputeAmountApplied)
 
-        val again = DisputePayout.settleFrom(settled, settled.copy(totalRate = 2250.0))
-        assertEquals(2250.0, again.totalRate, 0.0)
+        val again = DisputePayout.settleFrom(settled, settled.copy(totalRate = Money.fromDollars(2250.0)))
+        assertEquals(Money.fromDollars(2250.0), again.totalRate)
     }
 
     @Test
     fun completeWithoutCheckbox_doesNotAdd() {
         val load = sample(totalRate = 2000.0, amount = 250.0, apply = false)
         val settled = DisputePayout.settleFrom(load, load.copy(disputeCompleted = true))
-        assertEquals(2000.0, settled.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2000.0), settled.totalRate)
         assertFalse(settled.disputeAmountApplied)
     }
 
     @Test
     fun completeWithZeroOrNullAmount_doesNotAdd() {
         val zero = sample(totalRate = 2000.0, amount = 0.0, apply = true)
-        assertEquals(
-            2000.0,
-            DisputePayout.settleFrom(zero, zero.copy(disputeCompleted = true)).totalRate,
-            0.0,
-        )
+        assertEquals(Money.fromDollars(2000.0), DisputePayout.settleFrom(zero, zero.copy(disputeCompleted = true)).totalRate)
         val missing = sample(totalRate = 2000.0, amount = null, apply = true)
         assertEquals(
-            2000.0,
+            Money.fromDollars(2000.0),
             DisputePayout.settleFrom(missing, missing.copy(disputeCompleted = true)).totalRate,
-            0.0,
         )
     }
 
     @Test
     fun uncompletePath_clearsAppliedFlag() {
         val load = sample(totalRate = 2000.0, amount = 250.0, apply = true)
-            .copy(disputeCompleted = true, disputeAmountApplied = true, totalRate = 2250.0)
+            .copy(disputeCompleted = true, disputeAmountApplied = true, totalRate = Money.fromDollars(2250.0))
         val cleared = DisputePayout.settleFrom(load, load.copy(disputeCompleted = false))
         assertFalse(cleared.disputeAmountApplied)
-        assertEquals(2000.0, cleared.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2000.0), cleared.totalRate)
     }
 
     @Test
@@ -59,7 +55,7 @@ class DisputePayoutTest {
         val load = sample(totalRate = 2000.0, amount = 250.0, apply = true)
         val cleared = DisputePayout.settleFrom(load, load.copy(disputeCompleted = false))
         assertFalse(cleared.disputeAmountApplied)
-        assertEquals(2000.0, cleared.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2000.0), cleared.totalRate)
     }
 
     @Test
@@ -71,7 +67,7 @@ class DisputePayoutTest {
         val cleared = DisputePayout.settleFrom(settled, merged)
         assertFalse(cleared.disputeCompleted)
         assertFalse(cleared.disputeAmountApplied)
-        assertEquals(2000.0, cleared.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2000.0), cleared.totalRate)
     }
 
     @Test
@@ -83,15 +79,15 @@ class DisputePayoutTest {
         val next = DisputePayout.settleFrom(settled, merged)
         assertTrue(next.disputeCompleted)
         assertTrue(next.disputeAmountApplied)
-        assertEquals(2250.0, next.totalRate, 0.0)
+        assertEquals(Money.fromDollars(2250.0), next.totalRate)
     }
 
     @Test
-    fun parseDisputeAmount_acceptsCommaAndBlank() {
-        assertEquals(250.0, parseDisputeAmount("250")!!, 0.001)
-        assertEquals(250.5, parseDisputeAmount("250,5")!!, 0.001)
-        assertNull(parseDisputeAmount(""))
-        assertNull(parseDisputeAmount("."))
+    fun parseDisputeMoney_acceptsCommaAndBlank() {
+        assertEquals(Money.fromDollars(250.0), parseDisputeMoney("250")!!)
+        assertEquals(Money.fromDollars(250.5), parseDisputeMoney("250,5")!!)
+        assertNull(parseDisputeMoney(""))
+        assertNull(parseDisputeMoney("."))
     }
 
     private fun sample(
@@ -102,7 +98,7 @@ class DisputePayoutTest {
         id = "1",
         tripId = "T-1",
         date = "2026-08-23",
-        totalRate = totalRate,
+        totalRate = Money.fromDollars(totalRate),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",
@@ -116,7 +112,7 @@ class DisputePayoutTest {
         isDispute = true,
         disputeResponseDate = "2026-08-27",
         disputeCompleted = false,
-        disputeAmount = amount,
+        disputeAmount = amount?.let(Money::fromDollars),
         disputeApplyToLoad = apply,
     )
 }

@@ -6,6 +6,7 @@ import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadComparisonTest {
 
@@ -21,7 +22,7 @@ class LoadComparisonTest {
     @Test
     fun `rate change only is minor`() {
         val old = sampleLoad(totalRate = 2500.0)
-        val newLoad = old.copy(totalRate = 2600.0)
+        val newLoad = old.copy(totalRate = Money.fromDollars(2600.0))
         val comparison = compareLoads(old, newLoad)
         assertFalse(comparison.isIdentical())
         assertTrue(comparison.hasMinorChanges())
@@ -43,7 +44,7 @@ class LoadComparisonTest {
     @Test
     fun `small rate change within threshold is identical`() {
         val old = sampleLoad(totalRate = 1000.0)
-        val newLoad = old.copy(totalRate = 1005.0)
+        val newLoad = old.copy(totalRate = Money.fromDollars(1005.0))
         val comparison = compareLoads(old, newLoad, priceThresholdPercent = 1.0)
         assertTrue(comparison.isIdentical())
     }
@@ -51,7 +52,7 @@ class LoadComparisonTest {
     @Test
     fun `rate change above parser threshold is not identical`() {
         val old = sampleLoad(totalRate = 1000.0)
-        val newLoad = old.copy(totalRate = 1020.0) // 2% > 1% threshold
+        val newLoad = old.copy(totalRate = Money.fromDollars(1020.0)) // 2% > 1% threshold
         val comparison = compareLoads(old, newLoad, priceThresholdPercent = 1.0)
         assertFalse(comparison.isIdentical())
         assertTrue(comparison.hasMinorChanges())
@@ -59,9 +60,9 @@ class LoadComparisonTest {
 
     @Test
     fun `LoadChangeDetector significant uses threshold percent`() {
-        assertFalse(LoadChangeDetector.isRateChangedSignificant(1000.0, 1005.0, 1.0))
-        assertTrue(LoadChangeDetector.isRateChangedSignificant(1000.0, 1020.0, 1.0))
-        assertTrue(LoadChangeDetector.isRateChangedSignificant(0.0, 100.0, 1.0))
+        assertFalse(LoadChangeDetector.isRateChangedSignificant(Money.fromDollars(1000.0), Money.fromDollars(1005.0), 1.0))
+        assertTrue(LoadChangeDetector.isRateChangedSignificant(Money.fromDollars(1000.0), Money.fromDollars(1020.0), 1.0))
+        assertTrue(LoadChangeDetector.isRateChangedSignificant(Money.fromDollars(0.0), Money.fromDollars(100.0), 1.0))
     }
 
     private fun sampleLoad(
@@ -71,7 +72,7 @@ class LoadComparisonTest {
         id = "load-1",
         tripId = "T-TEST123",
         date = "2026-06-10",
-        totalRate = totalRate,
+        totalRate = Money.fromDollars(totalRate),
         totalMiles = totalMiles,
         pointA = "Hopewell Junction, NY",
         pointB = "Garner, NC",

@@ -15,10 +15,13 @@ data class DieselEntity(
     val weekLabel: String,
     val weekStartDate: String,
     val weekEndDate: String,
-    val totalAmount: Double,
+    /** Paid amount in cents. */
+    val totalAmount: Long,
     val gallons: Double?,
-    val pricePerGallon: Double?,
-    val discountPricePerGallon: Double? = null,
+    /** List price in thousandths of a dollar per gallon. */
+    val pricePerGallon: Long?,
+    /** Discounted price in thousandths of a dollar per gallon. */
+    val discountPricePerGallon: Long? = null,
     val location: String?,
     val rawExtractedText: String,
     val sourceFileName: String?,

@@ -1,5 +1,7 @@
 package com.truckerload.domain.goal
 
+import com.truckerload.domain.money.Money
+
 enum class PaceStatus {
     GOAL_MET,
     AHEAD,
@@ -8,20 +10,20 @@ enum class PaceStatus {
 }
 
 data class WeeklyGoalProgress(
-    val targetAmount: Double,
-    val currentGross: Double,
+    val targetAmount: Money,
+    val currentGross: Money,
     val progressPercent: Float,
-    val remainingAmount: Double,
+    val remainingAmount: Money,
     /** Calendar days Sun…today (for progress ring marker). */
     val daysActiveCalendar: Int,
     val daysRemainingInWeek: Int,
     /** Sum of PU→DEL durations across week loads (fractional days). */
     val totalActiveDays: Double,
     /** totalGross / totalActiveDays — fact $/day in transit. */
-    val actualDailyYield: Double,
+    val actualDailyYield: Money,
     /** (goal − gross) / calendar days remaining. */
-    val dailyTargetNeeded: Double,
-    val expectedGrossByNow: Double,
+    val dailyTargetNeeded: Money,
+    val expectedGrossByNow: Money,
     val paceStatus: PaceStatus,
     val weekLabel: String,
     val weekNumber: Int,

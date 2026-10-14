@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class HomeRefreshPolicyTest {
 
@@ -59,7 +60,7 @@ class HomeRefreshPolicyTest {
         id = id,
         tripId = "T-$id",
         date = "2026-08-23",
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 400.0,
         pointA = "A",
         pointB = "B",

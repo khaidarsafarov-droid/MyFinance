@@ -102,7 +102,7 @@ fun AddDieselScreen(
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
-            uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
+            uiState.savings?.takeIf { it.isPositive() }?.let { saved ->
                 Text(
                     stringResource(R.string.add_diesel_summary_saved, MoneyFormat.formatCurrency(saved)),
                     style = MaterialTheme.typography.bodyMedium,

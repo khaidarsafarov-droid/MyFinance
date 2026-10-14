@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 /**
  * QUALITY_100 #29 — Relay paste fixture via MessageParseService / AiRepository.
@@ -25,7 +26,7 @@ class RelayFixtureParseServiceTest {
         assertTrue(result.isSuccess)
         val load = result.getOrThrow()
         assertEquals("T-116KYL6KW", load.tripId)
-        assertEquals(2500.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), load.totalRate)
         assertEquals(850.0, load.totalMiles, 0.01)
     }
 
@@ -35,7 +36,7 @@ class RelayFixtureParseServiceTest {
         assertTrue(result.isSuccess)
         val load = result.getOrThrow()
         assertEquals("T-116KYL6KW", load.tripId)
-        assertTrue(load.totalRate > 0)
+        assertTrue(load.totalRate.isPositive())
     }
 
     @Test

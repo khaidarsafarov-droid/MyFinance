@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -66,7 +67,7 @@ class ReviveDeletedLoadTest {
         id = tripId,
         tripId = tripId,
         date = "2026-09-01",
-        totalRate = 2500.0,
+        totalRate = Money.fromDollars(2500.0),
         totalMiles = 850.0,
         pointA = "Garner, NC",
         pointB = "Dallas, TX",

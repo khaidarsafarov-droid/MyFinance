@@ -5,6 +5,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class FlexibleLoadParserTest {
 
@@ -19,7 +20,7 @@ class FlexibleLoadParserTest {
 
         val load = FlexibleLoadParser.parseOne(text, nowMillis = 1_776_441_600_000L)
         assertNotNull(load)
-        assertEquals(2500.0, load!!.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), load!!.totalRate)
         assertEquals(850.0, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("Garner") || load.rawMessage.contains("Garner"))
         assertTrue(load.tripId.isNotBlank())
@@ -36,7 +37,7 @@ class FlexibleLoadParserTest {
 
         val load = FlexibleLoadParser.parseOne(text, nowMillis = 1_776_441_600_000L)
         assertNotNull(load)
-        assertEquals(1800.0, load!!.totalRate, 0.01)
+        assertEquals(Money.fromDollars(1800.0), load!!.totalRate)
         assertEquals(620.0, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("Houston"))
         assertTrue(load.pointB.contains("Atlanta"))

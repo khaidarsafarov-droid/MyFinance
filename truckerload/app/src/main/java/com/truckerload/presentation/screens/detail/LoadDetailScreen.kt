@@ -235,7 +235,7 @@ fun LoadDetailScreen(
                     ) {
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_total_rate),
-                            value = "$${String.format(Locale.US, "%.2f", l.totalRate)}",
+                            value = "$${l.totalRate.formatPlain()}",
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                             hero = true,
                         )
@@ -268,7 +268,7 @@ fun LoadDetailScreen(
                         )
                         StatBox(
                             title = stringResource(R.string.load_detail_stat_pace),
-                            value = if (l.pace > 0) formatPacePerDay(l.pace) else "—",
+                            value = if (l.pace.isPositive()) formatPacePerDay(l.pace) else "—",
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                         )
                     }

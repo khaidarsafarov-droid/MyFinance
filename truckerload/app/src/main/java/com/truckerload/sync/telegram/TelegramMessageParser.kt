@@ -159,7 +159,7 @@ class TelegramMessageParser(
                             R.string.sync_restore_manual_added,
                             load.tripId,
                             load.totalMiles,
-                            String.format(Locale.US, "%,.2f", load.totalRate),
+                            String.format(Locale.US, "%,.2f", load.totalRate.cents / 100.0),
                         ),
                     )
                 }

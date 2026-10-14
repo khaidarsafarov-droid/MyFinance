@@ -19,5 +19,6 @@ data class PenaltyEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val loadId: String,
     val description: String,
-    val amount: Double
+    /** Penalty amount in cents. */
+    val amount: Long
 )

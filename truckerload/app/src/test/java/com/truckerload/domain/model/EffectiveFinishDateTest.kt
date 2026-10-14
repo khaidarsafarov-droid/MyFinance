@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class EffectiveFinishDateTest {
 
@@ -127,7 +128,7 @@ class EffectiveFinishDateTest {
         id = "id-1",
         tripId = "T-1",
         date = date,
-        totalRate = totalRate,
+        totalRate = Money.fromDollars(totalRate),
         totalMiles = 100.0,
         pointA = "A",
         pointB = "B",

@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.kotlin.mock
+import com.truckerload.domain.money.UnitPrice
 
 class DieselSpreadsheetParserTest {
 
@@ -121,7 +122,7 @@ class DieselSpreadsheetParserTest {
         assertEquals("2026-09-27", saved.first().weekStartDate)
         assertEquals("2026-10-03", saved.first().weekEndDate)
         assertEquals("2026-10-04", formatIsoDate(saved.last().addedAt))
-        assertEquals(5.907, saved.first().discountPricePerGallon!!, 0.001)
+        assertEquals(UnitPrice.fromDollars(5.907), saved.first().discountPricePerGallon!!)
     }
 
     private fun primexRow(

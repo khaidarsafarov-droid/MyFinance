@@ -1,10 +1,12 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.money.Money
+
 data class Load(
     val id: String,
     val tripId: String,
     val date: String,
-    val totalRate: Double,
+    val totalRate: Money,
     val totalMiles: Double,
     val pointA: String,
     val pointB: String,
@@ -19,13 +21,13 @@ data class Load(
     val firstPuCityState: String = "",
     val lastDelCityState: String = "",
     val durationDays: Double = 0.0,
-    val pace: Double = 0.0,
+    val pace: Money = Money.ZERO,
     val stopCount: Int = 0,
     val isDispute: Boolean = false,
     val disputeResponseDate: String? = null,
     val disputeCompleted: Boolean = false,
     /** Claimed payout for the dispute, e.g. 250.0. */
-    val disputeAmount: Double? = null,
+    val disputeAmount: Money? = null,
     /** If true, [disputeAmount] is added to [totalRate] when the dispute is completed. */
     val disputeApplyToLoad: Boolean = false,
     /** True after [disputeAmount] has already been folded into [totalRate]. */

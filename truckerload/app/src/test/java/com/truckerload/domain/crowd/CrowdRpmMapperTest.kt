@@ -8,6 +8,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import com.truckerload.domain.money.Money
 
 class CrowdRpmMapperTest {
 
@@ -93,7 +94,7 @@ class CrowdRpmMapperTest {
         id = id,
         tripId = tripId,
         date = "2026-07-28",
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = miles,
         pointA = pointA,
         pointB = pointB,

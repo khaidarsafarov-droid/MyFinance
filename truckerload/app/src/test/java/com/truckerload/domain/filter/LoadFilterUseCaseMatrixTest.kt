@@ -7,6 +7,7 @@ import com.truckerload.utils.getYesterdayDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadFilterUseCaseMatrixTest {
 
@@ -23,7 +24,7 @@ class LoadFilterUseCaseMatrixTest {
         id = id,
         tripId = tripId,
         date = date,
-        totalRate = 100.0,
+        totalRate = Money.fromDollars(100.0),
         totalMiles = 50.0,
         pointA = "Garner, NC",
         pointB = "Dallas, TX",

@@ -4,6 +4,7 @@ import android.app.Application
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.sum
 import java.text.DateFormatSymbols
 import java.util.Locale
 
@@ -45,7 +46,7 @@ fun groupedLoadsByYearMonth(loads: List<Load>): List<YearSection> {
         YearSection(
             year,
             yearLoads.size,
-            yearLoads.sumOf { it.totalRate },
+            yearLoads.map { it.totalRate }.sum().cents / 100.0,
             yearLoads.sumOf { it.drivenMiles },
             monthSections,
         )

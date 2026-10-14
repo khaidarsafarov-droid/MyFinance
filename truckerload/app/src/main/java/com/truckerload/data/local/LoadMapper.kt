@@ -3,6 +3,7 @@ package com.truckerload.data.local
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.PenaltyEntity
 import com.truckerload.data.local.entities.StopEntity
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Penalty
 import com.truckerload.domain.model.Stop
@@ -18,8 +19,8 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
         id = id,
         tripId = tripId,
         date = date,
-        totalRate = totalRate,
-        totalMiles = ParseUtils.sanitizeLoadedMiles(totalMiles, totalRate),
+        totalRate = Money.fromCents(totalRate),
+        totalMiles = ParseUtils.sanitizeLoadedMiles(totalMiles, Money.fromCents(totalRate)),
         deadheadMiles = com.truckerload.domain.model.DeadheadMiles.normalize(deadheadMiles),
         pointA = pointA,
         pointB = pointB,
@@ -34,12 +35,12 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
         firstPuCityState = firstPuCityState,
         lastDelCityState = lastDelCityState,
         durationDays = durationDays,
-        pace = pace,
+        pace = Money.fromCents(pace),
         stopCount = stopCount,
         isDispute = isDispute,
         disputeResponseDate = disputeResponseDate,
         disputeCompleted = disputeCompleted,
-        disputeAmount = disputeAmount,
+        disputeAmount = disputeAmount?.let(Money::fromCents),
         disputeApplyToLoad = disputeApplyToLoad,
         disputeAmountApplied = disputeAmountApplied,
         actualFinishDate = actualFinishDate,
@@ -55,7 +56,7 @@ fun Load.toEntity(): LoadEntity {
         id = metrics.id,
         tripId = metrics.tripId,
         date = metrics.date,
-        totalRate = metrics.totalRate,
+        totalRate = metrics.totalRate.cents,
         totalMiles = miles,
         deadheadMiles = com.truckerload.domain.model.DeadheadMiles.normalize(metrics.deadheadMiles),
         pointA = metrics.pointA,
@@ -74,12 +75,12 @@ fun Load.toEntity(): LoadEntity {
         firstPuCityState = metrics.firstPuCityState,
         lastDelCityState = metrics.lastDelCityState,
         durationDays = metrics.durationDays,
-        pace = metrics.pace,
+        pace = metrics.pace.cents,
         stopCount = metrics.stopCount,
         isDispute = metrics.isDispute,
         disputeResponseDate = metrics.disputeResponseDate,
         disputeCompleted = metrics.disputeCompleted,
-        disputeAmount = metrics.disputeAmount,
+        disputeAmount = metrics.disputeAmount?.cents,
         disputeApplyToLoad = metrics.disputeApplyToLoad,
         disputeAmountApplied = metrics.disputeAmountApplied,
         actualFinishDate = metrics.actualFinishDate,
@@ -122,7 +123,7 @@ fun Stop.toEntity(loadId: String): StopEntity =
     )
 
 fun PenaltyEntity.toDomain(): Penalty =
-    Penalty(id = id, loadId = loadId, description = description, amount = amount)
+    Penalty(id = id, loadId = loadId, description = description, amount = Money.fromCents(amount))
 
 fun Penalty.toEntity(loadId: String): PenaltyEntity =
-    PenaltyEntity(id = id, loadId = loadId, description = description, amount = amount)
+    PenaltyEntity(id = id, loadId = loadId, description = description, amount = amount.cents)

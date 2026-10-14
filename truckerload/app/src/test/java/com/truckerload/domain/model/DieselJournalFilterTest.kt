@@ -9,6 +9,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
 import java.util.Locale
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class DieselJournalFilterTest {
 
@@ -77,10 +79,10 @@ class DieselJournalFilterTest {
         weekLabel = "W$week",
         weekStartDate = "2026-01-01",
         weekEndDate = "2026-01-07",
-        totalAmount = 100.0,
+        totalAmount = Money.fromDollars(100.0),
         gallons = 20.0,
-        pricePerGallon = 5.0,
-        discountPricePerGallon = 4.0,
+        pricePerGallon = UnitPrice.fromDollars(5.0),
+        discountPricePerGallon = UnitPrice.fromDollars(4.0),
         location = "Pilot",
         rawExtractedText = "",
         sourceFileName = sourceFileName,

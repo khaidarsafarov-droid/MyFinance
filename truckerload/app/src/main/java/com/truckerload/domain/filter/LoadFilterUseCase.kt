@@ -1,6 +1,7 @@
 package com.truckerload.domain.filter
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getLoadDateRange
 import com.truckerload.utils.getPreviousWeekNumberAndYear
@@ -92,22 +93,26 @@ class LoadFilterUseCase {
 
     data class Totals(
         val loadCount: Int,
-        val totalRate: Double,
+        val totalRate: Money,
         val totalMiles: Double,
         val avgRpm: Double = 0.0,
     ) {
         val avgRpmFormatted: String
-            get() = if (totalMiles > 0) "$${String.format(Locale.US, "%.2f", totalRate / totalMiles)} / mi" else "—"
+            get() = if (totalMiles > 0) {
+                "$${String.format(Locale.US, "%.2f", totalRate.cents / 100.0 / totalMiles)} / mi"
+            } else {
+                "—"
+            }
     }
 
     fun calculateTotals(loads: List<Load>): Totals {
-        val totalRate = loads.sumOf { it.totalRate }
+        val totalRate = loads.fold(Money.ZERO) { acc, load -> acc + load.totalRate }
         val totalMiles = loads.sumOf { it.drivenMiles }
         return Totals(
             loadCount = loads.size,
             totalRate = totalRate,
             totalMiles = totalMiles,
-            avgRpm = if (totalMiles > 0) totalRate / totalMiles else 0.0,
+            avgRpm = if (totalMiles > 0) totalRate.cents / 100.0 / totalMiles else 0.0,
         )
     }
 }

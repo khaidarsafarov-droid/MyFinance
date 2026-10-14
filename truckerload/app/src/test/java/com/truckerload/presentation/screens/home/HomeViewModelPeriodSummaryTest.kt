@@ -24,6 +24,7 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -62,7 +63,7 @@ class HomeViewModelPeriodSummaryTest {
 
     @Test
     fun periodSummaryHeader_thisWeek_returnsHeaderWithTotals() {
-        val totals = LoadFilterUseCase.Totals(loadCount = 2, totalRate = 5000.0, totalMiles = 2000.0)
+        val totals = LoadFilterUseCase.Totals(loadCount = 2, totalRate = Money.fromDollars(5000.0), totalMiles = 2000.0)
         viewModel.setFilter(LoadFilter.THIS_WEEK)
 
         val header = viewModel.periodSummaryHeader(totals)
@@ -73,7 +74,7 @@ class HomeViewModelPeriodSummaryTest {
 
     @Test
     fun periodSummaryHeader_allWithoutYear_returnsNull() {
-        val totals = LoadFilterUseCase.Totals(loadCount = 5, totalRate = 10000.0, totalMiles = 4000.0)
+        val totals = LoadFilterUseCase.Totals(loadCount = 5, totalRate = Money.fromDollars(10000.0), totalMiles = 4000.0)
         viewModel.setFilter(LoadFilter.ALL)
 
         assertNull(viewModel.periodSummaryHeader(totals))
@@ -83,7 +84,7 @@ class HomeViewModelPeriodSummaryTest {
     fun flattenedListItems_filteredPeriod_doesNotIncludeSectionHeader() {
         viewModel.setFilter(LoadFilter.THIS_WEEK)
         val loads = listOf(sampleLoad("a"), sampleLoad("b"))
-        val totals = LoadFilterUseCase.Totals(loadCount = 2, totalRate = 5000.0, totalMiles = 2000.0)
+        val totals = LoadFilterUseCase.Totals(loadCount = 2, totalRate = Money.fromDollars(5000.0), totalMiles = 2000.0)
 
         val items = viewModel.flattenedListItems(loads, totals)
 
@@ -95,7 +96,7 @@ class HomeViewModelPeriodSummaryTest {
     fun flattenedListItems_allWithYear_doesNotDuplicateYearSummaryHeader() {
         viewModel.setSelectedYear(2026)
         val loads = listOf(sampleLoad("a"))
-        val totals = LoadFilterUseCase.Totals(loadCount = 1, totalRate = 2500.0, totalMiles = 850.0)
+        val totals = LoadFilterUseCase.Totals(loadCount = 1, totalRate = Money.fromDollars(2500.0), totalMiles = 850.0)
 
         val items = viewModel.flattenedListItems(loads, totals)
 
@@ -110,7 +111,7 @@ class HomeViewModelPeriodSummaryTest {
         id = id,
         tripId = "T-$id",
         date = "2026-07-16",
-        totalRate = 2500.0,
+        totalRate = Money.fromDollars(2500.0),
         totalMiles = 850.0,
         pointA = "Atlanta, GA",
         pointB = "Aurora, CO",

@@ -2,6 +2,7 @@ package com.truckerload.domain.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class ReceiptDataTest {
 
@@ -19,7 +20,7 @@ class ReceiptDataTest {
         val entry = receipt.toArchiveEntry()
         assertEquals("Love's", entry.serviceName)
         assertEquals("2026-07-15", entry.serviceDate)
-        assertEquals(350.50, entry.amount, 0.01)
+        assertEquals(Money.fromDollars(350.50), entry.amount)
         assertEquals("/data/files/receipts/receipt_1.jpg", entry.photoPath)
         assertEquals("Oil change and filters", entry.description)
 

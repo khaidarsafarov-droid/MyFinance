@@ -5,6 +5,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class JsonLoadParserTest {
 
@@ -25,7 +26,7 @@ class JsonLoadParserTest {
         )
         assertNotNull(load)
         assertEquals("T-88231", load!!.tripId)
-        assertEquals(2450.75, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2450.75), load.totalRate)
         assertEquals(910.0, load.totalMiles, 0.01)
         assertEquals("Garner, NC", load.pointA)
         assertEquals("Dallas, TX", load.pointB)
@@ -43,7 +44,7 @@ class JsonLoadParserTest {
         )
         assertNotNull(load)
         assertEquals("RC-5521", load!!.tripId)
-        assertEquals(1800.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(1800.0), load.totalRate)
         assertEquals(620.0, load.totalMiles, 0.01)
     }
 
@@ -80,7 +81,7 @@ class JsonLoadParserTest {
             referenceMillis = REF,
         )
         assertEquals(1, wrapped.size)
-        assertEquals(1200.0, wrapped.first().totalRate, 0.01)
+        assertEquals(Money.fromDollars(1200.0), wrapped.first().totalRate)
     }
 
     @Test
@@ -127,7 +128,7 @@ class JsonLoadParserTest {
         """.trimIndent()
         val loads = JsonLoadParser.parseAll(export, referenceMillis = REF)
         assertEquals(1, loads.size)
-        assertEquals(2500.0, loads.first().totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), loads.first().totalRate)
     }
 
     @Test
@@ -147,7 +148,7 @@ class JsonLoadParserTest {
             "load.json",
         ).getOrThrow()
         assertEquals(1, loads.size)
-        assertEquals(2450.75, loads.first().totalRate, 0.01)
+        assertEquals(Money.fromDollars(2450.75), loads.first().totalRate)
     }
 
     @Test
@@ -156,7 +157,7 @@ class JsonLoadParserTest {
             """{"cargo":{"Total Rate":"2500.00","Pu-address":"SWF2, Garner, NC"}}""",
             REF,
         ).getOrThrow()
-        assertEquals(2500.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), load.totalRate)
         assertTrue(load.pointA.contains("Garner"))
     }
 

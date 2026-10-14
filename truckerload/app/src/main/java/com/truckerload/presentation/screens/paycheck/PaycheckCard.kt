@@ -70,7 +70,7 @@ fun PaycheckCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.TextSecondary,
             )
-            paycheck.grossAmount?.takeIf { it > 0.0 && it != paycheck.netAmount }?.let { gross ->
+            paycheck.grossAmount?.takeIf { it.isPositive() && it != paycheck.netAmount }?.let { gross ->
                 Text(
                     text = stringResource(
                         R.string.paycheck_gross_line,

@@ -1,5 +1,6 @@
 package com.truckerload.domain.analytics
 
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.withRouteMetrics
@@ -57,7 +58,7 @@ object RouteDisplayHelper {
             }
             .groupBy { it.first to it.second }
             .map { (pair, group) ->
-                val gross = group.sumOf { it.third.totalRate }
+                val gross = group.map { it.third.totalRate }.sum().cents / 100.0
                 val miles = group.sumOf { it.third.drivenMiles }
                 val (origin, destination) = pair
                 RouteData(

@@ -131,7 +131,7 @@ internal fun PeriodSummarySection(
                 }
             }
             // Goal progress lives on the Goal tab only (audit Stage 8).
-            if (weeklyGoal <= 0 && totals.totalRate > 0) {
+            if (weeklyGoal <= 0 && totals.totalRate.isPositive()) {
                 Text(
                     text = stringResource(R.string.ux_next_set_goal),
                     style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),

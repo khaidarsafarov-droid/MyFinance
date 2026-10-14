@@ -39,7 +39,8 @@ data class MaintenanceArchiveEntity(
     val serviceName: String = "",
     val serviceDate: String,
     val description: String,
-    val amount: Double,
+    /** Service cost in cents. */
+    val amount: Long,
     val photoPath: String?,
     val ocrText: String?,
     val createdAt: Long,

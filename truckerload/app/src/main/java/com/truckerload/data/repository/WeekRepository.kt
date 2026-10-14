@@ -1,5 +1,7 @@
 package com.truckerload.data.repository
 
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PeriodSummary
 import com.truckerload.domain.model.WeekSummary
@@ -28,12 +30,12 @@ class WeekRepository(
             val dieselList = allDiesel.filter {
                 WeekStartRebinder.dieselIsoInRange(it.addedAt, weekStartDate, weekEndDate)
             }
-            val totalLoadRate = loadList.sumOf { it.totalRate }
+            val totalLoadRate = loadList.map { it.totalRate }.sum().cents / 100.0
             val totalMiles = loadList.sumOf { it.drivenMiles }
             // Paycheck amount comes only from Paycheck.netAmount.
-            val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
+            val paycheckAmount = paycheckList.firstOrNull()?.netAmount?.cents?.div(100.0) ?: 0.0
             val hasPaycheck = paycheckList.isNotEmpty()
-            val dieselAmount = dieselList.sumOf { it.totalAmount }
+            val dieselAmount = dieselList.map { it.totalAmount }.sum().cents / 100.0
             val hasDiesel = dieselList.isNotEmpty()
             WeekSummary(
                 weekNumber = weekNumber,
@@ -60,11 +62,11 @@ class WeekRepository(
         val dieselList = dieselRepository.getAllDieselOnce().filter {
             WeekStartRebinder.dieselIsoInRange(it.addedAt, weekStartDate, weekEndDate)
         }
-        val totalLoadRate = loadList.sumOf { it.totalRate }
+        val totalLoadRate = loadList.map { it.totalRate }.sum().cents / 100.0
         val totalMiles = loadList.sumOf { it.drivenMiles }
         // Paycheck amount comes only from Paycheck.netAmount.
-        val paycheckAmount = paycheckList.firstOrNull()?.netAmount ?: 0.0
-        val dieselAmount = dieselList.sumOf { it.totalAmount }
+        val paycheckAmount = paycheckList.firstOrNull()?.netAmount?.cents?.div(100.0) ?: 0.0
+        val dieselAmount = dieselList.map { it.totalAmount }.sum().cents / 100.0
         return WeekSummary(
             weekNumber = weekNumber,
             year = year,

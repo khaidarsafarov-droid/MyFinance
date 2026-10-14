@@ -29,6 +29,7 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 /**
  * A load that is missing non-blocking fields must wait for the driver to confirm
@@ -115,7 +116,7 @@ class AddLoadConfirmIncompleteTest {
         assertNull("nothing missing, no prompt", viewModel.uiState.value.confirmIncomplete)
         verify(loadRepository, times(1)).insertLoad(any(), any(), any())
         val saved: Load? = viewModel.uiState.value.savedLoad
-        assertEquals(2100.50, saved!!.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2100.50), saved!!.totalRate)
         assertEquals(700.0, saved.totalMiles, 0.01)
     }
 

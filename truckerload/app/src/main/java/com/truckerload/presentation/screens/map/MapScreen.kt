@@ -187,7 +187,7 @@ private fun MapScreenBody(
                 icon = AppIcons.Speed,
                 text = stringResource(
                     R.string.map_crowd_state_avg,
-                    String.format(Locale.getDefault(), "%.2f", summary.avgOutboundRpm),
+                    String.format(Locale.getDefault(), "%.2f", summary.avgOutboundRpm.cents / 100.0),
                     summary.outboundTrips,
                 ),
             )
@@ -369,7 +369,7 @@ private fun TopLaneRow(lane: CrowdLaneAggregate) {
                 R.string.map_crowd_lane_row,
                 lane.fromState,
                 lane.toState,
-                String.format(Locale.getDefault(), "%.2f", lane.avgRpm),
+                String.format(Locale.getDefault(), "%.2f", lane.avgRpm.cents / 100.0),
                 lane.tripCount,
             ),
             style = MaterialTheme.typography.bodySmall,
@@ -404,7 +404,7 @@ private fun MyRecentRow(report: CrowdRateReport) {
                 R.string.map_my_recent_row,
                 report.fromState,
                 report.toState,
-                String.format(Locale.getDefault(), "%.2f", report.rpm),
+                String.format(Locale.getDefault(), "%.2f", report.rpm.cents / 100.0),
                 age,
             ),
             style = MaterialTheme.typography.bodyMedium,

@@ -9,6 +9,7 @@ import com.truckerload.domain.parser.ParseUtils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.util.Calendar
+import com.truckerload.domain.money.Money
 
 /**
  * Regression: Relay Pu-time `MM/DD` must follow the Telegram message date, not device "now".
@@ -83,7 +84,7 @@ class RelayTelegramDateParsingTest {
             id = "114HZ2QZK",
             tripId = "114HZ2QZK",
             date = "2026-08-20",
-            totalRate = 399.11,
+            totalRate = Money.fromDollars(399.11),
             totalMiles = 113.0,
             pointA = "Burlington, NJ",
             pointB = "Middletown, PA",

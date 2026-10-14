@@ -32,7 +32,7 @@ interface LoadDao {
           AND lastDelCityState = :destination
           AND date = :date
         ORDER BY
-          CASE WHEN ABS(totalRate - :rate) < 0.01 THEN 0 ELSE 1 END,
+          CASE WHEN totalRate = :rate THEN 0 ELSE 1 END,
           ABS(totalRate - :rate) ASC,
           parsedAt DESC
         LIMIT 1
@@ -42,7 +42,7 @@ interface LoadDao {
         origin: String,
         destination: String,
         date: String,
-        rate: Double,
+        rate: Long,
     ): LoadEntity?
 
     @Query("SELECT * FROM loads WHERE date = :loadDate")
@@ -60,8 +60,8 @@ interface LoadDao {
         """
         SELECT * FROM loads
         WHERE totalMiles >= 10000.0
-          AND totalRate > 0.0
-          AND (totalRate / totalMiles) < 0.5
+          AND totalRate > 0
+          AND (totalRate * 1.0 / totalMiles) < 50
         """,
     )
     suspend fun getLoadsWithSuspectInflatedMiles(): List<LoadEntity>
@@ -179,7 +179,7 @@ interface LoadDao {
         loadId: String,
         tripId: String,
         loadDate: String,
-        totalRate: Double,
+        totalRate: Long,
         totalMiles: Double,
         deadheadMiles: Double,
         pointA: String,
@@ -196,12 +196,12 @@ interface LoadDao {
         firstPuCityState: String,
         lastDelCityState: String,
         durationDays: Double,
-        pace: Double,
+        pace: Long,
         stopCount: Int,
         isDispute: Boolean,
         disputeResponseDate: String?,
         disputeCompleted: Boolean,
-        disputeAmount: Double?,
+        disputeAmount: Long?,
         disputeApplyToLoad: Boolean,
         disputeAmountApplied: Boolean,
         actualFinishDate: String?,
@@ -231,7 +231,7 @@ interface LoadDao {
         firstPuMillis: Long?,
         lastDelMillis: Long?,
         durationDays: Double,
-        pace: Double,
+        pace: Long,
     )
 
     /** Точный поиск по load_date (YYYY-MM-DD). */

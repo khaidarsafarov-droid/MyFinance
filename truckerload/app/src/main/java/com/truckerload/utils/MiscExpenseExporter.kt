@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import com.truckerload.domain.expense.MiscExpenseFields
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.domain.money.sum
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -22,11 +23,11 @@ object MiscExpenseExporter {
 
     fun buildCsv(expenses: List<MiscExpense>): String {
         val sorted = expenses.sortedWith(compareBy<MiscExpense> { it.date }.thenBy { it.id })
-        val total = sorted.sumOf { it.amount }
+        val total = sorted.map { it.amount }.sum()
         return buildString {
             appendLine("# ${BrandConstants.DISPLAY_NAME} miscellaneous expenses")
             appendLine("# count,${sorted.size}")
-            appendLine("# total_usd,${String.format(Locale.US, "%.2f", total)}")
+            appendLine("# total_usd,${total.formatPlain()}")
             appendLine(CSV_HEADER)
             for (row in sorted) {
                 val hasReceipt = if (!row.receiptPhotoPath.isNullOrBlank()) "yes" else "no"
@@ -34,7 +35,7 @@ object MiscExpenseExporter {
                     listOf(
                         row.date,
                         MiscExpenseFields.csvQuote(row.description),
-                        String.format(Locale.US, "%.2f", row.amount),
+                        row.amount.formatPlain(),
                         hasReceipt,
                     ).joinToString(","),
                 )

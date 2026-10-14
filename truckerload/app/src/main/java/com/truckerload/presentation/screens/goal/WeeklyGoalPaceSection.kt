@@ -30,7 +30,7 @@ import com.truckerload.presentation.utils.MoneyFormat
 internal fun GoalPaceMetrics(progress: WeeklyGoalProgress) {
     val tc = LocalTruckColors.current
     val daysAccent = tc.pace(progress.paceStatus)
-    val paceMatched = kotlin.math.abs(progress.actualDailyYield - progress.dailyTargetNeeded) < 1.0
+        val paceMatched = kotlin.math.abs(progress.actualDailyYield.cents - progress.dailyTargetNeeded.cents) < 100L
 
     Row(
         modifier = Modifier.fillMaxWidth(),

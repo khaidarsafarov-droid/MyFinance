@@ -1,6 +1,7 @@
 package com.truckerload.domain.crowd
 
 import com.truckerload.domain.model.EquipmentType
+import com.truckerload.domain.money.Money
 
 /**
  * Who contributed a lane rate. Map UI currently uses ME only; FRIEND/NETWORK reserved for later.
@@ -19,8 +20,8 @@ data class CrowdRateReport(
     val id: String,
     val fromState: String,
     val toState: String,
-    val rpm: Double,
-    val rate: Double,
+    val rpm: Money,
+    val rate: Money,
     val miles: Double,
     val reportedAtMillis: Long,
     val source: CrowdRateSource,
@@ -39,8 +40,8 @@ data class CrowdLaneAggregate(
     val fromState: String,
     val toState: String,
     val tripCount: Int,
-    val avgRpm: Double,
-    val totalRevenue: Double,
+    val avgRpm: Money,
+    val totalRevenue: Money,
     val totalMiles: Double,
     val equipmentType: EquipmentType? = null,
 )
@@ -48,8 +49,8 @@ data class CrowdLaneAggregate(
 data class CrowdStateSummary(
     val stateCode: String,
     val outboundTrips: Int,
-    val avgOutboundRpm: Double,
-    val totalRevenue: Double,
+    val avgOutboundRpm: Money,
+    val totalRevenue: Money,
     val totalMiles: Double,
     val recent: List<CrowdRateReport>,
 )

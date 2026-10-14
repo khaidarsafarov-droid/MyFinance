@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class RouteDisplayHelperTest {
 
@@ -60,7 +61,7 @@ class RouteDisplayHelperTest {
         id = "id-$pointA-$rate",
         tripId = "T-$pointA",
         date = "2026-06-01",
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = miles,
         pointA = pointA,
         pointB = pointB,

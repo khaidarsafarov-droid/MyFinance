@@ -1,5 +1,6 @@
 package com.truckerload.domain.goal
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
@@ -52,13 +53,13 @@ object LoadYieldCalculator {
     /**
      * Week pace: sum(gross) / sum(PU→DEL duration per load).
      */
-    fun actualDailyYield(weekLoads: List<Load>): Double {
-        if (weekLoads.isEmpty()) return 0.0
-        val totalGross = weekLoads.sumOf { it.totalRate }
-        if (totalGross <= 0.0) return 0.0
+    fun actualDailyYield(weekLoads: List<Load>): Money {
+        if (weekLoads.isEmpty()) return Money.ZERO
+        val totalGross = weekLoads.fold(Money.ZERO) { acc, load -> acc + load.totalRate }
+        if (totalGross.cents <= 0L) return Money.ZERO
         val totalActiveDays = weekLoads.sumOf { loadActiveDurationDays(it) }
-        if (totalActiveDays <= 0.0) return 0.0
-        return GoalMoneyMath.roundMoney(totalGross / totalActiveDays)
+        if (totalActiveDays <= 0.0) return Money.ZERO
+        return totalGross.dividedBy(kotlin.math.ceil(totalActiveDays).toInt().coerceAtLeast(1))
     }
 
     fun totalActiveDays(weekLoads: List<Load>): Double =

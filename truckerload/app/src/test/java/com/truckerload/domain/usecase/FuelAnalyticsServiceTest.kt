@@ -13,6 +13,8 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class FuelAnalyticsServiceTest {
 
@@ -30,10 +32,10 @@ class FuelAnalyticsServiceTest {
                         weekLabel = "W10",
                         weekStartDate = "2026-03-02",
                         weekEndDate = "2026-03-08",
-                        totalAmount = 400.0,
+                        totalAmount = Money.fromDollars(400.0),
                         gallons = 100.0,
-                        pricePerGallon = 4.0,
-                        discountPricePerGallon = 3.50,
+                        pricePerGallon = UnitPrice.fromDollars(4.0),
+                        discountPricePerGallon = UnitPrice.fromDollars(3.50),
                         location = null,
                         rawExtractedText = "",
                         sourceFileName = null,
@@ -49,7 +51,7 @@ class FuelAnalyticsServiceTest {
                         id = "l1",
                         tripId = "T1",
                         date = "2026-03-03",
-                        totalRate = 2500.0,
+                        totalRate = Money.fromDollars(2500.0),
                         totalMiles = 500.0,
                         pointA = "A",
                         pointB = "B",

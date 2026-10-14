@@ -15,6 +15,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -48,7 +49,7 @@ class DeleteLoadClearsPhotosTest {
             id = "load-1",
             tripId = "T-TEST1",
             date = "2026-07-21",
-            totalRate = 1000.0,
+            totalRate = Money.fromDollars(1000.0),
             totalMiles = 100.0,
             pointA = "A",
             pointB = "B",
@@ -91,7 +92,7 @@ class DeleteLoadClearsPhotosTest {
             id = "load-2",
             tripId = "T-TEST2",
             date = "2026-07-21",
-            totalRate = 1000.0,
+            totalRate = Money.fromDollars(1000.0),
             totalMiles = 100.0,
             pointA = "A",
             pointB = "B",

@@ -7,6 +7,7 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.PerDiemOverrideRepository
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.tax.AccountantExportSection
 import com.truckerload.domain.tax.PerDiemCalculator
 import com.truckerload.domain.tax.PerDiemDayOverrides
@@ -196,10 +197,10 @@ class TaxTrackerViewModel @Inject constructor(
                 val diesel = dieselRepository.getDieselForYear(year)
                 val loads = loadRepository.getLoadsByYear(year)
 
-                val totalGross = paychecks.sumOf { paycheck ->
-                    paycheck.grossAmount?.takeIf { it > 0.0 } ?: paycheck.netAmount
-                }
-                val dieselDed = diesel.sumOf { it.totalAmount }
+                val totalGross = paychecks.map { paycheck ->
+                    paycheck.grossAmount?.takeIf { it.isPositive() } ?: paycheck.netAmount
+                }.sum().cents / 100.0
+                val dieselDed = diesel.map { it.totalAmount }.sum().cents / 100.0
                 val autoDates = PerDiemCalculator.uniqueOnDutyDates(loads, year)
                 val perDiemDates = PerDiemDayOverrides.apply(
                     autoDates,

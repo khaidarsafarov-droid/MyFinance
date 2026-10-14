@@ -4,6 +4,7 @@ import com.truckerload.domain.import.parser.RelayMessageParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class MessageParserTest {
 
@@ -23,7 +24,7 @@ class MessageParserTest {
         val loads = parser.parse(message)
         assertTrue(loads.isNotEmpty())
         assertEquals("T-116KYL6KW", loads[0].tripId)
-        assertEquals(2500.0, loads[0].totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), loads[0].totalRate)
         assertEquals(850.0, loads[0].totalMiles, 0.01)
     }
 }

@@ -1,5 +1,6 @@
 package com.truckerload.domain.import.parser
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
@@ -46,8 +47,8 @@ class CsvLoadParser : LoadParser {
             if (cols.size <= maxOf(tripIdx, rateIdx)) return@mapNotNull null
 
             val tripId = cols[tripIdx].uppercase(Locale.US)
-            val rate = ParseUtils.parseMoney(cols[rateIdx])
-            if (rate <= 0) return@mapNotNull null
+            val rate = Money.fromDollars(ParseUtils.parseMoney(cols[rateIdx]))
+            if (!rate.isPositive()) return@mapNotNull null
             val rawMiles = milesIdx.takeIf { it != -1 && it < cols.size }
                 ?.let { ParseUtils.parseMiles(cols[it]) } ?: 0.0
             // FIX: apply Relay typo sanitization (same as LoadMessageParser / Room mapper)
@@ -59,7 +60,7 @@ class CsvLoadParser : LoadParser {
             // FIX: reject undated rows instead of silently assigning the current week
             if (date.isBlank()) return@mapNotNull null
 
-            if (tripId.isBlank() || rate <= 0) return@mapNotNull null
+            if (tripId.isBlank() || !rate.isPositive()) return@mapNotNull null
 
             val originAddr = ParseUtils.parseAddressLine(pointA)
             val destAddr = ParseUtils.parseAddressLine(pointB)

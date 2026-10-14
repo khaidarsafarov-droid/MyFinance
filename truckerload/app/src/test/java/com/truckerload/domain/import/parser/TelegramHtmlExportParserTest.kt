@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class TelegramHtmlExportParserTest {
 
@@ -32,7 +33,7 @@ class TelegramHtmlExportParserTest {
         assertEquals(2, loads.size)
         assertEquals("T-116KYL6KW", loads[0].tripId)
         assertEquals("T-118KJ7LQW", loads[1].tripId)
-        assertEquals(2945.56, loads[0].totalRate, 0.01)
+        assertEquals(Money.fromDollars(2945.56), loads[0].totalRate)
     }
 
     @Test
@@ -46,7 +47,7 @@ class TelegramHtmlExportParserTest {
         val loads = parser.parse(html)
         assertEquals(1, loads.size)
         assertEquals("T-116KYL6KW", loads.single().tripId)
-        assertEquals(2500.0, loads.single().totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), loads.single().totalRate)
         assertEquals(850.0, loads.single().totalMiles, 0.01)
     }
 
@@ -103,7 +104,7 @@ class TelegramHtmlExportParserTest {
         val loads = parser.parse(html)
         assertTrue(loads.isNotEmpty())
         assertEquals("T-116KYL6KW", loads.first().tripId)
-        assertEquals(2945.56, loads.first().totalRate, 1.0)
+        assertEquals(Money.fromDollars(2945.56), loads.first().totalRate)
     }
 
     @Test

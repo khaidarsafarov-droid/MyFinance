@@ -156,7 +156,7 @@ class EditLoadViewModel @Inject constructor(
         val merged = (state.disputeLoad ?: original).copy(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
-            totalRate = parsedRate,
+            totalRate = com.truckerload.domain.money.Money.fromDollars(parsedRate),
             totalMiles = parsedMiles,
             pointA = state.pointA,
             pointB = state.pointB,

@@ -63,7 +63,7 @@ object WidgetDayProjection {
             val current = days[offset]
             days[offset] = current.copy(
                 loadsCount = current.loadsCount + 1,
-                gross = current.gross + load.totalRate,
+                gross = current.gross + load.totalRate.cents / 100.0,
                 miles = current.miles + load.drivenMiles,
             )
         }

@@ -2,6 +2,7 @@ package com.truckerload.domain.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class PaycheckJournalFilterTest {
 
@@ -54,7 +55,7 @@ class PaycheckJournalFilterTest {
         weekEndDate = "2026-01-07",
         driverName = driver,
         grossAmount = null,
-        netAmount = net,
+        netAmount = Money.fromDollars(net),
         rawExtractedText = "",
         sourceFileName = file,
         addedAt = addedAt,

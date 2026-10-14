@@ -2,16 +2,17 @@ package com.truckerload.domain.parser
 
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
+import com.truckerload.domain.money.Money
 import kotlin.math.abs
 
 object LoadChangeDetector {
 
-    fun isRateChanged(old: Double, new: Double): Boolean = abs(old - new) > 0.01
+    fun isRateChanged(old: Money, new: Money): Boolean = abs(old.cents - new.cents) > 1L
 
-    fun isRateChangedSignificant(old: Double, new: Double, thresholdPercent: Double): Boolean {
+    fun isRateChangedSignificant(old: Money, new: Money, thresholdPercent: Double): Boolean {
         if (!isRateChanged(old, new)) return false
-        if (old <= 0.0) return true
-        val percentChange = abs(new - old) / old * 100.0
+        if (old.cents <= 0L) return true
+        val percentChange = abs(new.cents - old.cents).toDouble() / old.cents.toDouble() * 100.0
         return percentChange >= thresholdPercent
     }
 

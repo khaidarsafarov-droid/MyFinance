@@ -3,6 +3,7 @@ package com.truckerload.domain.parser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class ManualLoadFactoryTest {
 
@@ -19,7 +20,7 @@ class ManualLoadFactoryTest {
         )
 
         assertTrue(load.tripId.startsWith("M-"))
-        assertEquals(2500.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), load.totalRate)
         assertEquals(850.0, load.totalMiles, 0.01)
         assertEquals(1, load.puCount)
         assertEquals(1, load.delCount)

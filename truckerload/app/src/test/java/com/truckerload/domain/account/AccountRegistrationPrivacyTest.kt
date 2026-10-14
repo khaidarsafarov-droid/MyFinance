@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -193,7 +194,7 @@ class AccountRegistrationPrivacyTest {
                 id = "load-1",
                 tripId = "T-1",
                 date = "2026-01-01",
-                totalRate = 100.0,
+                totalRate = Money.fromDollars(100.0).cents,
                 totalMiles = 50.0,
                 pointA = "A",
                 pointB = "B",

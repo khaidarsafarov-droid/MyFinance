@@ -38,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
@@ -92,7 +93,7 @@ fun DisputeSection(
                                     isDispute = true,
                                     disputeResponseDate = date,
                                     disputeCompleted = false,
-                                    disputeAmount = parseDisputeAmount(amountText)
+                                    disputeAmount = parseDisputeMoney(amountText)
                                         ?: load.disputeAmount,
                                 ),
                             )
@@ -131,7 +132,7 @@ fun DisputeSection(
                     color = tc.TextSecondary,
                 )
             }
-            load.disputeAmount?.takeIf { it > 0 }?.let { amount ->
+            load.disputeAmount?.takeIf { it.isPositive() }?.let { amount ->
                 val formatted = formatDisputeUsd(amount)
                 Text(
                     text = stringResource(
@@ -226,7 +227,7 @@ fun DisputeSection(
                         val cleaned = raw.filter { it.isDigit() || it == '.' || it == ',' }
                         amountText = cleaned
                         onDisputeChanged(
-                            load.copy(disputeAmount = parseDisputeAmount(cleaned)),
+                            load.copy(disputeAmount = parseDisputeMoney(cleaned)),
                         )
                     },
                     label = { Text(stringResource(R.string.dispute_amount_label)) },
@@ -242,7 +243,7 @@ fun DisputeSection(
                         onCheckedChange = { checked ->
                             onDisputeChanged(
                                 load.copy(
-                                    disputeAmount = parseDisputeAmount(amountText)
+                                    disputeAmount = parseDisputeMoney(amountText)
                                         ?: load.disputeAmount,
                                     disputeApplyToLoad = checked,
                                 ),
@@ -262,7 +263,7 @@ fun DisputeSection(
                     onDisputeChanged(
                         load.copy(
                             disputeCompleted = completed,
-                            disputeAmount = parseDisputeAmount(amountText)
+                            disputeAmount = parseDisputeMoney(amountText)
                                 ?: load.disputeAmount,
                             updatedAt = System.currentTimeMillis(),
                         ),
@@ -321,7 +322,17 @@ fun DisputeBadge(
     }
 }
 
-internal fun parseDisputeAmount(raw: String): Double? = DecimalInput.parse(raw)?.takeIf { it >= 0.0 }
+internal fun parseDisputeMoney(raw: String): Money? =
+    DecimalInput.parse(raw)?.takeIf { it >= 0.0 }?.let(Money::fromDollars)
+
+internal fun formatDisputeAmountInput(amount: Money?): String {
+    if (amount == null) return ""
+    return if (amount.cents % 100L == 0L) {
+        (amount.cents / 100L).toString()
+    } else {
+        amount.formatPlain()
+    }
+}
 
 internal fun formatDisputeAmountInput(amount: Double?): String {
     if (amount == null) return ""
@@ -331,6 +342,9 @@ internal fun formatDisputeAmountInput(amount: Double?): String {
         amount.toString()
     }
 }
+
+internal fun formatDisputeUsd(amount: Money): String =
+    formatDisputeUsd(amount.cents / 100.0)
 
 internal fun formatDisputeUsd(amount: Double): String =
     if (abs(amount - amount.toLong()) < 0.005) {

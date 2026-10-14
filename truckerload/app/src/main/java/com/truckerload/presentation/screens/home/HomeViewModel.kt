@@ -276,7 +276,7 @@ class HomeViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = homeSharing,
-            initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, 0.0, 0.0)),
+            initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, com.truckerload.domain.money.Money.ZERO, 0.0)),
         )
 
     /**

@@ -11,6 +11,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class DieselRecordedAtTest {
 
@@ -74,9 +76,9 @@ class DieselRecordedAtTest {
         weekLabel = "W$week",
         weekStartDate = "2026-09-13",
         weekEndDate = "2026-09-19",
-        totalAmount = 180.0,
+        totalAmount = Money.fromDollars(180.0),
         gallons = 40.0,
-        pricePerGallon = 4.5,
+        pricePerGallon = UnitPrice.fromDollars(4.5),
         location = "Pilot",
         rawExtractedText = "",
         sourceFileName = null,

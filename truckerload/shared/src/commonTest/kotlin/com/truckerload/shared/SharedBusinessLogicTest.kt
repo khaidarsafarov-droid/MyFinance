@@ -9,15 +9,15 @@ class SharedBusinessLogicTest {
     @Test
     fun `dailyTarget matches domain math used by Android`() {
         assertEquals(
-            100.0,
-            SharedBusinessLogic.dailyTarget(goal = 700.0, totalGross = 200.0, daysRemaining = 5),
+            10_000L,
+            SharedBusinessLogic.dailyTargetCents(goalCents = 70_000L, totalGrossCents = 20_000L, daysRemaining = 5),
         )
     }
 
     @Test
     fun `expectedGrossByNow is linear across a seven day week`() {
-        assertEquals(100.0, SharedBusinessLogic.expectedGrossByNow(goal = 700.0, daysActive = 1))
-        assertEquals(0.0, SharedBusinessLogic.expectedGrossByNow(goal = 700.0, daysActive = 0))
+        assertEquals(10_000L, SharedBusinessLogic.expectedGrossByNowCents(goalCents = 70_000L, daysActive = 1))
+        assertEquals(0L, SharedBusinessLogic.expectedGrossByNowCents(goalCents = 70_000L, daysActive = 0))
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.truckerload.domain.parser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class MessageParseServiceFlexibleTest {
 
@@ -18,7 +19,7 @@ class MessageParseServiceFlexibleTest {
         val result = MessageParseService().parseLoadFromUserInput(text)
         assertTrue(result.isSuccess)
         val load = result.getOrThrow()
-        assertEquals(2500.0, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2500.0), load.totalRate)
         assertEquals(850.0, load.totalMiles, 0.01)
         assertTrue(load.tripId.isNotBlank())
     }
@@ -60,7 +61,7 @@ class MessageParseServiceFlexibleTest {
         val result = MessageParseService().parseLoadFromUserInput(text)
         assertTrue(result.isSuccess)
         val load = result.getOrThrow()
-        assertEquals(2325.84, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2325.84), load.totalRate)
         assertTrue(load.pointA.contains("LAKE ZURICH", ignoreCase = true))
     }
 

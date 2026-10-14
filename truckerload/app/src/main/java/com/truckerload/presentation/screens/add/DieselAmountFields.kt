@@ -127,7 +127,7 @@ fun DieselAmountFields(
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
-        uiState.savings?.takeIf { it > 0.0 }?.let { saved ->
+        uiState.savings?.takeIf { it.isPositive() }?.let { saved ->
             Text(
                 text = stringResource(R.string.add_diesel_you_saved, MoneyFormat.formatCurrency(saved)),
                 style = MaterialTheme.typography.titleMedium,

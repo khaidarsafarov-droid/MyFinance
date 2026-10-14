@@ -5,6 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
+import com.truckerload.domain.money.Money
 
 class LoadMessageParserTest {
 
@@ -33,7 +34,7 @@ class LoadMessageParserTest {
         val loads = LoadMessageParser.parseAll(message)
         assertEquals(1, loads.size)
         assertEquals("T-116P1ZLK1", loads[0].tripId)
-        assertEquals(2710.55, loads[0].totalRate, 0.01)
+        assertEquals(Money.fromDollars(2710.55), loads[0].totalRate)
         assertEquals(1121.81, loads[0].totalMiles, 0.01)
         assertEquals(2, loads[0].puCount)
         assertEquals("1162L65P5", loads[0].stops.first { it.puNumber != null }.puNumber)

@@ -8,6 +8,8 @@ import com.truckerload.domain.tax.PerDiemCalculator
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class AccountantWorkbookBuilderTest {
 
@@ -70,7 +72,7 @@ class AccountantWorkbookBuilderTest {
                 id = "1",
                 tripId = "T-100",
                 date = "2026-06-01",
-                totalRate = 2500.0,
+                totalRate = Money.fromDollars(2500.0),
                 totalMiles = 500.0,
                 pointA = "A",
                 pointB = "B",
@@ -92,9 +94,9 @@ class AccountantWorkbookBuilderTest {
                 weekLabel = "W22",
                 weekStartDate = "2026-05-25",
                 weekEndDate = "2026-05-31",
-                totalAmount = 120.5,
+                totalAmount = Money.fromDollars(120.5),
                 gallons = 40.0,
-                pricePerGallon = 3.5,
+                pricePerGallon = UnitPrice.fromDollars(3.5),
                 location = "Pilot",
                 rawExtractedText = "",
                 sourceFileName = null,
@@ -108,7 +110,7 @@ class AccountantWorkbookBuilderTest {
                 serviceName = "Oil change",
                 serviceDate = "2026-03-10",
                 description = "Full service",
-                amount = 350.0,
+                amount = Money.fromDollars(350.0),
             ),
         ),
         grossIncome = 50_000.0,

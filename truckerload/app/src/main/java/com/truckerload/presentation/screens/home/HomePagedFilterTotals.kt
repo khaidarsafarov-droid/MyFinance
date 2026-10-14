@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.home
 
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
+import com.truckerload.domain.money.Money
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
@@ -19,9 +20,9 @@ internal object HomePagedFilterTotals {
     fun WeeklyLoadStatsAgg.toTotals(): LoadFilterUseCase.Totals =
         LoadFilterUseCase.Totals(
             loadCount = loadCount,
-            totalRate = totalRevenue,
+            totalRate = Money.fromCents(totalRevenue),
             totalMiles = totalMiles,
-            avgRpm = if (totalMiles > 0) totalRevenue / totalMiles else 0.0,
+            avgRpm = if (totalMiles > 0) Money.fromCents(totalRevenue).cents / 100.0 / totalMiles else 0.0,
         )
 
     fun observe(

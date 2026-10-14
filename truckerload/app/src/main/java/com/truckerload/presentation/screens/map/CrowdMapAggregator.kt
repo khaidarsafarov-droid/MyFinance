@@ -1,6 +1,8 @@
 package com.truckerload.presentation.screens.map
 
 import com.truckerload.domain.crowd.AnonymizedRpmSample
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.domain.crowd.CrowdRateSource
@@ -43,12 +45,13 @@ object CrowdMapAggregator {
                 ?: return@mapIndexedNotNull null
             val to = CrowdRpmMapper.destState(load)?.takeIf { it in known }
                 ?: return@mapIndexedNotNull null
+            val rpmMoney = Money.fromDollars(sample.rpm)
             CrowdRateReport(
                 id = "anon:$index",
                 fromState = from,
                 toState = to,
-                rpm = sample.rpm,
-                rate = sample.rpm * sample.miles,
+                rpm = rpmMoney,
+                rate = rpmMoney.scaledBy(sample.miles),
                 miles = sample.miles,
                 reportedAtMillis = at,
                 source = CrowdRateSource.ME,
@@ -59,7 +62,7 @@ object CrowdMapAggregator {
 
     fun toAnonymizedSample(report: CrowdRateReport, week: Int, year: Int): AnonymizedRpmSample =
         AnonymizedRpmSample(
-            rpm = report.rpm,
+            rpm = report.rpm.cents / 100.0,
             miles = report.miles,
             region = CrowdRpmMapper.regionOf(report.fromState, report.toState),
             weekNumber = week,
@@ -80,7 +83,7 @@ object CrowdMapAggregator {
         }
         val byState = reports.groupBy { it.fromState }.mapValues { (_, list) ->
             Agg(
-                revenue = list.sumOf { it.rate },
+                revenue = list.map { it.rate }.sum().cents / 100.0,
                 trips = list.size,
                 miles = list.sumOf { it.miles },
             )
@@ -127,11 +130,15 @@ object CrowdMapAggregator {
     ): CrowdStateSummary {
         val outbound = reports.filter { it.fromState == stateCode }
         val miles = outbound.sumOf { it.miles }
-        val revenue = outbound.sumOf { it.rate }
+        val revenue = outbound.map { it.rate }.sum()
         return CrowdStateSummary(
             stateCode = stateCode,
             outboundTrips = outbound.size,
-            avgOutboundRpm = if (miles > 0) revenue / miles else 0.0,
+            avgOutboundRpm = if (miles > 0) {
+                Money.fromCents(kotlin.math.round(revenue.cents / miles).toLong())
+            } else {
+                Money.ZERO
+            },
             totalRevenue = revenue,
             totalMiles = miles,
             recent = outbound.sortedByDescending { it.reportedAtMillis }.take(recentLimit),
@@ -142,12 +149,16 @@ object CrowdMapAggregator {
         reports.groupBy { it.fromState to it.toState }
             .map { (lane, list) ->
                 val miles = list.sumOf { it.miles }
-                val revenue = list.sumOf { it.rate }
+                val revenue = list.map { it.rate }.sum()
                 CrowdLaneAggregate(
                     fromState = lane.first,
                     toState = lane.second,
                     tripCount = list.size,
-                    avgRpm = if (miles > 0) revenue / miles else 0.0,
+                    avgRpm = if (miles > 0) {
+                        Money.fromCents(kotlin.math.round(revenue.cents / miles).toLong())
+                    } else {
+                        Money.ZERO
+                    },
                     totalRevenue = revenue,
                     totalMiles = miles,
                 )

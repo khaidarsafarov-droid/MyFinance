@@ -1,6 +1,7 @@
 package com.truckerload.domain.parser
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.parser.DecimalInput
 import java.util.Locale
 import kotlin.math.abs
@@ -31,6 +32,15 @@ data class LoadDraftFields(
                 rounded.toLong().toString()
             } else {
                 String.format(Locale.US, "%.2f", rounded)
+            }
+        }
+
+        fun formatAmount(value: Money): String {
+            if (!value.isPositive()) return ""
+            return if (value.cents % 100L == 0L) {
+                (value.cents / 100L).toString()
+            } else {
+                value.formatPlain()
             }
         }
 

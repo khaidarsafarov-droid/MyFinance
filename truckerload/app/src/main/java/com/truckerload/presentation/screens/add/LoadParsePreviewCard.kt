@@ -96,7 +96,7 @@ fun LoadParsePreviewCard(
                             style = MaterialTheme.typography.bodyMedium,
                             color = tc.TextPrimary,
                         )
-                        val rpm = if (preview.totalMiles > 0) preview.totalRate / preview.totalMiles else 0.0
+                        val rpm = if (preview.totalMiles > 0) preview.totalRate.cents / 100.0 / preview.totalMiles else 0.0
                         Text(
                             String.format(Locale.US, "$%.2f/mi", rpm),
                             style = MaterialTheme.typography.bodyMedium,

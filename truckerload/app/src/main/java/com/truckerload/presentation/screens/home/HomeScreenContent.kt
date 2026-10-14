@@ -127,7 +127,7 @@ internal fun HomeScreenContent(
 
     if (tabletChrome) {
         val totals = periodTotals ?: periodSummary?.totals
-            ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, 0.0, 0.0)
+            ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, com.truckerload.domain.money.Money.ZERO, 0.0)
         val tabletRecentLoads = if (useRoomPaging) {
             (0 until minOf(pagedLoads.itemCount, 6)).mapNotNull { index -> pagedLoads[index] }
         } else {

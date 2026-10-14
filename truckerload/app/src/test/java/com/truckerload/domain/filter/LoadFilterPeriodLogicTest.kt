@@ -13,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 /**
  * Period filters must follow trucking logic:
@@ -29,7 +30,7 @@ class LoadFilterPeriodLogicTest {
             id = "overnight",
             tripId = "T-OVERNIGHT",
             date = "2025-07-05",
-            totalRate = 1500.0,
+            totalRate = Money.fromDollars(1500.0),
             totalMiles = 400.0,
             pointA = "Austin, TX",
             pointB = "Dallas, TX",
@@ -54,7 +55,7 @@ class LoadFilterPeriodLogicTest {
             id = "cross-month",
             tripId = "T-CROSS",
             date = "2025-07-30",
-            totalRate = 2000.0,
+            totalRate = Money.fromDollars(2000.0),
             totalMiles = 500.0,
             pointA = "A",
             pointB = "B",

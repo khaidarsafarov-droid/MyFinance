@@ -6,6 +6,7 @@ import com.truckerload.presentation.components.getUsStateCodes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class MapStateMetricsTest {
 
@@ -23,7 +24,7 @@ class MapStateMetricsTest {
             id = "1",
             tripId = "T-1",
             date = "2026-07-22",
-            totalRate = 2500.0,
+            totalRate = Money.fromDollars(2500.0),
             totalMiles = 1000.0,
             pointA = "Hopewell Junction, NY",
             pointB = "Garner, NC",

@@ -57,14 +57,14 @@ fun WeeklyGoalScreen() {
                 context,
                 current.weekNumber,
                 current.year,
-                current.targetAmount,
+                current.targetAmount.cents / 100.0,
             )
         ) {
             GoalCelebrationStore.markCelebrated(
                 context,
                 current.weekNumber,
                 current.year,
-                current.targetAmount,
+                current.targetAmount.cents / 100.0,
             )
             FeedbackManager.onGoalReached()
         }
@@ -117,7 +117,7 @@ fun WeeklyGoalScreen() {
                     },
                 )
 
-                if (progress.targetAmount <= 0) {
+                if (!progress.targetAmount.isPositive()) {
                     Text(
                         text = stringResource(R.string.ux_goal_ownership_hint),
                         style = MaterialTheme.typography.bodyMedium,
@@ -126,7 +126,7 @@ fun WeeklyGoalScreen() {
                     )
                 }
 
-                if (progress.targetAmount > 0 && progress.remainingAmount > 0) {
+                if (progress.targetAmount.isPositive() && progress.remainingAmount.isPositive()) {
                     Text(
                         text = stringResource(
                             R.string.ux_contrast_remaining_of_goal,

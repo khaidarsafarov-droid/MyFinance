@@ -10,6 +10,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import com.truckerload.domain.money.Money
 
 class CrowdMapAggregatorTest {
 
@@ -29,7 +30,7 @@ class CrowdMapAggregatorTest {
         assertEquals(1, reports.size)
         assertEquals("WA", reports[0].fromState)
         assertEquals("OR", reports[0].toState)
-        assertEquals(3.0, reports[0].rpm, 0.01)
+        assertEquals(Money.fromDollars(3.0), reports[0].rpm)
         assertEquals(CrowdRateSource.ME, reports[0].source)
         assertEquals("anon:0", reports[0].id)
         assertFalse(reports[0].id.contains(load.id))
@@ -52,8 +53,8 @@ class CrowdMapAggregatorTest {
     @Test
     fun filterMeOnly_dropsNetwork() {
         val reports = listOf(
-            CrowdRateReport("m", "WA", "OR", 2.5, 1000.0, 400.0, now, CrowdRateSource.ME),
-            CrowdRateReport("n", "TX", "OK", 2.2, 900.0, 400.0, now, CrowdRateSource.NETWORK),
+            CrowdRateReport("m", "WA", "OR", Money.fromDollars(2.5), Money.fromDollars(1000.0), 400.0, now, CrowdRateSource.ME),
+            CrowdRateReport("n", "TX", "OK", Money.fromDollars(2.2), Money.fromDollars(900.0), 400.0, now, CrowdRateSource.NETWORK),
         )
         val me = CrowdMapAggregator.filterMeOnly(reports)
         assertEquals(1, me.size)
@@ -63,21 +64,21 @@ class CrowdMapAggregatorTest {
     @Test
     fun stateSummary_listsRecentOutbound() {
         val reports = listOf(
-            CrowdRateReport("1", "WA", "OR", 2.9, 1160.0, 400.0, now - TimeUnit.HOURS.toMillis(3), CrowdRateSource.ME),
-            CrowdRateReport("2", "WA", "CA", 2.5, 1250.0, 500.0, now - TimeUnit.DAYS.toMillis(2), CrowdRateSource.ME),
-            CrowdRateReport("3", "OR", "WA", 3.0, 900.0, 300.0, now, CrowdRateSource.ME),
+            CrowdRateReport("1", "WA", "OR", Money.fromDollars(2.9), Money.fromDollars(1160.0), 400.0, now - TimeUnit.HOURS.toMillis(3), CrowdRateSource.ME),
+            CrowdRateReport("2", "WA", "CA", Money.fromDollars(2.5), Money.fromDollars(1250.0), 500.0, now - TimeUnit.DAYS.toMillis(2), CrowdRateSource.ME),
+            CrowdRateReport("3", "OR", "WA", Money.fromDollars(3.0), Money.fromDollars(900.0), 300.0, now, CrowdRateSource.ME),
         )
         val summary = CrowdMapAggregator.stateSummary(reports, "WA")
         assertEquals(2, summary.outboundTrips)
         assertEquals(2, summary.recent.size)
         assertEquals("OR", summary.recent[0].toState) // newest first
-        assertTrue(summary.avgOutboundRpm > 0)
+        assertTrue(summary.avgOutboundRpm.isPositive())
     }
 
     @Test
     fun heatmap_marksOutboundState() {
         val reports = listOf(
-            CrowdRateReport("1", "WA", "OR", 3.0, 1200.0, 400.0, now, CrowdRateSource.ME),
+            CrowdRateReport("1", "WA", "OR", Money.fromDollars(3.0), Money.fromDollars(1200.0), 400.0, now, CrowdRateSource.ME),
         )
         val metrics = CrowdMapAggregator.heatmapFromOutbound(reports)
         val wa = metrics.first { it.code == "WA" }
@@ -165,11 +166,11 @@ class CrowdMapAggregatorTest {
     fun heatmap_aggregatesMixedEquipmentInState() {
         val reports = listOf(
             CrowdRateReport(
-                "a", "WA", "OR", 2.0, 800.0, 400.0, now, CrowdRateSource.ME,
+                "a", "WA", "OR", Money.fromDollars(2.0), Money.fromDollars(800.0), 400.0, now, CrowdRateSource.ME,
                 equipmentType = EquipmentType.DRY_VAN,
             ),
             CrowdRateReport(
-                "b", "WA", "OR", 4.0, 1600.0, 400.0, now, CrowdRateSource.ME,
+                "b", "WA", "OR", Money.fromDollars(4.0), Money.fromDollars(1600.0), 400.0, now, CrowdRateSource.ME,
                 equipmentType = EquipmentType.REEFER,
             ),
         )
@@ -192,7 +193,7 @@ class CrowdMapAggregatorTest {
         id = id,
         tripId = "T-$id",
         date = "2026-07-28",
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = miles,
         pointA = pointA,
         pointB = pointB,

@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.parser.ParseUtils
 import com.truckerload.presentation.utils.MoneyFormat
 import kotlinx.coroutines.Dispatchers
@@ -133,10 +134,11 @@ object LoadExporter {
 
     private fun formatStatistics(loads: List<Load>): String {
         val count = loads.size
-        val totalIncome = loads.sumOf { it.totalRate }
+        val totalIncome = loads.map { it.totalRate }.sum()
+        val totalIncomeDollars = totalIncome.cents / 100.0
         val totalMiles = loads.sumOf { ParseUtils.sanitizeLoadedMiles(it.totalMiles, it.totalRate) + it.deadheadMiles.coerceAtLeast(0.0) }
-        val avgIncome = if (count > 0) totalIncome / count else 0.0
-        val avgRpm = if (totalMiles > 0) totalIncome / totalMiles else 0.0
+        val avgIncome = if (count > 0) totalIncomeDollars / count else 0.0
+        val avgRpm = if (totalMiles > 0) totalIncomeDollars / totalMiles else 0.0
         return buildString {
             appendLine()
             appendLine("========================================")
@@ -174,6 +176,9 @@ object LoadExporter {
 
     private fun formatMilesValue(miles: Double): String =
         MoneyFormat.formatNumber(miles)
+
+    private fun formatMoney(amount: com.truckerload.domain.money.Money): String =
+        MoneyFormat.formatCurrency(amount)
 
     private fun formatMoney(amount: Double): String =
         MoneyFormat.formatCurrency(amount)

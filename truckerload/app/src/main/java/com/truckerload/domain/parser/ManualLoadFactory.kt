@@ -1,5 +1,6 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
@@ -37,7 +38,8 @@ object ManualLoadFactory {
         }
         val resolvedDate = ParseUtils.normalizeDate(date).takeIf { it.length >= 10 }
             ?: todayIso(nowMillis)
-        val sanitizedMiles = ParseUtils.sanitizeLoadedMiles(miles.coerceAtLeast(0.0), rate)
+        val rateMoney = Money.fromDollars(rate)
+        val sanitizedMiles = ParseUtils.sanitizeLoadedMiles(miles.coerceAtLeast(0.0), rateMoney)
         val stops = filled.mapIndexed { index, address ->
             val type = if (index == 0) StopType.PU else StopType.DEL
             stop(resolvedTrip, index + 1, type, ParseUtils.parseAddressLine(address), address)
@@ -46,7 +48,7 @@ object ManualLoadFactory {
             id = resolvedTrip,
             tripId = resolvedTrip,
             date = resolvedDate,
-            totalRate = rate,
+            totalRate = rateMoney,
             totalMiles = sanitizedMiles,
             pointA = originText,
             pointB = destText,
@@ -55,7 +57,7 @@ object ManualLoadFactory {
             weekNumber = 0,
             year = 0,
             rawMessage = rawMessage.ifBlank {
-                formatRaw(resolvedTrip, rate, sanitizedMiles, filled)
+                formatRaw(resolvedTrip, rateMoney, sanitizedMiles, filled)
             },
             parsedAt = nowMillis,
             updatedAt = nowMillis,
@@ -106,12 +108,12 @@ object ManualLoadFactory {
 
     private fun formatRaw(
         tripId: String,
-        rate: Double,
+        rate: Money,
         miles: Double,
         points: List<String>,
     ): String = buildString {
         appendLine("Trip ID: $tripId")
-        appendLine("Total Rate: $rate")
+        appendLine("Total Rate: ${rate.formatPlain()}")
         if (miles > 0) appendLine("Total Loaded Miles: $miles mi")
         points.forEachIndexed { index, address ->
             val letter = if (index in 0..25) ('A' + index).toString() else (index + 1).toString()

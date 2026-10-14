@@ -1,5 +1,7 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.money.Money
+
 enum class MaintenanceReminderType {
     MILES,
     DATE,
@@ -25,7 +27,7 @@ data class MaintenanceArchiveEntry(
     val serviceName: String = "",
     val serviceDate: String,
     val description: String,
-    val amount: Double,
+    val amount: Money,
     val photoPath: String? = null,
     val ocrText: String? = null,
     val createdAt: Long = System.currentTimeMillis(),

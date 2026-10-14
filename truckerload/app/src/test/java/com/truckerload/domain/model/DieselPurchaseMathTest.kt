@@ -3,6 +3,8 @@ package com.truckerload.domain.model
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class DieselPurchaseMathTest {
 
@@ -12,14 +14,14 @@ class DieselPurchaseMathTest {
         val list = 5.10
         val discount = 4.09
 
-        assertEquals(2045.0, DieselPurchaseMath.paidTotal(gallons, list, discount)!!, 0.001)
-        assertEquals(505.0, DieselPurchaseMath.savings(gallons, list, discount)!!, 0.001)
+        assertEquals(Money.fromDollars(2045.0), DieselPurchaseMath.paidTotal(gallons, list?.let(UnitPrice::fromDollars), discount?.let(UnitPrice::fromDollars))!!)
+        assertEquals(Money.fromDollars(505.0), DieselPurchaseMath.savings(gallons, list?.let(UnitPrice::fromDollars), discount?.let(UnitPrice::fromDollars))!!)
     }
 
     @Test
     fun withoutDiscount_usesListPrice() {
-        assertEquals(2550.0, DieselPurchaseMath.paidTotal(500.0, 5.10, null)!!, 0.001)
-        assertNull(DieselPurchaseMath.savings(500.0, 5.10, null))
+        assertEquals(Money.fromDollars(2550.0), DieselPurchaseMath.paidTotal(500.0, UnitPrice.fromDollars(5.10), null)!!)
+        assertNull(DieselPurchaseMath.savings(500.0, UnitPrice.fromDollars(5.10), null))
     }
 
     @Test
@@ -31,15 +33,15 @@ class DieselPurchaseMathTest {
             weekLabel = "W34",
             weekStartDate = "2026-08-16",
             weekEndDate = "2026-08-22",
-            totalAmount = 2045.0,
+            totalAmount = Money.fromDollars(2045.0),
             gallons = 500.0,
-            pricePerGallon = 5.10,
-            discountPricePerGallon = 4.09,
+            pricePerGallon = UnitPrice.fromDollars(5.10),
+            discountPricePerGallon = UnitPrice.fromDollars(4.09),
             location = null,
             rawExtractedText = "",
             sourceFileName = null,
             addedAt = 1L,
         )
-        assertEquals(505.0, diesel.savingsAmount!!, 0.001)
+        assertEquals(Money.fromDollars(505.0), diesel.savingsAmount!!)
     }
 }

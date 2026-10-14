@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class ArchiveDraftTest {
 
@@ -46,7 +47,7 @@ class ArchiveDraftTest {
         assertTrue(entries.all { it.serviceDate == "2026-08-25" })
         assertTrue(entries.all { it.createdAt == 42L })
         assertEquals("VALVE ADJUSTMENT", entries[0].description)
-        assertEquals(500.0, entries[0].amount, 0.01)
-        assertEquals(43.12, entries[1].amount, 0.01)
+        assertEquals(Money.fromDollars(500.0), entries[0].amount)
+        assertEquals(Money.fromDollars(43.12), entries[1].amount)
     }
 }

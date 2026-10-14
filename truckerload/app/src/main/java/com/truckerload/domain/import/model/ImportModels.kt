@@ -14,7 +14,7 @@ data class ParsedLoad(
     companion object {
         fun from(load: Load): ParsedLoad = ParsedLoad(
             tripId = load.tripId,
-            totalRate = load.totalRate,
+            totalRate = load.totalRate.cents / 100.0,
             totalMiles = load.totalMiles,
             pointA = load.pointA,
             pointB = load.pointB,

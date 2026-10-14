@@ -1,6 +1,7 @@
 package com.truckerload.domain.maintenance
 
 import com.truckerload.domain.model.MaintenanceArchiveEntry
+import com.truckerload.domain.money.sum
 
 /** One shop visit: several saved services that were entered (or scanned) together. */
 data class MaintenanceVisit(
@@ -10,7 +11,7 @@ data class MaintenanceVisit(
     val createdAt: Long,
     val lines: List<MaintenanceArchiveEntry>,
 ) {
-    val total: Double get() = lines.sumOf { it.amount }
+    val total: Double get() = lines.map { it.amount }.sum().cents / 100.0
     val ids: List<Long> get() = lines.map { it.id }
 }
 

@@ -321,9 +321,9 @@ private fun AttachLoadRow(
                             append(" · ")
                             append(String.format(Locale.US, "%,.0f mi", load.drivenMiles))
                         }
-                        if (load.totalRate > 0) {
+                        if (load.totalRate.isPositive()) {
                             append(" · ")
-                            append(String.format(Locale.US, "$%,.0f", load.totalRate))
+                            append(com.truckerload.presentation.utils.MoneyFormat.formatCurrency(load.totalRate, decimals = 0))
                         }
                     },
                     style = MaterialTheme.typography.labelMedium,

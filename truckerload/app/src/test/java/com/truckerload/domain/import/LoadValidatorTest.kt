@@ -6,6 +6,7 @@ import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadValidatorTest {
 
@@ -113,7 +114,7 @@ class LoadValidatorTest {
         id = "load-1",
         tripId = tripId,
         date = date,
-        totalRate = totalRate,
+        totalRate = Money.fromDollars(totalRate),
         totalMiles = 850.0,
         pointA = pointA,
         pointB = pointB,

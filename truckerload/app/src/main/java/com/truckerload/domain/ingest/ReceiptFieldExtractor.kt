@@ -41,9 +41,9 @@ object ReceiptFieldExtractor {
             ReceiptKind.PAYCHECK -> paycheck?.netAmount ?: receipt.amount ?: firstMoney(text)
             ReceiptKind.DIESEL, ReceiptKind.DEF ->
                 diesel?.totalAmount ?: receipt.amount ?: firstMoney(text)
-            ReceiptKind.LOAD -> load?.totalRate?.takeIf { it > 0 }
+            ReceiptKind.LOAD -> load?.totalRate?.takeIf { it.isPositive() }?.cents?.div(100.0)
             ReceiptKind.UNKNOWN ->
-                paycheck?.netAmount ?: diesel?.totalAmount ?: load?.totalRate ?: receipt.amount
+                paycheck?.netAmount ?: diesel?.totalAmount ?: load?.totalRate?.cents?.div(100.0) ?: receipt.amount
         }
 
         val isLoad = resolvedKind == ReceiptKind.LOAD

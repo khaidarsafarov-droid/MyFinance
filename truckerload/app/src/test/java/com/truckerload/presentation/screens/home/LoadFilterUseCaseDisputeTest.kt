@@ -5,6 +5,7 @@ import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadFilterUseCaseDisputeTest {
 
@@ -39,7 +40,7 @@ class LoadFilterUseCaseDisputeTest {
         id = id,
         tripId = id,
         date = "2026-07-16",
-        totalRate = 1000.0,
+        totalRate = Money.fromDollars(1000.0),
         totalMiles = 500.0,
         pointA = "A",
         pointB = "B",

@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class FilteredLoadsPagingSourceTest {
 
@@ -14,7 +15,7 @@ class FilteredLoadsPagingSourceTest {
         id = id,
         tripId = id,
         date = "2026-01-01",
-        totalRate = 100.0,
+        totalRate = Money.fromDollars(100.0),
         totalMiles = 50.0,
         pointA = "A",
         pointB = "B",

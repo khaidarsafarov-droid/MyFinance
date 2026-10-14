@@ -19,8 +19,10 @@ data class PaycheckEntity(
     val weekStartDate: String,
     val weekEndDate: String,
     val driverName: String?,
-    val grossAmount: Double?,
-    val netAmount: Double,
+    /** Gross pay in cents; null when the statement omitted it. */
+    val grossAmount: Long?,
+    /** Net pay in cents. */
+    val netAmount: Long,
     val rawExtractedText: String,
     val sourceFileName: String?,
     val addedAt: Long,

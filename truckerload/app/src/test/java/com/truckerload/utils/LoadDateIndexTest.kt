@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadDateIndexTest {
 
@@ -16,7 +17,7 @@ class LoadDateIndexTest {
             id = "cross-month",
             tripId = "T-CROSS",
             date = "2025-07-30",
-            totalRate = 2000.0,
+            totalRate = Money.fromDollars(2000.0),
             totalMiles = 500.0,
             pointA = "A",
             pointB = "B",
@@ -50,7 +51,7 @@ class LoadDateIndexTest {
             id = "d1",
             tripId = "T-D1",
             date = "2025-07-15",
-            totalRate = 1000.0,
+            totalRate = Money.fromDollars(1000.0),
             totalMiles = 100.0,
             pointA = "A",
             pointB = "B",

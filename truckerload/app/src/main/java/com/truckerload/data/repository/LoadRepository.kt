@@ -19,6 +19,7 @@ import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.domain.attach.AttachLoadSelection
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.goal.WeekYieldSnapshot
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.normalizeTripId
@@ -74,7 +75,7 @@ class LoadRepository(
             loadDao.watchTotalLoadStats().map { agg ->
                 LoadFilterUseCase.Totals(
                     loadCount = agg.totalLoads,
-                    totalRate = agg.totalRevenue,
+                    totalRate = Money.fromCents(agg.totalRevenue),
                     totalMiles = agg.totalMiles,
                 )
             }
@@ -82,7 +83,7 @@ class LoadRepository(
             loadDao.watchYearLoadStats(selectedYear.toString()).map { agg ->
                 LoadFilterUseCase.Totals(
                     loadCount = agg.loadCount,
-                    totalRate = agg.totalRevenue,
+                    totalRate = Money.fromCents(agg.totalRevenue),
                     totalMiles = agg.totalMiles,
                 )
             }
@@ -298,10 +299,10 @@ class LoadRepository(
         origin: String,
         destination: String,
         date: String,
-        rate: Double,
+        rate: Money,
     ): Load? {
         if (origin.isBlank() || destination.isBlank() || date.isBlank()) return null
-        val entity = loadDao.getByRouteAndDate(origin, destination, date, rate) ?: return null
+        val entity = loadDao.getByRouteAndDate(origin, destination, date, rate.cents) ?: return null
         return entity.toDomain(stopsFor(entity.id), penaltiesFor(entity.id))
     }
 
@@ -369,7 +370,7 @@ class LoadRepository(
                 loadId = normalized.id,
                 tripId = normalized.tripId,
                 loadDate = normalized.date,
-                totalRate = normalized.totalRate,
+                totalRate = normalized.totalRate.cents,
                 totalMiles = normalized.totalMiles,
                 deadheadMiles = com.truckerload.domain.model.DeadheadMiles.normalize(normalized.deadheadMiles),
                 pointA = normalized.pointA,
@@ -387,12 +388,12 @@ class LoadRepository(
                 firstPuCityState = normalized.firstPuCityState,
                 lastDelCityState = normalized.lastDelCityState,
                 durationDays = normalized.durationDays,
-                pace = normalized.pace,
+                pace = normalized.pace.cents,
                 stopCount = normalized.stopCount,
                 isDispute = normalized.isDispute,
                 disputeResponseDate = normalized.disputeResponseDate,
                 disputeCompleted = normalized.disputeCompleted,
-                disputeAmount = normalized.disputeAmount,
+                disputeAmount = normalized.disputeAmount?.cents,
                 disputeApplyToLoad = normalized.disputeApplyToLoad,
                 disputeAmountApplied = normalized.disputeAmountApplied,
                 actualFinishDate = normalized.actualFinishDate,
@@ -533,7 +534,7 @@ class LoadRepository(
         return runBatchWrite {
             var fixed = 0
             for (entity in entities) {
-                val sanitized = ParseUtils.sanitizeLoadedMiles(entity.totalMiles, entity.totalRate)
+                val sanitized = ParseUtils.sanitizeLoadedMiles(entity.totalMiles, Money.fromCents(entity.totalRate))
                 if (kotlin.math.abs(sanitized - entity.totalMiles) > 0.009) {
                     val stops = stopDao.getStopsByLoadId(entity.id)
                     val penalties = penaltyDao.getPenaltiesByLoadId(entity.id)
@@ -546,5 +547,6 @@ class LoadRepository(
         }
     }
 
-    private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot = WeekYieldSnapshot(totalGross = totalGross, totalActiveDays = totalActiveDays)
+    private fun WeekYieldAgg.toSnapshot(): WeekYieldSnapshot =
+        WeekYieldSnapshot(totalGross = Money.fromCents(totalGross), totalActiveDays = totalActiveDays)
 }

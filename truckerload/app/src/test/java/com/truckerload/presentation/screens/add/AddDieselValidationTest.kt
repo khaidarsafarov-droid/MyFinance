@@ -4,6 +4,8 @@ import com.truckerload.utils.AmountInputValidator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 class AddDieselValidationTest {
 
@@ -27,9 +29,9 @@ class AddDieselValidationTest {
             discountPriceText = "4.09",
         )
         assertEquals(500.0, state.gallons!!, 0.0)
-        assertEquals(5.10, state.pricePerGallon!!, 0.0)
-        assertEquals(4.09, state.discountPricePerGallon!!, 0.0)
-        assertEquals(2045.0, state.paidTotal!!, 0.001)
-        assertEquals(505.0, state.savings!!, 0.001)
+        assertEquals(UnitPrice.fromDollars(5.10), state.pricePerGallon!!)
+        assertEquals(UnitPrice.fromDollars(4.09), state.discountPricePerGallon!!)
+        assertEquals(Money.fromDollars(2045.0), state.paidTotal!!)
+        assertEquals(Money.fromDollars(505.0), state.savings!!)
     }
 }

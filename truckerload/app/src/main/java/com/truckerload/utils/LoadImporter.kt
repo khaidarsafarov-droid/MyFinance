@@ -53,7 +53,7 @@ object LoadImporter {
                 id = tripId,
                 tripId = tripId,
                 date = isoDate,
-                totalRate = row.totalRate,
+                totalRate = com.truckerload.domain.money.Money.fromDollars(row.totalRate),
                 totalMiles = row.totalMiles,
                 pointA = row.pointA.trim(),
                 pointB = row.pointB.trim(),

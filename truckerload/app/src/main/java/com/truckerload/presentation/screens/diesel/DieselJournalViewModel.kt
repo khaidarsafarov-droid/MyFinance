@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselJournalFilter
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
@@ -65,7 +66,7 @@ class DieselJournalViewModel @Inject constructor(
             weekLabel = weekLabel,
             selectedDateIso = dateIso,
             entries = visible,
-            weekTotal = inWeek.sumOf { it.totalAmount },
+            weekTotal = inWeek.map { it.totalAmount }.sum().cents / 100.0,
         )
     }.stateIn(
         scope = viewModelScope,

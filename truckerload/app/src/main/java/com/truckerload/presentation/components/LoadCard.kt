@@ -171,7 +171,7 @@ private fun LoadCardContent(
                     R.string.load_card_summary_line,
                     stopLabel,
                     String.format(Locale.US, "%,.0f", load.drivenMiles),
-                    String.format(Locale.US, "$%,.2f", load.totalRate),
+                    "$${load.totalRate.formatPlain()}",
                 ),
                 style = AppTypography.Caption.copy(color = cs.onSurfaceVariant),
                 modifier = Modifier.padding(top = 6.dp),
@@ -284,6 +284,9 @@ private fun LoadCardContent(
 fun computeRpm(totalRate: Double, totalMiles: Double): Double? =
     if (totalMiles > 0) totalRate / totalMiles else null
 
+fun computeRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double): Double? =
+    computeRpm(totalRate.cents / 100.0, totalMiles)
+
 /**
  * Camera / scan chip on a load card. Fixed visual size (not Material IconButton's
  * 48dp min target) so [Arrangement.spacedBy] actually separates the green pills.
@@ -318,6 +321,9 @@ private fun LoadCardActionChip(
 }
 
 /** RPM = Total Amount / Total Miles. */
+fun formatRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double, unitFormat: String): String =
+    formatRpm(totalRate.cents / 100.0, totalMiles, unitFormat)
+
 fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String {
     return if (totalMiles > 0) {
         String.format(Locale.US, unitFormat, totalRate / totalMiles)

@@ -32,14 +32,14 @@ internal object LoadCandidateRanker {
 
     fun loadScore(load: Load): Int {
         var score = 0
-        if (load.totalRate > 0.0) score += 40
+        if (load.totalRate.isPositive()) score += 40
         if (load.pointA.isNotBlank()) score += 20
         if (load.pointB.isNotBlank()) score += 20
         if (load.totalMiles > 0.0) score += 10
         if (load.tripId.isNotBlank()) score += 8
         val miles = load.totalMiles
-        if (miles > 0.0 && load.totalRate > 0.0) {
-            val rpm = load.totalRate / miles
+        if (miles > 0.0 && load.totalRate.isPositive()) {
+            val rpm = load.totalRate.cents / 100.0 / miles
             if (rpm in MIN_PLAUSIBLE_RPM..MAX_PLAUSIBLE_RPM) score += 30
             if (rpm < ABSURD_LOW_RPM || rpm > ABSURD_HIGH_RPM) score -= 25
         }

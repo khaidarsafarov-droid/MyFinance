@@ -7,6 +7,8 @@ import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.model.Penalty
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 
 object BackupTestFixtures {
     const val PARSED_AT = 1_721_548_800_000L
@@ -21,7 +23,7 @@ object BackupTestFixtures {
         id = id,
         tripId = tripId,
         date = "2026-07-21",
-        totalRate = 2500.0,
+        totalRate = Money.fromDollars(2500.0),
         totalMiles = 850.0,
         pointA = "Garner, NC",
         pointB = "Dallas, TX",
@@ -34,7 +36,7 @@ object BackupTestFixtures {
         updatedAt = UPDATED_AT,
         actualFinishDate = "2026-07-22 18:00",
         durationDays = 1.5,
-        pace = 1666.67,
+        pace = Money.fromDollars(1666.67),
         equipmentType = EquipmentType.DRY_VAN,
         stops = listOf(
             Stop(
@@ -69,7 +71,7 @@ object BackupTestFixtures {
             ),
         ),
         penalties = listOf(
-            Penalty(id = 21, loadId = id, description = "layover", amount = 150.0),
+            Penalty(id = 21, loadId = id, description = "layover", amount = Money.fromDollars(150.0)),
         ),
     )
 
@@ -81,8 +83,8 @@ object BackupTestFixtures {
         weekStartDate = "2026-07-20",
         weekEndDate = "2026-07-26",
         driverName = "Test Driver",
-        grossAmount = 3200.0,
-        netAmount = 2800.0,
+        grossAmount = Money.fromDollars(3200.0),
+        netAmount = Money.fromDollars(2800.0),
         rawExtractedText = "gross 3200",
         sourceFileName = "pay.pdf",
         addedAt = ADDED_AT,
@@ -95,9 +97,9 @@ object BackupTestFixtures {
         weekLabel = "Week 30",
         weekStartDate = "2026-07-20",
         weekEndDate = "2026-07-26",
-        totalAmount = 540.25,
+        totalAmount = Money.fromDollars(540.25),
         gallons = 120.0,
-        pricePerGallon = 4.502,
+        pricePerGallon = UnitPrice.fromDollars(4.502),
         location = "Pilot, NC",
         rawExtractedText = "diesel 540.25",
         sourceFileName = "fuel.jpg",

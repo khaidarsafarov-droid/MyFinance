@@ -2,6 +2,7 @@ package com.truckerload.data.backup
 
 import androidx.annotation.Keep
 import com.truckerload.domain.model.MaintenanceArchiveEntry
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.MaintenanceReminderType
 import com.truckerload.domain.model.MaintenanceTask
 
@@ -53,7 +54,7 @@ data class BackupMaintenanceArchive(
         serviceName = serviceName,
         serviceDate = serviceDate,
         description = description,
-        amount = amount,
+        amount = Money.fromDollars(amount),
         photoPath = photoPath,
         ocrText = ocrText,
         createdAt = createdAt,

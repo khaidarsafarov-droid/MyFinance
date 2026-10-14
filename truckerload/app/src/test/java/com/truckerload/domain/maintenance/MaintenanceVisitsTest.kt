@@ -3,6 +3,7 @@ package com.truckerload.domain.maintenance
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class MaintenanceVisitsTest {
 
@@ -41,7 +42,7 @@ class MaintenanceVisitsTest {
         serviceName = "Shop",
         serviceDate = date,
         description = description,
-        amount = amount,
+        amount = Money.fromDollars(amount),
         createdAt = createdAt,
     )
 }

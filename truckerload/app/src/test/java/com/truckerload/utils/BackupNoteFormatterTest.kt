@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class BackupNoteFormatterTest {
 
@@ -82,7 +83,7 @@ class BackupNoteFormatterTest {
         id = id,
         tripId = tripId,
         date = date,
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = 100.0,
         pointA = "Charlotte, NC",
         pointB = "Nashville, TN",

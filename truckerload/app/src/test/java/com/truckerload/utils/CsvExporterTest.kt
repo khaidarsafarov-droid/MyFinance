@@ -6,6 +6,7 @@ import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class CsvExporterTest {
 
@@ -20,7 +21,7 @@ class CsvExporterTest {
             id = "1",
             tripId = "T-1",
             date = "2026-06-10",
-            totalRate = 2460.0,
+            totalRate = Money.fromDollars(2460.0),
             totalMiles = 1000.0,
             pointA = "Hopewell Junction, NY",
             pointB = "Garner, NC",
@@ -80,7 +81,7 @@ class CsvExporterTest {
             id = "2",
             tripId = "T-2",
             date = "2026-06-11",
-            totalRate = 500.0,
+            totalRate = Money.fromDollars(500.0),
             totalMiles = 100.0,
             pointA = "Hopewell \"Junction\", NY",
             pointB = "Garner, NC",

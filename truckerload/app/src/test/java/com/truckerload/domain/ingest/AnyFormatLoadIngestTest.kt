@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 /**
  * One load, expressed in every format a driver can send, must land on the same
@@ -48,7 +49,7 @@ class AnyFormatLoadIngestTest {
             .getOrThrow()
             .firstOrNull()
         assertNotNull(load)
-        assertEquals(2100.50, load!!.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2100.50), load!!.totalRate)
         assertTrue(load.pointA.contains("Garner"))
     }
 
@@ -99,7 +100,7 @@ class AnyFormatLoadIngestTest {
             "carrier-rate-confirmation.pdf",
         ).getOrThrow().firstOrNull()
         assertNotNull(load)
-        assertEquals(2100.50, load!!.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2100.50), load!!.totalRate)
         assertEquals(700.0, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("Garner"))
         assertTrue(load.pointB.contains("Dallas"))
@@ -138,7 +139,7 @@ class AnyFormatLoadIngestTest {
         )
         assertTrue(decision.autoSaveLoads)
         assertEquals(1, decision.loads.size)
-        assertEquals(2100.50, decision.loads.first().totalRate, 0.01)
+        assertEquals(Money.fromDollars(2100.50), decision.loads.first().totalRate)
     }
 
     @Test
@@ -166,7 +167,7 @@ class AnyFormatLoadIngestTest {
             .firstOrNull()
         assertNotNull("no load parsed from $fileName", load)
         assertEquals("T-77001", load!!.tripId)
-        assertEquals(2100.50, load.totalRate, 0.01)
+        assertEquals(Money.fromDollars(2100.50), load.totalRate)
         assertEquals(700.0, load.totalMiles, 0.01)
         assertTrue(load.pointA.contains("Garner"))
         assertTrue(load.pointB.contains("Dallas"))

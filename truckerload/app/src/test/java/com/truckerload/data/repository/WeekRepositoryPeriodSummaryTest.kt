@@ -15,6 +15,7 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import com.truckerload.domain.money.Money
 
 /**
  * Month/year stats must follow reporting weeks (Saturday owns the month) so a
@@ -105,7 +106,7 @@ class WeekRepositoryPeriodSummaryTest {
         id = "load-$date",
         tripId = "T-SPAN",
         date = date,
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = 800.0,
         pointA = "A",
         pointB = "B",
@@ -132,8 +133,8 @@ class WeekRepositoryPeriodSummaryTest {
         weekStartDate = start,
         weekEndDate = end,
         driverName = null,
-        grossAmount = net,
-        netAmount = net,
+        grossAmount = net?.let(Money::fromDollars),
+        netAmount = Money.fromDollars(net),
         rawExtractedText = "",
         sourceFileName = null,
         addedAt = 1L,
@@ -153,7 +154,7 @@ class WeekRepositoryPeriodSummaryTest {
         weekLabel = "",
         weekStartDate = start,
         weekEndDate = end,
-        totalAmount = amount,
+        totalAmount = Money.fromDollars(amount),
         gallons = null,
         pricePerGallon = null,
         location = null,

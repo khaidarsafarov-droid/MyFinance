@@ -1,5 +1,6 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.Load
 import org.json.JSONArray
 import org.json.JSONObject
@@ -114,7 +115,9 @@ object JsonLoadParser {
         val (pickup, delivery) = routeOf(node, index)
         if (pickup.isBlank() && delivery.isBlank()) return null
 
-        val miles = numberFor(index, milesKeys)?.let { ParseUtils.sanitizeLoadedMiles(it, rate) } ?: 0.0
+        val miles = numberFor(index, milesKeys)?.let {
+            ParseUtils.sanitizeLoadedMiles(it, Money.fromDollars(rate))
+        } ?: 0.0
         val tripId = textFor(index, tripKeys)?.uppercase(Locale.US).orEmpty()
         val date = textFor(index, dateKeys)
             ?.let { ParseUtils.normalizeDate(it, referenceMillis = referenceMillis) }

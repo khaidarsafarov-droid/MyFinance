@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.map
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.sum
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.USHeatLevel
 import com.truckerload.presentation.components.USStateMetric
@@ -21,7 +22,7 @@ object MapStateMetrics {
             }
         data class StateAgg(val revenue: Double, val trips: Int, val avgMiles: Double, val rpm: Double)
         val byState = loadsWithState.groupBy { it.first }.mapValues { (_, list) ->
-            val revenue = list.sumOf { it.second }
+            val revenue = list.map { it.second }.sum().cents / 100.0
             val totalMiles = list.sumOf { it.third }
             val trips = list.size
             val avgMiles = if (trips > 0) totalMiles / trips else 0.0

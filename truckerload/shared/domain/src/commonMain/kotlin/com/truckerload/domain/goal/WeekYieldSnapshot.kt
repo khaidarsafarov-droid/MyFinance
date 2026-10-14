@@ -1,10 +1,16 @@
 package com.truckerload.domain.goal
 
+import com.truckerload.domain.money.Money
+
 /** Room SQL aggregate for week efficiency (PU→DEL durations). */
 data class WeekYieldSnapshot(
-    val totalGross: Double,
-    val totalActiveDays: Double
+    val totalGross: Money,
+    val totalActiveDays: Double,
 ) {
-    val actualDailyYield: Double
-        get() = if (totalActiveDays > 0.0) GoalMoneyMath.roundMoney(totalGross / totalActiveDays) else 0.0
+    val actualDailyYield: Money
+        get() = if (totalActiveDays > 0.0) {
+            totalGross.dividedBy(kotlin.math.ceil(totalActiveDays).toInt().coerceAtLeast(1))
+        } else {
+            Money.ZERO
+        }
 }

@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import com.truckerload.domain.money.Money
 
 class WidgetDayProjectionTest {
 
@@ -226,7 +227,7 @@ class WidgetDayProjectionTest {
         id = id,
         tripId = id,
         date = date,
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = miles,
         pointA = "A",
         pointB = "B",
@@ -250,7 +251,7 @@ class WidgetDayProjectionTest {
         id = id,
         tripId = id,
         date = puDate,
-        totalRate = rate,
+        totalRate = Money.fromDollars(rate),
         totalMiles = miles,
         pointA = "A",
         pointB = "B",

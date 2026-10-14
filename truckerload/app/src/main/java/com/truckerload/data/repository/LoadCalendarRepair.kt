@@ -42,7 +42,7 @@ internal suspend fun persistRepairedLoadDates(db: AppDatabase): Int {
                 lastDelMillis = LoadYieldCalculator.resolveFinishMillis(dated)
                     ?: getLastDeliveryMillis(dated),
                 durationDays = dated.durationDays,
-                pace = dated.pace,
+                pace = dated.pace.cents,
             )
         }
     }

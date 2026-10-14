@@ -1,5 +1,6 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.money.Money
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -24,7 +25,7 @@ data class ReceiptData(
             serviceName = serviceName.trim(),
             serviceDate = epochMillisToIsoDate(date),
             description = description.trim().ifBlank { serviceName.trim() },
-            amount = totalAmount,
+            amount = Money.fromDollars(totalAmount),
             photoPath = imageUri.takeIf { it.isNotBlank() },
             ocrText = rawText,
         )
@@ -36,7 +37,7 @@ data class ReceiptData(
                 imageUri = entry.photoPath.orEmpty(),
                 serviceName = entry.serviceName,
                 date = isoDateToEpochMillis(entry.serviceDate),
-                totalAmount = entry.amount,
+                totalAmount = entry.amount.cents / 100.0,
                 description = entry.description,
                 rawText = entry.ocrText,
             )

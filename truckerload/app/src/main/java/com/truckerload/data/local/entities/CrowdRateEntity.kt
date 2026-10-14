@@ -21,8 +21,10 @@ data class CrowdRateEntity(
     @PrimaryKey val id: String,
     val fromState: String,
     val toState: String,
-    val rpm: Double,
-    val rate: Double,
+    /** Rate per mile in cents. */
+    val rpm: Long,
+    /** Lane pay in cents. */
+    val rate: Long,
     val miles: Double,
     val reportedAtMillis: Long,
     /** ME, FRIEND, or NETWORK */

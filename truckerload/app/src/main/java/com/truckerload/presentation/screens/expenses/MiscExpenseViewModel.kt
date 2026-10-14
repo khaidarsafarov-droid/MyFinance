@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.MiscExpenseRepository
 import com.truckerload.domain.expense.MiscExpenseFields
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.sum
 import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.formatIsoDate
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,7 +56,7 @@ class MiscExpenseViewModel @Inject constructor(
     ) { entries, openEditor, deleteId, saving ->
         MiscExpenseUiState(
             entries = entries,
-            total = entries.sumOf { it.amount },
+            total = entries.map { it.amount }.sum().cents / 100.0,
             editor = openEditor,
             confirmDeleteId = deleteId,
             isSaving = saving,
@@ -72,7 +74,7 @@ class MiscExpenseViewModel @Inject constructor(
     fun openExisting(expense: MiscExpense) {
         editor.value = MiscExpenseEditorState(
             id = expense.id,
-            amountText = String.format(Locale.US, "%.2f", expense.amount),
+            amountText = expense.amount.formatPlain(),
             description = expense.description,
             dateIso = expense.date,
             receiptPhotoPath = expense.receiptPhotoPath,
@@ -118,7 +120,7 @@ class MiscExpenseViewModel @Inject constructor(
             repository.upsert(
                 MiscExpense(
                     id = current.id,
-                    amount = amount,
+                    amount = Money.fromDollars(amount),
                     description = current.description.trim(),
                     date = current.dateIso.trim(),
                     receiptPhotoPath = current.receiptPhotoPath,

@@ -22,15 +22,15 @@ internal object ParseUtils {
      * Only rewrites clearly absurd values: miles ≥ 10_000 and rate/miles < $0.50,
      * and only when dividing by 10/100/1000 yields a plausible RPM band.
      */
-    fun sanitizeLoadedMiles(miles: Double, totalRate: Double): Double {
-        if (miles < ABSURD_MILES_THRESHOLD || totalRate <= 0.0) return miles
-        val rpm = totalRate / miles
-        if (rpm >= MIN_PLAUSIBLE_RPM_BEFORE_FIX) return miles
+    fun sanitizeLoadedMiles(miles: Double, totalRate: com.truckerload.domain.money.Money): Double {
+        if (miles < ABSURD_MILES_THRESHOLD || totalRate.cents <= 0L) return miles
+        val rpmCents = totalRate.cents / miles
+        if (rpmCents >= MIN_PLAUSIBLE_RPM_CENTS) return miles
         for (divisor in MILES_DECIMAL_FIX_DIVISORS) {
             val fixed = miles / divisor
             if (fixed < MIN_FIXED_MILES || fixed > MAX_FIXED_MILES) continue
-            val fixedRpm = totalRate / fixed
-            if (fixedRpm in MIN_PLAUSIBLE_RPM_AFTER_FIX..MAX_PLAUSIBLE_RPM_AFTER_FIX) {
+            val fixedRpmCents = totalRate.cents / fixed
+            if (fixedRpmCents in MIN_FIXED_RPM_CENTS..MAX_FIXED_RPM_CENTS) {
                 return (Math.round(fixed * 100.0) / 100.0)
             }
         }
@@ -38,9 +38,9 @@ internal object ParseUtils {
     }
 
     private const val ABSURD_MILES_THRESHOLD = 10_000.0
-    private const val MIN_PLAUSIBLE_RPM_BEFORE_FIX = 0.5
-    private const val MIN_PLAUSIBLE_RPM_AFTER_FIX = 0.8
-    private const val MAX_PLAUSIBLE_RPM_AFTER_FIX = 6.0
+    private const val MIN_PLAUSIBLE_RPM_CENTS = 50.0
+    private const val MIN_FIXED_RPM_CENTS = 80.0
+    private const val MAX_FIXED_RPM_CENTS = 600.0
     private const val MIN_FIXED_MILES = 50.0
     private const val MAX_FIXED_MILES = 5_000.0
     private val MILES_DECIMAL_FIX_DIVISORS = doubleArrayOf(100.0, 10.0, 1000.0)

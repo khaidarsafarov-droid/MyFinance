@@ -3,19 +3,20 @@ package com.truckerload.domain.parser
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class LoadChangeDetectorTest {
 
     @Test
     fun `rate change above epsilon is detected`() {
-        assertTrue(LoadChangeDetector.isRateChanged(100.0, 100.02))
-        assertFalse(LoadChangeDetector.isRateChanged(100.0, 100.005))
+        assertTrue(LoadChangeDetector.isRateChanged(Money.fromDollars(100.0), Money.fromDollars(100.02)))
+        assertFalse(LoadChangeDetector.isRateChanged(Money.fromDollars(100.0), Money.fromDollars(100.005)))
     }
 
     @Test
     fun `significant rate change respects percent threshold`() {
-        assertFalse(LoadChangeDetector.isRateChangedSignificant(1000.0, 1005.0, 1.0))
-        assertTrue(LoadChangeDetector.isRateChangedSignificant(1000.0, 1020.0, 1.0))
+        assertFalse(LoadChangeDetector.isRateChangedSignificant(Money.fromDollars(1000.0), Money.fromDollars(1005.0), 1.0))
+        assertTrue(LoadChangeDetector.isRateChangedSignificant(Money.fromDollars(1000.0), Money.fromDollars(1020.0), 1.0))
     }
 
     @Test

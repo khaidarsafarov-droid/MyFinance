@@ -268,6 +268,56 @@ class RoomMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate42To43_convertsMoneyToCents() {
+        val db = helper.createDatabase(testDb, 42)
+        db.execSQL(
+            """
+            INSERT INTO loads (
+              id, tripId, date, totalRate, totalMiles, pointA, pointB,
+              puCount, delCount, weekNumber, year, rawMessage, parsedAt, updatedAt,
+              route, firstPuCityState, lastDelCityState, durationDays, pace, stopCount,
+              isDispute, disputeCompleted, disputeAmount, disputeApplyToLoad, disputeAmountApplied,
+              deadheadMiles
+            ) VALUES (
+              'id-1', 'T-MONEY', '2026-10-11', 12.34, 100.0, 'A', 'B',
+              1, 1, 41, 2026, 'raw', 1, 1,
+              '', '', '', 1.0, 12.34, 0,
+              0, 0, 0.10, 0, 0,
+              0.0
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO diesel (
+              weekNumber, year, weekLabel, weekStartDate, weekEndDate,
+              totalAmount, gallons, pricePerGallon, discountPricePerGallon,
+              rawExtractedText, addedAt
+            ) VALUES (
+              41, 2026, 'w', '2026-10-11', '2026-10-17',
+              3513.73, 100.0, 6.799, 5.907,
+              'raw', 1
+            )
+            """.trimIndent(),
+        )
+        db.close()
+        val migrated = helper.runMigrationsAndValidate(testDb, 43, true, MIGRATION_42_43)
+        migrated.query("SELECT totalRate, pace, disputeAmount FROM loads WHERE id = 'id-1'").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(1234, cursor.getInt(0))
+            assertEquals(1234, cursor.getInt(1))
+            assertEquals(10, cursor.getInt(2))
+        }
+        migrated.query("SELECT totalAmount, pricePerGallon, discountPricePerGallon FROM diesel").use { cursor ->
+            assertTrue(cursor.moveToFirst())
+            assertEquals(351373, cursor.getInt(0))
+            assertEquals(6799, cursor.getInt(1))
+            assertEquals(5907, cursor.getInt(2))
+        }
+    }
+
     /**
      * Builds a named DB at [version] without requiring an exported schema JSON
      * (historical schemas are not committed; only 28–41 are).

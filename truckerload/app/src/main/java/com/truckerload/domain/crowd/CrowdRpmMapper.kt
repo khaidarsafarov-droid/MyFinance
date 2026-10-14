@@ -32,8 +32,8 @@ object CrowdRpmMapper {
      * Region is `ST` or `ST-ST` (US state codes only) — never a city or address.
      */
     fun fromLoad(load: Load): AnonymizedRpmSample? {
-        if (load.totalMiles <= 0.0 || load.totalRate <= 0.0) return null
-        val rpm = load.totalRate / load.totalMiles
+        if (load.totalMiles <= 0.0 || !load.totalRate.isPositive()) return null
+        val rpm = load.totalRate.cents / 100.0 / load.totalMiles
         val from = originState(load)
         val to = destState(load)
         val (week, year) = reportingWeek(load)

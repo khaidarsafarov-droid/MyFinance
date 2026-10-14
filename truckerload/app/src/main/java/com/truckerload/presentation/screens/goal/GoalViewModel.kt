@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.goal.WeeklyGoalCalculator
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.sum
 import com.truckerload.domain.goal.WeeklyGoalProgress
 import com.truckerload.domain.ux.UxMotivation
 import com.truckerload.utils.getPreviousWeekNumberAndYear
@@ -56,12 +58,12 @@ class GoalViewModel @Inject constructor(
         goalStore.goalAmount,
         loadRepository.watchCurrentWeekYieldSnapshot()
     ) { loads, goal, sqlYield ->
-        WeeklyGoalCalculator.calculateCurrentWeek(goal, loads, sqlYield)
+        WeeklyGoalCalculator.calculateCurrentWeek(Money.fromDollars(goal), loads, sqlYield)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** Текущий гросс за неделю из Room. */
     val currentGross: StateFlow<Double> = progressFlow
-        .map { it?.currentGross ?: 0.0 }
+        .map { it?.currentGross?.cents?.div(100.0) ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
     /** Прогресс 0.0 … 1.0 для графиков и виджета. */
@@ -71,7 +73,7 @@ class GoalViewModel @Inject constructor(
 
     /** Сколько гросса нужно в день до конца недели. */
     val dailyPaceNeeded: StateFlow<Double> = progressFlow
-        .map { it?.dailyTargetNeeded ?: 0.0 }
+        .map { it?.dailyTargetNeeded?.cents?.div(100.0) ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
     val daysRemaining: StateFlow<Int> = progressFlow
@@ -80,7 +82,7 @@ class GoalViewModel @Inject constructor(
 
     /** Фактический $/день (PU → DEL). */
     val actualDailyYield: StateFlow<Double> = progressFlow
-        .map { it?.actualDailyYield ?: 0.0 }
+        .map { it?.actualDailyYield?.cents?.div(100.0) ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
     val goalProgress: StateFlow<WeeklyGoalProgress?> = progressFlow
@@ -96,12 +98,12 @@ class GoalViewModel @Inject constructor(
                 val (closedWeek, closedYear) = getPreviousWeekNumberAndYear()
                 val closedGross = loads
                     .filter { isLoadInWeek(it, closedWeek, closedYear) }
-                    .sumOf { it.totalRate }
+                    .map { it.totalRate }.sum().cents / 100.0
                 _uiState.update {
                     it.copy(
                         progress = progress,
                         goalInput = if (it.isEditingGoal) it.goalInput
-                        else progress?.let { p -> formatGoalInput(p.targetAmount) }.orEmpty(),
+                        else progress?.let { p -> formatGoalInput(p.targetAmount.cents / 100.0) }.orEmpty(),
                         isLoading = progress == null,
                         suggestedGoals = UxMotivation.suggestedWeeklyGoals(closedGross),
                     )
@@ -111,7 +113,7 @@ class GoalViewModel @Inject constructor(
     }
 
     fun startEditingGoal() {
-        val current = _uiState.value.progress?.targetAmount ?: goalStore.getGoal()
+        val current = _uiState.value.progress?.targetAmount?.let { it.cents / 100.0 } ?: goalStore.getGoal()
         _uiState.update {
             it.copy(isEditingGoal = true, goalInput = formatGoalInput(current), goalError = null)
         }
@@ -128,7 +130,7 @@ class GoalViewModel @Inject constructor(
     }
 
     fun cancelEditingGoal() {
-        val current = _uiState.value.progress?.targetAmount ?: goalStore.getGoal()
+        val current = _uiState.value.progress?.targetAmount?.let { it.cents / 100.0 } ?: goalStore.getGoal()
         _uiState.update {
             it.copy(isEditingGoal = false, goalInput = formatGoalInput(current), goalError = null)
         }

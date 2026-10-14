@@ -3,6 +3,7 @@ package com.truckerload.domain.goal
 import com.truckerload.domain.model.Load
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.truckerload.domain.money.Money
 
 class WeeklyGoalCalculatorTest {
 
@@ -13,7 +14,7 @@ class WeeklyGoalCalculatorTest {
                 id = "1",
                 tripId = "T1",
                 date = "2026-06-10",
-                totalRate = 2000.0,
+                totalRate = Money.fromDollars(2000.0),
                 totalMiles = 800.0,
                 pointA = "Austin, TX",
                 pointB = "Dallas, TX",
@@ -28,7 +29,7 @@ class WeeklyGoalCalculatorTest {
             ),
         )
         val pace = WeeklyGoalCalculator.calculateDailyPace(loads)
-        assertEquals(1000.0, pace, 0.01)
+        assertEquals(Money.fromDollars(1000.0), pace)
     }
 
     @Test
@@ -38,7 +39,7 @@ class WeeklyGoalCalculatorTest {
                 id = "1",
                 tripId = "T1",
                 date = "2026-06-10",
-                totalRate = 500.0,
+                totalRate = Money.fromDollars(500.0),
                 totalMiles = 400.0,
                 pointA = "Austin, TX",
                 pointB = "Dallas, TX",
@@ -53,13 +54,13 @@ class WeeklyGoalCalculatorTest {
             ),
         )
         val progress = WeeklyGoalCalculator.calculate(
-            targetAmount = 5000.0,
+            targetAmount = Money.fromDollars(5000.0),
             weekLoads = loads,
             weekNumber = 24,
             year = 2026,
         )
         assertEquals(PaceStatus.BEHIND, progress.paceStatus)
-        assertEquals(500.0, progress.currentGross, 0.01)
+        assertEquals(Money.fromDollars(500.0), progress.currentGross)
     }
 
     @Test
@@ -69,7 +70,7 @@ class WeeklyGoalCalculatorTest {
                 id = "1",
                 tripId = "T1",
                 date = "2026-06-10",
-                totalRate = 2500.0,
+                totalRate = Money.fromDollars(2500.0),
                 totalMiles = 800.0,
                 pointA = "Austin, TX",
                 pointB = "Dallas, TX",
@@ -84,13 +85,13 @@ class WeeklyGoalCalculatorTest {
             ),
         )
         val progress = WeeklyGoalCalculator.calculate(
-            targetAmount = 5000.0,
+            targetAmount = Money.fromDollars(5000.0),
             weekLoads = loads,
             weekNumber = 24,
             year = 2026,
-            sqlYield = WeekYieldSnapshot(totalGross = 0.0, totalActiveDays = 0.0),
+            sqlYield = WeekYieldSnapshot(totalGross = Money.fromDollars(0.0), totalActiveDays = 0.0),
         )
-        assertEquals(2500.0, progress.currentGross, 0.01)
+        assertEquals(Money.fromDollars(2500.0), progress.currentGross)
     }
 
     @Test
@@ -100,7 +101,7 @@ class WeeklyGoalCalculatorTest {
                 id = "1",
                 tripId = "T1",
                 date = "2026-06-10",
-                totalRate = 2500.0,
+                totalRate = Money.fromDollars(2500.0),
                 totalMiles = 800.0,
                 pointA = "Austin, TX",
                 pointB = "Dallas, TX",
@@ -115,17 +116,17 @@ class WeeklyGoalCalculatorTest {
             ),
         )
         val progress = WeeklyGoalCalculator.calculate(
-            targetAmount = 5000.0,
+            targetAmount = Money.fromDollars(5000.0),
             weekLoads = loads,
             weekNumber = 24,
             year = 2026,
             sqlYield = WeekYieldSnapshot(
-                totalGross = 100.0,
+                totalGross = Money.fromDollars(100.0),
                 totalActiveDays = 5.0,
             ),
         )
-        assertEquals(2500.0, progress.currentGross, 0.01)
-        assertEquals(2500.0, progress.actualDailyYield, 0.01)
+        assertEquals(Money.fromDollars(2500.0), progress.currentGross)
+        assertEquals(Money.fromDollars(2500.0), progress.actualDailyYield)
         assertEquals(1.0, progress.totalActiveDays, 0.01)
     }
 }

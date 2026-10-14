@@ -1,5 +1,7 @@
 package com.truckerload.domain.model
 
+import com.truckerload.domain.money.Money
+
 data class Paycheck(
     val id: Int,
     val weekNumber: Int,
@@ -8,8 +10,8 @@ data class Paycheck(
     val weekStartDate: String,
     val weekEndDate: String,
     val driverName: String?,
-    val grossAmount: Double?,
-    val netAmount: Double,
+    val grossAmount: Money?,
+    val netAmount: Money,
     val rawExtractedText: String,
     val sourceFileName: String?,
     val addedAt: Long,

@@ -10,6 +10,8 @@ import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselPurchaseMath
+import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.UnitPrice
 import com.truckerload.domain.parser.DieselReceiptExtractor
 import com.truckerload.utils.AmountInputValidator
 import com.truckerload.utils.LocationHelper
@@ -51,16 +53,15 @@ data class AddDieselUiState(
     val showSaveDialog: Boolean = false,
 ) {
     val gallons: Double? get() = AmountInputValidator.parsePositiveAmount(gallonsText)
-    val pricePerGallon: Double? get() = AmountInputValidator.parsePositiveAmount(pricePerGallonText)
-    val discountPricePerGallon: Double?
-        get() = AmountInputValidator.parsePositiveAmount(
-            discountPriceText
-        )
+    val pricePerGallon: UnitPrice?
+        get() = AmountInputValidator.parsePositiveAmount(pricePerGallonText)?.let(UnitPrice::fromDollars)
+    val discountPricePerGallon: UnitPrice?
+        get() = AmountInputValidator.parsePositiveAmount(discountPriceText)?.let(UnitPrice::fromDollars)
 
-    val paidTotal: Double?
+    val paidTotal: Money?
         get() = DieselPurchaseMath.paidTotal(gallons, pricePerGallon, discountPricePerGallon)
 
-    val savings: Double?
+    val savings: Money?
         get() = DieselPurchaseMath.savings(gallons, pricePerGallon, discountPricePerGallon)
 }
 
@@ -256,7 +257,7 @@ class AddDieselViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     dieselRepository.insertDiesel(diesel)
                 }
-                lastUsedDefaultsStore.saveDieselAmount(paidTotal)
+                lastUsedDefaultsStore.saveDieselAmount(paidTotal.cents / 100.0)
                 WidgetDataUpdater.updateWidgetData(getApplication())
                 savedStateHandle[KEY_GALLONS_TEXT] = ""
                 savedStateHandle[KEY_PRICE_TEXT] = ""
@@ -351,6 +352,11 @@ class AddDieselViewModel @Inject constructor(
                 year = existing.year,
             )
         }
+    }
+
+    private fun formatAmount(value: UnitPrice): String {
+        val text = value.formatPlain().trimEnd('0').trimEnd('.')
+        return text.ifEmpty { "0" }
     }
 
     private fun formatAmount(value: Double): String =
