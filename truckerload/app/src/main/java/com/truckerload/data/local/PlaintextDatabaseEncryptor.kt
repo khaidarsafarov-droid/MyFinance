@@ -41,6 +41,51 @@ internal object PlaintextDatabaseEncryptor {
     }
 
     /**
+     * Encryption of an older build left `PRAGMA user_version` at 0. Room then
+     * validates the dollar REAL columns as a new database and crashes before
+     * [MIGRATION_42_43] can convert them to cents.
+     */
+    fun restoreClearedUserVersion(context: Context, databaseName: String, passphrase: ByteArray) {
+        val dbFile = context.getDatabasePath(databaseName)
+        if (!dbFile.exists() || dbFile.length() == 0L || isPlaintextSqlite(dbFile)) return
+        loadSqlCipher()
+        val db = CipherDatabase.openDatabase(
+            dbFile.absolutePath,
+            passphrase,
+            null,
+            CipherDatabase.OPEN_READWRITE,
+            null,
+        )
+        db.use { database ->
+            val info = loadsMoneyColumns(database)
+            val restored = restoredUserVersion(
+                currentVersion = readIntPragma(database, "PRAGMA user_version"),
+                totalRateType = info.totalRateType,
+                hasDeadheadMiles = info.hasDeadheadMiles,
+            ) ?: return@use
+            database.rawExecSQL("PRAGMA user_version = $restored")
+        }
+    }
+
+    /**
+     * Version 42 is the last schema that stored load money as REAL and already
+     * had `deadheadMiles`. Version 43 stores those amounts as integer cents.
+     * Older REAL schemas are left alone so a guessed version cannot drop them.
+     */
+    internal fun restoredUserVersion(
+        currentVersion: Int,
+        totalRateType: String?,
+        hasDeadheadMiles: Boolean,
+    ): Int? {
+        if (currentVersion > 0) return null
+        return when (totalRateType?.uppercase()) {
+            "INTEGER", "INT" -> 43
+            "REAL" -> if (hasDeadheadMiles) 42 else null
+            else -> null
+        }
+    }
+
+    /**
      * Writes the encrypted file beside [plain], then swaps it into place.
      * If [writeEncrypted] throws, [plain] is unchanged.
      */
@@ -90,7 +135,13 @@ internal object PlaintextDatabaseEncryptor {
             val path = plain.absolutePath.replace("'", "''")
             db.rawExecSQL("ATTACH DATABASE '$path' AS plaintext KEY ''")
             db.rawExecSQL("SELECT sqlcipher_export('main', 'plaintext')")
+            // sqlcipher_export copies tables, not PRAGMA user_version. A 0 version
+            // makes Room call onCreate and reject the existing file as pre-packaged.
+            val version = readIntPragma(db, "PRAGMA plaintext.user_version")
             db.rawExecSQL("DETACH DATABASE plaintext")
+            if (version > 0) {
+                db.rawExecSQL("PRAGMA user_version = $version")
+            }
         } finally {
             db.close()
         }
@@ -117,6 +168,34 @@ internal object PlaintextDatabaseEncryptor {
     }
 
     private val SQLITE_HEADER = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
+
+    private data class LoadsMoneyColumns(
+        val totalRateType: String?,
+        val hasDeadheadMiles: Boolean,
+    )
+
+    private fun loadsMoneyColumns(db: CipherDatabase): LoadsMoneyColumns {
+        var totalRateType: String? = null
+        var hasDeadheadMiles = false
+        db.rawQuery("PRAGMA table_info(loads)", null).use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            val typeIndex = cursor.getColumnIndex("type")
+            if (nameIndex < 0 || typeIndex < 0) return LoadsMoneyColumns(null, false)
+            while (cursor.moveToNext()) {
+                when (cursor.getString(nameIndex)) {
+                    "totalRate" -> totalRateType = cursor.getString(typeIndex)
+                    "deadheadMiles" -> hasDeadheadMiles = true
+                }
+            }
+        }
+        return LoadsMoneyColumns(totalRateType, hasDeadheadMiles)
+    }
+
+    private fun readIntPragma(db: CipherDatabase, pragma: String): Int {
+        db.rawQuery(pragma, null).use { cursor ->
+            return if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        }
+    }
 
     private fun loadSqlCipher() {
         if (loaded) return

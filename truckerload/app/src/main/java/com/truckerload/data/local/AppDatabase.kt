@@ -131,6 +131,11 @@ abstract class AppDatabase : RoomDatabase() {
                     val passphrase = DatabasePassphraseStore.forDatabase(context.applicationContext, dbName)
                         .getOrCreate()
                     PlaintextDatabaseEncryptor.ensureEncrypted(context.applicationContext, dbName, passphrase)
+                    PlaintextDatabaseEncryptor.restoreClearedUserVersion(
+                        context.applicationContext,
+                        dbName,
+                        passphrase,
+                    )
                     builder.openHelperFactory(PlaintextDatabaseEncryptor.openHelperFactory(passphrase))
                 }
                 val db = builder.build()
