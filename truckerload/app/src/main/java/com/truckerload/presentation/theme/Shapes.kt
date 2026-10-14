@@ -3,7 +3,7 @@ package com.truckerload.presentation.theme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 
-/** One UI rounded shapes — cards and controls stay in the 16–28 dp range. */
+/** Material 3 shapes: chips 8 dp, buttons 16 dp, cards 12–16 dp. */
 val Shapes = Shapes(
     extraSmall = RoundedCornerShape(OneUiTokens.CornerChip),
     small = SoftUiShapes.Chip,

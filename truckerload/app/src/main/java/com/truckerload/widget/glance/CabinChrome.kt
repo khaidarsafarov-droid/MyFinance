@@ -1,5 +1,6 @@
 package com.truckerload.widget.glance
 
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -13,7 +14,6 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.padding
 import androidx.glance.unit.ColorProvider
 import com.truckerload.widget.WidgetCabinColors
-import com.truckerload.widget.WidgetCabinPalette
 import com.truckerload.widget.WidgetSizeMode
 
 internal val LocalCabinColors = staticCompositionLocalOf { WidgetCabinColors.Forest }
@@ -23,10 +23,18 @@ internal val LocalWidgetSizeMode = staticCompositionLocalOf { WidgetSizeMode.AUT
 @Composable
 internal fun cabinColor(argb: Int): ColorProvider = ColorProvider(Color(argb))
 
-/** Paint from resolved tokens so the plate follows the app theme, not only system night. */
-internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors): GlanceModifier =
-    background(ColorProvider(Color(colors.bg)))
-        .cornerRadius(WidgetCabinPalette.CORNER_DP.dp)
+/**
+ * Surface fill plus the launcher's widget corner. Android 12+ uses
+ * [android.R.dimen.system_app_widget_background_radius]; older launchers use 16 dp.
+ */
+internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors): GlanceModifier {
+    val plate = background(ColorProvider(Color(colors.bg)))
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        plate.cornerRadius(android.R.dimen.system_app_widget_background_radius)
+    } else {
+        plate.cornerRadius(16.dp)
+    }
+}
 
 /** Soft circular chip — enough to say “tap me”, not a brand-purple blob. */
 internal fun GlanceModifier.cabinActionChip(colors: WidgetCabinColors): GlanceModifier =

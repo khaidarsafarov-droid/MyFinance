@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,12 +88,9 @@ fun BentoGlassCard(
         modifier = modifier,
         shape = shape,
         color = containerColor,
-        border = androidx.compose.foundation.BorderStroke(
-            width = if (useHeroGradient) 0.dp else BentoGlassTheme.BorderWidth,
-            color = if (useHeroGradient) Color.Transparent else cs.outline,
-        ),
-        tonalElevation = 0.dp,
-        shadowElevation = if (useHeroGradient) 0.dp else SoftUiElevation.Card,
+        border = null,
+        tonalElevation = if (useHeroGradient) 0.dp else 1.dp,
+        shadowElevation = 0.dp,
         content = { Column(content = content) },
     )
 }
@@ -207,14 +203,7 @@ fun BentoGlassMetricCell(
         else -> AppTypography.NumbersMetric
     }
     Surface(
-        modifier = modifier
-            .heightIn(min = if (compact) 56.dp else 72.dp)
-            .shadow(
-                elevation = if (highlight) 4.dp else SoftUiElevation.Card,
-                shape = shape,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
-            ),
+        modifier = modifier.heightIn(min = if (compact) 56.dp else 72.dp),
         shape = shape,
         color = if (highlight) cs.primaryContainer else cs.surface,
         tonalElevation = 0.dp,

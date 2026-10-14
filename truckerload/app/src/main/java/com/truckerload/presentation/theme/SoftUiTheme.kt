@@ -90,8 +90,8 @@ object SoftUiShapes {
  * Shared soft-UI elevation tokens for layered Compose surfaces.
  */
 object SoftUiElevation {
-    val Card = 2.dp
-    val Button = 4.dp
+    val Card = 0.dp
+    val Button = 0.dp
     val NavBar = 0.dp
     val Fab = 8.dp
 }

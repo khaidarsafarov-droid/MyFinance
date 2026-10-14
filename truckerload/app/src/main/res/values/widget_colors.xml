@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- SoftUI lavender plate + brand purple (#5B54E6). -->
-    <color name="widget_bg">#FFEEEDFF</color>
-    <color name="widget_bg_bottom">#FFE4E2FF</color>
+    <!-- Material light surface. Live widgets on Android 12+ use the wallpaper scheme. -->
+    <color name="widget_bg">#FFFFFFFF</color>
+    <color name="widget_bg_bottom">#FFFFFFFF</color>
     <color name="widget_glass_fill">#335B54E6</color>
     <color name="widget_bg_stroke">#FFD4D2F0</color>
-    <color name="widget_loading_bg">#FFEEEDFF</color>
+    <color name="widget_loading_bg">#FFFFFFFF</color>
     <color name="widget_loading_text">#FF12121A</color>
     <color name="widget_loading_text_secondary">#FF4A4868</color>
     <color name="widget_text_primary">#FF12121A</color>
@@ -42,7 +42,7 @@
     <color name="widget_cyan">#FF5B54E6</color>
     <color name="widget_outline_variant">#FFD4D2F0</color>
     <color name="widget_hero_number">#FF12121A</color>
-    <color name="widget_hero_bg">#FFEEEDFF</color>
+    <color name="widget_hero_bg">#FFFFFFFF</color>
     <color name="widget_chip_bg">#FFDCD9FF</color>
     <dimen name="widget_padding">20dp</dimen>
     <dimen name="widget_progress_bar_height">10dp</dimen>
