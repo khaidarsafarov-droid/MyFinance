@@ -1,6 +1,7 @@
 package com.truckerload.utils
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -25,16 +26,24 @@ object BatteryOptimizationHelper {
             }
             context.startActivity(intent)
             true
-        } catch (e: Exception) {
-            try {
-                val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-                true
-            } catch (e: Exception) {
-                false
+        } catch (_: ActivityNotFoundException) {
+            openBatterySettings(context)
+        } catch (_: SecurityException) {
+            openBatterySettings(context)
+        }
+    }
+
+    private fun openBatterySettings(context: Context): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
+            context.startActivity(intent)
+            true
+        } catch (_: ActivityNotFoundException) {
+            false
+        } catch (_: SecurityException) {
+            false
         }
     }
 }

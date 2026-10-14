@@ -1,4 +1,9 @@
 package com.truckerload.utils
+import kotlinx.coroutines.CancellationException
+
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.content.ContentValues
 import android.content.Context
@@ -36,9 +41,24 @@ class StorageHelper(private val context: Context) {
             } else {
                 saveViaLegacyFile(fileName, relativeSubDir, writeBlock)
             }
-        } catch (e: Exception) {
-            android.util.Log.e("StorageHelper", "saveToPublicDownloads failed", e)
+        } catch (e: SQLiteException) {
+            logFailure("StorageHelper", "saveToPublicDownloads failed", e)
             null
+        
+        } catch (e: IOException) {
+            logFailure("StorageHelper", "saveToPublicDownloads failed", e)
+            null
+        
+        } catch (e: IllegalArgumentException) {
+            logFailure("StorageHelper", "saveToPublicDownloads failed", e)
+            null
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            logFailure("StorageHelper", "saveToPublicDownloads failed", e)
+            null
+        
         }
     }
 

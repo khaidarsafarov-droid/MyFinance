@@ -12,6 +12,9 @@ import com.truckerload.sync.telegram.TelegramSyncRunResult
 import com.truckerload.sync.telegram.TelegramSyncScheduler
 import com.truckerload.sync.telegram.TelegramUpdateDispatcher
 import com.truckerload.utils.LogRedactor
+import com.truckerload.utils.logFailure
+import com.truckerload.utils.runCatchingCancellable
+import com.truckerload.utils.runReportedSuspending
 import java.io.File
 import kotlinx.coroutines.CancellationException
 
@@ -92,42 +95,50 @@ class TelegramBotSyncEngine(private val context: Context) {
             }
             processed++
             Log.d(TAG, "📥 Processing updateId=${update.updateId}")
-            try {
-                dispatcher.handleUpdate(
-                    update = update,
-                    loadRepository = loadRepository,
-                    paycheckRepository = paycheckRepository,
-                    dieselRepository = dieselRepository,
-                    chatRestore = chatRestore,
-                    prefs = prefs,
-                    stateMachine = stateMachine,
-                )
-                nextRequestOffset = update.updateId + 1
-                syncScheduler.persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
-                clearPoisonFailures(prefs, update.updateId)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.e(
-                    TAG,
-                    "handleUpdate failed for updateId=${update.updateId}: ${LogRedactor.redact(e.message)}",
-                    e,
-                )
-                // FIX: after N failures, dead-letter and advance so one poison update cannot stall forever
-                val failures = incrementPoisonFailures(prefs, update.updateId)
-                if (failures >= MAX_POISON_RETRIES) {
-                    Log.e(TAG, "Dead-letter updateId=${update.updateId} after $failures failures")
+            val stop = runReportedSuspending(
+                block = {
+                    dispatcher.handleUpdate(
+                        update = update,
+                        loadRepository = loadRepository,
+                        paycheckRepository = paycheckRepository,
+                        dieselRepository = dieselRepository,
+                        chatRestore = chatRestore,
+                        prefs = prefs,
+                        stateMachine = stateMachine,
+                    )
                     nextRequestOffset = update.updateId + 1
                     syncScheduler.persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
                     clearPoisonFailures(prefs, update.updateId)
-                    runCatching {
-                        apiClient.sendMessage(
-                            update.chatId,
-                            context.getString(com.truckerload.R.string.sync_update_skipped_error),
-                        )
+                    false
+                },
+                onFailure = { e ->
+                    Log.e(
+                        TAG,
+                        "handleUpdate failed for updateId=${update.updateId}: ${LogRedactor.redact(e.message)}",
+                        LogRedactor.redactThrowable(e),
+                    )
+                    // FIX: after N failures, dead-letter and advance so one poison update cannot stall forever
+                    val failures = incrementPoisonFailures(prefs, update.updateId)
+                    if (failures >= MAX_POISON_RETRIES) {
+                        Log.e(TAG, "Dead-letter updateId=${update.updateId} after $failures failures")
+                        nextRequestOffset = update.updateId + 1
+                        syncScheduler.persistNextRequestOffset(prefs, settingsDataStore, nextRequestOffset)
+                        clearPoisonFailures(prefs, update.updateId)
+                        runCatchingCancellable {
+                            apiClient.sendMessage(
+                                update.chatId,
+                                context.getString(com.truckerload.R.string.sync_update_skipped_error),
+                            )
+                        }.onFailure { notice ->
+                            logFailure(TAG, "dead-letter notice failed", notice)
+                        }
+                        false
+                    } else {
+                        true
                     }
-                    continue
-                }
+                },
+            )
+            if (stop) {
                 stoppedOnFailure = true
                 break
             }

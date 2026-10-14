@@ -1,6 +1,9 @@
 package com.truckerload.presentation.components
+import kotlinx.coroutines.CancellationException
+
 
 import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.utils.logFailure
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
@@ -203,8 +206,12 @@ fun GoogleMapsHeatmapCard(
                                             val code = STATE_NAME_TO_ABBR[name] ?: name
                                             onStateSelected(code)
                                         }
-                                    } catch (e: Exception) {
-                                        android.util.Log.w("GoogleMapsHeatmap", "GeoJSON layer failed", e)
+                                    } catch (e: IllegalArgumentException) {
+                                        logFailure("GoogleMapsHeatmap", "GeoJSON layer failed", e)
+                                    } catch (e: CancellationException) {
+                                        throw e
+                                    } catch (e: IllegalStateException) {
+                                        logFailure("GoogleMapsHeatmap", "GeoJSON layer failed", e)
                                     }
                                 }
                             }
@@ -370,9 +377,11 @@ private fun loadGeoJsonFromRaw(context: Context): JSONObject? {
     return try {
         val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
         JSONObject(json)
-    } catch (e: Exception) {
-        Log.w("TL", "swallowed", e)
+    } catch (e: java.io.IOException) {
+        logFailure("GoogleMapsHeatmap", "state outlines failed", e)
         null
+    } catch (e: org.json.JSONException) {
+        logFailure("GoogleMapsHeatmap", "state outlines failed", e)
         null
     }
 }

@@ -1,4 +1,7 @@
 package com.truckerload.presentation.screens.scanner
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.app.Application
 import android.content.Intent
@@ -121,13 +124,40 @@ class ScannerViewModel @Inject constructor(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
+            } catch (_: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
                         errorKey = if (it.sessionScans.isEmpty()) "scan_error" else "scan_error_keep",
                     )
                 }
+            
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorKey = if (it.sessionScans.isEmpty()) "scan_error" else "scan_error_keep",
+                    )
+                }
+            
+            } catch (_: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorKey = if (it.sessionScans.isEmpty()) "scan_error" else "scan_error_keep",
+                    )
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: IllegalStateException) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorKey = if (it.sessionScans.isEmpty()) "scan_error" else "scan_error_keep",
+                    )
+                }
+            
             }
         }
     }
@@ -225,7 +255,7 @@ class ScannerViewModel @Inject constructor(
                 } ?: throw IllegalStateException("MediaStore save failed")
                 persistPendingToApp(showSuccess = false)
                 _uiState.update { it.copy(statusMessage = "scan_saved_phone:${result.displayPath}") }
-            } catch (_: Exception) {
+            } catch (_: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
@@ -235,6 +265,42 @@ class ScannerViewModel @Inject constructor(
                         },
                     )
                 }
+            
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(
+                        errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
+                            "scan_error"
+                        } else {
+                            "scan_error_keep"
+                        },
+                    )
+                }
+            
+            } catch (_: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
+                            "scan_error"
+                        } else {
+                            "scan_error_keep"
+                        },
+                    )
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: IllegalStateException) {
+                _uiState.update {
+                    it.copy(
+                        errorKey = if (it.sessionScans.isEmpty() && it.pendingScan == null) {
+                            "scan_error"
+                        } else {
+                            "scan_error_keep"
+                        },
+                    )
+                }
+            
             }
         }
     }
@@ -288,8 +354,18 @@ class ScannerViewModel @Inject constructor(
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (_: SQLiteException) {
             _uiState.update { it.copy(errorKey = "scan_error_keep") }
+        
+        } catch (_: IOException) {
+            _uiState.update { it.copy(errorKey = "scan_error_keep") }
+        
+        } catch (_: IllegalArgumentException) {
+            _uiState.update { it.copy(errorKey = "scan_error_keep") }
+        
+        } catch (_: IllegalStateException) {
+            _uiState.update { it.copy(errorKey = "scan_error_keep") }
+        
         }
     }
 

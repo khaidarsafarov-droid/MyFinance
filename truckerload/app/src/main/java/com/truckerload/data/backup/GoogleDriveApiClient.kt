@@ -2,8 +2,11 @@ package com.truckerload.data.backup
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.truckerload.BuildConfig
+import com.truckerload.data.remote.installSecretRedaction
+import com.truckerload.utils.LogRedactor
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -15,7 +18,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -33,6 +38,7 @@ class GoogleDriveApiClient(
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
+        .installSecretRedaction(BuildConfig.DEBUG)
         .build()
 
     sealed class DriveError : Exception() {
@@ -100,6 +106,11 @@ class GoogleDriveApiClient(
     fun isRemoteNewerThanLastSync(): Boolean =
         DriveSyncPolicy.remoteIsNewer(prefs.remoteModifiedAt, prefs.lastSyncAt)
 
+    private fun giveUp(error: Exception, attempt: Int): Boolean {
+        val retryable = DriveSyncPolicy.isRetryableFailure(error.message)
+        return !retryable || attempt == DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS - 1
+    }
+
     private suspend fun <T> withRetry(block: suspend () -> T): Result<T> {
         var last: Throwable? = null
         repeat(DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS) { attempt ->
@@ -107,17 +118,22 @@ class GoogleDriveApiClient(
                 return Result.success(block())
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Throwable) {
+            } catch (e: DriveError) {
                 if (e is DriveError.NeedsUserConsent || e is DriveError.NotSignedIn) {
                     return Result.failure(e)
                 }
+                if (giveUp(e, attempt)) return Result.failure(e)
                 last = e
-                val retryable = DriveSyncPolicy.isRetryableFailure(e.message)
-                if (!retryable || attempt == DriveSyncPolicy.DEFAULT_MAX_ATTEMPTS - 1) {
-                    return Result.failure(e)
-                }
-                delay(DriveSyncPolicy.backoffDelayMs(attempt))
+            } catch (e: IOException) {
+                if (giveUp(e, attempt)) return Result.failure(e)
+                last = e
+            } catch (e: JSONException) {
+                return Result.failure(e)
+            } catch (e: GoogleAuthException) {
+                if (giveUp(e, attempt)) return Result.failure(e)
+                last = e
             }
+            delay(DriveSyncPolicy.backoffDelayMs(attempt))
         }
         return Result.failure(last ?: DriveError.Api("Unknown Drive error"))
     }
@@ -150,7 +166,7 @@ class GoogleDriveApiClient(
         client.newCall(request).execute().use { response ->
             val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw DriveError.Api("List failed (${response.code}): $body")
+                throw DriveError.Api(LogRedactor.redact("List failed (${response.code}): $body"))
             }
             val files = JSONObject(body).optJSONArray("files") ?: return null
             if (files.length() == 0) return null
@@ -179,8 +195,8 @@ class GoogleDriveApiClient(
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                Log.e(TAG, "createFile failed: $respBody")
-                throw DriveError.Api("Upload failed (${response.code}): $respBody")
+                Log.e(TAG, "createFile failed: ${LogRedactor.redact(respBody)}")
+                throw DriveError.Api(LogRedactor.redact("Upload failed (${response.code}): $respBody"))
             }
             return JSONObject(respBody).getString("id")
         }
@@ -196,7 +212,7 @@ class GoogleDriveApiClient(
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw DriveError.Api("Update failed (${response.code}): $respBody")
+                throw DriveError.Api(LogRedactor.redact("Update failed (${response.code}): $respBody"))
             }
         }
     }

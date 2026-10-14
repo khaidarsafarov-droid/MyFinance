@@ -38,10 +38,11 @@ object CrashReporting {
     }
 
     fun recordException(throwable: Throwable) {
-        Log.e(TAG, throwable.message ?: throwable.javaClass.simpleName, throwable)
+        val safe = LogRedactor.redactThrowable(throwable)
+        Log.e(TAG, safe.message ?: safe.javaClass.simpleName, safe)
         if (!BuildConfig.FIREBASE_CONFIGURED) return
         runCatching {
-            FirebaseCrashlytics.getInstance().recordException(throwable)
+            FirebaseCrashlytics.getInstance().recordException(safe)
         }.onFailure { e ->
             Log.w(TAG, "recordException failed: ${e.javaClass.simpleName}")
         }

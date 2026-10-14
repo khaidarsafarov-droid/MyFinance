@@ -1,5 +1,7 @@
 package com.truckerload.data.remote
 
+import com.truckerload.BuildConfig
+import com.truckerload.utils.LogRedactor
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,7 +33,7 @@ class TelegramApi(private val token: String) {
         val request = Request.Builder().url(url).post(FormBody.Builder().build()).build()
         runCatching {
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw Exception("deleteWebhook failed: ${response.code}")
+                if (!response.isSuccessful) throw redactedApiFailure("deleteWebhook failed: ${response.code}")
             }
         }
     }
@@ -110,11 +112,11 @@ class TelegramApi(private val token: String) {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     val errBody = response.body?.string() ?: ""
-                    throw Exception("Telegram API error: ${response.code} $errBody")
+                    throw redactedApiFailure("Telegram API error: ${response.code} $errBody")
                 }
                 val json = JSONObject(response.body?.string() ?: "{}")
                 json.optJSONObject("result")?.optLong("message_id")
-                    ?: throw Exception("No message_id in sendMessage response")
+                    ?: throw redactedApiFailure("No message_id in sendMessage response")
             }
         }
     }
@@ -138,7 +140,7 @@ class TelegramApi(private val token: String) {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     val errBody = response.body?.string() ?: ""
-                    throw Exception("editMessageText failed: ${response.code} $errBody")
+                    throw redactedApiFailure("editMessageText failed: ${response.code} $errBody")
                 }
             }
         }
@@ -168,7 +170,7 @@ class TelegramApi(private val token: String) {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     val errBody = response.body?.string() ?: ""
-                    throw Exception("sendDocument failed: ${response.code} $errBody")
+                    throw redactedApiFailure("sendDocument failed: ${response.code} $errBody")
                 }
             }
         }
@@ -220,7 +222,7 @@ class TelegramApi(private val token: String) {
                             val hint = if (response.code == 401) {
                                 " Invalid token - get a new one from @BotFather."
                             } else ""
-                            throw Exception("getUpdates failed: ${response.code}.$hint $errBody")
+                            throw redactedApiFailure("getUpdates failed: ${response.code}.$hint $errBody")
                         }
                         val json = JSONObject(response.body?.string() ?: "{}")
                         val arr = json.optJSONArray("result")
@@ -353,25 +355,25 @@ class TelegramApi(private val token: String) {
             val getFileUrl = "$baseUrl/getFile?file_id=$fileId"
             val getReq = Request.Builder().url(getFileUrl).get().build()
             client.newCall(getReq).execute().use { resp ->
-                if (!resp.isSuccessful) throw Exception("getFile failed: ${resp.code}")
-                val body = resp.body?.string() ?: throw Exception("Empty getFile response")
+                if (!resp.isSuccessful) throw redactedApiFailure("getFile failed: ${resp.code}")
+                val body = resp.body?.string() ?: throw redactedApiFailure("Empty getFile response")
                 val result = JSONObject(body).optJSONObject("result")
-                    ?: throw Exception("No file_path in response")
+                    ?: throw redactedApiFailure("No file_path in response")
                 val path = result.optString("file_path")
                     .takeIf { it.isNotBlank() }
-                    ?: throw Exception("No file_path in response")
+                    ?: throw redactedApiFailure("No file_path in response")
                 val declaredSize = result.optLong("file_size", -1L)
                 if (declaredSize > 0 && declaredSize > maxBytes) {
-                    throw Exception("File too large: $declaredSize bytes (max $maxBytes)")
+                    throw redactedApiFailure("File too large: $declaredSize bytes (max $maxBytes)")
                 }
                 val fileUrl = "https://api.telegram.org/file/bot$token/$path"
                 val fileReq = Request.Builder().url(fileUrl).get().build()
                 client.newCall(fileReq).execute().use { fileResp ->
-                    if (!fileResp.isSuccessful) throw Exception("download failed: ${fileResp.code}")
-                    val responseBody = fileResp.body ?: throw Exception("Empty file body")
+                    if (!fileResp.isSuccessful) throw redactedApiFailure("download failed: ${fileResp.code}")
+                    val responseBody = fileResp.body ?: throw redactedApiFailure("Empty file body")
                     val contentLength = responseBody.contentLength()
                     if (contentLength > 0 && contentLength > maxBytes) {
-                        throw Exception("File too large: $contentLength bytes (max $maxBytes)")
+                        throw redactedApiFailure("File too large: $contentLength bytes (max $maxBytes)")
                     }
                     val source = responseBody.source()
                     val buffer = okio.Buffer()
@@ -381,7 +383,7 @@ class TelegramApi(private val token: String) {
                         if (read == -1L) break
                         totalRead += read
                         if (totalRead > maxBytes) {
-                            throw Exception("File too large while downloading (max $maxBytes)")
+                            throw redactedApiFailure("File too large while downloading (max $maxBytes)")
                         }
                     }
                     buffer.readByteArray()
@@ -405,11 +407,11 @@ class TelegramApi(private val token: String) {
 
         internal fun requireTelegramOk(method: String, httpCode: Int, body: String) {
             if (httpCode !in 200..299) {
-                throw Exception("$method failed: $httpCode $body")
+                throw redactedApiFailure("$method failed: $httpCode $body")
             }
             val json = JSONObject(body.ifBlank { "{}" })
             if (json.has("ok") && !json.optBoolean("ok")) {
-                throw Exception("$method failed: ${json.optString("description", body)}")
+                throw redactedApiFailure("$method failed: ${json.optString("description", body)}")
             }
         }
 
@@ -417,7 +419,11 @@ class TelegramApi(private val token: String) {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(70, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
+            .installSecretRedaction(BuildConfig.DEBUG)
             .build()
+
+        internal fun redactedApiFailure(message: String): Exception =
+            Exception(LogRedactor.redact(message))
     }
 }
 

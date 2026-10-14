@@ -19,4 +19,28 @@ object LogRedactor {
             .replace(anonKeyHint) { "${it.groupValues[1]}***" }
             .replace(googleApiKey, "***gkey***")
     }
+
+    /**
+     * A loggable copy of [error] whose message and cause chain no longer contain
+     * bot tokens, bearer tokens, or Google API keys. The original stack is kept.
+     */
+    fun redactThrowable(error: Throwable): Throwable {
+        val message = redact(collectMessages(error).ifBlank { error.javaClass.simpleName })
+        val safe = RedactedLogException(message)
+        safe.stackTrace = error.stackTrace
+        return safe
+    }
+
+    private fun collectMessages(error: Throwable): String {
+        val parts = ArrayList<String>(4)
+        var current: Throwable? = error
+        var guard = 0
+        while (current != null && guard++ < 8) {
+            current.message?.let { parts.add(it) }
+            current = current.cause
+        }
+        return parts.joinToString(" | ")
+    }
+
+    private class RedactedLogException(message: String) : Exception(message)
 }

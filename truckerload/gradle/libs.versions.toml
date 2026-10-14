@@ -8,19 +8,51 @@ espressoCore = "3.6.1"
 lifecycle = "2.9.4"
 activityCompose = "1.10.1"
 kotlin = "2.2.10"
-ksp = "2.3.6"
+# KSP's version prefix tracks the Kotlin release. 2.3.6 does not match 2.2.10.
+ksp = "2.2.10-2.0.2"
 kotlinxSerialization = "1.11.0"
+kotlinxCoroutines = "1.8.1"
 okhttp = "4.12.0"
 composeBom = "2026.06.01"
 navigationCompose = "2.9.8"
 datastore = "1.1.7"
-gson = "2.10.1"
+gson = "2.11.0"
 room = "2.7.0"
 hilt = "2.60.1"
 # 1.2.0 keeps compileSdk ≤36 compatibility; 1.4.0 pulls artifacts that require SDK 37.
 androidxHilt = "1.2.0"
 paging = "3.3.6"
 work = "2.10.5"
+desugar = "2.1.4"
+appcompat = "1.7.1"
+material = "1.12.0"
+sqlcipher = "4.6.1"
+firebaseBom = "34.16.0"
+googleServices = "4.5.0"
+firebaseCrashlyticsGradle = "3.0.7"
+securityCrypto = "1.1.0-alpha06"
+biometric = "1.1.0"
+playServicesAuth = "21.2.0"
+playServicesMaps = "18.2.0"
+playServicesLocation = "21.3.0"
+playServicesBase = "18.5.0"
+playServicesMlkitScanner = "16.0.0-beta1"
+mlkitTextRecognition = "16.0.1"
+billing = "9.1.0"
+mapsCompose = "4.3.0"
+mapsUtils = "3.8.2"
+cameraX = "1.4.2"
+exifinterface = "1.3.7"
+itext = "8.0.5"
+tesseract4android = "4.9.0"
+coil = "2.6.0"
+vico = "1.15.0"
+glance = "1.1.1"
+ksoup = "0.2.4"
+json = "20240303"
+mockito = "5.14.2"
+mockitoKotlin = "5.4.0"
+robolectric = "4.14.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,7 +88,51 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHilt" }
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHilt" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugar" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-compose-material = { group = "androidx.compose.material", name = "material" }
+androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+sqlcipher-android = { group = "net.zetetic", name = "sqlcipher-android", version.ref = "sqlcipher" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
+play-services-mlkit-document-scanner = { group = "com.google.android.gms", name = "play-services-mlkit-document-scanner", version.ref = "playServicesMlkitScanner" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+android-maps-utils = { group = "com.google.maps.android", name = "android-maps-utils", version.ref = "mapsUtils" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraX" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
+itext-kernel = { group = "com.itextpdf", name = "kernel", version.ref = "itext" }
+itext-io = { group = "com.itextpdf", name = "io", version.ref = "itext" }
+itext-layout = { group = "com.itextpdf", name = "layout", version.ref = "itext" }
+tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract4android", version.ref = "tesseract4android" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
+ksoup = { group = "com.fleeksoft.ksoup", name = "ksoup", version.ref = "ksoup" }
+json = { group = "org.json", name = "json", version.ref = "json" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -66,3 +142,5 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsGradle" }

@@ -1,4 +1,9 @@
 package com.truckerload.presentation.screens.settings
+import kotlinx.coroutines.CancellationException
+
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -47,8 +52,20 @@ class SettingsViewModel @Inject constructor(
                 }
                 val file = CsvExporter.exportAllLoads(appContext, loads)
                 _exportState.value = ExportState.Success(file)
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 _exportState.value = ExportState.Error(e.message.orEmpty().ifBlank { ERROR_GENERIC })
+            
+            } catch (e: IOException) {
+                _exportState.value = ExportState.Error(e.message.orEmpty().ifBlank { ERROR_GENERIC })
+            
+            } catch (e: IllegalArgumentException) {
+                _exportState.value = ExportState.Error(e.message.orEmpty().ifBlank { ERROR_GENERIC })
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _exportState.value = ExportState.Error(e.message.orEmpty().ifBlank { ERROR_GENERIC })
+            
             }
         }
     }

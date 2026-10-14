@@ -11,6 +11,7 @@ import androidx.core.net.toUri
 import com.truckerload.domain.ingest.DocumentBytesDecoder
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import kotlin.math.max
 
 /**
@@ -86,7 +87,11 @@ class LoadDocumentTextExtractor(context: Context) {
         // FIX: PdfRenderer owns the PFD and closes it; only close PFD if construction fails
         val renderer = try {
             PdfRenderer(pfd)
-        } catch (t: Throwable) {
+        } catch (t: IOException) {
+            runCatching { pfd.close() }
+            ocr.close()
+            throw t
+        } catch (t: SecurityException) {
             runCatching { pfd.close() }
             ocr.close()
             throw t

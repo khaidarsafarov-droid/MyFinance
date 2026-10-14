@@ -1,13 +1,19 @@
 package com.truckerload.data.preferences
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.truckerload.BuildConfig
+import com.truckerload.data.local.AndroidKeystorePassphraseCipher
+import com.truckerload.data.local.DatabasePassphraseStore
+import com.truckerload.data.local.PassphraseCipher
+import com.truckerload.data.local.SoftwarePassphraseCipher
+import java.io.File
 
 /**
- * Bot token storage scoped per account. Each user configures (or inherits bootstrap for)
- * their own Telegram bot so loads land in their own Room DB.
+ * Bot token storage scoped per account. The token is AES-GCM wrapped with a key
+ * that stays in the Android Keystore. A one-time read of the old
+ * EncryptedSharedPreferences (and the older plaintext prefs) copies an existing
+ * token so an update does not disconnect the bot.
  */
 class TelegramTokenStore(
     context: Context,
@@ -15,105 +21,139 @@ class TelegramTokenStore(
 ) {
     private val appContext = context.applicationContext
     private val resolvedUserId = userId?.trim()?.takeIf { it.isNotBlank() }
-    private val prefs: SharedPreferences = openPrefs(appContext, resolvedUserId)
+    private val storeName = prefsName(resolvedUserId)
+    private val tokenFile = File(appContext.filesDir, "telegram-tokens/$storeName.bin")
+    private val cipher: PassphraseCipher = cipherFor(appContext)
 
-    fun getToken(): String = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
+    fun getToken(): String {
+        ensureMigrated()
+        return readWrapped().trim()
+    }
 
     fun setToken(token: String) {
+        ensureMigrated()
         val trimmed = token.trim()
-        if (trimmed.isNotBlank()) {
-            SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
+        if (trimmed.isBlank()) {
+            tokenFile.delete()
+            return
         }
-        prefs.edit { putString(KEY_TOKEN, trimmed) }
+        writeWrapped(trimmed)
     }
 
     fun hasToken(): Boolean = getToken().isNotBlank()
 
     /**
-     * True only when this account saved a token in encrypted prefs.
+     * True only when this account saved a token.
      * Unlike [hasToken], ignores the BuildConfig bootstrap fallback.
      */
-    // FIX: onboarding must not treat a BuildConfig bootstrap token as "user configured a bot"
-    fun hasPersistedToken(): Boolean = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty().isNotBlank()
+    fun hasPersistedToken(): Boolean = getToken().isNotBlank()
 
     fun clearToken() {
-        prefs.edit { remove(KEY_TOKEN) }
+        ensureMigrated()
+        tokenFile.delete()
     }
 
     /**
-     * One-time bootstrap from local.properties → encrypted prefs (dev builds only).
+     * One-time bootstrap from local.properties → Keystore-wrapped file (dev builds only).
      * Does not overwrite a token the user already saved.
      */
     fun bootstrapFromBuildConfigIfEmpty() {
-        val saved = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
-        if (saved.isNotBlank()) return
+        if (getToken().isNotBlank()) return
         val fromBuild = BuildConfig.TELEGRAM_BOT_TOKEN.trim()
         if (fromBuild.isBlank()) return
-        // FIX: Keystore fallback must not crash app start / BOOT_COMPLETED
-        if (SecurePreferences.plaintextFallbackUsed) return
-        runCatching {
-            SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
-            prefs.edit { putString(KEY_TOKEN, fromBuild) }
-        }
+        setToken(fromBuild)
     }
 
     /** @deprecated Use [bootstrapFromBuildConfigIfEmpty]; kept for call-site compatibility. */
     fun syncFromBuildConfig() = bootstrapFromBuildConfigIfEmpty()
 
+    private fun ensureMigrated() {
+        val meta = appContext.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
+        val flag = migratedFlag(storeName)
+        if (meta.getBoolean(flag, false)) return
+        val legacy = readLegacyToken()
+        if (legacy.isNotBlank()) {
+            writeWrapped(legacy)
+            clearLegacyToken()
+        }
+        meta.edit { putBoolean(flag, true) }
+    }
+
+    private fun readLegacyToken(): String {
+        val names = buildList {
+            add(storeName)
+            if (storeName != LEGACY_SECURE) add(LEGACY_SECURE)
+        }
+        for (name in names) {
+            if (!legacyStoreExists(appContext, name)) continue
+            val token = SecurePreferences.open(appContext, name)
+                .getString(KEY_TOKEN, null)
+                ?.trim()
+                .orEmpty()
+            if (token.isNotBlank()) return token
+        }
+        return appContext.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
+            .getString(KEY_TOKEN, null)
+            ?.trim()
+            .orEmpty()
+    }
+
+    private fun clearLegacyToken() {
+        val names = buildList {
+            add(storeName)
+            if (storeName != LEGACY_SECURE) add(LEGACY_SECURE)
+        }
+        for (name in names) {
+            if (!legacyStoreExists(appContext, name)) continue
+            SecurePreferences.open(appContext, name).edit { remove(KEY_TOKEN) }
+        }
+        appContext.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE).edit {
+            remove(KEY_TOKEN)
+        }
+    }
+
+    private fun readWrapped(): String {
+        if (!tokenFile.exists() || tokenFile.length() == 0L) return ""
+        return cipher.unwrap(tokenFile.readBytes()).toString(Charsets.UTF_8)
+    }
+
+    private fun writeWrapped(token: String) {
+        tokenFile.parentFile?.mkdirs()
+        val wrapped = cipher.wrap(token.toByteArray(Charsets.UTF_8))
+        val tmp = File(tokenFile.path + ".tmp")
+        tmp.writeBytes(wrapped)
+        if (!tmp.renameTo(tokenFile)) {
+            tokenFile.writeBytes(tmp.readBytes())
+            tmp.delete()
+        }
+    }
+
     companion object {
         private const val LEGACY_SECURE = "telegram_token_enc"
         private const val LEGACY_PLAIN = "telegram_token"
-        private const val MIGRATION_FLAG = "migrated_from_plain"
         private const val KEY_TOKEN = "bot_token"
         private const val META_PREFS = "truckerload_account_meta"
-        private const val KEY_LEGACY_TOKEN_MIGRATED = "legacy_telegram_token_migrated"
+        private const val KEYSTORE_ALIAS = "truckerload_telegram_token"
 
         private fun prefsName(userId: String?): String =
             if (userId.isNullOrBlank()) LEGACY_SECURE
             else "telegram_token_enc_${AccountIds.sanitizeFilePart(userId)}"
 
-        private fun openPrefs(context: Context, userId: String?): SharedPreferences {
-            val name = prefsName(userId)
-            val secure = SecurePreferences.open(context, name)
-            if (SecurePreferences.plaintextFallbackUsed) return secure
-            if (userId.isNullOrBlank()) {
-                SecurePreferences.migratePlainToSecure(
-                    context = context,
-                    legacyName = LEGACY_PLAIN,
-                    securePrefs = secure,
-                    migrationFlagKey = MIGRATION_FLAG,
+        private fun migratedFlag(storeName: String): String = "keystore_token_migrated_$storeName"
+
+        private fun cipherFor(context: Context): PassphraseCipher =
+            if (DatabasePassphraseStore.isRobolectric()) {
+                SoftwarePassphraseCipher.forFile(
+                    File(context.filesDir, "telegram-tokens/robolectric-wrap.key"),
                 )
             } else {
-                migrateLegacyTokenIfNeeded(context, userId, secure)
+                AndroidKeystorePassphraseCipher(KEYSTORE_ALIAS)
             }
-            return secure
-        }
 
-        private fun migrateLegacyTokenIfNeeded(
-            context: Context,
-            userId: String,
-            target: SharedPreferences,
-        ) {
-            val meta = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
-            if (meta.getBoolean(KEY_LEGACY_TOKEN_MIGRATED, false)) return
-            if (!target.getString(KEY_TOKEN, null).isNullOrBlank()) {
-                meta.edit { putBoolean(KEY_LEGACY_TOKEN_MIGRATED, true) }
-                return
-            }
-            val legacy = SecurePreferences.open(context, LEGACY_SECURE)
-            SecurePreferences.migratePlainToSecure(
-                context = context,
-                legacyName = LEGACY_PLAIN,
-                securePrefs = legacy,
-                migrationFlagKey = MIGRATION_FLAG,
-            )
-            val token = legacy.getString(KEY_TOKEN, null)?.trim().orEmpty()
-            if (token.isNotBlank()) {
-                if (SecurePreferences.plaintextFallbackUsed) return
-                SecurePreferences.requireEncryptedForSecretWrite("Telegram bot token")
-                target.edit { putString(KEY_TOKEN, token) }
-            }
-            meta.edit { putBoolean(KEY_LEGACY_TOKEN_MIGRATED, true) }
+        private fun legacyStoreExists(context: Context, name: String): Boolean {
+            val dir = File(context.applicationInfo.dataDir, "shared_prefs")
+            return File(dir, "$name.xml").exists() ||
+                File(dir, "${SecurePreferences.fallbackName(name)}.xml").exists()
         }
 
         fun forActiveUser(context: Context): TelegramTokenStore? {

@@ -1,4 +1,7 @@
 package com.truckerload.utils
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.content.Context
 import android.content.Intent
@@ -65,7 +68,7 @@ object BackupService {
             delay(AUTO_BACKUP_DEBOUNCE_MS)
             autoBackupMutex.withLock {
                 runCatching { createAutoBackup(appContext) }
-                    .onFailure { e -> Log.e(TAG, "createAutoBackup failed", e) }
+                    .onFailure { e -> logFailure(TAG, "createAutoBackup failed", e) }
             }
         }
     }
@@ -85,7 +88,7 @@ object BackupService {
         Log.d(TAG, "createAutoBackup saved $fileName (${backup.loads.size} loads)")
         runCatching {
             com.truckerload.data.backup.GoogleDriveBackupService.pushAutoBackupIfEnabled(appContext)
-        }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", e) }
+        }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", LogRedactor.redactThrowable(e)) }
     }
 
     suspend fun restoreFromFile(context: Context, file: File): Result<Int> = withContext(Dispatchers.IO) {
@@ -143,7 +146,7 @@ object BackupService {
             if (!BackupSnapshotBuilder.hasExportableContent(backup)) return@withContext null
             BackupDataCodec.toJson(backup)
         }.getOrElse { e ->
-            Log.e(TAG, "createBackupJson failed", e)
+            logFailure(TAG, "createBackupJson failed", e)
             null
         }
     }
@@ -190,9 +193,24 @@ object BackupService {
                 loadCount = backup.loads.size,
                 mimeType = BackupSchema.JSON_MIME,
             )
-        } catch (e: Exception) {
-            Log.e(TAG, "createManualBackup failed", e)
+        } catch (e: SQLiteException) {
+            logFailure(TAG, "createManualBackup failed", e)
             null
+        
+        } catch (e: IOException) {
+            logFailure(TAG, "createManualBackup failed", e)
+            null
+        
+        } catch (e: IllegalArgumentException) {
+            logFailure(TAG, "createManualBackup failed", e)
+            null
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            logFailure(TAG, "createManualBackup failed", e)
+            null
+        
         }
     }
 
@@ -255,9 +273,24 @@ object BackupService {
             throw e
         } catch (e: BackupRestoreException) {
             Result.failure(e)
-        } catch (e: Exception) {
+        } catch (e: SQLiteException) {
             Log.e(TAG, "restoreFromUri failed: ${e.javaClass.simpleName}")
             Result.failure(e)
+        
+        } catch (e: IOException) {
+            Log.e(TAG, "restoreFromUri failed: ${e.javaClass.simpleName}")
+            Result.failure(e)
+        
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "restoreFromUri failed: ${e.javaClass.simpleName}")
+            Result.failure(e)
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "restoreFromUri failed: ${e.javaClass.simpleName}")
+            Result.failure(e)
+        
         }
     }
 
@@ -359,9 +392,24 @@ object BackupService {
             BackupSnapshotBuilder.build(app, db)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: SQLiteException) {
             Log.e(TAG, "restore snapshot failed: ${e.javaClass.simpleName}")
             return Result.failure(BackupRestoreException.ReadFailed())
+        
+        } catch (e: IOException) {
+            Log.e(TAG, "restore snapshot failed: ${e.javaClass.simpleName}")
+            return Result.failure(BackupRestoreException.ReadFailed())
+        
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "restore snapshot failed: ${e.javaClass.simpleName}")
+            return Result.failure(BackupRestoreException.ReadFailed())
+        
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "restore snapshot failed: ${e.javaClass.simpleName}")
+            return Result.failure(BackupRestoreException.ReadFailed())
+        
         }
         return try {
             BackupRoomApplier.applyFullReplace(db, backup)
@@ -373,7 +421,7 @@ object BackupService {
             Result.success(backup)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: SQLiteException) {
             Log.e(TAG, "restore failed, rolling back journal: ${e.javaClass.simpleName}")
             runCatching {
                 BackupRoomApplier.applyFullReplace(db, snapshot)
@@ -383,6 +431,40 @@ object BackupService {
                 Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
             }
             Result.failure(e)
+        
+        } catch (e: IOException) {
+            Log.e(TAG, "restore failed, rolling back journal: ${e.javaClass.simpleName}")
+            runCatching {
+                BackupRoomApplier.applyFullReplace(db, snapshot)
+                BackupPrefsApplier.apply(app, snapshot.appSettings)
+            }.onFailure { rollback ->
+                if (rollback is CancellationException) throw rollback
+                Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
+            }
+            Result.failure(e)
+        
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "restore failed, rolling back journal: ${e.javaClass.simpleName}")
+            runCatching {
+                BackupRoomApplier.applyFullReplace(db, snapshot)
+                BackupPrefsApplier.apply(app, snapshot.appSettings)
+            }.onFailure { rollback ->
+                if (rollback is CancellationException) throw rollback
+                Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
+            }
+            Result.failure(e)
+        
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "restore failed, rolling back journal: ${e.javaClass.simpleName}")
+            runCatching {
+                BackupRoomApplier.applyFullReplace(db, snapshot)
+                BackupPrefsApplier.apply(app, snapshot.appSettings)
+            }.onFailure { rollback ->
+                if (rollback is CancellationException) throw rollback
+                Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
+            }
+            Result.failure(e)
+        
         }
     }
 

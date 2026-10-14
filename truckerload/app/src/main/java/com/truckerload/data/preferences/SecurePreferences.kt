@@ -8,15 +8,19 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.truckerload.BuildConfig
 import com.truckerload.utils.CrashReporting
+import com.truckerload.utils.logFailure
+import java.io.IOException
+import java.security.GeneralSecurityException
+import java.security.ProviderException
 
 /**
  * Encrypted SharedPreferences with one-time migration from legacy plain-text stores.
  *
  * When Android Keystore / EncryptedSharedPreferences is unavailable (common on some OEM
  * tablets), falls back to a durable plaintext file (`{name}_fallback`) and sets
- * [plaintextFallbackUsed]. High-value secrets (bot tokens, API keys) still refuse disk
- * writes via [requireEncryptedForSecretWrite]. Session identity and PBKDF2 password
- * verifiers are allowed on the degraded store so users are not forced to re-register.
+ * [plaintextFallbackUsed]. Session identity and PBKDF2 password verifiers are allowed
+ * on the degraded store so users are not forced to re-register. The Telegram bot token
+ * does not use this store; it is wrapped with the Android Keystore AES-GCM helper.
  *
  * Important: do not delete the fallback file on every [open] — Keystore can stay broken
  * across process restarts; wiping would erase registration/login every cold start.
@@ -36,37 +40,45 @@ object SecurePreferences {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
-        } catch (e: Exception) {
-            Log.e(TAG, "EncryptedSharedPreferences unavailable for $name", e)
-            plaintextFallbackUsed = true
-            CrashReporting.setCustomKey("secure_prefs_fallback", true)
-            CrashReporting.setCustomKey("secure_prefs_name", name)
-            CrashReporting.setCustomKey("secure_prefs_release", !BuildConfig.DEBUG)
-            CrashReporting.recordException(e)
+        } catch (e: GeneralSecurityException) {
+            plaintextFallback(appContext, name, e)
+        } catch (e: IOException) {
+            plaintextFallback(appContext, name, e)
+        } catch (e: ProviderException) {
+            plaintextFallback(appContext, name, e)
+        }
+    }
 
-            val fallbackName = fallbackName(name)
-            val fallback = appContext.getSharedPreferences(fallbackName, Context.MODE_PRIVATE)
-            // One-time rescue from a same-named plaintext file (older debug fallback).
-            if (fallback.all.isEmpty()) {
-                val legacySameName = appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
-                if (legacySameName.all.isNotEmpty()) {
-                    fallback.edit {
-                        legacySameName.all.forEach { (key, value) ->
-                            when (value) {
-                                is String -> putString(key, value)
-                                is Boolean -> putBoolean(key, value)
-                                is Int -> putInt(key, value)
-                                is Long -> putLong(key, value)
-                                is Float -> putFloat(key, value)
-                            }
+    private fun plaintextFallback(appContext: Context, name: String, e: Exception): SharedPreferences {
+        logFailure(TAG, "EncryptedSharedPreferences unavailable for $name", e)
+        plaintextFallbackUsed = true
+        CrashReporting.setCustomKey("secure_prefs_fallback", true)
+        CrashReporting.setCustomKey("secure_prefs_name", name)
+        CrashReporting.setCustomKey("secure_prefs_release", !BuildConfig.DEBUG)
+        CrashReporting.recordException(e)
+
+        val fallbackName = fallbackName(name)
+        val fallback = appContext.getSharedPreferences(fallbackName, Context.MODE_PRIVATE)
+        // One-time rescue from a same-named plaintext file (older debug fallback).
+        if (fallback.all.isEmpty()) {
+            val legacySameName = appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+            if (legacySameName.all.isNotEmpty()) {
+                fallback.edit {
+                    legacySameName.all.forEach { (key, value) ->
+                        when (value) {
+                            is String -> putString(key, value)
+                            is Boolean -> putBoolean(key, value)
+                            is Int -> putInt(key, value)
+                            is Long -> putLong(key, value)
+                            is Float -> putFloat(key, value)
                         }
                     }
-                    legacySameName.edit { clear() }
                 }
+                legacySameName.edit { clear() }
             }
-            Log.w(TAG, "Durable plaintext fallback for $name → $fallbackName")
-            return fallback
         }
+        Log.w(TAG, "Durable plaintext fallback for $name → $fallbackName")
+        return fallback
     }
 
     fun fallbackName(name: String): String = "${name}_fallback"

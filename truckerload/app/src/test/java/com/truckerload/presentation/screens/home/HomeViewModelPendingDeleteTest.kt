@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.home
 
 import android.app.Application
+import android.database.sqlite.SQLiteException
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import kotlinx.coroutines.Dispatchers
@@ -119,7 +120,7 @@ class HomeViewModelPendingDeleteTest {
     @Test
     fun confirmDeleteLoad_failure_surfacesDeleteError() = runTest(dispatcher) {
         loadRepository.stub {
-            onBlocking { deleteLoad(any()) } doThrow RuntimeException("db locked")
+            onBlocking { deleteLoad(any()) } doThrow SQLiteException("db locked")
         }
         viewModel.requestDeleteLoad("load-1")
 

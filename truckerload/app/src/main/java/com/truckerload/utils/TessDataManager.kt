@@ -1,6 +1,8 @@
 package com.truckerload.utils
 
 import android.content.Context
+import com.truckerload.BuildConfig
+import com.truckerload.data.remote.installSecretRedaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -18,6 +20,7 @@ object TessDataManager {
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
+        .installSecretRedaction(BuildConfig.DEBUG)
         .build()
 
     fun tessDataDir(context: Context): File =
@@ -40,7 +43,8 @@ object TessDataManager {
                 dest.outputStream().use { out -> body.byteStream().copyTo(out) }
                 dest.exists() && dest.length() > 50_000
             }
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
+            logFailure("TessData", "traineddata download failed", e)
             false
         }
     }

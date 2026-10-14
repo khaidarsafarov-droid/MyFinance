@@ -1,4 +1,6 @@
 package com.truckerload.utils
+import kotlinx.coroutines.CancellationException
+
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -63,9 +65,19 @@ class TesseractOCRService(private val context: Context) {
                 }
                 tessBase = tess
             }
-        } catch (e: Exception) {
-            Log.w("TL", "swallowed", e)
+        } catch (e: java.io.IOException) {
+            logFailure("TesseractOCR", "init failed", e)
             null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            logFailure("TesseractOCR", "init failed", e)
+            null
+        } catch (e: IllegalArgumentException) {
+            logFailure("TesseractOCR", "init failed", e)
+            null
+        } catch (e: UnsatisfiedLinkError) {
+            logFailure("TesseractOCR", "init failed", e)
             null
         }
     }

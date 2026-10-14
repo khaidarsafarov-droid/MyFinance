@@ -1,4 +1,9 @@
 package com.truckerload.presentation.screens.add
+import kotlinx.coroutines.CancellationException
+
+import android.database.sqlite.SQLiteException
+import java.io.IOException
+
 
 import android.app.Application
 import android.net.Uri
@@ -455,10 +460,28 @@ class AddLoadViewModel @Inject constructor(
                         confirmIncomplete = null,
                     )
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteException) {
                 _uiState.update {
                     it.copy(isSaving = false, error = saveErrorFormatter(e.message.orEmpty()))
                 }
+            
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(isSaving = false, error = saveErrorFormatter(e.message.orEmpty()))
+                }
+            
+            } catch (e: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(isSaving = false, error = saveErrorFormatter(e.message.orEmpty()))
+                }
+            
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.update {
+                    it.copy(isSaving = false, error = saveErrorFormatter(e.message.orEmpty()))
+                }
+            
             }
         }
     }
