@@ -3,6 +3,7 @@ package com.truckerload.presentation.auth
 import android.content.Context
 import com.google.android.gms.common.api.ApiException
 import com.truckerload.R
+import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.utils.InstalledSigningSha1
 
 /** User-facing Google Play Services errors for Drive OAuth. */
@@ -13,7 +14,10 @@ object GoogleSignInSupport {
         val status = api?.statusCode
         if (status == 10) {
             val sha = InstalledSigningSha1.fingerprint(context) ?: "—"
-            return context.getString(R.string.login_google_developer_error, sha)
+            return context.getString(
+                R.string.login_google_developer_error,
+                sha,
+            ) + " (" + GoogleSignInClients.ANDROID_CLIENT_ID + ")"
         }
         val detail = when (status) {
             12500 -> context.getString(R.string.login_google_play_services_error)

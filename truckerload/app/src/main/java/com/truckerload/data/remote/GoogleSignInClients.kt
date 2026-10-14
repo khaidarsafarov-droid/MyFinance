@@ -20,6 +20,14 @@ import kotlinx.coroutines.tasks.await
  */
 object GoogleSignInClients {
 
+    /**
+     * Android OAuth client in Google Cloud project 253720408597.
+     * Matched by package `com.truckorig` plus the installed SHA-1.
+     * Do not pass this to [GoogleSignInOptions.Builder.requestIdToken].
+     */
+    const val ANDROID_CLIENT_ID =
+        "253720408597-8pp7kbk23mblnfuj2nk687e20n88ftl7.apps.googleusercontent.com"
+
     fun driveOptions(accountEmail: String? = null): GoogleSignInOptions {
         val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()

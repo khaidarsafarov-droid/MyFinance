@@ -26,8 +26,16 @@ package `com.truckorig`. Старый debug-отпечаток вроде `F3:85
 
 ## Console
 
-- Клиенты: https://console.cloud.google.com/apis/credentials?project=842861516910
-- Новый Android-клиент: https://console.cloud.google.com/apis/credentials/oauthclient?project=842861516910
+Проект `253720408597`. Android-клиент TruckoRig:
+
+`253720408597-8pp7kbk23mblnfuj2nk687e20n88ftl7.apps.googleusercontent.com`
+
+Пакет в клиенте: `com.truckorig`. SHA-1 в клиенте — отпечаток **установленного** APK/AAB.
+Этот Client ID в код входа не подставляется: Google сам находит Android-клиент по пакету и SHA-1.
+`requestIdToken` с этим ID ломает вход (ошибка 10), потому что это не Web client.
+
+- Клиенты: https://console.cloud.google.com/apis/credentials?project=253720408597
+- Drive API: https://console.cloud.google.com/apis/library/drive.googleapis.com?project=253720408597
 
 Включите **Google Drive API**. Если consent **Testing** — добавьте Gmail в Test users.
 
