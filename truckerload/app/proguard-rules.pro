@@ -6,7 +6,18 @@
 # SQLCipher. The JNI entry points are looked up by name.
 -keep class net.zetetic.database.** { *; }
 -keep class net.zetetic.database.sqlcipher.** { *; }
+-keepclasseswithmembernames class net.zetetic.database.sqlcipher.** {
+    native <methods>;
+}
 -dontwarn net.zetetic.database.**
+
+# Tink, pulled in by EncryptedSharedPreferences. Protobuf lite reads fields
+# by reflection, and the key-type registry looks managers up by name.
+-keep class com.google.crypto.tink.** { *; }
+-keepclassmembers class * extends com.google.crypto.tink.shaded.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+-dontwarn com.google.crypto.tink.**
 
 # Room
 -keep class * extends androidx.room.RoomDatabase
