@@ -120,7 +120,7 @@ class TelegramJournalIngest(
         firstDay: WeekStartDay,
     ): Pair<Int, Int> {
         val dateForWeek = when {
-            !dateHint.isNullOrBlank() -> dateHint
+            !dateHint.isNullOrBlank() -> dateHint.trim().take(10)
             messageDateSeconds != null -> formatDateFromUnixSeconds(messageDateSeconds)
             else -> null
         }
