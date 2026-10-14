@@ -67,10 +67,8 @@ object LoadYieldCalculator {
     /**
      * Days the driver was actually on the road inside this reporting week.
      *
-     * By default a load runs from its pickup to its own finish. When a later load
-     * is picked up before that finish, the earlier load ends on the later pickup
-     * day — the driver does not have to edit the first delivery date. Days after
-     * [today] are not counted, and the same calendar day is never counted twice.
+     * Same windows as [coveredDates]: own pickup through own finish, cut to the
+     * next pickup when that comes first, and never past [today].
      */
     fun onRoadDays(
         loads: List<Load>,
@@ -80,6 +78,17 @@ object LoadYieldCalculator {
     ): Int {
         if (loads.isEmpty() || today.isBefore(weekStart)) return 0
         val last = if (today.isBefore(weekEnd)) today else weekEnd
+        return coveredDates(loads, last).count { !it.isBefore(weekStart) && !it.isAfter(weekEnd) }
+    }
+
+    /**
+     * Calendar days a driver is on the road, through [through] inclusive.
+     *
+     * Default window is the load's pickup through its own finish. When the next
+     * load is picked up sooner, the earlier load ends on that pickup day. The
+     * stored delivery date is left unchanged. The same day is never returned twice.
+     */
+    fun coveredDates(loads: List<Load>, through: LocalDate): Set<LocalDate> {
         val ordered = loads.mapNotNull { load ->
             val start = isoDate(getPickUpDate(load)) ?: return@mapNotNull null
             load to start
@@ -87,6 +96,7 @@ object LoadYieldCalculator {
         val covered = HashSet<LocalDate>()
         for (index in ordered.indices) {
             val (load, start) = ordered[index]
+            if (start.isAfter(through)) continue
             val ownFinish = isoDate(load.effectiveFinishDate()) ?: start
             val nextPickup = ordered.getOrNull(index + 1)?.second
             val finish = if (
@@ -98,16 +108,15 @@ object LoadYieldCalculator {
             } else {
                 ownFinish
             }
-            if (finish.isBefore(weekStart) || start.isAfter(last)) continue
-            var day = if (start.isAfter(weekStart)) start else weekStart
-            val stop = if (finish.isBefore(last)) finish else last
-            if (stop.isBefore(day)) continue
+            val stop = if (finish.isBefore(through)) finish else through
+            if (stop.isBefore(start)) continue
+            var day = start
             while (!day.isAfter(stop)) {
                 covered.add(day)
                 day = day.plusDays(1)
             }
         }
-        return covered.size
+        return covered
     }
 
     private fun isoDate(raw: String?): LocalDate? {

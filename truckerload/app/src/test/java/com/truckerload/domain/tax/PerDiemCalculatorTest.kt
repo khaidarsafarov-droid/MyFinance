@@ -3,7 +3,9 @@ package com.truckerload.domain.tax
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PerDiemCalculatorTest {
@@ -40,6 +42,47 @@ class PerDiemCalculatorTest {
         )
         assertEquals(2, PerDiemCalculator.dayCount(listOf(a, b), 2026))
         assertEquals(138.0, PerDiemCalculator.amount(listOf(a, b), 2026), 0.01)
+    }
+
+    @Test
+    fun nextPickup_cutsPreviousLoadAndFutureDaysAreExcluded() {
+        val first = loadWithStops(
+            date = "2026-10-11",
+            pu = "2026-10-11 08:00",
+            del = "2026-10-16 18:00",
+            year = 2026,
+            id = "first",
+        )
+        val second = loadWithStops(
+            date = "2026-10-14",
+            pu = "2026-10-14 09:00",
+            del = "2026-10-14 20:00",
+            year = 2026,
+            id = "second",
+        )
+        val dates = PerDiemCalculator.uniqueOnDutyDates(
+            listOf(first, second),
+            2026,
+            today = LocalDate.of(2026, 10, 17),
+        )
+        assertEquals(
+            setOf("2026-10-11", "2026-10-12", "2026-10-13", "2026-10-14"),
+            dates,
+        )
+        val futureOnly = loadWithStops(
+            date = "2026-12-01",
+            pu = "2026-12-01 08:00",
+            del = "2026-12-05 18:00",
+            year = 2026,
+            id = "future",
+        )
+        assertTrue(
+            PerDiemCalculator.uniqueOnDutyDates(
+                listOf(futureOnly),
+                2026,
+                today = LocalDate.of(2026, 10, 14),
+            ).isEmpty(),
+        )
     }
 
     @Test
