@@ -19,6 +19,9 @@
     <string name="common_date_time">Дата и время записи:</string>
     <string name="common_enter_amount">Введите сумму</string>
     <string name="common_amount_must_be_positive">Введите сумму больше нуля</string>
+    <string name="field_error_amount_example">Введите сумму, например 512.40</string>
+    <string name="field_error_gallons_positive">Галлоны должны быть больше 0</string>
+    <string name="field_error_miles">Введите мили числом, например 850</string>
     <string name="common_save_error">Ошибка сохранения: %1$s</string>
     <string name="common_save_failed">Ошибка сохранения</string>
     <string name="common_ok">OK</string>

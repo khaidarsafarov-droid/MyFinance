@@ -16,10 +16,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.rememberBlurGate
+import com.truckerload.utils.FieldErrors
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -40,9 +48,28 @@ fun AddLoadManualForm(
     onRemovePoint: (Int) -> Unit,
     modifier: Modifier = Modifier,
     hintRes: Int = R.string.add_load_manual_hint,
+    showFieldErrors: Boolean = false,
+    fieldErrorNonce: Int = 0,
 ) {
     val tc = LocalTruckColors.current
     val colors = AppTextFieldDefaults.outlined()
+    val rateGate = rememberBlurGate()
+    val milesGate = rememberBlurGate()
+    val rateFocus = remember { FocusRequester() }
+    val milesFocus = remember { FocusRequester() }
+    val rateError = FieldErrors.amountRes(fields.rate)
+    val milesError = FieldErrors.milesRes(fields.miles)
+    val showRate = rateGate.visibleRes(rateError, showFieldErrors)
+    val showMiles = milesGate.visibleRes(milesError, showFieldErrors)
+    LaunchedEffect(fieldErrorNonce) {
+        if (fieldErrorNonce == 0) return@LaunchedEffect
+        val target = when {
+            rateError != null -> rateFocus
+            milesError != null -> milesFocus
+            else -> null
+        }
+        target?.let { runCatching { it.requestFocus() } }
+    }
     BentoGlassCard(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -77,8 +104,13 @@ fun AddLoadManualForm(
                 value = fields.rate,
                 onValueChange = onRate,
                 label = { Text(stringResource(R.string.edit_load_total_rate)) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(rateFocus)
+                    .blurGate(rateGate),
                 singleLine = true,
+                isError = showRate != null,
+                supportingText = errorSupport(showRate),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
@@ -87,8 +119,13 @@ fun AddLoadManualForm(
                 value = fields.miles,
                 onValueChange = onMiles,
                 label = { Text(stringResource(R.string.edit_load_total_miles)) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(milesFocus)
+                    .blurGate(milesGate),
                 singleLine = true,
+                isError = showMiles != null,
+                supportingText = errorSupport(showMiles),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,

@@ -13,9 +13,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.rememberBlurGate
+import com.truckerload.utils.FieldErrors
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -36,6 +44,28 @@ fun DieselAmountFields(
     compact: Boolean = false,
 ) {
     val tc = LocalTruckColors.current
+    val gallonsGate = rememberBlurGate()
+    val priceGate = rememberBlurGate()
+    val discountGate = rememberBlurGate()
+    val gallonsFocus = remember { FocusRequester() }
+    val priceFocus = remember { FocusRequester() }
+    val discountFocus = remember { FocusRequester() }
+    val gallonsError = FieldErrors.gallonsRes(uiState.gallonsText)
+    val priceError = FieldErrors.amountRes(uiState.pricePerGallonText)
+    val discountError = FieldErrors.discountRes(uiState.discountPriceText, uiState.pricePerGallonText)
+    val showGallons = gallonsGate.visibleRes(gallonsError, uiState.showFieldErrors)
+    val showPrice = priceGate.visibleRes(priceError, uiState.showFieldErrors)
+    val showDiscount = discountGate.visibleRes(discountError, uiState.showFieldErrors)
+    LaunchedEffect(uiState.fieldErrorNonce) {
+        if (uiState.fieldErrorNonce == 0) return@LaunchedEffect
+        val target = when {
+            gallonsError != null -> gallonsFocus
+            priceError != null -> priceFocus
+            !compact && discountError != null -> discountFocus
+            else -> null
+        }
+        target?.let { runCatching { it.requestFocus() } }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         DieselReceiptCaptureRow(
             enabled = !uiState.isSaving,
@@ -87,9 +117,13 @@ fun DieselAmountFields(
             label = { Text(stringResource(R.string.add_diesel_gallons)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                .defaultMinSize(minHeight = UiDimens.InputMinHeight)
+                .focusRequester(gallonsFocus)
+                .blurGate(gallonsGate),
             shape = RoundedCornerShape(14.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            isError = showGallons != null,
+            supportingText = errorSupport(showGallons),
             colors = AppTextFieldDefaults.outlined(),
             singleLine = true,
         )
@@ -99,9 +133,13 @@ fun DieselAmountFields(
             label = { Text(stringResource(R.string.add_diesel_price_per_gallon)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                .defaultMinSize(minHeight = UiDimens.InputMinHeight)
+                .focusRequester(priceFocus)
+                .blurGate(priceGate),
             shape = RoundedCornerShape(14.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            isError = showPrice != null,
+            supportingText = errorSupport(showPrice),
             colors = AppTextFieldDefaults.outlined(),
             singleLine = true,
         )
@@ -112,9 +150,13 @@ fun DieselAmountFields(
                 label = { Text(stringResource(R.string.add_diesel_discount_price)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                    .defaultMinSize(minHeight = UiDimens.InputMinHeight)
+                    .focusRequester(discountFocus)
+                    .blurGate(discountGate),
                 shape = RoundedCornerShape(14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = showDiscount != null,
+                supportingText = errorSupport(showDiscount),
                 colors = AppTextFieldDefaults.outlined(),
                 singleLine = true,
             )

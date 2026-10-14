@@ -28,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,7 +43,11 @@ import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.rememberBlurGate
 import com.truckerload.presentation.components.rememberFormBack
+import com.truckerload.utils.FieldErrors
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.MoneyFormat
@@ -62,6 +68,14 @@ fun AddPaycheckScreen(
     val viewModel: AddPaycheckViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
+    val amountGate = rememberBlurGate()
+    val amountFocus = remember { FocusRequester() }
+    val amountError = FieldErrors.amountRes(uiState.amountText)
+    val showAmountError = amountGate.visibleRes(amountError, uiState.showFieldErrors)
+    LaunchedEffect(uiState.fieldErrorNonce) {
+        if (uiState.fieldErrorNonce == 0) return@LaunchedEffect
+        if (amountError != null) runCatching { amountFocus.requestFocus() }
+    }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     val (_, _, weekLabel) = getWeekRange(uiState.weekNumber, uiState.year)
@@ -225,8 +239,12 @@ fun AddPaycheckScreen(
                     label = { Text(stringResource(R.string.common_enter_amount)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = UiDimens.InputMinHeight),
+                        .defaultMinSize(minHeight = UiDimens.InputMinHeight)
+                        .focusRequester(amountFocus)
+                        .blurGate(amountGate),
                     shape = RoundedCornerShape(14.dp),
+                    isError = showAmountError != null,
+                    supportingText = errorSupport(showAmountError),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = AppTextFieldDefaults.outlined(),
                 )

@@ -19,6 +19,7 @@ import com.truckerload.domain.model.lastDelDateTimeFromStops
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.domain.parser.DecimalInput
 import com.truckerload.presentation.screens.add.FormDraft
+import com.truckerload.utils.FieldErrors
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,6 +48,8 @@ data class EditLoadUiState(
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val saved: Boolean = false,
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
     val draftBaseline: String? = null,
 ) {
     fun draftSignature(): String = FormDraft.editLoad(
@@ -163,9 +166,14 @@ class EditLoadViewModel @Inject constructor(
         if (state.isSaving) return
         val parsedRate = DecimalInput.parse(state.totalRate)
         val parsedMiles = DecimalInput.parse(state.totalMiles)
-        if (parsedRate == null || parsedMiles == null) {
+        val rateInvalid = FieldErrors.amountRes(state.totalRate) != null
+        if (parsedRate == null || parsedMiles == null || parsedMiles < 0.0 || rateInvalid) {
             _uiState.update {
-                it.copy(saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number))
+                it.copy(
+                    saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number),
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
             }
             return
         }

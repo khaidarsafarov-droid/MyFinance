@@ -13,12 +13,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.rememberBlurGate
+import com.truckerload.utils.FieldErrors
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -45,6 +52,18 @@ fun MiscExpenseEditorDialog(
     val tc = LocalTruckColors.current
     val fieldColors = AppTextFieldDefaults.outlined()
     var showDatePicker by remember { mutableStateOf(false) }
+    val amountGate = rememberBlurGate()
+    val amountFocus = remember { FocusRequester() }
+    val amountError = FieldErrors.amountRes(editor.amountText)
+    val showAmountError = amountGate.visibleRes(
+        amountError,
+        editor.error == MiscExpenseFields.Error.AMOUNT,
+    )
+    LaunchedEffect(editor.error) {
+        if (editor.error == MiscExpenseFields.Error.AMOUNT) {
+            runCatching { amountFocus.requestFocus() }
+        }
+    }
     val isEdit = editor.id > 0
 
     AlertDialog(
@@ -72,8 +91,13 @@ fun MiscExpenseEditorDialog(
                     },
                     label = { Text(stringResource(R.string.misc_expense_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(amountFocus)
+                        .blurGate(amountGate),
                     singleLine = true,
+                    isError = showAmountError != null,
+                    supportingText = errorSupport(showAmountError),
                     colors = fieldColors,
                 )
                 OutlinedTextField(
@@ -109,7 +133,7 @@ fun MiscExpenseEditorDialog(
                     },
                     colors = fieldColors,
                 )
-                editor.error?.let { error ->
+                editor.error?.takeIf { it != MiscExpenseFields.Error.AMOUNT }?.let { error ->
                     Text(
                         text = errorText(error),
                         color = tc.AccentExpense,

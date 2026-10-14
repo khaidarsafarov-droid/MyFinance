@@ -151,7 +151,13 @@ class PaycheckJournalViewModel @Inject constructor(
 
     fun updateEditor(transform: (PaycheckEditorState) -> PaycheckEditorState) {
         val current = editor.value ?: return
-        editor.value = transform(current).copy(error = null, attachFailed = false)
+        val next = transform(current)
+        val stillInvalid = current.error != null &&
+            PaycheckSalaryFields.validate(next.netText) != null
+        editor.value = next.copy(
+            error = if (stillInvalid) PaycheckSalaryFields.Error.NET else null,
+            attachFailed = false,
+        )
     }
 
     fun attachOriginal(uri: Uri) {

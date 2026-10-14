@@ -63,6 +63,8 @@ data class AddLoadUiState(
     val completeness: LoadCompleteness? = null,
     /** Set when save is held back until the driver confirms an incomplete load. */
     val confirmIncomplete: LoadCompleteness? = null,
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
     val draftBaseline: String? = null,
 ) {
     fun draftSignature(): String = FormDraft.addLoad(
@@ -343,7 +345,9 @@ class AddLoadViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     isSaving = false,
-                    error = getApplication<Application>().getString(com.truckerload.R.string.add_load_manual_rate_required),
+                    error = getApplication<Application>().getString(com.truckerload.R.string.field_error_amount_example),
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
                 )
             }
             return

@@ -49,6 +49,8 @@ data class AddDieselUiState(
     val saved: Boolean = false,
     val deleted: Boolean = false,
     val showSaveDialog: Boolean = false,
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
     val draftBaseline: String? = null,
 ) {
     fun draftSignature(): String = FormDraft.diesel(
@@ -223,7 +225,13 @@ class AddDieselViewModel @Inject constructor(
         if (_uiState.value.isSaving) return
         val validationError = validateInputs(_uiState.value)
         if (validationError != null) {
-            _uiState.update { it.copy(error = validationError) }
+            _uiState.update {
+                it.copy(
+                    error = validationError,
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
+            }
             return
         }
         // Keep recordedAtMillis (week is derived from it) — do not force "now".
@@ -255,7 +263,13 @@ class AddDieselViewModel @Inject constructor(
         if (state.isSaving) return
         val validationError = validateInputs(state)
         if (validationError != null) {
-            _uiState.update { it.copy(error = validationError) }
+            _uiState.update {
+                it.copy(
+                    error = validationError,
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
+            }
             return
         }
 

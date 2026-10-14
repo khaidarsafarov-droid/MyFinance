@@ -19,6 +19,9 @@
     <string name="common_date_time">Fecha y hora del registro:</string>
     <string name="common_enter_amount">Ingresa el monto</string>
     <string name="common_amount_must_be_positive">Ingresa un monto mayor que cero</string>
+    <string name="field_error_amount_example">Escribe un importe como 512.40</string>
+    <string name="field_error_gallons_positive">Los galones deben ser mayores que 0</string>
+    <string name="field_error_miles">Escribe las millas como número, por ejemplo 850</string>
     <string name="common_save_error">Error al guardar: %1$s</string>
     <string name="common_save_failed">No se pudo guardar</string>
     <string name="common_ok">OK</string>

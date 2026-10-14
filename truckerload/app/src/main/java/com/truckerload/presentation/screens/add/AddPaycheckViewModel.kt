@@ -49,6 +49,8 @@ data class AddPaycheckUiState(
     val driverName: String? = null,
     val grossAmount: Double? = null,
     val parseNotice: String? = null,
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
     val draftBaseline: String? = null,
 ) {
     fun draftSignature(): String = FormDraft.paycheck(
@@ -212,7 +214,11 @@ class AddPaycheckViewModel @Inject constructor(
         if (_uiState.value.isSaving) return
         if (AmountInputValidator.parsePositiveAmount(_uiState.value.amountText) == null) {
             _uiState.update {
-                it.copy(error = getApplication<Application>().getString(R.string.common_amount_must_be_positive))
+                it.copy(
+                    error = getApplication<Application>().getString(R.string.field_error_amount_example),
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
             }
             return
         }

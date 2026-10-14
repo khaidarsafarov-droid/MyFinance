@@ -110,7 +110,7 @@ fun AddLoadScreen(
             OneUiBottomActionBar {
                 val preview = uiState.previewLoad
                 val saveEnabled = !uiState.isSaving && !uiState.isExtractingDocument && when (uiState.mode) {
-                    AddLoadInputMode.MANUAL, AddLoadInputMode.DOCUMENT -> uiState.manual.canSave()
+                    AddLoadInputMode.MANUAL, AddLoadInputMode.DOCUMENT -> true
                     AddLoadInputMode.PASTE -> uiState.rawText.isNotBlank()
                 }
                 Button(
@@ -170,6 +170,8 @@ fun AddLoadScreen(
                         onPointChange = viewModel::setManualPoint,
                         onAddPoint = viewModel::addManualPoint,
                         onRemovePoint = viewModel::removeManualPoint,
+                        showFieldErrors = uiState.showFieldErrors,
+                        fieldErrorNonce = uiState.fieldErrorNonce,
                     )
                 }
                 AddLoadInputMode.DOCUMENT -> {
@@ -191,6 +193,8 @@ fun AddLoadScreen(
                             onAddPoint = viewModel::addManualPoint,
                             onRemovePoint = viewModel::removeManualPoint,
                             hintRes = R.string.add_load_document_fields_hint,
+                            showFieldErrors = uiState.showFieldErrors,
+                            fieldErrorNonce = uiState.fieldErrorNonce,
                         )
                     }
                 }

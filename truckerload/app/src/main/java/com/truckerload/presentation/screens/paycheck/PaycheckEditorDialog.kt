@@ -13,12 +13,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.rememberBlurGate
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.domain.paycheck.PaycheckSalaryFields
+import com.truckerload.utils.FieldErrors
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.components.TlTextButton
@@ -41,6 +48,13 @@ fun PaycheckEditorDialog(
     val tc = LocalTruckColors.current
     val fieldColors = AppTextFieldDefaults.outlined()
     val paycheck = editor.paycheck
+    val netGate = rememberBlurGate()
+    val netFocus = remember { FocusRequester() }
+    val netError = FieldErrors.amountRes(editor.netText)
+    val showNetError = netGate.visibleRes(netError, editor.error != null)
+    LaunchedEffect(editor.error) {
+        if (editor.error != null) runCatching { netFocus.requestFocus() }
+    }
 
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
@@ -93,8 +107,13 @@ fun PaycheckEditorDialog(
                     },
                     label = { Text(stringResource(R.string.paycheck_net_amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(netFocus)
+                        .blurGate(netGate),
                     singleLine = true,
+                    isError = showNetError != null,
+                    supportingText = errorSupport(showNetError),
                     colors = fieldColors,
                 )
                 val fileLabel = editor.sourceFileName?.takeIf { it.isNotBlank() }
@@ -135,16 +154,6 @@ fun PaycheckEditorDialog(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.paycheck_attach_file))
-                }
-                editor.error?.let { error ->
-                    Text(
-                        text = when (error) {
-                            PaycheckSalaryFields.Error.NET ->
-                                stringResource(R.string.paycheck_error_net)
-                        },
-                        color = tc.AccentExpense,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
                 }
                 if (editor.attachFailed) {
                     Text(

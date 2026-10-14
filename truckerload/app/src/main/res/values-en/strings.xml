@@ -19,6 +19,9 @@
     <string name="common_date_time">Date and time of entry:</string>
     <string name="common_enter_amount">Enter amount</string>
     <string name="common_amount_must_be_positive">Enter an amount greater than zero</string>
+    <string name="field_error_amount_example">Enter an amount like 512.40</string>
+    <string name="field_error_gallons_positive">Gallons must be more than 0</string>
+    <string name="field_error_miles">Enter miles as a number, like 850</string>
     <string name="common_save_error">Save error: %1$s</string>
     <string name="common_save_failed">Save failed</string>
     <string name="common_ok">OK</string>

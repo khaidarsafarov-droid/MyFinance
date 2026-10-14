@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,11 @@ import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.screens.add.EquipmentTypeChipRow
 import com.truckerload.presentation.components.DisputeSection
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.rememberBlurGate
 import com.truckerload.presentation.components.rememberFormBack
+import com.truckerload.utils.FieldErrors
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -67,6 +72,26 @@ fun EditLoadScreen(
     val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
     val scrollState = rememberScrollState()
     val finishFocusRequester = remember { FocusRequester() }
+    val rateGate = rememberBlurGate()
+    val milesGate = rememberBlurGate()
+    val rateFocus = remember { FocusRequester() }
+    val milesFocus = remember { FocusRequester() }
+    val rateError = FieldErrors.amountRes(uiState.totalRate)
+    val milesError = when {
+        uiState.totalMiles.isBlank() -> R.string.field_error_miles
+        else -> FieldErrors.milesRes(uiState.totalMiles)
+    }
+    val showRate = rateGate.visibleRes(rateError, uiState.showFieldErrors)
+    val showMiles = milesGate.visibleRes(milesError, uiState.showFieldErrors)
+    LaunchedEffect(uiState.fieldErrorNonce) {
+        if (uiState.fieldErrorNonce == 0) return@LaunchedEffect
+        val target = when {
+            rateError != null -> rateFocus
+            milesError != null -> milesFocus
+            else -> null
+        }
+        target?.let { runCatching { it.requestFocus() } }
+    }
 
     LaunchedEffect(loadId) {
         viewModel.refresh()
@@ -190,7 +215,12 @@ fun EditLoadScreen(
                             value = uiState.totalRate,
                             onValueChange = viewModel::setTotalRate,
                             label = { Text(stringResource(R.string.edit_load_total_rate)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(rateFocus)
+                                .blurGate(rateGate),
+                            isError = showRate != null,
+                            supportingText = errorSupport(showRate),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
@@ -198,7 +228,12 @@ fun EditLoadScreen(
                             value = uiState.totalMiles,
                             onValueChange = viewModel::setTotalMiles,
                             label = { Text(stringResource(R.string.edit_load_total_miles)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(milesFocus)
+                                .blurGate(milesGate),
+                            isError = showMiles != null,
+                            supportingText = errorSupport(showMiles),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )

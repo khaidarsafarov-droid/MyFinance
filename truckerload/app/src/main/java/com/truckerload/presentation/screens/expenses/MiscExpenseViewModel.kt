@@ -98,7 +98,12 @@ class MiscExpenseViewModel @Inject constructor(
 
     fun updateEditor(transform: (MiscExpenseEditorState) -> MiscExpenseEditorState) {
         val current = editor.value ?: return
-        editor.value = transform(current).copy(error = null)
+        val next = transform(current)
+        val keptAmountError = current.error == MiscExpenseFields.Error.AMOUNT &&
+            MiscExpenseFields.parseAmount(next.amountText) == null
+        editor.value = next.copy(
+            error = if (keptAmountError) MiscExpenseFields.Error.AMOUNT else null,
+        )
     }
 
     fun save() {
