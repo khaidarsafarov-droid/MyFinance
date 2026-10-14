@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.DeadheadMiles
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
@@ -57,7 +57,7 @@ internal fun DeadheadSection(
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.TextSecondary,
             )
-            OutlinedButton(
+            TlOutlinedButton(
                 onClick = { showEditor = true },
                 modifier = Modifier.fillMaxWidth(),
             ) {

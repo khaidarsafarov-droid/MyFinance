@@ -1,16 +1,18 @@
 package com.truckerload.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -115,7 +117,10 @@ fun TlTextButton(
     )
 }
 
-/** Secondary action — white surface, soft border and shadow. */
+/**
+ * Secondary action that still has to be pressed: tinted fill, solid accent
+ * border, and a semibold label so it does not disappear into the card.
+ */
 @Composable
 fun TlOutlinedButton(
     onClick: () -> Unit,
@@ -124,11 +129,9 @@ fun TlOutlinedButton(
     content: @Composable RowScope.() -> Unit,
 ) {
     val shape = SoftUiShapes.Button
-    val borderColor = if (enabled) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-    } else {
-        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-    }
+    val accent = MaterialTheme.colorScheme.primary
+    val borderColor = if (enabled) accent else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+    val fill = if (enabled) accent.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
     androidx.compose.material3.OutlinedButton(
         onClick = onClick,
         modifier = modifier
@@ -138,16 +141,24 @@ fun TlOutlinedButton(
                 shape = shape,
                 ambientColor = SoftUiColors.ShadowTint,
                 spotColor = SoftUiColors.ShadowNeutral,
-            )
-            .border(1.dp, borderColor, shape),
+            ),
         enabled = enabled,
         shape = shape,
+        border = BorderStroke(1.5.dp, borderColor),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary,
+            containerColor = fill,
+            disabledContainerColor = fill,
+            contentColor = accent,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-        content = content,
+        content = {
+            CompositionLocalProvider(
+                LocalTextStyle provides MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+            ) {
+                content()
+            }
+        },
     )
 }
 
