@@ -743,7 +743,10 @@
     <string name="premium_restore">Восстановить покупки</string>
     <string name="premium_manage">Управлять подпиской в Google Play</string>
     <string name="premium_terms">Подписка продлевается каждый месяц через Google Play, пока вы её не отмените. Отмена — в Google Play → Платежи и подписки.</string>
-    <string name="premium_play_trial">Бесплатный месяц начинается в Google Play, когда оформляете подписку.</string>
+    <string name="premium_play_trial">Вы на бесплатной версии. Бесплатный месяц ещё не начался — он стартует только после подписки в Google Play.</string>
+    <string name="premium_offer_title">Подписка в Google Play</string>
+    <string name="premium_offer_body">Бесплатный месяц не включается, когда вы открываете приложение. Он начинается только после подписки в Google Play: первый месяц бесплатно, дальше ежемесячная цена (в США 2,99 $). Если пропустить, останется бесплатная версия: грузы, дизель, зарплаты и deadhead. Telegram, аналитика и остальные инструменты Premium будут закрыты.</string>
+    <string name="premium_offer_continue_free">Остаться на бесплатной версии</string>
     <string name="premium_active">Подписка активна</string>
     <string name="premium_purchase_unavailable">Google Play не открыл подписку. Войдите в Play Store и попробуйте ещё раз.</string>
     <string name="premium_locked_telegram">Импорт из Telegram входит в Premium.</string>

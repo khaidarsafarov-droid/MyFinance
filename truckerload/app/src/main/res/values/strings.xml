@@ -743,7 +743,10 @@
     <string name="premium_restore">Restore purchases</string>
     <string name="premium_manage">Manage subscription in Google Play</string>
     <string name="premium_terms">Renews every month through Google Play until you cancel. Cancel anytime in Google Play → Payments and subscriptions.</string>
-    <string name="premium_play_trial">The free month starts in Google Play when you subscribe.</string>
+    <string name="premium_play_trial">You\'re on the free version. The free month has not started — it starts only after you subscribe in Google Play.</string>
+    <string name="premium_offer_title">Subscribe in Google Play</string>
+    <string name="premium_offer_body">The free month does not start when you open the app. It starts only after you subscribe in Google Play: one month free, then the monthly price ($2.99 in the United States). If you skip, the free version stays: loads, diesel, paychecks, and deadhead. Telegram, analytics, and the other Premium tools stay locked.</string>
+    <string name="premium_offer_continue_free">Continue with the free version</string>
     <string name="premium_active">Premium is active</string>
     <string name="premium_purchase_unavailable">Google Play could not open the subscription. Sign in to the Play Store and try again.</string>
     <string name="premium_locked_telegram">Telegram import is part of Premium.</string>
