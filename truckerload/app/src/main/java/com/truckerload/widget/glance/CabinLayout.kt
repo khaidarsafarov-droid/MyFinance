@@ -26,8 +26,6 @@ internal data class CabinLayout(
     val dayCaptionSp: TextUnit,
     val showWeekRow: Boolean,
     val showDayCaptions: Boolean,
-    /** Goal, diesel, and take-home. Small cells show revenue and the goal only. */
-    val showDieselNet: Boolean,
     /** RPM sits with the week numbers only when the cell is tall enough. */
     val showRpm: Boolean,
     val actionBtnDp: Dp,
@@ -162,13 +160,9 @@ private fun CabinLayout.scaled(scale: Float): CabinLayout {
 private fun gapCount(wide: Boolean, showWeekRow: Boolean): Int =
     if (wide && showWeekRow) 4 else 3
 
-/** Goal is always shown. Diesel and take-home, then RPM, are added as the cell grows. */
-private fun metricRowCount(layout: CabinLayout): Int {
-    var rows = 1
-    if (layout.showDieselNet) rows += 2
-    if (layout.showRpm) rows += 1
-    return rows
-}
+/** Goal is always shown. RPM is added when the cell is tall enough. */
+private fun metricRowCount(layout: CabinLayout): Int =
+    if (layout.showRpm) 2 else 1
 
 /** Glance text keeps font padding, so a line is taller than the sp size. */
 private fun textLine(sp: TextUnit): Dp = (sp.value * 1.35f).dp + 3.dp
@@ -193,7 +187,6 @@ private fun squareLayout() = CabinLayout(
     dayCaptionSp = 12.sp,
     showWeekRow = false,
     showDayCaptions = false,
-    showDieselNet = false,
     showRpm = false,
     actionBtnDp = 32.dp,
     actionIconDp = 18.dp,
@@ -218,7 +211,6 @@ private fun squareTightLayout() = CabinLayout(
     dayCaptionSp = 12.sp,
     showWeekRow = false,
     showDayCaptions = false,
-    showDieselNet = false,
     showRpm = false,
     actionBtnDp = 24.dp,
     actionIconDp = 14.dp,
@@ -243,7 +235,6 @@ private fun microWideLayout() = CabinLayout(
     dayCaptionSp = 12.sp,
     showWeekRow = false,
     showDayCaptions = false,
-    showDieselNet = false,
     showRpm = false,
     actionBtnDp = 24.dp,
     actionIconDp = 14.dp,
@@ -268,7 +259,6 @@ private fun shortWideLayout() = CabinLayout(
     dayCaptionSp = 12.sp,
     showWeekRow = true,
     showDayCaptions = false,
-    showDieselNet = false,
     showRpm = false,
     actionBtnDp = 30.dp,
     actionIconDp = 18.dp,
@@ -293,7 +283,6 @@ private fun compactWideLayout() = CabinLayout(
     dayCaptionSp = 12.sp,
     showWeekRow = true,
     showDayCaptions = false,
-    showDieselNet = true,
     showRpm = false,
     actionBtnDp = 36.dp,
     actionIconDp = 22.dp,
@@ -318,7 +307,6 @@ private fun tallWideLayout() = CabinLayout(
     dayCaptionSp = 12.sp,
     showWeekRow = true,
     showDayCaptions = true,
-    showDieselNet = true,
     showRpm = true,
     actionBtnDp = 40.dp,
     actionIconDp = 24.dp,
@@ -343,7 +331,6 @@ private fun fullWideLayout() = CabinLayout(
     dayCaptionSp = 10.sp,
     showWeekRow = true,
     showDayCaptions = true,
-    showDieselNet = true,
     showRpm = true,
     actionBtnDp = 42.dp,
     actionIconDp = 26.dp,
