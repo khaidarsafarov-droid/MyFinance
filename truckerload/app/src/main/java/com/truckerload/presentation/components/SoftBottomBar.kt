@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.map
 import com.truckerload.R
 import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.presentation.icons.AppIcons

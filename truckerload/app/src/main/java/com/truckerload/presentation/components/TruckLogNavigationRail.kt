@@ -43,11 +43,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.presentation.di.LocalMaintenanceRepository
+import kotlinx.coroutines.flow.map
 import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.data.preferences.ProfileIdentity
