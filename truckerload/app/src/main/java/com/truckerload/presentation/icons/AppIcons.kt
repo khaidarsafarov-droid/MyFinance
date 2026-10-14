@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.FlashAuto
 import androidx.compose.material.icons.filled.FlashOff
@@ -43,6 +44,9 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.outlined.Flag as FlagOutlinedIcon
+import androidx.compose.material.icons.outlined.LocalShipping as LocalShippingOutlinedIcon
+import androidx.compose.material.icons.outlined.Person as PersonOutlinedIcon
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -80,7 +84,8 @@ object AppIcons {
     val ExpandMore = Icons.Filled.KeyboardArrowDown
     val Face = Icons.Filled.Face
     val FileDownload = Icons.Filled.Share
-    val Flag = Icons.Filled.Star
+    val Flag = Icons.Filled.Flag
+    val FlagOutlined = Icons.Outlined.FlagOutlinedIcon
     val FlashAuto = Icons.Filled.FlashAuto
     val FlashOff = Icons.Filled.FlashOff
     val FlashOn = Icons.Filled.FlashOn
@@ -90,6 +95,7 @@ object AppIcons {
     val LightMode = Icons.Filled.Settings
     val LocalGasStation = Icons.Filled.Place
     val LocalShipping = Icons.Filled.LocalShipping
+    val LocalShippingOutlined = Icons.Outlined.LocalShippingOutlinedIcon
     val LocationOn = Icons.Filled.LocationOn
     val Lock = Icons.Filled.Lock
     val Logout = Icons.AutoMirrored.Filled.ExitToApp
@@ -99,6 +105,7 @@ object AppIcons {
     val Notifications = Icons.Filled.Notifications
     val Payments = Icons.Filled.ShoppingCart
     val Person = Icons.Filled.Person
+    val PersonOutlined = Icons.Outlined.PersonOutlinedIcon
     val Photo = Icons.Filled.Photo
     val PhotoCamera = Icons.Filled.PhotoCamera
     val PhotoLibrary = Icons.Filled.PhotoLibrary

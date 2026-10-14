@@ -78,6 +78,18 @@ class TabletSidebarDestinationsTest {
     }
 
     @Test
+    fun drawerListsFinanceBeforeSettingsAndAbout() {
+        val src = readSource("presentation/components/AppDrawer.kt")
+        assertTrue(src.indexOf("DrawerDestination.PAYCHECK") < src.indexOf("DrawerDestination.SETTINGS"))
+        assertTrue(src.indexOf("DrawerDestination.DIESEL") < src.indexOf("DrawerDestination.SETTINGS"))
+        assertTrue(src.indexOf("DrawerDestination.SETTINGS") < src.indexOf("DrawerDestination.ABOUT"))
+        val rail = readSource("presentation/components/TruckLogNavigationRail.kt")
+        assertTrue(rail.contains("nav_more"))
+        assertTrue(rail.contains("R.string.quick_actions_title"))
+        assertFalse(rail.contains("SoftUiColors.ForestPrimary"))
+    }
+
+    @Test
     fun tabletRail_rendersEveryDrawerDestination() {
         val src = readSource("presentation/components/TruckLogNavigationRail.kt")
         assertTrue(src.contains("tabletRailPrimaryItems"))

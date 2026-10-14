@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.home
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -9,11 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.Alignment
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -38,7 +31,6 @@ import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.AuthStatusBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
-import com.truckerload.presentation.components.QuickActionsBottomSheet
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
@@ -46,13 +38,10 @@ import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDeepLink
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onLoadClick: (String) -> Unit,
@@ -60,8 +49,6 @@ fun HomeScreen(
     onStats: () -> Unit,
     onWeeklyGoal: () -> Unit = onStats,
     onSettings: () -> Unit = {},
-    onCamera: () -> Unit = {},
-    onScan: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
@@ -89,7 +76,6 @@ fun HomeScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val undoDeleteId by viewModel.undoDeleteLoadId.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showQuickActions by remember { mutableStateOf(false) }
     val connectivity by remember(context) {
         ConnectivityObserver.observe(context)
     }.collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
@@ -175,16 +161,6 @@ fun HomeScreen(
         )
     }
 
-    if (showQuickActions) {
-        QuickActionsBottomSheet(
-            onDismiss = { showQuickActions = false },
-            onAddLoad = onAddLoad,
-            onCamera = onCamera,
-            onScan = onScan,
-            onAddDiesel = onAddDiesel,
-        )
-    }
-
     LaunchedEffect(Unit) {
         if (WidgetDeepLink.consumeOpenJournalThisWeek(context)) {
             viewModel.setFilter(LoadFilter.THIS_WEEK)
@@ -231,24 +207,6 @@ fun HomeScreen(
                     contentColor = tc.TextPrimary,
                     actionColor = tc.AccentPrimary,
                 )
-            }
-        },
-        floatingActionButton = {
-            if (!tabletChrome) {
-                FloatingActionButton(
-                    onClick = {
-                        FeedbackManager.onNavSelect()
-                        showQuickActions = true
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(UiDimens.FabSize),
-                ) {
-                    Icon(
-                        AppIcons.Add,
-                        contentDescription = stringResource(R.string.quick_actions_title),
-                    )
-                }
             }
         },
         content = { paddingValues ->

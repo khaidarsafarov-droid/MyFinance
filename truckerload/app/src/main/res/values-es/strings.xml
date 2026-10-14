@@ -195,6 +195,8 @@
     <string name="sync_error_banner">Error de sincronización: %1$s</string>
     <string name="sync_error_banner_retryable">Error de sincronización: %1$s. Toca para reintentar.</string>
     <string name="nav_profile">Perfil</string>
+    <string name="nav_more">Más</string>
+    <string name="nav_profile_due_badge">Perfil, %1$d mantenimientos vencidos</string>
     <string name="nav_weekly_goal">Meta</string>
     <string name="nav_logbook">Cargas</string>
     <string name="drawer_reports">Informes</string>

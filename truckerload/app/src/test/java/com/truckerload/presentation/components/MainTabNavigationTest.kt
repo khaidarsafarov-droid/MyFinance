@@ -68,10 +68,33 @@ class MainTabNavigationTest {
         assertFalse(shouldShowPhoneBottomBar(Routes.CAMERA))
         assertFalse(shouldShowPhoneBottomBar("camera_load/a/b/c"))
         assertFalse(shouldShowPhoneBottomBar(Routes.SCANNER))
-        assertFalse(shouldShowPhoneBottomBar(Routes.DIESEL))
-        assertFalse(shouldShowPhoneBottomBar(Routes.PAYCHECK))
+        assertFalse(shouldShowPhoneBottomBar(Routes.ADD_DIESEL))
+        assertFalse(shouldShowPhoneBottomBar(Routes.ADD_PAYCHECK))
         assertFalse(shouldShowPhoneBottomBar(Routes.MISC_EXPENSES))
         assertNull(phoneTabForRoute(Routes.CAMERA))
+    }
+
+    @Test
+    fun keepsBottomBarOnDieselAndPaycheckJournals() {
+        assertTrue(shouldShowPhoneBottomBar(Routes.DIESEL))
+        assertTrue(shouldShowPhoneBottomBar(Routes.PAYCHECK))
+        assertNull(phoneTabForRoute(Routes.DIESEL))
+        assertNull(phoneTabForRoute(Routes.PAYCHECK))
+        assertFalse(phoneBottomDestinations.contains(Routes.DIESEL))
+        assertEquals(
+            listOf(Routes.HOME, Routes.STATS, Routes.PROFILE),
+            phoneBottomDestinations,
+        )
+    }
+
+    @Test
+    fun mainTabSlideSignFollowsBarOrder() {
+        assertEquals(1, mainTabSlideSign(Routes.HOME, Routes.STATS))
+        assertEquals(1, mainTabSlideSign(Routes.HOME, Routes.PROFILE))
+        assertEquals(-1, mainTabSlideSign(Routes.PROFILE, Routes.HOME))
+        assertEquals(0, mainTabSlideSign(Routes.HOME, Routes.HOME))
+        assertEquals(0, mainTabSlideSign(Routes.HOME, Routes.DIESEL))
+        assertEquals(0, mainTabSlideSign(Routes.ADD_LOAD, Routes.STATS))
     }
 
     @Test

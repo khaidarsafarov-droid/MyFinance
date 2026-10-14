@@ -36,6 +36,9 @@ import com.truckerload.presentation.theme.navModalPopEnter
 import com.truckerload.presentation.theme.navModalPopExit
 import com.truckerload.presentation.theme.navPopEnter
 import com.truckerload.presentation.theme.navPopExit
+import com.truckerload.presentation.components.mainTabSlideSign
+import com.truckerload.presentation.theme.mainTabEnter
+import com.truckerload.presentation.theme.mainTabExit
 import com.truckerload.presentation.theme.tabEnterTransition
 import com.truckerload.presentation.theme.tabExitTransition
 
@@ -69,10 +72,30 @@ fun NavGraphBuilder.toolsNavGraph(
     }
     composable(
         route = Routes.STATS,
-        enterTransition = { tabEnterTransition(reduceMotion) },
-        exitTransition = { tabExitTransition(reduceMotion) },
-        popEnterTransition = { tabEnterTransition(reduceMotion) },
-        popExitTransition = { tabExitTransition(reduceMotion) },
+        enterTransition = {
+            mainTabEnter(
+                reduceMotion,
+                mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+            )
+        },
+        exitTransition = {
+            mainTabExit(
+                reduceMotion,
+                mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+            )
+        },
+        popEnterTransition = {
+            mainTabEnter(
+                reduceMotion,
+                mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+            )
+        },
+        popExitTransition = {
+            mainTabExit(
+                reduceMotion,
+                mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+            )
+        },
     ) {
         PremiumGate(PremiumFeature.WEEKLY_GOAL, onBack = { navController.popBackStack() }) {
             WeeklyGoalScreen()
