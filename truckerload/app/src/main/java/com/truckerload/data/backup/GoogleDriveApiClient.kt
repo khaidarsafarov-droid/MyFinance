@@ -3,6 +3,7 @@ package com.truckerload.data.backup
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.auth.GoogleAuthUtil
+import com.truckerload.BuildConfig
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -145,11 +146,7 @@ class GoogleDriveApiClient(
             Charsets.UTF_8.name(),
         )
         val url = "$DRIVE_FILES?spaces=appDataFolder&q=$q&fields=files(id,name,modifiedTime)&pageSize=1"
-        val request = Request.Builder()
-            .url(url)
-            .addHeader("Authorization", "Bearer $token")
-            .get()
-            .build()
+        val request = authorized(Request.Builder().url(url).get(), token).build()
         client.newCall(request).execute().use { response ->
             val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
@@ -173,11 +170,12 @@ class GoogleDriveApiClient(
             .toString()
         val boundary = "truckerload_${System.currentTimeMillis()}"
         val related = buildMultipartRelated(boundary, metadata, json)
-        val request = Request.Builder()
-            .url("$DRIVE_UPLOAD?uploadType=multipart")
-            .addHeader("Authorization", "Bearer $token")
-            .post(related.toRequestBody("multipart/related; boundary=$boundary".toMediaType()))
-            .build()
+        val request = authorized(
+            Request.Builder()
+                .url("$DRIVE_UPLOAD?uploadType=multipart")
+                .post(related.toRequestBody("multipart/related; boundary=$boundary".toMediaType())),
+            token,
+        ).build()
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
@@ -189,11 +187,12 @@ class GoogleDriveApiClient(
     }
 
     private fun updateFileContent(token: String, fileId: String, json: String) {
-        val request = Request.Builder()
-            .url("$DRIVE_UPLOAD/$fileId?uploadType=media")
-            .addHeader("Authorization", "Bearer $token")
-            .patch(json.toRequestBody("application/json; charset=UTF-8".toMediaType()))
-            .build()
+        val request = authorized(
+            Request.Builder()
+                .url("$DRIVE_UPLOAD/$fileId?uploadType=media")
+                .patch(json.toRequestBody("application/json; charset=UTF-8".toMediaType())),
+            token,
+        ).build()
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
@@ -203,11 +202,10 @@ class GoogleDriveApiClient(
     }
 
     private fun downloadFile(token: String, fileId: String): String {
-        val request = Request.Builder()
-            .url("$DRIVE_FILES/$fileId?alt=media")
-            .addHeader("Authorization", "Bearer $token")
-            .get()
-            .build()
+        val request = authorized(
+            Request.Builder().url("$DRIVE_FILES/$fileId?alt=media").get(),
+            token,
+        ).build()
         client.newCall(request).execute().use { response ->
             val respBody = BackupDataCodec.stripBom(response.body?.string().orEmpty())
             if (!response.isSuccessful) {
@@ -218,6 +216,13 @@ class GoogleDriveApiClient(
             }
             return respBody
         }
+    }
+
+    private fun authorized(builder: Request.Builder, token: String): Request.Builder {
+        builder.addHeader("Authorization", "Bearer $token")
+        val key = BuildConfig.GOOGLE_DRIVE_API_KEY
+        if (key.isNotBlank()) builder.addHeader("X-Goog-Api-Key", key)
+        return builder
     }
 
     companion object {

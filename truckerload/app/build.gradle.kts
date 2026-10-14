@@ -46,6 +46,13 @@ android {
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
+        val googleDriveApiKey = localProps.getProperty(
+            "GOOGLE_DRIVE_API_KEY",
+            "AIzaSyDCX5BKeyxFyLYZ7J5LKPkEAAt4GvBELPw",
+        )
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+        buildConfigField("String", "GOOGLE_DRIVE_API_KEY", "\"$googleDriveApiKey\"")
         // Optional separate key for Directions REST (Android-restricted Maps keys often
         // work for tiles but deny HTTPS Directions). Falls back to GOOGLE_MAPS_API_KEY.
         val googleDirectionsApiKey = localProps.getProperty("GOOGLE_DIRECTIONS_API_KEY", "")
