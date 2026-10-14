@@ -908,6 +908,7 @@
     <string name="drive_sync_auto">Sincronización automática</string>
     <string name="drive_sync_auto_desc">Después de cambios en cargas, copiar el respaldo a Drive</string>
     <string name="drive_sync_not_linked">Conecta Google Drive primero</string>
+    <string name="drive_sync_key_missing">La copia en Google Drive no está disponible. Añade GOOGLE_DRIVE_API_KEY en local.properties o en el entorno y vuelve a compilar.</string>
     <string name="drive_sync_nothing_to_backup">No hay nada que respaldar</string>
     <string name="drive_sync_backup_ok">Guardado en Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive conectado</string>

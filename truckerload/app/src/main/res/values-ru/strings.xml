@@ -908,6 +908,7 @@
     <string name="drive_sync_auto">Автосинхронизация</string>
     <string name="drive_sync_auto_desc">После изменений грузов копировать бэкап в Drive</string>
     <string name="drive_sync_not_linked">Сначала подключите Google Drive</string>
+    <string name="drive_sync_key_missing">Резервная копия Google Drive недоступна. Добавьте GOOGLE_DRIVE_API_KEY в local.properties или в переменную окружения и пересоберите приложение.</string>
     <string name="drive_sync_nothing_to_backup">Нет данных для бэкапа</string>
     <string name="drive_sync_backup_ok">Сохранено в Google Drive (%1$s)</string>
     <string name="drive_sync_connected">Google Drive подключён</string>

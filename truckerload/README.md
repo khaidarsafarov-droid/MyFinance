@@ -52,6 +52,17 @@ Room databases and their repositories are deliberately created after the active 
 is known and are rebuilt on account changes. They are not application singletons,
 which prevents one user's database from surviving into another user's session.
 
+## Google Drive API key
+
+Drive backup reads `GOOGLE_DRIVE_API_KEY` from the environment or from gitignored
+`local.properties`. The fallback in the build is empty. When the key is empty,
+Settings shows that backup is unavailable and the app does not call Drive.
+
+The key that used to be committed must be rotated by hand in
+[Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+Restrict the new key to Android package `com.truckorig` plus the app signing
+SHA-1, and to the Drive API only. Do not commit the new key.
+
 ## Configuration and operations
 
 - [Target architecture](docs/TARGET_ARCHITECTURE.md)

@@ -11,8 +11,9 @@ TELEGRAM_BOT_TOKEN=
 # Optional Google Drive backup (Settings → Google Drive): enable Drive API and
 # register an Android OAuth client (package com.truckorig + signing SHA-1).
 GOOGLE_ANDROID_CLIENT_ID=253720408597-8pp7kbk23mblnfuj2nk687e20n88ftl7.apps.googleusercontent.com
-# API key restricted to Drive API + Android app com.truckorig. Sent with Drive REST calls.
-GOOGLE_DRIVE_API_KEY=AIzaSyDCX5BKeyxFyLYZ7J5LKPkEAAt4GvBELPw
+# API key restricted to Drive API + Android app com.truckorig (package + SHA-1).
+# Never commit the real key. Rotate it in Google Cloud Console if it was ever public.
+GOOGLE_DRIVE_API_KEY=
 
 # Do not run another long-poll/webhook with the same TELEGRAM_BOT_TOKEN —
 # Telegram delivers updates to only one client.

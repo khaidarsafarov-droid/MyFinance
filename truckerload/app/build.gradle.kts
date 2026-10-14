@@ -46,10 +46,11 @@ android {
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
-        val googleDriveApiKey = localProps.getProperty(
-            "GOOGLE_DRIVE_API_KEY",
-            "AIzaSyDCX5BKeyxFyLYZ7J5LKPkEAAt4GvBELPw",
-        )
+        val googleDriveApiKey = (
+            System.getenv("GOOGLE_DRIVE_API_KEY")
+                ?: localProps.getProperty("GOOGLE_DRIVE_API_KEY", "")
+            )
+            .trim()
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_DRIVE_API_KEY", "\"$googleDriveApiKey\"")
@@ -327,7 +328,7 @@ tasks.named("check").configure {
  */
 tasks.register("verifyReleaseSecretsEmpty") {
     group = "verification"
-    description = "Ensures TELEGRAM_BOT_TOKEN is empty in release BuildConfig"
+    description = "Ensures release BuildConfig has no Telegram token or hardcoded Drive API key"
     dependsOn("generateReleaseBuildConfig")
     doLast {
         val buildConfig = layout.buildDirectory.file(
@@ -346,7 +347,27 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(telegram.isEmpty()) {
             "Release BuildConfig must not embed TELEGRAM_BOT_TOKEN (found non-empty value)"
         }
-        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram empty in release)")
+        val gradleSource = file("build.gradle.kts").readText()
+        check(!Regex("""AIza[0-9A-Za-z_\-]{10,}""").containsMatchIn(gradleSource)) {
+            "build.gradle.kts must not hardcode a Google API key. " +
+                "Set GOOGLE_DRIVE_API_KEY in local.properties or the environment."
+        }
+        val suppliedDriveKey = (
+            System.getenv("GOOGLE_DRIVE_API_KEY")
+                ?: rootProject.file("local.properties").takeIf { it.exists() }?.let { propsFile ->
+                    val props = Properties()
+                    propsFile.inputStream().use { props.load(it) }
+                    props.getProperty("GOOGLE_DRIVE_API_KEY")
+                }
+            ).orEmpty().trim()
+        val driveKey = fieldValue("GOOGLE_DRIVE_API_KEY")
+        check(driveKey == suppliedDriveKey.replace("\\", "\\\\").replace("\"", "\\\"")) {
+            "Release GOOGLE_DRIVE_API_KEY does not match local.properties or GOOGLE_DRIVE_API_KEY env"
+        }
+        check(suppliedDriveKey.isNotBlank() || driveKey.isEmpty()) {
+            "Release BuildConfig contains a Drive API key that is not supplied outside the repo"
+        }
+        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram empty; Drive key not hardcoded)")
     }
 }
 

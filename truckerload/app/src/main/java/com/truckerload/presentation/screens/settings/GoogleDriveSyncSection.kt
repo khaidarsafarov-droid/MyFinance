@@ -33,12 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.backup.BackupRestoreErrors
 import com.truckerload.data.backup.DriveConnectOutcome
 import com.truckerload.data.backup.DriveConnectPending
 import com.truckerload.data.backup.DriveConnectInterpreter
 import com.truckerload.data.backup.BackupRestoreException
-import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.presentation.auth.DriveSha1Dialog
@@ -271,6 +271,14 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             style = MaterialTheme.typography.labelSmall,
             color = tc.TextSecondary,
         )
+        val driveAvailable = GoogleDriveBackupService.isApiKeyConfigured()
+        if (!driveAvailable) {
+            Text(
+                text = stringResource(R.string.drive_sync_key_missing),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.TextSecondary,
+            )
+        }
         Text(
             text = stringResource(
                 R.string.drive_sync_last,
@@ -305,7 +313,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
             )
         }
 
-        if (linkedEmail.isNullOrBlank()) {
+        if (driveAvailable && linkedEmail.isNullOrBlank()) {
             Button(
                 onClick = { startDriveSync() },
                 enabled = !busy,
@@ -327,7 +335,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     Text(stringResource(connectLabel))
                 }
             }
-        } else {
+        } else if (driveAvailable) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

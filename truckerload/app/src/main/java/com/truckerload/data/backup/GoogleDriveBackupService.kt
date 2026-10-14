@@ -8,6 +8,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
+import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.utils.BackupService
@@ -21,6 +22,9 @@ import kotlinx.coroutines.withContext
  */
 object GoogleDriveBackupService {
     private const val TAG = "GoogleDriveBackup"
+
+    /** False when the Drive API key was not supplied outside the repo. Backup stays off. */
+    fun isApiKeyConfigured(): Boolean = BuildConfig.GOOGLE_DRIVE_API_KEY.isNotBlank()
 
     /** Must be an [Activity] — Play Services will not show the account picker from applicationContext. */
     fun signInIntent(activity: Activity): Intent =
@@ -101,6 +105,11 @@ object GoogleDriveBackupService {
 
     suspend fun backupNow(context: Context): Result<String> = withContext(Dispatchers.IO) {
         val app = context.applicationContext
+        if (!isApiKeyConfigured()) {
+            return@withContext Result.failure(
+                IllegalStateException(app.getString(R.string.drive_sync_key_missing)),
+            )
+        }
         val prefs = prefs(app)
         if (!prefs.isLinked && !isDriveScopeGranted(app)) {
             return@withContext Result.failure(
@@ -138,6 +147,11 @@ object GoogleDriveBackupService {
         allowUnboundAccount: Boolean = false,
     ): Result<String> = withContext(Dispatchers.IO) {
         val app = context.applicationContext
+        if (!isApiKeyConfigured()) {
+            return@withContext Result.failure(
+                IllegalStateException(app.getString(R.string.drive_sync_key_missing)),
+            )
+        }
         val prefs = prefs(app)
         if (!prefs.isLinked && !isDriveScopeGranted(app)) {
             return@withContext Result.failure(
@@ -168,6 +182,7 @@ object GoogleDriveBackupService {
 
     /** Фоновый push после локального auto-backup — без UI. Returns false when upload failed. */
     suspend fun pushAutoBackupIfEnabled(context: Context): Boolean {
+        if (!isApiKeyConfigured()) return true
         val app = context.applicationContext
         val prefs = prefs(app)
         if (!prefs.autoSyncEnabled) return true
