@@ -324,7 +324,8 @@ tasks.named("check").configure {
 }
 
 /**
- * Phase 0: fail the build if release BuildConfig still embeds bot/API secrets.
+ * Phase 0: fail the build if release BuildConfig still embeds bot/API secrets,
+ * or if the release safety switches (minify, cleartext, backup, schema export) flip.
  * Run: ./gradlew :app:verifyReleaseSecretsEmpty
  */
 tasks.register("verifyReleaseSecretsEmpty") {
@@ -349,6 +350,32 @@ tasks.register("verifyReleaseSecretsEmpty") {
             "Release BuildConfig must not embed TELEGRAM_BOT_TOKEN (found non-empty value)"
         }
         val gradleSource = file("build.gradle.kts").readText()
+        check(
+            gradleSource.contains("""buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")"""),
+        ) {
+            "Release builds must force TELEGRAM_BOT_TOKEN to an empty string"
+        }
+        check(gradleSource.contains("isMinifyEnabled = true") && gradleSource.contains("isShrinkResources = true")) {
+            "Release builds must keep R8 minify and resource shrinking"
+        }
+        check(gradleSource.contains("room.schemaLocation")) {
+            "Room schema export must stay enabled"
+        }
+        val manifest = file("src/main/AndroidManifest.xml").readText()
+        check(manifest.contains("""android:allowBackup="false"""")) {
+            "android:allowBackup must stay false"
+        }
+        val network = file("src/main/res/xml/network_security_config.xml").readText()
+        check(network.contains("""cleartextTrafficPermitted="false"""")) {
+            "Cleartext traffic must stay blocked"
+        }
+        val proguard = file("proguard-rules.pro").readText()
+        check(proguard.contains("net.zetetic.database.sqlcipher")) {
+            "Release keep rules must include SQLCipher"
+        }
+        check(proguard.contains("com.google.crypto.tink")) {
+            "Release keep rules must include Tink"
+        }
         check(!Regex("""AIza[0-9A-Za-z_\-]{10,}""").containsMatchIn(gradleSource)) {
             "build.gradle.kts must not hardcode a Google API key. " +
                 "Set GOOGLE_DRIVE_API_KEY in local.properties or the environment."
@@ -368,7 +395,10 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(suppliedDriveKey.isNotBlank() || driveKey.isEmpty()) {
             "Release BuildConfig contains a Drive API key that is not supplied outside the repo"
         }
-        logger.lifecycle("verifyReleaseSecretsEmpty: OK (telegram empty; Drive key not hardcoded)")
+        logger.lifecycle(
+            "verifyReleaseSecretsEmpty: OK (telegram empty; Drive key not hardcoded; " +
+                "minify, backup, cleartext, and schema export unchanged)",
+        )
     }
 }
 
