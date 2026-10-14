@@ -19,6 +19,10 @@
     <string name="empty_paycheck_message">El pago de la semana aparece aquí después de añadirlo.</string>
     <string name="empty_expense_message">Peajes, básculas y otros gastos aparecen aquí.</string>
     <string name="empty_retry">Reintentar</string>
+    <string name="empty_photos_message">Las fotos de una carga aparecen aquí.</string>
+    <string name="screen_loading">Cargando</string>
+    <string name="screen_error_title">No se pudo cargar esta pantalla</string>
+    <string name="screen_error_message">Algo falló en este teléfono. Inténtalo de nuevo.</string>
     <string name="common_menu">Menú</string>
     <string name="common_close">Cerrar</string>
     <string name="common_save">Guardar</string>

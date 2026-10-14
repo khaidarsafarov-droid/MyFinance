@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.model.PaycheckJournalFilter
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.reloadList
+import com.truckerload.presentation.toPhase
 import com.truckerload.domain.paycheck.PaycheckSalaryFields
 import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.PaycheckSourceFiles
@@ -45,6 +48,7 @@ data class PaycheckJournalUiState(
     val total: Double,
     val editor: PaycheckEditorState? = null,
     val isSaving: Boolean = false,
+    val phase: ScreenPhase = ScreenPhase.Loading,
 )
 
 @HiltViewModel
@@ -60,14 +64,17 @@ class PaycheckJournalViewModel @Inject constructor(
     private val searchQuery = MutableStateFlow("")
     private val editor = MutableStateFlow<PaycheckEditorState?>(null)
     private val isSaving = MutableStateFlow(false)
+    private val reload = MutableStateFlow(0)
+    private val paychecks = reload.reloadList { paycheckRepository.getAllPaychecks() }
 
     private val journal = combine(
-        paycheckRepository.getAllPaychecks(),
+        paychecks,
         weekNumber,
         year,
         allWeeks,
         searchQuery,
-    ) { all, week, yr, showAll, query ->
+    ) { result, week, yr, showAll, query ->
+        val all = result.getOrDefault(emptyList())
         val scoped = if (showAll) {
             PaycheckJournalFilter.all(all)
         } else {
@@ -81,8 +88,9 @@ class PaycheckJournalViewModel @Inject constructor(
             weekLabel = weekLabel,
             showAllWeeks = showAll,
             searchQuery = query,
-            entries = visible,
-            total = scoped.sumOf { it.netAmount },
+            entries = if (result.isSuccess) visible else emptyList(),
+            total = if (result.isSuccess) scoped.sumOf { it.netAmount } else 0.0,
+            phase = result.toPhase(visible.isEmpty()),
         )
     }
 
@@ -101,6 +109,7 @@ class PaycheckJournalViewModel @Inject constructor(
             total = slice.total,
             editor = openEditor,
             isSaving = saving,
+            phase = slice.phase,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -115,6 +124,10 @@ class PaycheckJournalViewModel @Inject constructor(
             total = 0.0,
         ),
     )
+
+    fun retry() {
+        reload.value += 1
+    }
 
     fun selectPreviousWeek() = shiftWeek(-1)
 
@@ -250,6 +263,7 @@ class PaycheckJournalViewModel @Inject constructor(
         val searchQuery: String,
         val entries: List<Paycheck>,
         val total: Double,
+        val phase: ScreenPhase,
     )
 
     private companion object {

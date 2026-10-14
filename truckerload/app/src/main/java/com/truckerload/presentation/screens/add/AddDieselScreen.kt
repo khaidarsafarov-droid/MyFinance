@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.add
 
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.components.EditLoadSkeleton
+import com.truckerload.presentation.components.ScreenLoadError
 import com.truckerload.presentation.components.rememberFormBack
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.BentoGlassCard
@@ -154,7 +158,7 @@ fun AddDieselScreen(
         ),
         onBack = requestBack,
         onSave = viewModel::openSaveDialog,
-        saveEnabled = !uiState.isSaving,
+        saveEnabled = !uiState.isSaving && uiState.recordPhase == ScreenPhase.Content,
         errorMessage = uiState.error?.takeIf { !uiState.showSaveDialog },
         onDelete = if (uiState.editingId != null) {
             { showDeleteConfirm = true }
@@ -162,52 +166,79 @@ fun AddDieselScreen(
             null
         },
     ) {
-        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+        when (uiState.recordPhase) {
+            ScreenPhase.Loading -> EditLoadSkeleton(
+                contentDescription = stringResource(R.string.screen_loading),
+            )
+            ScreenPhase.Error -> ScreenLoadError(onRetry = viewModel::retryEditLoad)
+            ScreenPhase.Empty, ScreenPhase.Content -> DieselEntryForm(
+                uiState = uiState,
+                onOpenDate = {
+                    datePickerThenTime = false
+                    showDatePicker = true
+                },
+                onGallonsChange = viewModel::setGallonsText,
+                onPriceChange = viewModel::setPricePerGallonText,
+                onDiscountChange = viewModel::setDiscountPriceText,
+                onLocationChange = viewModel::setLocationText,
+                onImagePicked = viewModel::scanReceipt,
+                onSubmit = viewModel::openSaveDialog,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DieselEntryForm(
+    uiState: AddDieselUiState,
+    onOpenDate: () -> Unit,
+    onGallonsChange: (String) -> Unit,
+    onPriceChange: (String) -> Unit,
+    onDiscountChange: (String) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onImagePicked: (Uri) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    val tc = LocalTruckColors.current
+    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                stringResource(R.string.add_diesel_date),
+                style = MaterialTheme.typography.titleSmall,
+                color = tc.TextPrimary,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenDate),
             ) {
                 Text(
-                    stringResource(R.string.add_diesel_date),
-                    style = MaterialTheme.typography.titleSmall,
+                    formatDateForDisplay(uiState.recordedAtMillis),
+                    style = MaterialTheme.typography.titleMedium,
                     color = tc.TextPrimary,
+                    modifier = Modifier.weight(1f),
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            datePickerThenTime = false
-                            showDatePicker = true
-                        },
-                ) {
-                    Text(
-                        formatDateForDisplay(uiState.recordedAtMillis),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = tc.TextPrimary,
-                        modifier = Modifier.weight(1f),
+                IconButton(onClick = onOpenDate) {
+                    Icon(
+                        AppIcons.Edit,
+                        contentDescription = stringResource(R.string.add_diesel_change_date),
+                        tint = tc.TextPrimary,
                     )
-                    IconButton(onClick = {
-                        datePickerThenTime = false
-                        showDatePicker = true
-                    }) {
-                        Icon(
-                            AppIcons.Edit,
-                            contentDescription = stringResource(R.string.add_diesel_change_date),
-                            tint = tc.TextPrimary,
-                        )
-                    }
                 }
-                DieselAmountFields(
-                    uiState = uiState,
-                    onGallonsChange = viewModel::setGallonsText,
-                    onPriceChange = viewModel::setPricePerGallonText,
-                    onDiscountChange = viewModel::setDiscountPriceText,
-                    onLocationChange = viewModel::setLocationText,
-                    onImagePicked = viewModel::scanReceipt,
-                    onSubmit = viewModel::openSaveDialog,
-                )
             }
+            DieselAmountFields(
+                uiState = uiState,
+                onGallonsChange = onGallonsChange,
+                onPriceChange = onPriceChange,
+                onDiscountChange = onDiscountChange,
+                onLocationChange = onLocationChange,
+                onImagePicked = onImagePicked,
+                onSubmit = onSubmit,
+            )
         }
     }
 }

@@ -29,8 +29,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.presentation.ScreenPhase
 import com.truckerload.presentation.components.EmptyState
 import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.components.ScreenLoadError
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
@@ -83,7 +86,7 @@ fun MiscExpenseScreen(
                 icon = AppIcons.Share,
                 contentDescription = stringResource(R.string.misc_expense_send_title),
                 onClick = {
-                    if (ui.entries.isEmpty()) {
+                    if (ui.phase != ScreenPhase.Content || ui.entries.isEmpty()) {
                         Toast.makeText(
                             context,
                             resources.getString(R.string.misc_expense_send_empty),
@@ -144,8 +147,10 @@ fun MiscExpenseScreen(
                     )
                 }
             }
-            if (ui.entries.isEmpty()) {
-                item {
+            when (ui.phase) {
+                ScreenPhase.Loading -> item { ScreenLoading() }
+                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item {
                     EmptyState(
                         icon = AppIcons.Receipt,
                         title = stringResource(R.string.misc_expense_empty),
@@ -158,8 +163,7 @@ fun MiscExpenseScreen(
                         },
                     )
                 }
-            } else {
-                items(ui.entries, key = { it.id }) { expense ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { expense ->
                     MiscExpenseCard(
                         expense = expense,
                         onClick = { viewModel.openExisting(expense) },

@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.ScreenPhase
 import com.truckerload.presentation.components.EmptyState
 import com.truckerload.presentation.components.EmptyStateButton
-import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.components.ScreenLoadError
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
@@ -182,8 +184,10 @@ fun PaycheckJournalScreen(
                     )
                 }
             }
-            if (ui.entries.isEmpty()) {
-                item {
+            when (ui.phase) {
+                ScreenPhase.Loading -> item { ScreenLoading() }
+                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item {
                     val searching = ui.searchQuery.isNotBlank()
                     EmptyState(
                         icon = AppIcons.Payments,
@@ -205,8 +209,7 @@ fun PaycheckJournalScreen(
                         },
                     )
                 }
-            } else {
-                items(ui.entries, key = { it.id }) { paycheck ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { paycheck ->
                     PaycheckCard(
                         paycheck = paycheck,
                         onClick = { viewModel.openEditor(paycheck) },

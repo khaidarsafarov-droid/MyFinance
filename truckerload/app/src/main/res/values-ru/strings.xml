@@ -19,6 +19,10 @@
     <string name="empty_paycheck_message">Оплата за неделю появится здесь после добавления.</string>
     <string name="empty_expense_message">Платные дороги, весы и прочие расходы появятся здесь.</string>
     <string name="empty_retry">Повторить</string>
+    <string name="empty_photos_message">Фото груза появятся здесь.</string>
+    <string name="screen_loading">Загрузка</string>
+    <string name="screen_error_title">Не удалось загрузить экран</string>
+    <string name="screen_error_message">На телефоне что-то пошло не так. Повторите.</string>
     <string name="common_menu">Меню</string>
     <string name="common_close">Закрыть</string>
     <string name="common_save">Сохранить</string>

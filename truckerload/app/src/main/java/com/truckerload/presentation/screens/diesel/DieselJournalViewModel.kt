@@ -6,6 +6,9 @@ import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselJournalFilter
 import com.truckerload.domain.week.WeekStartRuntime
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.reloadList
+import com.truckerload.presentation.toPhase
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekRange
@@ -26,6 +29,7 @@ data class DieselJournalUiState(
     val selectedDateIso: String?,
     val entries: List<Diesel>,
     val weekTotal: Double,
+    val phase: ScreenPhase = ScreenPhase.Loading,
 )
 
 @HiltViewModel
@@ -37,6 +41,8 @@ class DieselJournalViewModel @Inject constructor(
     private val weekNumber = MutableStateFlow(initialWeek.first)
     private val year = MutableStateFlow(initialWeek.second)
     private val selectedDateIso = MutableStateFlow<String?>(null)
+    private val reload = MutableStateFlow(0)
+    private val dieselResult = reload.reloadList { dieselRepository.getAllDiesel() }
 
     init {
         viewModelScope.launch {
@@ -50,12 +56,13 @@ class DieselJournalViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<DieselJournalUiState> = combine(
-        dieselRepository.getAllDiesel(),
+        dieselResult,
         weekNumber,
         year,
         selectedDateIso,
         WeekStartRuntime.revision,
-    ) { all, week, yr, dateIso, _ ->
+    ) { result, week, yr, dateIso, _ ->
+        val all = result.getOrDefault(emptyList())
         val inWeek = DieselJournalFilter.forWeek(all, week, yr)
         val visible = if (dateIso == null) inWeek else DieselJournalFilter.forDate(inWeek, dateIso)
         val (_, _, weekLabel) = getWeekRange(week, yr, WeekStartRuntime.diesel)
@@ -64,8 +71,9 @@ class DieselJournalViewModel @Inject constructor(
             year = yr,
             weekLabel = weekLabel,
             selectedDateIso = dateIso,
-            entries = visible,
-            weekTotal = inWeek.sumOf { it.totalAmount },
+            entries = if (result.isSuccess) visible else emptyList(),
+            weekTotal = if (result.isSuccess) inWeek.sumOf { it.totalAmount } else 0.0,
+            phase = result.toPhase(visible.isEmpty()),
         )
     }.stateIn(
         scope = viewModelScope,
@@ -79,6 +87,10 @@ class DieselJournalViewModel @Inject constructor(
             weekTotal = 0.0,
         ),
     )
+
+    fun retry() {
+        reload.value += 1
+    }
 
     fun selectPreviousWeek() = shiftWeek(-1)
 

@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.truckerload.data.repository.MiscExpenseRepository
 import com.truckerload.domain.expense.MiscExpenseFields
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.reloadList
+import com.truckerload.presentation.toPhase
 import com.truckerload.presentation.utils.launchExclusive
 import com.truckerload.utils.formatIsoDate
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +38,7 @@ data class MiscExpenseUiState(
     val editor: MiscExpenseEditorState? = null,
     val confirmDeleteId: Int? = null,
     val isSaving: Boolean = false,
+    val phase: ScreenPhase = ScreenPhase.Loading,
 )
 
 @HiltViewModel
@@ -45,25 +49,33 @@ class MiscExpenseViewModel @Inject constructor(
     private val editor = MutableStateFlow<MiscExpenseEditorState?>(null)
     private val confirmDeleteId = MutableStateFlow<Int?>(null)
     private val isSaving = MutableStateFlow(false)
+    private val reload = MutableStateFlow(0)
+    private val entriesResult = reload.reloadList { repository.observeAll() }
 
     val uiState: StateFlow<MiscExpenseUiState> = combine(
-        repository.observeAll(),
+        entriesResult,
         editor,
         confirmDeleteId,
         isSaving,
-    ) { entries, openEditor, deleteId, saving ->
+    ) { result, openEditor, deleteId, saving ->
+        val entries = result.getOrDefault(emptyList())
         MiscExpenseUiState(
             entries = entries,
-            total = entries.sumOf { it.amount },
+            total = if (result.isSuccess) entries.sumOf { it.amount } else 0.0,
             editor = openEditor,
             confirmDeleteId = deleteId,
             isSaving = saving,
+            phase = result.toPhase(entries.isEmpty()),
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = MiscExpenseUiState(),
     )
+
+    fun retry() {
+        reload.value += 1
+    }
 
     fun openNew() {
         editor.value = MiscExpenseEditorState(dateIso = formatIsoDate(System.currentTimeMillis()))

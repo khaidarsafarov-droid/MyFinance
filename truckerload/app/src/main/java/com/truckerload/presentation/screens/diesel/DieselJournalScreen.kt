@@ -35,8 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.ScreenPhase
 import com.truckerload.presentation.components.EmptyState
 import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.components.ScreenLoadError
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
@@ -206,8 +209,10 @@ fun DieselJournalScreen(
                     )
                 }
             }
-            if (ui.entries.isEmpty()) {
-                item {
+            when (ui.phase) {
+                ScreenPhase.Loading -> item { ScreenLoading() }
+                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item {
                     EmptyState(
                         icon = AppIcons.LocalGasStation,
                         title = stringResource(R.string.diesel_empty_week),
@@ -220,8 +225,7 @@ fun DieselJournalScreen(
                         },
                     )
                 }
-            } else {
-                items(ui.entries, key = { it.id }) { fill ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { fill ->
                     DieselFillCard(
                         diesel = fill,
                         onClick = { onEditDiesel(fill.id) },

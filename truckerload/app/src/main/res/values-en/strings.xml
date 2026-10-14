@@ -19,6 +19,10 @@
     <string name="empty_paycheck_message">Pay for the week shows up here after you add it.</string>
     <string name="empty_expense_message">Tolls, scales, and other costs show up here.</string>
     <string name="empty_retry">Retry</string>
+    <string name="empty_photos_message">Photos you take for a load show up here.</string>
+    <string name="screen_loading">Loading</string>
+    <string name="screen_error_title">Could not load this screen</string>
+    <string name="screen_error_message">Something went wrong on this phone. Try again.</string>
     <string name="common_menu">Menu</string>
     <string name="common_close">Close</string>
     <string name="common_save">Save</string>
