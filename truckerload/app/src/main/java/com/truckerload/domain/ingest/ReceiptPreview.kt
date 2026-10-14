@@ -19,5 +19,7 @@ data class ReceiptPreview(
     val sourceFilePath: String? = null,
     val messageDateSeconds: Long? = null,
     val awaitingTypedAmount: Boolean = false,
+    /** False for a fleet sheet: the chat reply is the total, not the invoice text. */
+    val includeStatement: Boolean = true,
     val grossAmount: Double? = null,
 )

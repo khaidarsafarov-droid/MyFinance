@@ -71,9 +71,15 @@ value class Money(val cents: Long) : Comparable<Money> {
             val parts = body.split('.')
             require(parts.size <= 2) { "invalid money: $text" }
             val dollars = parts[0].ifEmpty { "0" }.toLong()
-            val fractionText = parts.getOrElse(1) { "0" }.padEnd(2, '0').take(2)
-            val fraction = fractionText.toLong()
-            val cents = dollars * 100 + fraction
+            val fractionRaw = parts.getOrElse(1) { "0" }.padEnd(3, '0')
+            var fraction = fractionRaw.take(2).toLong()
+            if (fractionRaw.getOrNull(2)?.digitToIntOrNull()?.let { it >= 5 } == true) {
+                fraction += 1
+            }
+            var cents = dollars * 100 + fraction
+            if (fraction == 100L) {
+                cents = (dollars + 1) * 100
+            }
             return Money(if (negative) -cents else cents)
         }
 
