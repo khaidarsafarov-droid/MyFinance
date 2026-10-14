@@ -20,7 +20,17 @@ class RegistrationViewModel @Inject constructor(
 
     private val _progress = MutableStateFlow(registration.progress())
     val progress: StateFlow<RegistrationProgress> = _progress.asStateFlow()
+    private val _step = MutableStateFlow(0)
+    val step: StateFlow<Int> = _step.asStateFlow()
     private val submitting = AtomicBoolean(false)
+
+    fun goToPreviousStep(): RegistrationBackAction {
+        val action = RegistrationNavigation.onBack(_step.value)
+        if (action == RegistrationBackAction.Previous) {
+            _step.value = RegistrationNavigation.previousStep(_step.value)
+        }
+        return action
+    }
 
     fun needsRequiredOnboarding(): Boolean = registration.needsRequiredOnboarding()
 

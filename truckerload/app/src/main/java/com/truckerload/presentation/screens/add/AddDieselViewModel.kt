@@ -12,6 +12,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.preferences.LastUsedDefaultsStore
+import com.truckerload.presentation.ScreenPhase
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselPurchaseMath
@@ -56,7 +57,31 @@ data class AddDieselUiState(
     val saved: Boolean = false,
     val deleted: Boolean = false,
     val showSaveDialog: Boolean = false,
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
+    val draftBaseline: String? = null,
+    val isLoadingRecord: Boolean = false,
+    val loadFailed: Boolean = false,
 ) {
+    fun draftSignature(): String = FormDraft.diesel(
+        gallons = gallonsText,
+        price = pricePerGallonText,
+        discount = discountPriceText,
+        location = locationText,
+        recordedAtMillis = recordedAtMillis,
+        weekNumber = weekNumber,
+        year = year,
+    )
+
+    val isDirty: Boolean get() = FormDraft.isDirty(draftBaseline, draftSignature())
+
+    val recordPhase: ScreenPhase
+        get() = when {
+            loadFailed -> ScreenPhase.Error
+            isLoadingRecord -> ScreenPhase.Loading
+            else -> ScreenPhase.Content
+        }
+
     val gallons: Double? get() = AmountInputValidator.parsePositiveAmount(gallonsText)
     val pricePerGallon: UnitPrice?
         get() = AmountInputValidator.parsePositiveAmount(pricePerGallonText)?.let(UnitPrice::fromDollars)
@@ -92,21 +117,48 @@ class AddDieselViewModel @Inject constructor(
             weekNumber = savedStateHandle[KEY_WEEK_NUMBER] ?: initialWeekAndYear.first,
             year = savedStateHandle[KEY_YEAR] ?: initialWeekAndYear.second,
             showSaveDialog = savedStateHandle[KEY_SHOW_SAVE_DIALOG] ?: false,
+            editingId = editDieselId.takeIf { it > 0 },
+            isLoadingRecord = editDieselId > 0 && savedStateHandle.get<String>(KEY_DRAFT) == null,
         ),
     )
     val uiState: StateFlow<AddDieselUiState> = _uiState.asStateFlow()
 
     init {
-        if (editDieselId > 0) {
-            viewModelScope.launch {
-                runCatching {
-                    dieselRepository.getDieselById(editDieselId)
-                }.onSuccess { existing ->
+        val savedBaseline = savedStateHandle.get<String>(KEY_DRAFT)
+        if (editDieselId > 0 && savedBaseline == null) {
+            loadExistingRecord()
+        } else {
+            val baseline = savedBaseline ?: _uiState.value.draftSignature().also {
+                savedStateHandle[KEY_DRAFT] = it
+            }
+            _uiState.update {
+                it.copy(
+                    draftBaseline = baseline,
+                    editingId = editDieselId.takeIf { id -> id > 0 },
+                )
+            }
+        }
+    }
+
+    fun retryEditLoad() {
+        if (editDieselId <= 0 || _uiState.value.isLoadingRecord) return
+        _uiState.update { it.copy(isLoadingRecord = true, loadFailed = false) }
+        loadExistingRecord()
+    }
+
+    private fun loadExistingRecord() {
+        viewModelScope.launch {
+            runCatching { dieselRepository.getDieselById(editDieselId) }
+                .onSuccess { existing ->
                     if (existing != null) {
                         loadForEdit(existing)
+                    } else {
+                        _uiState.update { it.copy(isLoadingRecord = false, loadFailed = true) }
                     }
                 }
-            }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingRecord = false, loadFailed = true) }
+                }
         }
     }
 
@@ -138,9 +190,19 @@ class AddDieselViewModel @Inject constructor(
                 LocationHelper(getApplication()).getCurrentStopLabel()
             }
             _uiState.update { state ->
-                val next = state.locationText.ifBlank { label.orEmpty() }
-                savedStateHandle[KEY_LOCATION_TEXT] = next
-                state.copy(isResolvingLocation = false, locationText = next)
+                val nextLocation = state.locationText.ifBlank { label.orEmpty() }
+                savedStateHandle[KEY_LOCATION_TEXT] = nextLocation
+                val before = state.draftSignature()
+                val filled = state.copy(isResolvingLocation = false, locationText = nextLocation)
+                val baseline = FormDraft.baselineAfterAutoFill(
+                    state.draftBaseline,
+                    before,
+                    filled.draftSignature(),
+                )
+                if (baseline != null && baseline != state.draftBaseline) {
+                    savedStateHandle[KEY_DRAFT] = baseline
+                }
+                filled.copy(draftBaseline = baseline)
             }
         }
     }
@@ -195,7 +257,13 @@ class AddDieselViewModel @Inject constructor(
         if (_uiState.value.isSaving) return
         val validationError = validateInputs(_uiState.value)
         if (validationError != null) {
-            _uiState.update { it.copy(error = validationError) }
+            _uiState.update {
+                it.copy(
+                    error = validationError,
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
+            }
             return
         }
         // Keep recordedAtMillis (week is derived from it) — do not force "now".
@@ -227,7 +295,13 @@ class AddDieselViewModel @Inject constructor(
         if (state.isSaving) return
         val validationError = validateInputs(state)
         if (validationError != null) {
-            _uiState.update { it.copy(error = validationError) }
+            _uiState.update {
+                it.copy(
+                    error = validationError,
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
+            }
             return
         }
 
@@ -401,8 +475,8 @@ class AddDieselViewModel @Inject constructor(
         savedStateHandle[KEY_RECORDED_AT_MILLIS] = existing.addedAt
         savedStateHandle[KEY_WEEK_NUMBER] = existing.weekNumber
         savedStateHandle[KEY_YEAR] = existing.year
-        _uiState.update {
-            it.copy(
+        _uiState.update { state ->
+            val loaded = state.copy(
                 editingId = existing.id,
                 gallonsText = gallons,
                 pricePerGallonText = price,
@@ -413,6 +487,10 @@ class AddDieselViewModel @Inject constructor(
                 weekNumber = existing.weekNumber,
                 year = existing.year,
             )
+            val baseline = savedStateHandle.get<String>(KEY_DRAFT) ?: loaded.draftSignature().also {
+                savedStateHandle[KEY_DRAFT] = it
+            }
+            loaded.copy(draftBaseline = baseline, isLoadingRecord = false, loadFailed = false)
         }
     }
 
@@ -475,5 +553,6 @@ class AddDieselViewModel @Inject constructor(
         private const val KEY_WEEK_NUMBER = "add_diesel_week_number"
         private const val KEY_YEAR = "add_diesel_year"
         private const val KEY_SHOW_SAVE_DIALOG = "add_diesel_show_save_dialog"
+        private const val KEY_DRAFT = "add_diesel_draft_baseline"
     }
 }

@@ -9,6 +9,9 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PhotoRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatLoadRoute
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.reloadList
+import com.truckerload.presentation.toPhase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +35,7 @@ data class PhotoGalleryUiState(
     val filter: PhotoGalleryFilter = PhotoGalleryFilter.ALL,
     val selectedLoadId: String? = null,
     val isLoadingLoads: Boolean = true,
+    val phase: ScreenPhase = ScreenPhase.Loading,
 )
 
 @HiltViewModel
@@ -43,24 +47,28 @@ class PhotoGalleryViewModel @Inject constructor(
     private val filterState = MutableStateFlow(
         PhotoGalleryFilterState(PhotoGalleryFilter.ALL, null),
     )
+    private val reload = MutableStateFlow(0)
+    private val photosResult = reload.reloadList { photoRepository.watchPhotos() }
 
     private val _loads = MutableStateFlow<List<Load>>(emptyList())
     val loadsForLinking: StateFlow<List<Load>> = _loads
 
     val uiState: StateFlow<PhotoGalleryUiState> = combine(
-        photoRepository.watchPhotos(),
+        photosResult,
         filterState,
         _loads,
-    ) { photos, filter, loads ->
+    ) { result, filter, loads ->
+        val photos = result.getOrDefault(emptyList())
         val loadLabels = loads.associate { it.id to formatLoadRoute(it) }
         val filtered = applyFilter(photos, filter)
         PhotoGalleryUiState(
-            photos = filtered,
+            photos = if (result.isSuccess) filtered else emptyList(),
             loads = loads,
             loadLabels = loadLabels,
             filter = filter.mode,
             selectedLoadId = filter.loadId,
             isLoadingLoads = false,
+            phase = result.toPhase(filtered.isEmpty()),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PhotoGalleryUiState())
 
@@ -68,6 +76,10 @@ class PhotoGalleryViewModel @Inject constructor(
         viewModelScope.launch {
             _loads.value = loadRepository.getLoadsForLinking()
         }
+    }
+
+    fun retry() {
+        reload.value += 1
     }
 
     fun setFilter(mode: PhotoGalleryFilter) {

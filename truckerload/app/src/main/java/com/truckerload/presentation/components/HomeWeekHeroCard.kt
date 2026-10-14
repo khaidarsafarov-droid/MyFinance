@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
@@ -71,7 +70,9 @@ fun HomeWeekHeroCard(
             ) {
             Text(
                 text = weekLabel,
-                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
+                style = AppTypography.CaptionMuted.copy(
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
+                ),
             )
             }
             AnimatedCircularProgress(
@@ -85,12 +86,16 @@ fun HomeWeekHeroCard(
             WeekDayDotsRow(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
             Text(
                 text = stringResource(R.string.widget_metric_cpm),
-                style = AppTypography.CaptionMuted.copy(color = Color.White.copy(alpha = 0.88f)),
+                style = AppTypography.CaptionMuted.copy(
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
+                ),
             )
             if (rpm != null && rpm > 0) {
                 Text(
                     text = String.format(Locale.US, "$%.2f/mi", rpm),
-                    style = AppTypography.HeroNumberCompact.copy(color = Color.White),
+                    style = AppTypography.HeroNumberCompact.copy(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    ),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -115,12 +120,13 @@ private fun WeekDayDotsRow(modifier: Modifier = Modifier) {
         labels.forEachIndexed { index, label ->
             val isPast = index < todayOffset
             val isToday = index == todayOffset
+            val onHero = MaterialTheme.colorScheme.onPrimary
             val bg = when {
-                isToday -> Color.White
-                isPast -> Color.White.copy(alpha = 0.85f)
-                else -> Color.White.copy(alpha = 0.2f)
+                isToday -> onHero
+                isPast -> onHero.copy(alpha = 0.85f)
+                else -> onHero.copy(alpha = 0.2f)
             }
-            val labelColor = if (isToday) Color.White else Color.White.copy(alpha = 0.75f)
+            val labelColor = if (isToday) onHero else onHero.copy(alpha = 0.75f)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = label, style = AppTypography.CaptionMuted.copy(color = labelColor))
                 Box(

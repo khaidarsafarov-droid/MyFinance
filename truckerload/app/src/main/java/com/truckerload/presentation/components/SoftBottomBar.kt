@@ -58,7 +58,6 @@ import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.utils.FeedbackManager
-import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
 
 private data class PhoneTab(

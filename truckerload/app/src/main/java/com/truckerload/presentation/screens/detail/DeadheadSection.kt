@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -15,7 +17,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.DeadheadMiles
@@ -95,6 +100,7 @@ private fun DeadheadEditorDialog(
         )
     }
     val parsed = DeadheadMiles.parse(text)
+    val keyboard = LocalSoftwareKeyboardController.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.load_detail_deadhead_title)) },
@@ -107,6 +113,16 @@ private fun DeadheadEditorDialog(
                     label = { Text(stringResource(R.string.load_detail_deadhead_miles_label)) },
                     singleLine = true,
                     isError = parsed == null,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboard?.hide()
+                            parsed?.let(onSave)
+                        },
+                    ),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

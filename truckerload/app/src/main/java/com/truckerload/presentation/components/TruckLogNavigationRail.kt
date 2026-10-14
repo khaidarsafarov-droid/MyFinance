@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.utils.FeedbackManager
-import kotlinx.coroutines.flow.map
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -259,7 +259,7 @@ private fun CompactRailItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(bg)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Tab, onClick = onClick)
             .heightIn(min = UiDimens.TouchTarget)
             .padding(vertical = 6.dp, horizontal = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -293,7 +293,7 @@ private fun SidebarAvatar(photoUrl: String?, name: String) {
         modifier = Modifier
             .size(64.dp)
             .clip(CircleShape)
-            .background(SoftUiColors.ForestAccent),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {
         if (!photoUrl.isNullOrBlank()) {
@@ -309,7 +309,7 @@ private fun SidebarAvatar(photoUrl: String?, name: String) {
             Text(
                 text = name.firstOrNull()?.uppercaseChar()?.toString() ?: "T",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
@@ -330,7 +330,8 @@ private fun SoftSidebarItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(bg)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Tab, onClick = onClick)
+            .heightIn(min = UiDimens.TouchTarget)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -393,7 +394,8 @@ private fun BackupSidebarCard(onOpenSettings: () -> Unit) {
             modifier = Modifier
                 .clip(RoundedCornerShape(14.dp))
                 .background(MaterialTheme.colorScheme.primary)
-                .clickable(onClick = onOpenSettings)
+                .clickable(role = Role.Button, onClick = onOpenSettings)
+                .heightIn(min = UiDimens.TouchTarget)
                 .padding(horizontal = 14.dp, vertical = 8.dp),
         ) {
             Text(
@@ -412,10 +414,10 @@ private fun RailQuickAction(compact: Boolean, onClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .padding(vertical = 6.dp)
-                .size(40.dp)
+                .size(UiDimens.TouchTarget)
                 .clip(CircleShape)
                 .background(cs.primary)
-                .clickable(onClick = {
+                .clickable(role = Role.Button, onClick = {
                     FeedbackManager.onNavSelect()
                     onClick()
                 }),
@@ -435,10 +437,11 @@ private fun RailQuickAction(compact: Boolean, onClick: () -> Unit) {
                 .padding(top = 8.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(cs.primary)
-                .clickable(onClick = {
+                .clickable(role = Role.Button, onClick = {
                     FeedbackManager.onNavSelect()
                     onClick()
                 })
+                .heightIn(min = UiDimens.TouchTarget)
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),

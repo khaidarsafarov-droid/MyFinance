@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.add
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -36,6 +35,7 @@ import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.buttonTap
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +128,11 @@ fun JournalWeekSelectorRow(
             .padding(vertical = 4.dp),
     ) {
         IconButton(onClick = onPreviousWeek) {
-            Icon(AppIcons.ChevronLeft, contentDescription = null, tint = tc.TextPrimary)
+            Icon(
+                AppIcons.ChevronLeft,
+                contentDescription = stringResource(R.string.a11y_previous_week),
+                tint = tc.TextPrimary,
+            )
         }
         Text(
             stringResource(R.string.add_or_edit_week_format, weekNumber, weekLabel),
@@ -137,7 +141,11 @@ fun JournalWeekSelectorRow(
             modifier = Modifier.weight(1f),
         )
         IconButton(onClick = onNextWeek) {
-            Icon(AppIcons.ChevronRight, contentDescription = null, tint = tc.TextPrimary)
+            Icon(
+                AppIcons.ChevronRight,
+                contentDescription = stringResource(R.string.a11y_next_week),
+                tint = tc.TextPrimary,
+            )
         }
     }
 }
@@ -225,7 +233,7 @@ fun JournalSaveConfirmDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
-                        .clickable(onClick = onEditDateTime),
+                        .buttonTap(onClick = onEditDateTime),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(dateTimeLabel, style = MaterialTheme.typography.titleMedium)

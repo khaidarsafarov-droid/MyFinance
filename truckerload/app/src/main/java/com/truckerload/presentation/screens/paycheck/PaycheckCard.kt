@@ -1,6 +1,7 @@
 package com.truckerload.presentation.screens.paycheck
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -21,6 +23,7 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.formatDateForDisplay
 
 @Composable
@@ -34,7 +37,15 @@ fun PaycheckCard(
     BentoGlassCard(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+            .then(
+                if (onClick != null) {
+                    Modifier
+                        .minimumInteractiveComponentSize()
+                        .clickable(role = Role.Button, onClick = onClick)
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
@@ -98,7 +109,7 @@ fun PaycheckCard(
                         .semantics { contentDescription = "$openLabel: $file" }
                         .then(
                             if (onOpenFile != null) {
-                                Modifier.clickable(onClick = onOpenFile)
+                                Modifier.buttonTap(onClick = onOpenFile)
                             } else {
                                 Modifier
                             },

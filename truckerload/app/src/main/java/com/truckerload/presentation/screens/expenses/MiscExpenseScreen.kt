@@ -2,6 +2,7 @@ package com.truckerload.presentation.screens.expenses
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -29,6 +31,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.components.ScreenLoadError
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
@@ -81,7 +88,7 @@ fun MiscExpenseScreen(
                 icon = AppIcons.Share,
                 contentDescription = stringResource(R.string.misc_expense_send_title),
                 onClick = {
-                    if (ui.entries.isEmpty()) {
+                    if (ui.phase != ScreenPhase.Content || ui.entries.isEmpty()) {
                         Toast.makeText(
                             context,
                             resources.getString(R.string.misc_expense_send_empty),
@@ -142,17 +149,23 @@ fun MiscExpenseScreen(
                     )
                 }
             }
-            if (ui.entries.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(R.string.misc_expense_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = tc.TextSecondary,
-                        modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+            when (ui.phase) {
+                ScreenPhase.Loading -> item { ScreenLoading() }
+                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item {
+                    EmptyState(
+                        icon = AppIcons.Receipt,
+                        title = stringResource(R.string.misc_expense_empty),
+                        message = stringResource(R.string.empty_expense_message),
+                        primaryAction = {
+                            EmptyStateButton(
+                                label = stringResource(R.string.empty_add_expense),
+                                onClick = viewModel::openNew,
+                            )
+                        },
                     )
                 }
-            } else {
-                items(ui.entries, key = { it.id }) { expense ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { expense ->
                     MiscExpenseCard(
                         expense = expense,
                         onClick = { viewModel.openExisting(expense) },
@@ -173,7 +186,8 @@ private fun MiscExpenseCard(
     BentoGlassCard(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .minimumInteractiveComponentSize()
+            .clickable(role = Role.Button, onClick = onClick),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),

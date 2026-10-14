@@ -25,6 +25,9 @@ data class SemanticPalette(
     val dangerContainer: Color,
     val neutralContainer: Color,
     val hero: Color,
+    /** Full-screen photo stage. Dark in both themes so the picture stays readable. */
+    val mediaScrim: Color,
+    val onMedia: Color,
 )
 
 object SemanticColors {
@@ -39,6 +42,8 @@ object SemanticColors {
         dangerContainer = Color(0xFFFFE4EA),
         neutralContainer = Color(0xFFEEEDFF),
         hero = SoftUiColors.TextPrimaryLight,
+        mediaScrim = Color(0xFF000000),
+        onMedia = SoftUiColors.TextPrimaryDark,
     )
 
     /** Dedicated dark tokens — not an invert of Light. */
@@ -52,6 +57,8 @@ object SemanticColors {
         dangerContainer = Color(0xFF3D1520),
         neutralContainer = Color(0xFF2A2640),
         hero = SoftUiColors.TextPrimaryDark,
+        mediaScrim = Color(0xFF000000),
+        onMedia = SoftUiColors.TextPrimaryDark,
     )
 
     fun forDark(dark: Boolean): SemanticPalette = if (dark) Dark else Light

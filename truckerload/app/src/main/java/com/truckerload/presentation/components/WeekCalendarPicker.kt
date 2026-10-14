@@ -4,6 +4,8 @@ import com.truckerload.presentation.icons.AppIcons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +58,8 @@ fun WeekCalendarPicker(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showMonthYearMenu = true }
+                .minimumInteractiveComponentSize()
+                .clickable(role = Role.Button) { showMonthYearMenu = true }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween

@@ -54,7 +54,21 @@ data class AddPaycheckUiState(
     val driverName: String? = null,
     val grossAmount: Double? = null,
     val parseNotice: String? = null,
-)
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
+    val draftBaseline: String? = null,
+) {
+    fun draftSignature(): String = FormDraft.paycheck(
+        amount = amountText,
+        recordedAtMillis = recordedAtMillis,
+        weekNumber = weekNumber,
+        year = year,
+        sourceFileName = sourceFileName.orEmpty(),
+        rawText = rawExtractedText,
+    )
+
+    val isDirty: Boolean get() = FormDraft.isDirty(draftBaseline, draftSignature())
+}
 
 @HiltViewModel
 class AddPaycheckViewModel @Inject constructor(
@@ -79,6 +93,13 @@ class AddPaycheckViewModel @Inject constructor(
     val uiState: StateFlow<AddPaycheckUiState> = _uiState.asStateFlow()
 
     private var pendingSourceUri: Uri? = null
+
+    init {
+        val baseline = savedStateHandle.get<String>(KEY_DRAFT) ?: _uiState.value.draftSignature().also {
+            savedStateHandle[KEY_DRAFT] = it
+        }
+        _uiState.update { it.copy(draftBaseline = baseline) }
+    }
 
     fun setAmountText(value: String) {
         savedStateHandle[KEY_AMOUNT_TEXT] = value
@@ -198,7 +219,11 @@ class AddPaycheckViewModel @Inject constructor(
         if (_uiState.value.isSaving) return
         if (AmountInputValidator.parsePositiveAmount(_uiState.value.amountText) == null) {
             _uiState.update {
-                it.copy(error = getApplication<Application>().getString(R.string.common_amount_must_be_positive))
+                it.copy(
+                    error = getApplication<Application>().getString(R.string.field_error_amount_example),
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
             }
             return
         }
@@ -402,5 +427,6 @@ class AddPaycheckViewModel @Inject constructor(
         private const val KEY_WEEK_NUMBER = "add_paycheck_week_number"
         private const val KEY_YEAR = "add_paycheck_year"
         private const val KEY_SHOW_SAVE_DIALOG = "add_paycheck_show_save_dialog"
+        private const val KEY_DRAFT = "add_paycheck_draft_baseline"
     }
 }

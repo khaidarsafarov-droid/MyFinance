@@ -17,6 +17,7 @@ object WidgetDataStore {
     private const val KEY_MILES = "total_miles"
     private const val KEY_TOTAL = "total_load_rate"
     private const val KEY_NET = "net_profit"
+    private const val KEY_DIESEL = "diesel_amount"
     private const val KEY_WEEK = "week_label"
     private const val KEY_STATS_LINE = "stats_line"
     private const val KEY_CPM_TARGET = "cpm_target"
@@ -77,6 +78,7 @@ object WidgetDataStore {
             putFloat(KEY_MILES, stats.totalMiles.toFloat())
             putFloat(KEY_TOTAL, stats.totalLoadRate.toFloat())
             putFloat(KEY_NET, stats.netProfit.toFloat())
+            putFloat(KEY_DIESEL, stats.dieselAmount.toFloat())
             putString(KEY_WEEK, stats.weekLabel)
             putString(KEY_STATS_LINE, stats.statsLine)
             putFloat(KEY_CPM_TARGET, stats.cpmTarget.toFloat())
@@ -104,6 +106,7 @@ object WidgetDataStore {
             totalMiles = prefs.getFloat(KEY_MILES, 0f).toDouble(),
             totalLoadRate = prefs.getFloat(KEY_TOTAL, 0f).toDouble(),
             netProfit = prefs.getFloat(KEY_NET, 0f).toDouble(),
+            dieselAmount = prefs.getFloat(KEY_DIESEL, 0f).toDouble(),
             weekLabel = prefs.getString(KEY_WEEK, "").orEmpty(),
             statsLine = prefs.getString(KEY_STATS_LINE, "").orEmpty(),
             cpmTarget = prefs.getFloat(KEY_CPM_TARGET, 2.5f).toDouble(),

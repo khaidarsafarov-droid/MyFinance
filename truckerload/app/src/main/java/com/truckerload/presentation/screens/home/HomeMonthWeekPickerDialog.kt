@@ -94,7 +94,11 @@ internal fun HomeMonthWeekPickerDialog(
                         onClick = { if (year > minYear) year -= 1 },
                         enabled = year > minYear,
                     ) {
-                        Icon(AppIcons.ChevronLeft, contentDescription = null, tint = tc.TextPrimary)
+                        Icon(
+                            AppIcons.ChevronLeft,
+                            contentDescription = stringResource(R.string.a11y_previous_year),
+                            tint = tc.TextPrimary,
+                        )
                     }
                     Text(
                         text = year.toString(),
@@ -105,7 +109,11 @@ internal fun HomeMonthWeekPickerDialog(
                         onClick = { if (year < maxYear) year += 1 },
                         enabled = year < maxYear,
                     ) {
-                        Icon(AppIcons.ChevronRight, contentDescription = null, tint = tc.TextPrimary)
+                        Icon(
+                            AppIcons.ChevronRight,
+                            contentDescription = stringResource(R.string.a11y_next_year),
+                            tint = tc.TextPrimary,
+                        )
                     }
                 }
 

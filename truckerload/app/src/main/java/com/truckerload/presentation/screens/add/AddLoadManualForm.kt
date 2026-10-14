@@ -9,17 +9,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.truckerload.presentation.components.blurGate
+import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
+import com.truckerload.presentation.components.rememberBlurGate
+import com.truckerload.utils.FieldErrors
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -40,9 +49,29 @@ fun AddLoadManualForm(
     onRemovePoint: (Int) -> Unit,
     modifier: Modifier = Modifier,
     hintRes: Int = R.string.add_load_manual_hint,
+    showFieldErrors: Boolean = false,
+    fieldErrorNonce: Int = 0,
+    onSubmit: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val colors = AppTextFieldDefaults.outlined()
+    val rateGate = rememberBlurGate()
+    val milesGate = rememberBlurGate()
+    val rateFocus = remember { FocusRequester() }
+    val milesFocus = remember { FocusRequester() }
+    val rateError = FieldErrors.amountRes(fields.rate)
+    val milesError = FieldErrors.milesRes(fields.miles)
+    val showRate = rateGate.visibleRes(rateError, showFieldErrors)
+    val showMiles = milesGate.visibleRes(milesError, showFieldErrors)
+    LaunchedEffect(fieldErrorNonce) {
+        if (fieldErrorNonce == 0) return@LaunchedEffect
+        val target = when {
+            rateError != null -> rateFocus
+            milesError != null -> milesFocus
+            else -> null
+        }
+        target?.let { runCatching { it.requestFocus() } }
+    }
     BentoGlassCard(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -60,6 +89,8 @@ fun AddLoadManualForm(
                 placeholder = { Text(stringResource(R.string.add_load_trip_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = formKeyboard(KeyboardType.Text),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
@@ -70,6 +101,8 @@ fun AddLoadManualForm(
                 supportingText = { Text(stringResource(R.string.edit_load_date_help)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = formKeyboard(KeyboardType.Text),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
@@ -77,9 +110,15 @@ fun AddLoadManualForm(
                 value = fields.rate,
                 onValueChange = onRate,
                 label = { Text(stringResource(R.string.edit_load_total_rate)) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(rateFocus)
+                    .blurGate(rateGate),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = showRate != null,
+                supportingText = errorSupport(showRate),
+                keyboardOptions = formKeyboard(KeyboardType.Decimal),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
@@ -87,14 +126,22 @@ fun AddLoadManualForm(
                 value = fields.miles,
                 onValueChange = onMiles,
                 label = { Text(stringResource(R.string.edit_load_total_miles)) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(milesFocus)
+                    .blurGate(milesGate),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = showMiles != null,
+                supportingText = errorSupport(showMiles),
+                keyboardOptions = formKeyboard(KeyboardType.Decimal),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
-            fields.allPoints().forEachIndexed { index, value ->
+            val points = fields.allPoints()
+            points.forEachIndexed { index, value ->
                 val letter = ManualLoadFields.pointLetter(index)
+                val lastPoint = index == points.lastIndex
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -106,6 +153,10 @@ fun AddLoadManualForm(
                         placeholder = { Text(pointPlaceholder(index)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        keyboardOptions = formKeyboard(KeyboardType.Text, done = lastPoint),
+                        keyboardActions = formKeyboardActions(
+                            onDone = if (lastPoint && rateError == null) onSubmit else null,
+                        ),
                         shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                         colors = colors,
                     )

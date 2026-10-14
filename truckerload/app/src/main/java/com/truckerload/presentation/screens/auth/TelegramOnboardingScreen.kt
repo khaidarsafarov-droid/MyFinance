@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.TelegramOnboardingStore
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.data.remote.TelegramTokenActivator
 import com.truckerload.presentation.di.LocalAuthStore
 import com.truckerload.presentation.components.TlButton as Button
@@ -154,7 +155,9 @@ fun TelegramOnboardingScreen(
             error?.let {
                 Text(it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall)
             }
-            Button(
+            if (saving) {
+                ScreenLoading(rows = 2)
+            } else Button(
                 onClick = {
                     if (saving) return@Button
                     val token = tokenInput.trim()

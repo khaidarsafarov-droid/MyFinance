@@ -245,10 +245,18 @@ private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
                 maxLines = 1,
             )
             Text(
-                text = WidgetStatsFormatter.formatUsdRpm(stats.currentWeeklyRpm),
+                text = context.getString(
+                    R.string.widget_metric_goal_value,
+                    if (stats.weeklyProfitGoal > 0) {
+                        WidgetStatsFormatter.formatGrossUsd(stats.weeklyProfitGoal)
+                    } else {
+                        context.getString(R.string.widget_goal_not_set)
+                    },
+                ),
                 style = TextStyle(
-                    color = cabinColor(colors.accent),
+                    color = cabinColor(colors.text),
                     fontSize = layout.metricSp,
+                    fontWeight = FontWeight.Bold,
                 ),
                 maxLines = 1,
             )

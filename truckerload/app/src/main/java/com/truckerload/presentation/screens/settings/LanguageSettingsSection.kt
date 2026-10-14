@@ -1,7 +1,6 @@
 package com.truckerload.presentation.screens.settings
 
 import com.truckerload.presentation.icons.AppIcons
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.AppLanguageManager
 
 @Composable
@@ -37,7 +37,7 @@ fun LanguageSettingsSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onOpenLanguage)
+                .buttonTap(onClick = onOpenLanguage)
                 .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

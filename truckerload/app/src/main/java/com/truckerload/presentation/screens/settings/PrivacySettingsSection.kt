@@ -7,7 +7,6 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +34,7 @@ import com.truckerload.R
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.RuntimePermissionSnapshot
 
 @Composable
@@ -74,7 +74,7 @@ fun PrivacySettingsSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onOpenPrivacy)
+                .buttonTap(onClick = onOpenPrivacy)
                 .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

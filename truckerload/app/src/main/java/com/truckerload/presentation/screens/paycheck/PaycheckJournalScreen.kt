@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.paycheck
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,6 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.components.ScreenLoadError
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
@@ -45,6 +49,7 @@ import com.truckerload.presentation.screens.add.JournalWeekSelectorRow
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.PaycheckSourceFiles
 import kotlinx.coroutines.launch
 
@@ -151,7 +156,7 @@ fun PaycheckJournalScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (ui.showAllWeeks) tc.AccentPrimary else tc.TextSecondary,
                             modifier = Modifier
-                                .clickable(onClick = viewModel::showAllWeeks)
+                                .buttonTap(onClick = viewModel::showAllWeeks)
                                 .padding(vertical = 8.dp, horizontal = 4.dp),
                         )
                     }
@@ -179,23 +184,32 @@ fun PaycheckJournalScreen(
                     )
                 }
             }
-            if (ui.entries.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(
+            when (ui.phase) {
+                ScreenPhase.Loading -> item { ScreenLoading() }
+                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item {
+                    val searching = ui.searchQuery.isNotBlank()
+                    EmptyState(
+                        icon = AppIcons.Payments,
+                        title = stringResource(
                             when {
-                                ui.searchQuery.isNotBlank() -> R.string.paycheck_empty_search
+                                searching -> R.string.paycheck_empty_search
                                 ui.showAllWeeks -> R.string.paycheck_empty_all
                                 else -> R.string.paycheck_empty_week
                             },
                         ),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = tc.TextSecondary,
-                        modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+                        message = stringResource(R.string.empty_paycheck_message),
+                        primaryAction = {
+                            if (!searching) {
+                                EmptyStateButton(
+                                    label = stringResource(R.string.empty_add_paycheck),
+                                    onClick = onAdd,
+                                )
+                            }
+                        },
                     )
                 }
-            } else {
-                items(ui.entries, key = { it.id }) { paycheck ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { paycheck ->
                     PaycheckCard(
                         paycheck = paycheck,
                         onClick = { viewModel.openEditor(paycheck) },

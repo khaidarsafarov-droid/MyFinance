@@ -6,6 +6,7 @@ data class WidgetStats(
     val totalMiles: Double = 0.0,
     val totalLoadRate: Double = 0.0,
     val netProfit: Double = 0.0,
+    val dieselAmount: Double = 0.0,
     val weekLabel: String = "",
     val statsLine: String = "",
     val cpmTarget: Double = 2.5,

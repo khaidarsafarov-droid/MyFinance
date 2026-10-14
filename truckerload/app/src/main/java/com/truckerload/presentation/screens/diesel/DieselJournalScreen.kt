@@ -3,7 +3,6 @@ package com.truckerload.presentation.screens.diesel
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,6 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.ScreenPhase
+import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.components.ScreenLoadError
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
@@ -42,6 +46,7 @@ import com.truckerload.presentation.screens.add.JournalDatePickerDialog
 import com.truckerload.presentation.screens.add.JournalWeekSelectorRow
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.utils.buttonTap
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.utcDatePickerMillisToDateString
 
@@ -171,7 +176,7 @@ fun DieselJournalScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (ui.selectedDateIso == null) tc.AccentPrimary else tc.TextSecondary,
                             modifier = Modifier
-                                .clickable(onClick = viewModel::clearDateFilter)
+                                .buttonTap(onClick = viewModel::clearDateFilter)
                                 .padding(vertical = 8.dp, horizontal = 4.dp),
                         )
                         Text(
@@ -180,7 +185,7 @@ fun DieselJournalScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (ui.selectedDateIso != null) tc.AccentPrimary else tc.TextSecondary,
                             modifier = Modifier
-                                .clickable { showDatePicker = true }
+                                .buttonTap(onClick = { showDatePicker = true })
                                 .padding(vertical = 8.dp, horizontal = 4.dp),
                         )
                     }
@@ -204,17 +209,23 @@ fun DieselJournalScreen(
                     )
                 }
             }
-            if (ui.entries.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(R.string.diesel_empty_week),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = tc.TextSecondary,
-                        modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+            when (ui.phase) {
+                ScreenPhase.Loading -> item { ScreenLoading() }
+                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item {
+                    EmptyState(
+                        icon = AppIcons.LocalGasStation,
+                        title = stringResource(R.string.diesel_empty_week),
+                        message = stringResource(R.string.empty_diesel_message),
+                        primaryAction = {
+                            EmptyStateButton(
+                                label = stringResource(R.string.empty_log_diesel),
+                                onClick = onAdd,
+                            )
+                        },
                     )
                 }
-            } else {
-                items(ui.entries, key = { it.id }) { fill ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { fill ->
                     DieselFillCard(
                         diesel = fill,
                         onClick = { onEditDiesel(fill.id) },

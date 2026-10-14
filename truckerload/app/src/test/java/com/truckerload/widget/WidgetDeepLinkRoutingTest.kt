@@ -1,7 +1,9 @@
 package com.truckerload.widget
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WidgetDeepLinkRoutingTest {
@@ -56,5 +58,33 @@ class WidgetDeepLinkRoutingTest {
         assertNull(WidgetDeepLink.resolveNavRoute("nope"))
         assertNull(WidgetDeepLink.resolveNavRoute("social_chat/abc"))
         assertNull(WidgetDeepLink.resolveNavRoute("call/c1"))
+    }
+
+    @Test
+    fun sanitizeIncomingRoute_keepsAllowListedRoutes() {
+        assertEquals("add_load", WidgetDeepLink.sanitizeIncomingRoute("add_load"))
+        assertEquals("add_paycheck", WidgetDeepLink.sanitizeIncomingRoute(" add_paycheck "))
+        assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("journal_this_week"))
+        assertEquals("analytics", WidgetDeepLink.sanitizeIncomingRoute("stats"))
+        assertEquals("attach_pick/camera", WidgetDeepLink.sanitizeIncomingRoute("camera"))
+    }
+
+    @Test
+    fun sanitizeIncomingRoute_unknownAndMalformedOpenHome() {
+        assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("nope"))
+        assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("social_chat/abc"))
+        assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("add_load?delete=1"))
+        assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("../home"))
+        assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("truckerload://app/sync"))
+        assertNull(WidgetDeepLink.sanitizeIncomingRoute(null))
+        assertNull(WidgetDeepLink.sanitizeIncomingRoute("   "))
+    }
+
+    @Test
+    fun journalThisWeekFlag_onlyForTheExactToken() {
+        assertTrue(WidgetDeepLink.isJournalThisWeekToken("journal_this_week"))
+        assertFalse(WidgetDeepLink.isJournalThisWeekToken("journal_this_week?sync=1"))
+        assertFalse(WidgetDeepLink.isJournalThisWeekToken("home"))
+        assertFalse(WidgetDeepLink.isJournalThisWeekToken(null))
     }
 }

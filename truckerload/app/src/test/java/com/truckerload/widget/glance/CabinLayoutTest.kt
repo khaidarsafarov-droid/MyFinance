@@ -11,6 +11,22 @@ import org.junit.Test
 class CabinLayoutTest {
 
     @Test
+    fun labelsStayAtLeast12spAndLargerCellsAddWeekNumbers() {
+        listOf(CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4).forEach { size ->
+            val layout = cabinLayoutFor(size)
+            assertTrue("$size header ${layout.headerSp}", layout.headerSp.value >= 12f)
+            assertTrue("$size date ${layout.dateSp}", layout.dateSp.value >= 12f)
+            assertTrue("$size label ${layout.revenueLabelSp}", layout.revenueLabelSp.value >= 12f)
+            assertTrue("$size amount ${layout.amountSp}", layout.amountSp.value >= 16f)
+            assertTrue(layout.metricSp.value >= 12f)
+            assertFits(size, layout)
+        }
+        assertFalse(cabinLayoutFor(CabinSize4x2).showDieselNet)
+        assertTrue(cabinLayoutFor(CabinSize4x4).showDieselNet)
+        assertTrue(cabinLayoutFor(CabinSize4x4).showRpm)
+    }
+
+    @Test
     fun fullHeight_matchesMockupTokens() {
         val layout = cabinLayoutFor(CabinSize4x4)
         assertEquals(CabinBucket.FULL, layout.bucket)

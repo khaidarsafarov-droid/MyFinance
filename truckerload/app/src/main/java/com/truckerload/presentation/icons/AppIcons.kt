@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -113,6 +114,7 @@ object AppIcons {
     val PlayArrow = Icons.Filled.PlayArrow
     val PrivacyTip = Icons.Filled.Info
     val PushPin = Icons.Filled.Place
+    val Receipt = Icons.Filled.Receipt
     val Refresh = Icons.Filled.Refresh
     val Route = Icons.Filled.Place
     val Schedule = Icons.Filled.DateRange

@@ -293,18 +293,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleIncomingIntent(intent: Intent?) {
         if (intent == null) return
-        handleDeepLinkRoute(intent.getStringExtra(EXTRA_ROUTE))
+        applySanitizedRoute(intent.getStringExtra(EXTRA_ROUTE))
         intent.dataString
             ?.takeIf { it.startsWith("truckerload://app/") }
             ?.let { uri ->
                 val path = uri.removePrefix("truckerload://app/").substringBefore('?').trim('/')
-                WidgetDeepLink.resolveNavRoute(path)?.let { handleDeepLinkRoute(it) }
+                applySanitizedRoute(path)
             }
     }
 
-    private fun handleDeepLinkRoute(route: String?) {
+    private fun applySanitizedRoute(raw: String?) {
+        val route = WidgetDeepLink.sanitizeIncomingRoute(raw) ?: return
         deepLinkRoute = route
-        if (route == ROUTE_JOURNAL_THIS_WEEK) {
+        if (WidgetDeepLink.isJournalThisWeekToken(raw)) {
             WidgetDeepLink.markOpenJournalThisWeek(this)
         }
     }

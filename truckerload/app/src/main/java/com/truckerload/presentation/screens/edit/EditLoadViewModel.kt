@@ -21,6 +21,8 @@ import com.truckerload.domain.model.lastDelDateFromStops
 import com.truckerload.domain.model.lastDelDateTimeFromStops
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.presentation.screens.add.FormDraft
+import com.truckerload.utils.FieldErrors
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +51,25 @@ data class EditLoadUiState(
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val saved: Boolean = false,
-)
+    val showFieldErrors: Boolean = false,
+    val fieldErrorNonce: Int = 0,
+    val draftBaseline: String? = null,
+) {
+    fun draftSignature(): String = FormDraft.editLoad(
+        tripId = tripId,
+        loadDate = loadDate,
+        finishDate = finishDate,
+        totalRate = totalRate,
+        totalMiles = totalMiles,
+        pointA = pointA,
+        pointB = pointB,
+        equipment = equipmentType?.name.orEmpty(),
+        dispute = disputeLoad,
+    )
+
+    val isDirty: Boolean
+        get() = FormDraft.isDirty(draftBaseline, draftSignature())
+}
 
 @HiltViewModel
 class EditLoadViewModel @Inject constructor(
@@ -149,9 +169,14 @@ class EditLoadViewModel @Inject constructor(
         if (state.isSaving) return
         val parsedRate = DecimalInput.parse(state.totalRate)
         val parsedMiles = DecimalInput.parse(state.totalMiles)
-        if (parsedRate == null || parsedMiles == null) {
+        val rateInvalid = FieldErrors.amountRes(state.totalRate) != null
+        if (parsedRate == null || parsedMiles == null || parsedMiles < 0.0 || rateInvalid) {
             _uiState.update {
-                it.copy(saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number))
+                it.copy(
+                    saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number),
+                    showFieldErrors = true,
+                    fieldErrorNonce = it.fieldErrorNonce + 1,
+                )
             }
             return
         }
@@ -259,8 +284,8 @@ class EditLoadViewModel @Inject constructor(
                 val totalMiles = savedStateHandle[KEY_MILES] ?: loaded.totalMiles.toString()
                 val pointA = savedStateHandle[KEY_A] ?: loaded.pointA
                 val pointB = savedStateHandle[KEY_B] ?: loaded.pointB
-                _uiState.update {
-                    it.copy(
+                _uiState.update { state ->
+                    val opened = state.copy(
                         isLoading = false,
                         original = loaded,
                         tripId = tripId,
@@ -275,6 +300,10 @@ class EditLoadViewModel @Inject constructor(
                         disputeLoad = loaded,
                         focusFinish = focusFinish,
                     )
+                    val baseline = savedStateHandle.get<String>(KEY_DRAFT) ?: opened.draftSignature().also {
+                        savedStateHandle[KEY_DRAFT] = it
+                    }
+                    opened.copy(draftBaseline = baseline)
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -316,5 +345,6 @@ class EditLoadViewModel @Inject constructor(
         private const val KEY_MILES = "edit_total_miles"
         private const val KEY_A = "edit_point_a"
         private const val KEY_B = "edit_point_b"
+        private const val KEY_DRAFT = "edit_load_draft_baseline"
     }
 }
