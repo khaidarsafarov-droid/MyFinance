@@ -126,11 +126,7 @@ object TelegramBotForegroundService {
                     break
                 }
                 val result = engine.runOnce(token, expectedUserId = expectedUserId)
-                val delaySec = if (result.processedUpdates > 0) {
-                    result.nextDelaySeconds.coerceIn(0, 60)
-                } else {
-                    result.nextDelaySeconds.coerceIn(2, 60)
-                }
+                val delaySec = result.nextDelaySeconds.coerceIn(0, 60)
                 if (delaySec > 0L) delay(delaySec * 1000)
             } catch (e: CancellationException) {
                 throw e

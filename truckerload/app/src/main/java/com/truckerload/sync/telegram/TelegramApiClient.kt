@@ -38,6 +38,13 @@ class TelegramApiClient(
     suspend fun sendMessage(chatId: String, text: String) =
         telegramApi.sendMessage(chatId, text)
 
+    /** Shows "typing" before the text reply so the chat does not sit idle. */
+    suspend fun sendChatAction(chatId: String) {
+        telegramApi.sendChatAction(chatId).onFailure { e ->
+            Log.w(TAG, "chat action failed: ${LogRedactor.redact(e.message)}")
+        }
+    }
+
     suspend fun sendHtml(
         chatId: String,
         html: String,

@@ -54,6 +54,10 @@ class TelegramUpdateDispatcher(
             ChatGate.JustPaired, ChatGate.Accepted -> Unit
         }
 
+        if (shouldAckImmediately(update)) {
+            acknowledgeNow(update.chatId)
+        }
+
         if (!update.isCallbackQuery && update.text.isNotBlank()) {
             chatRestore.persistIncoming(update)
         }
@@ -255,9 +259,6 @@ class TelegramUpdateDispatcher(
             return
         }
 
-        apiClient.sendMessage(update.chatId, context.getString(R.string.sync_processing))
-            .onFailure { e -> Log.e(TAG, "ack failed: ${LogRedactor.redact(e.message)}") }
-
         ingest().applyText(
             chatId = update.chatId,
             text = rawText,
@@ -383,6 +384,22 @@ class TelegramUpdateDispatcher(
                 context.getString(R.string.sync_unpaired_replayed, imported),
             )
         }
+    }
+
+    private fun shouldAckImmediately(update: TelegramUpdate): Boolean {
+        if (update.isCallbackQuery) return false
+        if (update.photoFileId != null || update.documentFileId != null) return true
+        val text = update.text.trim()
+        if (text.isBlank() || text.startsWith("/")) return false
+        if (TelegramBotFeatures.isMenuButtonText(text)) return false
+        if (TelegramBotFeatures.isRestoreRequest(text)) return false
+        return true
+    }
+
+    private suspend fun acknowledgeNow(chatId: String) {
+        apiClient.sendChatAction(chatId)
+        apiClient.sendMessage(chatId, context.getString(R.string.sync_processing))
+            .onFailure { e -> Log.w(TAG, "ack failed: ${LogRedactor.redact(e.message)}") }
     }
 
     private fun ingest(): TelegramFileIngestHandler =

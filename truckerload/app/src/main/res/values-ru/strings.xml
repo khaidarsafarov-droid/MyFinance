@@ -1125,7 +1125,7 @@
     <string name="notify_channel_missing_name">Отсутствующие данные</string>
     <string name="notify_channel_alerts_name">Напоминания</string>
 
-    <string name="sync_processing">⏳ Обрабатываю...</string>
+    <string name="sync_processing">Сообщение получил. Сейчас читаю.</string>
     <string name="sync_update_skipped_error">Сообщение пропущено из‑за внутренней ошибки. Пришлите его ещё раз.</string>
     <string name="sync_chat_not_authorized">Этот бот уже привязан к другому чату. Отвяжите его в TruckoRig → Настройки → Telegram.</string>
     <string name="sync_chat_pair_required">Чтобы привязать этот чат, откройте TruckoRig → Настройки → Telegram и отправьте команду /start с кодом, указанным там.</string>

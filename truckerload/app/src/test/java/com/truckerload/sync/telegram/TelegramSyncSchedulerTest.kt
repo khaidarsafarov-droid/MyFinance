@@ -12,8 +12,8 @@ class TelegramSyncSchedulerTest {
     }
 
     @Test
-    fun delayAfterPoll_waitsWhenNothingWasSaved() {
-        assertEquals(1L, TelegramSyncScheduler.delayAfterPoll(processed = 0, updatesNonEmpty = true))
-        assertEquals(2L, TelegramSyncScheduler.delayAfterPoll(processed = 0, updatesNonEmpty = false))
+    fun delayAfterPoll_reconnectsImmediatelyWhenNothingWasSaved() {
+        assertEquals(0L, TelegramSyncScheduler.delayAfterPoll(processed = 0, updatesNonEmpty = true))
+        assertEquals(0L, TelegramSyncScheduler.delayAfterPoll(processed = 0, updatesNonEmpty = false))
     }
 }

@@ -38,12 +38,11 @@ class TelegramSyncScheduler(
         delayAfterPoll(processed, updatesNonEmpty)
 
     companion object {
-        /** After a saved load, poll again immediately so the next Telegram message is not queued. */
-        fun delayAfterPoll(processed: Int, updatesNonEmpty: Boolean): Long = when {
-            processed > 0 -> 0L
-            updatesNonEmpty -> 1L
-            else -> 2L
-        }
+        /** Reconnect at once. A pause here leaves the next message sitting in Telegram. */
+        fun delayAfterPoll(
+            @Suppress("UNUSED_PARAMETER") processed: Int,
+            @Suppress("UNUSED_PARAMETER") updatesNonEmpty: Boolean,
+        ): Long = 0L
 
         fun telegramSyncPrefs(context: Context, userId: String): SharedPreferences {
             val name = "telegram_sync_${AccountIds.sanitizeFilePart(userId)}"

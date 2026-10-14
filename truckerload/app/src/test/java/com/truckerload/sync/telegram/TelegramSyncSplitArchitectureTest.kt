@@ -26,6 +26,19 @@ class TelegramSyncSplitArchitectureTest {
         assertTrue(source.contains("nextDelaySeconds"))
     }
 
+    @Test
+    fun inboundMessage_isAcknowledgedBeforeAnyParseOrDownload() {
+        val dispatcher = readMainSource("com/truckerload/sync/telegram/TelegramUpdateDispatcher.kt")
+        val ack = dispatcher.indexOf("acknowledgeNow(update.chatId)")
+        val persistAfterAck = dispatcher.indexOf("persistIncoming", ack)
+        assertTrue(ack >= 0 && persistAfterAck > ack)
+        assertTrue(dispatcher.contains("sendChatAction"))
+        val media = readMainSource("com/truckerload/sync/telegram/TelegramFileIngestHandler.kt")
+        assertTrue(!media.contains("sync_processing"))
+        val poller = readMainSource("com/truckerload/sync/TelegramBotForegroundService.kt")
+        assertTrue(!poller.contains("coerceIn(2, 60)"))
+    }
+
     private fun readMainSource(relativePath: String): String {
         val candidates = listOf(
             File("src/main/java/$relativePath"),

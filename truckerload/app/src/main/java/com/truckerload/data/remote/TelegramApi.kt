@@ -174,6 +174,13 @@ class TelegramApi(private val token: String) {
         }
     }
 
+    suspend fun sendChatAction(chatId: String, action: String = "typing"): Result<Unit> = postJson(
+        "sendChatAction",
+        JSONObject()
+            .put("chat_id", chatId)
+            .put("action", action),
+    )
+
     suspend fun answerCallbackQuery(callbackQueryId: String, text: String): Result<Unit> = postJson(
         "answerCallbackQuery",
         JSONObject()
