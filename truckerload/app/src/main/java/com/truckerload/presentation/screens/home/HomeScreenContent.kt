@@ -289,7 +289,13 @@ internal fun HomeScreenContent(
                         } else {
                             stringResource(R.string.home_empty_filtered_body)
                         },
-                        ctaLabel = stringResource(R.string.home_empty_cta),
+                        ctaLabel = stringResource(
+                            if (uiState.filter == LoadFilter.ALL || uiState.filter == LoadFilter.THIS_WEEK) {
+                                R.string.empty_add_first_load
+                            } else {
+                                R.string.home_empty_cta
+                            },
+                        ),
                         onCta = onAddLoad,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )

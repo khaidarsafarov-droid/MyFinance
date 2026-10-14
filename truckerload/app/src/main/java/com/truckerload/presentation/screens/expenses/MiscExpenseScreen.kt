@@ -29,6 +29,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.MiscExpense
+import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
@@ -144,11 +146,16 @@ fun MiscExpenseScreen(
             }
             if (ui.entries.isEmpty()) {
                 item {
-                    Text(
-                        text = stringResource(R.string.misc_expense_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = tc.TextSecondary,
-                        modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+                    EmptyState(
+                        icon = AppIcons.Receipt,
+                        title = stringResource(R.string.misc_expense_empty),
+                        message = stringResource(R.string.empty_expense_message),
+                        primaryAction = {
+                            EmptyStateButton(
+                                label = stringResource(R.string.empty_add_expense),
+                                onClick = viewModel::openNew,
+                            )
+                        },
                     )
                 }
             } else {

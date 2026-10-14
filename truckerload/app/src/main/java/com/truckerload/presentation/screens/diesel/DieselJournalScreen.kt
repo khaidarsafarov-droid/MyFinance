@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.icons.AppIcons
@@ -206,11 +208,16 @@ fun DieselJournalScreen(
             }
             if (ui.entries.isEmpty()) {
                 item {
-                    Text(
-                        text = stringResource(R.string.diesel_empty_week),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = tc.TextSecondary,
-                        modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+                    EmptyState(
+                        icon = AppIcons.LocalGasStation,
+                        title = stringResource(R.string.diesel_empty_week),
+                        message = stringResource(R.string.empty_diesel_message),
+                        primaryAction = {
+                            EmptyStateButton(
+                                label = stringResource(R.string.empty_log_diesel),
+                                onClick = onAdd,
+                            )
+                        },
                     )
                 }
             } else {

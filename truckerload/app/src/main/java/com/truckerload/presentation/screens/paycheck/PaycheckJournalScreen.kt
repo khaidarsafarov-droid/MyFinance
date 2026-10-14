@@ -37,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
@@ -181,17 +184,25 @@ fun PaycheckJournalScreen(
             }
             if (ui.entries.isEmpty()) {
                 item {
-                    Text(
-                        text = stringResource(
+                    val searching = ui.searchQuery.isNotBlank()
+                    EmptyState(
+                        icon = AppIcons.Payments,
+                        title = stringResource(
                             when {
-                                ui.searchQuery.isNotBlank() -> R.string.paycheck_empty_search
+                                searching -> R.string.paycheck_empty_search
                                 ui.showAllWeeks -> R.string.paycheck_empty_all
                                 else -> R.string.paycheck_empty_week
                             },
                         ),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = tc.TextSecondary,
-                        modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
+                        message = stringResource(R.string.empty_paycheck_message),
+                        primaryAction = {
+                            if (!searching) {
+                                EmptyStateButton(
+                                    label = stringResource(R.string.empty_add_paycheck),
+                                    onClick = onAdd,
+                                )
+                            }
+                        },
                     )
                 }
             } else {

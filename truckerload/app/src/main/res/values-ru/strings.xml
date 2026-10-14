@@ -11,6 +11,14 @@
     <string name="a11y_next_week">Следующая неделя</string>
     <string name="a11y_previous_year">Предыдущий год</string>
     <string name="a11y_next_year">Следующий год</string>
+    <string name="empty_add_first_load">Добавить первый груз</string>
+    <string name="empty_log_diesel">Записать дизель</string>
+    <string name="empty_add_paycheck">Добавить чек</string>
+    <string name="empty_add_expense">Добавить расход</string>
+    <string name="empty_diesel_message">Заправка появится здесь после записи.</string>
+    <string name="empty_paycheck_message">Оплата за неделю появится здесь после добавления.</string>
+    <string name="empty_expense_message">Платные дороги, весы и прочие расходы появятся здесь.</string>
+    <string name="empty_retry">Повторить</string>
     <string name="common_menu">Меню</string>
     <string name="common_close">Закрыть</string>
     <string name="common_save">Сохранить</string>
