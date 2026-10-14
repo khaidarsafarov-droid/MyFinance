@@ -79,8 +79,11 @@ class DatabaseEncryptionTest {
         val dbFile = context.getDatabasePath(name)
         dbFile.parentFile?.mkdirs()
         SQLiteDatabase.openOrCreateDatabase(dbFile, null).use { plain ->
-            plain.execSQL("CREATE TABLE loads (id TEXT PRIMARY KEY, totalRate REAL)")
+            plain.execSQL(
+                "CREATE TABLE loads (id TEXT PRIMARY KEY, totalRate REAL, deadheadMiles REAL NOT NULL DEFAULT 0.0)",
+            )
             plain.execSQL("INSERT INTO loads (id, totalRate) VALUES ('T-1', 2500.0)")
+            plain.version = 42
         }
         assertTrue(PlaintextDatabaseEncryptor.isPlaintextSqlite(dbFile))
 
@@ -100,8 +103,79 @@ class DatabaseEncryptionTest {
                 assertTrue(cursor.moveToFirst())
                 assertEquals(2500.0, cursor.getDouble(0), 0.001)
             }
+            database.rawQuery("PRAGMA user_version", null).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(42, cursor.getInt(0))
+            }
         }
         context.deleteDatabase(name)
+    }
+
+    @Test
+    fun clearedEncryptedUserVersionIsRestoredFromTheMoneyColumns() {
+        val so = sqlCipherLibrary()
+        assumeTrue("SQLCipher native library is not in the Gradle cache", so != null)
+        val loaded = runCatching { System.load(so!!.absolutePath) }.isSuccess
+        assumeTrue("This host cannot load the Android SQLCipher binary", loaded)
+        System.setProperty("truckerload.sqlcipher.lib", so!!.absolutePath)
+
+        val context = RuntimeEnvironment.getApplication()
+        val name = "encrypt-version-${System.nanoTime()}"
+        val dbFile = context.getDatabasePath(name)
+        dbFile.parentFile?.mkdirs()
+        SQLiteDatabase.openOrCreateDatabase(dbFile, null).use { plain ->
+            plain.execSQL(
+                "CREATE TABLE loads (id TEXT PRIMARY KEY, totalRate REAL, deadheadMiles REAL NOT NULL DEFAULT 0.0)",
+            )
+            plain.version = 42
+        }
+        val passphrase = ByteArray(32) { index -> (index + 3).toByte() }
+        PlaintextDatabaseEncryptor.ensureEncrypted(context, name, passphrase)
+        CipherDatabase.openDatabase(
+            dbFile.absolutePath,
+            passphrase,
+            null,
+            CipherDatabase.OPEN_READWRITE,
+            null,
+        ).use { database ->
+            database.rawExecSQL("PRAGMA user_version = 0")
+        }
+
+        PlaintextDatabaseEncryptor.restoreClearedUserVersion(context, name, passphrase)
+
+        CipherDatabase.openDatabase(
+            dbFile.absolutePath,
+            passphrase,
+            null,
+            CipherDatabase.OPEN_READONLY,
+            null,
+        ).use { database ->
+            database.rawQuery("PRAGMA user_version", null).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(42, cursor.getInt(0))
+            }
+        }
+        context.deleteDatabase(name)
+    }
+
+    @Test
+    fun restoredUserVersionFollowsTheMoneyColumnShape() {
+        assertEquals(
+            42,
+            PlaintextDatabaseEncryptor.restoredUserVersion(0, "REAL", hasDeadheadMiles = true),
+        )
+        assertEquals(
+            43,
+            PlaintextDatabaseEncryptor.restoredUserVersion(0, "INTEGER", hasDeadheadMiles = true),
+        )
+        assertEquals(
+            null,
+            PlaintextDatabaseEncryptor.restoredUserVersion(42, "REAL", hasDeadheadMiles = true),
+        )
+        assertEquals(
+            null,
+            PlaintextDatabaseEncryptor.restoredUserVersion(0, "REAL", hasDeadheadMiles = false),
+        )
     }
 
     private fun sqlCipherLibrary(): File? {
