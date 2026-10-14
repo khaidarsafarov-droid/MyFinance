@@ -7,6 +7,10 @@
     <string name="discard_changes_message">Se perderán los cambios de esta pantalla.</string>
     <string name="discard_changes_keep">Seguir editando</string>
     <string name="discard_changes_confirm">Descartar</string>
+    <string name="a11y_previous_week">Semana anterior</string>
+    <string name="a11y_next_week">Semana siguiente</string>
+    <string name="a11y_previous_year">Año anterior</string>
+    <string name="a11y_next_year">Año siguiente</string>
     <string name="common_menu">Menú</string>
     <string name="common_close">Cerrar</string>
     <string name="common_save">Guardar</string>

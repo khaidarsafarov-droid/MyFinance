@@ -7,6 +7,10 @@
     <string name="discard_changes_message">Your edits on this screen will be lost.</string>
     <string name="discard_changes_keep">Keep editing</string>
     <string name="discard_changes_confirm">Discard</string>
+    <string name="a11y_previous_week">Previous week</string>
+    <string name="a11y_next_week">Next week</string>
+    <string name="a11y_previous_year">Previous year</string>
+    <string name="a11y_next_year">Next year</string>
     <string name="common_menu">Menu</string>
     <string name="common_close">Close</string>
     <string name="common_save">Save</string>
