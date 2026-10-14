@@ -37,6 +37,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.presentation.components.computeRpm
 import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
@@ -144,7 +145,7 @@ internal fun SoftAddLoadButton(onAddLoad: () -> Unit) {
         Text(
             text = stringResource(R.string.home_add_load_button),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -435,7 +436,7 @@ internal fun TabletStatsGrid(
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.Route,
-                    tint = Color(0xFFD4F5EE),
+                    tint = LocalSemantics.current.successContainer,
                     label = stringResource(R.string.tablet_stat_miles),
                     value = miles,
                 )
@@ -444,7 +445,7 @@ internal fun TabletStatsGrid(
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.Speed,
-                    tint = Color(0xFFFFF3D6),
+                    tint = LocalSemantics.current.warningContainer,
                     label = stringResource(R.string.tablet_stat_rpm),
                     value = rpm,
                     hero = true,
@@ -471,14 +472,14 @@ internal fun TabletStatsGrid(
             SoftStatCard(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.Route,
-                tint = Color(0xFFD4F5EE),
+                tint = LocalSemantics.current.successContainer,
                 label = stringResource(R.string.tablet_stat_miles),
                 value = miles,
             )
             SoftStatCard(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.Speed,
-                tint = Color(0xFFFFF3D6),
+                tint = LocalSemantics.current.warningContainer,
                 label = stringResource(R.string.tablet_stat_rpm),
                 value = rpm,
                 hero = true,

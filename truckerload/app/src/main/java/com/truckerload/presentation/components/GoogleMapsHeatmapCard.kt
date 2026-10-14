@@ -53,6 +53,7 @@ import com.truckerload.R
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.getStateDisplayName
 import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.AppTypography
 import org.json.JSONObject
 import java.util.Locale
@@ -109,7 +110,7 @@ fun GoogleMapsHeatmapCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -219,12 +220,15 @@ fun GoogleMapsHeatmapCard(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(4.dp)
-                            .background(Color.White.copy(alpha = 0.92f), RoundedCornerShape(12.dp)),
+                            .background(
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                                RoundedCornerShape(12.dp),
+                            ),
                     ) {
                         Icon(
                             imageVector = AppIcons.Fullscreen,
                             contentDescription = stringResource(R.string.map_expand_fullscreen),
-                            tint = Color(0xFF1F2937),
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -242,31 +246,31 @@ fun GoogleMapsHeatmapCard(
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
-                            .background(Color(COLOR_GOOD), RoundedCornerShape(4.dp))
+                            .background(LocalSemantics.current.successContainer, RoundedCornerShape(4.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             stringResource(R.string.map_rating_good),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White
+                            color = LocalSemantics.current.success,
                         )
                     }
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
-                            .background(Color(COLOR_BAD), RoundedCornerShape(4.dp))
+                            .background(LocalSemantics.current.dangerContainer, RoundedCornerShape(4.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             stringResource(R.string.map_rating_low),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White
+                            color = LocalSemantics.current.danger,
                         )
                     }
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
-                            .background(Color(COLOR_NEUTRAL), RoundedCornerShape(4.dp))
+                            .background(LocalSemantics.current.warningContainer, RoundedCornerShape(4.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(

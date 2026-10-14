@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,6 +35,7 @@ import com.truckerload.domain.maintenance.MaintenanceVisit
 import com.truckerload.domain.maintenance.MaintenanceVisits
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.presentation.theme.BentoGlassCard
+import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.io.File
 import java.util.Locale
@@ -112,7 +112,7 @@ private fun VisitCard(
                     Icon(
                         imageVector = AppIcons.AttachFile,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = LocalSemantics.current.onMedia,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(4.dp)

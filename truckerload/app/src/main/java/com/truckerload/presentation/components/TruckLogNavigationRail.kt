@@ -293,7 +293,7 @@ private fun SidebarAvatar(photoUrl: String?, name: String) {
         modifier = Modifier
             .size(64.dp)
             .clip(CircleShape)
-            .background(SoftUiColors.ForestAccent),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {
         if (!photoUrl.isNullOrBlank()) {
@@ -309,7 +309,7 @@ private fun SidebarAvatar(photoUrl: String?, name: String) {
             Text(
                 text = name.firstOrNull()?.uppercaseChar()?.toString() ?: "T",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }

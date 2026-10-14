@@ -26,17 +26,16 @@ import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.loadSharedBounds
 
-private val DeleteSwipeColor = Color(0xFFE57373)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +111,7 @@ fun SwipeableLoadCard(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(cardShape)
-                        .background(DeleteSwipeColor)
+                        .background(LocalSemantics.current.danger)
                         .padding(end = 24.dp),
                     contentAlignment = Alignment.CenterEnd,
                 ) {
@@ -120,11 +119,11 @@ fun SwipeableLoadCard(
                         Icon(
                             AppIcons.Delete,
                             contentDescription = stringResource(R.string.common_delete),
-                            tint = Color.White,
+                            tint = LocalSemantics.current.dangerContainer,
                         )
                         Text(
                             text = stringResource(R.string.common_delete),
-                            color = Color.White,
+                            color = LocalSemantics.current.dangerContainer,
                             style = MaterialTheme.typography.labelLarge,
                             modifier = Modifier.padding(start = 8.dp),
                         )

@@ -45,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -55,6 +54,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.rememberDecodedBitmap
 
@@ -228,7 +228,7 @@ private fun FullscreenPhotoDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(LocalSemantics.current.mediaScrim)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -254,12 +254,12 @@ private fun FullscreenPhotoDialog(
                     .align(Alignment.TopEnd)
                     .padding(12.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.45f)),
+                    .background(LocalSemantics.current.mediaScrim.copy(alpha = 0.45f)),
             ) {
                 Icon(
                     AppIcons.Close,
                     contentDescription = stringResource(R.string.common_close),
-                    tint = Color.White,
+                    tint = LocalSemantics.current.onMedia,
                 )
             }
         }

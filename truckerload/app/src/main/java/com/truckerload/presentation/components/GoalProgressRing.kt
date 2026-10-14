@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
@@ -106,7 +105,7 @@ fun GoalProgressRing(
                     center.y + radius * kotlin.math.sin(paceAngle).toFloat()
                 )
                 drawCircle(color = paceMarkerColor, radius = stroke * 0.35f, center = markerCenter)
-                drawCircle(color = Color.White, radius = stroke * 0.18f, center = markerCenter)
+                drawCircle(color = cs.surface, radius = stroke * 0.18f, center = markerCenter)
             }
         }
 
