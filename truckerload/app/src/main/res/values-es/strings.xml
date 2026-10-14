@@ -1125,7 +1125,7 @@
     <string name="notify_channel_missing_name">Datos faltantes</string>
     <string name="notify_channel_alerts_name">Recordatorios</string>
 
-    <string name="sync_processing">⏳ Procesando...</string>
+    <string name="sync_processing">Mensaje recibido. Lo leo ahora.</string>
     <string name="sync_update_skipped_error">Mensaje omitido por un error interno. Reenvíalo.</string>
     <string name="sync_chat_not_authorized">Este bot ya está emparejado con otro chat. Desvincúlalo en TruckoRig → Ajustes → Telegram.</string>
     <string name="sync_chat_pair_required">Para emparejar este chat, abre TruckoRig → Ajustes → Telegram y envía el comando /start con el código que aparece allí.</string>
