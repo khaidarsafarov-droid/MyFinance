@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -22,6 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.truckerload.presentation.components.blurGate
 import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.rememberBlurGate
 import com.truckerload.utils.FieldErrors
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ fun DieselAmountFields(
     onLocationChange: (String) -> Unit,
     onImagePicked: (android.net.Uri) -> Unit,
     compact: Boolean = false,
+    onSubmit: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val gallonsGate = rememberBlurGate()
@@ -56,6 +58,10 @@ fun DieselAmountFields(
     val showGallons = gallonsGate.visibleRes(gallonsError, uiState.showFieldErrors)
     val showPrice = priceGate.visibleRes(priceError, uiState.showFieldErrors)
     val showDiscount = discountGate.visibleRes(discountError, uiState.showFieldErrors)
+    val submitIfValid = {
+        val discountOk = compact || discountError == null
+        if (gallonsError == null && priceError == null && discountOk) onSubmit()
+    }
     LaunchedEffect(uiState.fieldErrorNonce) {
         if (uiState.fieldErrorNonce == 0) return@LaunchedEffect
         val target = when {
@@ -108,6 +114,8 @@ fun DieselAmountFields(
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = UiDimens.InputMinHeight),
             shape = RoundedCornerShape(14.dp),
+            keyboardOptions = formKeyboard(KeyboardType.Text),
+            keyboardActions = formKeyboardActions(),
             colors = AppTextFieldDefaults.outlined(),
             singleLine = true,
         )
@@ -121,7 +129,8 @@ fun DieselAmountFields(
                 .focusRequester(gallonsFocus)
                 .blurGate(gallonsGate),
             shape = RoundedCornerShape(14.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            keyboardOptions = formKeyboard(KeyboardType.Decimal),
+            keyboardActions = formKeyboardActions(),
             isError = showGallons != null,
             supportingText = errorSupport(showGallons),
             colors = AppTextFieldDefaults.outlined(),
@@ -137,7 +146,8 @@ fun DieselAmountFields(
                 .focusRequester(priceFocus)
                 .blurGate(priceGate),
             shape = RoundedCornerShape(14.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            keyboardOptions = formKeyboard(KeyboardType.Decimal, done = compact),
+            keyboardActions = formKeyboardActions(onDone = if (compact) submitIfValid else null),
             isError = showPrice != null,
             supportingText = errorSupport(showPrice),
             colors = AppTextFieldDefaults.outlined(),
@@ -154,7 +164,8 @@ fun DieselAmountFields(
                     .focusRequester(discountFocus)
                     .blurGate(discountGate),
                 shape = RoundedCornerShape(14.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = formKeyboard(KeyboardType.Decimal, done = true),
+                keyboardActions = formKeyboardActions(onDone = submitIfValid),
                 isError = showDiscount != null,
                 supportingText = errorSupport(showDiscount),
                 colors = AppTextFieldDefaults.outlined(),

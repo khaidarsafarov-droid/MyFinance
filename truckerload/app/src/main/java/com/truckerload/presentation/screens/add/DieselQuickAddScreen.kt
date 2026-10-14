@@ -79,6 +79,7 @@ fun DieselQuickAddScreen(
                 onLocationChange = viewModel::setLocationText,
                 onImagePicked = viewModel::scanReceipt,
                 compact = false,
+                onSubmit = viewModel::save,
             )
             uiState.error?.let { error ->
                 Text(

@@ -19,11 +19,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.presentation.components.OneUiBackButton
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.rememberFormBack
 import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.OneUiLargeTitleHeader
@@ -49,6 +52,15 @@ fun AddLoadScreen(
     val parseFailed = stringResource(R.string.add_load_parse_failed)
     val alarmSetToast = stringResource(R.string.load_alarm_set_toast)
     val invalidCustomTime = stringResource(R.string.load_alarm_invalid_custom_time)
+    val saveCurrent = {
+        viewModel.save(
+            parseFailedFallback = parseFailed,
+            saveErrorFormatter = { msg ->
+                context.getString(R.string.common_save_error, msg)
+            },
+            onOptimisticInsert = onOptimisticInsert,
+        )
+    }
 
     LaunchedEffect(uiState.savedLoad, uiState.alarmPrompt) {
         if (uiState.savedLoad != null && uiState.alarmPrompt == null) {
@@ -114,15 +126,7 @@ fun AddLoadScreen(
                     AddLoadInputMode.PASTE -> uiState.rawText.isNotBlank()
                 }
                 Button(
-                    onClick = {
-                        viewModel.save(
-                            parseFailedFallback = parseFailed,
-                            saveErrorFormatter = { msg ->
-                                context.getString(R.string.common_save_error, msg)
-                            },
-                            onOptimisticInsert = onOptimisticInsert,
-                        )
-                    },
+                    onClick = saveCurrent,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     enabled = saveEnabled,
                 ) {
@@ -158,6 +162,7 @@ fun AddLoadScreen(
                 AddLoadInputMode.PASTE -> PasteLoadCard(
                     rawText = uiState.rawText,
                     onRawText = viewModel::setRawText,
+                    onSubmit = saveCurrent,
                 )
                 AddLoadInputMode.MANUAL -> {
                     uiState.completeness?.let { AddLoadReviewCard(completeness = it) }
@@ -172,6 +177,7 @@ fun AddLoadScreen(
                         onRemovePoint = viewModel::removeManualPoint,
                         showFieldErrors = uiState.showFieldErrors,
                         fieldErrorNonce = uiState.fieldErrorNonce,
+                        onSubmit = saveCurrent,
                     )
                 }
                 AddLoadInputMode.DOCUMENT -> {
@@ -195,6 +201,7 @@ fun AddLoadScreen(
                             hintRes = R.string.add_load_document_fields_hint,
                             showFieldErrors = uiState.showFieldErrors,
                             fieldErrorNonce = uiState.fieldErrorNonce,
+                            onSubmit = saveCurrent,
                         )
                     }
                 }
@@ -229,7 +236,11 @@ fun AddLoadScreen(
 }
 
 @Composable
-private fun PasteLoadCard(rawText: String, onRawText: (String) -> Unit) {
+private fun PasteLoadCard(
+    rawText: String,
+    onRawText: (String) -> Unit,
+    onSubmit: () -> Unit,
+) {
     OutlinedTextField(
         value = rawText,
         onValueChange = onRawText,
@@ -238,6 +249,8 @@ private fun PasteLoadCard(rawText: String, onRawText: (String) -> Unit) {
             .height(180.dp),
         label = { Text(stringResource(R.string.add_load_input_label)) },
         placeholder = { Text(stringResource(R.string.add_load_input_placeholder)) },
+        keyboardOptions = formKeyboard(KeyboardType.Text, done = true),
+        keyboardActions = formKeyboardActions(onDone = { if (rawText.isNotBlank()) onSubmit() }),
         shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
         colors = AppTextFieldDefaults.outlined(),
     )

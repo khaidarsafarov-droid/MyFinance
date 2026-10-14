@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.blurGate
 import com.truckerload.presentation.components.errorSupport
 import com.truckerload.presentation.components.rememberBlurGate
@@ -106,7 +107,8 @@ fun PaycheckEditorDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.paycheck_net_amount)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = formKeyboard(KeyboardType.Decimal, done = true),
+                    keyboardActions = formKeyboardActions(onDone = { if (netError == null) onSave() }),
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(netFocus)

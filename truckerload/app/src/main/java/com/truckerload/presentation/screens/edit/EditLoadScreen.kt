@@ -35,12 +35,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.screens.add.EquipmentTypeChipRow
 import com.truckerload.presentation.components.DisputeSection
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.blurGate
 import com.truckerload.presentation.components.errorSupport
 import com.truckerload.presentation.components.rememberBlurGate
@@ -70,6 +73,14 @@ fun EditLoadScreen(
     val viewModel: EditLoadViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
+    val saveEdits = {
+        viewModel.save(
+            saveErrorFormatter = { msg ->
+                context.getString(R.string.common_save_error, msg)
+            },
+            onOptimisticUpdate = onOptimisticUpdate,
+        )
+    }
     val scrollState = rememberScrollState()
     val finishFocusRequester = remember { FocusRequester() }
     val rateGate = rememberBlurGate()
@@ -175,6 +186,9 @@ fun EditLoadScreen(
                             onValueChange = viewModel::setTripId,
                             label = { Text(stringResource(R.string.edit_load_trip_id)) },
                             modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = formKeyboard(KeyboardType.Text),
+                            keyboardActions = formKeyboardActions(),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
@@ -196,6 +210,9 @@ fun EditLoadScreen(
                             onValueChange = viewModel::setLoadDate,
                             label = { Text(stringResource(R.string.edit_load_date_label)) },
                             modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = formKeyboard(KeyboardType.Text),
+                            keyboardActions = formKeyboardActions(),
                             supportingText = { Text(stringResource(R.string.edit_load_date_help)) },
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
@@ -221,6 +238,9 @@ fun EditLoadScreen(
                                 .blurGate(rateGate),
                             isError = showRate != null,
                             supportingText = errorSupport(showRate),
+                            singleLine = true,
+                            keyboardOptions = formKeyboard(KeyboardType.Decimal),
+                            keyboardActions = formKeyboardActions(),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
@@ -234,6 +254,9 @@ fun EditLoadScreen(
                                 .blurGate(milesGate),
                             isError = showMiles != null,
                             supportingText = errorSupport(showMiles),
+                            singleLine = true,
+                            keyboardOptions = formKeyboard(KeyboardType.Decimal),
+                            keyboardActions = formKeyboardActions(),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
@@ -242,6 +265,9 @@ fun EditLoadScreen(
                             onValueChange = viewModel::setPointA,
                             label = { Text(stringResource(R.string.edit_load_point_a)) },
                             modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = formKeyboard(KeyboardType.Text),
+                            keyboardActions = formKeyboardActions(),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
@@ -250,6 +276,11 @@ fun EditLoadScreen(
                             onValueChange = viewModel::setPointB,
                             label = { Text(stringResource(R.string.edit_load_point_b)) },
                             modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = formKeyboard(KeyboardType.Text, done = true),
+                            keyboardActions = formKeyboardActions(
+                                onDone = { if (rateError == null && milesError == null) saveEdits() },
+                            ),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )
@@ -270,14 +301,7 @@ fun EditLoadScreen(
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = {
-                        viewModel.save(
-                            saveErrorFormatter = { msg ->
-                                context.getString(R.string.common_save_error, msg)
-                            },
-                            onOptimisticUpdate = onOptimisticUpdate,
-                        )
-                    },
+                    onClick = saveEdits,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     enabled = !uiState.isSaving,
                 ) {

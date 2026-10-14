@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.truckerload.presentation.components.blurGate
 import com.truckerload.presentation.components.errorSupport
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.rememberBlurGate
 import com.truckerload.utils.FieldErrors
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ fun AddLoadManualForm(
     hintRes: Int = R.string.add_load_manual_hint,
     showFieldErrors: Boolean = false,
     fieldErrorNonce: Int = 0,
+    onSubmit: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val colors = AppTextFieldDefaults.outlined()
@@ -87,6 +89,8 @@ fun AddLoadManualForm(
                 placeholder = { Text(stringResource(R.string.add_load_trip_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = formKeyboard(KeyboardType.Text),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
@@ -97,6 +101,8 @@ fun AddLoadManualForm(
                 supportingText = { Text(stringResource(R.string.edit_load_date_help)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = formKeyboard(KeyboardType.Text),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
@@ -111,7 +117,8 @@ fun AddLoadManualForm(
                 singleLine = true,
                 isError = showRate != null,
                 supportingText = errorSupport(showRate),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = formKeyboard(KeyboardType.Decimal),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
@@ -126,12 +133,15 @@ fun AddLoadManualForm(
                 singleLine = true,
                 isError = showMiles != null,
                 supportingText = errorSupport(showMiles),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = formKeyboard(KeyboardType.Decimal),
+                keyboardActions = formKeyboardActions(),
                 shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                 colors = colors,
             )
-            fields.allPoints().forEachIndexed { index, value ->
+            val points = fields.allPoints()
+            points.forEachIndexed { index, value ->
                 val letter = ManualLoadFields.pointLetter(index)
+                val lastPoint = index == points.lastIndex
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -143,6 +153,10 @@ fun AddLoadManualForm(
                         placeholder = { Text(pointPlaceholder(index)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        keyboardOptions = formKeyboard(KeyboardType.Text, done = lastPoint),
+                        keyboardActions = formKeyboardActions(
+                            onDone = if (lastPoint && rateError == null) onSubmit else null,
+                        ),
                         shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                         colors = colors,
                     )

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +42,8 @@ import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.blurGate
 import com.truckerload.presentation.components.errorSupport
 import com.truckerload.presentation.components.rememberBlurGate
@@ -245,7 +246,10 @@ fun AddPaycheckScreen(
                     shape = RoundedCornerShape(14.dp),
                     isError = showAmountError != null,
                     supportingText = errorSupport(showAmountError),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = formKeyboard(KeyboardType.Decimal, done = true),
+                    keyboardActions = formKeyboardActions(
+                        onDone = { if (amountError == null) viewModel.openSaveDialog() },
+                    ),
                     colors = AppTextFieldDefaults.outlined(),
                 )
                 val parsedAmount = DecimalInput.parse(uiState.amountText)

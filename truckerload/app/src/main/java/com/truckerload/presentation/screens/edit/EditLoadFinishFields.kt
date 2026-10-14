@@ -32,8 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.presentation.components.formKeyboard
+import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -126,6 +129,8 @@ fun FinishDateField(
             onValueChange = onValueChange,
             label = { Text(stringResource(R.string.edit_load_finish_label)) },
             modifier = fieldModifier,
+            keyboardOptions = formKeyboard(KeyboardType.Text),
+            keyboardActions = formKeyboardActions(),
             supportingText = { Text(help) },
             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
             colors = fieldColors,

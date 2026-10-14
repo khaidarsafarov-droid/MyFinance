@@ -205,6 +205,7 @@ fun AddDieselScreen(
                     onDiscountChange = viewModel::setDiscountPriceText,
                     onLocationChange = viewModel::setLocationText,
                     onImagePicked = viewModel::scanReceipt,
+                    onSubmit = viewModel::openSaveDialog,
                 )
             }
         }
