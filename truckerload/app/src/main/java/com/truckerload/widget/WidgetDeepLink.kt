@@ -47,6 +47,19 @@ object WidgetDeepLink {
         else -> null
     }
 
+    /**
+     * Allow-list for [com.truckerload.presentation.MainActivity] extras and
+     * `truckerload://app/` paths. Blank input is not a deep link. Anything else
+     * that is not on the list opens home. Navigation only — callers must not
+     * save, delete, or sync because of this value.
+     */
+    fun sanitizeIncomingRoute(raw: String?): String? {
+        val trimmed = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        return resolveNavRoute(trimmed) ?: ROUTE_HOME
+    }
+
+    fun isJournalThisWeekToken(raw: String?): Boolean = raw?.trim() == ROUTE_JOURNAL_THIS_WEEK
+
     fun markOpenJournalThisWeek(context: Context) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit {
