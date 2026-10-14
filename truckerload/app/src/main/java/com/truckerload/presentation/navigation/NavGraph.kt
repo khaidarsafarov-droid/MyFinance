@@ -30,12 +30,14 @@ import com.truckerload.presentation.theme.navForwardEnter
 import com.truckerload.presentation.theme.navForwardExit
 import com.truckerload.presentation.theme.navPopEnter
 import com.truckerload.presentation.theme.navPopExit
-import com.truckerload.presentation.theme.tabEnterTransition
-import com.truckerload.presentation.theme.tabExitTransition
+import com.truckerload.presentation.theme.mainTabEnter
+import com.truckerload.presentation.theme.mainTabExit
 import com.truckerload.presentation.components.AdaptiveScaffold
 import com.truckerload.presentation.components.DrawerDestination
 import com.truckerload.presentation.components.navigateToMainRoute
+import com.truckerload.presentation.components.mainTabSlideSign
 import com.truckerload.presentation.components.shouldShowPhoneBottomBar
+import com.truckerload.presentation.components.QuickActionsBottomSheet
 import com.truckerload.presentation.utils.AdaptiveScreenContainer
 import com.truckerload.presentation.utils.isTablet
 import com.truckerload.presentation.utils.useNavigationRail
@@ -193,28 +195,28 @@ fun NavGraph(
 
     val currentDestination = backStackEntry?.destination
     val currentRoute = currentDestination?.route
-    val showMainNavigation = if (tablet) {
-        currentRoute != Routes.PAYCHECK && currentRoute != Routes.ADD_PAYCHECK &&
-            !currentRoute.orEmpty().startsWith(Routes.ADD_DIESEL) &&
-            currentRoute != Routes.DIESEL &&
-            currentRoute != Routes.MISC_EXPENSES &&
-            currentRoute != Routes.CAMERA && currentRoute != Routes.SCANNER &&
-            currentRoute != Routes.CAMERA_FOR_LOAD && currentRoute != Routes.SCANNER_FOR_LOAD &&
-            currentRoute != Routes.SCAN_GALLERY && currentRoute != Routes.PHOTO_GALLERY &&
-            !currentRoute.orEmpty().startsWith("attach_pick") &&
-            !currentRoute.orEmpty().startsWith("photo_detail")
-    } else {
-        shouldShowPhoneBottomBar(currentRoute)
-    }
+    val showMainNavigation = shouldShowPhoneBottomBar(currentRoute)
+    var showQuickActions by remember { mutableStateOf(false) }
 
     val reduceMotion = rememberReduceMotion()
 
     PremiumFirstRunOffer()
 
+    if (showQuickActions) {
+        QuickActionsBottomSheet(
+            onDismiss = { showQuickActions = false },
+            onAddLoad = { navController.navigate(Routes.ADD_LOAD) },
+            onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+            onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
+            onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+        )
+    }
+
     AdaptiveScaffold(
         showMainNavigation = showMainNavigation,
         currentRoute = currentRoute,
         onNavigate = { route -> navigateToMainRoute(route, navController) },
+        onQuickAction = { showQuickActions = true },
         onDrawerNavigate = { destination ->
             when (destination) {
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
@@ -251,10 +253,30 @@ fun NavGraph(
         ) {
             composable(
                 route = Routes.HOME,
-                enterTransition = { tabEnterTransition(reduceMotion) },
-                exitTransition = { tabExitTransition(reduceMotion) },
-                popEnterTransition = { tabEnterTransition(reduceMotion) },
-                popExitTransition = { tabExitTransition(reduceMotion) },
+                enterTransition = {
+                    mainTabEnter(
+                        reduceMotion,
+                        mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+                    )
+                },
+                exitTransition = {
+                    mainTabExit(
+                        reduceMotion,
+                        mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+                    )
+                },
+                popEnterTransition = {
+                    mainTabEnter(
+                        reduceMotion,
+                        mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+                    )
+                },
+                popExitTransition = {
+                    mainTabExit(
+                        reduceMotion,
+                        mainTabSlideSign(initialState.destination.route, targetState.destination.route),
+                    )
+                },
             ) {
                 ProvideLoadSharedElementScopes(
                     sharedTransitionScope = sharedTransitionScope,
@@ -269,8 +291,6 @@ fun NavGraph(
                             onStats = { navController.navigate(Routes.ANALYTICS) },
                             onWeeklyGoal = { navigateToMainRoute(Routes.STATS, navController) },
                             onSettings = { navController.navigate(Routes.SETTINGS) },
-                            onCamera = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
-                            onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
                             onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
                             onLoadCamera = { loadId, tripId, loadDate ->
                                 navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))

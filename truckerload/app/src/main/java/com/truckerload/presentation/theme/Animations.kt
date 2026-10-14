@@ -66,6 +66,27 @@ fun tabExitTransition(reduceMotion: Boolean = false) =
     )
 
 /**
+ * Short horizontal slide when moving between Loads, Goal, and Profile.
+ * [slideSign] is 1 toward the right tab, -1 toward the left. Nested screens
+ * keep the plain fade.
+ */
+fun mainTabEnter(reduceMotion: Boolean, slideSign: Int): EnterTransition {
+    if (reduceMotion || slideSign == 0) return tabEnterTransition(reduceMotion)
+    return slideInHorizontally(
+        animationSpec = tween(200, easing = EaseOutCubic),
+        initialOffsetX = { fullWidth -> slideSign * fullWidth / 5 },
+    ) + fadeIn(animationSpec = tween(200, easing = EaseOutCubic))
+}
+
+fun mainTabExit(reduceMotion: Boolean, slideSign: Int): ExitTransition {
+    if (reduceMotion || slideSign == 0) return tabExitTransition(reduceMotion)
+    return slideOutHorizontally(
+        animationSpec = tween(200, easing = EaseOutCubic),
+        targetOffsetX = { fullWidth -> -slideSign * fullWidth / 5 },
+    ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
+}
+
+/**
  * Material shared-axis X (forward): list → detail, home → add, drawer push screens.
  * When [reduceMotion] is on, falls back to an instant fade (no slide).
  */

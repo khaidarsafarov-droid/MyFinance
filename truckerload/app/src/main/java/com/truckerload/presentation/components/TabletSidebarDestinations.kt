@@ -4,8 +4,8 @@ import com.truckerload.R
 import com.truckerload.presentation.navigation.Routes
 
 /**
- * Permanent tablet rail items. Phone still uses [AppDrawerContent]; tablet puts
- * every drawer destination in the colored left rail so the overlay drawer is unused.
+ * Tablet rail. Primary rows match the phone bar (loads, goal, profile).
+ * Diesel and the other tools live under More, not as a phone tab.
  */
 internal data class TabletRailSpec(
     val drawer: DrawerDestination? = null,
@@ -22,8 +22,6 @@ internal val tabletRailPrimaryItems: List<TabletRailSpec> = listOf(
 )
 
 internal val tabletRailToolItems: List<TabletRailSpec> = listOf(
-    TabletRailSpec(drawer = DrawerDestination.SETTINGS, labelRes = R.string.nav_settings),
-    TabletRailSpec(drawer = DrawerDestination.MAP, labelRes = R.string.drawer_map),
     TabletRailSpec(
         drawer = DrawerDestination.PAYCHECK,
         labelRes = R.string.paycheck_title,
@@ -33,6 +31,7 @@ internal val tabletRailToolItems: List<TabletRailSpec> = listOf(
     TabletRailSpec(drawer = DrawerDestination.MISC_EXPENSES, labelRes = R.string.misc_expense_title),
     TabletRailSpec(drawer = DrawerDestination.REPORTS, labelRes = R.string.drawer_reports),
     TabletRailSpec(drawer = DrawerDestination.TAX_TRACKER, labelRes = R.string.tax_title),
+    TabletRailSpec(drawer = DrawerDestination.MAP, labelRes = R.string.drawer_map),
     TabletRailSpec(
         drawer = DrawerDestination.CAMERA,
         labelRes = R.string.camera,
@@ -45,6 +44,7 @@ internal val tabletRailToolItems: List<TabletRailSpec> = listOf(
         sectionLabelRes = R.string.drawer_section_maintenance,
     ),
     TabletRailSpec(drawer = DrawerDestination.DOCUMENTS, labelRes = R.string.drawer_documents),
+    TabletRailSpec(drawer = DrawerDestination.SETTINGS, labelRes = R.string.nav_settings),
     TabletRailSpec(drawer = DrawerDestination.IMPROVE, labelRes = R.string.drawer_improve),
     TabletRailSpec(drawer = DrawerDestination.ABOUT, labelRes = R.string.drawer_about),
 )

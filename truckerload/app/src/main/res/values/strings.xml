@@ -194,6 +194,8 @@
     <string name="sync_error_banner">Sync error: %1$s</string>
     <string name="sync_error_banner_retryable">Sync error: %1$s. Tap to retry.</string>
     <string name="nav_profile">Profile</string>
+    <string name="nav_more">More</string>
+    <string name="nav_profile_due_badge">Profile, %1$d maintenance tasks due</string>
     <string name="nav_weekly_goal">Goal</string>
     <string name="nav_logbook">Loads</string>
     <string name="drawer_reports">Reports</string>

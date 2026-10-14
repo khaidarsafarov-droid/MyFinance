@@ -80,17 +80,6 @@ fun AppDrawerContent(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
             ) {
-            drawerItem(
-                icon = AppIcons.Settings,
-                label = stringResource(R.string.nav_settings),
-                onClick = { onNavigate(DrawerDestination.SETTINGS); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.Map,
-                label = stringResource(R.string.drawer_map),
-                onClick = { onNavigate(DrawerDestination.MAP); onClose() },
-            )
-
             DrawerSectionLabel(stringResource(R.string.drawer_section_finance))
             drawerItem(
                 icon = AppIcons.Payments,
@@ -117,6 +106,11 @@ fun AppDrawerContent(
                 label = stringResource(R.string.tax_title),
                 onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
             )
+            drawerItem(
+                icon = AppIcons.Map,
+                label = stringResource(R.string.drawer_map),
+                onClick = { onNavigate(DrawerDestination.MAP); onClose() },
+            )
 
             DrawerSectionLabel(stringResource(R.string.drawer_section_data_entry))
             drawerItem(
@@ -140,6 +134,11 @@ fun AppDrawerContent(
                 icon = AppIcons.Description,
                 label = stringResource(R.string.drawer_documents),
                 onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
+            )
+            drawerItem(
+                icon = AppIcons.Settings,
+                label = stringResource(R.string.nav_settings),
+                onClick = { onNavigate(DrawerDestination.SETTINGS); onClose() },
             )
             drawerItem(
                 icon = AppIcons.EditNote,

@@ -85,6 +85,20 @@ fun navigateToMainRoute(
 private fun tabRootInBackStack(navController: NavHostController, route: String): Boolean =
     runCatching { navController.getBackStackEntry(route) }.isSuccess
 
+/** Bottom destinations. Diesel is intentionally not a tab. */
+internal val phoneBottomDestinations = listOf(Routes.HOME, Routes.STATS, Routes.PROFILE)
+
+/**
+ * 1 when [toRoute] sits to the right of [fromRoute] on the phone bar, -1 the
+ * other way, 0 when either screen is not a bottom tab.
+ */
+internal fun mainTabSlideSign(fromRoute: String?, toRoute: String?): Int {
+    val from = phoneBottomDestinations.indexOf(fromRoute)
+    val to = phoneBottomDestinations.indexOf(toRoute)
+    if (from < 0 || to < 0 || from == to) return 0
+    return if (to > from) 1 else -1
+}
+
 internal fun isImmersivePhoneRoute(route: String): Boolean =
     route == Routes.CAMERA ||
         route.startsWith("camera_load") ||
@@ -94,10 +108,8 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
         route == Routes.SCAN_GALLERY ||
         route == Routes.PHOTO_GALLERY ||
         route.startsWith("photo_detail") ||
-        route == Routes.PAYCHECK ||
         route == Routes.ADD_PAYCHECK ||
         route.startsWith(Routes.ADD_DIESEL) ||
-        route == Routes.DIESEL ||
         route == Routes.MISC_EXPENSES
 
 /** Non-immersive tool screens where phone users still need the bottom tab bar. */
@@ -108,7 +120,9 @@ internal fun isPhoneChromeToolRoute(route: String): Boolean =
         route == Routes.ABOUT ||
         route == Routes.IMPROVE ||
         route == Routes.MAINTENANCE ||
-        route == Routes.TAX_TRACKER
+        route == Routes.TAX_TRACKER ||
+        route == Routes.DIESEL ||
+        route == Routes.PAYCHECK
 
 internal fun isHomeTabRoute(route: String): Boolean =
     route == Routes.HOME ||

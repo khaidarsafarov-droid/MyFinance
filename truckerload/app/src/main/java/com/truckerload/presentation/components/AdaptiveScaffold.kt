@@ -33,6 +33,7 @@ fun AdaptiveScaffold(
     showMainNavigation: Boolean,
     currentRoute: String?,
     onNavigate: (String) -> Unit,
+    onQuickAction: () -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
@@ -51,6 +52,7 @@ fun AdaptiveScaffold(
             tabletChrome = tabletChrome,
             currentRoute = currentRoute,
             onNavigate = onNavigate,
+            onQuickAction = onQuickAction,
             onDrawerNavigate = onDrawerNavigate,
             content = content,
         )
@@ -86,6 +88,7 @@ private fun AdaptiveScaffoldBody(
     tabletChrome: Boolean,
     currentRoute: String?,
     onNavigate: (String) -> Unit,
+    onQuickAction: () -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
@@ -103,6 +106,7 @@ private fun AdaptiveScaffoldBody(
                     sizeClass = sizeClass,
                     currentRoute = currentRoute,
                     onNavigate = onNavigate,
+                    onQuickAction = onQuickAction,
                     onDrawerNavigate = onDrawerNavigate,
                     content = content,
                 )
@@ -113,6 +117,7 @@ private fun AdaptiveScaffoldBody(
                     showBottomBar = showMainNavigation && !tabletChrome,
                     currentRoute = currentRoute,
                     onNavigate = onNavigate,
+                    onQuickAction = onQuickAction,
                     content = content,
                 )
             }
@@ -125,6 +130,7 @@ private fun TabletScaffold(
     sizeClass: WindowSizeClass,
     currentRoute: String?,
     onNavigate: (String) -> Unit,
+    onQuickAction: () -> Unit,
     onDrawerNavigate: (DrawerDestination) -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
@@ -138,6 +144,7 @@ private fun TabletScaffold(
         TruckLogNavigationRail(
             currentRoute = currentRoute,
             onNavigate = onNavigate,
+            onQuickAction = onQuickAction,
             onDrawerNavigate = onDrawerNavigate,
             compact = !useWideTabletSidebar(),
         )
@@ -161,6 +168,7 @@ private fun PhoneScaffold(
     showBottomBar: Boolean,
     currentRoute: String?,
     onNavigate: (String) -> Unit,
+    onQuickAction: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -172,6 +180,7 @@ private fun PhoneScaffold(
                 SoftBottomBar(
                     currentRoute = currentRoute,
                     onNavigate = onNavigate,
+                    onQuickAction = onQuickAction,
                 )
             }
         },
