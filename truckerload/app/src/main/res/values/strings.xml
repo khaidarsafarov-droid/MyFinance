@@ -996,6 +996,9 @@
     <string name="widget_metric_goal">Goal</string>
     <string name="widget_metric_revenue">Total Revenue</string>
     <string name="widget_metric_rpm">RPM</string>
+    <string name="widget_metric_diesel">Diesel</string>
+    <string name="widget_metric_net">Take-home</string>
+    <string name="widget_metric_goal_value">Goal %1$s</string>
     <string name="widget_metric_trips">Loads</string>
     <string name="widget_day_today">today</string>
     <string name="rpm_per_mile_format">$%1$.2f/mi</string>

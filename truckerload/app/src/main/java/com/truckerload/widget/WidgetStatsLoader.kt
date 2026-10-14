@@ -74,6 +74,7 @@ object WidgetStatsLoader {
             totalMiles = goalProgress.totalMiles,
             totalLoadRate = goalProgress.currentGross,
             netProfit = weekSummary.netProfit,
+            dieselAmount = weekSummary.dieselAmount,
             weekLabel = weekLabel,
             statsLine = statsLine,
             cpmTarget = rpmTarget,

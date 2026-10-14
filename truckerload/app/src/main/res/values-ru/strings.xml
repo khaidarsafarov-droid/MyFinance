@@ -996,6 +996,9 @@
     <string name="widget_metric_goal">Цель</string>
     <string name="widget_metric_revenue">Выручка</string>
     <string name="widget_metric_rpm">RPM</string>
+    <string name="widget_metric_diesel">Дизель</string>
+    <string name="widget_metric_net">На руки</string>
+    <string name="widget_metric_goal_value">Цель %1$s</string>
     <string name="widget_metric_trips">Рейсов</string>
     <string name="widget_day_today">сегодня</string>
     <string name="rpm_per_mile_format">$%1$.2f/ми</string>

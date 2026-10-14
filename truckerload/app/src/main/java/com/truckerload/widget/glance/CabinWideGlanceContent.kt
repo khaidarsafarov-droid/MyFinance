@@ -83,10 +83,13 @@ internal fun WideBudgetContent(
         MockupStatsRow(
             context = context,
             shown = shown,
+            week = week,
             revenueLabelSp = layout.revenueLabelSp,
             amountSp = layout.amountSp,
             metricSp = layout.metricSp,
             metricGap = layout.metricGap,
+            showDieselNet = layout.showDieselNet,
+            showRpm = layout.showRpm,
             modifier = GlanceModifier.sectionBelow(layout.sectionGap),
         )
         if (layout.showWeekRow) {
@@ -186,13 +189,21 @@ private fun CabinHeader(
 private fun MockupStatsRow(
     context: Context,
     shown: WidgetStats,
+    week: WidgetStats,
     revenueLabelSp: TextUnit,
     amountSp: TextUnit,
     metricSp: TextUnit,
     metricGap: Dp,
+    showDieselNet: Boolean,
+    showRpm: Boolean,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     val colors = LocalCabinColors.current
+    val goalValue = if (week.weeklyProfitGoal > 0) {
+        WidgetStatsFormatter.formatGrossUsd(week.weeklyProfitGoal)
+    } else {
+        context.getString(R.string.widget_goal_not_set)
+    }
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
@@ -223,25 +234,43 @@ private fun MockupStatsRow(
         Column(modifier = GlanceModifier.defaultWeight()) {
             MetricRow(
                 label = context.getString(R.string.widget_metric_goal),
-                value = if (shown.weeklyProfitGoal > 0) {
-                    WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
-                } else {
-                    context.getString(R.string.widget_goal_not_set)
-                },
+                value = goalValue,
                 valueColor = Color(colors.text),
                 fontSize = metricSp,
                 context = context,
                 onClickRoute = WidgetDeepLink.ROUTE_WEEKLY_GOAL,
             )
-            Spacer(modifier = GlanceModifier.height(metricGap))
-            MetricRow(
-                label = context.getString(R.string.widget_metric_rpm),
-                value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
-                valueColor = Color(colors.accent),
-                fontSize = metricSp,
-                onClickRoute = WidgetDeepLink.ROUTE_STATS,
-                context = context,
-            )
+            if (showDieselNet) {
+                Spacer(modifier = GlanceModifier.height(metricGap))
+                MetricRow(
+                    label = context.getString(R.string.widget_metric_diesel),
+                    value = WidgetStatsFormatter.formatGrossUsd(week.dieselAmount),
+                    valueColor = Color(colors.text),
+                    fontSize = metricSp,
+                    context = context,
+                    onClickRoute = WidgetDeepLink.ROUTE_ADD_DIESEL,
+                )
+                Spacer(modifier = GlanceModifier.height(metricGap))
+                MetricRow(
+                    label = context.getString(R.string.widget_metric_net),
+                    value = WidgetStatsFormatter.formatGrossUsd(week.netProfit),
+                    valueColor = Color(colors.accent),
+                    fontSize = metricSp,
+                    context = context,
+                    onClickRoute = WidgetDeepLink.ROUTE_HOME,
+                )
+            }
+            if (showRpm) {
+                Spacer(modifier = GlanceModifier.height(metricGap))
+                MetricRow(
+                    label = context.getString(R.string.widget_metric_rpm),
+                    value = WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
+                    valueColor = Color(colors.accent),
+                    fontSize = metricSp,
+                    onClickRoute = WidgetDeepLink.ROUTE_STATS,
+                    context = context,
+                )
+            }
         }
     }
 }
@@ -261,10 +290,13 @@ internal fun CompactFinanceBlock(
     MockupStatsRow(
         context = context,
         shown = shown,
+        week = shown,
         revenueLabelSp = percentSp,
         amountSp = amountSp,
         metricSp = metricSp,
         metricGap = metricGap,
+        showDieselNet = false,
+        showRpm = false,
         modifier = modifier,
     )
 }
@@ -303,7 +335,7 @@ private fun MetricRow(
             style = TextStyle(
                 color = ColorProvider(valueColor),
                 fontSize = fontSize,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
             ),
             maxLines = 1,

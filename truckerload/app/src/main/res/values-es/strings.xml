@@ -996,6 +996,9 @@
     <string name="widget_metric_goal">Meta</string>
     <string name="widget_metric_revenue">Ingresos totales</string>
     <string name="widget_metric_rpm">RPM</string>
+    <string name="widget_metric_diesel">Diésel</string>
+    <string name="widget_metric_net">Neto</string>
+    <string name="widget_metric_goal_value">Meta %1$s</string>
     <string name="widget_metric_trips">Cargas</string>
     <string name="widget_day_today">hoy</string>
     <string name="rpm_per_mile_format">$%1$.2f/mi</string>
