@@ -67,7 +67,7 @@ class TelegramApiClient(
      * the foreground service on auth errors.
      */
     fun mapGetUpdatesFailure(e: Throwable): TelegramSyncRunResult {
-        Log.e(TAG, "getUpdates failed: ${LogRedactor.redact(e.message)}", e)
+        Log.e(TAG, "getUpdates failed: ${LogRedactor.redact(e.message)}", LogRedactor.redactThrowable(e))
         val delay = if (e.message?.contains("409") == true) 45L else 30L
         if (TelegramAuthErrors.shouldStopService(e.message)) {
             TelegramBotPoller.stop(context)

@@ -11,6 +11,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.hilt.work.HiltWorker
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.utils.LogRedactor
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
@@ -36,7 +37,7 @@ class DriveSyncWorker @AssistedInject constructor(
             Log.i(TAG, "Drive auto backup attempted")
             if (ok) Result.success() else Result.retry()
         } catch (e: Exception) {
-            Log.w(TAG, "Drive sync worker failed", e)
+            Log.w(TAG, "Drive sync worker failed", LogRedactor.redactThrowable(e))
             Result.retry()
         }
     }

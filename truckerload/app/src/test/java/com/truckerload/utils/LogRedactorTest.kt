@@ -21,6 +21,19 @@ class LogRedactorTest {
     }
 
     @Test
+    fun redactedThrowableDropsTheBotTokenAndTheCause() {
+        val token = "123456789:AAHsecretTokenValue_xx"
+        val root = IllegalStateException("https://api.telegram.org/bot$token/getUpdates")
+        val wrapped = RuntimeException("call failed", root)
+        val safe = LogRedactor.redactThrowable(wrapped)
+        val text = safe.toString() + (safe.cause?.toString() ?: "")
+        assertFalse(text.contains(token))
+        assertFalse(text.contains("AAHsecretTokenValue"))
+        assertTrue(text.contains("/bot***"))
+        assertEquals(null, safe.cause)
+    }
+
+    @Test
     fun redactsGoogleApiKey() {
         val raw = "x-goog-api-key: AIzaSyA1234567890abcdefg"
         val redacted = LogRedactor.redact(raw)

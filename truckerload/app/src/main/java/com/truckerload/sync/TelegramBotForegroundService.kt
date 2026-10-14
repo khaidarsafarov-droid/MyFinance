@@ -131,7 +131,7 @@ object TelegramBotForegroundService {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.e(TAG, "pollLoop error — retrying", e)
+                Log.e(TAG, "pollLoop error — retrying", LogRedactor.redactThrowable(e))
                 delay(5_000)
             }
         }

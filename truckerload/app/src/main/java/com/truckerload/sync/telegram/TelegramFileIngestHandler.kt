@@ -51,7 +51,7 @@ class TelegramFileIngestHandler(
             return
         }
         val bytes = apiClient.downloadFile(fileId).getOrElse { e ->
-            Log.e(TAG, "download failed: ${LogRedactor.redact(e.message)}", e)
+            Log.e(TAG, "download failed: ${LogRedactor.redact(e.message)}", LogRedactor.redactThrowable(e))
             apiClient.sendWithMenu(
                 update.chatId,
                 context.getString(R.string.sync_receipt_extract_failed, e.message ?: "?"),

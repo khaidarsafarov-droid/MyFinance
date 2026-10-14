@@ -278,7 +278,7 @@ class TelegramMessageParser(
             )
         }
         val bytes = telegramApi.downloadFile(fileId).getOrElse { e ->
-            Log.e(TAG, "download export file failed: ${LogRedactor.redact(e.message)}", e)
+            Log.e(TAG, "download export file failed: ${LogRedactor.redact(e.message)}", LogRedactor.redactThrowable(e))
             return context.getString(R.string.restore_error, e.message.orEmpty())
         }
         val text = bytes.toString(Charsets.UTF_8)

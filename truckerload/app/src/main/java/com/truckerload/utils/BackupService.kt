@@ -85,7 +85,7 @@ object BackupService {
         Log.d(TAG, "createAutoBackup saved $fileName (${backup.loads.size} loads)")
         runCatching {
             com.truckerload.data.backup.GoogleDriveBackupService.pushAutoBackupIfEnabled(appContext)
-        }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", e) }
+        }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", LogRedactor.redactThrowable(e)) }
     }
 
     suspend fun restoreFromFile(context: Context, file: File): Result<Int> = withContext(Dispatchers.IO) {

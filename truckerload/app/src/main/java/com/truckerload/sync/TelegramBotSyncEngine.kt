@@ -111,7 +111,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                 Log.e(
                     TAG,
                     "handleUpdate failed for updateId=${update.updateId}: ${LogRedactor.redact(e.message)}",
-                    e,
+                    LogRedactor.redactThrowable(e),
                 )
                 // FIX: after N failures, dead-letter and advance so one poison update cannot stall forever
                 val failures = incrementPoisonFailures(prefs, update.updateId)

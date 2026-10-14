@@ -1,5 +1,7 @@
 package com.truckerload.data.remote
 
+import com.truckerload.BuildConfig
+import com.truckerload.utils.LogRedactor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -18,6 +20,7 @@ object TelegramBotHealth {
     private val client = OkHttpClient.Builder()
         .connectTimeout(12, TimeUnit.SECONDS)
         .readTimeout(12, TimeUnit.SECONDS)
+        .installSecretRedaction(BuildConfig.DEBUG)
         .build()
 
     suspend fun check(token: String): TelegramBotHealthResult = withContext(Dispatchers.IO) {
@@ -44,7 +47,7 @@ object TelegramBotHealth {
                 if (!response.isSuccessful) {
                     return@withContext TelegramBotHealthResult(
                         ok = false,
-                        error = com.truckerload.utils.LogRedactor.redact("HTTP ${response.code}: $body")
+                        error = LogRedactor.redact("HTTP ${response.code}: $body")
                     )
                 }
                 val json = JSONObject(body)
@@ -54,7 +57,7 @@ object TelegramBotHealth {
         }.getOrElse { e ->
             TelegramBotHealthResult(
                 ok = false,
-                error = com.truckerload.utils.LogRedactor.redact(e.message ?: "Network error"),
+                error = LogRedactor.redact(e.message ?: "Network error"),
             )
         }
     }

@@ -13,6 +13,7 @@ import androidx.work.WorkerParameters
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotBranding
+import com.truckerload.utils.LogRedactor
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -111,7 +112,7 @@ class TelegramSyncWorker @AssistedInject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.w("TelegramSync", "Background poll failed", e)
+            Log.w("TelegramSync", "Background poll failed", LogRedactor.redactThrowable(e))
         }
         enqueueFollowUp(applicationContext)
         return Result.success()

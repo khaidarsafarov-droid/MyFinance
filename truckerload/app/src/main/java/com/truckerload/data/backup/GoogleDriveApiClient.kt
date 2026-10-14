@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.truckerload.BuildConfig
+import com.truckerload.data.remote.installSecretRedaction
+import com.truckerload.utils.LogRedactor
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -33,6 +35,7 @@ class GoogleDriveApiClient(
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
+        .installSecretRedaction(BuildConfig.DEBUG)
         .build()
 
     sealed class DriveError : Exception() {
@@ -150,7 +153,7 @@ class GoogleDriveApiClient(
         client.newCall(request).execute().use { response ->
             val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw DriveError.Api("List failed (${response.code}): $body")
+                throw DriveError.Api(LogRedactor.redact("List failed (${response.code}): $body"))
             }
             val files = JSONObject(body).optJSONArray("files") ?: return null
             if (files.length() == 0) return null
@@ -179,8 +182,8 @@ class GoogleDriveApiClient(
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                Log.e(TAG, "createFile failed: $respBody")
-                throw DriveError.Api("Upload failed (${response.code}): $respBody")
+                Log.e(TAG, "createFile failed: ${LogRedactor.redact(respBody)}")
+                throw DriveError.Api(LogRedactor.redact("Upload failed (${response.code}): $respBody"))
             }
             return JSONObject(respBody).getString("id")
         }
@@ -196,7 +199,7 @@ class GoogleDriveApiClient(
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw DriveError.Api("Update failed (${response.code}): $respBody")
+                throw DriveError.Api(LogRedactor.redact("Update failed (${response.code}): $respBody"))
             }
         }
     }
