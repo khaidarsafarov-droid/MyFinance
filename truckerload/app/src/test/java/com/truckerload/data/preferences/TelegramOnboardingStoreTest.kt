@@ -1,6 +1,7 @@
 package com.truckerload.data.preferences
 
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -73,12 +74,14 @@ class TelegramOnboardingStoreTest {
     }
 
     @Test
-    fun bootstrapDoesNotCrashWhenSecureStorageFallback() {
+    fun savedTokenSurvivesWhenEncryptedPrefsFallbackIsMarked() {
         SecurePreferences.markFallbackForTests()
         val context = RuntimeEnvironment.getApplication()
         val store = TelegramTokenStore(context, "user-boot-fallback")
-        store.bootstrapFromBuildConfigIfEmpty()
-        assertFalse(store.hasPersistedToken())
+        val token = "123456789:AA" + "y".repeat(35)
+        store.setToken(token)
+        assertEquals(token, TelegramTokenStore(context, "user-boot-fallback").getToken())
+        assertTrue(store.hasPersistedToken())
     }
 
     @Test

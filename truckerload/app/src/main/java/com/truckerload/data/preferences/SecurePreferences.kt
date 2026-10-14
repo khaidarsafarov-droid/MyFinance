@@ -14,9 +14,9 @@ import com.truckerload.utils.CrashReporting
  *
  * When Android Keystore / EncryptedSharedPreferences is unavailable (common on some OEM
  * tablets), falls back to a durable plaintext file (`{name}_fallback`) and sets
- * [plaintextFallbackUsed]. High-value secrets (bot tokens, API keys) still refuse disk
- * writes via [requireEncryptedForSecretWrite]. Session identity and PBKDF2 password
- * verifiers are allowed on the degraded store so users are not forced to re-register.
+ * [plaintextFallbackUsed]. Session identity and PBKDF2 password verifiers are allowed
+ * on the degraded store so users are not forced to re-register. The Telegram bot token
+ * does not use this store; it is wrapped with the Android Keystore AES-GCM helper.
  *
  * Important: do not delete the fallback file on every [open] — Keystore can stay broken
  * across process restarts; wiping would erase registration/login every cold start.
