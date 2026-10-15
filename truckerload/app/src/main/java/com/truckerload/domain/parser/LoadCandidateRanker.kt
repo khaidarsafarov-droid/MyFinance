@@ -2,11 +2,14 @@ package com.truckerload.domain.parser
 
 import com.truckerload.domain.model.Load
 
-/** Which parser produced a load. Higher [bonus] wins ties between equally consistent loads. */
+/**
+ * Which parser produced a load. Higher [bonus] wins ties between equally consistent loads.
+ * Amazon Relay stays above broker templates: most drivers paste Relay trips.
+ */
 internal enum class LoadParseSource(val bonus: Int) {
     JSON(30),
-    RELAY(24),
-    TEMPLATE(26),
+    RELAY(28),
+    TEMPLATE(23),
     RATE_CONFIRMATION(22),
     DELIMITED(18),
     FLEXIBLE(8),
@@ -26,6 +29,12 @@ internal object LoadCandidateRanker {
     fun choose(groups: List<LoadParseGroup>): List<Load> {
         val viable = groups.filter { it.loads.isNotEmpty() }
         if (viable.isEmpty()) return emptyList()
+        val relay = viable.filter { group ->
+            group.source == LoadParseSource.RELAY && group.loads.any { it.totalRate.isPositive() }
+        }
+        if (relay.isNotEmpty()) {
+            return relay.maxWith(compareBy<LoadParseGroup> { groupScore(it) }.thenBy { it.source.bonus }).loads
+        }
         return viable.maxWith(compareBy<LoadParseGroup> { groupScore(it) }.thenBy { it.source.bonus }).loads
     }
 

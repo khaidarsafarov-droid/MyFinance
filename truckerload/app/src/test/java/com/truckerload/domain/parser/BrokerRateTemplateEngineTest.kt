@@ -62,6 +62,32 @@ class BrokerRateTemplateEngineTest {
     }
 
     @Test
+    fun amazonRelayWinsWhenABrokerTemplateAlsoMatches() {
+        val mixed = """
+            TQL
+            Load Information
+            PO# 8844221
+            Total: $1,850.00
+            Pick Ups
+            Address: 100 Main St Dallas, TX 75001
+            Deliveries
+            Address: 200 Oak Ave Denver, CO 80202
+
+            Trip ID: T-116KYL6KW
+            Total Rate: 2500.00
+            Total Loaded Miles: 850 mi
+            Pu-address: SWF2, Garner, NC
+            Del-address: TOL3, Perrysburg, OH
+        """.trimIndent()
+        val loads = MessageParseService()
+            .parseLoadsFromInboundText(mixed, REF_MILLIS)
+            .getOrThrow()
+        assertEquals(1, loads.size)
+        assertEquals("T-116KYL6KW", loads.first().tripId)
+        assertEquals(Money.fromDollars(2500.00), loads.first().totalRate)
+    }
+
+    @Test
     fun inboundTextKeepsTheBrokerRate() {
         val loads = MessageParseService()
             .parseLoadsFromInboundText(TQL, REF_MILLIS, "tql-rate-confirmation.pdf")
