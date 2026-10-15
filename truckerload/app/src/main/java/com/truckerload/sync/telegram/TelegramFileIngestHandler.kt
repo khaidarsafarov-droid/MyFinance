@@ -148,20 +148,19 @@ class TelegramFileIngestHandler(
         prefs: SharedPreferences,
         callbackQueryId: String?,
     ) {
+        // Stop the button spinner before Room or prefs work. A late answer looks like a dead tap.
+        callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
         val store = TelegramReceiptConfirmStore(prefs, context)
         if (data == TelegramReceiptKeyboard.CANCEL) {
             store.clear(chatId, discardFile = true)
-            callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_cancelled))
             return
         }
         val preview = store.load(chatId)
         if (preview == null) {
-            callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_expired))
             return
         }
-        callbackQueryId?.let { apiClient.answerCallbackQuery(it, "OK") }
         if (data == TelegramReceiptKeyboard.TYPE_AMOUNT) {
             store.save(chatId, preview.copy(awaitingTypedAmount = true))
             apiClient.sendWithMenu(chatId, context.getString(R.string.sync_amount_type_prompt))
@@ -294,6 +293,47 @@ class TelegramFileIngestHandler(
                 cancel = context.getString(R.string.common_cancel),
             ),
         )
+    }
+
+    /**
+     * "Yes, save", a dollar button, Cancel, or a typed number while a draft is open.
+     * Returns false when [text] is a new statement and should be parsed as usual.
+     */
+    suspend fun tryHandlePendingReply(
+        chatId: String,
+        text: String,
+        loadRepository: LoadRepository,
+        paycheckRepository: PaycheckRepository,
+        dieselRepository: DieselRepository,
+        prefs: SharedPreferences,
+    ): Boolean {
+        val choice = TelegramReceiptChoice.matchLabel(
+            text = text,
+            yes = context.getString(R.string.sync_paycheck_confirm_yes),
+            typeOwn = context.getString(R.string.sync_amount_type_own),
+            cancel = context.getString(R.string.common_cancel),
+            load = context.getString(R.string.sync_receipt_btn_load),
+            diesel = context.getString(R.string.sync_receipt_btn_diesel),
+            defLabel = context.getString(R.string.sync_receipt_btn_def),
+            paycheck = context.getString(R.string.sync_receipt_btn_paycheck),
+        ) ?: return false
+        val store = TelegramReceiptConfirmStore(prefs, context)
+        if (store.load(chatId) == null) {
+            if (choice.kind == TelegramReceiptChoice.Kind.Amount) return false
+            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_expired))
+            return true
+        }
+        val data = choice.toCallbackData() ?: return false
+        handleCallback(
+            data = data,
+            chatId = chatId,
+            loadRepository = loadRepository,
+            paycheckRepository = paycheckRepository,
+            dieselRepository = dieselRepository,
+            prefs = prefs,
+            callbackQueryId = null,
+        )
+        return true
     }
 
     suspend fun tryHandleTypedAmount(

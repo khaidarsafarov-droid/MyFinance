@@ -38,6 +38,14 @@ object TelegramReceiptKeyboard {
             )
         }
 
+    fun amountLabel(amount: Double): String =
+        "$" + "%,.2f".format(java.util.Locale.US, amount)
+
+    /**
+     * One-time reply keyboard. A tap sends the label as a normal message, which the
+     * long poll already receives. Inline callback presses on this step were not
+     * producing a chat reply.
+     */
     fun amountPicker(
         amounts: List<Double>,
         yes: String,
@@ -45,34 +53,39 @@ object TelegramReceiptKeyboard {
         cancel: String?,
     ): JSONObject =
         JSONObject().apply {
-            put(
-                "inline_keyboard",
-                JSONArray().apply {
-                    val unique = amounts.filter { it > 0 }.distinctBy { "%.2f".format(java.util.Locale.US, it) }
-                    if (unique.size > 1) {
-                        unique.chunked(2).forEach { row ->
-                            put(
-                                JSONArray().apply {
-                                    row.forEach { amount ->
-                                        val label = "$" + "%,.2f".format(java.util.Locale.US, amount)
-                                        put(button(label, amountCallback(amount)))
-                                    }
-                                },
-                            )
-                        }
-                    }
-                    put(
-                        JSONArray().apply {
-                            if (yes.isNotBlank()) put(button(yes, CONFIRM))
-                            put(button(typeOwn, TYPE_AMOUNT))
-                        },
-                    )
-                    if (!cancel.isNullOrBlank()) {
-                        put(JSONArray().apply { put(button(cancel, CANCEL)) })
-                    }
-                },
-            )
+            put("keyboard", amountKeyRows(amounts, yes, typeOwn, cancel))
+            put("resize_keyboard", true)
+            put("one_time_keyboard", true)
         }
+
+    private fun amountKeyRows(
+        amounts: List<Double>,
+        yes: String,
+        typeOwn: String,
+        cancel: String?,
+    ): JSONArray = JSONArray().apply {
+        val unique = amounts.filter { it > 0 }.distinctBy { "%.2f".format(java.util.Locale.US, it) }
+        if (unique.size > 1) {
+            unique.chunked(2).forEach { row ->
+                put(
+                    JSONArray().apply {
+                        row.forEach { amount ->
+                            put(JSONObject().put("text", amountLabel(amount)))
+                        }
+                    },
+                )
+            }
+        }
+        put(
+            JSONArray().apply {
+                if (yes.isNotBlank()) put(JSONObject().put("text", yes))
+                put(JSONObject().put("text", typeOwn))
+            },
+        )
+        if (!cancel.isNullOrBlank()) {
+            put(JSONArray().apply { put(JSONObject().put("text", cancel)) })
+        }
+    }
 
     fun inline(
         load: String,
@@ -83,28 +96,20 @@ object TelegramReceiptKeyboard {
     ): JSONObject =
         JSONObject().apply {
             put(
-                "inline_keyboard",
+                "keyboard",
                 JSONArray().apply {
-                    put(
-                        JSONArray().apply {
-                            put(button(load, LOAD))
-                            put(button(diesel, DIESEL))
-                        },
-                    )
-                    put(
-                        JSONArray().apply {
-                            put(button(def, DEF))
-                            put(button(paycheck, PAYCHECK))
-                        },
-                    )
-                    put(
-                        JSONArray().apply {
-                            put(button(cancel, CANCEL))
-                        },
-                    )
+                    put(textRow(load, diesel))
+                    put(textRow(def, paycheck))
+                    put(textRow(cancel))
                 },
             )
+            put("resize_keyboard", true)
+            put("one_time_keyboard", true)
         }
+
+    private fun textRow(vararg labels: String): JSONArray = JSONArray().apply {
+        labels.forEach { put(JSONObject().put("text", it)) }
+    }
 
     private fun button(label: String, data: String) = JSONObject()
         .put("text", label)

@@ -13,7 +13,7 @@ class TelegramReceiptConfirmStore(
     private val context: Context? = null,
 ) {
     fun save(chatId: String, preview: ReceiptPreview) {
-        prefs.edit {
+        prefs.edit(commit = true) {
             putString(key(chatId), toJson(preview).toString())
             putLong(timeKey(chatId), System.currentTimeMillis())
         }
@@ -44,8 +44,20 @@ class TelegramReceiptConfirmStore(
         PaycheckSourceFiles.delete(ctx, path)
     }
 
-    private fun key(chatId: String) = "tg_receipt_$chatId"
-    private fun timeKey(chatId: String) = "tg_receipt_at_$chatId"
+    /** The open draft chat, when there is exactly one. Used if a button press has no chat id. */
+    fun soleChatId(): String? {
+        val chats = prefs.all.keys.mapNotNull { key ->
+            when {
+                key.startsWith(TIME_PREFIX) -> null
+                key.startsWith(KEY_PREFIX) -> key.removePrefix(KEY_PREFIX).takeIf { it.isNotBlank() }
+                else -> null
+            }
+        }.distinct()
+        return chats.singleOrNull()
+    }
+
+    private fun key(chatId: String) = KEY_PREFIX + chatId
+    private fun timeKey(chatId: String) = TIME_PREFIX + chatId
 
     private fun toJson(preview: ReceiptPreview) = JSONObject().apply {
         put("kind", preview.kind.name)
@@ -107,5 +119,7 @@ class TelegramReceiptConfirmStore(
 
     companion object {
         private const val TTL_MS = 30L * 60L * 1000L
+        private const val KEY_PREFIX = "tg_receipt_"
+        private const val TIME_PREFIX = "tg_receipt_at_"
     }
 }

@@ -35,6 +35,21 @@ class TelegramUpdateDispatcher(
         prefs: SharedPreferences,
         stateMachine: TelegramStateMachine,
     ) {
+        if (update.isCallbackQuery && update.chatId.isBlank()) {
+            val recovered = TelegramReceiptConfirmStore(prefs, context).soleChatId()
+            if (!recovered.isNullOrBlank()) {
+                handleUpdate(
+                    update = update.copy(chatId = recovered),
+                    loadRepository = loadRepository,
+                    paycheckRepository = paycheckRepository,
+                    dieselRepository = dieselRepository,
+                    chatRestore = chatRestore,
+                    prefs = prefs,
+                    stateMachine = stateMachine,
+                )
+                return
+            }
+        }
         // FIX: only the paired private chat may mutate journal data / hijack exports.
         // Unpaired load texts are stored and imported after /start so the offset can move.
         val gate = authorizeChat(update)
@@ -63,9 +78,15 @@ class TelegramUpdateDispatcher(
         }
 
         if (update.isCallbackQuery && update.callbackQueryId != null) {
-            if (TelegramReceiptKeyboard.isReceiptCallback(update.text)) {
+            val action = TelegramReceiptChoice.receiptActionData(
+                raw = update.text,
+                yes = context.getString(R.string.sync_paycheck_confirm_yes),
+                typeOwn = context.getString(R.string.sync_amount_type_own),
+                cancel = context.getString(R.string.common_cancel),
+            )
+            if (action != null) {
                 ingest().handleCallback(
-                    data = update.text,
+                    data = action,
                     chatId = update.chatId,
                     loadRepository = loadRepository,
                     paycheckRepository = paycheckRepository,
@@ -83,6 +104,14 @@ class TelegramUpdateDispatcher(
                 apiClient.answerCallbackQuery(id, "OK").onFailure { e ->
                     Log.w(TAG, "answerCallbackQuery: ${LogRedactor.redact(e.message)}")
                 }
+            }
+            if (cmd == null &&
+                TelegramReceiptConfirmStore(prefs, context).load(update.chatId) != null
+            ) {
+                apiClient.sendWithMenu(
+                    update.chatId,
+                    context.getString(R.string.sync_amount_type_prompt),
+                )
             }
             if (cmd != null) {
                 handleCommand(
@@ -245,6 +274,18 @@ class TelegramUpdateDispatcher(
                 stateMachine = stateMachine,
             )
             apiClient.sendWithMenu(update.chatId, reply)
+            return
+        }
+
+        if (ingest().tryHandlePendingReply(
+                chatId = update.chatId,
+                text = rawText,
+                loadRepository = loadRepository,
+                paycheckRepository = paycheckRepository,
+                dieselRepository = dieselRepository,
+                prefs = prefs,
+            )
+        ) {
             return
         }
 
