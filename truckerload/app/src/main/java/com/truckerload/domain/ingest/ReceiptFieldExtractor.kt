@@ -4,6 +4,7 @@ import com.truckerload.domain.parser.DieselTextParser
 import com.truckerload.domain.parser.FlexibleLoadParser
 import com.truckerload.domain.parser.LoadMessageParser
 import com.truckerload.domain.parser.PaycheckTextParser
+import com.truckerload.domain.parser.BrokerRateTemplateEngine
 import com.truckerload.domain.parser.RateConfirmationLoadParser
 import com.truckerload.domain.parser.ServiceReceiptTextParser
 import java.util.Locale
@@ -29,6 +30,7 @@ object ReceiptFieldExtractor {
         val receipt = ServiceReceiptTextParser.parse(text)
         val loads = runCatching { LoadMessageParser.parseAll(text) }.getOrNull().orEmpty()
         val load = loads.firstOrNull()
+            ?: BrokerRateTemplateEngine.parseOne(text, fileName = fileName)
             ?: RateConfirmationLoadParser.parseOne(text, fileName = fileName)
             ?: FlexibleLoadParser.parseOne(text)
         val resolvedKind = when {

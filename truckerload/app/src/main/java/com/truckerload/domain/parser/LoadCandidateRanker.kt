@@ -6,6 +6,7 @@ import com.truckerload.domain.model.Load
 internal enum class LoadParseSource(val bonus: Int) {
     JSON(30),
     RELAY(24),
+    TEMPLATE(26),
     RATE_CONFIRMATION(22),
     DELIMITED(18),
     FLEXIBLE(8),
