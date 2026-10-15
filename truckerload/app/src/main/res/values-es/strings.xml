@@ -664,8 +664,8 @@
     <string name="add_load_title">Agregar carga</string>
     <string name="add_or_edit_week_format">Semana %1$d • %2$s</string>
     <string name="add_select_week">📅 Elegir semana</string>
-    <string name="add_load_input_label">Pega un mensaje de Telegram o ingresa los datos de la carga…</string>
-    <string name="add_load_input_placeholder">Pega el texto aquí…</string>
+    <string name="add_load_input_label">Pega un rate confirmation</string>
+    <string name="add_load_input_placeholder">Pega el texto copiado de cualquier app…</string>
     <string name="add_load_parse_failed">Se necesita una línea Total Rate y una línea Pu-address o Del-address.</string>
     <string name="add_load_saving">Guardando…</string>
     <string name="add_load_save_offline">Guardar en la app (sin conexión)</string>
@@ -675,9 +675,9 @@
     <string name="add_load_mode_paste">Pegar</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Foto / PDF</string>
-    <string name="add_load_hint_paste">Pega un mensaje o sube un archivo. La app lee tarifa, millas y direcciones por ti.</string>
-    <string name="add_load_history_tip_title">Cargas antiguas de un grupo de Telegram</string>
-    <string name="add_load_history_tip_body">En Telegram Desktop: menú del chat → Exportar historial → HTML o JSON. Envía esos archivos a tu bot TruckoRig con /import: él analiza cada carga. También puedes pegar el texto aquí o elegir el archivo en Foto / PDF.</string>
+    <string name="add_load_hint_paste">Copia un rate confirmation de Telegram, WhatsApp, el correo o cualquier otra app y pégalo aquí. La app lee la tarifa, las millas y las direcciones.</string>
+    <string name="add_load_history_tip_title">Cualquier rate confirmation</string>
+    <string name="add_load_history_tip_body">Pega el texto copiado de Telegram, WhatsApp, el correo u otra app. También sirven una foto o un PDF. La app busca el rate confirmation, no un solo mensajero.</string>
     <string name="add_load_hint_manual">Ingresa la tarifa y al menos una dirección. Trip ID puede quedar vacío: la app creará uno.</string>
     <string name="add_load_hint_document">Fotografía un documento o elige cualquier archivo (PDF, foto, TXT, JSON, CSV, DOCX): los campos se llenan solos. Revísalos, edita si hace falta y guarda.</string>
     <string name="add_load_manual_hint">Escribe los datos de la carga. Se requieren tarifa y un punto de pickup o entrega.</string>

@@ -111,24 +111,6 @@ class AddLoadViewModel @Inject constructor(
         _uiState.update { captureBaseline(it) }
         val initial = _uiState.value.rawText
         if (initial.isNotBlank()) schedulePreview(initial)
-        viewModelScope.launch {
-            val last = settingsDataStore.getLastEquipmentTypeOnce()
-            if (last != null && _uiState.value.equipmentType == null) {
-                _uiState.update { state ->
-                    val before = state.draftSignature()
-                    val next = state.copy(equipmentType = last)
-                    val baseline = FormDraft.baselineAfterAutoFill(
-                        state.draftBaseline,
-                        before,
-                        next.draftSignature(),
-                    )
-                    if (baseline != null && baseline != state.draftBaseline) {
-                        savedStateHandle[KEY_DRAFT] = baseline
-                    }
-                    next.copy(draftBaseline = baseline)
-                }
-            }
-        }
     }
 
     private fun captureBaseline(state: AddLoadUiState): AddLoadUiState {
@@ -387,7 +369,6 @@ class AddLoadViewModel @Inject constructor(
                 } else {
                     ""
                 },
-                equipmentType = _uiState.value.equipmentType,
             ),
             saveErrorFormatter,
             onOptimisticInsert,
@@ -449,9 +430,7 @@ class AddLoadViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val typed = LoadDateRepair.ensureDate(
-                    load.copy(equipmentType = load.equipmentType ?: _uiState.value.equipmentType),
-                ).withReportingWeek()
+                val typed = LoadDateRepair.ensureDate(load).withReportingWeek()
                 // FIX: same Trip ID must update (unique tripId) instead of crashing / orphaning stops
                 val tripId = typed.tripId.trim()
                 val existing = if (tripId.isNotBlank()) {
@@ -470,7 +449,6 @@ class AddLoadViewModel @Inject constructor(
                 }
                 // FIX: alarm / journal must use the Room row id after an update
                 onOptimisticInsert?.invoke(persisted)
-                persisted.equipmentType?.let { settingsDataStore.saveLastEquipmentType(it) }
                 savedStateHandle[KEY_RAW] = ""
                 val pickup = getFirstPickUpMillis(persisted)
                 val offer = pickup?.let { LoadAlarmPlanner.buildOffer(it, System.currentTimeMillis()) }

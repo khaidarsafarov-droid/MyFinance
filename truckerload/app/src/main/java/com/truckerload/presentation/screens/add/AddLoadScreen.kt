@@ -154,10 +154,6 @@ fun AddLoadScreen(
                 selected = uiState.mode,
                 onSelect = viewModel::setMode,
             )
-            EquipmentTypeChipRow(
-                selected = uiState.equipmentType,
-                onSelect = viewModel::setEquipmentType,
-            )
             when (uiState.mode) {
                 AddLoadInputMode.PASTE -> PasteLoadCard(
                     rawText = uiState.rawText,
