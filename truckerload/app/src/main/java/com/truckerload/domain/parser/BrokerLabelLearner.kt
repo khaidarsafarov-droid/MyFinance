@@ -13,7 +13,7 @@ object BrokerLabelLearner {
             val at = indexOnLine(line, needle, digits) ?: continue
             val before = line.substring(0, at)
                 .trim()
-                .trimEnd(':', '-', ' ')
+                .trimEnd(':', '-', '$', ' ')
                 .trim()
             val words = before.split(Regex("\\s+")).filter { it.isNotBlank() }.takeLast(4)
             val label = words.joinToString(" ")

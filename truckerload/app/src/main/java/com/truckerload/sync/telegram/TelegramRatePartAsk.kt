@@ -13,7 +13,7 @@ import java.util.Locale
  * One question when linehaul + fuel + accessorials do not match the labeled total.
  * Yes saves the labeled total. A typed amount saves that amount instead.
  */
-class TelegramRatePartAsk(
+internal class TelegramRatePartAsk(
     private val context: Context,
     private val apiClient: TelegramApiClient,
 ) {
