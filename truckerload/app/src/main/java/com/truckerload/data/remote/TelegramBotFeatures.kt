@@ -36,13 +36,8 @@ object TelegramBotFeatures {
         put(command("start", "Start"))
         put(command("help", "How to use the bot"))
         put(command("status", "Data count in the app"))
-        put(command("load", "How to send a load"))
-        put(command("paycheck", "How to send a paycheck"))
         put(command("import", "Bulk import loads"))
-        put(command("restore", "Restore loads from messages"))
-        put(command("stats", "Loads: total and this week"))
-        put(command("cancel", "Cancel import or restore"))
-        put(command("dedup", "Remove duplicates from database"))
+        put(command("cancel", "Cancel import or a pending question"))
     }
 
     private fun command(name: String, description: String): JSONObject =
