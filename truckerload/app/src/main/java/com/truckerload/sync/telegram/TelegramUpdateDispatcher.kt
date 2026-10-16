@@ -455,59 +455,15 @@ class TelegramUpdateDispatcher(
         prefs: SharedPreferences,
         stateMachine: TelegramStateMachine,
     ) {
-        val resolved = TelegramBotFeatures.aliasCommand(command)
-        when {
-            isCommand(resolved, "/start") -> apiClient.sendWithMenu(chatId, context.getString(R.string.sync_welcome))
-            isCommand(resolved, "/help") -> apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help))
-            isCommand(resolved, "/status") -> {
-                val status = buildStatusMessage(loadRepository, paycheckRepository, dieselRepository)
-                apiClient.sendWithMenu(chatId, status)
-            }
-            isCommand(resolved, "/stats") -> {
-                val stats = buildStatsMessage(loadRepository)
-                apiClient.sendWithMenu(chatId, stats)
-            }
-            isCommand(resolved, "/dedup") -> {
-                apiClient.sendWithMenu(chatId, context.getString(R.string.sync_dedup_running))
-                val report = messageParser.runDuplicateAudit(loadRepository, paycheckRepository, dieselRepository)
-                apiClient.sendWithMenu(chatId, report)
-            }
-            isCommand(resolved, "/help_load") ->
-                apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help_load))
-            isCommand(resolved, "/help_pay") ->
-                apiClient.sendWithMenu(chatId, context.getString(R.string.sync_help_pay))
-            isCommand(resolved, "/import") -> {
-                val importSessions = ImportSessionManager(prefs)
-                if (stateMachine.isManualRestoreActive(chatId)) stateMachine.clearManualRestore(chatId)
-                ImportCommandHandler(context, importSessions)
-                    .startImport(chatId) { id -> stateMachine.clearManualRestore(id) }
-                ImportCommandHandler(context, importSessions).sendPrompt(chatId, apiClient.api())
-            }
-            isCommand(resolved, "/cancel") -> {
-                val importSessions = ImportSessionManager(prefs)
-                val importCancelled = importSessions.cancelSession(chatId)
-                val restoreCancelled = if (stateMachine.isManualRestoreActive(chatId)) {
-                    stateMachine.clearManualRestore(chatId)
-                    true
-                } else {
-                    false
-                }
-                TelegramReceiptConfirmStore(prefs, context).clear(chatId, discardFile = true)
-                val message = when {
-                    importCancelled && restoreCancelled ->
-                        context.getString(R.string.sync_import_and_restore_cancelled)
-                    importCancelled -> context.getString(R.string.sync_import_cancelled)
-                    restoreCancelled -> context.getString(R.string.sync_restore_manual_cancelled)
-                    else -> context.getString(R.string.sync_restore_not_active)
-                }
-                apiClient.sendWithMenu(chatId, message)
-            }
-            isCommand(resolved, "/restore") || TelegramBotFeatures.isRestoreRequest(resolved) -> {
-                ImportSessionManager(prefs).endSession(chatId)
-                stateMachine.startManualRestore(chatId)
-                apiClient.sendWithMenu(chatId, context.getString(R.string.sync_restore_manual_prompt))
-            }
-        }
+        TelegramBotCommands(context, apiClient, messageParser).handle(
+            command = command,
+            chatId = chatId,
+            loadRepository = loadRepository,
+            paycheckRepository = paycheckRepository,
+            dieselRepository = dieselRepository,
+            prefs = prefs,
+            stateMachine = stateMachine,
+        )
     }
 
     private suspend fun buildStatsMessage(loadRepository: LoadRepository): String =
