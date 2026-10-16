@@ -24,6 +24,7 @@ import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.sync.DuplicateAuditRunner
 import com.truckerload.sync.TelegramLoadHandler
+import com.truckerload.sync.TelegramLoadReply
 import com.truckerload.sync.import.ImportDocumentHandler
 import com.truckerload.sync.import.ImportMessageHandler
 import com.truckerload.sync.import.ImportReportFormatter
@@ -154,23 +155,23 @@ class TelegramMessageParser(
                 is ProcessingResult.Added -> {
                     addedCount++
                     stateMachine.incrementManualRestoreCount(chatId)
-                    replies.add(
-                        context.getString(
-                            R.string.sync_restore_manual_added,
-                            load.tripId,
-                            load.totalMiles,
-                            String.format(Locale.US, "%,.2f", load.totalRate.cents / 100.0),
-                        ),
+                    val added = context.getString(
+                        R.string.sync_restore_manual_added,
+                        load.tripId,
+                        load.totalMiles,
+                        String.format(Locale.US, "%,.2f", load.totalRate.cents / 100.0),
                     )
+                    val route = TelegramLoadReply.routeLine(load)
+                    replies.add(if (route.isBlank()) added else "$added\n$route")
                 }
                 is ProcessingResult.Updated,
                 is ProcessingResult.Replaced -> {
                     addedCount++
                     stateMachine.incrementManualRestoreCount(chatId)
-                    replies.add(handler.formatProcessingResult(result, load.tripId))
+                    replies.add(handler.formatProcessingResult(result, load))
                 }
                 is ProcessingResult.Skipped -> {
-                    replies.add(handler.formatProcessingResult(result, load.tripId))
+                    replies.add(handler.formatProcessingResult(result, load))
                 }
             }
         }

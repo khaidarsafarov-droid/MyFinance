@@ -42,7 +42,7 @@ class TelegramLoadHandler(
     ): String {
         val results = processLoadsStructured(loads, rawMessage, messageDateSeconds, playFeedback)
         return loads.mapIndexed { index, load ->
-            formatResult(results[index], load.tripId)
+            formatResult(results[index], load)
         }.joinToString("\n\n")
     }
 
@@ -85,11 +85,14 @@ class TelegramLoadHandler(
         }
     }
 
-    fun formatProcessingResult(result: ProcessingResult, tripId: String): String =
-        formatResult(result, tripId)
+    fun formatProcessingResult(result: ProcessingResult, load: Load): String =
+        formatResult(result, load)
 
-    private fun formatResult(result: ProcessingResult, tripId: String): String =
-        when (result) {
+    private fun formatResult(result: ProcessingResult, load: Load): String =
+        formatResult(result, load.tripId, TelegramLoadReply.detail(load))
+
+    private fun formatResult(result: ProcessingResult, tripId: String, detail: String): String {
+        val head = when (result) {
             ProcessingResult.Added ->
                 context.getString(R.string.load_added, tripId)
             is ProcessingResult.Updated ->
@@ -101,4 +104,6 @@ class TelegramLoadHandler(
             is ProcessingResult.Skipped ->
                 context.getString(R.string.load_skipped, tripId) + "\n" + result.reason
         }
+        return if (detail.isBlank()) head else "$head\n$detail"
+    }
 }
