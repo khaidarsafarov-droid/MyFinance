@@ -8,6 +8,8 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.truckerload.utils.ocr.LanguageDetector
+import com.truckerload.utils.ocr.OcrLine
+import com.truckerload.utils.ocr.OcrReadingOrder
 import kotlinx.coroutines.tasks.await
 
 data class OcrResult(
@@ -50,7 +52,19 @@ class OCRService(context: Context) {
     private suspend fun recognizeLatinFromUri(uri: Uri): String {
         return try {
             val image = InputImage.fromFilePath(appContext, uri)
-            latinRecognizer.process(image).await().text.trim()
+            val recognized = latinRecognizer.process(image).await()
+            val ordered = OcrReadingOrder.join(
+                recognized.textBlocks.flatMap { block ->
+                    block.lines.map { line ->
+                        OcrLine(
+                            top = line.boundingBox?.top ?: 0,
+                            left = line.boundingBox?.left ?: 0,
+                            text = line.text,
+                        )
+                    }
+                },
+            )
+            ordered.ifBlank { recognized.text.trim() }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: MlKitException) {
