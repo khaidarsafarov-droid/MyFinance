@@ -664,8 +664,8 @@
     <string name="add_load_title">Add load</string>
     <string name="add_or_edit_week_format">Week %1$d • %2$s</string>
     <string name="add_select_week">📅 Select week</string>
-    <string name="add_load_input_label">Paste a Telegram message or enter load details…</string>
-    <string name="add_load_input_placeholder">Paste text here…</string>
+    <string name="add_load_input_label">Paste a rate confirmation</string>
+    <string name="add_load_input_placeholder">Paste copied text from any app…</string>
     <string name="add_load_parse_failed">Need a Total Rate line and a Pu-address or Del-address line.</string>
     <string name="add_load_saving">Saving…</string>
     <string name="add_load_save_offline">Save in app (offline)</string>
@@ -675,9 +675,9 @@
     <string name="add_load_mode_paste">Paste</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Photo / PDF</string>
-    <string name="add_load_hint_paste">Paste a message or upload a file. The app reads rate, miles, and addresses for you.</string>
-    <string name="add_load_history_tip_title">Past loads from a Telegram group</string>
-    <string name="add_load_history_tip_body">In Telegram Desktop: chat menu → Export chat history → HTML or JSON. Send those files to your TruckoRig bot with /import — it parses every load. You can also paste the text here or pick the file under Photo / PDF.</string>
+    <string name="add_load_hint_paste">Copy a rate confirmation from Telegram, WhatsApp, email, or any other app and paste it here. The app reads the rate, miles, and addresses.</string>
+    <string name="add_load_history_tip_title">Any rate confirmation</string>
+    <string name="add_load_history_tip_body">Paste text you copied from Telegram, WhatsApp, email, or another app. A photo or PDF works too. The app is looking for the rate confirmation, not for one messenger.</string>
     <string name="add_load_hint_manual">Enter the rate and at least one address. Trip ID can stay empty — the app will create one.</string>
     <string name="add_load_hint_document">Photograph a document or pick any file (PDF, photo, TXT, JSON, CSV, DOCX) — the fields fill in automatically. Check them, edit if needed, and save.</string>
     <string name="add_load_manual_hint">Type the load details. Rate and a pickup or delivery point are required.</string>

@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.Load
-import com.truckerload.presentation.screens.add.EquipmentTypeChipRow
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.formKeyboard
 import com.truckerload.presentation.components.formKeyboardActions
@@ -283,10 +282,6 @@ fun EditLoadScreen(
                             ),
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
-                        )
-                        EquipmentTypeChipRow(
-                            selected = uiState.equipmentType,
-                            onSelect = viewModel::setEquipmentType,
                         )
                     }
                 }

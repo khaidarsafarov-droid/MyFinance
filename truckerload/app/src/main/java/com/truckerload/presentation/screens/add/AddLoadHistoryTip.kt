@@ -20,8 +20,7 @@ import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 
 /**
- * Empty-state hint on Add load: a whole Telegram group chat can be exported
- * and imported (bot `/import`, or paste / file in the app).
+ * Empty-state hint on Add load: paste a rate confirmation copied from any app.
  */
 @Composable
 fun AddLoadHistoryTip(modifier: Modifier = Modifier) {
