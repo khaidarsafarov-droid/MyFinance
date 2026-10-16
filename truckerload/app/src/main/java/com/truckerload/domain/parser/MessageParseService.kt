@@ -50,6 +50,10 @@ class MessageParseService {
             LoadParseGroup(LoadParseSource.RELAY, LoadMessageParser.parseAll(rawMessage, referenceMillis)),
             LoadParseGroup(LoadParseSource.DELIMITED, DelimitedLoadParser.parseAll(rawMessage, referenceMillis)),
             LoadParseGroup(
+                LoadParseSource.TEMPLATE,
+                listOfNotNull(BrokerRateTemplateEngine.parseOne(rawMessage, referenceMillis, fileName)),
+            ),
+            LoadParseGroup(
                 LoadParseSource.RATE_CONFIRMATION,
                 listOfNotNull(RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)),
             ),

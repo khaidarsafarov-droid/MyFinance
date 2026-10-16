@@ -1,0 +1,67 @@
+{
+  "notice": "Field labels adapted from Sensible rate-confirmation templates (MIT). This file is not the Sensible service.",
+  "templates": [
+    {
+      "id": "tql",
+      "matchAny": ["TQL"],
+      "matchAll": ["Load Information"],
+      "tripId": [{ "type": "after", "label": "PO#" }],
+      "rate": [{ "type": "lineAmount", "label": "Total", "section": "Load Information" }]
+    },
+    {
+      "id": "ch_robinson",
+      "matchAny": ["C.H. Robinson", "CH Robinson"],
+      "tripId": [{ "type": "after", "label": "confirmation - #" }],
+      "rate": [{ "type": "lineAmount", "label": "total" }]
+    },
+    {
+      "id": "echo",
+      "matchAll": ["Echo", "pay summary"],
+      "tripId": [{ "type": "after", "label": "service for load #" }],
+      "rate": [{ "type": "lineAmount", "label": "total", "section": "pay summary" }]
+    },
+    {
+      "id": "jb_hunt",
+      "matchAny": ["J.B. Hunt", "JB Hunt"],
+      "tripId": [{ "type": "after", "label": "Carrier Confirmation for Load" }],
+      "rate": [{ "type": "lineAmount", "label": "Total Rate" }]
+    },
+    {
+      "id": "uber_freight",
+      "matchAll": ["Uber Freight"],
+      "tripId": [{ "type": "after", "label": "Load #" }, { "type": "after", "label": "Load ID" }],
+      "rate": [{ "type": "lineAmount", "label": "Total Rate" }, { "type": "lineAmount", "label": "Total" }]
+    },
+    {
+      "id": "schneider",
+      "matchAll": ["Schneider", "Shipment ID"],
+      "tripId": [{ "type": "after", "label": "Shipment ID:" }],
+      "rate": [{ "type": "lineAmount", "label": "Total", "section": "AGREED TO RATE" }],
+      "linehaul": [{ "type": "lineAmount", "label": "Linehaul" }],
+      "fuel": [{ "type": "lineAmount", "label": "Fuel Surcharge" }],
+      "accessorials": [{ "type": "lineAmount", "label": "Accessorials" }]
+    },
+    {
+      "id": "landstar",
+      "matchAll": ["Landstar"],
+      "tripId": [{ "type": "after", "label": "fb #:" }],
+      "rate": [{ "type": "lineAmount", "label": "carrier pay" }]
+    },
+    {
+      "id": "coyote",
+      "matchAny": ["Coyote"],
+      "rate": [{ "type": "lineAmount", "label": "Total" }]
+    },
+    {
+      "id": "arrive",
+      "matchAll": ["Arrive Logistics"],
+      "rate": [{ "type": "lineAmount", "label": "Total" }]
+    },
+    {
+      "id": "integrity_express",
+      "matchAll": ["Integrity Express", "IEL PO"],
+      "tripId": [{ "type": "after", "label": "IEL PO#" }],
+      "rate": [{ "type": "lineAmount", "label": "Estimated Rate" }]
+    }
+  ]
+}
