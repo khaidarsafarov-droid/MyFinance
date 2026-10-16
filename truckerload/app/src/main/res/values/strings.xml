@@ -1218,6 +1218,7 @@
     <string name="sync_load_undo_none">This chat has not saved a load to remove.</string>
     <string name="sync_load_rate_updated">Rate updated for %1$s\n%2$s</string>
     <string name="sync_load_rate_bad">Send /rate and the amount, for example /rate 2500</string>
+    <string name="sync_rate_parts_ask">The document total is $%1$s.\nLinehaul + fuel + accessorials add up to $%2$s.\nSave the document total? Or tap \"I\'ll type it\" and send the amount you want.</string>
     <string name="sync_receipt_empty_ocr">Could not read text from the file. Send a clearer photo or PDF.</string>
     <string name="sync_receipt_extract_failed">Could not download the file: %1$s</string>
     <string name="sync_parse_failed">❓ Could not recognize as load, paycheck, or diesel. Send text with Trip ID / Grand Total / fuel Total. /help — tips.</string>

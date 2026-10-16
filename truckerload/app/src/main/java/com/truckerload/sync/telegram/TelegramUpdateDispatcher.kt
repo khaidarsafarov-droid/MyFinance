@@ -295,6 +295,7 @@ class TelegramUpdateDispatcher(
         if (ingest().tryHandleTypedAmount(
                 chatId = update.chatId,
                 text = rawText,
+                loadRepository = loadRepository,
                 paycheckRepository = paycheckRepository,
                 dieselRepository = dieselRepository,
                 prefs = prefs,

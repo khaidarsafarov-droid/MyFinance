@@ -17,6 +17,7 @@ import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
 import com.truckerload.domain.ingest.ReceiptPreviewFormatter
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.BrokerRateTemplateEngine
 import com.truckerload.domain.parser.IncompleteLoadFill
 import com.truckerload.domain.parser.LoadCompleteness
 import com.truckerload.domain.parser.LoadCompletenessChecker
@@ -112,6 +113,20 @@ class TelegramFileIngestHandler(
             parseService = parseService,
         )
         if (decision.autoSaveLoads) {
+            val parts = BrokerRateTemplateEngine.ratePartCheck(text)
+            if (parts != null && parts.labeledCents != parts.partsCents) {
+                TelegramRatePartAsk(context, apiClient).ask(
+                    chatId = chatId,
+                    text = text,
+                    fileName = fileName,
+                    messageDateSeconds = messageDateSeconds,
+                    sourceFilePath = sourceFilePath,
+                    prefs = prefs,
+                    check = parts,
+                    load = decision.loads.firstOrNull(),
+                )
+                return
+            }
             TelegramIncompleteLoadStore(prefs).clear(chatId)
             PaycheckSourceFiles.delete(context, sourceFilePath)
             saveLoads(chatId, decision.loads, text, messageDateSeconds, loadRepository)
@@ -184,6 +199,11 @@ class TelegramFileIngestHandler(
                 highlightToken = String.format(Locale.US, "%.2f", picked),
                 awaitingTypedAmount = false,
             )
+            if (updated.kind == ReceiptKind.LOAD) {
+                savePickedLoad(chatId, updated, loadRepository)
+                store.clear(chatId)
+                return
+            }
             val reply = writer.save(updated.kind, updated, paycheckRepository, dieselRepository, prefs)
             store.clear(chatId)
             apiClient.sendWithMenu(chatId, reply)
@@ -410,6 +430,7 @@ class TelegramFileIngestHandler(
     suspend fun tryHandleTypedAmount(
         chatId: String,
         text: String,
+        loadRepository: LoadRepository,
         paycheckRepository: PaycheckRepository,
         dieselRepository: DieselRepository,
         prefs: SharedPreferences,
@@ -427,10 +448,36 @@ class TelegramFileIngestHandler(
             highlightToken = String.format(Locale.US, "%.2f", typed),
             awaitingTypedAmount = false,
         )
-        val reply = writer.save(updated.kind, updated, paycheckRepository, dieselRepository, prefs)
         store.clear(chatId)
+        if (updated.kind == ReceiptKind.LOAD) {
+            savePickedLoad(chatId, updated, loadRepository)
+            return true
+        }
+        val reply = writer.save(updated.kind, updated, paycheckRepository, dieselRepository, prefs)
         apiClient.sendWithMenu(chatId, reply)
         return true
+    }
+
+    private suspend fun savePickedLoad(
+        chatId: String,
+        preview: ReceiptPreview,
+        loadRepository: LoadRepository,
+    ) {
+        val referenceMillis = preview.messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
+        val load = loadFromPreview(preview, referenceMillis)
+        if (load == null) {
+            PaycheckSourceFiles.delete(context, preview.sourceFilePath)
+            apiClient.sendWithMenu(chatId, context.getString(R.string.sync_receipt_load_parse_failed))
+            return
+        }
+        saveLoads(
+            chatId = chatId,
+            loads = listOf(load),
+            rawMessage = preview.extractedText,
+            messageDateSeconds = preview.messageDateSeconds,
+            loadRepository = loadRepository,
+        )
+        PaycheckSourceFiles.delete(context, preview.sourceFilePath)
     }
 
     private suspend fun askAmountConfirm(

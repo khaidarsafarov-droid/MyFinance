@@ -53,6 +53,12 @@ internal object BrokerRateTemplateEngine {
      * Null when any piece is missing. A mismatch does not drop the load.
      */
     fun partsAgreeWithTotal(text: String): Boolean? {
+        val check = ratePartCheck(text) ?: return null
+        return check.labeledCents == check.partsCents
+    }
+
+    /** Labeled total and the sum of linehaul, fuel, and accessorials. Null if any piece is missing. */
+    fun ratePartCheck(text: String): RatePartCheck? {
         val template = BrokerRateTemplateCatalog.bestMatch(text, null) ?: return null
         val total = firstAmount(template.rate, text) ?: return null
         val linehaul = firstAmount(template.linehaul, text) ?: return null
@@ -61,7 +67,10 @@ internal object BrokerRateTemplateEngine {
         val sum = Money.fromDollars(linehaul).cents +
             Money.fromDollars(fuel).cents +
             Money.fromDollars(accessorials).cents
-        return sum == Money.fromDollars(total).cents
+        return RatePartCheck(
+            labeledCents = Money.fromDollars(total).cents,
+            partsCents = sum,
+        )
     }
 
     private fun firstAmount(rules: List<FieldRule>, text: String): Double? {
@@ -141,6 +150,11 @@ internal object BrokerRateTemplateEngine {
     private const val RULE_AFTER = "after"
     private const val SECTION_CHARS = 1_600
 }
+
+internal data class RatePartCheck(
+    val labeledCents: Long,
+    val partsCents: Long,
+)
 
 internal data class FieldRule(
     val type: String,

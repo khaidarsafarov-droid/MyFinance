@@ -1218,6 +1218,7 @@
     <string name="sync_load_undo_none">Este chat no tiene una carga para quitar.</string>
     <string name="sync_load_rate_updated">Tarifa actualizada para %1$s\n%2$s</string>
     <string name="sync_load_rate_bad">Envía /rate y el monto, por ejemplo /rate 2500</string>
+    <string name="sync_rate_parts_ask">El total del documento es $%1$s.\nLinehaul + fuel + accessorials suman $%2$s.\n¿Guardar el total del documento? O toca \"Lo escribo yo\" y envía el monto que quieres.</string>
     <string name="sync_receipt_empty_ocr">No se pudo leer texto del archivo. Envía una foto más clara o un PDF.</string>
     <string name="sync_receipt_extract_failed">No se pudo descargar el archivo: %1$s</string>
     <string name="sync_parse_failed">❓ No se reconoció como carga, pago o diésel. Envía texto con Trip ID / Grand Total / fuel Total. /help — consejos.</string>
