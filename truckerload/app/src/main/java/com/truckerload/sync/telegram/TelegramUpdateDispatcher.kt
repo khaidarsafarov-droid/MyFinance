@@ -26,6 +26,9 @@ class TelegramUpdateDispatcher(
     private val apiClient: TelegramApiClient,
     private val messageParser: TelegramMessageParser,
 ) {
+    init {
+        UserBrokerTemplateStore.publish(context)
+    }
     suspend fun handleUpdate(
         update: TelegramUpdate,
         loadRepository: LoadRepository,
@@ -145,6 +148,7 @@ class TelegramUpdateDispatcher(
 
         when {
             TelegramLoadEdits(context, apiClient).handle(rawText, update.chatId, loadRepository) -> return
+            TelegramBrokerTeach(context, apiClient).handleCommand(rawText, update.chatId, prefs) -> return
             isCommand(rawText, "/start") -> {
                 apiClient.sendWithMenu(update.chatId, context.getString(R.string.sync_welcome))
                 replayUnpaired(
@@ -191,12 +195,14 @@ class TelegramUpdateDispatcher(
                 }
                 TelegramReceiptConfirmStore(prefs, context).clear(update.chatId, discardFile = true)
                 val incompleteCancelled = TelegramIncompleteLoadStore(prefs).clear(update.chatId)
+                val teachCancelled = TelegramBrokerTeach(context, apiClient).clear(prefs, update.chatId)
                 val message = when {
                     importCancelled && restoreCancelled ->
                         context.getString(R.string.sync_import_and_restore_cancelled)
                     importCancelled -> context.getString(R.string.sync_import_cancelled)
                     restoreCancelled -> context.getString(R.string.sync_restore_manual_cancelled)
-                    incompleteCancelled -> context.getString(R.string.sync_receipt_cancelled)
+                    incompleteCancelled || teachCancelled ->
+                        context.getString(R.string.sync_receipt_cancelled)
                     else -> context.getString(R.string.sync_restore_not_active)
                 }
                 apiClient.sendWithMenu(update.chatId, message)
@@ -298,6 +304,15 @@ class TelegramUpdateDispatcher(
                 loadRepository = loadRepository,
                 paycheckRepository = paycheckRepository,
                 dieselRepository = dieselRepository,
+                prefs = prefs,
+            )
+        ) {
+            return
+        }
+
+        if (TelegramBrokerTeach(context, apiClient).continueSession(
+                text = rawText,
+                chatId = update.chatId,
                 prefs = prefs,
             )
         ) {

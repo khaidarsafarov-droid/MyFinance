@@ -175,9 +175,17 @@ internal data class BrokerTemplate(
 
 internal object BrokerRateTemplateCatalog {
 
+    /** Labels a driver taught from a document. Built-in brokers still win when they match. */
+    @Volatile
+    var userTemplates: List<BrokerTemplate> = emptyList()
+
     fun bestMatch(text: String, fileName: String?): BrokerTemplate? {
         val haystack = listOfNotNull(fileName, text).joinToString("\n")
-        return templates
+        val builtin = templates
+            .filter { matches(it, haystack) }
+            .maxByOrNull { specificity(it) }
+        if (builtin != null) return builtin
+        return userTemplates
             .filter { matches(it, haystack) }
             .maxByOrNull { specificity(it) }
     }

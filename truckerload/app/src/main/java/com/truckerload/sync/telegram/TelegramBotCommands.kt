@@ -30,6 +30,7 @@ class TelegramBotCommands(
     ) {
         val resolved = TelegramBotFeatures.aliasCommand(command)
         if (TelegramLoadEdits(context, apiClient).handle(resolved, chatId, loadRepository)) return
+        if (TelegramBrokerTeach(context, apiClient).handleCommand(resolved, chatId, prefs)) return
         when {
             isCommand(resolved, "/start") ->
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_welcome))
@@ -94,12 +95,13 @@ class TelegramBotCommands(
         }
         TelegramReceiptConfirmStore(prefs, context).clear(chatId, discardFile = true)
         val incompleteCancelled = TelegramIncompleteLoadStore(prefs).clear(chatId)
+        val teachCancelled = TelegramBrokerTeach(context, apiClient).clear(prefs, chatId)
         val message = when {
             importCancelled && restoreCancelled ->
                 context.getString(R.string.sync_import_and_restore_cancelled)
             importCancelled -> context.getString(R.string.sync_import_cancelled)
             restoreCancelled -> context.getString(R.string.sync_restore_manual_cancelled)
-            incompleteCancelled -> context.getString(R.string.sync_receipt_cancelled)
+            incompleteCancelled || teachCancelled -> context.getString(R.string.sync_receipt_cancelled)
             else -> context.getString(R.string.sync_restore_not_active)
         }
         apiClient.sendWithMenu(chatId, message)
