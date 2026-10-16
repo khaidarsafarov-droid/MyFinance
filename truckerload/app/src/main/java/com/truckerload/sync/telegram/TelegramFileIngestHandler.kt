@@ -17,6 +17,10 @@ import com.truckerload.domain.ingest.ReceiptKind
 import com.truckerload.domain.ingest.ReceiptPreview
 import com.truckerload.domain.ingest.ReceiptPreviewFormatter
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.IncompleteLoadFill
+import com.truckerload.domain.parser.LoadCompleteness
+import com.truckerload.domain.parser.LoadCompletenessChecker
+import com.truckerload.domain.parser.LoadDraftFields
 import com.truckerload.domain.parser.LoadField
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
@@ -108,19 +112,27 @@ class TelegramFileIngestHandler(
             parseService = parseService,
         )
         if (decision.autoSaveLoads) {
+            TelegramIncompleteLoadStore(prefs).clear(chatId)
             PaycheckSourceFiles.delete(context, sourceFilePath)
             saveLoads(chatId, decision.loads, text, messageDateSeconds, loadRepository)
             return
         }
         decision.incompleteLoad?.let { gaps ->
             PaycheckSourceFiles.delete(context, sourceFilePath)
-            apiClient.sendWithMenu(
-                chatId,
-                context.getString(
-                    R.string.sync_load_missing_fields,
-                    gaps.allMissing.joinToString(", ") { context.getString(loadFieldLabel(it)) },
-                ),
-            )
+            val draft = parseService.extractLoadFields(text, referenceMillis, fileName)
+            if (IncompleteLoadFill.foundSummary(draft).isNotBlank()) {
+                TelegramIncompleteLoadStore(prefs).save(chatId, draft, text, messageDateSeconds)
+                askIncomplete(chatId, draft, gaps)
+            } else {
+                TelegramIncompleteLoadStore(prefs).clear(chatId)
+                apiClient.sendWithMenu(
+                    chatId,
+                    context.getString(
+                        R.string.sync_load_missing_fields,
+                        gaps.allMissing.joinToString(", ") { context.getString(loadFieldLabel(it)) },
+                    ),
+                )
+            }
             return
         }
         askConfirmation(
@@ -292,6 +304,65 @@ class TelegramFileIngestHandler(
                 paycheck = context.getString(R.string.sync_receipt_btn_paycheck),
                 cancel = context.getString(R.string.common_cancel),
             ),
+        )
+    }
+
+    /**
+     * A short reply that fills the rate or a city on an incomplete rate confirmation.
+     * A long paste clears the draft and returns false so it is parsed as a new document.
+     */
+    suspend fun tryCompleteIncompleteLoad(
+        chatId: String,
+        text: String,
+        loadRepository: LoadRepository,
+        prefs: SharedPreferences,
+    ): Boolean {
+        val store = TelegramIncompleteLoadStore(prefs)
+        val saved = store.load(chatId) ?: return false
+        val filled = IncompleteLoadFill.apply(saved.draft, text)
+        if (filled == null) {
+            store.clear(chatId)
+            return false
+        }
+        val gaps = LoadCompletenessChecker.of(filled)
+        if (!gaps.canSave) {
+            store.save(chatId, filled, saved.rawText, saved.messageDateSeconds)
+            askIncomplete(chatId, filled, gaps)
+            return true
+        }
+        val rate = filled.parsedRate()
+        if (rate == null) {
+            store.save(chatId, filled, saved.rawText, saved.messageDateSeconds)
+            askIncomplete(chatId, filled, gaps)
+            return true
+        }
+        store.clear(chatId)
+        val referenceMillis = saved.messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
+        val load = ManualLoadFactory.build(
+            tripId = filled.tripId,
+            date = filled.date,
+            rate = rate,
+            miles = filled.parsedMiles(),
+            pointA = filled.pointA,
+            pointB = filled.pointB,
+            rawMessage = listOf(saved.rawText, text).filter { it.isNotBlank() }.joinToString("\n"),
+            nowMillis = referenceMillis,
+        )
+        saveLoads(
+            chatId = chatId,
+            loads = listOf(load),
+            rawMessage = load.rawMessage,
+            messageDateSeconds = saved.messageDateSeconds,
+            loadRepository = loadRepository,
+        )
+        return true
+    }
+
+    private suspend fun askIncomplete(chatId: String, draft: LoadDraftFields, gaps: LoadCompleteness) {
+        val missing = gaps.allMissing.joinToString(", ") { context.getString(loadFieldLabel(it)) }
+        apiClient.sendWithMenu(
+            chatId,
+            context.getString(R.string.sync_load_found_ask, IncompleteLoadFill.foundSummary(draft), missing),
         )
     }
 

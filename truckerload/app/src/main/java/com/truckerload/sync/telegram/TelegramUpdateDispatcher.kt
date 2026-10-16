@@ -189,11 +189,13 @@ class TelegramUpdateDispatcher(
                     false
                 }
                 TelegramReceiptConfirmStore(prefs, context).clear(update.chatId, discardFile = true)
+                val incompleteCancelled = TelegramIncompleteLoadStore(prefs).clear(update.chatId)
                 val message = when {
                     importCancelled && restoreCancelled ->
                         context.getString(R.string.sync_import_and_restore_cancelled)
                     importCancelled -> context.getString(R.string.sync_import_cancelled)
                     restoreCancelled -> context.getString(R.string.sync_restore_manual_cancelled)
+                    incompleteCancelled -> context.getString(R.string.sync_receipt_cancelled)
                     else -> context.getString(R.string.sync_restore_not_active)
                 }
                 apiClient.sendWithMenu(update.chatId, message)
@@ -294,6 +296,16 @@ class TelegramUpdateDispatcher(
                 text = rawText,
                 paycheckRepository = paycheckRepository,
                 dieselRepository = dieselRepository,
+                prefs = prefs,
+            )
+        ) {
+            return
+        }
+
+        if (ingest().tryCompleteIncompleteLoad(
+                chatId = update.chatId,
+                text = rawText,
+                loadRepository = loadRepository,
                 prefs = prefs,
             )
         ) {

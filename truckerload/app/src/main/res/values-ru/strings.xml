@@ -1213,6 +1213,7 @@
     <string name="sync_receipt_need_choice">Выберите груз, дизель, DEF или зарплату.</string>
     <string name="sync_receipt_load_parse_failed">Не удалось собрать груз из файла. Пришлите rate confirmation или текст с Rate / Miles / адресами.</string>
     <string name="sync_load_missing_fields">📦 Похоже на груз, но не хватает данных: %1$s.\nДошлите файл с этими полями или добавьте груз в приложении — там можно дозаполнить вручную.</string>
+    <string name="sync_load_found_ask">📦 Нашёл: %1$s\nЕщё нет: %2$s\nНапишите недостающее или добавьте груз в приложении.</string>
     <string name="sync_receipt_empty_ocr">Не удалось прочитать текст из файла. Пришлите более чёткое фото или PDF.</string>
     <string name="sync_receipt_extract_failed">Не скачал файл: %1$s</string>
     <string name="sync_parse_failed">❓ Не удалось распознать как лоуд, зарплату или дизель. Отправьте текст с Trip ID / Grand Total / fuel Total. /help — подсказка.</string>
