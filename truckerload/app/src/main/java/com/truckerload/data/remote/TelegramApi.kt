@@ -263,10 +263,20 @@ class TelegramApi(private val token: String) {
             }
         }
 
+    /** Chat ids arrive as JSON numbers. optString on a number is blank on some Android versions. */
+    private fun JSONObject.optChatId(): String {
+        if (!has("id") || isNull("id")) return ""
+        return when (val value = opt("id")) {
+            is String -> value.trim()
+            is Number -> value.toLong().toString()
+            else -> ""
+        }
+    }
+
     private fun parseUpdate(obj: JSONObject): TelegramUpdate? {
         val callback = obj.optJSONObject("callback_query")
         if (callback != null) {
-            val chatId = callback.optJSONObject("message")?.optJSONObject("chat")?.optString("id").orEmpty()
+            val chatId = callback.optJSONObject("message")?.optJSONObject("chat")?.optChatId().orEmpty()
             val data = callback.optString("data", "")
             return TelegramUpdate(
                 updateId = obj.optLong("update_id"),
@@ -284,7 +294,7 @@ class TelegramApi(private val token: String) {
             ?: return null
 
         val chat = msg.optJSONObject("chat")
-        val chatId = chat?.optString("id").orEmpty()
+        val chatId = chat?.optChatId().orEmpty()
         val chatType = chat?.optString("type") ?: "private"
         var text = msg.optString("text").orEmpty()
         if (text.isBlank()) {
