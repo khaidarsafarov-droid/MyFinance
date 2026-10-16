@@ -62,7 +62,15 @@ class TelegramLoadHandler(
             reviveDeleted = true,
         )
         notifyIfChanged(results, playFeedback)
+        rememberLast(results, loads)
         return results
+    }
+
+    private fun rememberLast(results: List<ProcessingResult>, loads: List<Load>) {
+        val saved = results.zip(loads).lastOrNull { (result, _) ->
+            result !is ProcessingResult.Skipped
+        }?.second ?: return
+        TelegramLastLoad.remember(context, saved)
     }
 
     private suspend fun parserConfig(): ParserConfig =

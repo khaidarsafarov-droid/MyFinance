@@ -29,6 +29,7 @@ class TelegramBotCommands(
         stateMachine: TelegramStateMachine,
     ) {
         val resolved = TelegramBotFeatures.aliasCommand(command)
+        if (TelegramLoadEdits(context, apiClient).handle(resolved, chatId, loadRepository)) return
         when {
             isCommand(resolved, "/start") ->
                 apiClient.sendWithMenu(chatId, context.getString(R.string.sync_welcome))

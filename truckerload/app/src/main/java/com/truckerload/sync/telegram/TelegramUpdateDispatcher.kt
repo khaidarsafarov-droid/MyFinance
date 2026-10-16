@@ -144,6 +144,7 @@ class TelegramUpdateDispatcher(
         rawText = TelegramBotFeatures.aliasCommand(rawText)
 
         when {
+            TelegramLoadEdits(context, apiClient).handle(rawText, update.chatId, loadRepository) -> return
             isCommand(rawText, "/start") -> {
                 apiClient.sendWithMenu(update.chatId, context.getString(R.string.sync_welcome))
                 replayUnpaired(
