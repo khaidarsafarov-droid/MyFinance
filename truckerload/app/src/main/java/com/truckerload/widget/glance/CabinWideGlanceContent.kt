@@ -88,7 +88,6 @@ internal fun WideBudgetContent(
             amountSp = layout.amountSp,
             metricSp = layout.metricSp,
             metricGap = layout.metricGap,
-            showDieselNet = layout.showDieselNet,
             showRpm = layout.showRpm,
             modifier = GlanceModifier.sectionBelow(layout.sectionGap),
         )
@@ -194,7 +193,6 @@ private fun MockupStatsRow(
     amountSp: TextUnit,
     metricSp: TextUnit,
     metricGap: Dp,
-    showDieselNet: Boolean,
     showRpm: Boolean,
     modifier: GlanceModifier = GlanceModifier,
 ) {
@@ -240,26 +238,6 @@ private fun MockupStatsRow(
                 context = context,
                 onClickRoute = WidgetDeepLink.ROUTE_WEEKLY_GOAL,
             )
-            if (showDieselNet) {
-                Spacer(modifier = GlanceModifier.height(metricGap))
-                MetricRow(
-                    label = context.getString(R.string.widget_metric_diesel),
-                    value = WidgetStatsFormatter.formatGrossUsd(week.dieselAmount),
-                    valueColor = Color(colors.text),
-                    fontSize = metricSp,
-                    context = context,
-                    onClickRoute = WidgetDeepLink.ROUTE_ADD_DIESEL,
-                )
-                Spacer(modifier = GlanceModifier.height(metricGap))
-                MetricRow(
-                    label = context.getString(R.string.widget_metric_net),
-                    value = WidgetStatsFormatter.formatGrossUsd(week.netProfit),
-                    valueColor = Color(colors.accent),
-                    fontSize = metricSp,
-                    context = context,
-                    onClickRoute = WidgetDeepLink.ROUTE_HOME,
-                )
-            }
             if (showRpm) {
                 Spacer(modifier = GlanceModifier.height(metricGap))
                 MetricRow(
@@ -295,7 +273,6 @@ internal fun CompactFinanceBlock(
         amountSp = amountSp,
         metricSp = metricSp,
         metricGap = metricGap,
-        showDieselNet = false,
         showRpm = false,
         modifier = modifier,
     )

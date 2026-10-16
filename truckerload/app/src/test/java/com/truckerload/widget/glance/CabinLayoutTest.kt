@@ -21,8 +21,7 @@ class CabinLayoutTest {
             assertTrue(layout.metricSp.value >= 12f)
             assertFits(size, layout)
         }
-        assertFalse(cabinLayoutFor(CabinSize4x2).showDieselNet)
-        assertTrue(cabinLayoutFor(CabinSize4x4).showDieselNet)
+        assertFalse(cabinLayoutFor(CabinSize4x2).showRpm)
         assertTrue(cabinLayoutFor(CabinSize4x4).showRpm)
     }
 
