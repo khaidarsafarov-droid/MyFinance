@@ -19,6 +19,7 @@ internal fun HomeEmptyJournal(
         title = title,
         message = body,
         modifier = modifier,
+        leading = { EmptyJournalMark() },
         primaryAction = {
             EmptyStateButton(label = ctaLabel, onClick = onCta)
         },

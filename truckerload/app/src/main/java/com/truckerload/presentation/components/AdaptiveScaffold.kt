@@ -69,6 +69,7 @@ fun AdaptiveScaffold(
                     AppDrawerContent(
                         onNavigate = onDrawerNavigate,
                         onClose = { scope.launch { drawerState.close() } },
+                        currentRoute = currentRoute,
                     )
                 },
             ) {

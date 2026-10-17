@@ -34,16 +34,20 @@ object VibrationManager {
     vibrateOnMain(context, pattern = longArrayOf(0, 120, 80, 160))
   }
 
-  /** Light confirmation tap for save / selection. */
+  /** Light tap for tabs and a saved load. Frequent, so it stays soft. */
   fun vibrateTick(context: Context) {
     if (!isEnabled(context)) return
-    vibrateOnMain(context, oneShotMs = 30)
+    vibrateOnMain(context, oneShotMs = HapticPulse.TICK_MS, amplitude = HapticPulse.TICK_AMPLITUDE)
   }
 
-  /** Medium confirmation for destructive or commit gestures (swipe-delete). */
+  /** Heavier pulse for delete. Not used while typing a rate. */
   fun vibrateConfirm(context: Context) {
     if (!isEnabled(context)) return
-    vibrateOnMain(context, oneShotMs = 45)
+    vibrateOnMain(
+      context,
+      oneShotMs = HapticPulse.CONFIRM_MS,
+      amplitude = HapticPulse.CONFIRM_AMPLITUDE,
+    )
   }
 
   /** Short tap — used for settings preview only. */
@@ -52,7 +56,12 @@ object VibrationManager {
     vibrateOnMain(context, oneShotMs = 60)
   }
 
-  private fun vibrateOnMain(context: Context, pattern: LongArray? = null, oneShotMs: Long? = null) {
+  private fun vibrateOnMain(
+    context: Context,
+    pattern: LongArray? = null,
+    oneShotMs: Long? = null,
+    amplitude: Int = HapticPulse.DEFAULT_AMPLITUDE,
+  ) {
     val app = context.applicationContext
     val action: () -> Unit = {
       val vibrator = vibrator(app)
@@ -64,7 +73,7 @@ object VibrationManager {
                 VibrationEffect.createWaveform(pattern, -1),
               )
               oneShotMs != null -> vibrator.vibrate(
-                VibrationEffect.createOneShot(oneShotMs, VibrationEffect.DEFAULT_AMPLITUDE),
+                VibrationEffect.createOneShot(oneShotMs, amplitude),
               )
             }
           } else {
@@ -94,4 +103,13 @@ object VibrationManager {
       app.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     }
   }
+}
+
+/** Tick stays soft. Delete and the goal pulse stay stronger. */
+internal object HapticPulse {
+  const val DEFAULT_AMPLITUDE = -1
+  const val TICK_MS = 18L
+  const val TICK_AMPLITUDE = 40
+  const val CONFIRM_MS = 42L
+  const val CONFIRM_AMPLITUDE = 210
 }

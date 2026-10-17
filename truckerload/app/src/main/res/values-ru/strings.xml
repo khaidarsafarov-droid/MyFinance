@@ -668,6 +668,7 @@
     <string name="add_load_input_placeholder">Вставьте скопированный текст из любого приложения…</string>
     <string name="add_load_parse_failed">Не вижу ставку и адрес. Нужны строка Total Rate и Pu-address или Del-address.</string>
     <string name="add_load_saving">Сохранение…</string>
+    <string name="add_load_saved_ack">Сохранено</string>
     <string name="add_load_save_offline">Сохранить в приложении (офлайн)</string>
     <string name="add_load_hint_online">Вставьте сообщение и нажмите «Сохранить» — данные сразу попадут в локальную БД.</string>
     <string name="add_load_mode_title">Как добавить груз</string>

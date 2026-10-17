@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.SwipeableLoadCard
+import com.truckerload.presentation.motion.arriveIfRecent
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 
 /** Flat list rows for multi-column home journal (headers full-width, loads chunked). */
@@ -88,7 +89,9 @@ internal fun HomeLoadCardRow(
                 onClick = { if (load.id.isNotBlank()) onLoadClick(load.id) },
                 onDelete = { if (load.id.isNotBlank()) onDelete(load.id) },
                 rpmThresholds = rpmThresholds,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .arriveIfRecent(load.parsedAt),
                 onCameraClick = {
                     if (load.id.isNotBlank()) {
                         onLoadCamera(load.id, load.tripId, load.date)

@@ -668,6 +668,7 @@
     <string name="add_load_input_placeholder">Pega el texto copiado de cualquier app…</string>
     <string name="add_load_parse_failed">Se necesita una línea Total Rate y una línea Pu-address o Del-address.</string>
     <string name="add_load_saving">Guardando…</string>
+    <string name="add_load_saved_ack">Guardado</string>
     <string name="add_load_save_offline">Guardar en la app (sin conexión)</string>
     <string name="add_load_hint_online">Pega un mensaje y toca Guardar: los datos van directo a la base local.</string>
     <string name="add_load_mode_title">Cómo agregar una carga</string>
