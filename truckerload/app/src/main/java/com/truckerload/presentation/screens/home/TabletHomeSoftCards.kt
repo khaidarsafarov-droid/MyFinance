@@ -74,46 +74,15 @@ internal fun SoftHeroCard(
                 text = periodLabel.uppercase(),
                 style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = gross,
-                    style = AppTypography.HeroNumberOnDark,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = miles,
-                        style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-                        maxLines = 1,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = rpm,
-                            style = AppTypography.HeroNumberCompact.copy(color = onPrimary),
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = stringResource(R.string.home_period_avg_rpm_label),
-                            style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
+            HeroPeriodFigures(
+                gross = gross,
+                miles = miles,
+                rpmValue = rpm,
+                rpmLabel = stringResource(R.string.home_period_avg_rpm_label),
+                onPrimary = onPrimary,
+                onPrimaryMuted = onPrimaryMuted,
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+            )
             Box(modifier = Modifier.padding(top = 8.dp)) {
                 filterContent()
             }

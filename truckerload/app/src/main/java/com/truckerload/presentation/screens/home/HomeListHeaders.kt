@@ -4,10 +4,8 @@ import com.truckerload.presentation.icons.AppIcons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
@@ -89,47 +86,17 @@ internal fun PeriodSummarySection(
                 text = header.label.uppercase(),
                 style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
             )
-            // Gross left; miles + avg RPM stacked right so the label never wraps alone.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = gross,
-                    style = AppTypography.HeroNumberOnDark,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = miles,
-                        style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-                        maxLines = 1,
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = rpmValue,
-                            style = AppTypography.HeroNumberCompact.copy(color = onPrimary),
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = rpmLabel,
-                            style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
+            // Gross stays fully readable on one line; miles and RPM sit beside it
+            // when they fit, otherwise under the amount.
+            HeroPeriodFigures(
+                gross = gross,
+                miles = miles,
+                rpmValue = rpmValue,
+                rpmLabel = rpmLabel,
+                onPrimary = onPrimary,
+                onPrimaryMuted = onPrimaryMuted,
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+            )
             // Goal progress lives on the Goal tab only (audit Stage 8).
             if (weeklyGoal <= 0 && totals.totalRate.isPositive()) {
                 Text(
