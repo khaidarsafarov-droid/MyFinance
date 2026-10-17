@@ -668,6 +668,7 @@
     <string name="add_load_input_placeholder">Paste copied text from any app…</string>
     <string name="add_load_parse_failed">Need a Total Rate line and a Pu-address or Del-address line.</string>
     <string name="add_load_saving">Saving…</string>
+    <string name="add_load_saved_ack">Saved</string>
     <string name="add_load_save_offline">Save in app (offline)</string>
     <string name="add_load_hint_online">Paste a message and tap Save — data goes straight to the local database.</string>
     <string name="add_load_mode_title">How to add a load</string>

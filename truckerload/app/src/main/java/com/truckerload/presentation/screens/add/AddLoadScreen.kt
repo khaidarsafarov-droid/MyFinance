@@ -1,14 +1,20 @@
 package com.truckerload.presentation.screens.add
 
 import android.widget.Toast
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -16,6 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -32,10 +42,14 @@ import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.verticalContentScroll
+import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.motion.SAVE_CONFIRM_HOLD_MS
+import com.truckerload.presentation.motion.rememberMotionEnabled
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
+import kotlinx.coroutines.delay
 
 @Composable
 fun AddLoadScreen(
@@ -62,11 +76,17 @@ fun AddLoadScreen(
         )
     }
 
-    LaunchedEffect(uiState.savedLoad, uiState.alarmPrompt) {
-        if (uiState.savedLoad != null && uiState.alarmPrompt == null) {
-            viewModel.clearSaved()
-            onSaved()
+    val motion = rememberMotionEnabled()
+    var sawAlarm by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.savedLoad?.id, uiState.alarmPrompt != null) {
+        if (uiState.savedLoad == null) return@LaunchedEffect
+        if (uiState.alarmPrompt != null) {
+            sawAlarm = true
+            return@LaunchedEffect
         }
+        if (motion && !sawAlarm) delay(SAVE_CONFIRM_HOLD_MS)
+        viewModel.clearSaved()
+        onSaved()
     }
 
     val prompt = uiState.alarmPrompt
@@ -125,13 +145,16 @@ fun AddLoadScreen(
                     AddLoadInputMode.MANUAL, AddLoadInputMode.DOCUMENT -> true
                     AddLoadInputMode.PASTE -> uiState.rawText.isNotBlank()
                 }
+                val confirmed = uiState.savedLoad != null
                 Button(
-                    onClick = saveCurrent,
+                    onClick = { if (!confirmed) saveCurrent() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    enabled = saveEnabled,
+                    enabled = saveEnabled || confirmed,
                 ) {
-                    Text(
-                        saveButtonLabel(
+                    SaveConfirmLabel(
+                        confirmed = confirmed,
+                        motion = motion,
+                        label = saveButtonLabel(
                             isSaving = uiState.isSaving,
                             preview = preview,
                             manual = uiState.manual.takeIf { uiState.mode != AddLoadInputMode.PASTE },
@@ -250,6 +273,27 @@ private fun PasteLoadCard(
         shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
         colors = AppTextFieldDefaults.outlined(),
     )
+}
+
+@Composable
+private fun SaveConfirmLabel(confirmed: Boolean, motion: Boolean, label: String) {
+    Crossfade(
+        targetState = confirmed,
+        animationSpec = if (motion) tween(durationMillis = 180) else snap(),
+        label = "save-confirm",
+    ) { done ->
+        Box(contentAlignment = Alignment.Center) {
+            if (done) {
+                Icon(
+                    imageVector = AppIcons.CheckCircle,
+                    contentDescription = stringResource(R.string.add_load_saved_ack),
+                    modifier = Modifier.size(22.dp),
+                )
+            } else {
+                Text(label)
+            }
+        }
+    }
 }
 
 @Composable
