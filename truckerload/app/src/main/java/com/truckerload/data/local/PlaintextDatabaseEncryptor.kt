@@ -197,7 +197,7 @@ internal object PlaintextDatabaseEncryptor {
         }
     }
 
-    private fun loadSqlCipher() {
+    internal fun loadSqlCipher() {
         if (loaded) return
         val override = System.getProperty("truckerload.sqlcipher.lib")
         if (!override.isNullOrBlank()) {

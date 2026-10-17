@@ -255,8 +255,38 @@ class SettingsDataStore(context: Context) {
     }
 
     /**
-     * One-time code the owner sends as `/start <code>`; without it, anyone who finds the bot
-     * username could pair first. Rotated by [consumeTelegramPairingCode] and [clearTelegramChatId].
+     * Copies the paired chat and getUpdates offset onto [targetUserId] when that
+     * account has none yet. Used when an update opened an empty profile beside an
+     * older journal. Does not overwrite a chat the target already paired.
+     */
+    internal suspend fun copyTelegramLinkIfTargetEmpty(sourceUserId: String?, targetUserId: String) {
+        if (sourceUserId == targetUserId) return
+        val targetPart = AccountIds.sanitizeFilePart(targetUserId)
+        val targetChat = longPreferencesKey("telegram_chat_id_$targetPart")
+        val targetOffset = longPreferencesKey("telegram_last_update_offset_$targetPart")
+        appContext.settingsDataStore.edit { prefs ->
+            if (prefs[targetChat] == null) {
+                chatIdFor(prefs, sourceUserId)?.let { prefs[targetChat] = it }
+            }
+            if (prefs[targetOffset] == null) {
+                offsetFor(prefs, sourceUserId)?.let { prefs[targetOffset] = it }
+            }
+        }
+    }
+
+    private fun chatIdFor(prefs: Preferences, userId: String?): Long? {
+        if (userId == null) return prefs[KEY_TELEGRAM_CHAT_ID]
+        return prefs[longPreferencesKey("telegram_chat_id_${AccountIds.sanitizeFilePart(userId)}")]
+    }
+
+    private fun offsetFor(prefs: Preferences, userId: String?): Long? {
+        if (userId == null) return prefs[KEY_TELEGRAM_UPDATE_OFFSET]
+        return prefs[longPreferencesKey("telegram_last_update_offset_${AccountIds.sanitizeFilePart(userId)}")]
+    }
+
+    /**
+     * Optional `/start <code>` payload. The Telegram Start button pairs without it.
+     * Rotated by [consumeTelegramPairingCode] and [clearTelegramChatId].
      */
     suspend fun getOrCreateTelegramPairingCode(): String {
         appContext.settingsDataStore.data.first()[KEY_TELEGRAM_PAIRING_CODE]?.let { return it }

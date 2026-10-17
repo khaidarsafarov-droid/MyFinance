@@ -15,6 +15,7 @@ import androidx.work.Configuration
 import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.truckerload.data.local.InstalledJournalRecovery
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.repository.LoadPendingDeleteApplier
 import com.truckerload.data.preferences.StartupRepairStore
@@ -73,6 +74,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        // Before Room opens: an update can leave the session on an empty profile
+        // while the previous journal is still on disk.
+        InstalledJournalRecovery.recoverIfNeeded(this, authStore)
         initializeCrashReporting()
         com.truckerload.data.premium.PremiumAccess.get(this).refresh()
         appScope.launch(Dispatchers.IO) {

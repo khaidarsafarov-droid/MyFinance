@@ -35,7 +35,7 @@ object LegacyDatabaseAbsorb {
         if (meta.getBoolean(KEY_ABSORB_DECLINED, false)) return
 
         val target = app.getDatabasePath(AppDatabase.databaseNameFor(userId))
-        if (target.exists() && DatabaseFileCopy.isHealthyDatabase(target)) {
+        if (InstalledJournalRecovery.isPresentDatabase(target)) {
             meta.edit()
                 .putBoolean(KEY_LEGACY_DB_CLAIMED, true)
                 .putString(KEY_LEGACY_DB_OWNER, userId)

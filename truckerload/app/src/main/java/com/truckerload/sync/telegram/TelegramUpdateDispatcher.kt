@@ -63,7 +63,12 @@ class TelegramUpdateDispatcher(
                     chatRestore.persistIncoming(update)
                     TelegramPairingReplay.remember(prefs, update.updateId)
                 }
-                answerCallback(update, context.getString(R.string.sync_chat_pair_required))
+                val hint = context.getString(R.string.sync_chat_pair_required)
+                if (update.isCallbackQuery) {
+                    answerCallback(update, hint)
+                } else if (TelegramPairHint.markIfFirst(prefs, update.chatId)) {
+                    runCatchingCancellable { apiClient.sendMessage(update.chatId, hint) }
+                }
                 return
             }
             ChatGate.JustPaired, ChatGate.Accepted -> Unit
@@ -532,10 +537,8 @@ class TelegramUpdateDispatcher(
     }
 
     /**
-     * Pairing rules:
-     * - Bound chat: only that chat id is accepted (others get a short reject).
-     * - Unbound: `/start <code>` in a private chat, with the one-time code shown in Settings,
-     *   binds once; other traffic is rejected.
+     * Bound chat: only that chat id is accepted.
+     * Unbound private `/start` (the Telegram Start button, with or without a code) pairs once.
      * Never overwrite a bound chat id from inbound messages.
      */
     private suspend fun answerCallback(update: TelegramUpdate, text: String) {
@@ -564,20 +567,18 @@ class TelegramUpdateDispatcher(
             Log.w(TAG, "Rejected unauthorized chatId=$chatIdLong (bound=$bound)")
             return ChatGate.Foreign
         }
-        val code = telegramStartPayload(update.text)
-        val isPrivate = update.chatType == "private" || update.chatType.isBlank()
-        if (!update.isCallbackQuery && isPrivate && code != null && settings.consumeTelegramPairingCode(code)) {
+        if (shouldPairOnStart(
+                text = update.text,
+                isCallbackQuery = update.isCallbackQuery,
+                chatType = update.chatType,
+            )
+        ) {
+            telegramStartPayload(update.text)?.let { settings.consumeTelegramPairingCode(it) }
             settings.saveTelegramChatId(chatIdLong)
-            Log.i(TAG, "Paired Telegram chatId=$chatIdLong")
+            Log.i(TAG, "Paired Telegram chatId=$chatIdLong via /start")
             return ChatGate.JustPaired
         }
-        runCatchingCancellable {
-            apiClient.sendMessage(
-                update.chatId,
-                context.getString(R.string.sync_chat_pair_required),
-            )
-        }
-        Log.w(TAG, "Rejected unpaired chatId=$chatIdLong — send /start to pair")
+        Log.w(TAG, "Unpaired chatId=$chatIdLong — /start pairs this chat")
         return ChatGate.Unpaired
     }
 
@@ -588,11 +589,3 @@ class TelegramUpdateDispatcher(
     }
 }
 
-/** `/start ABC` or `/start@bot ABC` → `ABC`; null when it is not `/start` or has no argument. */
-internal fun telegramStartPayload(text: String): String? {
-    val command = text.trim().substringBefore(' ')
-    if (!command.equals("/start", ignoreCase = true) && !command.startsWith("/start@", ignoreCase = true)) {
-        return null
-    }
-    return text.trim().substringAfter(' ', missingDelimiterValue = "").trim().takeIf { it.isNotEmpty() }
-}
