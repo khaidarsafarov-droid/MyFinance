@@ -27,7 +27,10 @@ internal class DatabasePassphraseStore(
     }
 
     fun getOrCreate(): ByteArray {
-        readIfPresent()?.let { return it }
+        if (wrappedFile.exists() && wrappedFile.length() > 0L) {
+            return readIfPresent()
+                ?: error("database passphrase wrap exists but could not be unwrapped")
+        }
         val fresh = ByteArray(PASSPHRASE_BYTES)
         SecureRandom().nextBytes(fresh)
         wrappedFile.parentFile?.mkdirs()

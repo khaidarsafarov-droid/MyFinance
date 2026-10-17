@@ -17,8 +17,9 @@ import net.zetetic.database.sqlcipher.SQLiteDatabase as CipherDatabase
 /**
  * An update can open a new empty profile while the previous journal is still
  * on disk (the Room file, token, and chat id are all named after the user id).
- * When there is exactly one journal that still has loads, attach it again.
- * Two populated journals are left alone — guessing would mix drivers.
+ * When there is exactly one journal that still has rows (loads, diesel, paychecks,
+ * scans, or the other money tables), attach it again. A file that cannot be opened
+ * is kept, never replaced. Two populated journals are left alone.
  */
 object InstalledJournalRecovery {
     private const val TAG = "JournalRecovery"
@@ -33,7 +34,7 @@ object InstalledJournalRecovery {
 
     internal fun recover(context: Context, authStore: AuthStore) {
         val journals = scan(context)
-        val populated = journals.filter { it.loadCount > 0 }
+        val populated = journals.filter { it.rowCount != 0 }
         val activeId = authStore.currentUserIdOrNull()
         if (activeId == null) {
             val only = populated.singleOrNull() ?: return
@@ -47,8 +48,8 @@ object InstalledJournalRecovery {
             return
         }
         val activeName = AppDatabase.databaseNameFor(activeId)
-        val activeCount = journals.firstOrNull { it.databaseName == activeName }?.loadCount ?: 0
-        if (activeCount > 0) return
+        val activeCount = journals.firstOrNull { it.databaseName == activeName }?.rowCount ?: 0
+        if (activeCount != 0) return
         val only = populated.filter { it.databaseName != activeName }.singleOrNull() ?: return
         adoptInto(context, activeId, only)
         Log.i(TAG, "Copied ${only.databaseName} into empty profile $activeId")
@@ -97,7 +98,7 @@ object InstalledJournalRecovery {
                 name.startsWith("truckerload_") -> name.removePrefix("truckerload_").ifBlank { return@mapNotNull null }
                 else -> return@mapNotNull null
             }
-            JournalFile(file, name, userId, countLoads(context, file, name))
+            JournalFile(file, name, userId, countUserRows(context, file, name))
         }
     }
 
@@ -109,33 +110,24 @@ object InstalledJournalRecovery {
             name.endsWith(".adopting")
     }
 
-    private fun countLoads(context: Context, file: File, databaseName: String): Int {
+    private fun countUserRows(context: Context, file: File, databaseName: String): Int {
         if (!file.exists() || file.length() == 0L) return 0
-        return runCatching {
-            if (PlaintextDatabaseEncryptor.isPlaintextSqlite(file)) {
-                countPlaintextLoads(file)
-            } else {
-                countEncryptedLoads(context, file, databaseName)
-            }
-        }.getOrDefault(0)
+        if (PlaintextDatabaseEncryptor.isPlaintextSqlite(file)) {
+            return runCatching { countPlaintextRows(file) }.getOrDefault(OCCUPIED)
+        }
+        if (file.length() <= 100L) return 0
+        return runCatching { countEncryptedRows(context, file, databaseName) }.getOrDefault(OCCUPIED)
     }
 
-    private fun countPlaintextLoads(file: File): Int {
+    private fun countPlaintextRows(file: File): Int {
         return SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
-            val hasLoads = db.rawQuery(
-                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='loads'",
-                null,
-            ).use { it.moveToFirst() }
-            if (!hasLoads) return 0
-            db.rawQuery("SELECT COUNT(*) FROM loads", null).use { cursor ->
-                if (cursor.moveToFirst()) cursor.getInt(0) else 0
-            }
+            countRows(db)
         }
     }
 
-    private fun countEncryptedLoads(context: Context, file: File, databaseName: String): Int {
+    private fun countEncryptedRows(context: Context, file: File, databaseName: String): Int {
         val passphrase = DatabasePassphraseStore.forDatabase(context, databaseName).readIfPresent()
-            ?: return 0
+            ?: return OCCUPIED
         PlaintextDatabaseEncryptor.loadSqlCipher()
         val db = CipherDatabase.openDatabase(
             file.absolutePath,
@@ -144,16 +136,32 @@ object InstalledJournalRecovery {
             CipherDatabase.OPEN_READONLY,
             null,
         )
-        db.use { database ->
-            val hasLoads = database.rawQuery(
-                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='loads'",
-                null,
-            ).use { it.moveToFirst() }
-            if (!hasLoads) return 0
-            return database.rawQuery("SELECT COUNT(*) FROM loads", null).use { cursor ->
-                if (cursor.moveToFirst()) cursor.getInt(0) else 0
-            }
+        return db.use { countRows(it) }
+    }
+
+    private fun countRows(db: SQLiteDatabase): Int = countRows { sql ->
+        db.rawQuery(sql, null).use { cursor ->
+            if (cursor.moveToFirst()) cursor.getInt(0) else 0
         }
+    }
+
+    private fun countRows(db: CipherDatabase): Int = countRows { sql ->
+        db.rawQuery(sql, null).use { cursor ->
+            if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        }
+    }
+
+    private fun countRows(query: (String) -> Int): Int {
+        var total = 0
+        for (table in USER_TABLES) {
+            val exists = query(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='$table'",
+            )
+            if (exists == 0) continue
+            total += query("SELECT COUNT(*) FROM `$table`")
+            if (total > 0) return total
+        }
+        return total
     }
 
     /**
@@ -192,6 +200,19 @@ object InstalledJournalRecovery {
         }
     }
 
+    private fun copyLink(context: Context, sourceUserId: String?, targetUserId: String) {
+        JournalAccountCopy.copyScopedState(context, sourceUserId, targetUserId)
+        runCatching {
+            runBlocking(Dispatchers.IO) {
+                val settings = SettingsDataStore(context)
+                settings.copyTelegramLinkIfTargetEmpty(sourceUserId, targetUserId)
+                if (sourceUserId != null) {
+                    settings.copyAccountPreferencesIfTargetEmpty(sourceUserId, targetUserId)
+                }
+            }
+        }.onFailure { error -> Log.w(TAG, "telegram link copy skipped", error) }
+    }
+
     private fun copyToken(context: Context, sourceUserId: String?, targetUserId: String) {
         runCatching {
             val target = TelegramTokenStore(context, targetUserId)
@@ -201,18 +222,22 @@ object InstalledJournalRecovery {
         }.onFailure { error -> Log.w(TAG, "token copy skipped", error) }
     }
 
-    private fun copyLink(context: Context, sourceUserId: String?, targetUserId: String) {
-        runCatching {
-            runBlocking(Dispatchers.IO) {
-                SettingsDataStore(context).copyTelegramLinkIfTargetEmpty(sourceUserId, targetUserId)
-            }
-        }.onFailure { error -> Log.w(TAG, "telegram link copy skipped", error) }
-    }
-
     private data class JournalFile(
         val file: File,
         val databaseName: String,
         val userId: String?,
-        val loadCount: Int,
+        val rowCount: Int,
     )
 }
+
+private const val OCCUPIED = -1
+
+private val USER_TABLES = listOf(
+    "loads",
+    "diesel",
+    "paychecks",
+    "penalties",
+    "misc_expenses",
+    "maintenance_archive",
+    "scans",
+)

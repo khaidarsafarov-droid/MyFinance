@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.week.WeekStartDay
@@ -282,6 +283,34 @@ class SettingsDataStore(context: Context) {
     private fun offsetFor(prefs: Preferences, userId: String?): Long? {
         if (userId == null) return prefs[KEY_TELEGRAM_UPDATE_OFFSET]
         return prefs[longPreferencesKey("telegram_last_update_offset_${AccountIds.sanitizeFilePart(userId)}")]
+    }
+
+    /**
+     * Copies every account-scoped setting (week start, quiet hours, notify flags)
+     * onto [targetUserId] when that key is still absent.
+     */
+    internal suspend fun copyAccountPreferencesIfTargetEmpty(sourceUserId: String, targetUserId: String) {
+        val sourcePart = AccountIds.sanitizeFilePart(sourceUserId)
+        val targetPart = AccountIds.sanitizeFilePart(targetUserId)
+        if (sourcePart == targetPart) return
+        val suffix = "_$sourcePart"
+        appContext.settingsDataStore.edit { prefs ->
+            val existing = prefs.asMap().keys.map { it.name }.toMutableSet()
+            for ((key, value) in prefs.asMap().entries.toList()) {
+                if (!key.name.endsWith(suffix)) continue
+                val renamed = key.name.removeSuffix(suffix) + "_$targetPart"
+                if (!existing.add(renamed)) continue
+                when (value) {
+                    is Boolean -> prefs[booleanPreferencesKey(renamed)] = value
+                    is Int -> prefs[intPreferencesKey(renamed)] = value
+                    is Long -> prefs[longPreferencesKey(renamed)] = value
+                    is Float -> prefs[floatPreferencesKey(renamed)] = value
+                    is String -> prefs[stringPreferencesKey(renamed)] = value
+                    is Set<*> -> prefs[stringSetPreferencesKey(renamed)] =
+                        value.filterIsInstance<String>().toSet()
+                }
+            }
+        }
     }
 
     /**

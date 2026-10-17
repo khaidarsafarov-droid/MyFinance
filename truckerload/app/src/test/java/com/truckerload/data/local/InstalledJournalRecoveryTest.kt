@@ -8,9 +8,11 @@ import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SecurePreferences
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.TelegramTokenStore
+import com.truckerload.domain.week.WeekStartDay
 import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -94,6 +96,16 @@ class InstalledJournalRecoveryTest {
         val settings = SettingsDataStore(context)
         settings.saveTelegramChatId(555L)
         settings.saveLastUpdateOffset(900L)
+        settings.saveLoadWeekStartDay(WeekStartDay.WEDNESDAY)
+        val sourcePart = AccountIds.sanitizeFilePart(sourceId)
+        context.getSharedPreferences("truckerload_widget_goals_$sourcePart", Context.MODE_PRIVATE)
+            .edit()
+            .putString("weekly_profit_goal", "12000")
+            .commit()
+        val external = context.getExternalFilesDir(null)
+        check(external != null)
+        File(external, "backups/$sourcePart").mkdirs()
+        File(external, "backups/$sourcePart/journal.tlb").writeText("backup-body")
         auth.logout()
         AuthStore.resetForTests()
 
@@ -104,8 +116,56 @@ class InstalledJournalRecoveryTest {
         assertEquals(listOf("kept"), loadIds(AppDatabase.databaseNameFor(targetId)))
         assertEquals(listOf("kept"), loadIds(AppDatabase.databaseNameFor(sourceId)))
         assertEquals("123456:ABC", TelegramTokenStore(context, targetId).getToken())
-        assertEquals(555L, SettingsDataStore(context).getTelegramChatIdOnce())
-        assertEquals(900L, SettingsDataStore(context).getLastUpdateOffset())
+        val restored = SettingsDataStore(context)
+        assertEquals(555L, restored.getTelegramChatIdOnce())
+        assertEquals(900L, restored.getLastUpdateOffset())
+        assertEquals(WeekStartDay.WEDNESDAY, restored.getLoadWeekStartDayOnce())
+        val targetPart = AccountIds.sanitizeFilePart(targetId)
+        assertEquals(
+            "12000",
+            context.getSharedPreferences("truckerload_widget_goals_$targetPart", Context.MODE_PRIVATE)
+                .getString("weekly_profit_goal", null),
+        )
+        assertEquals("backup-body", File(external, "backups/$targetPart/journal.tlb").readText())
+    }
+
+    @Test
+    fun emptyActiveProfile_adoptsDieselWhenThereAreNoLoads() {
+        val sourceId = "google_diesel_only"
+        val targetId = "local_diesel_target"
+        val source = database(AppDatabase.databaseNameFor(sourceId))
+        source.parentFile?.mkdirs()
+        SQLiteDatabase.openOrCreateDatabase(source, null).use { db ->
+            db.execSQL("CREATE TABLE diesel (id INTEGER PRIMARY KEY NOT NULL)")
+            db.execSQL("INSERT INTO diesel (id) VALUES (7)")
+        }
+        AuthStore(context).login(targetId, "local@device", rememberMe = true, provider = AuthProvider.EMAIL)
+
+        InstalledJournalRecovery.recover(context, AuthStore(context))
+
+        val target = database(AppDatabase.databaseNameFor(targetId))
+        SQLiteDatabase.openDatabase(target.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
+            db.rawQuery("SELECT id FROM diesel", null).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(7, cursor.getInt(0))
+            }
+        }
+    }
+
+    @Test
+    fun unreadableJournalIsNotReplaced() {
+        val targetId = "local_keep_cipher"
+        val target = database(AppDatabase.databaseNameFor(targetId))
+        target.parentFile?.mkdirs()
+        val original = ByteArray(180) { 7 }
+        target.writeBytes(original)
+        writeLoads("truckerload_google_other", listOf("x"))
+        AuthStore(context).login(targetId, "local@device", rememberMe = true, provider = AuthProvider.EMAIL)
+
+        InstalledJournalRecovery.recover(context, AuthStore(context))
+
+        assertArrayEquals(original, target.readBytes())
+        assertEquals(listOf("x"), loadIds("truckerload_google_other"))
     }
 
     @Test
