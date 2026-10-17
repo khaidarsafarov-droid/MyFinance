@@ -530,26 +530,12 @@ private fun BoxScope.RailDueBadge(count: Int) {
 
 private fun railIcon(item: TabletRailSpec, selected: Boolean): ImageVector {
     if (item.isLogout) return AppIcons.Logout
-    return when (item.drawer) {
-        DrawerDestination.SETTINGS -> AppIcons.Settings
-        DrawerDestination.MAP -> AppIcons.Map
-        DrawerDestination.PAYCHECK -> AppIcons.Payments
-        DrawerDestination.DIESEL -> AppIcons.LocalGasStation
-        DrawerDestination.MISC_EXPENSES -> AppIcons.Description
-        DrawerDestination.REPORTS -> AppIcons.BarChart
-        DrawerDestination.TAX_TRACKER -> AppIcons.TableChart
-        DrawerDestination.CAMERA -> AppIcons.CameraAlt
-        DrawerDestination.SCANNER -> AppIcons.DocumentScanner
-        DrawerDestination.MAINTENANCE -> AppIcons.Build
-        DrawerDestination.DOCUMENTS -> AppIcons.Description
-        DrawerDestination.IMPROVE -> AppIcons.EditNote
-        DrawerDestination.ABOUT -> AppIcons.Info
-        null -> when (item.route) {
-            Routes.HOME -> if (selected) AppIcons.LocalShipping else AppIcons.LocalShippingOutlined
-            Routes.STATS -> if (selected) AppIcons.Flag else AppIcons.FlagOutlined
-            Routes.PROFILE -> if (selected) AppIcons.Person else AppIcons.PersonOutlined
-            else -> AppIcons.Assignment
-        }
+    item.drawer?.let { return drawerIcon(it, selected) }
+    return when (item.route) {
+        Routes.HOME -> if (selected) AppIcons.LocalShipping else AppIcons.LocalShippingOutlined
+        Routes.STATS -> if (selected) AppIcons.Flag else AppIcons.FlagOutlined
+        Routes.PROFILE -> if (selected) AppIcons.Person else AppIcons.PersonOutlined
+        else -> AppIcons.Assignment
     }
 }
 

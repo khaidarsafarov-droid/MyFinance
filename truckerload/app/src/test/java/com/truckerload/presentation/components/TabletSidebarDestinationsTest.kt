@@ -95,10 +95,12 @@ class TabletSidebarDestinationsTest {
         assertTrue(src.contains("tabletRailPrimaryItems"))
         assertTrue(src.contains("tabletRailToolItems"))
         assertFalse(src.contains("LogoutConfirmDialog"))
+        assertTrue(src.contains("drawerIcon("))
+        val icons = readSource("presentation/components/DrawerIcons.kt")
         DrawerDestination.entries.forEach { dest ->
             assertTrue(
-                "rail icon mapping missing $dest",
-                src.contains("DrawerDestination.${dest.name}"),
+                "drawer icon mapping missing $dest",
+                icons.contains("DrawerDestination.${dest.name}"),
             )
         }
     }

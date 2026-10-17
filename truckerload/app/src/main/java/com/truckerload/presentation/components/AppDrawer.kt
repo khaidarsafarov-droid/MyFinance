@@ -1,7 +1,5 @@
 package com.truckerload.presentation.components
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -47,6 +45,7 @@ fun AppDrawerContent(
     onNavigate: (DrawerDestination) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    currentRoute: String? = null,
 ) {
     val tc = LocalTruckColors.current
 
@@ -81,75 +80,23 @@ fun AppDrawerContent(
                     .verticalScroll(rememberScrollState()),
             ) {
             DrawerSectionLabel(stringResource(R.string.drawer_section_finance))
-            drawerItem(
-                icon = AppIcons.Payments,
-                label = stringResource(R.string.paycheck_title),
-                onClick = { onNavigate(DrawerDestination.PAYCHECK); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.LocalGasStation,
-                label = stringResource(R.string.diesel_title),
-                onClick = { onNavigate(DrawerDestination.DIESEL); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.Description,
-                label = stringResource(R.string.misc_expense_title),
-                onClick = { onNavigate(DrawerDestination.MISC_EXPENSES); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.BarChart,
-                label = stringResource(R.string.drawer_reports),
-                onClick = { onNavigate(DrawerDestination.REPORTS); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.TableChart,
-                label = stringResource(R.string.tax_title),
-                onClick = { onNavigate(DrawerDestination.TAX_TRACKER); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.Map,
-                label = stringResource(R.string.drawer_map),
-                onClick = { onNavigate(DrawerDestination.MAP); onClose() },
-            )
+            drawerEntry(DrawerDestination.PAYCHECK, R.string.paycheck_title, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.DIESEL, R.string.diesel_title, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.MISC_EXPENSES, R.string.misc_expense_title, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.REPORTS, R.string.drawer_reports, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.TAX_TRACKER, R.string.tax_title, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.MAP, R.string.drawer_map, currentRoute, onNavigate, onClose)
 
             DrawerSectionLabel(stringResource(R.string.drawer_section_data_entry))
-            drawerItem(
-                icon = AppIcons.CameraAlt,
-                label = stringResource(R.string.camera),
-                onClick = { onNavigate(DrawerDestination.CAMERA); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.DocumentScanner,
-                label = stringResource(R.string.scanner),
-                onClick = { onNavigate(DrawerDestination.SCANNER); onClose() },
-            )
+            drawerEntry(DrawerDestination.CAMERA, R.string.camera, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.SCANNER, R.string.scanner, currentRoute, onNavigate, onClose)
 
             DrawerSectionLabel(stringResource(R.string.drawer_section_maintenance))
-            drawerItem(
-                icon = AppIcons.Build,
-                label = stringResource(R.string.maintenance_title),
-                onClick = { onNavigate(DrawerDestination.MAINTENANCE); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.Description,
-                label = stringResource(R.string.drawer_documents),
-                onClick = { onNavigate(DrawerDestination.DOCUMENTS); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.Settings,
-                label = stringResource(R.string.nav_settings),
-                onClick = { onNavigate(DrawerDestination.SETTINGS); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.EditNote,
-                label = stringResource(R.string.drawer_improve),
-                onClick = { onNavigate(DrawerDestination.IMPROVE); onClose() },
-            )
-            drawerItem(
-                icon = AppIcons.Info,
-                label = stringResource(R.string.drawer_about),
-                onClick = { onNavigate(DrawerDestination.ABOUT); onClose() },
-            )
+            drawerEntry(DrawerDestination.MAINTENANCE, R.string.maintenance_title, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.DOCUMENTS, R.string.drawer_documents, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.SETTINGS, R.string.nav_settings, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.IMPROVE, R.string.drawer_improve, currentRoute, onNavigate, onClose)
+            drawerEntry(DrawerDestination.ABOUT, R.string.drawer_about, currentRoute, onNavigate, onClose)
             }
         }
     }
@@ -167,10 +114,28 @@ private fun DrawerSectionLabel(text: String) {
 }
 
 @Composable
+private fun drawerEntry(
+    destination: DrawerDestination,
+    labelRes: Int,
+    currentRoute: String?,
+    onNavigate: (DrawerDestination) -> Unit,
+    onClose: () -> Unit,
+) {
+    val selected = currentRoute != null && isDrawerDestinationSelected(currentRoute, destination)
+    drawerItem(
+        icon = drawerIcon(destination, selected),
+        label = stringResource(labelRes),
+        selected = selected,
+        onClick = { onNavigate(destination); onClose() },
+    )
+}
+
+@Composable
 private fun drawerItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     onClick: () -> Unit,
+    selected: Boolean = false,
     trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     indented: Boolean = false,
 ) {
@@ -178,7 +143,7 @@ private fun drawerItem(
     NavigationDrawerItem(
         icon = { Icon(icon, contentDescription = label, tint = tc.TextSecondary) },
         label = { Text(label, color = tc.TextPrimary) },
-        selected = false,
+        selected = selected,
         onClick = onClick,
         badge = trailingIcon?.let {
             {
