@@ -1159,9 +1159,9 @@
     <string name="sync_processing">Got your message. Reading it now.</string>
     <string name="sync_update_skipped_error">Message skipped due to an internal error. Please resend it.</string>
     <string name="sync_chat_not_authorized">This bot is already paired with another chat. Unpair it in TruckoRig → Settings → Telegram.</string>
-    <string name="sync_chat_pair_required">To pair this chat, open TruckoRig → Settings → Telegram and send the /start command with the code shown there.</string>
+    <string name="sync_chat_pair_required">To pair this chat, press Start in Telegram or send /start.</string>
     <string name="settings_telegram_open_bot">Open bot and pair</string>
-    <string name="settings_telegram_pair_hint">Not paired yet. Send this to your bot: /start %1$s</string>
+    <string name="settings_telegram_pair_hint">Not paired yet. Press Start in the bot, or send /start %1$s</string>
     <string name="settings_telegram_unpaired_done">Chat unpaired. Pair again with the new code.</string>
     <string name="settings_telegram_unpair">Unpair chat</string>
     <string name="settings_telegram_paired">Paired with your Telegram chat</string>

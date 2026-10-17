@@ -1,5 +1,9 @@
 package com.truckerload.data.preferences
 
+import android.content.Context
+import com.truckerload.sync.telegram.TelegramPairHint
+import com.truckerload.sync.telegram.isStartCommand
+import com.truckerload.sync.telegram.shouldPairOnStart
 import com.truckerload.sync.telegram.telegramStartPayload
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -54,5 +58,32 @@ class TelegramPairingTest {
         assertNull(telegramStartPayload("/start"))
         assertNull(telegramStartPayload("/starter ABC"))
         assertNull(telegramStartPayload("hello /start ABC"))
+    }
+
+    @Test
+    fun startButtonIsAStartCommandAndPairsAPrivateChat() {
+        assertTrue(isStartCommand("/start"))
+        assertTrue(isStartCommand(" /START "))
+        assertTrue(isStartCommand("/start@TruckoRigBot"))
+        assertTrue(isStartCommand("/start ABC"))
+        assertFalse(isStartCommand("/starter"))
+        assertFalse(isStartCommand("hello"))
+
+        assertTrue(shouldPairOnStart("/start", isCallbackQuery = false, chatType = "private"))
+        assertTrue(shouldPairOnStart("/start", isCallbackQuery = false, chatType = ""))
+        assertFalse(shouldPairOnStart("/start", isCallbackQuery = true, chatType = "private"))
+        assertFalse(shouldPairOnStart("/start", isCallbackQuery = false, chatType = "group"))
+        assertFalse(shouldPairOnStart("Trip ID: T-1", isCallbackQuery = false, chatType = "private"))
+    }
+
+    @Test
+    fun pairHintIsSentOncePerChat() {
+        val prefs = RuntimeEnvironment.getApplication()
+            .getSharedPreferences("pair-hint-test", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        assertTrue(TelegramPairHint.markIfFirst(prefs, "42"))
+        assertFalse(TelegramPairHint.markIfFirst(prefs, "42"))
+        assertTrue(TelegramPairHint.markIfFirst(prefs, "99"))
+        assertFalse(TelegramPairHint.markIfFirst(prefs, ""))
     }
 }

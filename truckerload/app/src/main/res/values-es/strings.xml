@@ -1159,9 +1159,9 @@
     <string name="sync_processing">Mensaje recibido. Lo leo ahora.</string>
     <string name="sync_update_skipped_error">Mensaje omitido por un error interno. Reenvíalo.</string>
     <string name="sync_chat_not_authorized">Este bot ya está emparejado con otro chat. Desvincúlalo en TruckoRig → Ajustes → Telegram.</string>
-    <string name="sync_chat_pair_required">Para emparejar este chat, abre TruckoRig → Ajustes → Telegram y envía el comando /start con el código que aparece allí.</string>
+    <string name="sync_chat_pair_required">Para emparejar este chat, pulsa Iniciar en Telegram o envía /start.</string>
     <string name="settings_telegram_open_bot">Abrir bot y emparejar</string>
-    <string name="settings_telegram_pair_hint">Aún sin emparejar. Envía esto a tu bot: /start %1$s</string>
+    <string name="settings_telegram_pair_hint">Aún sin emparejar. Pulsa Iniciar en el bot o envía /start %1$s</string>
     <string name="settings_telegram_unpaired_done">Chat desvinculado. Vuelve a emparejar con el nuevo código.</string>
     <string name="settings_telegram_unpair">Desvincular chat</string>
     <string name="settings_telegram_paired">Emparejado con tu chat de Telegram</string>

@@ -36,6 +36,23 @@ class DatabaseEncryptionTest {
     }
 
     @Test
+    fun corruptWrapIsNotReplaced() {
+        val dir = File(System.getProperty("java.io.tmpdir"), "tl-pass-corrupt-${System.nanoTime()}")
+        dir.mkdirs()
+        val key = KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
+        val wrap = File(dir, "db.wrap")
+        val store = DatabasePassphraseStore(wrap, AesGcmPassphraseCipher(key))
+        store.getOrCreate()
+        val corrupt = ByteArray(24) { it.toByte() }
+        wrap.writeBytes(corrupt)
+
+        val failed = runCatching { store.getOrCreate() }
+
+        assertTrue(failed.isFailure)
+        assertArrayEquals(corrupt, wrap.readBytes())
+    }
+
+    @Test
     fun failedEncryptionLeavesThePlaintextFile() {
         val dir = File(System.getProperty("java.io.tmpdir"), "tl-stage-${System.nanoTime()}")
         dir.mkdirs()
