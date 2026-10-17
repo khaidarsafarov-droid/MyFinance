@@ -21,6 +21,7 @@ import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.PasteParseGap
 import com.truckerload.domain.parser.PasteParseHint
 import com.truckerload.sync.LoadAlarmPlanner
+import com.truckerload.sync.telegram.UserBrokerTemplateStore
 import com.truckerload.sync.LoadAlarmScheduler
 import com.truckerload.utils.LoadDateRepair
 import com.truckerload.utils.LoadDocumentTextExtractor
@@ -108,6 +109,7 @@ class AddLoadViewModel @Inject constructor(
     private var previewGeneration = 0
 
     init {
+        UserBrokerTemplateStore.publish(getApplication())
         _uiState.update { captureBaseline(it) }
         val initial = _uiState.value.rawText
         if (initial.isNotBlank()) schedulePreview(initial)

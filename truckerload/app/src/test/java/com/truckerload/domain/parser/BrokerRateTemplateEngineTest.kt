@@ -58,6 +58,9 @@ class BrokerRateTemplateEngineTest {
         assertEquals(true, BrokerRateTemplateEngine.partsAgreeWithTotal(SCHNEIDER))
         val short = SCHNEIDER.replace("Total $1,775.25", "Total $1,700.00")
         assertEquals(false, BrokerRateTemplateEngine.partsAgreeWithTotal(short))
+        val check = BrokerRateTemplateEngine.ratePartCheck(short)
+        assertEquals(170_000L, check?.labeledCents)
+        assertEquals(177_525L, check?.partsCents)
         assertNotNull(BrokerRateTemplateEngine.parseOne(short, nowMillis = REF_MILLIS))
     }
 

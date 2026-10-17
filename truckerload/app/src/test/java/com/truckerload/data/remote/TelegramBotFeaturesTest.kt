@@ -16,16 +16,14 @@ class TelegramBotFeaturesTest {
     }
 
     @Test
-    fun commandsArray_includesTheSixFormerKeyboardActions() {
+    fun commandsArray_keepsTheMenuShort() {
         val names = buildList {
             val array = TelegramBotFeatures.commandsArray()
             for (i in 0 until array.length()) {
                 add(array.getJSONObject(i).getString("command"))
             }
         }
-        assertTrue(names.containsAll(listOf("help", "status", "load", "paycheck", "import", "restore")))
-        assertFalse(names.contains("help_load"))
-        assertFalse(names.contains("help_pay"))
+        assertEquals(listOf("start", "help", "status", "import", "cancel"), names)
     }
 
     @Test
