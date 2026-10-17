@@ -31,6 +31,7 @@ fun EmptyState(
     title: String,
     message: String,
     modifier: Modifier = Modifier,
+    leading: (@Composable () -> Unit)? = null,
     primaryAction: @Composable () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
@@ -42,12 +43,16 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tc.AccentPrimary,
-            modifier = Modifier.size(48.dp),
-        )
+        if (leading != null) {
+            leading()
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tc.AccentPrimary,
+                modifier = Modifier.size(48.dp),
+            )
+        }
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
