@@ -50,6 +50,7 @@ fun LoadRouteBlock(
     equipment: String? = null,
     trailing: @Composable () -> Unit = {},
     belowRate: @Composable () -> Unit = {},
+    rateActions: @Composable () -> Unit = {},
 ) {
     val cs = MaterialTheme.colorScheme
     Column(modifier = modifier.fillMaxWidth()) {
@@ -92,21 +93,33 @@ fun LoadRouteBlock(
             )
         }
         Spacer(modifier = Modifier.height(14.dp))
-        Text(
-            text = rate,
-            style = AppTypography.HeroNumber.copy(fontSize = MaterialTheme.typography.displaySmall.fontSize),
-            color = cs.onSurface,
-            maxLines = 1,
-        )
-        if (meta.isNotBlank()) {
-            Text(
-                text = meta,
-                style = AppTypography.Caption.copy(fontFeatureSettings = "tnum"),
-                color = cs.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp),
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = rate,
+                    style = AppTypography.HeroNumber.copy(fontSize = MaterialTheme.typography.displaySmall.fontSize),
+                    color = cs.onSurface,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (meta.isNotBlank()) {
+                    Text(
+                        text = meta,
+                        style = AppTypography.Caption.copy(fontFeatureSettings = "tnum"),
+                        color = cs.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                belowRate()
+            }
+            rateActions()
         }
-        belowRate()
     }
 }
 

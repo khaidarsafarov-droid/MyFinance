@@ -39,18 +39,20 @@ import com.truckerload.presentation.theme.focusAfterNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeeklyGoalScreen() {
+fun WeeklyGoalScreen(motionSettled: Boolean = true) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val viewModel: GoalViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val progress = uiState.progress
     LaunchedEffect(
+        motionSettled,
         progress?.paceStatus,
         progress?.weekNumber,
         progress?.year,
         progress?.targetAmount,
     ) {
+        if (!motionSettled) return@LaunchedEffect
         val current = progress ?: return@LaunchedEffect
         if (current.paceStatus == PaceStatus.GOAL_MET &&
             !GoalCelebrationStore.wasCelebrated(
@@ -87,7 +89,7 @@ fun WeeklyGoalScreen() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .focusAfterNavigate(key = "weekly-goal", enabled = true)
+                    .focusAfterNavigate(key = "weekly-goal", enabled = motionSettled)
                     .padding(padding)
                     .verticalContentScroll()
                     .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
@@ -107,6 +109,7 @@ fun WeeklyGoalScreen() {
                             onSaveGoal = viewModel::saveGoal,
                             onCancelEdit = viewModel::cancelEditingGoal,
                             onSuggestedGoal = viewModel::applySuggestedGoal,
+                            animateRing = motionSettled,
                         )
                     },
                     end = {

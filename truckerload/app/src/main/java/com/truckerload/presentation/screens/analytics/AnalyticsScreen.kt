@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import com.truckerload.presentation.components.SoftActionChip
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +46,7 @@ import com.truckerload.presentation.components.AnalyticsSkeleton
 import com.truckerload.presentation.theme.focusAfterNavigate
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -215,17 +214,17 @@ private fun AnalyticsScreenBody(
                             if (uiState.weeks.isNotEmpty()) {
                                 LazyRow(
                                     modifier = Modifier.padding(top = 8.dp),
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
                                     itemsIndexed(
                                         uiState.weeks,
                                         key = { _, week -> week.label },
                                     ) { index, week ->
-                                        FilterChip(
+                                        AppFilterChip(
                                             selected = uiState.selectedWeekIndex == index,
                                             onClick = { viewModel.selectWeek(index) },
                                             label = { Text(week.label) },
-                                            colors = AppFilterChipDefaults.colors(),
                                         )
                                     }
                                 }

@@ -46,6 +46,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.util.Calendar
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -278,18 +279,19 @@ internal fun HomeScreenContent(
                 (!useRoomPaging && listItems.isNotEmpty())
             if (hasLoads || periodSummary != null) {
                 item(key = "recent_header") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = adaptiveHorizontalPadding()),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
+                    // Title and period field are stacked. The field is fillMaxWidth,
+                    // so a side-by-side Row collapses the title to one letter per line.
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = stringResource(R.string.home_recent_loads),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.weight(1f),
+                            maxLines = 2,
+                            softWrap = true,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = adaptiveHorizontalPadding()),
                         )
                         if (periodSummary != null) {
                             HomePeriodFilterDropdown(

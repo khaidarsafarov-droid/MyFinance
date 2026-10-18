@@ -6,10 +6,13 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
@@ -59,6 +62,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * [material-icons-extended] so the restored camera UX keeps recognizable glyphs.
  */
 object AppIcons {
+    val AcUnit = Icons.Filled.AcUnit
     val Add = Icons.Filled.Add
     val ArrowBack = Icons.AutoMirrored.Filled.ArrowBack
     val ArrowForward = Icons.Filled.ArrowForward
@@ -70,6 +74,7 @@ object AppIcons {
     val Build = Icons.Filled.Build
     val CalendarMonth = Icons.Filled.DateRange
     val CameraAlt = Icons.Filled.CameraAlt
+    val Check = Icons.Filled.Check
     val CheckCircle = Icons.Filled.CheckCircle
     val ChevronLeft = Icons.AutoMirrored.Filled.KeyboardArrowLeft
     val ChevronRight = Icons.AutoMirrored.Filled.KeyboardArrowRight
@@ -96,6 +101,7 @@ object AppIcons {
     val FlashOn = Icons.Filled.FlashOn
     val Fullscreen = Icons.Filled.ArrowForward
     val Handyman = Icons.Filled.Build
+    val History = Icons.Filled.History
     val Home = Icons.Filled.Home
     val HomeOutlined = Icons.Outlined.HomeOutlinedIcon
     val Insights = Icons.Filled.BarChart

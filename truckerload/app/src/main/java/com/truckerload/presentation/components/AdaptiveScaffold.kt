@@ -4,9 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -15,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.utils.WindowSizeClass
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -173,21 +182,40 @@ private fun PhoneScaffold(
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    Scaffold(
-        modifier = modifier,
-        containerColor = BentoGlassTheme.ScreenBackground,
-        bottomBar = {
-            if (showBottomBar) {
-                SoftBottomBar(
-                    currentRoute = currentRoute,
-                    onNavigate = onNavigate,
-                    onQuickAction = onQuickAction,
-                )
+    val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    // Pill (82) + gap under it (8) + gap above it (12) + the gesture bar.
+    // Content keeps that clearance so the last row can scroll clear of the pill,
+    // while the pill itself floats over the page. Top and side safe-drawing
+    // insets stay on the scaffold so screens still clear the status bar.
+    val barClearance = if (showBottomBar) navBottom + 82.dp + 20.dp else 0.dp
+    val insetSides = if (showBottomBar) {
+        WindowInsetsSides.Horizontal + WindowInsetsSides.Top
+    } else {
+        WindowInsetsSides.Horizontal + WindowInsetsSides.Top + WindowInsetsSides.Bottom
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = modifier,
+            containerColor = LocalBrandPalette.current.page,
+            contentWindowInsets = WindowInsets.safeDrawing.only(insetSides),
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .padding(bottom = barClearance),
+            ) {
+                content(PaddingValues(0.dp))
             }
-        },
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            content(PaddingValues(0.dp))
+        }
+        if (showBottomBar) {
+            SoftBottomBar(
+                currentRoute = currentRoute,
+                onNavigate = onNavigate,
+                onQuickAction = onQuickAction,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .windowInsetsPadding(WindowInsets.navigationBars),
+            )
         }
     }
 }

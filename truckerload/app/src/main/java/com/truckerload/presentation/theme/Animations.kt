@@ -37,6 +37,20 @@ val MotionEasingEmphasizedDecelerate = CubicBezierEasing(0.3f, 0f, 0.1f, 1f)
 /** Emphasized accelerate — exit / collapse (motion spec). */
 val MotionEasingEmphasizedAccelerate = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
 
+/** Shared-axis push / pop. Material 3 emphasized duration band is 300–350ms. */
+const val MotionPushDurationMs = 320
+
+/** Fade-through for top-level tabs. */
+const val MotionTabDurationMs = 250
+
+private const val TAB_FADE_OUT_MS = 90
+private const val TAB_FADE_DELAY_MS = 50
+private const val TAB_FADE_IN_MS = MotionTabDurationMs - TAB_FADE_DELAY_MS
+
+/** ~30dp on a 400dp-wide window, without needing density inside a transition lambda. */
+private fun sharedAxisOffsetPx(fullSizePx: Int): Int =
+    (fullSizePx * 30 / 400).coerceAtLeast(1)
+
 /**
  * System animator scale, re-read whenever the host resumes so a change in
  * system settings applies without recreating the activity. This is the single
@@ -65,7 +79,7 @@ fun navAddLoadEnter(reduceMotion: Boolean = false): EnterTransition {
     if (reduceMotion) return fadeIn(animationSpec = tween(0))
     return fadeIn(animationSpec = tween(220, easing = MotionEasingEmphasizedDecelerate)) +
         scaleIn(
-            animationSpec = tween(450, easing = MotionEasingEmphasizedDecelerate),
+            animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
             initialScale = 0.92f,
             transformOrigin = TransformOrigin(0.9f, 1f),
         )
@@ -75,7 +89,7 @@ fun navAddLoadExit(reduceMotion: Boolean = false): ExitTransition {
     if (reduceMotion) return fadeOut(animationSpec = tween(0))
     return fadeOut(animationSpec = tween(180, easing = MotionEasingEmphasizedAccelerate)) +
         scaleOut(
-            animationSpec = tween(450, easing = MotionEasingEmphasizedAccelerate),
+            animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedAccelerate),
             targetScale = 0.92f,
             transformOrigin = TransformOrigin(0.9f, 1f),
         )
@@ -84,145 +98,150 @@ fun navAddLoadExit(reduceMotion: Boolean = false): ExitTransition {
 fun motionDurationMs(reduceMotion: Boolean, normalMs: Int): Int =
     if (reduceMotion) 0 else normalMs
 
-fun tabEnterTransition(reduceMotion: Boolean = false) =
-    fadeIn(
-        animationSpec = tween(
-            motionDurationMs(reduceMotion, 120),
-            easing = EaseOutCubic,
-        ),
-    )
-
-fun tabExitTransition(reduceMotion: Boolean = false) =
-    fadeOut(
-        animationSpec = tween(
-            motionDurationMs(reduceMotion, 90),
-            easing = EaseOutCubic,
-        ),
-    )
-
 /**
- * Short horizontal slide when moving between Loads, Goal, and Profile.
- * [slideSign] is 1 toward the right tab, -1 toward the left. Nested screens
- * keep the plain fade.
+ * Material fade-through. Outgoing content fades first; incoming content
+ * fades (and settles) after a short gap so two heavy screens are not
+ * both fully opaque while sliding.
  */
-fun mainTabEnter(reduceMotion: Boolean, slideSign: Int): EnterTransition {
-    if (reduceMotion || slideSign == 0) return tabEnterTransition(reduceMotion)
-    return slideInHorizontally(
-        animationSpec = tween(200, easing = EaseOutCubic),
-        initialOffsetX = { fullWidth -> slideSign * fullWidth / 5 },
-    ) + fadeIn(animationSpec = tween(200, easing = EaseOutCubic))
+fun navFadeThroughEnter(reduceMotion: Boolean = false): EnterTransition {
+    if (reduceMotion) return fadeIn(animationSpec = tween(0))
+    return fadeIn(
+        animationSpec = tween(
+            durationMillis = TAB_FADE_IN_MS,
+            delayMillis = TAB_FADE_DELAY_MS,
+            easing = MotionEasingEmphasizedDecelerate,
+        ),
+    )
 }
 
-fun mainTabExit(reduceMotion: Boolean, slideSign: Int): ExitTransition {
-    if (reduceMotion || slideSign == 0) return tabExitTransition(reduceMotion)
-    return slideOutHorizontally(
-        animationSpec = tween(200, easing = EaseOutCubic),
-        targetOffsetX = { fullWidth -> -slideSign * fullWidth / 5 },
-    ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
+fun navFadeThroughExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return fadeOut(
+        animationSpec = tween(
+            durationMillis = TAB_FADE_OUT_MS,
+            easing = MotionEasingEmphasizedAccelerate,
+        ),
+    )
 }
+
+fun tabEnterTransition(reduceMotion: Boolean = false): EnterTransition =
+    navFadeThroughEnter(reduceMotion)
+
+fun tabExitTransition(reduceMotion: Boolean = false): ExitTransition =
+    navFadeThroughExit(reduceMotion)
 
 /**
- * Material shared-axis X (forward): list → detail, home → add, drawer push screens.
- * When [reduceMotion] is on, falls back to an instant fade (no slide).
+ * Top-level tabs (Home, Goal, Profile). Fade-through only.
+ * A horizontal slide of Home was transforming the whole journal — shared-element
+ * cards included — on the same frames Weekly Goal first composed.
+ * [slideSign] stays in the signature so call sites can still describe direction.
+ */
+@Suppress("UNUSED_PARAMETER")
+fun mainTabEnter(reduceMotion: Boolean, slideSign: Int): EnterTransition =
+    navFadeThroughEnter(reduceMotion)
+
+@Suppress("UNUSED_PARAMETER")
+fun mainTabExit(reduceMotion: Boolean, slideSign: Int): ExitTransition =
+    navFadeThroughExit(reduceMotion)
+
+/**
+ * Material shared-axis X, forward. About 30dp of travel, emphasized easing.
+ * Reduce-motion is an instant fade.
  */
 fun navForwardEnter(reduceMotion: Boolean = false): EnterTransition {
     if (reduceMotion) return fadeIn(animationSpec = tween(0))
     return slideInHorizontally(
-        animationSpec = tween(280, easing = EaseOutCubic),
-        initialOffsetX = { fullWidth -> fullWidth / 4 },
-    ) + fadeIn(animationSpec = tween(220, easing = EaseOutCubic))
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
+        initialOffsetX = { fullWidth -> sharedAxisOffsetPx(fullWidth) },
+    ) + fadeIn(
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
+    )
 }
 
 fun navForwardExit(reduceMotion: Boolean = false): ExitTransition {
     if (reduceMotion) return fadeOut(animationSpec = tween(0))
     return slideOutHorizontally(
-        animationSpec = tween(280, easing = EaseOutCubic),
-        targetOffsetX = { fullWidth -> -fullWidth / 10 },
-    ) + fadeOut(animationSpec = tween(180, easing = EaseOutCubic))
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedAccelerate),
+        targetOffsetX = { fullWidth -> -sharedAxisOffsetPx(fullWidth) },
+    ) + fadeOut(
+        animationSpec = tween(200, easing = MotionEasingEmphasizedAccelerate),
+    )
 }
 
 /**
- * Predictive-back-friendly pop enter: the destination under the top screen
- * subtly scales up as the gesture seeks (Navigation Compose seeks these specs).
+ * Shared-axis X, back. Navigation seeks this spec for predictive back,
+ * so the outgoing screen travels the opposite way from a forward push.
  */
 fun navPopEnter(reduceMotion: Boolean = false): EnterTransition {
     if (reduceMotion) return fadeIn(animationSpec = tween(0))
-    return fadeIn(animationSpec = tween(220, easing = EaseOutCubic)) +
-        scaleIn(
-            animationSpec = tween(280, easing = EaseOutCubic),
-            initialScale = 0.92f,
-            transformOrigin = TransformOrigin.Center,
-        )
+    return slideInHorizontally(
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
+        initialOffsetX = { fullWidth -> -sharedAxisOffsetPx(fullWidth) },
+    ) + fadeIn(
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
+    )
 }
 
-/**
- * Predictive-back-friendly pop exit: top screen scales down + fades so the
- * system back gesture can scrub a Material-style peek of the previous route.
- */
 fun navPopExit(reduceMotion: Boolean = false): ExitTransition {
     if (reduceMotion) return fadeOut(animationSpec = tween(0))
-    return fadeOut(animationSpec = tween(180, easing = EaseOutCubic)) +
-        scaleOut(
-            animationSpec = tween(280, easing = EaseOutCubic),
-            targetScale = 0.90f,
-            transformOrigin = TransformOrigin.Center,
-        )
+    return slideOutHorizontally(
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedAccelerate),
+        targetOffsetX = { fullWidth -> sharedAxisOffsetPx(fullWidth) },
+    ) + fadeOut(
+        animationSpec = tween(200, easing = MotionEasingEmphasizedAccelerate),
+    )
 }
 
-/** Modal / immersive: camera, scanner, galleries, attach picker. */
+/** Modal / immersive: camera, scanner, galleries, sheets that are routes. Shared-axis Y. */
 fun navModalEnter(reduceMotion: Boolean = false): EnterTransition {
     if (reduceMotion) return fadeIn(animationSpec = tween(0))
     return slideInVertically(
-        animationSpec = tween(280, easing = EaseOutCubic),
-        initialOffsetY = { fullHeight -> fullHeight / 5 },
-    ) + fadeIn(animationSpec = tween(220, easing = EaseOutCubic))
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
+        initialOffsetY = { fullHeight -> sharedAxisOffsetPx(fullHeight) },
+    ) + fadeIn(
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedDecelerate),
+    )
 }
 
 fun navModalExit(reduceMotion: Boolean = false): ExitTransition {
     if (reduceMotion) return fadeOut(animationSpec = tween(0))
-    return fadeOut(animationSpec = tween(160, easing = EaseOutCubic))
+    return fadeOut(
+        animationSpec = tween(TAB_FADE_OUT_MS, easing = MotionEasingEmphasizedAccelerate),
+    )
 }
 
 fun navModalPopEnter(reduceMotion: Boolean = false): EnterTransition =
-    fadeIn(animationSpec = tween(motionDurationMs(reduceMotion, 160), easing = EaseOutCubic))
+    fadeIn(
+        animationSpec = tween(
+            motionDurationMs(reduceMotion, TAB_FADE_IN_MS),
+            easing = MotionEasingEmphasizedDecelerate,
+        ),
+    )
 
 fun navModalPopExit(reduceMotion: Boolean = false): ExitTransition {
     if (reduceMotion) return fadeOut(animationSpec = tween(0))
     return slideOutVertically(
-        animationSpec = tween(240, easing = EaseOutCubic),
-        targetOffsetY = { fullHeight -> fullHeight / 5 },
-    ) + fadeOut(animationSpec = tween(160, easing = EaseOutCubic)) +
-        scaleOut(
-            animationSpec = tween(240, easing = EaseOutCubic),
-            targetScale = 0.94f,
-            transformOrigin = TransformOrigin.Center,
-        )
+        animationSpec = tween(MotionPushDurationMs, easing = MotionEasingEmphasizedAccelerate),
+        targetOffsetY = { fullHeight -> sharedAxisOffsetPx(fullHeight) },
+    ) + fadeOut(
+        animationSpec = tween(200, easing = MotionEasingEmphasizedAccelerate),
+    )
 }
 
 /**
- * Fade-through for shared-element destinations (list ↔ load detail).
- * Shared bounds morph the card; non-shared chrome fades instead of sliding.
+ * Container transform chrome for routes that already morph a shared element
+ * (load card → detail). Fade only — a slide or scale here fights the shared bounds.
  */
-fun navSharedElementEnter(reduceMotion: Boolean = false): EnterTransition {
-    if (reduceMotion) return fadeIn(animationSpec = tween(0))
-    return fadeIn(animationSpec = tween(220, easing = EaseOutCubic)) +
-        scaleIn(
-            animationSpec = tween(280, easing = EaseOutCubic),
-            initialScale = 0.96f,
-            transformOrigin = TransformOrigin.Center,
-        )
-}
+fun navSharedElementEnter(reduceMotion: Boolean = false): EnterTransition =
+    navFadeThroughEnter(reduceMotion)
 
-/** Shared-bounds destinations: light scale so predictive back can seek the peek. */
-fun navSharedElementExit(reduceMotion: Boolean = false): ExitTransition {
-    if (reduceMotion) return fadeOut(animationSpec = tween(0))
-    return fadeOut(animationSpec = tween(180, easing = EaseOutCubic)) +
-        scaleOut(
-            animationSpec = tween(280, easing = EaseOutCubic),
-            targetScale = 0.94f,
-            transformOrigin = TransformOrigin.Center,
-        )
-}
+fun navSharedElementExit(reduceMotion: Boolean = false): ExitTransition =
+    navFadeThroughExit(reduceMotion)
+
+/** Dialog / bottom-sheet motion. Same durations as a modal route; instant when reduced. */
+fun navDialogEnter(reduceMotion: Boolean = false): EnterTransition = navModalEnter(reduceMotion)
+
+fun navDialogExit(reduceMotion: Boolean = false): ExitTransition = navModalPopExit(reduceMotion)
 
 fun screenEnterAnimation(reduceMotion: Boolean = false) =
     fadeIn(

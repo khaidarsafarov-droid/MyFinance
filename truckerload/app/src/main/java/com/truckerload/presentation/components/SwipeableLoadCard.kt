@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +27,7 @@ import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -33,9 +35,8 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.R
-import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalSemantics
-import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.loadSharedBounds
 
 
@@ -54,17 +55,24 @@ fun SwipeableLoadCard(
     /** Disable swipe-to-delete in multi-column tablet grids (gesture conflicts). */
     enableSwipe: Boolean = true,
 ) {
-    val cardShape = remember { RoundedCornerShape(BentoGlassTheme.CardRadius) }
+    val brand = LocalBrandPalette.current
+    val cardShape = remember { RoundedCornerShape(22.dp) }
 
     if (!enableSwipe) {
         Surface(
             modifier = modifier
                 .loadSharedBounds(load.id)
-                .clip(cardShape),
+                .shadow(
+                    elevation = 4.dp,
+                    shape = cardShape,
+                    ambientColor = brand.shadow,
+                    spotColor = brand.shadow,
+                ),
             shape = cardShape,
-            color = MaterialTheme.colorScheme.surface,
+            color = brand.card,
+            border = BorderStroke(1.dp, brand.cardBorder),
             tonalElevation = 0.dp,
-            shadowElevation = SoftUiElevation.Card,
+            shadowElevation = 0.dp,
         ) {
             LoadCard(
                 load = load,
@@ -143,9 +151,10 @@ fun SwipeableLoadCard(
         Surface(
             modifier = Modifier.fillMaxSize(),
             shape = cardShape,
-            color = MaterialTheme.colorScheme.surface,
+            color = brand.card,
+            border = BorderStroke(1.dp, brand.cardBorder),
             tonalElevation = 0.dp,
-            shadowElevation = SoftUiElevation.Card,
+            shadowElevation = 0.dp,
         ) {
             LoadCard(
                 load = load,

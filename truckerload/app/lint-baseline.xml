@@ -8539,17 +8539,6 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;edit_load_date_help&quot; is not translated in &quot;ru&quot; (Russian)"
-        errorLine1="    &lt;string name=&quot;edit_load_date_help&quot;>load_date — для отчёта по неделям&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="660"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="MissingTranslation"
         message="&quot;edit_load_finish_label&quot; is not translated in &quot;ru&quot; (Russian)"
         errorLine1="    &lt;string name=&quot;edit_load_finish_label&quot;>Окончание (YYYY-MM-DD HH:mm)&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">

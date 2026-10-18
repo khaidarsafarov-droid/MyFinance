@@ -5,8 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -111,21 +110,16 @@ private fun WeekStartChipRow(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             WeekStartDay.entries.forEach { day ->
-                FilterChip(
+                AppFilterChip(
                     selected = selected == day,
                     onClick = { onSelect(day) },
                     label = {
                         Text(
                             labels[day].orEmpty(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            softWrap = false,
                         )
                     },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = tc.AccentPrimary.copy(alpha = 0.22f),
-                        selectedLabelColor = tc.AccentPrimary,
-                        containerColor = tc.SurfaceSecondary,
-                        labelColor = tc.TextSecondary,
-                    ),
                 )
             }
         }

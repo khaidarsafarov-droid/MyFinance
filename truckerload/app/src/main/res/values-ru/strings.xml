@@ -672,22 +672,22 @@
     <string name="add_load_save_offline">Сохранить в приложении (офлайн)</string>
     <string name="add_load_hint_online">Вставьте сообщение и нажмите «Сохранить» — данные сразу попадут в локальную БД.</string>
     <string name="add_load_mode_title">Как добавить груз</string>
-    <string name="add_load_mode_subtitle">Выберите удобный способ — бот, вставка, форма или фото.</string>
+    <string name="add_load_mode_subtitle">Вставьте текст, заполните форму или добавьте фото.</string>
     <string name="add_load_mode_paste">Вставить</string>
     <string name="add_load_mode_manual">Вручную</string>
     <string name="add_load_mode_document">Фото / PDF</string>
-    <string name="add_load_hint_paste">Скопируйте rate confirmation из Telegram, WhatsApp, почты или любого другого приложения и вставьте сюда. Приложение само прочитает ставку, мили и адреса.</string>
-    <string name="add_load_history_tip_title">Любой rate confirmation</string>
-    <string name="add_load_history_tip_body">Вставьте текст, скопированный из Telegram, WhatsApp, почты или другого приложения. Подойдут также фото и PDF. Приложению нужен rate confirmation, а не один мессенджер.</string>
-    <string name="add_load_hint_manual">Заполните ставку и хотя бы один адрес. Trip ID можно оставить пустым — приложение создаст его само.</string>
-    <string name="add_load_hint_document">Сфотографируйте документ или выберите любой файл (PDF, фото, TXT, JSON, CSV, DOCX) — поля заполнятся сами. Проверьте, поправьте и сохраните.</string>
+    <string name="add_load_hint_paste">Скопируйте текст из письма или мессенджера — мы заполним поля автоматически. Можно также загрузить фото или PDF.</string>
+    <string name="add_load_history_tip_title">Вставьте rate confirmation</string>
+    <string name="add_load_history_tip_body">Скопируйте текст из письма или мессенджера — мы заполним поля автоматически. Можно также загрузить фото или PDF.</string>
+    <string name="add_load_hint_manual">Укажите ставку и хотя бы один адрес. Номер рейса можно не заполнять.</string>
+    <string name="add_load_hint_document">Проверьте поля, заполните пустые и сохраните.</string>
     <string name="add_load_manual_hint">Введите данные груза. Обязательны ставка и пункт погрузки или выгрузки.</string>
     <string name="add_load_document_fields_hint">Проверьте распознанные поля. Пустые можно заполнить вручную, затем сохраните.</string>
     <string name="add_load_trip_optional">Необязательно</string>
     <string name="add_load_point_a_placeholder">Город, штат погрузки</string>
     <string name="add_load_point_b_placeholder">Город, штат выгрузки</string>
     <string name="add_load_point_more_placeholder">Город, штат остановки</string>
-    <string name="add_load_point_n">Point %1$s</string>
+    <string name="add_load_point_n">Точка %1$s</string>
     <string name="add_load_add_point">Добавить точку %1$s</string>
     <string name="add_load_remove_point">Убрать точку %1$s</string>
     <string name="add_load_manual_rate_required">Укажите ставку больше нуля</string>
@@ -736,7 +736,6 @@
     <string name="edit_load_added_at">Добавлено: %1$s</string>
     <string name="edit_load_trip_id">Trip ID</string>
     <string name="edit_load_date_label">Дата груза (YYYY-MM-DD)</string>
-    <string name="edit_load_date_help">load_date — для отчёта по неделям</string>
     <string name="edit_load_finish_label">Окончание (YYYY-MM-DD HH:mm)</string>
     <string name="edit_load_finish_help">По умолчанию — последний DEL. Укажите дату и время — пересчитаются длительность, темп и маршрут на карте.</string>
     <string name="edit_load_finish_help_with_del">Последний DEL: %1$s. Измените дату и время — длительность, темп и маршрут пересчитаются.</string>
@@ -798,6 +797,23 @@
     <string name="load_detail_finish_hint">По умолчанию — последний DEL. Если закончили раньше — укажите дату и время окончания: длительность, темп и маршрут на карте обновятся.</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
+    <string name="load_card_per_day">%1$s/день</string>
+    <string name="load_card_miles">%1$s миль</string>
+    <string name="load_source_relay">RELAY</string>
+    <string name="load_source_manual">MANUAL</string>
+    <string name="load_source_broker">BROKER</string>
+    <plurals name="load_card_duration_days">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+    <plurals name="load_card_stops">
+        <item quantity="one">%d остановка</item>
+        <item quantity="few">%d остановки</item>
+        <item quantity="many">%d остановок</item>
+        <item quantity="other">%d остановки</item>
+    </plurals>
     <string name="load_card_attach_photo">Сфотографировать для груза</string>
     <string name="load_card_attach_scan">Сканировать для груза</string>
     <string name="load_detail_stops">Стопы</string>
@@ -1661,7 +1677,7 @@
     <string name="add_load_preview_title">Предпросмотр груза</string>
     <string name="add_load_preview_gift">Маршрут, ставка и RPM — можно сохранять</string>
     <string name="add_load_preview_parsing">Читаем сообщение…</string>
-    <string name="add_load_preview_incomplete">Текст есть, но груз не собрался. Проверьте ставку и адрес подачи.</string>
+    <string name="add_load_preview_incomplete">Не удалось разобрать груз. Проверьте ставку и адрес погрузки.</string>
     <string name="add_load_preview_missing_rate">Нет суммы. Добавьте строку Total Rate.</string>
     <string name="add_load_preview_missing_address">Нет адреса. Нужна отдельная строка Pu-address или Del-address.</string>
     <string name="add_load_preview_missing_both">Нужны Total Rate и адрес подачи или выгрузки — каждая на своей строке.</string>
@@ -1691,8 +1707,6 @@
     <string name="home_week_chip">Неделя %1$d · %2$s</string>
     <string name="home_week_of_goal">из цели %1$s</string>
     <string name="home_goal_of_percent">%1$d%% цели</string>
-    <string name="home_pace_need_line">Нужно %1$s/день · осталось %2$d дн. · до цели %3$s</string>
-    <string name="home_pace_met_line">Цель достигнута · %1$s за неделю</string>
     <string name="home_stat_rate_per_mile">Ставка за милю</string>
     <string name="home_stat_miles">Мили</string>
     <string name="home_stat_loads">Грузы</string>
@@ -1708,7 +1722,7 @@
     <string name="add_load_optional_tag">Необязательно</string>
     <string name="add_load_date_yesterday">Вчера</string>
     <string name="add_load_date_pick">Выбрать дату</string>
-    <string name="add_load_paste_banner">Скопировали rate confirmation? Вставьте — поля заполнятся сами.</string>
+    <string name="add_load_paste_banner">Есть rate confirmation? Вставьте текст — поля заполнятся сами.</string>
     <string name="add_load_paste_action">Вставить</string>
     <string name="add_load_paste_empty">Буфер обмена пуст.</string>
     <string name="add_load_rpm_live">%1$s · %2$s</string>
@@ -1716,7 +1730,7 @@
     <string name="add_load_route_label">Маршрут</string>
     <string name="add_load_pay_label">Оплата</string>
     <string name="add_load_rate_per_mile">Ставка за милю</string>
-    <string name="empty_diesel_detail">Заправка появится здесь после записи. Снимите чек или колонку — галлоны и цена заполнятся сами.</string>
+    <string name="empty_diesel_detail">Заправка появится здесь после записи. Сфотографируйте чек или колонку — галлоны и цена заполнятся сами.</string>
     <string name="empty_scan_receipt">Сканировать чек</string>
     <string name="empty_take_photo">Сделать фото</string>
     <string name="load_detail_edit_load">Изменить груз</string>

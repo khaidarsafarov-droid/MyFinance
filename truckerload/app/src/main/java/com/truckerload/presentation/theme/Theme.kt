@@ -24,7 +24,7 @@ internal fun forestLightColorScheme(): ColorScheme = lightColorScheme(
     primary = SoftUiColors.ForestPrimary,
     onPrimary = Color.White,
     primaryContainer = SoftUiColors.Sage,
-    onPrimaryContainer = SoftUiColors.TextPrimaryLight,
+    onPrimaryContainer = SoftUiColors.OnContainerLight,
     secondary = SoftUiColors.ForestAccent,
     onSecondary = Color.White,
     secondaryContainer = SoftUiColors.ShellBg,
@@ -54,8 +54,8 @@ internal fun forestDarkColorScheme(): ColorScheme {
     return darkColorScheme(
         primary = SoftUiColors.ForestAccentDark,
         onPrimary = SoftUiColors.OnForestAccentDark,
-        primaryContainer = surfaceVariant,
-        onPrimaryContainer = SoftUiColors.ForestSoft,
+        primaryContainer = SoftUiColors.SurfaceMutedDark,
+        onPrimaryContainer = SoftUiColors.OnContainerDark,
         secondary = SoftUiColors.ForestSoft,
         onSecondary = background,
         secondaryContainer = surfaceVariant,
@@ -72,8 +72,8 @@ internal fun forestDarkColorScheme(): ColorScheme {
         onSurface = SoftUiColors.TextPrimaryDark,
         surfaceVariant = surfaceVariant,
         onSurfaceVariant = SoftUiColors.TextSecondaryDark,
-        outline = Color(0x33FFFFFF),
-        outlineVariant = Color(0x1AFFFFFF),
+        outline = SoftUiColors.CardBorderDark,
+        outlineVariant = SoftUiColors.BorderStrongDark,
     )
 }
 
@@ -137,6 +137,7 @@ fun TruckerLoadTheme(
         LocalDynamicColorEnabled provides dynamicColor,
         LocalReduceMotion provides effectiveReduceMotion,
         LocalOledDarkEnabled provides (oledDark && darkTheme),
+        LocalBrandPalette provides if (darkTheme) BrandPalettes.Dark else BrandPalettes.Light,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -36,7 +35,7 @@ import com.truckerload.presentation.theme.rememberHeldScreenPhase
 import com.truckerload.presentation.components.PhotoGridItem
 import com.truckerload.presentation.components.ScreenLoadError
 import com.truckerload.presentation.components.ScreenLoading
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.utils.adaptiveGalleryMinCellSize
@@ -83,7 +82,7 @@ fun PhotoGalleryScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         PhotoGalleryFilter.entries.forEach { filter ->
-                            FilterChip(
+                            AppFilterChip(
                                 selected = uiState.filter == filter,
                                 onClick = { viewModel.setFilter(filter) },
                                 label = {
@@ -96,7 +95,6 @@ fun PhotoGalleryScreen(
                                         },
                                     )
                                 },
-                                colors = AppFilterChipDefaults.colors(),
                             )
                         }
                     }
@@ -104,18 +102,16 @@ fun PhotoGalleryScreen(
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            FilterChip(
+                            AppFilterChip(
                                 selected = uiState.selectedLoadId == null,
                                 onClick = { viewModel.setLoadFilter(null) },
                                 label = { Text(stringResource(R.string.filter_unlinked)) },
-                                colors = AppFilterChipDefaults.colors(),
                             )
                             loads.take(12).forEach { load ->
-                                FilterChip(
+                                AppFilterChip(
                                     selected = uiState.selectedLoadId == load.id,
                                     onClick = { viewModel.setLoadFilter(load.id) },
                                     label = { Text(load.tripId.ifBlank { load.id.take(8) }) },
-                                    colors = AppFilterChipDefaults.colors(),
                                 )
                             }
                         }

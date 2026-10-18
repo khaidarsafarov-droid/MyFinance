@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.analytics.AnalyticsFilter
 import com.truckerload.domain.model.analytics.AnalyticsPeriod
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.availableAnalyticsMonths
 import com.truckerload.utils.availableAnalyticsWeeks
@@ -50,7 +49,7 @@ fun AnalyticsPeriodPicker(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ChipRow {
             AnalyticsPeriod.entries.forEach { period ->
-                FilterChip(
+                AppFilterChip(
                     selected = !filter.isCalendar && filter.preset == period,
                     onClick = { onSelectPreset(period) },
                     label = {
@@ -65,7 +64,6 @@ fun AnalyticsPeriodPicker(
                             },
                         )
                     },
-                    colors = AppFilterChipDefaults.colors(),
                 )
             }
         }
@@ -73,11 +71,10 @@ fun AnalyticsPeriodPicker(
         FilterSection(title = stringResource(R.string.analytics_filter_years)) {
             ChipRow {
                 years.forEach { year ->
-                    FilterChip(
+                    AppFilterChip(
                         selected = filter.year == year,
                         onClick = { onSelectYear(year) },
                         label = { Text(year.toString()) },
-                        colors = AppFilterChipDefaults.colors(),
                     )
                 }
             }
@@ -87,11 +84,10 @@ fun AnalyticsPeriodPicker(
             FilterSection(title = stringResource(R.string.analytics_filter_months)) {
                 ChipRow {
                     months.forEach { month ->
-                        FilterChip(
+                        AppFilterChip(
                             selected = filter.month == month,
                             onClick = { onSelectMonth(month) },
                             label = { Text(monthChipLabel(month)) },
-                            colors = AppFilterChipDefaults.colors(),
                         )
                     }
                 }
@@ -102,12 +98,11 @@ fun AnalyticsPeriodPicker(
             FilterSection(title = stringResource(R.string.analytics_filter_weeks)) {
                 ChipRow {
                     weeks.forEach { (weekNumber, weekYear) ->
-                        FilterChip(
+                        AppFilterChip(
                             selected = filter.weekNumber == weekNumber &&
                                 filter.weekYear == weekYear,
                             onClick = { onSelectWeek(weekNumber, weekYear) },
                             label = { Text(getWeekLabelShort(weekNumber, weekYear)) },
-                            colors = AppFilterChipDefaults.colors(),
                         )
                     }
                 }
