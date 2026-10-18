@@ -119,7 +119,7 @@ private fun QuickActionRow(
     ) {
         Icon(
             icon,
-            contentDescription = title,
+            contentDescription = null,
             tint = tc.AccentPrimary,
             modifier = Modifier.size(24.dp),
         )

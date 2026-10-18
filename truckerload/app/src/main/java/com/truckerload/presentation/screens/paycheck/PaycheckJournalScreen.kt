@@ -131,6 +131,7 @@ fun PaycheckJournalScreen(
             )
         },
     ) { padding ->
+        val phase = com.truckerload.presentation.theme.rememberHeldScreenPhase(ui.phase)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -184,7 +185,7 @@ fun PaycheckJournalScreen(
                     )
                 }
             }
-            when (ui.phase) {
+            when (phase) {
                 ScreenPhase.Loading -> item { ScreenLoading() }
                 ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
                 ScreenPhase.Empty -> item {
@@ -212,6 +213,7 @@ fun PaycheckJournalScreen(
                 ScreenPhase.Content -> items(ui.entries, key = { it.id }) { paycheck ->
                     PaycheckCard(
                         paycheck = paycheck,
+                        modifier = Modifier.animateItem(),
                         onClick = { viewModel.openEditor(paycheck) },
                         onOpenFile = paycheck.sourceFileName?.takeIf { it.isNotBlank() }?.let {
                             {

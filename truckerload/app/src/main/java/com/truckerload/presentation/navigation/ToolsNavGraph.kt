@@ -352,6 +352,7 @@ fun NavGraphBuilder.toolsNavGraph(
         PhotoGalleryScreen(
             onBack = { navController.popBackStack() },
             onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+            onTakePhoto = { navController.navigate(Routes.CAMERA) },
         )
     }
     composable(

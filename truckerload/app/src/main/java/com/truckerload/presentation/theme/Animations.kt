@@ -1,11 +1,10 @@
 package com.truckerload.presentation.theme
 
-import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,35 +14,71 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 /** True when the user opted into reduce-motion or the system animator scale is off. */
 val LocalReduceMotion = compositionLocalOf { false }
 
+/** Emphasized decelerate — enter / expand (motion spec). */
+val MotionEasingEmphasizedDecelerate = CubicBezierEasing(0.3f, 0f, 0.1f, 1f)
+
+/** Emphasized accelerate — exit / collapse (motion spec). */
+val MotionEasingEmphasizedAccelerate = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
+
+/**
+ * System animator scale, re-read whenever the host resumes so a change in
+ * system settings applies without recreating the activity. This is the single
+ * source for [MotionPolicy.rememberReduceMotion] and [TruckerLoadTheme].
+ */
 @Composable
 fun rememberSystemReduceMotion(): Boolean {
     val context = LocalContext.current
-    return remember {
-        runCatching {
-            Settings.Global.getFloat(
-                context.contentResolver,
-                Settings.Global.ANIMATOR_DURATION_SCALE,
-                1f,
-            ) == 0f
-        }.getOrDefault(false)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var reduced by remember { mutableStateOf(MotionPolicy.isSystemReducedMotion(context)) }
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                reduced = MotionPolicy.isSystemReducedMotion(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        reduced = MotionPolicy.isSystemReducedMotion(context)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+    return reduced
+}
+
+/** FAB → add-load container transform. Instant when reduce-motion is on. */
+fun navAddLoadEnter(reduceMotion: Boolean = false): EnterTransition {
+    if (reduceMotion) return fadeIn(animationSpec = tween(0))
+    return fadeIn(animationSpec = tween(220, easing = MotionEasingEmphasizedDecelerate)) +
+        scaleIn(
+            animationSpec = tween(450, easing = MotionEasingEmphasizedDecelerate),
+            initialScale = 0.92f,
+            transformOrigin = TransformOrigin(0.9f, 1f),
+        )
+}
+
+fun navAddLoadExit(reduceMotion: Boolean = false): ExitTransition {
+    if (reduceMotion) return fadeOut(animationSpec = tween(0))
+    return fadeOut(animationSpec = tween(180, easing = MotionEasingEmphasizedAccelerate)) +
+        scaleOut(
+            animationSpec = tween(450, easing = MotionEasingEmphasizedAccelerate),
+            targetScale = 0.92f,
+            transformOrigin = TransformOrigin(0.9f, 1f),
+        )
 }
 
 fun motionDurationMs(reduceMotion: Boolean, normalMs: Int): Int =
@@ -233,24 +268,4 @@ fun StaggeredAnimatedItem(
     }
 }
 
-fun Modifier.neoGlassPressScale(): Modifier = composed {
-    val reduceMotion = LocalReduceMotion.current
-    var pressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && !reduceMotion) 0.95f else 1f,
-        animationSpec = tween(motionDurationMs(reduceMotion, 120)),
-        label = "neoGlassPress",
-    )
-    scale(scale).pointerInput(Unit) {
-        detectTapGestures(
-            onPress = {
-                pressed = true
-                try {
-                    awaitRelease()
-                } finally {
-                    pressed = false
-                }
-            },
-        )
-    }
-}
+fun Modifier.neoGlassPressScale(): Modifier = pressScale()

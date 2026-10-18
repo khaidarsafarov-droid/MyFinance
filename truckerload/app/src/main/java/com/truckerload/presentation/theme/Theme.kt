@@ -99,12 +99,12 @@ private fun resolveColorScheme(
 fun TruckerLoadTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeMode: AppThemeMode = AppThemeMode.SYSTEM,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     oledDark: Boolean = false,
     reduceMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val systemReduced = MotionPolicy.isSystemReducedMotion(LocalContext.current)
+    val systemReduced = rememberSystemReduceMotion()
     val effectiveReduceMotion = reduceMotion || systemReduced
     val colorScheme = overlayOledIfNeeded(
         resolveColorScheme(darkTheme, dynamicColor),
@@ -149,6 +149,6 @@ fun TruckerLoadTheme(
 
 val LocalAppThemeMode = compositionLocalOf { AppThemeMode.SYSTEM }
 
-val LocalDynamicColorEnabled = compositionLocalOf { true }
+val LocalDynamicColorEnabled = compositionLocalOf { false }
 
 val LocalOledDarkEnabled = compositionLocalOf { false }

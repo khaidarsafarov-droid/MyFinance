@@ -20,6 +20,8 @@ import com.truckerload.presentation.screens.edit.EditLoadScreen
 import com.truckerload.presentation.screens.expenses.MiscExpenseScreen
 import com.truckerload.presentation.screens.home.HomeViewModel
 import com.truckerload.presentation.theme.ProvideLoadSharedElementScopes
+import com.truckerload.presentation.theme.navAddLoadEnter
+import com.truckerload.presentation.theme.navAddLoadExit
 import com.truckerload.presentation.theme.navForwardEnter
 import com.truckerload.presentation.theme.navForwardExit
 import com.truckerload.presentation.theme.navPopEnter
@@ -53,16 +55,19 @@ fun NavGraphBuilder.loadsNavGraph(
                 onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
                 onDelete = { navController.popBackStack() },
                 onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                onCamera = { id, tripId, loadDate ->
+                    navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
+                },
                 onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
             )
         }
     }
     composable(
         route = Routes.ADD_LOAD,
-        enterTransition = { navForwardEnter(reduceMotion) },
-        exitTransition = { navForwardExit(reduceMotion) },
-        popEnterTransition = { navPopEnter(reduceMotion) },
-        popExitTransition = { navPopExit(reduceMotion) },
+        enterTransition = { navAddLoadEnter(reduceMotion) },
+        exitTransition = { navAddLoadExit(reduceMotion) },
+        popEnterTransition = { navAddLoadEnter(reduceMotion) },
+        popExitTransition = { navAddLoadExit(reduceMotion) },
     ) { addLoadEntry ->
         val homeEntry = remember(addLoadEntry) {
             runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
@@ -70,12 +75,17 @@ fun NavGraphBuilder.loadsNavGraph(
         val homeViewModel: HomeViewModel? = homeEntry?.let {
             hiltViewModel(it)
         }
-        AddLoadScreen(
-            onSaved = { navController.popBackStack() },
-            onBack = { navController.popBackStack() },
-            onOptimisticInsert = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
-            onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
-        )
+        ProvideLoadSharedElementScopes(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this,
+        ) {
+            AddLoadScreen(
+                onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
+                onOptimisticInsert = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
+                onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } },
+            )
+        }
     }
     composable(
         route = Routes.EDIT_LOAD,
@@ -139,6 +149,7 @@ fun NavGraphBuilder.loadsNavGraph(
         DieselJournalScreen(
             onBack = { navController.popBackStack() },
             onAdd = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+            onScan = { navController.navigate(Routes.SCANNER) },
             onEditDiesel = { id ->
                 navController.navigate(Routes.editDiesel(id)) { launchSingleTop = true }
             },

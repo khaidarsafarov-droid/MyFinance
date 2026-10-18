@@ -74,11 +74,12 @@ internal fun HomeLoadCardRow(
     onDelete: (String) -> Unit,
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit,
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val horizontal = adaptiveHorizontalPadding()
     val enableSwipe = columns == 1
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = horizontal),
         horizontalArrangement = Arrangement.spacedBy(10.dp),

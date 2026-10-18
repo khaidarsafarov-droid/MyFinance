@@ -1,8 +1,5 @@
 package com.truckerload.presentation.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,12 +9,10 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
@@ -29,27 +24,19 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.map
@@ -57,9 +44,8 @@ import com.truckerload.R
 import com.truckerload.presentation.di.LocalMaintenanceRepository
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.navigation.Routes
-import com.truckerload.presentation.theme.LocalReduceMotion
+import com.truckerload.presentation.theme.pressScale
 import com.truckerload.utils.FeedbackManager
-import kotlin.math.roundToInt
 
 private data class PhoneTab(
     val route: String,
@@ -68,125 +54,52 @@ private data class PhoneTab(
     val labelRes: Int,
 )
 
-private val phoneTabsLeft = listOf(
-    PhoneTab(Routes.HOME, AppIcons.LocalShippingOutlined, AppIcons.LocalShipping, R.string.nav_logbook),
-    PhoneTab(Routes.STATS, AppIcons.FlagOutlined, AppIcons.Flag, R.string.nav_weekly_goal),
-)
-
-private val phoneTabProfile = PhoneTab(
-    Routes.PROFILE,
-    AppIcons.PersonOutlined,
-    AppIcons.Person,
-    R.string.nav_profile,
+private val phoneTabs = listOf(
+    PhoneTab(Routes.HOME, AppIcons.HomeOutlined, AppIcons.Home, R.string.nav_home),
+    PhoneTab(Routes.STATS, AppIcons.InsightsOutlined, AppIcons.Insights, R.string.nav_stats),
+    PhoneTab(Routes.PROFILE, AppIcons.PersonOutlined, AppIcons.Person, R.string.nav_profile),
 )
 
 /**
- * Phone bar: Loads, Goal, a centered add button, Profile.
- * Diesel stays in the menu. The bar is a neutral surface with a hairline,
- * and the selected tab uses a filled icon, brand color, and a heavier label.
+ * Phone bar: Home, Stats, Profile. Add-load is the home extended FAB.
+ * [onQuickAction] stays on the scaffold contract; the tablet rail still calls it.
  */
 @Composable
 internal fun SoftBottomBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
-    onQuickAction: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onQuickAction: () -> Unit,
 ) {
     val maintenance = LocalMaintenanceRepository.current
     val overdue by remember(maintenance) {
         maintenance.watchActiveProgress().map { items -> items.count { it.isDue } }
     }.collectAsStateWithLifecycle(initialValue = 0)
-    val reduceMotion = LocalReduceMotion.current
-    val barColor = MaterialTheme.colorScheme.surfaceVariant
-    val indicator = remember { Animatable(0f) }
-    var targetCenter by remember { mutableFloatStateOf(-1f) }
-    var barLeft by remember { mutableFloatStateOf(-1f) }
-    var seenIndicator by remember { mutableIntStateOf(0) }
-    val selectedRoute = listOf(phoneTabsLeft[0], phoneTabsLeft[1], phoneTabProfile)
-        .firstOrNull { isPhoneDestinationSelected(currentRoute, it.route) }
-        ?.route
-    val showIndicator = selectedRoute != null && targetCenter >= 0f && barLeft >= 0f
-    val indicatorHalfPx = with(LocalDensity.current) { 12.dp.toPx() }
-
-    LaunchedEffect(targetCenter, barLeft, showIndicator, reduceMotion) {
-        if (!showIndicator) return@LaunchedEffect
-        val center = targetCenter - barLeft
-        if (seenIndicator == 0 || reduceMotion) {
-            indicator.snapTo(center)
-            seenIndicator = 1
-        } else {
-            indicator.animateTo(center, tween(durationMillis = 200, easing = EaseOutCubic))
-        }
-    }
+    val barColor = MaterialTheme.colorScheme.surface
 
     Surface(color = barColor, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             HorizontalDivider(
                 thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
             )
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(NavigationBarDefaults.windowInsets)
-                    .onGloballyPositioned { barLeft = it.positionInRoot().x },
+                    .heightIn(min = 64.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 64.dp)
-                        .padding(horizontal = 4.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        phoneTabsLeft.forEach { tab ->
-                            PhoneNavTab(
-                                tab = tab,
-                                selected = isPhoneDestinationSelected(currentRoute, tab.route),
-                                badgeCount = 0,
-                                onCenter = { targetCenter = it },
-                                onClick = {
-                                    FeedbackManager.onNavSelect()
-                                    onNavigate(tab.route)
-                                },
-                            )
-                        }
-                    }
-                    QuickAddButton(onClick = onQuickAction)
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        PhoneNavTab(
-                            tab = phoneTabProfile,
-                            selected = isPhoneDestinationSelected(currentRoute, phoneTabProfile.route),
-                            badgeCount = overdue,
-                            onCenter = { targetCenter = it },
-                            onClick = {
-                                FeedbackManager.onNavSelect()
-                                onNavigate(phoneTabProfile.route)
-                            },
-                        )
-                    }
-                }
-                if (showIndicator) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .offset {
-                                IntOffset((indicator.value - indicatorHalfPx).roundToInt(), 0)
-                            }
-                            .padding(bottom = 3.dp)
-                            .width(24.dp)
-                            .height(2.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(1.dp),
-                            ),
+                phoneTabs.forEach { tab ->
+                    PhoneNavTab(
+                        tab = tab,
+                        selected = isPhoneDestinationSelected(currentRoute, tab.route),
+                        badgeCount = if (tab.route == Routes.PROFILE) overdue else 0,
+                        onClick = {
+                            FeedbackManager.onNavSelect()
+                            onNavigate(tab.route)
+                        },
                     )
                 }
             }
@@ -199,7 +112,6 @@ private fun PhoneNavTab(
     tab: PhoneTab,
     selected: Boolean,
     badgeCount: Int,
-    onCenter: (Float) -> Unit,
     onClick: () -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
@@ -212,14 +124,13 @@ private fun PhoneNavTab(
     val tint = if (selected) cs.primary else cs.onSurfaceVariant
     Column(
         modifier = Modifier
-            .widthIn(min = 64.dp)
+            .widthIn(min = 72.dp)
             .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (selected) cs.primaryContainer else Color.Transparent)
+            .pressScale()
             .clickable(role = Role.Tab, onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-            .onGloballyPositioned { coords ->
-                if (selected) onCenter(coords.positionInRoot().x + coords.size.width / 2f)
-            }
+            .padding(horizontal = 12.dp, vertical = 6.dp)
             .semantics(mergeDescendants = true) { contentDescription = spoken },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -258,33 +169,8 @@ private fun BoxScope.MaintenanceDueBadge(count: Int) {
             .align(Alignment.TopEnd)
             .offset(x = 10.dp, y = (-6).dp)
             .heightIn(min = 16.dp)
-            .border(1.5.dp, MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+            .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape)
             .background(MaterialTheme.colorScheme.error, CircleShape)
             .padding(horizontal = 4.dp, vertical = 1.dp),
     )
-}
-
-@Composable
-private fun QuickAddButton(onClick: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .size(48.dp)
-            .shadow(2.dp, CircleShape)
-            .clip(CircleShape)
-            .background(cs.primary)
-            .clickable(role = Role.Button, onClick = {
-                FeedbackManager.onNavSelect()
-                onClick()
-            }),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = AppIcons.Add,
-            contentDescription = stringResource(R.string.quick_actions_title),
-            tint = cs.onPrimary,
-            modifier = Modifier.size(24.dp),
-        )
-    }
 }

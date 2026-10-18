@@ -43,9 +43,9 @@ import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.domain.model.formatDurationDays
-import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.UiDimens
@@ -104,12 +104,8 @@ private fun LoadCardContent(
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
-    val route = formatLoadRoute(load)
     val stopLabel = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
     val rpm = computeRpm(load.totalRate, load.drivenMiles)
-    val rpmColor = rpm?.let {
-        getRpmColor(it, tc, rpmThresholds.minProfit, rpmThresholds.targetProfit)
-    }
 
     val disputeStain = if (load.isDispute) tc.Danger else null
     val disputeWash = if (load.isActiveDispute) 0.16f else 0.10f
@@ -133,118 +129,75 @@ private fun LoadCardContent(
                 )
                 .padding(16.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = load.tripId,
-                        style = AppTypography.CardTitle.copy(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 14.sp,
-                            color = cs.onSurface,
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (load.isDispute) {
-                        DisputeCardChip(
-                            load = load,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                }
-                Text(
-                    text = load.effectiveFinishDate() ?: load.date,
-                    style = AppTypography.CaptionMuted.copy(color = cs.onSurfaceVariant),
-                    maxLines = 1,
-                    softWrap = false,
-                )
-            }
-            Text(
-                text = route,
-                style = AppTypography.CardRoute.copy(color = cs.onSurface),
-                modifier = Modifier.padding(top = 8.dp),
+            val tier = rpmTier(rpm, rpmThresholds.minProfit, rpmThresholds.targetProfit)
+            val rpmText = formatRpm(
+                load.totalRate,
+                load.drivenMiles,
+                stringResource(R.string.rpm_per_mile_format),
             )
-            Text(
-                text = stringResource(
-                    R.string.load_card_summary_line,
-                    stopLabel,
+            if (load.isDispute) {
+                DisputeCardChip(load = load, modifier = Modifier.padding(bottom = 8.dp))
+            }
+            LoadRouteBlock(
+                dateLabel = formatJournalDate(load.effectiveFinishDate() ?: load.date),
+                tripLabel = load.tripId.let { id ->
+                    when {
+                        id.isBlank() -> ""
+                        id.startsWith("#") -> id
+                        else -> "#$id"
+                    }
+                },
+                origin = load.firstPuCityState.ifBlank { load.pointA },
+                destination = load.lastDelCityState.ifBlank { load.pointB },
+                rate = MoneyFormat.formatCurrency(load.totalRate, decimals = 0),
+                meta = stringResource(
+                    R.string.load_card_meta_line,
                     String.format(Locale.US, "%,.0f", load.drivenMiles),
-                    "$${load.totalRate.formatPlain()}",
+                    stopLabel,
                 ),
-                style = AppTypography.Caption.copy(color = cs.onSurfaceVariant),
-                modifier = Modifier.padding(top = 6.dp),
-            )
-            if (load.durationDays > 0.0) {
-                Text(
-                    text = stringResource(
-                        R.string.load_card_pace_line,
-                        formatDurationDays(load.durationDays),
-                        formatPacePerDay(load.pace),
-                    ),
-                    style = AppTypography.Subtitle.copy(color = cs.onSurfaceVariant),
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (rpm != null && rpmColor != null) {
-                    Row(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(cs.primaryContainer)
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(rpmColor),
-                        )
+                trailing = {
+                    if (tier != null && rpm != null) {
+                        RpmValueBadge(rpmText = rpmText, tier = tier)
+                    }
+                },
+                belowRate = {
+                    if (load.durationDays > 0.0) {
                         Text(
-                            text = formatRpm(
-                                load.totalRate,
-                                load.drivenMiles,
-                                stringResource(R.string.rpm_per_mile_format),
+                            text = stringResource(
+                                R.string.load_card_pace_line,
+                                formatDurationDays(load.durationDays),
+                                formatPacePerDay(load.pace),
                             ),
-                            style = AppTypography.NumbersSmall.copy(color = cs.onSurface),
+                            style = AppTypography.Subtitle.copy(color = cs.onSurfaceVariant),
+                            modifier = Modifier.padding(top = 6.dp),
                         )
                     }
-                } else {
-                    Box(modifier = Modifier.size(1.dp))
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (onCameraClick != null) {
-                        val photoCd = stringResource(R.string.load_card_attach_photo)
-                        LoadCardActionChip(
-                            onClick = onCameraClick,
-                            contentDescription = photoCd,
-                            imageVector = AppIcons.CameraAlt,
-                        )
+                    if (onCameraClick != null || onScanClick != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (onCameraClick != null) {
+                                LoadCardActionChip(
+                                    onClick = onCameraClick,
+                                    contentDescription = stringResource(R.string.load_card_attach_photo),
+                                    imageVector = AppIcons.CameraAlt,
+                                )
+                            }
+                            if (onScanClick != null) {
+                                LoadCardActionChip(
+                                    onClick = onScanClick,
+                                    contentDescription = stringResource(R.string.load_card_attach_scan),
+                                    imageVector = AppIcons.DocumentScanner,
+                                )
+                            }
+                        }
                     }
-                    if (onScanClick != null) {
-                        val scanCd = stringResource(R.string.load_card_attach_scan)
-                        LoadCardActionChip(
-                            onClick = onScanClick,
-                            contentDescription = scanCd,
-                            imageVector = AppIcons.DocumentScanner,
-                        )
-                    }
-                }
-            }
+                },
+            )
         }
     }
 
@@ -304,7 +257,7 @@ private fun LoadCardActionChip(
     val cs = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(48.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(cs.primaryContainer)
             .clickable(
@@ -317,7 +270,7 @@ private fun LoadCardActionChip(
     ) {
         Icon(
             imageVector = imageVector,
-            contentDescription = contentDescription,
+            contentDescription = null,
             tint = cs.onPrimaryContainer,
             modifier = Modifier.size(20.dp),
         )

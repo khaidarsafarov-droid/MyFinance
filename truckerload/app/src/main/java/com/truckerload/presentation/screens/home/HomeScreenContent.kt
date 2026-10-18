@@ -4,10 +4,13 @@ import com.truckerload.presentation.icons.AppIcons
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.pullToRefresh
@@ -36,8 +40,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Calendar
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -53,7 +63,6 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassSearchField
-import com.truckerload.presentation.theme.ForestSectionTitle
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -80,6 +89,10 @@ internal fun HomeScreenContent(
     onAddLoad: () -> Unit = {},
     onOpenWeeklyGoal: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
+    onOpenDiesel: () -> Unit = onAddDiesel,
+    onOpenPaycheck: () -> Unit = {},
+    onOpenExpense: () -> Unit = {},
+    onOpenScanner: () -> Unit = {},
     onOpenProfile: () -> Unit = {},
     periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
     onOpenPrivacy: () -> Unit = {},
@@ -221,17 +234,19 @@ internal fun HomeScreenContent(
                     PeriodSummarySection(
                         header = summary,
                         currentFilter = uiState.filter,
-                        selectedYear = uiState.selectedYear,
-                        selectedDateLabel = uiState.selectedDateLabel,
-                        selectedWeekLabel = uiState.selectedWeekLabel,
-                        selectedMonthLabel = uiState.selectedMonthLabel,
-                        onFilterSelected = viewModel::setFilter,
-                        onOpenCalendar = onOpenCalendar,
-                        onOpenMonthPicker = { showMonthPicker = true },
                         weeklyGoal = weeklyGoal,
                         onOpenWeeklyGoal = onOpenWeeklyGoal,
                     )
                 }
+            }
+
+            item(key = "quick_actions") {
+                HomeQuickActionRow(
+                    onDiesel = onOpenDiesel,
+                    onPaycheck = onOpenPaycheck,
+                    onExpense = onOpenExpense,
+                    onScanner = onOpenScanner,
+                )
             }
 
             item(key = "newcomer_next") {
@@ -259,12 +274,36 @@ internal fun HomeScreenContent(
                 }
             }
 
-            if ((useRoomPaging && pagedLoads.itemCount > 0) || (!useRoomPaging && listItems.isNotEmpty())) {
+            val hasLoads = (useRoomPaging && pagedLoads.itemCount > 0) ||
+                (!useRoomPaging && listItems.isNotEmpty())
+            if (hasLoads || periodSummary != null) {
                 item(key = "recent_header") {
-                    ForestSectionTitle(
-                        text = stringResource(R.string.home_recent_loads),
-                        modifier = Modifier.padding(horizontal = adaptiveHorizontalPadding()),
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = adaptiveHorizontalPadding()),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.home_recent_loads),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (periodSummary != null) {
+                            HomePeriodFilterDropdown(
+                                currentFilter = uiState.filter,
+                                selectedYear = uiState.selectedYear,
+                                selectedDateLabel = uiState.selectedDateLabel,
+                                selectedWeekLabel = uiState.selectedWeekLabel,
+                                selectedMonthLabel = uiState.selectedMonthLabel,
+                                onFilterSelected = viewModel::setFilter,
+                                onOpenCalendar = onOpenCalendar,
+                                onOpenMonthPicker = { showMonthPicker = true },
+                            )
+                        }
+                    }
                 }
             }
 
@@ -322,6 +361,7 @@ internal fun HomeScreenContent(
                         onDelete = { id -> viewModel.requestDeleteLoad(id) },
                         onLoadCamera = onLoadCamera,
                         onLoadScan = onLoadScan,
+                        modifier = Modifier.animateItem(),
                     )
                 }
             } else {
@@ -355,6 +395,7 @@ internal fun HomeScreenContent(
                                 onDelete = { id -> viewModel.requestDeleteLoad(id) },
                                 onLoadCamera = onLoadCamera,
                                 onLoadScan = onLoadScan,
+                                modifier = Modifier.animateItem(),
                             )
                         }
                         is HomeGridRow.Loads -> HomeLoadCardRow(
@@ -366,6 +407,7 @@ internal fun HomeScreenContent(
                             onDelete = { id -> viewModel.requestDeleteLoad(id) },
                             onLoadCamera = onLoadCamera,
                             onLoadScan = onLoadScan,
+                            modifier = Modifier.animateItem(),
                         )
                     }
                 }
@@ -389,48 +431,102 @@ internal fun HomeScreenTopBar(
     openDrawer: () -> Unit,
     onSearchToggle: () -> Unit,
     onOpenPrivacy: () -> Unit = {},
+    onAvatar: () -> Unit = {},
 ) {
-    val subtitle = buildString {
-        if (welcomeName.isNotBlank()) {
-            append(stringResource(R.string.home_welcome, welcomeName))
-        } else {
-            append(stringResource(R.string.app_tagline))
-        }
-        weekLabel.takeIf { it.isNotBlank() && filter != LoadFilter.THIS_WEEK }?.let { week ->
-            append(" · ")
-            append(week)
-        }
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = if (welcomeName.isBlank()) {
+        stringResource(
+            when {
+                hour < 12 -> R.string.home_greeting_morning_plain
+                hour < 17 -> R.string.home_greeting_afternoon_plain
+                else -> R.string.home_greeting_evening_plain
+            },
+        )
+    } else {
+        stringResource(
+            when {
+                hour < 12 -> R.string.home_greeting_morning
+                hour < 17 -> R.string.home_greeting_afternoon
+                else -> R.string.home_greeting_evening
+            },
+            welcomeName,
+        )
     }
+    val subtitle = weekLabel
+        .takeIf { it.isNotBlank() && filter != LoadFilter.THIS_WEEK }
+        ?.let { "$greeting · $it" }
+        ?: greeting
     Column {
         OneUiLargeTitleHeader(
             title = stringResource(R.string.home_brand_title),
             subtitle = subtitle,
-        navigationIcon = {
-            IconButton(onClick = openDrawer) {
-                Icon(
-                    AppIcons.Menu,
-                    contentDescription = stringResource(R.string.common_menu),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-        },
-        actions = {
-            IconButton(
-                onClick = onSearchToggle,
-                modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
-            ) {
-                Icon(
-                    AppIcons.Search,
-                    contentDescription = stringResource(R.string.home_cd_search),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-        },
+            navigationIcon = {
+                IconButton(onClick = openDrawer) {
+                    Icon(
+                        AppIcons.Menu,
+                        contentDescription = stringResource(R.string.common_menu),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+            },
+            actions = {
+                IconButton(
+                    onClick = onSearchToggle,
+                    modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
+                ) {
+                    Icon(
+                        AppIcons.Search,
+                        contentDescription = stringResource(R.string.home_cd_search),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+                HomeAvatarButton(name = welcomeName, onClick = onAvatar)
+            },
         )
         PrivacyTrustBadge(
             onClick = onOpenPrivacy,
             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
         )
+    }
+}
+
+@Composable
+private fun HomeAvatarButton(name: String, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val initials = name.trim()
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .take(2)
+        .map { it.first().uppercaseChar() }
+        .joinToString("")
+    val profileLabel = stringResource(R.string.nav_profile)
+    Surface(
+        modifier = Modifier
+            .padding(end = 12.dp)
+            .size(40.dp)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = profileLabel },
+        shape = CircleShape,
+        color = cs.primaryContainer,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (initials.isEmpty()) {
+                Icon(
+                    AppIcons.Person,
+                    contentDescription = null,
+                    tint = cs.onPrimaryContainer,
+                    modifier = Modifier.size(22.dp),
+                )
+            } else {
+                Text(
+                    text = initials,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = cs.onPrimaryContainer,
+                )
+            }
+        }
     }
 }
 

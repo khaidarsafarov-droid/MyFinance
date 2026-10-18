@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.ScreenPhase
 import com.truckerload.presentation.components.EmptyState
+import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.theme.rememberHeldScreenPhase
 import com.truckerload.presentation.components.PhotoGridItem
 import com.truckerload.presentation.components.ScreenLoadError
 import com.truckerload.presentation.components.ScreenLoading
@@ -44,6 +46,7 @@ import com.truckerload.presentation.utils.adaptiveGalleryMinCellSize
 fun PhotoGalleryScreen(
     onBack: () -> Unit,
     onPhotoClick: (String) -> Unit,
+    onTakePhoto: () -> Unit = {},
 ) {
     val viewModel: PhotoGalleryViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -119,7 +122,7 @@ fun PhotoGalleryScreen(
                     }
                 }
 
-                when (uiState.phase) {
+                when (rememberHeldScreenPhase(uiState.phase)) {
                     ScreenPhase.Loading -> ScreenLoading(modifier = Modifier.padding(horizontal = 4.dp))
                     ScreenPhase.Error -> ScreenLoadError(onRetry = viewModel::retry)
                     ScreenPhase.Empty -> EmptyState(
@@ -127,6 +130,13 @@ fun PhotoGalleryScreen(
                         title = stringResource(R.string.no_photos),
                         message = stringResource(R.string.empty_photos_message),
                         modifier = Modifier.padding(horizontal = 16.dp),
+                        primaryAction = {
+                            EmptyStateButton(
+                                label = stringResource(R.string.empty_take_photo),
+                                onClick = onTakePhoto,
+                                icon = AppIcons.PhotoCamera,
+                            )
+                        },
                     )
                     ScreenPhase.Content -> LazyVerticalGrid(
                         columns = GridCells.Adaptive(adaptiveGalleryMinCellSize()),
@@ -140,6 +150,7 @@ fun PhotoGalleryScreen(
                                 photo = photo,
                                 loadLabel = photo.loadId?.let { uiState.loadLabels[it] },
                                 onClick = { onPhotoClick(photo.id) },
+                                modifier = Modifier.animateItem(),
                             )
                         }
                     }

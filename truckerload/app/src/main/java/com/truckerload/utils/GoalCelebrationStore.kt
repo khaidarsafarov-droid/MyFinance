@@ -24,6 +24,26 @@ object GoalCelebrationStore {
             }
     }
 
+    /** Home goal-ring Confirm haptic, independent of the goal-screen sound. */
+    fun wasRingHapticSent(context: Context, weekNumber: Int, year: Int, goalAmount: Double): Boolean {
+        val key = ringHapticKey(weekNumber, year, goalAmount)
+        return context.applicationContext
+            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(key, false)
+    }
+
+    fun markRingHaptic(context: Context, weekNumber: Int, year: Int, goalAmount: Double) {
+        val key = ringHapticKey(weekNumber, year, goalAmount)
+        context.applicationContext
+            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit {
+                putBoolean(key, true)
+            }
+    }
+
     private fun celebrationKey(weekNumber: Int, year: Int, goalAmount: Double): String =
         "celebrated_${year}_w${weekNumber}_${goalAmount.toLong()}"
+
+    private fun ringHapticKey(weekNumber: Int, year: Int, goalAmount: Double): String =
+        "ring_haptic_${year}_w${weekNumber}_${goalAmount.toLong()}"
 }

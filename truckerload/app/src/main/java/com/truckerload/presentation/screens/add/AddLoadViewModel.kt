@@ -100,6 +100,11 @@ class AddLoadViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         AddLoadUiState(
             rawText = savedStateHandle[KEY_RAW] ?: "",
+            mode = if ((savedStateHandle[KEY_RAW] ?: "").isNotBlank()) {
+                AddLoadInputMode.PASTE
+            } else {
+                AddLoadInputMode.MANUAL
+            },
             manual = ManualLoadFields(date = todayIso()),
         ),
     )
@@ -366,6 +371,7 @@ class AddLoadViewModel @Inject constructor(
                 pointA = fields.pointA,
                 pointB = fields.pointB,
                 extraPoints = fields.extraPoints,
+                equipmentType = _uiState.value.equipmentType,
                 rawMessage = if (_uiState.value.mode == AddLoadInputMode.DOCUMENT) {
                     _uiState.value.rawText
                 } else {

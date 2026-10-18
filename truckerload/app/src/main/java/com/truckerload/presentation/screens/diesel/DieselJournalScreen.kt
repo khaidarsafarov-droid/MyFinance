@@ -37,6 +37,9 @@ import com.truckerload.R
 import com.truckerload.presentation.ScreenPhase
 import com.truckerload.presentation.components.EmptyState
 import com.truckerload.presentation.components.EmptyStateButton
+import com.truckerload.presentation.components.EmptyStateSecondaryButton
+import com.truckerload.presentation.components.EmptyStateTextAction
+import com.truckerload.presentation.theme.rememberHeldScreenPhase
 import com.truckerload.presentation.components.ScreenLoadError
 import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.SoftActionChip
@@ -56,6 +59,7 @@ fun DieselJournalScreen(
     onBack: () -> Unit,
     onAdd: () -> Unit,
     onEditDiesel: (Int) -> Unit,
+    onScan: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val viewModel: DieselJournalViewModel = hiltViewModel()
@@ -151,6 +155,7 @@ fun DieselJournalScreen(
             }
         },
     ) { padding ->
+        val phase = rememberHeldScreenPhase(ui.phase)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -209,18 +214,40 @@ fun DieselJournalScreen(
                     )
                 }
             }
-            when (ui.phase) {
+            when (phase) {
                 ScreenPhase.Loading -> item { ScreenLoading() }
                 ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
                 ScreenPhase.Empty -> item {
                     EmptyState(
                         icon = AppIcons.LocalGasStation,
                         title = stringResource(R.string.diesel_empty_week),
-                        message = stringResource(R.string.empty_diesel_message),
+                        message = stringResource(R.string.empty_diesel_detail),
                         primaryAction = {
                             EmptyStateButton(
                                 label = stringResource(R.string.empty_log_diesel),
                                 onClick = onAdd,
+                                icon = AppIcons.Add,
+                            )
+                        },
+                        secondaryAction = {
+                            EmptyStateSecondaryButton(
+                                label = stringResource(R.string.empty_scan_receipt),
+                                onClick = onScan,
+                                icon = AppIcons.PhotoCamera,
+                            )
+                        },
+                        tertiaryAction = {
+                            EmptyStateTextAction(
+                                label = stringResource(R.string.diesel_import_action),
+                                onClick = {
+                                    fileLauncher.launch(
+                                        arrayOf(
+                                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                            "application/vnd.ms-excel",
+                                            "application/octet-stream",
+                                        ),
+                                    )
+                                },
                             )
                         },
                     )
@@ -229,6 +256,7 @@ fun DieselJournalScreen(
                     DieselFillCard(
                         diesel = fill,
                         onClick = { onEditDiesel(fill.id) },
+                        modifier = Modifier.animateItem(),
                     )
                 }
             }

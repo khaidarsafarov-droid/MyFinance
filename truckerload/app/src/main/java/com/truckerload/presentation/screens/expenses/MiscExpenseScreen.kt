@@ -125,6 +125,7 @@ fun MiscExpenseScreen(
             }
         },
     ) { padding ->
+        val phase = com.truckerload.presentation.theme.rememberHeldScreenPhase(ui.phase)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -149,7 +150,7 @@ fun MiscExpenseScreen(
                     )
                 }
             }
-            when (ui.phase) {
+            when (phase) {
                 ScreenPhase.Loading -> item { ScreenLoading() }
                 ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
                 ScreenPhase.Empty -> item {
@@ -168,6 +169,7 @@ fun MiscExpenseScreen(
                 ScreenPhase.Content -> items(ui.entries, key = { it.id }) { expense ->
                     MiscExpenseCard(
                         expense = expense,
+                        modifier = Modifier.animateItem(),
                         onClick = { viewModel.openExisting(expense) },
                     )
                 }
