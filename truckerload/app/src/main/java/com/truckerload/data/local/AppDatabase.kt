@@ -111,36 +111,31 @@ abstract class AppDatabase : RoomDatabase() {
             require(id.isNotBlank()) { "userId required for database" }
             appContext = context.applicationContext
             val existing = INSTANCE
-            if (existing != null && existing.isOpen && currentUserId == id) return existing
-            // Recovery copies a journal before the first SQLCipher open. Never block main.
-            JournalRecoveryGate.awaitBeforeOpen()
+            if (existing != null && reusable(existing, id)) return existing
             synchronized(this) {
-                if (INSTANCE != null && currentUserId == id) return INSTANCE as AppDatabase
+                val current = INSTANCE
+                if (current != null && reusable(current, id)) return current
                 INSTANCE?.close()
                 INSTANCE = null
                 currentUserId = null
                 LegacyDatabaseAbsorb.notePendingIfNeeded(context.applicationContext, id)
                 val dbName = databaseNameFor(id)
-                val builder = Room.databaseBuilder(
+                // Builder stays lazy. SQLCipher opens inside [RecoveryGatedOpenHelper]
+                // on Room's connection pool, after journal recovery releases the gate.
+                val db = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     dbName,
                 )
                     .addMigrations(*ALL_ROOM_MIGRATIONS)
-                // Pre-v6: blocked migrations throw UnsupportedDatabaseUpgradeException
-                // (no destructive wipe — restore from backup / reinstall).
-                if (!DatabasePassphraseStore.isRobolectric()) {
-                    val passphrase = DatabasePassphraseStore.forDatabase(context.applicationContext, dbName)
-                        .getOrCreate()
-                    PlaintextDatabaseEncryptor.ensureEncrypted(context.applicationContext, dbName, passphrase)
-                    PlaintextDatabaseEncryptor.restoreClearedUserVersion(
-                        context.applicationContext,
-                        dbName,
-                        passphrase,
+                    .openHelperFactory(
+                        RecoveryGatedOpenHelperFactory(
+                            appContext = context.applicationContext,
+                            dbName = dbName,
+                            useSqlCipher = !DatabasePassphraseStore.isRobolectric(),
+                        ),
                     )
-                    builder.openHelperFactory(PlaintextDatabaseEncryptor.openHelperFactory(passphrase))
-                }
-                val db = builder.build()
+                    .build()
                 INSTANCE = db
                 currentUserId = id
                 return db
@@ -149,12 +144,10 @@ abstract class AppDatabase : RoomDatabase() {
 
         /**
          * Convenience for background workers: open DB for the active AuthStore session,
-         * or null when logged out.
+         * or null when logged out. Unknown (prefs still opening) is not logged out.
          */
         fun getInstanceForActiveUser(context: Context): AppDatabase? {
-            JournalRecoveryGate.awaitBeforeOpen()
-            val userId = com.truckerload.data.preferences.AuthStore(context).currentUserIdOrNull()
-                ?: return null
+            val userId = resolveActiveUserId(context) ?: return null
             return getInstance(context, userId)
         }
 
@@ -163,13 +156,38 @@ abstract class AppDatabase : RoomDatabase() {
          * Prefer [getInstanceForActiveUser] in background jobs — returns null when logged out.
          */
         fun getInstance(context: Context): AppDatabase {
-            JournalRecoveryGate.awaitBeforeOpen()
-            val userId = com.truckerload.data.preferences.AuthStore(context).currentUserIdOrNull()
+            val userId = resolveActiveUserId(context)
             if (userId != null) return getInstance(context, userId)
             if (com.truckerload.BuildConfig.LOCAL_ONLY_MODE) {
                 return getInstance(context, com.truckerload.data.preferences.AccountIds.LOCAL_DEV)
             }
             error("No active user session — open AppDatabase with userId or wait until login")
+        }
+
+        /**
+         * Off the main thread this waits until cold start publishes, same as before.
+         * On the main thread a short wait is followed by the rest of the wait on IO,
+         * so a still-restoring session is not treated as signed out and does not throw.
+         */
+        private fun resolveActiveUserId(context: Context): String? {
+            val auth = com.truckerload.data.preferences.AuthStore(context)
+            if (!JournalRecoveryGate.callerIsMainThread() || auth.sessionKnown.value) {
+                return auth.currentUserIdOrNull()
+            }
+            if (!auth.awaitReadyBlocking(JournalRecoveryGate.mainOpenWaitMillis)) {
+                android.util.Log.w(
+                    "AppDatabase",
+                    "Main-thread database open is waiting for session restore on IO",
+                )
+                return RecoveryOpenThreads.submit { auth.currentUserIdOrNull() }.get()
+            }
+            return auth.currentUserIdOrNull()
+        }
+
+        private fun reusable(existing: AppDatabase, userId: String): Boolean {
+            if (currentUserId != userId) return false
+            val helper = runCatching { existing.openHelper }.getOrNull() ?: return false
+            return helper !is RecoveryGatedOpenHelper || !helper.isClosed
         }
 
         fun closeCurrent() {

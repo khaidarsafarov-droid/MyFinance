@@ -3,6 +3,7 @@ package com.truckerload.data.preferences
 import android.content.Context
 import com.truckerload.data.local.JournalRecoveryGate
 import java.util.ArrayDeque
+import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Runnable
@@ -130,6 +131,38 @@ class AuthStoreColdStartTest {
         assertEquals("google_restart", restored.currentUserIdOrNull())
         assertEquals("driver@example.com", restored.email.value)
         assertEquals(AuthProvider.GOOGLE, restored.authProvider())
+    }
+
+    @Test
+    fun hungKeystoreOpen_fallsBackOnIo_andKeepsTheSignedInSession() {
+        AuthStore(context, AuthStore.ColdStart.SYNC).login(
+            userId = "google_timeout",
+            email = "driver@example.com",
+            rememberMe = true,
+            provider = AuthProvider.GOOGLE,
+        )
+        AuthStore.ignoreBootstrapForTests = true
+        AuthStore.resetForTests()
+        val hung = CountDownLatch(1)
+        AuthKeystoreOpen.timeoutMsForTests = 250
+        AuthKeystoreOpen.beforeOpenForTests = { attempt ->
+            if (attempt == 1) hung.await()
+        }
+        try {
+            val restored = AuthStore(context, AuthStore.ColdStart.ASYNC)
+            val deadline = System.currentTimeMillis() + 5_000
+            while (!restored.sessionKnown.value && System.currentTimeMillis() < deadline) {
+                Thread.sleep(20)
+            }
+            assertTrue(AuthKeystoreOpen.fallbackUsedForTests)
+            assertTrue(restored.sessionKnown.value)
+            assertTrue(restored.isLoggedIn.value)
+            assertEquals("google_timeout", restored.currentUserIdOrNull())
+            assertEquals("driver@example.com", restored.email.value)
+            assertEquals(AuthProvider.GOOGLE, restored.authProvider())
+        } finally {
+            hung.countDown()
+        }
     }
 
     @Test

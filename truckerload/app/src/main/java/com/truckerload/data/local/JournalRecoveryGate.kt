@@ -23,6 +23,12 @@ internal object JournalRecoveryGate {
     /** When set, Robolectric also waits. Production never sets this. */
     internal var enforceForTests: Boolean = false
 
+    /**
+     * How long a main-thread open waits before it logs and keeps waiting on IO.
+     * The SQLCipher file still does not open until recovery releases the gate.
+     */
+    internal var mainOpenWaitMillis: Long = MAIN_OPEN_WAIT_MS
+
     fun arm() {
         synchronized(lock) {
             if (latch != null) return
@@ -67,32 +73,43 @@ internal object JournalRecoveryGate {
     }
 
     /**
-     * Background Room open waits until recovery releases the gate.
-     * A main-thread caller does not block; opening now would race a journal copy.
+     * Blocks a background opener until recovery releases the gate.
+     * A main-thread caller returns immediately and does not throw; the open helper
+     * moves that wait onto [RecoveryOpenThreads].
      */
     fun awaitBeforeOpen() {
-        if (DatabasePassphraseStore.isRobolectric() && !enforceForTests) return
-        awaitLatch(rejectMainThread = true)
+        if (skipWait()) return
+        if (isMainThread()) return
+        awaitLatch()
     }
 
-    /** Test hook: wait even under Robolectric, and fail if this is the main thread. */
+    /** True when this thread is main and the journal file must not be opened yet. */
+    fun deferCurrentThread(): Boolean = isMainThread() && !skipWait() && isAwaiting()
+
+    internal fun callerIsMainThread(): Boolean = isMainThread()
+
+    /** Test hook: on the main thread this returns without throwing or blocking. */
     internal fun awaitBeforeOpenForTests() {
-        awaitLatch(rejectMainThread = true)
+        if (isMainThread()) return
+        awaitLatch()
     }
 
     /** Test hook: wait on a background thread even under Robolectric. */
     internal fun awaitOffMainForTests() {
-        awaitLatch(rejectMainThread = false)
+        awaitLatch()
     }
 
-    private fun awaitLatch(rejectMainThread: Boolean) {
+    private fun skipWait(): Boolean =
+        DatabasePassphraseStore.isRobolectric() && !enforceForTests
+
+    private fun isAwaiting(): Boolean {
+        val held = synchronized(lock) { latch } ?: return false
+        return held.count > 0L
+    }
+
+    private fun awaitLatch() {
         val held = synchronized(lock) { latch } ?: return
         if (held.count == 0L) return
-        if (rejectMainThread) {
-            check(!isMainThread()) {
-                "Room opened on the main thread before journal recovery finished"
-            }
-        }
         held.await()
     }
 
@@ -104,6 +121,7 @@ internal object JournalRecoveryGate {
             done = null
             running.set(false)
             enforceForTests = false
+            mainOpenWaitMillis = MAIN_OPEN_WAIT_MS
         }
     }
 
@@ -111,4 +129,6 @@ internal object JournalRecoveryGate {
         val main = Looper.getMainLooper() ?: return false
         return Looper.myLooper() == main
     }
+
+    private const val MAIN_OPEN_WAIT_MS = 2_000L
 }

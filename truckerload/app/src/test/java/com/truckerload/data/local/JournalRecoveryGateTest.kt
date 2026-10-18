@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -41,13 +42,16 @@ class JournalRecoveryGateTest {
     }
 
     @Test
-    fun mainThreadDoesNotBlockWhenRecoveryIsStillRunning() {
+    fun mainThreadDoesNotThrowOrBlockWhileRecoveryIsStillRunning() {
         JournalRecoveryGate.resetForTests()
+        JournalRecoveryGate.enforceForTests = true
         JournalRecoveryGate.arm()
-        val error = runCatching { JournalRecoveryGate.awaitBeforeOpenForTests() }.exceptionOrNull()
-        assertTrue(error is IllegalStateException)
+        val started = System.nanoTime()
+        JournalRecoveryGate.awaitBeforeOpen()
+        val elapsedMs = (System.nanoTime() - started) / 1_000_000
+        assertTrue("main thread blocked for ${elapsedMs}ms", elapsedMs < 400)
         JournalRecoveryGate.release()
-        JournalRecoveryGate.awaitBeforeOpenForTests()
+        JournalRecoveryGate.awaitBeforeOpen()
     }
 
     @Test
@@ -58,16 +62,20 @@ class JournalRecoveryGateTest {
     }
 
     @Test
-    fun databaseOpenWaitsUntilRecoveryFinishes() {
+    fun getInstanceOnMainDoesNotOpenUntilRecoveryFinishes() {
         val context = RuntimeEnvironment.getApplication()
         val order = Collections.synchronizedList(mutableListOf<String>())
         val failure = AtomicReference<Throwable>(null)
         JournalRecoveryGate.resetForTests()
         JournalRecoveryGate.enforceForTests = true
         JournalRecoveryGate.arm()
+        val started = System.nanoTime()
+        val db = AppDatabase.getInstance(context, "gate-before-open")
+        val buildMs = (System.nanoTime() - started) / 1_000_000
+        assertTrue("getInstance blocked the main thread for ${buildMs}ms", buildMs < 500)
         val thread = Thread {
             try {
-                AppDatabase.getInstance(context, "gate-before-open")
+                db.openHelper.writableDatabase
                 order.add("db-open")
             } catch (t: Throwable) {
                 failure.set(t)
@@ -86,6 +94,30 @@ class JournalRecoveryGateTest {
         } finally {
             JournalRecoveryGate.release()
             thread.join(2_000)
+            AppDatabase.closeCurrent()
+            JournalRecoveryGate.resetForTests()
+        }
+    }
+
+    @Test
+    fun mainThreadOpenDoesNotThrowWhenRecoveryIsStillRunning() {
+        val context = RuntimeEnvironment.getApplication()
+        JournalRecoveryGate.resetForTests()
+        JournalRecoveryGate.enforceForTests = true
+        JournalRecoveryGate.mainOpenWaitMillis = 100
+        JournalRecoveryGate.arm()
+        val db = AppDatabase.getInstance(context, "gate-main-open")
+        val releaser = Thread {
+            Thread.sleep(350)
+            JournalRecoveryGate.release()
+        }
+        releaser.start()
+        try {
+            val opened = db.openHelper.writableDatabase
+            assertNotNull(opened)
+        } finally {
+            JournalRecoveryGate.release()
+            releaser.join(2_000)
             AppDatabase.closeCurrent()
             JournalRecoveryGate.resetForTests()
         }

@@ -8,6 +8,7 @@ import androidx.core.content.edit
 import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.data.local.JournalRecoveryGate
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,18 +20,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-private const val PREFS_NAME = "truckerload_auth_enc"
-private const val LEGACY_PREFS_NAME = "truckerload_auth"
-private const val MIGRATION_FLAG = "migrated_from_plain"
-private const val KEY_LOGGED_IN = "is_logged_in"
-private const val KEY_USER_ID = "user_id"
-private const val KEY_EMAIL = "email"
 private const val KEY_ACCESS_TOKEN = "access_token"
 private const val KEY_REFRESH_TOKEN = "refresh_token"
 private const val KEY_GOOGLE_SUB = "google_sub"
 private const val KEY_GOOGLE_ID_TOKEN = "google_id_token"
 private const val KEY_PROVIDER = "auth_provider"
-private const val KEY_LAST_SESSION_CHECK_AT = "last_session_check_at"
 private const val DEFAULT_LOGGED_IN = false
 
 data class AuthSession(
@@ -107,6 +101,18 @@ class AuthStore internal constructor(
     internal suspend fun awaitDiskSnapshot() {
         if (diskReady().isCompleted) return
         diskReady().await()
+    }
+
+    /** Bounded wait used by a main-thread database open. Does not change the session. */
+    internal fun awaitReadyBlocking(timeoutMs: Long): Boolean {
+        if (_sessionKnown.value) return true
+        val latch = readyLatch()
+        if (timeoutMs > 0L) {
+            latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+        } else {
+            latch.await()
+        }
+        return _sessionKnown.value
     }
 
     internal fun publishColdStart() {
@@ -364,16 +370,23 @@ class AuthStore internal constructor(
 
     companion object {
         private const val TAG = "AuthStore"
+        internal const val PREFS_NAME = "truckerload_auth_enc"
+        internal const val LEGACY_PREFS_NAME = "truckerload_auth"
+        internal const val MIGRATION_FLAG = "migrated_from_plain"
+        internal const val KEY_LOGGED_IN = "is_logged_in"
+        internal const val KEY_USER_ID = "user_id"
+        internal const val KEY_EMAIL = "email"
+        internal const val KEY_LAST_SESSION_CHECK_AT = "last_session_check_at"
         private val lock = Any()
-        private val prefsLock = Any()
+        internal val prefsLock = Any()
         private val bootstrapScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         private var bootstrapJob: Job? = null
         private var bootstrapGeneration = 0
         private var bootstrapped = false
         private var sessionKnown = false
         private var sessionMutated = false
-        private var pendingHealthWrite = false
-        @Volatile private var prefsRef: SharedPreferences? = null
+        @Volatile internal var pendingHealthWrite = false
+        @Volatile internal var prefsRef: SharedPreferences? = null
         private var readyLatch = CountDownLatch(1)
         private var diskReadyDeferred = CompletableDeferred<Unit>()
         private var liveLoggedIn = false
@@ -445,7 +458,7 @@ class AuthStore internal constructor(
             val generation = bootstrapGeneration
             lastBootstrapModeForTests = "async"
             bootstrapJob = bootstrapScope.launch(bootstrapDispatcher()) {
-                runCatching { openPrefsOnce(context) }
+                runCatching { AuthKeystoreOpen.openWithFallback(context) }
                     .onSuccess { prefs ->
                         beforeApplyForTests?.invoke()
                         synchronized(lock) {
@@ -518,6 +531,7 @@ class AuthStore internal constructor(
 
         /** Test-only: clear process-wide session so the next [AuthStore] re-reads disk. */
         internal fun resetForTests() {
+            AuthKeystoreOpen.resetForTests()
             synchronized(lock) {
                 bootstrapGeneration++
                 bootstrapJob?.cancel()
@@ -550,42 +564,7 @@ class AuthStore internal constructor(
             }
         }
 
-        private fun openPrefsOnce(context: Context): SharedPreferences {
-            prefsRef?.let { return it }
-            synchronized(prefsLock) {
-                prefsRef?.let { return it }
-                val opened = openPrefs(context)
-                prefsRef = opened
-                if (pendingHealthWrite) {
-                    pendingHealthWrite = false
-                    opened.edit {
-                        putLong(KEY_LAST_SESSION_CHECK_AT, System.currentTimeMillis())
-                    }
-                }
-                return opened
-            }
-        }
-
-        private fun openPrefs(context: Context): SharedPreferences {
-            val secure = SecurePreferences.open(context, PREFS_NAME)
-            // Migrate even on Keystore fallback so older installs keep their session.
-            SecurePreferences.migratePlainToSecure(
-                context = context,
-                legacyName = LEGACY_PREFS_NAME,
-                securePrefs = secure,
-                migrationFlagKey = MIGRATION_FLAG,
-            )
-            if (secure.getBoolean(KEY_LOGGED_IN, false) &&
-                secure.getString(KEY_USER_ID, null).isNullOrBlank()
-            ) {
-                secure.edit {
-                    putString(KEY_USER_ID, AccountIds.LOCAL_DEV)
-                    if (secure.getString(KEY_EMAIL, null).isNullOrBlank()) {
-                        putString(KEY_EMAIL, "local@device")
-                    }
-                }
-            }
-            return secure
-        }
+        private fun openPrefsOnce(context: Context): SharedPreferences =
+            AuthKeystoreOpen.openOnce(context)
     }
 }
