@@ -33,6 +33,15 @@ data class BrandPalette(
     val tagBrokerFg: Color,
     val tagBrokerBg: Color,
     val shadow: Color,
+    /** Gold button gradient. Text on the button is [goldOnGold]. */
+    val goldStart: Color,
+    val goldEnd: Color,
+    val goldOnGold: Color,
+    /** Small Premium tag. Dark uses a lighter gold on a brown chip. */
+    val goldTagText: Color,
+    val goldTagBg: Color,
+    /** Gold mark that sits on the indigo hero. */
+    val goldOnHero: Color,
 )
 
 object BrandPalettes {
@@ -61,6 +70,12 @@ object BrandPalettes {
         tagBrokerFg = Color(0xFF1F55B5),
         tagBrokerBg = Color(0xFFE3EEFF),
         shadow = Color(0x405B54E6),
+        goldStart = Color(0xFFFFE29A),
+        goldEnd = Color(0xFFF5C451),
+        goldOnGold = Color(0xFF3D2A00),
+        goldTagText = Color(0xFF8A5A00),
+        goldTagBg = Color(0xFFFFF1D6),
+        goldOnHero = Color(0xFFFFD27A),
     )
 
     val Dark = BrandPalette(
@@ -88,6 +103,12 @@ object BrandPalettes {
         tagBrokerFg = Color(0xFF8DB8FF),
         tagBrokerBg = Color(0xFF152D52),
         shadow = Color(0x80000000),
+        goldStart = Color(0xFFFFE29A),
+        goldEnd = Color(0xFFF5C451),
+        goldOnGold = Color(0xFF3D2A00),
+        goldTagText = Color(0xFFFFD27A),
+        goldTagBg = Color(0xFF3D2E0F),
+        goldOnHero = Color(0xFFFFD27A),
     )
 }
 
