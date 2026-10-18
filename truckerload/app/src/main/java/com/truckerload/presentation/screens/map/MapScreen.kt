@@ -67,6 +67,7 @@ fun MapScreen(
     } else {
         SoftAppPageScaffold(
             title = stringResource(R.string.map_title),
+            useDashboardHero = true,
             showBack = true,
             onBack = onBack,
             showPhoneMenu = false,

@@ -92,6 +92,7 @@ fun AnalyticsScreen(
     val tabletChrome = useNavigationRail()
     SoftAppPageScaffold(
         title = stringResource(R.string.analytics_title),
+        useDashboardHero = true,
         subtitle = stringResource(R.string.analytics_subtitle),
         showBack = !embedded && !tabletChrome,
         onBack = onBack,

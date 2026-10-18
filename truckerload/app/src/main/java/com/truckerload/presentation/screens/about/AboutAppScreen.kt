@@ -56,6 +56,7 @@ fun AboutAppScreen(
     val tc = LocalTruckColors.current
     SoftAppPageScaffold(
         title = stringResource(R.string.about_app_title),
+        useDashboardHero = true,
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,

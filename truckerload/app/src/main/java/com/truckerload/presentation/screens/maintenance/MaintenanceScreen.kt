@@ -104,6 +104,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
 
     SoftAppPageScaffold(
         title = stringResource(R.string.maintenance_title),
+        useDashboardHero = true,
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,

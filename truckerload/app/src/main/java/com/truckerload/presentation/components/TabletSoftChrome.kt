@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.LocalBrandPalette
+import com.truckerload.presentation.theme.LocalOledDarkEnabled
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
@@ -41,6 +45,9 @@ import com.truckerload.presentation.utils.useNavigationRail
 
 /**
  * App-wide page chrome: One UI large title on phone, oversized header on tablet.
+ *
+ * [useDashboardHero] opts a screen into the indigo Dashboard header. It stays off
+ * so Home, Weekly Goal, Settings, and Profile keep the header they already have.
  */
 @Composable
 fun SoftAppPageScaffold(
@@ -50,22 +57,39 @@ fun SoftAppPageScaffold(
     showBack: Boolean = false,
     onBack: (() -> Unit)? = null,
     showPhoneMenu: Boolean = true,
+    useDashboardHero: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val tc = LocalTruckColors.current
     val tabletChrome = useNavigationRail()
     val openDrawer = LocalOpenDrawer.current
+    val tc = LocalTruckColors.current
+    val page = if (useDashboardHero) {
+        if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else LocalBrandPalette.current.page
+    } else {
+        BentoGlassTheme.ScreenBackground
+    }
 
     Scaffold(
         modifier = modifier,
-        containerColor = BentoGlassTheme.ScreenBackground,
+        containerColor = page,
+        contentWindowInsets = if (useDashboardHero) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
         snackbarHost = snackbarHost,
         floatingActionButton = floatingActionButton,
         topBar = {
-            if (tabletChrome) {
+            if (useDashboardHero) {
+                DashboardHero(
+                    title = title,
+                    subtitle = subtitle,
+                    showBack = showBack && onBack != null,
+                    onBack = { onBack?.invoke() },
+                    showMenu = !showBack && showPhoneMenu && !tabletChrome,
+                    onMenu = openDrawer,
+                    actions = actions,
+                )
+            } else if (tabletChrome) {
                 SoftTabletPageHeader(
                     title = title,
                     subtitle = subtitle,

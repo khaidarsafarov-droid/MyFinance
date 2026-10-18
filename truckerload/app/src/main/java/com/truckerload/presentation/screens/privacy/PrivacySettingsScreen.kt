@@ -27,6 +27,7 @@ fun PrivacySettingsScreen(
 
     SoftAppPageScaffold(
         title = stringResource(R.string.privacy_screen_title),
+        useDashboardHero = true,
         showBack = showBack && !tabletChrome,
         onBack = onBack,
         showPhoneMenu = false,

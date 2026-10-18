@@ -53,6 +53,7 @@ fun ImprovementFeedbackScreen(
 
     SoftAppPageScaffold(
         title = stringResource(R.string.improve_title),
+        useDashboardHero = true,
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,
