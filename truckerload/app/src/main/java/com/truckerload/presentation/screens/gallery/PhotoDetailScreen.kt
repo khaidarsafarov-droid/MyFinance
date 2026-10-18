@@ -92,16 +92,13 @@ fun PhotoDetailScreen(
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(photo?.fileName ?: stringResource(R.string.photo_gallery)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BentoGlassTheme.ScreenBackground),
+            com.truckerload.presentation.components.DashboardHero(
+                title = photo?.fileName ?: stringResource(R.string.photo_gallery),
+                showBack = true,
+                onBack = onBack,
             )
         },
     ) { padding ->
