@@ -9,6 +9,7 @@ import com.truckerload.R
 import com.truckerload.domain.importing.DieselImportAction
 import com.truckerload.domain.importing.DieselImportReview
 import com.truckerload.domain.importing.DieselImportUseCase
+import com.truckerload.domain.importing.DieselSpreadsheetImport
 import com.truckerload.domain.importing.DieselSpreadsheetParser
 import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.utils.suspendRunCatching
@@ -21,6 +22,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+/**
+ * Spreadsheet parse and review math run off the main thread.
+ * The caller still reads the file bytes on [Dispatchers.IO].
+ */
+internal suspend fun parseDieselReview(
+    bytes: ByteArray,
+    fileName: String,
+    buildReview: suspend (DieselSpreadsheetImport) -> DieselImportReview,
+): DieselImportReview = withContext(Dispatchers.Default) {
+    buildReview(DieselSpreadsheetParser.parse(bytes, fileName))
+}
 
 sealed interface DieselImportUiState {
     data object Idle : DieselImportUiState
@@ -47,8 +60,7 @@ class DieselImportViewModel @Inject constructor(
                 val fileName = resolveDisplayName(uri)
                 val bytes = withContext(Dispatchers.IO) { readBytes(uri) }
                 require(bytes.isNotEmpty()) { "empty_file" }
-                val parsed = DieselSpreadsheetParser.parse(bytes, fileName)
-                importUseCase.buildReview(parsed)
+                parseDieselReview(bytes, fileName, importUseCase::buildReview)
             }.onSuccess { review ->
                 _uiState.value = DieselImportUiState.Review(review)
             }.onFailure { error ->

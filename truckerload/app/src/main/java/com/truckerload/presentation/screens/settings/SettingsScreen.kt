@@ -24,12 +24,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.backup.GoogleDriveBackupService
-import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.domain.premium.PremiumFeature
-import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.premium.PremiumPaywallDialog
 import com.truckerload.presentation.premium.rememberPremiumAccess
 import com.truckerload.presentation.theme.LocalOledDarkEnabled
@@ -49,25 +46,21 @@ fun SettingsScreen(
     onOpenLanguage: () -> Unit = {},
     motionSettled: Boolean = true,
 ) {
-    val settingsDataStore = LocalSettingsDataStore.current
-    val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
-    val oledDark by settingsDataStore.oledDark.collectAsStateWithLifecycle(initialValue = false)
-    val dynamicColor by settingsDataStore.dynamicColor.collectAsStateWithLifecycle(initialValue = false)
-    val reduceMotion by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(initialValue = false)
-    val quietHoursEnabled by settingsDataStore.quietHoursEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val quietHoursStart by settingsDataStore.quietHoursStart.collectAsStateWithLifecycle(initialValue = 22)
-    val quietHoursEnd by settingsDataStore.quietHoursEnd.collectAsStateWithLifecycle(initialValue = 7)
-    val notifyMissingWeek by settingsDataStore.notifyMissingWeek.collectAsStateWithLifecycle(initialValue = true)
-    val notifyMaintenance by settingsDataStore.notifyMaintenance.collectAsStateWithLifecycle(initialValue = true)
-    val loadWeekStartDay by settingsDataStore.loadWeekStartDay.collectAsStateWithLifecycle(
-        initialValue = WeekStartDay.DEFAULT,
-    )
-    val dieselWeekStartDay by settingsDataStore.dieselWeekStartDay.collectAsStateWithLifecycle(
-        initialValue = WeekStartDay.DEFAULT,
-    )
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val settings by settingsViewModel.settingsSnapshot.collectAsStateWithLifecycle()
+    val themeMode = settings.themeMode
+    val oledDark = settings.oledDark
+    val dynamicColor = settings.dynamicColor
+    val reduceMotion = settings.reduceMotion
+    val quietHoursEnabled = settings.quietHoursEnabled
+    val quietHoursStart = settings.quietHoursStart
+    val quietHoursEnd = settings.quietHoursEnd
+    val notifyMissingWeek = settings.notifyMissingWeek
+    val notifyMaintenance = settings.notifyMaintenance
+    val loadWeekStartDay = settings.loadWeekStartDay
+    val dieselWeekStartDay = settings.dieselWeekStartDay
     val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
     val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
     val context = LocalContext.current
     val locale = androidx.compose.ui.platform.LocalLocale.current.platformLocale
     val tablet = useNavigationRail()

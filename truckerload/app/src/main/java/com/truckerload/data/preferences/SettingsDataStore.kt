@@ -165,6 +165,39 @@ class SettingsDataStore(context: Context) {
         )
     }
 
+    /** One read of the settings screen fields. Keys and defaults match the individual flows. */
+    val screenSnapshot: Flow<SettingsScreenSnapshot> = appContext.settingsDataStore.data.map { prefs ->
+        readScreenSnapshot(prefs)
+    }
+
+    fun readScreenSnapshot(prefs: Preferences): SettingsScreenSnapshot = SettingsScreenSnapshot(
+        themeMode = AppThemeMode.fromOrdinal(prefs[KEY_THEME_MODE] ?: AppThemeMode.SYSTEM.ordinal),
+        oledDark = prefs[KEY_OLED_DARK] ?: false,
+        dynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: false,
+        reduceMotion = prefs[KEY_REDUCE_MOTION] ?: false,
+        quietHoursEnabled = accountScopedBool(prefs, "quiet_hours_enabled", KEY_QUIET_HOURS_ENABLED, false),
+        quietHoursStart = accountScopedInt(prefs, "quiet_hours_start", KEY_QUIET_HOURS_START, 22),
+        quietHoursEnd = accountScopedInt(prefs, "quiet_hours_end", KEY_QUIET_HOURS_END, 7),
+        notifyMissingWeek = accountScopedBool(prefs, "notify_missing_week", KEY_NOTIFY_MISSING_WEEK, true),
+        notifyMaintenance = accountScopedBool(prefs, "notify_maintenance", KEY_NOTIFY_MAINTENANCE, true),
+        loadWeekStartDay = WeekStartDay.fromCalendarDay(
+            accountScopedInt(
+                prefs,
+                "load_week_start_day",
+                KEY_LOAD_WEEK_START_DAY,
+                WeekStartDay.DEFAULT.calendarDay,
+            ),
+        ),
+        dieselWeekStartDay = WeekStartDay.fromCalendarDay(
+            accountScopedInt(
+                prefs,
+                "diesel_week_start_day",
+                KEY_DIESEL_WEEK_START_DAY,
+                WeekStartDay.DEFAULT.calendarDay,
+            ),
+        ),
+    )
+
     private fun accountScopedBool(
         prefs: Preferences,
         base: String,

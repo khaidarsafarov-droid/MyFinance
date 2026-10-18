@@ -12,12 +12,11 @@ import com.truckerload.domain.goal.DayPlanRow
 import com.truckerload.domain.goal.WeeklyDayPlan
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.domain.money.Money
-import com.truckerload.domain.money.sum
+import com.truckerload.domain.goal.ClosedWeekGross
 import com.truckerload.domain.goal.WeeklyGoalProgress
 import com.truckerload.domain.ux.UxMotivation
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
-import com.truckerload.utils.isLoadInWeek
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,25 +57,34 @@ class GoalViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
-    // Cold flow. Do not stateIn the full load list on Main — the first visit
-    // was scanning every load on the UI thread during the tab transition.
-    private val loadsFlow = loadRepository.watchLoads()
-
     /** Цель на неделю (DataStore, сохраняется между сессиями). */
     val weeklyGoal: StateFlow<Double> = goalStore.goalAmount
 
-    private val progressFlow = combine(
-        loadsFlow,
+    /**
+     * One journal subscription. Current-week progress and closed-week gross are
+     * both derived from that list. Sharing stops five seconds after the last
+     * collector leaves; the day-plan query stays behind [onMotionSettled].
+     */
+    private val goalFeed: StateFlow<GoalFeed> = combine(
+        loadRepository.watchLoads(),
         goalStore.goalAmount,
-        loadRepository.watchCurrentWeekYieldSnapshot()
+        loadRepository.watchCurrentWeekYieldSnapshot(),
     ) { loads, goal, sqlYield ->
-        WeeklyGoalCalculator.calculateCurrentWeek(Money.fromDollars(goal), loads, sqlYield)
+        val (closedWeek, closedYear) = getPreviousWeekNumberAndYear()
+        GoalFeed(
+            progress = WeeklyGoalCalculator.calculateCurrentWeek(
+                Money.fromDollars(goal),
+                loads,
+                sqlYield,
+            ),
+            closedWeekGross = ClosedWeekGross.dollars(loads, closedWeek, closedYear),
+        )
     }.flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GoalFeed())
 
     /** Текущий гросс за неделю из Room. */
-    val currentGross: StateFlow<Double> = progressFlow
-        .map { it?.currentGross?.cents?.div(100.0) ?: 0.0 }
+    val currentGross: StateFlow<Double> = goalFeed
+        .map { it.progress?.currentGross?.cents?.div(100.0) ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
     /** Прогресс 0.0 … 1.0 для графиков и виджета. */
@@ -85,20 +93,22 @@ class GoalViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0f)
 
     /** Сколько гросса нужно в день до конца недели. */
-    val dailyPaceNeeded: StateFlow<Double> = progressFlow
-        .map { it?.dailyTargetNeeded?.cents?.div(100.0) ?: 0.0 }
+    val dailyPaceNeeded: StateFlow<Double> = goalFeed
+        .map { it.progress?.dailyTargetNeeded?.cents?.div(100.0) ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
-    val daysRemaining: StateFlow<Int> = progressFlow
-        .map { it?.daysRemainingInWeek ?: 0 }
+    val daysRemaining: StateFlow<Int> = goalFeed
+        .map { it.progress?.daysRemainingInWeek ?: 0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     /** Фактический $/день (PU → DEL). */
-    val actualDailyYield: StateFlow<Double> = progressFlow
-        .map { it?.actualDailyYield?.cents?.div(100.0) ?: 0.0 }
+    val actualDailyYield: StateFlow<Double> = goalFeed
+        .map { it.progress?.actualDailyYield?.cents?.div(100.0) ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
-    val goalProgress: StateFlow<WeeklyGoalProgress?> = progressFlow
+    val goalProgress: StateFlow<WeeklyGoalProgress?> = goalFeed
+        .map { it.progress }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _uiState = MutableStateFlow(WeeklyGoalUiState())
     val uiState: StateFlow<WeeklyGoalUiState> = _uiState.asStateFlow()
@@ -112,26 +122,22 @@ class GoalViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(progressFlow, loadsFlow) { progress, loads ->
-                val (closedWeek, closedYear) = getPreviousWeekNumberAndYear()
-                val closedGross = loads
-                    .filter { isLoadInWeek(it, closedWeek, closedYear) }
-                    .map { it.totalRate }.sum().cents / 100.0
-                progress to closedGross
-            }.flowOn(Dispatchers.Default).collect { (progress, closedGross) ->
+            goalFeed.collect { feed ->
+                val progress = feed.progress
                 _uiState.update {
                     it.copy(
                         progress = progress,
                         goalInput = if (it.isEditingGoal) it.goalInput
                         else progress?.let { p -> formatGoalInput(p.targetAmount.cents / 100.0) }.orEmpty(),
                         isLoading = progress == null,
-                        suggestedGoals = UxMotivation.suggestedWeeklyGoals(closedGross),
+                        suggestedGoals = UxMotivation.suggestedWeeklyGoals(feed.closedWeekGross),
                     )
                 }
             }
         }
         viewModelScope.launch {
-            combine(motionReady, progressFlow) { ready, progress ->
+            combine(motionReady, goalFeed) { ready, feed ->
+                val progress = feed.progress
                 if (!ready || progress == null) {
                     null
                 } else {
@@ -214,6 +220,11 @@ class GoalViewModel @Inject constructor(
             )
         }
     }
+
+    private data class GoalFeed(
+        val progress: WeeklyGoalProgress? = null,
+        val closedWeekGross: Double = 0.0,
+    )
 
     private data class DayPlanRequest(
         val weekNumber: Int,

@@ -81,7 +81,7 @@ internal fun HomeScreenContent(
     viewModel: HomeViewModel,
     filteredLoads: List<Load>,
     useRoomPaging: Boolean,
-    pagedLoads: LazyPagingItems<Load>,
+    pagedLoads: LazyPagingItems<Load>?,
     onLoadClick: (String) -> Unit,
     context: Context,
     onOpenCalendar: () -> Unit,
@@ -100,6 +100,7 @@ internal fun HomeScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
+    val paging = if (useRoomPaging) pagedLoads else null
     val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
     var showMonthPicker by remember { mutableStateOf(false) }
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -142,8 +143,8 @@ internal fun HomeScreenContent(
     if (tabletChrome) {
         val totals = periodTotals ?: periodSummary?.totals
             ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, com.truckerload.domain.money.Money.ZERO, 0.0)
-        val tabletRecentLoads = if (useRoomPaging) {
-            (0 until minOf(pagedLoads.itemCount, 6)).mapNotNull { index -> pagedLoads[index] }
+        val tabletRecentLoads = if (paging != null) {
+            (0 until minOf(paging.itemCount, 6)).mapNotNull { index -> paging[index] }
         } else {
             filteredLoads
         }
@@ -275,8 +276,8 @@ internal fun HomeScreenContent(
                 }
             }
 
-            val hasLoads = (useRoomPaging && pagedLoads.itemCount > 0) ||
-                (!useRoomPaging && listItems.isNotEmpty())
+            val hasLoads = (paging != null && paging.itemCount > 0) ||
+                (paging == null && listItems.isNotEmpty())
             if (hasLoads || periodSummary != null) {
                 item(key = "recent_header") {
                     // Title and period field are stacked. The field is fillMaxWidth,
@@ -309,9 +310,9 @@ internal fun HomeScreenContent(
                 }
             }
 
-            val visibleItemCount = if (useRoomPaging) pagedLoads.itemCount else listItems.size
-            val pagingRefreshLoading = useRoomPaging &&
-                pagedLoads.loadState.refresh is LoadState.Loading
+            val visibleItemCount = paging?.itemCount ?: listItems.size
+            val pagingRefreshLoading = paging != null &&
+                paging.loadState.refresh is LoadState.Loading
             if (HomeRefreshPolicy.shouldShowEmptyJournal(visibleItemCount, pagingRefreshLoading)) {
                 item(key = "empty_${uiState.filter}") {
                     HomeEmptyJournal(
@@ -341,8 +342,8 @@ internal fun HomeScreenContent(
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
                 }
-            } else if (useRoomPaging) {
-                val rowCount = pagedLoadRowCount(pagedLoads.itemCount, loadColumns)
+            } else if (paging != null) {
+                val rowCount = pagedLoadRowCount(paging.itemCount, loadColumns)
                 items(
                     count = rowCount,
                     // Stable row keys only — flipping null→id mid-fling makes
@@ -351,7 +352,7 @@ internal fun HomeScreenContent(
                 ) { rowIndex ->
                     val start = rowIndex * loadColumns
                     val rowLoads = (0 until loadColumns).mapNotNull { offset ->
-                        pagedLoads[start + offset]
+                        paging[start + offset]
                     }
                     if (rowLoads.isEmpty()) return@items
                     HomeLoadCardRow(
