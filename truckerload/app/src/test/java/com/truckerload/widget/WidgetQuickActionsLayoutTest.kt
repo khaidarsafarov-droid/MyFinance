@@ -18,15 +18,21 @@ import org.robolectric.annotation.Config
 class WidgetQuickActionsLayoutTest {
 
     @Test
-    fun quickActions_buttonsAreScannerThenCameraThenDiesel() {
-        assertButtonOrder(inflate(R.layout.widget_quick_actions))
+    fun quickActions_buttonsAreCameraThenScannerThenDiesel() {
+        assertButtonOrder(
+            inflate(R.layout.widget_quick_actions),
+            listOf(R.id.widget_btn_camera, R.id.widget_btn_scanner, R.id.widget_btn_diesel),
+        )
     }
 
     @Test
-    fun compact_buttonsAreScannerThenCameraThenDiesel_andDayDotsStayHidden() {
+    fun compact_buttonsAreCameraThenScanner_andDayDotsStayHidden() {
         val root = inflate(R.layout.widget_compact)
         val actions = root.findViewById<View>(R.id.widget_quick_actions)
-        assertButtonOrder(actions)
+        assertButtonOrder(
+            actions,
+            listOf(R.id.widget_btn_camera, R.id.widget_btn_scanner),
+        )
         assertEquals(View.GONE, root.findViewById<View>(R.id.widget_day_dots_row).visibility)
     }
 
@@ -41,15 +47,15 @@ class WidgetQuickActionsLayoutTest {
             assertEquals(parent, main.parent)
             assertTrue(parent.indexOfChild(actions) > parent.indexOfChild(main))
             assertTrue(!contains(right, actions))
-            assertButtonOrder(actions)
+            assertButtonOrder(
+                actions,
+                listOf(R.id.widget_btn_camera, R.id.widget_btn_scanner, R.id.widget_btn_diesel),
+            )
         }
     }
 
-    private fun assertButtonOrder(root: View) {
-        assertEquals(
-            listOf(R.id.widget_btn_scanner, R.id.widget_btn_camera, R.id.widget_btn_diesel),
-            imageIds(root),
-        )
+    private fun assertButtonOrder(root: View, expected: List<Int>) {
+        assertEquals(expected, imageIds(root))
     }
 
     private fun imageIds(root: View): List<Int> {

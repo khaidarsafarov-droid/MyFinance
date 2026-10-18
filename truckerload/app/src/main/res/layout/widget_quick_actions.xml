@@ -1,79 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_quick_actions"
+    tools:ignore="UseAppTint"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:gravity="center"
     android:orientation="horizontal">
 
-    <FrameLayout
+    <ImageView
+        android:id="@+id/widget_btn_camera"
         android:layout_width="0dp"
-        android:layout_height="36dp"
-        android:layout_weight="1">
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_split_action"
+        android:contentDescription="@string/widget_camera_short"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_widget_camera"
+        android:tint="@color/widget_accent" />
 
-        <View
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center"
-            android:background="@drawable/widget_action_chip" />
-
-        <ImageView
-            android:id="@+id/widget_btn_scanner"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/widget_scanner"
-            android:scaleType="center"
-            android:src="@drawable/ic_widget_scanner" />
-    </FrameLayout>
-
-    <View
-        android:layout_width="1dp"
-        android:layout_height="22dp"
-        android:background="@color/widget_divider" />
-
-    <FrameLayout
+    <ImageView
+        android:id="@+id/widget_btn_scanner"
         android:layout_width="0dp"
-        android:layout_height="36dp"
-        android:layout_weight="1">
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_split_action"
+        android:contentDescription="@string/widget_scanner_short"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_widget_scanner"
+        android:tint="@color/widget_accent" />
 
-        <View
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center"
-            android:background="@drawable/widget_action_chip" />
-
-        <ImageView
-            android:id="@+id/widget_btn_camera"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/widget_camera"
-            android:scaleType="center"
-            android:src="@drawable/ic_widget_camera" />
-    </FrameLayout>
-
-    <View
-        android:layout_width="1dp"
-        android:layout_height="22dp"
-        android:background="@color/widget_divider" />
-
-    <FrameLayout
+    <ImageView
+        android:id="@+id/widget_btn_diesel"
         android:layout_width="0dp"
-        android:layout_height="36dp"
-        android:layout_weight="1">
-
-        <View
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center"
-            android:background="@drawable/widget_action_chip" />
-
-        <ImageView
-            android:id="@+id/widget_btn_diesel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/widget_diesel"
-            android:scaleType="center"
-            android:src="@drawable/ic_widget_diesel" />
-    </FrameLayout>
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_split_action"
+        android:contentDescription="@string/widget_diesel_short"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_widget_diesel"
+        android:tint="@color/widget_accent" />
 </LinearLayout>

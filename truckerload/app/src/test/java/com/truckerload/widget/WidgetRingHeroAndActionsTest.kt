@@ -18,12 +18,13 @@ class WidgetRingHeroAndActionsTest {
     }
 
     @Test
-    fun standardAndExpanded_includeRingCenterInsteadOfSideGross() {
+    fun standardAndExpanded_useTheSplitHeaderPreview() {
         listOf("layout/widget_standard.xml", "layout/widget_expanded.xml").forEach { path ->
             val xml = readRes(path)
-            assertTrue(path, xml.contains("@layout/widget_ring_center"))
-            assertTrue(path, !xml.contains("android:id=\"@+id/widget_gross_hero\""))
-            assertTrue(path, !xml.contains("android:id=\"@+id/widget_goal_subtitle\""))
+            assertTrue(path, xml.contains("@drawable/widget_split_header"))
+            assertTrue(path, xml.contains("@layout/widget_quick_actions"))
+            assertTrue(path, xml.contains("@layout/widget_split_day"))
+            assertTrue(path, !xml.contains("@layout/widget_ring_center"))
         }
     }
 

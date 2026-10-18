@@ -1,11 +1,14 @@
 package com.truckerload.widget
 
+import android.content.Context
+import com.truckerload.R
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.domain.week.WeekStartRuntime
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
+import java.util.Calendar
 
 /**
  * Reporting-week chips for the home-screen widget.
@@ -55,16 +58,35 @@ object WidgetWeekDayHelper {
         return mask
     }
 
+    /** Sunday-first shorts from resources, rotated to the loads week start. */
+    fun localizedLabels(context: Context, firstDay: WeekStartDay): List<String> {
+        val sundayFirst = intArrayOf(
+            R.string.widget_weekday_sun,
+            R.string.widget_weekday_mon,
+            R.string.widget_weekday_tue,
+            R.string.widget_weekday_wed,
+            R.string.widget_weekday_thu,
+            R.string.widget_weekday_fri,
+            R.string.widget_weekday_sat,
+        )
+        val start = (firstDay.calendarDay - Calendar.SUNDAY).mod(7)
+        return List(7) { offset ->
+            context.getString(sundayFirst[(start + offset) % 7])
+        }
+    }
+
     fun chips(
         weekLoadMask: Int,
         today: LocalDate = LocalDate.now(),
         weekStart: LocalDate = startOfWeek(today),
+        labels: List<String>? = null,
     ): List<DayChip> {
-        val labels = labelsFor(WeekStartDay.fromJavaDayOfWeek(weekStart.dayOfWeek))
+        val resolved = labels?.takeIf { it.size == 7 }
+            ?: labelsFor(WeekStartDay.fromJavaDayOfWeek(weekStart.dayOfWeek))
         return (0..6).map { offset ->
             val date = weekStart.plusDays(offset.toLong())
             DayChip(
-                label = labels[offset],
+                label = resolved[offset],
                 date = date,
                 hasLoad = (weekLoadMask shr offset) and 1 == 1,
                 isToday = date == today,

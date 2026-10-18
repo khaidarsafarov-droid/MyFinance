@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Material light surface. Live widgets on Android 12+ use the wallpaper scheme. -->
+    <!-- Brand plate. Live widgets use BrandPalettes, not wallpaper dynamic color. -->
     <color name="widget_bg">#FFFFFFFF</color>
     <color name="widget_bg_bottom">#FFFFFFFF</color>
     <color name="widget_glass_fill">#335B54E6</color>
@@ -43,7 +43,7 @@
     <color name="widget_outline_variant">#FFD4D2F0</color>
     <color name="widget_hero_number">#FF12121A</color>
     <color name="widget_hero_bg">#FFFFFFFF</color>
-    <color name="widget_chip_bg">#FFDCD9FF</color>
+    <color name="widget_chip_bg">#FFEEEDFF</color>
     <dimen name="widget_padding">20dp</dimen>
     <dimen name="widget_progress_bar_height">10dp</dimen>
     <dimen name="widget_days_badge_min_width">36dp</dimen>
