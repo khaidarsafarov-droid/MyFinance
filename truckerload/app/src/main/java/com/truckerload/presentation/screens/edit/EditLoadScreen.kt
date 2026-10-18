@@ -6,6 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -23,8 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.formKeyboard
 import com.truckerload.presentation.components.formKeyboardActions
@@ -123,30 +123,15 @@ fun EditLoadScreen(
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.edit_load_title),
-                        modifier = Modifier.focusAfterNavigate(
-                            key = loadId,
-                            enabled = !uiState.isLoading && uiState.original != null,
-                        ),
-                        color = tc.TextPrimary,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = requestBack) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
+            DashboardHero(
+                title = stringResource(R.string.edit_load_title),
+                showBack = true,
+                onBack = requestBack,
+                modifier = Modifier.focusAfterNavigate(
+                    key = loadId,
+                    enabled = !uiState.isLoading && uiState.original != null,
                 ),
             )
         },

@@ -1,9 +1,11 @@
 package com.truckerload.presentation.screens.attach
 
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.icons.AppIcons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,8 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -108,41 +108,24 @@ fun AttachLoadPickScreen(
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(
-                            when (browseMode) {
-                                AttachPickBrowseMode.THIS_WEEK -> R.string.select_load
-                                AttachPickBrowseMode.ALL -> R.string.attach_pick_browse_title
-                            },
-                        ),
-                        color = tc.TextPrimary,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (browseMode == AttachPickBrowseMode.ALL) {
-                                browseMode = AttachPickBrowseMode.THIS_WEEK
-                                searchQuery = ""
-                            } else {
-                                onCancel()
-                            }
-                        },
-                    ) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
+            DashboardHero(
+                title = stringResource(
+                    when (browseMode) {
+                        AttachPickBrowseMode.THIS_WEEK -> R.string.select_load
+                        AttachPickBrowseMode.ALL -> R.string.attach_pick_browse_title
+                    },
+                ),
+                showBack = true,
+                onBack = {
+                    if (browseMode == AttachPickBrowseMode.ALL) {
+                        browseMode = AttachPickBrowseMode.THIS_WEEK
+                        searchQuery = ""
+                    } else {
+                        onCancel()
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
             )
         },
     ) { padding ->
