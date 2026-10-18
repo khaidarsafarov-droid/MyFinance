@@ -50,4 +50,10 @@ class ArchiveDraftTest {
         assertEquals(Money.fromDollars(500.0), entries[0].amount)
         assertEquals(Money.fromDollars(43.12), entries[1].amount)
     }
+
+    @Test
+    fun archiveLineAmount_formatsMoneyCents() {
+        assertEquals("$43.12", formatArchiveLineAmount(Money.fromDollars(43.12)))
+        assertEquals("$1,250.00", formatArchiveLineAmount(Money.fromCents(125_000)))
+    }
 }

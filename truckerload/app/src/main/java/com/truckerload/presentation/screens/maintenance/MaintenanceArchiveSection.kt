@@ -34,9 +34,11 @@ import com.truckerload.R
 import com.truckerload.domain.maintenance.MaintenanceVisit
 import com.truckerload.domain.maintenance.MaintenanceVisits
 import com.truckerload.domain.model.MaintenanceArchiveEntry
+import com.truckerload.domain.money.Money
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.MoneyFormat
 import java.io.File
 import java.util.Locale
 
@@ -153,7 +155,7 @@ private fun VisitCard(
                                 modifier = Modifier.weight(1f),
                             )
                             Text(
-                                text = "$${String.format(Locale.US, "%,.2f", line.amount)}",
+                                text = formatArchiveLineAmount(line.amount),
                                 color = tc.TextSecondary,
                                 style = MaterialTheme.typography.bodySmall,
                             )
@@ -184,6 +186,10 @@ private fun VisitCard(
         }
     }
 }
+
+/** Dollar text for a service line, from integer cents, with two decimals. */
+internal fun formatArchiveLineAmount(amount: Money): String =
+    MoneyFormat.formatCurrency(amount, decimals = 2)
 
 @Composable
 private fun ReceiptAttachedBadge(onClick: () -> Unit) {
