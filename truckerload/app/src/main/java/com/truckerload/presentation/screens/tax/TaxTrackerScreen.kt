@@ -3,6 +3,7 @@ package com.truckerload.presentation.screens.tax
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,8 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -25,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.tax.AccountantExportSection
 import com.truckerload.domain.tax.PerDiemCalculator
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.LoadCalendarWithDots
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.verticalContentScroll
@@ -89,18 +90,12 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.tax_title), color = tc.TextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
-                    }
-                },
+            DashboardHero(
+                title = stringResource(R.string.tax_title),
+                showBack = true,
+                onBack = onBack,
                 actions = {
                     IconButton(
                         onClick = { showSendSheet = true },
@@ -109,14 +104,10 @@ fun TaxTrackerScreen(onBack: () -> Unit) {
                         Icon(
                             AppIcons.Share,
                             contentDescription = stringResource(R.string.tax_send_title),
-                            tint = tc.TextPrimary,
+                            tint = Color.White,
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
             )
         },
     ) { padding ->
