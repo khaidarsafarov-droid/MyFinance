@@ -305,6 +305,21 @@
     <string name="goal_pace_ahead_short">Темп %1$s/день — выше плана (%2$s).</string>
     <string name="goal_pace_behind_short">Нужно %1$s/день. До цели %2$s.</string>
     <string name="goal_pace_met_short">Цель достигнута — %1$s за неделю.</string>
+    <string name="goal_earned_label">Заработано за неделю · гросс</string>
+    <string name="goal_of_amount">из %1$s</string>
+    <string name="goal_percent_caption">%1$d%% цели</string>
+    <string name="goal_expected_caption">по графику %1$s</string>
+    <string name="goal_tile_remaining">Осталось</string>
+    <string name="goal_tile_per_day">Нужно в день</string>
+    <string name="goal_day_plan_title">План по дням</string>
+    <string name="goal_days_left_chip">Осталось %1$d дн.</string>
+    <string name="goal_day_today">Сегодня · %1$s</string>
+    <string name="goal_day_fact">факт · %1$d%% плана</string>
+    <string name="goal_day_needed">нужно</string>
+    <string name="goal_day_today_cd">Сегодня</string>
+    <string name="goal_day_met_cd">День закрыт по плану</string>
+    <string name="goal_day_missed_cd">День ниже плана</string>
+    <string name="goal_day_future_cd">День ещё впереди</string>
     <string name="nav_settings">Настройки</string>
 
     <!-- Camera & scanner -->

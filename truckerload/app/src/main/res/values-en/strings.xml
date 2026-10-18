@@ -305,6 +305,21 @@
     <string name="goal_pace_ahead_short">Pace %1$s/day — above plan (%2$s).</string>
     <string name="goal_pace_behind_short">Need %1$s/day. %2$s to goal.</string>
     <string name="goal_pace_met_short">Goal reached — %1$s this week.</string>
+    <string name="goal_earned_label">Earned this week · gross</string>
+    <string name="goal_of_amount">of %1$s</string>
+    <string name="goal_percent_caption">%1$d%% of goal</string>
+    <string name="goal_expected_caption">on pace %1$s</string>
+    <string name="goal_tile_remaining">Remaining</string>
+    <string name="goal_tile_per_day">Needed per day</string>
+    <string name="goal_day_plan_title">Day plan</string>
+    <string name="goal_days_left_chip">%1$d days left</string>
+    <string name="goal_day_today">Today · %1$s</string>
+    <string name="goal_day_fact">actual · %1$d%% of plan</string>
+    <string name="goal_day_needed">needed</string>
+    <string name="goal_day_today_cd">Today</string>
+    <string name="goal_day_met_cd">Day met the plan</string>
+    <string name="goal_day_missed_cd">Day missed the plan</string>
+    <string name="goal_day_future_cd">Day still ahead</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Camera & scanner -->
