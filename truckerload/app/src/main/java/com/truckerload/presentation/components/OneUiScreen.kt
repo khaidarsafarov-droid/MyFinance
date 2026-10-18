@@ -27,7 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.LocalBrandPalette
+import com.truckerload.presentation.theme.LocalOledDarkEnabled
 import com.truckerload.presentation.theme.OneUiTokens
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.UiDimens
 
 /**
@@ -102,9 +105,10 @@ fun OneUiBottomActionBar(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else LocalBrandPalette.current.page
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.background,
+        color = page,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {

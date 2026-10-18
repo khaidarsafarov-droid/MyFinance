@@ -776,6 +776,7 @@
     <string name="load_detail_deadhead_hint">Millas que condujo vacío hasta recoger esta carga. Ejemplo: la carga es de 1,000 mi y condujo 100 mi hasta ella — escriba 100. Esas millas se suman a este viaje.</string>
     <string name="load_detail_deadhead_miles_label">Millas deadhead</string>
     <string name="premium_title">TruckoRig Premium</string>
+    <string name="dashboard_premium_tag">Premium</string>
     <string name="premium_body">El primer mes es gratis. Después, Google Play cobra el precio del botón: 2,99 $ al mes en Estados Unidos. Telegram, analítica, meta semanal, mapa, impuestos, escáner, cámara, exportación y copia en Drive quedan en este plan. Las cargas, el diésel, los pagos y el deadhead siguen gratis.</string>
     <string name="premium_subscribe">Probar 1 mes gratis</string>
     <string name="premium_subscribe_price">Probar 1 mes gratis (luego %1$s/mes)</string>

@@ -119,6 +119,7 @@ fun PaycheckJournalScreen(
 
     SoftAppPageScaffold(
         title = stringResource(R.string.paycheck_title),
+        useDashboardHero = true,
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,

@@ -120,6 +120,7 @@ fun DieselJournalScreen(
 
     SoftAppPageScaffold(
         title = stringResource(R.string.diesel_title),
+        useDashboardHero = true,
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,

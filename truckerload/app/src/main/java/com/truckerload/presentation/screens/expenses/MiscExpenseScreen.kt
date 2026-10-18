@@ -80,6 +80,7 @@ fun MiscExpenseScreen(
 
     SoftAppPageScaffold(
         title = stringResource(R.string.misc_expense_title),
+        useDashboardHero = true,
         showBack = true,
         onBack = onBack,
         showPhoneMenu = false,

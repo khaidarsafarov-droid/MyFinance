@@ -107,6 +107,7 @@ fun ScanGalleryScreen(
 
     SoftAppPageScaffold(
         title = stringResource(R.string.drawer_documents),
+        useDashboardHero = true,
         subtitle = stringResource(R.string.scan_gallery_subtitle),
         showBack = true,
         onBack = onBack,
