@@ -108,21 +108,14 @@ fun PhotoBatchReviewScreen(
     }
 
     Scaffold(
+        containerColor = com.truckerload.presentation.theme.BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(R.string.camera_batch_title, photos.size))
-                },
-                navigationIcon = {
-                    IconButton(onClick = onAddMore) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.camera_add_another),
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+            com.truckerload.presentation.components.DashboardHero(
+                title = stringResource(R.string.camera_batch_title, photos.size),
+                showBack = true,
+                onBack = onAddMore,
             )
         },
     ) { padding ->

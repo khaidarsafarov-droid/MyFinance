@@ -78,13 +78,14 @@ fun PhotoPreviewScreen(
     }
 
     Scaffold(
+        containerColor = com.truckerload.presentation.theme.BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.camera)) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+            com.truckerload.presentation.components.DashboardHero(
+                title = stringResource(R.string.camera),
+                showBack = true,
+                onBack = onCancel,
             )
         },
     ) { padding ->

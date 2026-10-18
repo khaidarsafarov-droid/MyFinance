@@ -65,20 +65,13 @@ fun ScanResultScreen(
     val hasOcr = pending.ocrText.isNotBlank()
 
     Scaffold(
+        containerColor = com.truckerload.presentation.theme.BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.scan_results)) },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+            com.truckerload.presentation.components.DashboardHero(
+                title = stringResource(R.string.scan_results),
+                showBack = true,
+                onBack = onClose,
             )
         },
     ) { padding ->
