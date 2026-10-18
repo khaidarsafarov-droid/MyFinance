@@ -115,6 +115,24 @@ class AuthStoreColdStartTest {
     }
 
     @Test
+    fun signedInSession_survivesRestart() {
+        AuthStore(context, AuthStore.ColdStart.SYNC).login(
+            userId = "google_restart",
+            email = "driver@example.com",
+            rememberMe = true,
+            provider = AuthProvider.GOOGLE,
+        )
+        // Process death: in-memory session is gone, encrypted prefs stay on disk.
+        AuthStore.resetForTests()
+        val restored = AuthStore(context, AuthStore.ColdStart.SYNC)
+        assertTrue(restored.sessionKnown.value)
+        assertTrue(restored.isLoggedIn.value)
+        assertEquals("google_restart", restored.currentUserIdOrNull())
+        assertEquals("driver@example.com", restored.email.value)
+        assertEquals(AuthProvider.GOOGLE, restored.authProvider())
+    }
+
+    @Test
     fun markSessionHealth_doesNotRequireACommitOnTheCaller() {
         val auth = AuthStore(context)
         auth.login(

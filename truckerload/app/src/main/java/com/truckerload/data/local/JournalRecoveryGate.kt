@@ -20,6 +20,9 @@ internal object JournalRecoveryGate {
     private var done: CompletableDeferred<Unit>? = null
     private val running = AtomicBoolean(false)
 
+    /** When set, Robolectric also waits. Production never sets this. */
+    internal var enforceForTests: Boolean = false
+
     fun arm() {
         synchronized(lock) {
             if (latch != null) return
@@ -68,7 +71,7 @@ internal object JournalRecoveryGate {
      * A main-thread caller does not block; opening now would race a journal copy.
      */
     fun awaitBeforeOpen() {
-        if (DatabasePassphraseStore.isRobolectric()) return
+        if (DatabasePassphraseStore.isRobolectric() && !enforceForTests) return
         awaitLatch(rejectMainThread = true)
     }
 
@@ -100,6 +103,7 @@ internal object JournalRecoveryGate {
             latch = null
             done = null
             running.set(false)
+            enforceForTests = false
         }
     }
 

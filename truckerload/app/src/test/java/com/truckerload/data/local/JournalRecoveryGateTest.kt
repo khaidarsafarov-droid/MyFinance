@@ -1,12 +1,17 @@
 package com.truckerload.data.local
 
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -50,5 +55,39 @@ class JournalRecoveryGateTest {
         JournalRecoveryGate.resetForTests()
         JournalRecoveryGate.awaitBeforeOpenForTests()
         JournalRecoveryGate.awaitOffMainForTests()
+    }
+
+    @Test
+    fun databaseOpenWaitsUntilRecoveryFinishes() {
+        val context = RuntimeEnvironment.getApplication()
+        val order = Collections.synchronizedList(mutableListOf<String>())
+        val failure = AtomicReference<Throwable>(null)
+        JournalRecoveryGate.resetForTests()
+        JournalRecoveryGate.enforceForTests = true
+        JournalRecoveryGate.arm()
+        val thread = Thread {
+            try {
+                AppDatabase.getInstance(context, "gate-before-open")
+                order.add("db-open")
+            } catch (t: Throwable) {
+                failure.set(t)
+            }
+        }
+        thread.start()
+        try {
+            Thread.sleep(200)
+            assertFalse(order.contains("db-open"))
+            assertNull(failure.get())
+            order.add("recovery-finished")
+            JournalRecoveryGate.release()
+            thread.join(8_000)
+            assertNull(failure.get()?.toString(), failure.get())
+            assertEquals(listOf("recovery-finished", "db-open"), order)
+        } finally {
+            JournalRecoveryGate.release()
+            thread.join(2_000)
+            AppDatabase.closeCurrent()
+            JournalRecoveryGate.resetForTests()
+        }
     }
 }
